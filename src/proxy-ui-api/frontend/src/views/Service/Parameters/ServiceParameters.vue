@@ -174,8 +174,8 @@
         </tr>
         <template v-if="serviceClients">
           <tr v-for="sc in serviceClients" v-bind:key="sc.id">
-            <td>{{ sc.name }}</td>
-            <td>{{ sc.id }}</td>
+            <td class="identifier-wrap">{{ sc.name }}</td>
+            <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.service_client_type }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td>

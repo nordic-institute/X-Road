@@ -33,6 +33,7 @@
         type="text"
         v-model="keyLabel"
         data-test="key-label-button"
+        autofocus
       ></v-text-field>
     </div>
     <div class="button-footer">

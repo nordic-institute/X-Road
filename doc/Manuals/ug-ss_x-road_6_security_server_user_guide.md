@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.49  
+Version: 2.53  
 Doc. ID: UG-SS
 
 ---
@@ -58,7 +58,7 @@ Doc. ID: UG-SS
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
  06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
- 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-apis) | Janne Mattila
+ 26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-api) | Janne Mattila
  16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
  30.06.2019 | 2.28    | Update the default connection type from HTTP to HTTPS in chapter [9] | Petteri Kivimäki
  01.07.2019 | 2.29    | Changing the Security Server Owner chapter added (Chapter [3.4](#34-changing-the-security-server-owner)) | Petteri Kivimäki
@@ -72,17 +72,21 @@ Doc. ID: UG-SS
  24.02.2020 | 2.37    | Updated notes about key caching after changing internal TLS key and certificate [10.3](#103-changing-the-internal-tls-key-and-certificate) | Caro Hautamäki
  26.03.2020 | 2.38    | Added chapter on updating API keys [19.1.3](#1913-updating-api-keys) | Petteri Kivimäki
  30.03.2020 | 2.39    | Added description of pre-restore backups | Ilkka Seppälä
- 01.04.2020 | 2.40    | Added notes about IP whitelists for APIs | Janne Mattila
+ 01.04.2020 | 2.40    | Added notes about IP whitelists for REST API | Janne Mattila
  03.06.2020 | 2.41    | Updated audit logging description | Janne Mattila
  05.06.2020 | 2.42    | Added chapter about validation errors [19.4](#194-validation-errors) | Caro Hautamäki
  25.06.2020 | 2.43    | Update environmental and operational monitoring JMXMP details | Petteri Kivimäki
  08.07.2020 | 2.44    | Update chapter on access rights [7](#7-access-rights) | Petteri Kivimäki
  30.07.2020 | 2.45    | Added mention about proxy_ui_api.log to [17 Logs and System Services](#17-logs-and-system-services) | Janne Mattila
  10.08.2020 | 2.46    | Added mention about unit start rate limits to [17.1 System Services](#171-system-services) | Janne Mattila
- 29.09.2020 | 2.47    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
- 30.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
- 15.10.2020 | 2.49    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
-
+ 21.09.2020 | 2.47    | Added a validation error example to [19.4 Validation errors](#194-validation-errors) | Caro Hautamäki
+ 29.09.2020 | 2.48    | Update chapters [3](#3-security-server-registration), [4](#4-security-server-clients), [6](#6-x-road-services), [7](#7-access-rights), [8](#8-local-access-right-groups) and [13](#13-back-up-and-restore) to match the new management API | Tapio Jaakkola
+ 30.09.2020 | 2.49    | Update chapters [3](#3-security-server-registration), [5](#5-security-tokens-keys-and-certificates), [9](#9-communication-with-the-client-information-systems), [10](#10-system-parameters), [14](#14-diagnostics) and [17](#17-logs-and-system-services) to match the new management API | Caro Hautamäki
+ 10.10.2020 | 2.50    | Corrections in Chapter [19 Management REST API](#19-management-rest-api) | Janne Mattila
+ 13.10.2020 | 2.51    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses) | Caro Hautamäki
+ 15.10.2020 | 2.52    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
+ 22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
+ 
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -193,7 +197,7 @@ Doc. ID: UG-SS
   - [17.2 Logging configuration](#172-logging-configuration)
   - [17.3 Fault Detail UUID](#173-fault-detail-uuid)
 - [18 Federation](#18-federation)
-- [19 Management REST APIs](#19-management-rest-apis)
+- [19 Management REST API](#19-management-rest-api)
   - [19.1 API key management operations](#191-api-key-management-operations)
     - [19.1.1 Creating new API keys](#1911-creating-new-api-keys)
     - [19.1.2 Listing API keys](#1912-listing-api-keys)
@@ -203,6 +207,7 @@ Doc. ID: UG-SS
   - [19.2 Executing REST calls](#192-executing-rest-calls)
   - [19.3 Correlation ID HTTP header](#193-correlation-id-http-header)
   - [19.4 Validation errors](#194-validation-errors)
+  - [19.5 Warning responses](#195-warning-responses)
 - [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 
 <!-- vim-markdown-toc -->
@@ -297,6 +302,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 22. <a id="Ref_UG-SYSPAR" class="anchor"></a>\[UG-SYSPAR\] X-Road: System Parameters User Guide. Document ID: [UG-SYSPAR](../Manuals/ug-syspar_x-road_v6_system_parameters.md).
 
+23. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
 
 ## 2 User Management
 
@@ -344,7 +350,7 @@ To remove a user permission, remove the user from the corresponding system group
 
     deluser username xroad-security-officer
 
-User permissions are applied only after restart of the xroad-jetty service (see Section [16.1](#171-system-services)).
+Modified user permissions are applied only after user does a new log in.
 
 To remove a user, enter:
 
@@ -2051,12 +2057,12 @@ It is possibility to limit what allowed non-owners can request via environmental
 
 The most important system services of a security server are as follows.
 
- **Service**        | **Purpose**                                   | **Log**
-------------------- | --------------------------------------------- | -----------------------------------------
- `xroad-confclient` | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
- `xroad-proxy`      | Message exchanger                             | `/var/log/xroad/proxy.log`
- `xroad-signer`     | Manager process for key settings              | `/var/log/xroad/signer.log`
- `xroad-proxy-ui-api`  | Management UI and REST API                 | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
+ **Service**           | **Purpose**                                             | **Log**
+-------------------    | ------------------------------------------------------  | -----------------------------------------
+ `xroad-confclient`    | Client process for the global configuration distributor | `/var/log/xroad/configuration_client.log`
+ `xroad-proxy`         | Message exchanger                                       | `/var/log/xroad/proxy.log`
+ `xroad-signer`        | Manager process for key settings                        | `/var/log/xroad/signer.log`
+ `xroad-proxy-ui-api`  | Management UI and REST API                              | `/var/log/xroad/proxy_ui_api.log` and <br/>`/var/log/xroad/proxy_ui_api_access.log` 
 
 System services are managed through the *systemd* facility.
 
@@ -2134,17 +2140,17 @@ And the following will allow none:
 allowed-federations=xe-test, all, none, ee-test
 ```
 
-## 19 Management REST APIs
+## 19 Management REST API
 
-Security server has REST APIs that can be used to do all the same server configuration operations that can be done
+Security server has a REST API that can be used to do all the same server configuration operations that can be done
 using the web UI.
 
-Management REST APIs are protected with an API key based authentication. To execute REST calls, API keys need to be created.
+Management REST API is protected with an API key based authentication. To execute REST calls, API keys need to be created.
 
-All REST APIs are protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
-with `curl` you need to use `--insecure` or `-k` option.
+REST API is protected by TLS. Since server uses self signed certificate, the caller needs to accept this (for example
+with `curl` you might use `--insecure` or `-k` option).
 
-Request sent to REST APIs have a *limit for maximum size*. If a too large request is sent
+Requests sent to REST API have a *limit for maximum size*. If a too large request is sent
 to REST API, it will not be processed, and http status 413 Payload too large will be returned.
 There is a different limit for binary file uploads, and for other requests.
 
@@ -2152,8 +2158,8 @@ Limits are
 - 10MB for file uploads
 - 50KB for other requests
 
-REST APIs are also *rate limited*. Rate limits apply per each calling IP. If the number of calls
-from one IP address exceeds the limit, REST APIs return http status 429 Too Many Requests.
+REST API is also *rate limited*. Rate limits apply per each calling IP. If the number of calls
+from one IP address exceeds the limit, endpoints return http status 429 Too Many Requests.
 
 Limits are
 - 600 requests per minute
@@ -2182,8 +2188,8 @@ PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
 An API key is linked to a role or roles, and grants access to the operations that are allowed for that role/roles.
-A separate REST api exists for API key management.
-API key management API is authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password)
+Separate REST endpoints exist for API key management.
+API key management endpoints are authenticated to with [HTTP basic authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) (username and password)
 or with session authentication (for admin web application).
 Basic authentication access is limited to localhost by default, but this can
 be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
@@ -2232,11 +2238,11 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
 
 #### 19.1.3 Updating API keys
 
-An existing API key is updated with a `PUT` request to `/api/v1/api-key/{id}`. Message body must contain the roles to be
+An existing API key is updated with a `PUT` request to `/api/v1/api-keys/{id}`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the key id and roles associated with the key.
 
 ```
-curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-key/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
+curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-keys/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "id": 60,
   "roles": [
@@ -2261,11 +2267,11 @@ curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -
 
 API keys are cached in memory. In typical security server configurations this does not create problems.
 However, if you have configured a setup where multiple security servers share the same `serverconf` database,
-and use multiple nodes to access REST APIs and execute API key management operations, the caches of different nodes
+and use multiple nodes to access REST API and execute API key management operations, the caches of different nodes
 can become out of sync.
 
 For example, you may revoke an API key from node 1 but node 2 is not aware of this, and still grants access to
-REST APIs with this API key.
+REST API endpoints with this API key.
 
 If you operate such a configuration, you need to target all REST API operations to the same security server node,
 or otherwise ensure that caching will not create problems (for example, always restart REST API modules when API key
@@ -2279,7 +2285,7 @@ Once a valid API key has been created, it is used by providing an `Authorization
 header in the REST calls. For example
 
 ```
-curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/v1/clients" -k
+curl --header "Authorization: X-Road-ApiKey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/v1/clients" -k
 [
   {
     "id": "XRD2:GOV:999:foobar",
@@ -2291,14 +2297,14 @@ curl --header "Authorization: X-Road-apikey token=ff6f55a8-cc63-4e83-aa4c-55f99d
 ...
 ```
 
-The available APIs are documented in OpenAPI specification (TBD). Access rights for different APIs follow the same rules
+The available APIs are documented in OpenAPI specification \[[REST_UI-API](#Ref_REST_UI-API)\]. Access rights for different APIs follow the same rules
 as the corresponding UI operations.
 Access to regular APIs is allowed from all IP addresses by default, but this can
 be changed using System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\].
 
 ### 19.3 Correlation ID HTTP header
 
-The REST APIs return an **X-Road-UI-Correlation-ID** HTTP header. This header is also logged in `proxy_ui_api.log`, so it
+The REST API endpoints return an **x-road-ui-correlation-id** HTTP header. This header is also logged in `proxy_ui_api.log`, so it
 can be used to find the log messages related to a specific API call.
 
 The correlation ID header is returned for all requests, both successful and failed ones.
@@ -2312,17 +2318,85 @@ For example, these log messages are related to an API call with correlation ID `
 
 ### 19.4 Validation errors
 
-An error response from the REST API can include validation errors if an unsupported parameter was provided with the request. 
+An error response from the REST API can include validation errors if an unsupported parameter was provided with the request.
+When 
 
-In addition to the validation messages declared in Java Validation API, the following validation errors are possible:
+Example request and response of adding a new subsystem with illegal characters:
 ```
-Normalized
-NoColons
-NoSemicolons
-NoForwardslashes
-NoBackslashes
-NoPercents
+POST https://ss1:4100/api/v1/clients
+
+Request body:
+{
+  "client": {
+    "member_class": "ORG",
+    "member_code": "0/1234",
+    "subsystem_code": "Subsystem%Code"
+  },
+  "ignore_warnings": false
+}
+
+Response body:
+{
+  "error": {
+    "code": "validation_failure",
+    "validation_errors": {
+      "clientAdd.client.memberCode": [
+        "NoForwardslashes"
+      ],
+      "clientAdd.client.subsystemCode": [
+        "NoPercents"
+      ]
+    }
+  },
+  "status": 400
+}
 ```
+
+In addition to the validation messages declared in [Java Validation API](https://javaee.github.io/javaee-spec/javadocs/javax/validation/constraints/package-summary.html), the following validation errors are possible:
+
+Error             | Explanation
+------------------|-----------
+`NoControlChars`    | The provided string contains [ISO control characters](https://en.wikipedia.org/wiki/Control_character) or zero-width spaces
+`NoColons`          | The provided string contains colons `:`
+`NoSemicolons`      | The provided string contains semicolons `;`
+`NoForwardslashes`  | The provided string contains slashes `/`
+`NoBackslashes`     | The provided string contains backslashes `\`
+`NoPercents`        | The provided string contains percent symbol `%`
+
+### 19.5 Warning responses
+
+Error response from the Management API can include additional warnings that you can ignore if seen necessary. The warnings can be ignored by your decision, by executing the same operation with `ignore_warnings` boolean parameter set to `true`. *Always consider the warning before making the decision to ignore it.* 
+
+An example case:
+1. Client executes a REST request, without `ignore_warnings` parameter, to backend.
+2. Backend notices warnings and responds with error message that contains the warnings. Nothing is updated at this point.
+3. Client determines if warnings can be ignored.
+4. If the warnings can be ignored, client resends the REST request, but with `ignore_warnings` parameter set to `true`.
+5. Backend ignores the warnings and executes the operation.
+
+Error response with warnings always contains the error code `warnings_detected`.
+
+Like errors, warnings contain an identifier (code) and possibly some metadata.
+
+Warning example when trying to register a WSDL that produces non-fatal validation warnings: 
+```
+{
+  "status": 400,
+  "error": {
+    "code": "warnings_detected"
+  },
+  "warnings": [
+    {
+      "code": "wsdl_validation_warnings",
+      "metadata": [
+        "WSDLValidator Error : Summary: Failures: 0, Warnings: 1 <<< WARNING! Operation 'someService' in PortType: {http://test.x-road.global/some-service}someService.servicePortType has no output message"
+      ]
+    }
+  ]
+}
+```
+
+Note that when you are using the admin UI and you encounter warnings, you will always be provided with a popup window with a `CONTINUE` button in it. When you click the `CONTINUE` button in the popup, the request is sent again but this time warnings will be ignored.
 
 ## 20 Migrating to Remote Database Host
 

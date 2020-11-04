@@ -95,6 +95,7 @@
               type="text"
               :error-messages="errors"
               v-model="subsystemCode"
+              autofocus
               data-test="subsystem-code-input"
             ></v-text-field>
           </ValidationProvider>

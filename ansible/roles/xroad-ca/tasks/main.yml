@@ -46,15 +46,15 @@
     - "etc"
     - "usr"
 
-- name: copy root user directories for bionic
+- name: copy root user directories for ubuntu
   copy:
-    src: "bionic-files/{{ item }}"
+    src: "ubuntu-files/{{ item }}"
     dest: /
     group: "root"
     owner: "root"
   with_items:
     - "lib"
-  when: ansible_distribution_release == "bionic"
+  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
 
 - name: copy ca group directories
   copy:

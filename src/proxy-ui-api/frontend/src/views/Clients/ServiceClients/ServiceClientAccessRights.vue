@@ -35,8 +35,8 @@
           </tr>
         </thead>
         <tr>
-          <td>{{ serviceClient.name }}</td>
-          <td>{{ serviceClient.id }}</td>
+          <td class="identifier-wrap">{{ serviceClient.name }}</td>
+          <td class="identifier-wrap">{{ serviceClient.id }}</td>
         </tr>
       </table>
     </v-card>
@@ -78,8 +78,8 @@
           v-for="accessRight in keyedServiceClientAccessRights()"
           :key="accessRight.uiKey"
         >
-          <td>{{ accessRight.service_code }}</td>
-          <td>{{ accessRight.service_title }}</td>
+          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+          <td class="identifier-wrap">{{ accessRight.service_title }}</td>
           <td>{{ accessRight.rights_given_at }}</td>
           <td>
             <div class="button-wrap">

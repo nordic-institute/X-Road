@@ -89,6 +89,8 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.ClientService.InvalidInstanceIdentifierException.ERROR_INVALID_INSTANCE_IDENTIFIER;
+import static org.niis.xroad.restapi.service.ClientService.InvalidMemberClassException.ERROR_INVALID_MEMBER_CLASS;
 import static org.niis.xroad.restapi.service.InvalidServiceUrlException.ERROR_INVALID_SERVICE_URL;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
 import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
@@ -115,6 +117,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
             TestUtils.INSTANCE_FI,
             TestUtils.INSTANCE_EE));
+    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
+            TestUtils.MEMBER_CLASS_PRO);
 
     @Before
     public void setup() throws Exception {
@@ -153,6 +157,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         when(managementRequestSenderService.sendOwnerChangeRequest(any())).thenReturn(0);
         when(serverConfService.getSecurityServerId()).thenReturn(OWNER_SERVER_ID);
         when(currentSecurityServerId.getServerId()).thenReturn(OWNER_SERVER_ID);
+        when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
     }
 
     @Autowired
@@ -164,7 +169,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<List<Client>> response =
                 clientsApiController.findClients(null, null, null, null, null, true, false, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(9, response.getBody().size());
+        assertEquals(11, response.getBody().size());
     }
 
     @Test
@@ -172,7 +177,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     public void ownerMemberFlag() {
         ResponseEntity<List<Client>> response =
                 clientsApiController.findClients(null, null, null, null, null, true, false, false, false);
-        assertEquals(9, response.getBody().size());
+        assertEquals(11, response.getBody().size());
         List<Client> owners = response.getBody().stream()
                 .filter(Client::getOwner)
                 .collect(Collectors.toList());
@@ -186,7 +191,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<List<Client>> response = clientsApiController.findClients(null, null, null, null, null, true,
                 true, false, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(5, response.getBody().size());
+        assertEquals(7, response.getBody().size());
         Client client = response.getBody().get(0);
         assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberName());
         assertEquals("M1", client.getMemberCode());
@@ -453,7 +458,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
                 true, false, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(9, clientsResponse.getBody().size());
+        assertEquals(11, clientsResponse.getBody().size());
     }
 
     @Test
@@ -472,7 +477,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 TestUtils.MEMBER_CLASS_PRO,
                 null, null, true, false, false, false);
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
-        assertEquals(2, clientsResponse.getBody().size());
+        assertEquals(3, clientsResponse.getBody().size());
     }
 
     @Test
@@ -655,7 +660,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     public void addClientBadRequestFromWarnings() {
         // warning about unregistered client
         doReturn(null).when(globalConfFacade).getMemberName(any());
-        Client clientToAdd = createTestClient("UNREGISTEREDA", "B", "C");
+        Client clientToAdd = createTestClient(TestUtils.MEMBER_CLASS_GOV, "B", "C");
         try {
             clientsApiController.addClient(
                     new ClientAdd().client(clientToAdd).ignoreWarnings(false));
@@ -667,6 +672,21 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         ResponseEntity<Client> response = clientsApiController.addClient(
                 new ClientAdd().client(clientToAdd).ignoreWarnings(true));
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ADD_CLIENT" })
+    public void addClientBadRequestFromInvalidMemberClass() {
+        // warning about unregistered client
+        doReturn(null).when(globalConfFacade).getMemberName(any());
+        Client clientToAdd = createTestClient("INVALID", "B", "C");
+        try {
+            clientsApiController.addClient(
+                    new ClientAdd().client(clientToAdd).ignoreWarnings(false));
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_INVALID_MEMBER_CLASS, expected.getErrorDeviation().getCode());
+        }
     }
 
     @Test
@@ -1058,6 +1078,26 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
     @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
     public void registerClientWrongStatus() {
         clientsApiController.registerClient(TestUtils.CLIENT_ID_SS1);
+    }
+
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerClientWithInvalidInstanceIdentifier() throws Exception {
+        try {
+            clientsApiController.registerClient(TestUtils.CLIENT_ID_INVALID_INSTANCE_IDENTIFIER);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_INVALID_INSTANCE_IDENTIFIER, expected.getErrorDeviation().getCode());
+        }
+    }
+
+    @WithMockUser(authorities = { "SEND_CLIENT_REG_REQ" })
+    public void registerClientWithInvalidMemberClass() throws Exception {
+        try {
+            clientsApiController.registerClient(TestUtils.CLIENT_ID_INVALID_MEMBER_CLASS);
+            fail("should have thrown BadRequestException");
+        } catch (BadRequestException expected) {
+            assertEquals(ERROR_INVALID_MEMBER_CLASS, expected.getErrorDeviation().getCode());
+        }
     }
 
     @Test(expected = ConflictException.class)

@@ -77,6 +77,7 @@
               v-model="url"
               single-line
               name="serviceUrl"
+              autofocus
               :error-messages="errors"
             ></v-text-field>
           </ValidationProvider>

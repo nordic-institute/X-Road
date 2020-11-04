@@ -40,6 +40,7 @@
           hide-details
           class="search-input"
           data-test="client-search-input"
+          autofocus
         >
           <v-icon slot="append">mdi-magnify</v-icon>
         </v-text-field>

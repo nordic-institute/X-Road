@@ -15,12 +15,10 @@ legacy/lib/
 /lib/
 legacy/passwordstore/libpasswordstore.so
 packages/xroad-jetty9/jetty9/
-packages/*.changes
 passwordstore/libpasswordstore.so
 **/log/
 center-service/db/migrate/
 center-ui/db/migrate/
-**/log/
 packages/xroad-jetty9/jetty-distribution-*
 **/public/javascripts/translations.js
 packages/*.changes
@@ -41,7 +39,6 @@ tmp/
 ubuntu-xenial-16.04-cloudimg-console.log
 packages/jetty
 classes/
-**/bin/
 .project 
 .classpath
 .settings
