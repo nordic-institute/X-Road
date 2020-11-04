@@ -96,6 +96,33 @@ task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
+// build frontend ui library
+task buildLibrary(type: NpmTask) {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'install-build-ui-lib']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// check frontend ui library
+task checkLibrary(type: NpmTask) {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'check-ui-lib']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+
 // run e2e tests vs remote url
 if (!project.hasProperty("testTargetUrl")) {
     ext.testTargetUrl = ""
@@ -132,6 +159,8 @@ npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 processResources.dependsOn 'buildFront'
 buildFront.dependsOn 'checkFrontAudit'
 checkFrontAudit.dependsOn 'checkFrontLicense'
+checkFrontLicense.dependsOn 'buildLibrary'
+buildLibrary.dependsOn 'checkLibrary'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
