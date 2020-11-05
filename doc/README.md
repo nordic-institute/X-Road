@@ -297,10 +297,10 @@ apt-get update && apt-get upgrade
 ```
 - Start the services:
 ```
-supervisorctl start all 
+supervisorctl start all
 ```
 
-Note (1): It is possible that a major version update will require extra changes, for doing that check the specific documentation for the version update.
+Note: It is possible that a major version update will require extra changes, for doing that check the specific documentation for the version update.
 
 # 7 Monitoring
 Monitoring will be available if we use the regular version of the X-Road Security Server sidecar instead of the 'slim' version.
