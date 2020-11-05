@@ -122,14 +122,27 @@ task buildUILibrary(type: NpmTask) {
     }
 }
 
-// check frontend ui library
-task checkUILibrary(type: NpmTask) {
+// check frontend ui library npm audit
+task auditCheckUILibrary(type: NpmTask) {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
     inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
     outputs.upToDateWhen { true }
-    args = ['run', 'check-ui-lib']
+    args = ['run', 'audit-check-ui-lib']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// check frontend ui library licenses
+task licenseCheckUILibrary(type: NpmTask) {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check-ui-lib']
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -173,8 +186,9 @@ processResources.dependsOn 'buildFront'
 buildFront.dependsOn 'checkFrontAudit'
 checkFrontAudit.dependsOn 'checkFrontLicense'
 checkFrontLicense.dependsOn 'buildUILibrary'
-buildUILibrary.dependsOn 'checkUILibrary'
-checkUILibrary.dependsOn 'installUILibrary'
+buildUILibrary.dependsOn 'licenseCheckUILibrary'
+licenseCheckUILibrary.dependsOn 'auditCheckUILibrary'
+auditCheckUILibrary.dependsOn 'installUILibrary'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
