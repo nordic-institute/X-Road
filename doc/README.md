@@ -40,14 +40,14 @@ The document is intended for readers with a moderate knowledge of Linux server m
 The Security Server sidecar installation requires an existing X-Road Central server installed and configured and a installation of Docker.
 
 ## 2.2 X-Road Security Server sidecar images
-The X-Road Security Server supported versions for the sidecar are the versions "6.23.0" and "6.24.0".
+Security Server sidecar server has different configurations combined with the versions (current supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
+All of the images of the can act as a provider or consumer Security Servers.
 
 ### 2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim
-Base image of the Security Server sidecar with the minimum necessary packages. This image can act as both consumer and provider.
+Base image of the Security Server sidecar with the minimum necessary packages.
 
 ### 2.2.2 niis/xroad-security-server-sidecar:&lt;version&gt;
 This image uses the slim as base image and includes the packages for support [environmental](https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md) and [operational monitoring](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring) along with support for [message logging](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md).
-This image can act as both consumer and provider.
 
 ### 2.2.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi
 This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish settings configuration included.
@@ -69,18 +69,16 @@ This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;
 1.9    | &lt;xroad db password&gt;                        | Environmental variable with the DB password in case we are using a external database
 1.10    | &lt;xroad log level&gt;                         | Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
 1.11    | &lt;database-name&gt;                     | Optional parameter, this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
-1.12    | TCP 5500                                  | Ports for inbound connections (from the external network to the security server)<br> Message exchange between security servers
-&nbsp; | TCP 5577                                  | Ports for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
-1.13    | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
+1.12    | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
 &nbsp; | TCP 5577                                  | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
 &nbsp; | TCP 80 (1)                                | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
 &nbsp; | TCP 80 (1),443                            | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP service
-1.14   | TCP 80 (1)                                | Ports for information system access points (in the local network)<br> Connections from information systems
+1.13   | TCP 80 (1)                                | Ports for information system access points (in the local network)<br> Connections from information systems
 &nbsp; | TCP 443                                   | Ports for information system access points (in the local network)<br> Connections from information systems
-1.15    | TCP 5588                                  | Port for health check (local network)
-1.16    | TCP 4000 (2)                              | Port for admin user interface (local network)
-1.17   |                                           | Internal IP address and hostname(s) for security server sidecar
-1.18   |                                           | Public IP address, NAT address for security server sidecar
+1.14    | TCP 5588                                  | Port for health check (local network)
+1.15    | TCP 4000 (2)                              | Port for admin user interface (local network)
+1.16   |                                           | Internal IP address and hostname(s) for security server sidecar
+1.17   |                                           | Public IP address, NAT address for security server sidecar
 
 It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks**.
 
@@ -90,7 +88,7 @@ Minimum recommended docker engine configuration to run the security server sidec
 - Memory: 2 GiB
 - Swap: 1 GiB
 - Disk space: 2 GiB
-- if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.11; 1.12; 1.13; 1.14**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
+- if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.11; 1.12; 1.13;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 - if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.18**).
 ## 2.5 Network
 
@@ -198,7 +196,7 @@ xroad-proxy                      RUNNING   pid 473, uptime 0:15:55
 xroad-proxy-ui-api               RUNNING   pid 476, uptime 0:15:55
 xroad-signer                     RUNNING   pid 472, uptime 0:15:55
 ```
-- Ensure that the security server user interface at https://SECURITYSERVER:<ui port>/ (**reference data: 1.3**) can be opened in a Web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**). While the user interface is still starting up, the Web browser may display a connection refused -error.
+- Ensure that the security server user interface at https://SECURITYSERVER:&lt;ui port&gt;/ (**reference data: 1.3**) can be opened in a Web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 # 4 X-Road Security Server sidecar initial configuration
 During the security server initial configuration, the server’s X-Road membership information and the software token’s PIN are set
@@ -245,7 +243,7 @@ Upon first log-in, the system asks for the following information.
  - Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
 ## 4.4 Central Server configuration
-After the Security Server sidecar it's configured, we need to register it in the central server, information about how to configure the Security Server sidecar on the central server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#3-security-server-registration)
+After the Security Server sidecar it's configured, we need to register it in the central server, information about how to configure the Security Server sidecar on the central server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
 
 # 5 Back up and Restore
 Information of how to backup and restore the Security Server sidecar can be found on the [Security Server User guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore).
