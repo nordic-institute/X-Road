@@ -16,7 +16,7 @@
     "scripts/dtsgen-wrapper.js",
     "tests/unit/__snapshots__"
   ],
-  "license": "../LICENSE.txt",
+  "license": "LICENSE.txt",
   "licenseFormats": {
     "ts|js|css|scss": {
       "prepend": "/*",
