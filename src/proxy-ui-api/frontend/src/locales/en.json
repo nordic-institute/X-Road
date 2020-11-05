@@ -414,6 +414,13 @@
       "registered": "Registered",
       "deletion": "Deletion in progress",
       "globalError": "Global error"
+    },
+    "tokenStatus": {
+      "available": "",
+      "active": "",
+      "inactive": "Inactive",
+      "unavailable": "Blocked",
+      "unsaved": "Not saved"
     }
   },
   "ssTlsCertificate": {

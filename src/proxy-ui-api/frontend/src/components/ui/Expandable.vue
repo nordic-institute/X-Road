@@ -27,7 +27,14 @@
   <div>
     <div class="header">
       <div>
-        <v-btn fab icon small @click="clicked" class="no-hover">
+        <v-btn
+          fab
+          icon
+          small
+          @click="clicked"
+          class="no-hover"
+          v-bind:style="{ color: color }"
+        >
           <v-icon v-if="isOpen" class="button-icon">mdi-chevron-down</v-icon>
           <v-icon v-else class="button-icon">mdi-chevron-right</v-icon>
         </v-btn>
@@ -35,7 +42,7 @@
       <div class="header-link">
         <slot name="link"></slot>
       </div>
-
+      `
       <v-spacer />
       <div class="action-wrap">
         <slot name="action"></slot>
@@ -49,14 +56,19 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   name: 'expandable',
   components: {},
   props: {
     isOpen: {
-      type: Boolean,
+      type: Boolean as Prop<boolean>,
       required: true,
+    },
+    color: {
+      type: String as Prop<string>,
+      required: false,
     },
   },
   methods: {

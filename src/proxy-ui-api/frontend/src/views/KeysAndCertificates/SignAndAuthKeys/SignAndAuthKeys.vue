@@ -1,3 +1,4 @@
+import {TokenStatus} from "@/openapi-types";
 <!--
    The MIT License
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
