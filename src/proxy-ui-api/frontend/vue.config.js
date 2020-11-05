@@ -24,7 +24,11 @@ module.exports = {
         // Fixes an issue with $attrs and $listeners readonly errors in browser console.
         // Which is caused by two instances of vue running on same time
         // https://github.com/vuejs/vue-cli/issues/4271
+        'core-js': path.resolve('./node_modules/core-js'),
         vue$: path.resolve('./node_modules/vue/dist/vue.runtime.esm.js'),
+        vuetify: path.resolve('./node_modules/vuetify'),
+        'vue-i18n': path.resolve('./node_modules/vue-i18n'),
+        'vee-validate': path.resolve('./node_modules/vee-validate'),
       },
     },
   },
