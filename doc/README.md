@@ -41,7 +41,7 @@ The Security Server sidecar installation requires an existing X-Road Central ser
 
 ## 2.2 X-Road Security Server sidecar images
 Security Server sidecar server has different configurations combined with the versions (current supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
-All of the images of the can act as a provider or consumer Security Servers.
+All of the images can act as a provider or consumer Security Servers.
 
 ### 2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim
 Base image of the Security Server sidecar with the minimum necessary packages.
