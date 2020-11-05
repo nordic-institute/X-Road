@@ -1,26 +1,32 @@
 # Table of Contents
-  * [1 Introduction](#1-introduction)
-     * [1.1 Target Audience](#11-target-audience)
-  * [2 Installation](#2-installation)
-     * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-     * [2.2 Requirements for the X-Road Security Server sidecar](#22-requirements-for-the-x-road-security-server-sidecar)
-     * [2.3 X-Road Security Server sidecar images](#23-x-road-security-server-sidecar-images)
-        * [2.3.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim](#231-niisxroad-security-server-sidecarversion-slim)
-        * [2.3.2 niis/xroad-security-server-sidecar:&lt;version&gt;](#232-niisxroad-security-server-sidecarversion)
-        * [2.3.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi](#233-niisxroad-security-server-sidecarversion-slim-fi)
-        * [2.3.4](#234)
-     * [2.4 Reference data](#24-reference-data)
-     * [2.5 Network](#25-network)
-     * [2.6 Installation](#26-installation)
-     * [2.7 External database](#27-external-database)
-        * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
-  * [3 Verify installation](#3-verify-installation)
-  * [4 X-Road Security Server sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
-     * [4.1 Prerequisites](#41-prerequisites)
-     * [4.2 Reference data](#42-reference-data)
-     * [4.3 Configuration](#43-configuration)
-  * [5 Version update](#5-version-update)
-  * [6 Backups](#6-backups)
+   * [1 Introduction](#1-introduction)
+      * [1.1 Target Audience](#11-target-audience)
+   * [2 Installation](#2-installation)
+      * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+      * [2.2 X-Road Security Server sidecar images](#22-x-road-security-server-sidecar-images)
+         * [2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim](#221-niisxroad-security-server-sidecarversion-slim)
+         * [2.2.2 niis/xroad-security-server-sidecar:&lt;version&gt;](#222-niisxroad-security-server-sidecarversion)
+         * [2.2.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi](#223-niisxroad-security-server-sidecarversion-slim-fi)
+         * [2.2.4](#224)
+      * [2.3 Reference data](#23-reference-data)
+      * [2.4 Requirements for the X-Road Security Server sidecar](#24-requirements-for-the-x-road-security-server-sidecar)
+      * [2.5 Network](#25-network)
+      * [2.6 Installation](#26-installation)
+      * [2.7 External database](#27-external-database)
+         * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
+   * [3 Verify installation](#3-verify-installation)
+   * [4 X-Road Security Server sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
+      * [4.1 Prerequisites](#41-prerequisites)
+      * [4.2 Reference data](#42-reference-data)
+      * [4.3 Configuration](#43-configuration)
+      * [4.4 Central Server configuration](#44-central-server-configuration)
+   * [5 Back up and Restore](#5-back-up-and-restore)
+   * [6 Version update](#6-version-update)
+   * [7 Monitoring](#7-monitoring)
+      * [7.1 Environmental monitoring](#71-environmental-monitoring)
+      * [7.2 Operational Monitoring](#72-operational-monitoring)
+   * [8 Message log](#8-message-log)
+      * [8.1 Local storage of message log](#81-local-storage-of-message-log)
 
 
 # 1 Introduction
@@ -34,7 +40,7 @@ The document is intended for readers with a moderate knowledge of Linux server m
 The Security Server sidecar installation requires an existing X-Road Central server installed and configured and a installation of Docker.
 
 ## 2.2 X-Road Security Server sidecar images
-The X-Road supported versions for the Security Server sidecar are the versions "6.23.0" and "6.24.0"
+The X-Road Security Server supported versions for the sidecar are the versions "6.23.0" and "6.24.0".
 
 ### 2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim
 Base image of the Security Server sidecar with the minimum necessary packages. This image can act as both consumer and provider.
@@ -60,8 +66,8 @@ This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;
 1.6    | &lt;admin password&gt;                    | Admin password
 1.7    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database.
 1.8    | &lt;database port&gt;                     | Optional parameter, database port when we are using an external database, recommended 5432
-1.9    | $XROAD_DB_PASSWORD                        | Environmental variable with the DB password in case we are using a external database
-1.10    | $XROAD_LOG_LEVEL                          | Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
+1.9    | &lt;xroad db password&gt;                        | Environmental variable with the DB password in case we are using a external database
+1.10    | &lt;xroad log level&gt;                         | Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
 1.11    | &lt;database-name&gt;                     | Optional parameter, this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
 1.12    | TCP 5500                                  | Ports for inbound connections (from the external network to the security server)<br> Message exchange between security servers
 &nbsp; | TCP 5577                                  | Ports for inbound connections (from the external network to the security server)<br> Querying of OCSP responses between security servers
@@ -106,8 +112,7 @@ In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source
 ## 2.6 Installation
 To install the Security Server sidecar in a local development environment, we can run the docker command:
 ```
-docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=$XROAD_DB_PASSWORD -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL -e XROAD_CONF_DATABASE_NAME=<database name> --name <container name> niis/
-xroad-security-server-sidecar:<image tag>
+docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name> --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
 
 ## 2.7 External database
@@ -239,8 +244,38 @@ Upon first log-in, the system asks for the following information.
  - Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
  - Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-# 5 Backups
+## 4.4 Central Server configuration
+After the Security Server sidecar it's configured, we need to register it in the central server, information about how to configure the Security Server sidecar on the central server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#3-security-server-registration)
 
+# 5 Back up and Restore
+Information of how to backup and restore the Security Server sidecar can be found on the [Security Server User guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore).
+
+The Security Server sidecar stored its configuration on the local file system folder:
+```
+/etc/xroad/
+```
+It is possible store this configuration outside the docker container using docker volumes. Adding a docker volume will allow to keep the configuration even if the container is removed and the possibility to use the same configuration in other docker containers.
+To add the docker volume, in the docker run command [docker run command](##2.6-Installation) add the docker volume parameter mapping to the config folder:
+```
+docker run -v (custom-volume-name):/etc/xroad
+```
+Once the docker container it's running we can see the volume information and where is stored in our local machine running from the command line:
+```
+docker volume inspect (custom-volume-name)
+[
+    {
+        "CreatedAt": "2020-10-22T13:44:16+02:00",
+        "Driver": "local",
+        "Labels": null,
+        "Mountpoint": "/var/lib/docker/volumes/sidecar-config/_data",
+        "Name": "sidecar-config",
+        "Options": null,
+        "Scope": "local"
+    }
+]
+
+```
+We can manually backup the data stored in the "Mountpoint" every period of time.
 
 # 6 Version update
 
@@ -359,3 +394,26 @@ Note (1): The Security Server sidecar must have available certificates and a sub
 
 ## 7.2 Operational Monitoring
 Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here https://github.com/nordic-institute/X-Road/blob/master/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md/
+
+# 8 Message log
+Message log will be available if we use the regular version of the X-Road Security Server sidecar instead of the 'slim' version.
+The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between security servers are signed and encrypted. For every regular request and response, the security server produces a complete signed and timestamped document (Associated Signature Container).
+
+Message log data is stored to the [messagelog database](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md) of the security server database host (**reference data: 1.7**) during message exchange. According to the configuration (see 8.1), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
+
+In case of synchronous timestamping, the timestamping is an integral part of the message exchange process (one timestamp is taken for the request and another for the response). If the timestamping fails, the message exchange fails as well and the security server responds with an error message.
+
+In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the security server uses asynchronous timestamping for better performance and availability.
+
+## 8.1 Local storage of message log
+The Security Server sidecar periodically composes signed (and timestamped) documents from the message log data and archives them in the local file system folder:
+```
+/var/lib/xroad/
+```
+Archive files are ZIP containers containing one or more signed documents and a special linking information file for additional integrity verification purpose.
+
+To make sure we are not running out of disk space, we can use a docker volume to store the log records outside the container.
+From the docker run command [docker run command](##2.6-Installation) add the docker volume parameter mapping to the local storage folder of the logs:
+```
+docker run -v (custom-volume-name):/var/lib/xroad/  
+```
