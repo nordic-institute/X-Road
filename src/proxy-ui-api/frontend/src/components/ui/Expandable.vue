@@ -42,7 +42,7 @@
       <div class="header-link">
         <slot name="link"></slot>
       </div>
-      `
+
       <v-spacer />
       <div class="action-wrap">
         <slot name="action"></slot>
