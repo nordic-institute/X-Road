@@ -276,6 +276,31 @@ docker volume inspect (custom-volume-name)
 We can manually backup the data stored in the "Mountpoint" every period of time.
 
 # 6 Version update
+We can update the Security Server sidecar by creating a backup, running the image with the new version, and restore the backup or reuse the volume with the xroad config ([5](# 5-Back-up-and-Restore)).
+Another option, we can manually update the X-Road sidecar packages while the docker container is running.
+To do this we must:
+- From the command line open a bash terminal inside the container:
+```
+docker exec -it <container-name> bash
+```
+- Stop the services:
+```
+supervisorctl stop all
+```
+- Add the new version repository key:
+```
+echo "deb https://artifactory.niis.org/xroad-release-deb bionic-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
+```
+- Update and upgrade the packages:
+```
+apt-get update && apt-get upgrade
+```
+- Start the services:
+```
+supervisorctl start all 
+```
+
+Note (1): It is possible that a major version update will require extra changes, for doing that check the specific documentation for the version update.
 
 # 7 Monitoring
 Monitoring will be available if we use the regular version of the X-Road Security Server sidecar instead of the 'slim' version.
@@ -395,6 +420,7 @@ Operational monitoring for the Security Server Sidecar provider can be used to o
 
 # 8 Message log
 Message log will be available if we use the regular version of the X-Road Security Server sidecar instead of the 'slim' version.
+
 The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between security servers are signed and encrypted. For every regular request and response, the security server produces a complete signed and timestamped document (Associated Signature Container).
 
 Message log data is stored to the [messagelog database](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md) of the security server database host (**reference data: 1.7**) during message exchange. According to the configuration (see 8.1), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
