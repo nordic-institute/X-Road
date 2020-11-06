@@ -20,5 +20,4 @@
       - xroad-proxy
       - xroad-confclient
       - xroad-signer
-      - xroad-jetty
-
+      - xroad-proxy-ui-api
