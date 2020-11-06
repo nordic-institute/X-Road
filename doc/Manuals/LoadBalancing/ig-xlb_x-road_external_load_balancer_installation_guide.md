@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.8  
+Version: 1.10  
 Doc. ID: IG-XLB
 
 
@@ -14,7 +14,9 @@ Doc. ID: IG-XLB
 | 15.11.2018  | 1.5         | Updates for Ubuntu 18.04 support                                                                                         | Jarkko Hyöty                 |
 | 20.12.2018  | 1.6         | Update upgrade instructions                                                                                              | Jarkko Hyöty                 |
 | 11.09.2019  | 1.7         | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
-| 19.10.2020  | 1.8         | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
+| 08.10.2020  | 1.8         | Added notes about API keys and caching                                                                                   | Janne Mattila                |
+| 19.10.2020  | 1.9         | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
+| 19.10.2020  | 1.10        | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
 
 ## Table of Contents
 
@@ -270,7 +272,10 @@ In order to properly set up the data replication, the slave nodes must be able t
 
 
 ### 3.3 Slave installation
-1. Install security server packages using the normal installation procedure. It should be noted that changing a slave's configuration via the admin gui is not possible.
+1. Install security server packages using the normal installation procedure. Alternatively you can also install only the packages
+   required for slave nodes. `xroad-proxy-ui-api` package can be omitted, but the admin graphical user interface
+   (which is provided by this package) can be handy for diagnostics. It should be noted that changing a slave's
+   configuration via the admin gui is not possible.
 2. Stop the xroad services.
 3. Create a separate PostgreSQL instance for the serverconf database (see section
    [4. Database replication setup](#4-database-replication-setup) for details)
@@ -306,7 +311,21 @@ In order to properly set up the data replication, the slave nodes must be able t
    After removing these groups, the super user created during the security server installation is a member of only one UI privilege group: `xroad-securityserver-observer`. This group allows read-only access to the admin user interface and provides a safe way to use the UI for checking the configuration status of the slave security server. Since admin UI users are UNIX users that are members of specific privilege groups, more users can be added to the read-only group as necessary. Security server installation scripts detect the node type of existing installations and modify user group creation accordingly so as to not overwrite this configuration step during security server updates.
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
-10. It is possible to use the autologin-package with slave nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
+
+   Also, the slave security server's management REST API can be used to read the slave's configuration. However, modifying the slave's configuration using the management REST API is blocked. API keys are replicated from the master to the slaves, and the keys that are associated with the `xroad-securityserver-observer` role have read-only access to the slave. The keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the slave. See next item for more details.
+
+   For more information on the management REST API, see the  Security Server User Guide \[[UG-SS](#13-references)\].
+
+10. Note about API keys and caching.
+   If API keys have been created for master node, those keys are replicated to slaves, like everything else from `serverconf` database is.
+   The keys that are associated with the `xroad-securityserver-observer` role have read-only access to the slave.
+   Instead, the keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the slave and API calls will fail.
+   To avoid this, slave REST API should only be accessed using keys associated with the `xroad-securityserver-observer` role, and only for operations that read configuration, not updates. <p>
+   Furthermore, API keys are accessed through a cache that assumes that all updates to keys (e.g. revoking keys, or changing permissions) are done using the same node.
+   If API keys are changed on master, the changes are not reflected on the slave caches until the next time `xroad-proxy-ui-api` process is restarted.
+   To address this issue, you should restart slave nodes' `xroad-proxy-ui-api` processes after API keys are modified (and database has been replicated to slaves), to ensure correct operation.<p>
+   Improvements to API key handling in clustered setups will be included in later releases.
+11. It is possible to use the autologin-package with slave nodes to enable automatic PIN-code insertion, however the autologin-package default implementation stores PIN-codes in plain text and should not be used in production environments. Instructions on how to configure the autologin-package to use a more secure custom PIN-code storing implementation can be found in [autologin documentation](../Utils/ug-autologin_x-road_v6_autologin_user_guide.md)
 
 The configuration is now complete. If you do not want to set up the health check service, continue to [chapter 6](#6-verifying-the-setup)
  to verify the setup.
@@ -705,6 +724,7 @@ After=network.target
 Before=xroad-proxy.service
 Before=xroad-signer.service
 Before=xroad-confclient.service
+Before=xroad-proxy-ui-api.service
 [Service]
 User=xroad
 Group=xroad
@@ -842,7 +862,7 @@ disrupt message delivery while the online option should allow upgrades with mini
 
 ### 7.1 Offline upgrade
 If the X-Road security server cluster can be shut down for an offline upgrade, the procedure remains fairly simple:
-1. Stop the X-Road services (`xroad-proxy`, `xroad-signer`, `xroad-confclient` and `xroad-monitor`) on all
+1. Stop the X-Road services (`xroad-proxy`, `xroad-signer`, `xroad-confclient`, `xroad-proxy-ui-api` and `xroad-monitor`) on all
    the nodes. You can read more about the services in the Security Server User Guide
 \[[UG-SS](#13-references)\] chapter on [System services](../ug-ss_x-road_6_security_server_user_guide.md#161-system-services).
 2. Upgrade the packages on the master node to the new software version.

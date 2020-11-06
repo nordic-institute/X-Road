@@ -263,6 +263,8 @@ export default Vue.extend({
 
 .buttons {
   height: 100%;
+  display: flex;
+  flex-direction: row;
 }
 
 .scrollable {
