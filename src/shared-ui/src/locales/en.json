@@ -6,5 +6,10 @@
     "password": "Password",
     "username": "LIB-Username",
     "shared": "sharedlib"
+  },
+  "action": {
+    "cancel": "Cancel",
+    "add": "Add",
+    "yes": "Yes"
   }
 }

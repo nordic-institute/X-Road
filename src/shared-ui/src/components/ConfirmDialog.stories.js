@@ -55,11 +55,13 @@ export const Primary = Template.bind({});
 Primary.args = {
   primary: true,
   dialog: true,
-  label: 'Hello world!',
+  title: 'Hello world!',
+  text: 'Some text here'
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
   dialog: true,
-  label: 'This is a very very long label for a button',
+  title: 'This is a very very long label for a button',
+  text: 'Some text here'
 };
