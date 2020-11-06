@@ -29,10 +29,7 @@ import ee.ria.xroad.monitor.common.StatsRequest;
 import ee.ria.xroad.monitor.common.StatsResponse;
 import ee.ria.xroad.monitor.common.SystemMetricNames;
 
-import akka.actor.ActorIdentity;
-import akka.actor.ActorRef;
-import akka.actor.Identify;
-import akka.actor.Terminated;
+import akka.actor.ActorSelection;
 import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -52,13 +49,11 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     private final FiniteDuration interval
             = Duration.create(SystemProperties.getEnvMonitorSystemMetricsSensorInterval(), TimeUnit.SECONDS);
-    private final String agentPath;
 
     private static final String DEFAULT_AGENT_PATH =
             "akka://Proxy@127.0.0.1:" + SystemProperties.getProxyActorSystemPort() + "/user/ProxyMonitorAgent";
 
-    private ActorRef agent;
-    private long correlationId = 1;
+    private final ActorSelection agent;
 
     /**
      * Create new Sensor with a default agent path.
@@ -72,9 +67,8 @@ public class SystemMetricsSensor extends AbstractSensor {
      * @param agentPath
      */
     public SystemMetricsSensor(String agentPath) {
-        this.agentPath = agentPath;
         log.info("Creating sensor, measurement interval: {}", getInterval());
-        identifyAgent();
+        this.agent = context().actorSelection(agentPath);
         scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
     }
 
@@ -111,48 +105,15 @@ public class SystemMetricsSensor extends AbstractSensor {
 
     @Override
     public void onReceive(final Object message) {
+        log.trace("onReceive({})", message);
         if (MEASURE_MESSAGE == message) {
-            if (agent == null) {
-                identifyAgent();
-            } else {
-                agent.tell(STATS_REQUEST, self());
-            }
+            agent.tell(STATS_REQUEST, self());
             scheduleSingleMeasurement(getInterval(), MEASURE_MESSAGE);
         } else if (message instanceof StatsResponse) {
             updateMetrics((StatsResponse) message);
-        } else if (message instanceof ActorIdentity) {
-            attachAgent((ActorIdentity) message);
-        } else if (message instanceof Terminated) {
-            detachAgent((Terminated) message);
         } else {
             unhandled(message);
         }
-    }
-
-    private void detachAgent(final Terminated message) {
-        if (message.getActor().equals(agent)) {
-            log.info("ProxyMonitorAgent detached");
-            context().unwatch(agent);
-            agent = null;
-        }
-    }
-
-    private void attachAgent(final ActorIdentity message) {
-        if (message.correlationId().equals(correlationId)) {
-            if (agent != null) {
-                context().unwatch(agent);
-            }
-            agent = message.getActorRef().orElse(null);
-            if (agent != null) {
-                context().watch(agent);
-                log.info("ProxyMonitorAgent attached");
-            }
-        }
-    }
-
-    private void identifyAgent() {
-        correlationId++;
-        context().system().actorSelection(agentPath).tell(new Identify(correlationId), self());
     }
 
     @Override

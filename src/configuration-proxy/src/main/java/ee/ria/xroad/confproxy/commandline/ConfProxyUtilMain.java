@@ -33,12 +33,8 @@ import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Options;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
-
-import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
@@ -55,7 +51,7 @@ public final class ConfProxyUtilMain {
     }
 
     private static ActorSystem actorSystem;
-    private static CommandLineParser cmdLineGnuParser;
+    private static CommandLineParser cmdLineParser;
 
     /**
      * Unavailable utility class constructor.
@@ -74,27 +70,20 @@ public final class ConfProxyUtilMain {
             System.err.println(e.getMessage());
             log.error("Error while running confproxy util:", e);
         } finally {
-            try {
-                Await.ready(actorSystem.terminate(), Duration.Inf());
-            } catch (TimeoutException e) {
-                log.error("Timed out while waiting for akka to terminate");
-            } catch (InterruptedException e) {
-                log.error("Interrupted while waiting for akka to terminate");
-            }
+            actorSystem.terminate();
         }
     }
 
     /**
      * Initialize configuration proxy utility program components.
-     * @throws Exception if initialization fails
      */
-    static void setup() throws Exception {
+    static void setup() {
         actorSystem = ActorSystem.create("ConfigurationProxyUtil",
                 ConfigFactory.load().getConfig("configuration-proxy"));
 
         SignerClient.init(actorSystem);
 
-        cmdLineGnuParser = new GnuParser();
+        cmdLineParser = new DefaultParser();
     }
 
     /**
@@ -107,7 +96,7 @@ public final class ConfProxyUtilMain {
         ConfProxyUtil util = createUtilInstance(utilClass);
 
         Options opts = util.getOptions();
-        CommandLine commandLine = cmdLineGnuParser.parse(opts, args);
+        CommandLine commandLine = cmdLineParser.parse(opts, args);
         util.execute(commandLine);
     }
 
