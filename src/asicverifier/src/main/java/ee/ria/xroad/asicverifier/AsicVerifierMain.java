@@ -136,6 +136,7 @@ public final class AsicVerifierMain {
         }
     }
 
+    @SuppressWarnings("javasecurity:S2083")
     private static void writeToFile(String fileName, InputStream contents) throws IOException {
         try (FileOutputStream file = new FileOutputStream(fileName)) {
             IOUtils.copy(contents, file);
