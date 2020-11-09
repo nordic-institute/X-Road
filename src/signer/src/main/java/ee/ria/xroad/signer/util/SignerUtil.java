@@ -324,10 +324,10 @@ public final class SignerUtil {
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
         String slotIndex = Long.toString(token.getSlot().getSlotID());
 
-        return tokenIdFormat.replaceAll("\\{moduleType\\}", moduleType)
-                .replaceAll("\\{slotIndex\\}", slotIndex)
-                .replaceAll("\\{serialNumber\\}", tokenInfo.getSerialNumber().trim())
-                .replaceAll("\\{label\\}", tokenInfo.getLabel().trim());
+        return tokenIdFormat.replace("{moduleType}", moduleType)
+                .replace("{slotIndex}", slotIndex)
+                .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
+                .replace("{label}", tokenInfo.getLabel().trim());
     }
 
     /**
