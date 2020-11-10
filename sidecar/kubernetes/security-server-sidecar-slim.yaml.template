@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Template used to create a Security Server Sidecar deployment and service in Kubernetes cloud environment
-# using the provider image. The template parses security-server-sidecar-provider.yaml and substitutes
+# using the consumer image. The template parses security-server-sidecar-consumer.yaml and substitutes
 # variables below with the parameters passed
 
 # Match parameters to variables used in the YAML file
@@ -12,7 +12,7 @@ XROAD_LOG_LEVEL=$4
 VOLUME_CLAIM=$5
 
 # Parses the YAML configuration file and substitutes variables between double brackets {{}} with variables values above
-template=`cat "sidecar/kubernetes/security-server-sidecar-provider.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" `
+template=`cat "sidecar/kubernetes/security-server-sidecar-slim.yaml" | sed "s/{{XROAD_DB_HOST}}/$XROAD_DB_HOST/g" | sed "s/{{XROAD_DB_PORT}}/$XROAD_DB_PORT/g" | sed "s/{{XROAD_DB_PWD}}/$XROAD_DB_PWD/g" | sed "s/{{XROAD_LOG_LEVEL}}/$XROAD_LOG_LEVEL/g" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" `
 
 # Applies the YAML configuration to create the Sidecar deployment
 echo "$template" | kubectl apply -f -

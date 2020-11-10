@@ -54,8 +54,8 @@ RUN mkdir -p /root/etc/xroad \
 && dpkg-query --showformat='${Version}' --show xroad-proxy >/root/VERSION \
 && cp /root/VERSION /etc/xroad/VERSION
 
-COPY files/ss-entrypoint.sh /root/entrypoint.sh
-COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+COPY files/slim-ss-entrypoint.sh /root/entrypoint.sh
+COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY --chown=xroad:xroad files/local.conf /etc/xroad/services/local.conf
 COPY --chown=xroad:xroad files/*logback* /etc/xroad/conf.d/
 COPY --chown=xroad:xroad files/local.conf /tmp/local.conf
