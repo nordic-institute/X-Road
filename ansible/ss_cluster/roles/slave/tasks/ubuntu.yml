@@ -1,5 +1,5 @@
 ---
-- name: setup sync service (bionic)
+- name: setup sync service (Ubuntu)
   block:
     - template:
         src: "xroad-sync.service.j2"
@@ -14,4 +14,4 @@
       with_items:
         - xroad-sync.service
         - xroad-sync.timer
-  when: ansible_distribution_release == "bionic"
+  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"

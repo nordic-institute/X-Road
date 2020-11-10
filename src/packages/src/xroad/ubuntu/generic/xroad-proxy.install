@@ -5,5 +5,5 @@
 ../../../../src/xroad/default-configuration/proxy-logback.xml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
 ../../../../../LICENSE.txt usr/share/doc/xroad-proxy/
-../../../../../securityserver-LICENSE.info usr/share/doc/xroad-proxy
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-proxy
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-proxy

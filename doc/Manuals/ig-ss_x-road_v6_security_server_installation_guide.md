@@ -346,7 +346,7 @@ Upon the first installation of the packages, the system asks for the following i
 
 * Account name for the user who will be granted the rights to perform all activities in the user interface (**reference data: 1.3**).
 * Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
-* The Distinguished Name of the owner of the **user interface's and management REST API's** self-signed TLS certificate (*Subject DN*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface and to the management REST APIs.
+* The Distinguished Name of the owner of the **user interface's and management REST API's** self-signed TLS certificate (*Subject DN*) and its alternative names (*subjectAltName*) (**reference data: 1.8; 1.10**). The certificate is used for securing connections to the user interface and to the management REST API.
   The name and IP addresses detected from the operating system are suggested as default values.
 
   * The *Subject DN* must be entered in the format:
@@ -388,7 +388,7 @@ The installation is successful if system services are started and the user inter
     xroad-proxy.service      loaded active running X-Road Proxy
     xroad-signer.service     loaded active running X-Road signer
     ```
-* Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display the “502 Bad Gateway” error.
+* Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 
 ### 2.10 Installing the Support for Hardware Tokens

@@ -4,7 +4,7 @@ After=network.target
 Before=xroad-proxy.service
 Before=xroad-signer.service
 Before=xroad-confclient.service 
-Before=xroad-jetty.service
+Before=xroad-proxy-ui-api.service
 
 [Service]
 User=xroad
@@ -15,7 +15,7 @@ Environment=MASTER={{ master_host }}
 
 ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
 
-ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf" --exclude "/jetty" --exclude "/backup.d" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
+ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/globalconf"  --exclude "/jetty" --exclude "/backup.d" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 
 [Install]
 WantedBy=multi-user.target
