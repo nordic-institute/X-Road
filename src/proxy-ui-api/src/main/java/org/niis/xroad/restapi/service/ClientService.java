@@ -73,6 +73,15 @@ import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBAL
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_UNREGISTER_OWNER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_DELETE_OWNER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_MAKE_OWNER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_REGISTER_OWNER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_ALREADY_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTERED_MEMBER;
 
 /**
  * client service
@@ -82,8 +91,6 @@ import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class ClientService {
-
-    public static final String WARNING_UNREGISTERED_MEMBER = "unregistered_member";
     private static final String INVALID_INSTANCE_IDENTIFIER = "instance identifier is invalid: ";
     private static final String INVALID_MEMBER_CLASS = "member class is invalid: ";
 
@@ -817,8 +824,6 @@ public class ClientService {
      * server's owner member
      */
     public static class CannotDeleteOwnerException extends ServiceException {
-        public static final String ERROR_CANNOT_DELETE_OWNER = "cannot_delete_owner";
-
         public CannotDeleteOwnerException() {
             super(new ErrorDeviation(ERROR_CANNOT_DELETE_OWNER));
         }
@@ -828,8 +833,6 @@ public class ClientService {
      * Thrown when client that already exists in server conf was tried to add
      */
     public static class ClientAlreadyExistsException extends ServiceException {
-        public static final String ERROR_CLIENT_ALREADY_EXISTS = "client_already_exists";
-
         public ClientAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_CLIENT_ALREADY_EXISTS));
         }
@@ -840,8 +843,6 @@ public class ClientService {
      * the owner member already exists (there can only be owner member + one additional member)
      */
     public static class AdditionalMemberAlreadyExistsException extends ServiceException {
-        public static final String ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS = "additional_member_already_exists";
-
         public AdditionalMemberAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS));
         }
@@ -851,8 +852,6 @@ public class ClientService {
      * Thrown when trying to register the owner member
      */
     public static class CannotRegisterOwnerException extends ServiceException {
-        public static final String ERROR_CANNOT_REGISTER_OWNER = "cannot_register_owner";
-
         public CannotRegisterOwnerException() {
             super(new ErrorDeviation(ERROR_CANNOT_REGISTER_OWNER));
         }
@@ -862,10 +861,8 @@ public class ClientService {
      * Thrown when trying to unregister the security server owner
      */
     public static class CannotUnregisterOwnerException extends ServiceException {
-        public static final String CANNOT_UNREGISTER_OWNER = "cannot_unregister_owner";
-
         public CannotUnregisterOwnerException() {
-            super(new ErrorDeviation(CANNOT_UNREGISTER_OWNER));
+            super(new ErrorDeviation(ERROR_CANNOT_UNREGISTER_OWNER));
         }
     }
 
@@ -873,8 +870,6 @@ public class ClientService {
      * Thrown when trying to make the current owner the new owner
      */
     public static class MemberAlreadyOwnerException extends ServiceException {
-        public static final String ERROR_CANNOT_MAKE_OWNER = "member_already_owner";
-
         public MemberAlreadyOwnerException() {
             super(new ErrorDeviation(ERROR_CANNOT_MAKE_OWNER));
         }
@@ -885,8 +880,6 @@ public class ClientService {
      * in this instance's configuration
      */
     public static class InvalidMemberClassException extends ServiceException {
-        public static final String ERROR_INVALID_MEMBER_CLASS = "invalid_member_class";
-
         public InvalidMemberClassException(String s) {
             super(s, new ErrorDeviation(ERROR_INVALID_MEMBER_CLASS));
         }
@@ -896,8 +889,6 @@ public class ClientService {
      * Thrown when client's instance identifier does not match with the current instance identifier'
      */
     public static class InvalidInstanceIdentifierException extends ServiceException {
-        public static final String ERROR_INVALID_INSTANCE_IDENTIFIER = "invalid_instance_identifier";
-
         public InvalidInstanceIdentifierException(String s) {
             super(s, new ErrorDeviation(ERROR_INVALID_INSTANCE_IDENTIFIER));
         }

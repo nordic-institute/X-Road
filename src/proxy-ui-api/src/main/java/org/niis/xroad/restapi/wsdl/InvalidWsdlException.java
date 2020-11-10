@@ -29,13 +29,12 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSDL;
+
 /**
  * Thrown if WSDL was invalid
  */
 public class InvalidWsdlException extends WsdlValidationException {
-
-    public static final String ERROR_INVALID_WSDL = "invalid_wsdl";
-
     /**
      * @param metadata describes why wsdl was invalid
      */

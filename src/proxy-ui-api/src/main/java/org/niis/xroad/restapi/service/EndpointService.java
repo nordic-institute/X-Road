@@ -43,6 +43,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BASE_ENDPOINT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_REMOVE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE;
+
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
@@ -182,7 +186,7 @@ public class EndpointService {
                         && endpointType.getPath().equals(EndpointType.ANY_PATH))
                 .findFirst()
                 .orElseThrow(() -> new EndpointNotFoundException(
-                        EndpointNotFoundException.ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "
+                        ERROR_BASE_ENDPOINT_NOT_FOUND, "Base endpoint not found for client "
                         + clientType.getIdentifier() + " and servicecode " + serviceCode));
     }
 
@@ -229,22 +233,18 @@ public class EndpointService {
 
 
     public static class IllegalGeneratedEndpointUpdateException extends ServiceException {
-        public static final String ILLEGAL_GENERATED_ENDPOINT_UPDATE = "illegal_generated_endpoint_update";
-
         private static final String MESSAGE = "Updating generated endpoint is not allowed: %s";
 
         public IllegalGeneratedEndpointUpdateException(String id) {
-            super(String.format(MESSAGE, id), new ErrorDeviation(ILLEGAL_GENERATED_ENDPOINT_UPDATE, id));
+            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE, id));
         }
     }
 
     public static class IllegalGeneratedEndpointRemoveException extends ServiceException {
-        public static final String ILLEGAL_GENERATED_ENDPOINT_REMOVE = "illegal_generated_endpoint_remove";
-
         private static final String MESSAGE = "Removing generated endpoint is not allowed: %s";
 
         public IllegalGeneratedEndpointRemoveException(String id) {
-            super(String.format(MESSAGE, id), new ErrorDeviation(ILLEGAL_GENERATED_ENDPOINT_REMOVE, id));
+            super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ILLEGAL_GENERATED_ENDPOINT_REMOVE, id));
         }
     }
 

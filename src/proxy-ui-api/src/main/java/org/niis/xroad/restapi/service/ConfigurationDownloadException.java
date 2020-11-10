@@ -27,14 +27,14 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_DOWNLOAD_FAILED;
+
 /**
  * Thrown if downloading configuration from the anchor fails. Usually caused by erroneous response (500) from
  * ConfigurationClient.
  */
 public class ConfigurationDownloadException extends ServiceException {
-    public static final String CONF_DOWNLOAD_FAILED = "conf_download_failed";
-
     public ConfigurationDownloadException(String s) {
-        super(s, new ErrorDeviation(CONF_DOWNLOAD_FAILED));
+        super(s, new ErrorDeviation(ERROR_CONF_DOWNLOAD_FAILED));
     }
 }

@@ -28,9 +28,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class EndpointAlreadyExistsException extends ServiceException {
-    public static final String ERROR_EXISTING_ENDPOINT = "endpoint_already_exists";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_ENDPOINT;
 
+public class EndpointAlreadyExistsException extends ServiceException {
     public EndpointAlreadyExistsException(String msg) {
         super(msg, new ErrorDeviation(ERROR_EXISTING_ENDPOINT));
     }

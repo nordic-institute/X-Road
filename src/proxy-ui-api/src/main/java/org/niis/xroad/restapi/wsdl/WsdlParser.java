@@ -69,6 +69,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLOAD_FAILED;
+
 /**
  * Utils for WSDL parsing
  */
@@ -398,9 +400,6 @@ public final class WsdlParser {
      * Thrown if WSDL file is not found
      */
     public static class WsdlNotFoundException extends ServiceException {
-
-        public static final String ERROR_WSDL_DOWNLOAD_FAILED = "wsdl_download_failed";
-
         public WsdlNotFoundException(Throwable cause) {
             super(cause, new ErrorDeviation(ERROR_WSDL_DOWNLOAD_FAILED));
         }

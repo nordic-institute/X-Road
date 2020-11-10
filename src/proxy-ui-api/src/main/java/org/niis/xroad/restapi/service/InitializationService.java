@@ -53,6 +53,26 @@ import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVERCODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVER_OWNER_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
 
 /**
  * service for initializing the security server
@@ -62,24 +82,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CO
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class InitializationService {
-    public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
-    public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
-    public static final String WARNING_SERVERCODE_EXISTS = "init_serverconf_exists";
-    public static final String WARNING_SERVER_OWNER_EXISTS = "init_server_owner_exists";
-    public static final String WARNING_SOFTWARE_TOKEN_INITIALIZED = "init_software_token_initialized";
-    public static final String METADATA_PIN_MIN_LENGTH = "pin_min_length";
-    public static final String METADATA_PIN_MIN_CHAR_CLASSES = "pin_min_char_classes_count";
-
-    public static final String ERROR_METADATA_SERVERCODE_NOT_PROVIDED = "server_code_not_provided";
-    public static final String ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED = "member_class_not_provided";
-    public static final String ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED = "member_code_not_provided";
-    public static final String ERROR_METADATA_PIN_NOT_PROVIDED = "pin_code_not_provided";
-
-    public static final String ERROR_METADATA_SERVERCODE_EXISTS = "server_code_exists";
-    public static final String ERROR_METADATA_MEMBER_CLASS_EXISTS = "member_class_exists";
-    public static final String ERROR_METADATA_MEMBER_CODE_EXISTS = "member_code_exists";
-    public static final String ERROR_METADATA_PIN_EXISTS = "pin_code_exists";
-
     private final SystemService systemService;
     private final ServerConfService serverConfService;
     private final TokenService tokenService;
@@ -281,9 +283,9 @@ public class InitializationService {
                     throw new InvalidCharactersException("The provided pin code contains invalid characters");
                 }
                 List<String> metadata = new ArrayList<>();
-                metadata.add(METADATA_PIN_MIN_LENGTH);
+                metadata.add(ERROR_METADATA_PIN_MIN_LENGTH);
                 metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
-                metadata.add(METADATA_PIN_MIN_CHAR_CLASSES);
+                metadata.add(ERROR_METADATA_PIN_MIN_CHAR_CLASSES);
                 metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
                 throw new WeakPinException("The provided pin code was too weak", metadata);
             }
@@ -389,10 +391,8 @@ public class InitializationService {
      * If missing or empty or redundant params are provided for the init
      */
     public static class InvalidInitParamsException extends ServiceException {
-        public static final String INVALID_INIT_PARAMS = "invalid_init_params";
-
         public InvalidInitParamsException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(INVALID_INIT_PARAMS, metadata));
+            super(msg, new ErrorDeviation(ERROR_INVALID_INIT_PARAMS, metadata));
         }
     }
 
@@ -400,10 +400,8 @@ public class InitializationService {
      * If the provided pin code contains invalid characters
      */
     public static class InvalidCharactersException extends ServiceException {
-        public static final String INVALID_CHARACTERS_PIN = "invalid_characters_pin";
-
         public InvalidCharactersException(String msg) {
-            super(msg, new ErrorDeviation(INVALID_CHARACTERS_PIN));
+            super(msg, new ErrorDeviation(ERROR_INVALID_CHARACTERS_PIN));
         }
     }
 
@@ -411,10 +409,8 @@ public class InitializationService {
      * If the provided pin code is too weak
      */
     public static class WeakPinException extends ServiceException {
-        public static final String WEAK_PIN = "weak_pin";
-
         public WeakPinException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(WEAK_PIN, metadata));
+            super(msg, new ErrorDeviation(ERROR_WEAK_PIN, metadata));
         }
     }
 
@@ -422,10 +418,8 @@ public class InitializationService {
      * If the software token init fails
      */
     public static class SoftwareTokenInitException extends ServiceException {
-        public static final String SOFTWARE_TOKEN_INIT_FAILED = "software_token_init_failed";
-
         public SoftwareTokenInitException(String msg, Throwable t) {
-            super(msg, t, new ErrorDeviation(SOFTWARE_TOKEN_INIT_FAILED));
+            super(msg, t, new ErrorDeviation(ERROR_SOFTWARE_TOKEN_INIT_FAILED));
         }
     }
 
@@ -433,10 +427,8 @@ public class InitializationService {
      * If the server has already been fully initialized
      */
     public static class ServerAlreadyFullyInitializedException extends ServiceException {
-        public static final String SERVER_ALREADY_FULLY_INITIALIZED = "server_already_fully_initialized";
-
         public ServerAlreadyFullyInitializedException(String msg) {
-            super(msg, new ErrorDeviation(SERVER_ALREADY_FULLY_INITIALIZED));
+            super(msg, new ErrorDeviation(ERROR_SERVER_ALREADY_FULLY_INITIALIZED));
         }
     }
 }

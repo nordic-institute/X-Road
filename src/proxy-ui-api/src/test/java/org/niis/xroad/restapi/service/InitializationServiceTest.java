@@ -48,21 +48,22 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CLASS_EXISTS;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_MEMBER_CODE_EXISTS;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_PIN_EXISTS;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_PIN_NOT_PROVIDED;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_SERVERCODE_EXISTS;
-import static org.niis.xroad.restapi.service.InitializationService.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
-import static org.niis.xroad.restapi.service.InitializationService.InvalidInitParamsException.INVALID_INIT_PARAMS;
-import static org.niis.xroad.restapi.service.InitializationService.METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.restapi.service.InitializationService.METADATA_PIN_MIN_LENGTH;
-import static org.niis.xroad.restapi.service.InitializationService.ServerAlreadyFullyInitializedException.SERVER_ALREADY_FULLY_INITIALIZED;
-import static org.niis.xroad.restapi.service.InitializationService.WARNING_INIT_SERVER_ID_EXISTS;
-import static org.niis.xroad.restapi.service.InitializationService.WARNING_INIT_UNREGISTERED_MEMBER;
-import static org.niis.xroad.restapi.service.InitializationService.WARNING_SOFTWARE_TOKEN_INITIALIZED;
-import static org.niis.xroad.restapi.service.InitializationService.WeakPinException.WEAK_PIN;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarningWithoutMetadata;
@@ -262,11 +263,11 @@ public class InitializationServiceTest {
             initializationService.initialize(null, null, null, null, true);
             fail("should have failed");
         } catch (InitializationService.InvalidInitParamsException expected) {
-            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected,
-                    InitializationService.ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
-                    InitializationService.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
-                    InitializationService.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
-                    InitializationService.ERROR_METADATA_PIN_NOT_PROVIDED);
+            assertErrorWithMetadata(ERROR_INVALID_INIT_PARAMS, expected,
+                    ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+                    ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED,
+                    ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED,
+                    ERROR_METADATA_PIN_NOT_PROVIDED);
         }
     }
 
@@ -311,9 +312,9 @@ public class InitializationServiceTest {
                     SOFTWARE_TOKEN_WEAK_PIN, true);
             fail("should have failed");
         } catch (InitializationService.WeakPinException expected) {
-            assertErrorWithMetadata(WEAK_PIN, expected, METADATA_PIN_MIN_LENGTH,
+            assertErrorWithMetadata(ERROR_WEAK_PIN, expected, ERROR_METADATA_PIN_MIN_LENGTH,
                     String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-                    METADATA_PIN_MIN_CHAR_CLASSES,
+                    ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
                     String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
         }
     }
@@ -328,7 +329,7 @@ public class InitializationServiceTest {
                     SOFTWARE_TOKEN_PIN, true);
             fail("Should have thrown InvalidInitParamsException");
         } catch (InitializationService.InvalidInitParamsException expected) {
-            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_SERVERCODE_EXISTS);
+            assertErrorWithMetadata(ERROR_INVALID_INIT_PARAMS, expected, ERROR_METADATA_SERVERCODE_EXISTS);
         }
     }
 
@@ -353,7 +354,7 @@ public class InitializationServiceTest {
             initializationService.initialize(null, null, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_PIN, true);
         } catch (InitializationService.InvalidInitParamsException expected) {
-            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
+            assertErrorWithMetadata(ERROR_INVALID_INIT_PARAMS, expected, ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED);
         }
     }
 
@@ -366,7 +367,7 @@ public class InitializationServiceTest {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     null, true);
         } catch (InitializationService.InvalidInitParamsException expected) {
-            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_MEMBER_CLASS_EXISTS,
+            assertErrorWithMetadata(ERROR_INVALID_INIT_PARAMS, expected, ERROR_METADATA_MEMBER_CLASS_EXISTS,
                     ERROR_METADATA_MEMBER_CODE_EXISTS, ERROR_METADATA_PIN_NOT_PROVIDED);
         }
     }
@@ -380,7 +381,7 @@ public class InitializationServiceTest {
             initializationService.initialize(null, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_PIN, true);
         } catch (InitializationService.InvalidInitParamsException expected) {
-            assertErrorWithMetadata(INVALID_INIT_PARAMS, expected, ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
+            assertErrorWithMetadata(ERROR_INVALID_INIT_PARAMS, expected, ERROR_METADATA_SERVERCODE_NOT_PROVIDED,
                     ERROR_METADATA_MEMBER_CLASS_EXISTS, ERROR_METADATA_MEMBER_CODE_EXISTS, ERROR_METADATA_PIN_EXISTS);
         }
     }
@@ -394,7 +395,7 @@ public class InitializationServiceTest {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_PIN, true);
         } catch (InitializationService.ServerAlreadyFullyInitializedException expected) {
-            assertEquals(SERVER_ALREADY_FULLY_INITIALIZED, expected.getErrorDeviation().getCode());
+            assertEquals(ERROR_SERVER_ALREADY_FULLY_INITIALIZED, expected.getErrorDeviation().getCode());
         }
     }
 }

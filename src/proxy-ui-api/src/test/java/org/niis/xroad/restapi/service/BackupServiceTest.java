@@ -51,6 +51,8 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_BACKUP_FILE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
 
 /**
  * Test BackupService
@@ -84,10 +86,6 @@ public class BackupServiceTest extends AbstractServiceTestContext {
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
     private static final String VALID_TAR_LABEL = "security_XROAD-6.24.0_TESTSS";
-
-    public static final String ERROR_INVALID_FILENAME = "invalid_filename";
-
-    public static final String ERROR_INVALID_BACKUP_FILE = "invalid_backup_file";
 
     private static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
 

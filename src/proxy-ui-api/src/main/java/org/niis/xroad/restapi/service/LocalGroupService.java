@@ -55,6 +55,9 @@ import java.util.stream.Collectors;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GROUP_CODE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GROUP_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.MEMBER_IDENTIFIERS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_LOCAL_GROUP_CODE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND;
 
 /**
  * LocalGroup service
@@ -335,7 +338,6 @@ public class LocalGroupService {
      * Thrown when attempt to add member that already exists
      */
     public static class MemberAlreadyExistsException extends ServiceException {
-        public static final String ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS = "local_group_member_already_exists";
         public MemberAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_LOCAL_GROUP_MEMBER_ALREADY_EXISTS));
         }
@@ -345,7 +347,6 @@ public class LocalGroupService {
      * Thrown when attempt to add member that already exists
      */
     public static class DuplicateLocalGroupCodeException extends ServiceException {
-        public static final String ERROR_DUPLICATE_LOCAL_GROUP_CODE = "local_group_code_already_exists";
         public DuplicateLocalGroupCodeException(String s) {
             super(s, new ErrorDeviation(ERROR_DUPLICATE_LOCAL_GROUP_CODE));
         }
@@ -355,7 +356,6 @@ public class LocalGroupService {
      * If local group member was not found
      */
     public static class LocalGroupMemberNotFoundException extends NotFoundException {
-        public static final String ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND = "local_group_member_not_found";
         public LocalGroupMemberNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_LOCAL_GROUP_MEMBER_NOT_FOUND));
         }

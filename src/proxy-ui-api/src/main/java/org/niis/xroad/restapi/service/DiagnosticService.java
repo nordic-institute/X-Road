@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+
 /**
  * diagnostic service
  */
@@ -202,10 +204,8 @@ public class DiagnosticService {
      * Thrown when trying to send a diagnostic request
      */
     public static class DiagnosticRequestException extends ServiceException {
-        public static final String DIAGNOSTIC_REQUEST_FAILED = "diagnostic_request_failed";
-
         public DiagnosticRequestException() {
-            super(new ErrorDeviation(DIAGNOSTIC_REQUEST_FAILED));
+            super(new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 }
