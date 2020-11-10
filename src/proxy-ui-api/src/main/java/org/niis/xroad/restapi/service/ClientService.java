@@ -73,11 +73,11 @@ import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBAL
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_REGISTERED;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_SAVED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_UNREGISTER_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_DELETE_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_MAKE_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_REGISTER_OWNER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CANNOT_UNREGISTER_OWNER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_ALREADY_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
@@ -103,7 +103,6 @@ public class ClientService {
     private final CurrentSecurityServerId currentSecurityServerId;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
     private final AuditDataHelper auditDataHelper;
-
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
@@ -133,6 +132,7 @@ public class ClientService {
 
     /**
      * return all clients that exist on this security server
+     *
      * @return
      */
     public List<ClientType> getAllLocalClients() {
@@ -142,6 +142,7 @@ public class ClientService {
     /**
      * return all members that exist on this security server.
      * There can only be 0, 1 or 2 members
+     *
      * @return
      */
     public List<ClientType> getAllLocalMembers() {
@@ -159,6 +160,7 @@ public class ClientService {
      * method will return
      * - XRD:GOV:123 (owner member)
      * - XRD:COM:FOO (client subsystem's member)
+     *
      * @return
      */
     public Set<ClientId> getLocalClientMemberIds() {
@@ -173,6 +175,7 @@ public class ClientService {
 
     /**
      * return all global clients as ClientTypes
+     *
      * @return
      */
     public List<ClientType> getAllGlobalClients() {
@@ -191,6 +194,7 @@ public class ClientService {
      * This method does NOT trigger load of lazy loaded properties.
      * Use {@code getLocalClientIsCerts}, {@code getLocalClientLocalGroups}, and
      * {@code getLocalClientServiceDescriptions} for that
+     *
      * @param id
      * @return the client, or null if matching client was not found
      */
@@ -201,6 +205,7 @@ public class ClientService {
 
     /**
      * Returns clientType.getIsCert() that has been fetched with Hibernate.init.
+     *
      * @param id
      * @return list of CertificateTypes, or null if client does not exist
      */
@@ -216,6 +221,7 @@ public class ClientService {
     /**
      * Returns clientType.getServiceDescription() that has been fetched with Hibernate.init.
      * Also serviceDescription.services and serviceDescription.client.endpoints have been fetched.
+     *
      * @param id
      * @return list of ServiceDescriptionTypes, or null if client does not exist
      */
@@ -234,6 +240,7 @@ public class ClientService {
     /**
      * Returns clientType.getLocalGroup() that has been fetched with Hibernate.init.
      * Also localGroup.groupMembers have been fetched.
+     *
      * @param id
      * @return list of LocalGroupTypes, or null if client does not exist
      */
@@ -250,6 +257,7 @@ public class ClientService {
 
     /**
      * Update connection type of an existing client
+     *
      * @param id
      * @param connectionType
      * @return
@@ -269,6 +277,7 @@ public class ClientService {
 
     /**
      * Get a local client, throw exception if not found
+     *
      * @throws ClientNotFoundException if not found
      */
     public ClientType getLocalClientOrThrowNotFound(ClientId id) throws ClientNotFoundException {
@@ -344,6 +353,7 @@ public class ClientService {
     /**
      * Deletes one (and should be the only) certificate with
      * matching hash
+     *
      * @param id
      * @param certificateHash
      * @return
@@ -372,6 +382,7 @@ public class ClientService {
 
     /**
      * Returns a single client tls certificate that has matching hash
+     *
      * @param id
      * @param certificateHash
      * @return
@@ -388,6 +399,7 @@ public class ClientService {
 
     /**
      * Find clients in the local serverconf
+     *
      * @param name
      * @param instance
      * @param propertyClass
@@ -412,6 +424,7 @@ public class ClientService {
 
     /**
      * Find clients in the globalconf and return them as new ClientTypes
+     *
      * @param name
      * @param instance
      * @param propertyClass
@@ -432,6 +445,7 @@ public class ClientService {
 
     /**
      * Find client by ClientId
+     *
      * @param clientId
      * @return
      */
@@ -447,6 +461,7 @@ public class ClientService {
 
     /**
      * Find from all clients (local or global)
+     *
      * @param name
      * @param instance
      * @param memberClass
@@ -497,6 +512,7 @@ public class ClientService {
 
     /**
      * Registers a client
+     *
      * @param clientId client to register
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
@@ -543,6 +559,7 @@ public class ClientService {
 
     /**
      * Unregister a client
+     *
      * @param clientId client to unregister
      * @throws GlobalConfOutdatedException
      * @throws ClientNotFoundException
@@ -576,6 +593,7 @@ public class ClientService {
 
     /**
      * Changes Security Server owner
+     *
      * @param memberClass member class of new owner
      * @param memberCode member code of new owner
      * @param subsystemCode should be null because only member can be owner
@@ -613,6 +631,7 @@ public class ClientService {
     /**
      * Merge two client lists into one with only unique clients. The distinct clients in the latter list
      * {@code moreClients} are favoured in the case of duplicates.
+     *
      * @param clients list of clients
      * @param moreClients list of clients (these will override the ones in {@code clients} in the case of duplicates)
      * @return
@@ -685,6 +704,7 @@ public class ClientService {
      * synchronize access to this method on controller layer
      * (synchronizing this method does not help since transaction start & commit
      * are outside of this method).
+     *
      * @param memberClass member class of added client
      * @param memberCode member code of added client
      * @param subsystemCode subsystem code of added client (null if adding a member)
@@ -714,7 +734,6 @@ public class ClientService {
                 memberClass,
                 memberCode,
                 subsystemCode);
-
 
         auditDataHelper.put(clientId);
         auditDataHelper.put(isAuthentication);
@@ -767,6 +786,7 @@ public class ClientService {
 
     /**
      * Checks that the given member class is present in the list of this instance's member classes.
+     *
      * @param memberClass
      * @return
      */
@@ -791,6 +811,7 @@ public class ClientService {
 
     /**
      * Delete a local client.
+     *
      * @param clientId
      * @throws ActionNotPossibleException if client status did not allow delete
      * @throws CannotDeleteOwnerException if attempted to delete

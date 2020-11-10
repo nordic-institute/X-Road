@@ -32,11 +32,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_OTHER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_OUTDATED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_SIGNATURE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_UNREACHABLE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS;
 
 /**
  * Verify internal and external configurations

@@ -56,8 +56,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.BACKUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_BACKUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RESTORE_BACKUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_BACKUP;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 
 /**
  * Backups controller

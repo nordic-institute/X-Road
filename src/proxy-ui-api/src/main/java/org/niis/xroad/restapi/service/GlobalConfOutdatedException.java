@@ -31,6 +31,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OUTDATED_GL
 
 public class GlobalConfOutdatedException extends ServiceException {
     public GlobalConfOutdatedException(Throwable t) {
-    super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
+        super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
     }
 }

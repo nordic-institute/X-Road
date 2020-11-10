@@ -86,6 +86,7 @@ public class DiagnosticService {
 
     /**
      * Query global configuration status from admin port over HTTP.
+     *
      * @return
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
@@ -99,6 +100,7 @@ public class DiagnosticService {
 
     /**
      * Query timestamping services status from admin port over HTTP.
+     *
      * @return
      */
     public List<DiagnosticsStatus> queryTimestampingStatus() {
@@ -114,6 +116,7 @@ public class DiagnosticService {
 
     /**
      * Query ocsp responders status from admin port over HTTP.
+     *
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
@@ -130,6 +133,7 @@ public class DiagnosticService {
 
     /**
      * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
+     *
      * @param address
      * @return
      * @throws DiagnosticRequestException if sending a diagnostics requests fails or an error is returned
@@ -142,7 +146,7 @@ public class DiagnosticService {
                 .setSocketTimeout(HTTP_CLIENT_TIMEOUT_MS).build();
 
         try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
-               CloseableHttpResponse response = httpClient.execute(request)) {
+                CloseableHttpResponse response = httpClient.execute(request)) {
             HttpEntity resEntity = response.getEntity();
             if (response.getStatusLine().getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
                     || resEntity == null) {
@@ -159,6 +163,7 @@ public class DiagnosticService {
 
     /**
      * Parse DiagnosticsStatus representing a timestamping service diagnostics status
+     *
      * @param entry
      * @return
      */
@@ -172,6 +177,7 @@ public class DiagnosticService {
     /**
      * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
      * of the certificate authority
+     *
      * @param entry
      * @return
      */
