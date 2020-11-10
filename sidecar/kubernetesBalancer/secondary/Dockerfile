@@ -1,4 +1,4 @@
-FROM niis/xroad-security-server-sidecar:6.23.0
+FROM niis/xroad-security-server-sidecar:6.24.0
 RUN apt-get -qq update \
     && apt-get -qq install openssh-server rsync cron
 COPY --chown=root:root files/secondary-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf

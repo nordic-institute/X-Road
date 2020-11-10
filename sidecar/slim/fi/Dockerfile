@@ -1,4 +1,4 @@
-FROM niis/xroad-security-server-sidecar:6.23.0-slim
+FROM niis/xroad-security-server-sidecar:6.24.0-slim
 # Clone the fi settings into the docker container
 ADD https://raw.githubusercontent.com/nordic-institute/X-Road/master/src/packages/src/xroad/default-configuration/override-securityserver-fi.ini  /etc/xroad/conf.d/override-securityserver-fi.ini
 

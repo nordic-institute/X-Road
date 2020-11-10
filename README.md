@@ -132,6 +132,13 @@ The following configuration is needed on the remote database server to allow ext
 
 - The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database.
 
+- If the external database host already has an existing "serverconf" database and "serverconf" user, we need to change the name of the database adding an extra parameter:
+```bash
+export XROAD_DB_PASSWORD=<remote database administrator master password>
+./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port> <database name>
+```
+This extra parameter <database name> will concatenate the name to the "serverconf" database and the "serverconf" user.
+
 #### 1.6.1 Reconfigure external database address after initialization
 
 It is possible to change the external database after the initialization while the Sidecar container is running. This will not recreate the database, so we need to make sure that the 'serverconf' database and a user with granted permissions to access it are already created. To change the database host we need to:
@@ -160,8 +167,7 @@ serverconf.hibernate.connection.password = <new_password>
   ```
 
 ### 1.7 Volume support
-
-It is possible to configure security server sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
+It is possible to configure security server sidecar to use volume support. This will allow us to create sidecar-config and sidecar-config-db directories on the host and mount them in `/etc/xroad` and `/var/lib/postgresql/10/main` config directories in the container.
 For adding volume support we have to modify the docker run sentence inside the setup_security_server_sidecar.sh script and add the volume support:
 
 `-v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main`
@@ -172,7 +178,13 @@ For example:
     docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
   [...]
   ```
-
+#### 1.7.1 Store sensitive information in volumes
+The file `/etc/xroad.properties` contains sensitive information to access the external database. For security reasons, it is strongly recommended to store this file outside the Security Server sidecar container by configuring a volume:
+```bash
+[...]
+  docker run -v sidecar-properties:/etc/xroad.properties -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
+[...]
+```
 ### 1.8 Finnish settings
   To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
 
