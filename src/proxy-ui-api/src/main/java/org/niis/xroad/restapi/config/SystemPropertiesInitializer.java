@@ -29,6 +29,7 @@ import ee.ria.xroad.common.SystemPropertiesLoader;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI_API;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
@@ -50,6 +51,7 @@ public final class SystemPropertiesInitializer {
                     .with(CONF_FILE_PROXY)
                     .with(CONF_FILE_PROXY_UI_API)
                     .with(CONF_FILE_SIGNER)
+                    .with(CONF_FILE_NODE)
                     .load();
             XROAD_PROPERTIES_INITIALIZED.set(true);
         }

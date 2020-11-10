@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.9  
+Version: 1.10  
 Doc. ID: IG-XLB
 
 
@@ -16,6 +16,7 @@ Doc. ID: IG-XLB
 | 11.09.2019  | 1.7         | Remove Ubuntu 14.04 support                                                                                              | Jarkko Hyöty                 |
 | 08.10.2020  | 1.8         | Added notes about API keys and caching                                                                                   | Janne Mattila                |
 | 19.10.2020  | 1.9         | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
+| 19.10.2020  | 1.10        | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
 
 ## Table of Contents
 
@@ -311,11 +312,15 @@ In order to properly set up the data replication, the slave nodes must be able t
 
    For more information on user groups and their effect on admin user interface privileges in the security server, see the  Security Server User Guide \[[UG-SS](#13-references)\].
 
-   Note that API keys configured to master will be replicated to the slave, and there is no automated way of limiting those to `xroad-securityserver-observer` privilege group. See next item for more details.
+   Also, the slave security server's management REST API can be used to read the slave's configuration. However, modifying the slave's configuration using the management REST API is blocked. API keys are replicated from the master to the slaves, and the keys that are associated with the `xroad-securityserver-observer` role have read-only access to the slave. The keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the slave. See next item for more details.
+
+   For more information on the management REST API, see the  Security Server User Guide \[[UG-SS](#13-references)\].
+
 10. Note about API keys and caching.
    If API keys have been created for master node, those keys are replicated to slaves, like everything else from `serverconf` database is.
-   If these keys are not limited to `xroad-securityserver-observer` privilege group, they can be used to try and change server configuration.
-   These API calls will fail, since slave database is in read-only mode. To avoid this, slave REST API should only be used for operations that read configuration, not updates. <p>
+   The keys that are associated with the `xroad-securityserver-observer` role have read-only access to the slave.
+   Instead, the keys that are not associated with the `xroad-securityserver-observer` role, don't have any access to the slave and API calls will fail.
+   To avoid this, slave REST API should only be accessed using keys associated with the `xroad-securityserver-observer` role, and only for operations that read configuration, not updates. <p>
    Furthermore, API keys are accessed through a cache that assumes that all updates to keys (e.g. revoking keys, or changing permissions) are done using the same node.
    If API keys are changed on master, the changes are not reflected on the slave caches until the next time `xroad-proxy-ui-api` process is restarted.
    To address this issue, you should restart slave nodes' `xroad-proxy-ui-api` processes after API keys are modified (and database has been replicated to slaves), to ensure correct operation.<p>

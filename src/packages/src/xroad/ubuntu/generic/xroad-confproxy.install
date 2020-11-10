@@ -4,5 +4,5 @@
 ../../../../src/xroad/default-configuration/confproxy.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/override-signer.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/confproxy-logback.xml etc/xroad/conf.d
-../../../../../configuration-proxy-LICENSE.info usr/share/doc/xroad-confproxy
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-confproxy
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-confproxy

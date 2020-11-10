@@ -151,7 +151,7 @@ public class PossibleActionsRuleEngine {
         }
         if (!certificateInfo.isSavedToConfiguration()) {
             // auth cert cannot be imported
-            if (!isAuthCert(certificateInfo)) {
+            if (isImportableSignCert(certificateInfo)) {
                 actions.add(PossibleActionEnum.IMPORT_FROM_TOKEN);
             }
         }
@@ -160,15 +160,17 @@ public class PossibleActionsRuleEngine {
     }
 
     /**
-     * Find out if certificateInfo is an auth cert, wrap possible exceptions in RuntimeException
+     * Find out if certificateInfo is a sign cert that can be imported from a token.
+     * If there is an exception while determining this, interpret this as false, "not an importable sign cert"
+     * and swallow + log exception
      */
-    private boolean isAuthCert(CertificateInfo certificateInfo) {
-        X509Certificate x509 = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+    private boolean isImportableSignCert(CertificateInfo certificateInfo) {
         try {
-            return CertUtils.isAuthCert(x509);
+            X509Certificate x509 = CryptoUtils.readCertificate(certificateInfo.getCertificateBytes());
+            return CertUtils.isSigningCert(x509);
         } catch (Exception e) {
-            log.error("Unable to determine certificate import possible action", e);
-            throw new RuntimeException(e);
+            log.warn("Unable to determine if certificate is a sign cert -> interpret as false", e);
+            return false;
         }
     }
 
