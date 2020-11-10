@@ -51,7 +51,7 @@ docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
 echo "=====> Run container"
-docker run ${external_db_args} --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL --name $1 xroad-sidecar-security-server-image:latest
+docker run ${external_db_args} --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD="Aflafl90!!"  -e XROAD_LOG_LEVEL="INFO" --name $1 niis/xroad-security-server-sidecar:6.23.0-slim
 
 printf "\n
 Sidecar security server software token PIN is set to $3
