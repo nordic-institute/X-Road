@@ -23,7 +23,7 @@ pipeline {
                                 error("========> Security server returned " + response + " . Try again in 10s")
                             }
                     }
-                    }
+                    }PROVIDER
                 }
             }
         }

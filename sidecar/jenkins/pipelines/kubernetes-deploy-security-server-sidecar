@@ -8,13 +8,14 @@ pipeline {
         string(description: "Log level (INFO, WARNING, ERROR, ALL, DEBUG, TRACE, OFF)", name: "XROAD_LOG_LEVEL", defaultValue: "${params?.XROAD_LOG_LEVEL}")
         string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
         string(description: "Volume claim name", name: "VOLUME_CLAIM", defaultValue: "${params?.VOLUME_CLAIM}")
+        string(description: "Database name", name: "XROAD_DATABASE_NAME", defaultValue: "${params?.XROAD_DATABASE_NAME}")
     }
     stages {
         stage('Deploy pods') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks --region eu-west-1 update-kubeconfig --name ${CLUSTER_NAME}'
-                    sh '${DEPLOYMENT_PATH} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL} ${VOLUME_CLAIM}'
+                    sh '${DEPLOYMENT_PATH} ${XROAD_DB_HOST} ${XROAD_DB_PORT} ${XROAD_DB_PWD} ${XROAD_LOG_LEVEL} ${VOLUME_CLAIM} ${XROAD_DATABASE_NAME}'
                 }
             }
         }
