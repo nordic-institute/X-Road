@@ -105,6 +105,24 @@ if (!project.hasProperty("testDataUrl")) {
     ext.testDataUrl = ""
 }
 
+if (!project.hasProperty("withTags")) {
+    ext.withTags = ""
+}
+
+if (!project.hasProperty("withoutTags")) {
+    ext.withoutTags = ""
+}
+
+if (!project.hasProperty("failScreenshot")) {
+    ext.failScreenshot = ""
+}
+
+if (!project.hasProperty("runHeadless")) {
+    ext.runHeadless = ""
+}
+
+
+
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     doFirst {
@@ -113,13 +131,28 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
         }
         if (testDataUrl.isEmpty()) {
             throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
-        }
+        }       
     }
 
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
 
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl]
+    if (!failScreenshot.isEmpty()) {
+      if (failScreenshot == "true") {
+        failScreenshot="--env screenshots"
+      } else {
+        failScreenshot=""
+      }
+    }
+    if (!runHeadless.isEmpty()) {
+      if (runHeadless == "true") {
+        runHeadless="--headless"
+      } else {
+        runHeadless=""
+      }
+    }
+
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags, failScreenshot, runHeadless]
 
     execOverrides {
         it.workingDir = 'frontend'

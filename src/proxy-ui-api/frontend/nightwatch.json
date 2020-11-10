@@ -43,6 +43,14 @@
           "w3c": false
         }
       }
+    },
+    "screenshot" : {
+      "screenshots" : {
+        "enabled" : true,
+        "on_failure" : true,
+        "on_error" : true,
+        "path" : "./error_screenshots"
+      }
     }
   }
 }
