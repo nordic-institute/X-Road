@@ -38,7 +38,7 @@ public class InvalidCertificateException extends ServiceException {
     }
 
     public InvalidCertificateException(String msg) {
-        super(msg, new ErrorDeviation(INVALID_CERT));
+        super(msg, new ErrorDeviation(ERROR_INVALID_CERT));
     }
 
     public InvalidCertificateException(String msg, Throwable t) {
