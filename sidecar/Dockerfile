@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
 && apt-get -qq upgrade \
-&& apt-get -qq install sudo ca-certificates gnupg supervisor net-tools iproute2 locales setpriv openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog authbind wget \
+&& apt-get -qq install sudo ca-certificates gnupg supervisor net-tools iproute2 locales setpriv openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect curl rsyslog authbind wget \
 && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
 && locale-gen en_US.UTF-8 \
 && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -27,9 +27,10 @@ RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
 
 RUN pg_ctlcluster 10 main start \
 && apt-get -qq update \
-&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin xroad-addon-messagelog xroad-addon-opmonitoring \
+&& apt-get -qq install xroad-proxy xroad-addon-metaservices xroad-addon-wsdlvalidator xroad-autologin xroad-addon-messagelog xroad-addon-opmonitoring  xroad-proxy-ui-api  \
 && su - postgres -c "psql postgres -tAc \"DROP DATABASE serverconf;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP USER serverconf;\"" \
+&& su - postgres -c "psql postgres -tAc \"DROP USER serverconf_admin;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP DATABASE messagelog;\"" \
 && su - postgres -c "psql postgres -tAc \"DROP USER messagelog;\"" \
 && su - postgres -c "psql postgres -tAc 'DROP DATABASE \"op-monitor\";'" \
@@ -37,13 +38,10 @@ RUN pg_ctlcluster 10 main start \
 && su - postgres -c "psql postgres -tAc \"DROP USER opmonitor_admin; \"" \
 && apt-get -qq clean \
 && pg_ctlcluster 10 main stop \
-&& nginx -s stop \
 && userdel -r xrd \
-&& rm -f /var/run/nginx.pid \
 && rm -f /etc/xroad/db.properties \
 && rm -f /etc/xroad.properties \
-&& rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/nginx.crt $CERTS_PATH/nginx.key \
-&& sed -i 's/proxy_set_header Host $host:$server_port;/proxy_set_header Host $http_host;/' /etc/xroad/nginx/default-xroad.conf
+&& rm -f $CERTS_PATH/internal.crt $CERTS_PATH/internal.key $CERTS_PATH/proxy-ui-api.crt $CERTS_PATH/proxy-ui-api.key
 
 RUN crudini --set /etc/xroad/conf.d/local.ini proxy health-check-interface 0.0.0.0 \
 && crudini --set /etc/xroad/conf.d/local.ini proxy health-check-port 5588
