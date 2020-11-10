@@ -53,6 +53,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_BACKUP_FILE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 /**
  * Test BackupService
@@ -86,8 +87,6 @@ public class BackupServiceTest extends AbstractServiceTestContext {
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
     private static final String VALID_TAR_LABEL = "security_XROAD-6.24.0_TESTSS";
-
-    private static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
 
     private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "content".getBytes());
 

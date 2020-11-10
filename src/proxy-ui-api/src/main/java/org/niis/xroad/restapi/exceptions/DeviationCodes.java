@@ -16,6 +16,7 @@ public final class DeviationCodes {
     public static final String ERROR_API_KEY_NOT_FOUND = "api_key_not_found";
     public static final String ERROR_AUTH_CERT_NOT_SUPPORTED = "auth_cert_not_supported";
     public static final String ERROR_BACKUP_FILE_NOT_FOUND = "backup_file_not_found";
+    public static final String ERROR_BACKUP_GENERATION_FAILED = "backup_generation_failed";
     public static final String ERROR_BACKUP_RESTORE_INTERRUPTED = "backup_restore_interrupted";
     public static final String ERROR_BACKUP_RESTORE_PROCESS_FAILED = "restore_process_failed";
     public static final String ERROR_BASE_ENDPOINT_NOT_FOUND = "base_endpoint_not_found";
@@ -47,6 +48,7 @@ public final class DeviationCodes {
     public static final String ERROR_EXISTING_SERVICE_CODE = "service_code_already_exists";
     public static final String ERROR_EXISTING_URL = "url_already_exists";
     public static final String ERROR_GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
+    public static final String ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST = "global_conf_download_request_failed";
     public static final String ERROR_IDENTIFIER_NOT_FOUND = "identifier_not_found";
     public static final String ERROR_ILLEGAL_GENERATED_ENDPOINT_REMOVE = "illegal_generated_endpoint_remove";
     public static final String ERROR_ILLEGAL_GENERATED_ENDPOINT_UPDATE = "illegal_generated_endpoint_update";
@@ -116,12 +118,13 @@ public final class DeviationCodes {
     public static final String WARNING_ADDING_SERVICES = "adding_services";
     public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
+    public static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
     public static final String WARNING_INIT_SERVER_ID_EXISTS = "init_server_id_exists";
     public static final String WARNING_INIT_UNREGISTERED_MEMBER = "init_unregistered_member";
     public static final String WARNING_INTERNAL_SERVER_SSL_ERROR = "internal_server_ssl_error";
     public static final String WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR = "internal_server_ssl_handshake_error";
     public static final String WARNING_OPENAPI_VALIDATION_WARNINGS = "openapi_validation_warnings";
-    public static final String WARNING_SERVERCODE_EXISTS = "init_serverconf_exists";
+    public static final String WARNING_SERVERCODE_EXISTS = "init_servercode_exists";
     public static final String WARNING_SERVER_OWNER_EXISTS = "init_server_owner_exists";
     public static final String WARNING_SOFTWARE_TOKEN_INITIALIZED = "init_software_token_initialized";
     public static final String WARNING_UNREGISTERED_MEMBER = "unregistered_member";
