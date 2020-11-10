@@ -96,6 +96,8 @@ then
         fi
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
+        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
+        dpkg-reconfigure -fnoninteractive xroad-opmonitor
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
