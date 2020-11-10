@@ -33,6 +33,7 @@
     rounded
     color="primary"
     class="large-button"
+    v-bind:class="{ gradient: showGradient }"
     @click="click"
   >
     <slot></slot>
@@ -65,6 +66,21 @@ export default Vue.extend({
       type: Number,
       default: 140,
     },
+    gradient: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  computed: {
+    showGradient(): boolean {
+      if (this.disabled === true) {
+        return false;
+      }
+      if (this.gradient === true) {
+        return true;
+      }
+      return false;
+    },
   },
   methods: {
     click(event: MouseEvent): void {
@@ -76,8 +92,11 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .large-button {
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
+  border-radius: 20px;
+  text-transform: none;
+}
+
+.gradient {
+  background: linear-gradient(270deg, #663cdc 0%, #cd9dc8 99.58%);
 }
 </style>

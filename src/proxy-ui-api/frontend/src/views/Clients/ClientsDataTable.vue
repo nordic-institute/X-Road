@@ -211,7 +211,6 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     ClientStatus,
-
   },
 
   data: () => ({

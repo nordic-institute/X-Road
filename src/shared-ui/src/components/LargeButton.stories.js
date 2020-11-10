@@ -54,3 +54,9 @@ export const Secondary = Template.bind({});
 Secondary.args = {
   label: 'This is a very very long label for a button',
 };
+
+export const Gradient = Template.bind({});
+Gradient.args = {
+  label: 'Gradient button',
+  gradient: true,
+};

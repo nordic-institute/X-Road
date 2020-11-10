@@ -30,6 +30,7 @@ import ConfirmDialog from './components/ConfirmDialog.vue';
 import Expandable from './components/Expandable.vue';
 import FileUpload from './components/FileUpload.vue';
 import FormLabel from './components/FormLabel.vue';
+import HelpDialog from './components/HelpDialog.vue';
 import HelpIcon from './components/HelpIcon.vue';
 import LargeButton from './components/LargeButton.vue';
 import ProgressLinear from './components/ProgressLinear.vue';
@@ -48,6 +49,7 @@ const SharedComponents = {
     Vue.component('Expandable', Expandable);
     Vue.component('FileUpload', FileUpload);
     Vue.component('FormLabel', FormLabel);
+    Vue.component('HelpDialog', HelpDialog);
     Vue.component('HelpIcon', HelpIcon);
     Vue.component('LargeButton', LargeButton);
     Vue.component('ProgressLinear', ProgressLinear);

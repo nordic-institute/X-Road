@@ -33,8 +33,7 @@
       :accept="accepts"
       @change="onUploadFileChanged"
     />
-    <slot :upload="upload">
-    </slot>
+    <slot :upload="upload"> </slot>
   </div>
 </template>
 

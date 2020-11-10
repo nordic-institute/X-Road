@@ -34,25 +34,27 @@ export default {
     width: { control: 'boolean' },
     dialog: { control: 'boolean' },
     title: { control: 'text' },
+    cancel: { action: 'cancel' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { HelpDialog },
-  template:
-    '<help-dialog @cancel="cancel" v-bind="$props" imageSrc="api_keys.png">{{label}}</help-dialog>',
+  template: `<help-dialog @cancel="cancel" v-bind="$props" imageSrc="api_keys.png">
+    <div>hei</div>
+    </help-dialog>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
   primary: true,
-  label: 'Hello world!',
+  title: 'Hello world!',
   dialog: true,
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
-  label: 'This is a very very long label for a button',
+  title: 'This is a very very long label for a button',
   dialog: true,
 };

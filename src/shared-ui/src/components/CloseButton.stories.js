@@ -24,44 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import ConfirmDialog from './ConfirmDialog.vue';
+import CloseButton from './CloseButton.vue';
 
 export default {
-  title: 'X-Road/Confirm dialog',
-  component: ConfirmDialog,
+  title: 'X-Road/Close button',
+  component: CloseButton,
   argTypes: {
-    dialog: { control: 'boolean' },
+    outlined: { control: 'boolean' },
+    disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
-    disableSave: { control: 'boolean' },
-    title: { control: 'text' },
-    content: { control: 'text' },
-    saveButtonText: { control: 'text' },
-    cancelButtonText: { control: 'text' },
-    showClose: { control: 'boolean' },
-    width: { control: 'number' },
-    accept: { action: 'accept' },
-    cancel: { action: 'cancel' },
+    click: { action: 'click' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { ConfirmDialog },
-  template:
-    '<confirm-dialog @accept="accept" @cancel="cancel" v-bind="$props">{{label}}</confirm-dialog>',
+  components: { CloseButton },
+  template: '<close-button @click="click" v-bind="$props" />',
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
   primary: true,
-  dialog: true,
-  title: 'Hello world!',
-  text: 'Some text here',
-};
-
-export const Secondary = Template.bind({});
-Secondary.args = {
-  dialog: true,
-  title: 'This is a very very long label for a button',
-  text: 'Some text here',
+  label: 'Hello world!',
 };
