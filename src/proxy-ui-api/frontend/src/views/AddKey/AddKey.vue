@@ -96,6 +96,10 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+    tokenType: {
+      type: String,
+      required: false,
+    },
   },
   data() {
     return {
@@ -135,7 +139,8 @@ export default Vue.extend({
     },
   },
   created() {
-    this.$store.dispatch('setCsrTokenId', this.tokenId);
+      this.$store.dispatch('setCsrTokenId', this.tokenId);
+      this.$store.dispatch('setCsrTokenType', this.tokenType);
     this.fetchCertificateAuthorities();
   },
 });
