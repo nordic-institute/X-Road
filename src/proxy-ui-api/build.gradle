@@ -137,23 +137,20 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
 
-    if (!failScreenshot.isEmpty()) {
-      if (failScreenshot == "true") {
-        failScreenshot="--env screenshots"
-      } else {
-        failScreenshot=""
-      }
-    }
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
+
     if (!runHeadless.isEmpty()) {
       if (runHeadless == "true") {
-        runHeadless="--headless"
-      } else {
-        runHeadless=""
+        args += "--headless"
       }
     }
 
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags, failScreenshot, runHeadless]
-
+    if (!failScreenshot.isEmpty()) {
+      if (failScreenshot == "true") {
+        args += "--env screenshot"
+      }
+    }
+    
     execOverrides {
         it.workingDir = 'frontend'
     }
