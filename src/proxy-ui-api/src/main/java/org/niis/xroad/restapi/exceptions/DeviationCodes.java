@@ -31,6 +31,9 @@ package org.niis.xroad.restapi.exceptions;
 public final class DeviationCodes {
     public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
     public static final String ERROR_ACTION_NOT_POSSIBLE = "action_not_possible";
+    /**
+     * Additional member already exists, when adding a new client
+     */
     public static final String ERROR_ADDITIONAL_MEMBER_ALREADY_EXISTS = "additional_member_already_exists";
     public static final String ERROR_ANCHOR_EXISTS = "anchor_already_exists";
     public static final String ERROR_ANCHOR_FILE_NOT_FOUND = "anchor_file_not_found";
@@ -49,6 +52,9 @@ public final class DeviationCodes {
     public static final String ERROR_CANNOT_MAKE_OWNER = "member_already_owner";
     public static final String ERROR_CANNOT_REGISTER_OWNER = "cannot_register_owner";
     public static final String ERROR_CANNOT_UNREGISTER_OWNER = "cannot_unregister_owner";
+    /**
+     * Attempted to find CA certificate status and other details, but failed
+     */
     public static final String ERROR_CA_CERT_PROCESSING = "ca_cert_status_processing_failure";
     public static final String ERROR_CA_NOT_FOUND = "certificate_authority_not_found";
     public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
@@ -140,6 +146,7 @@ public final class DeviationCodes {
     public static final String ERROR_WSDL_EXISTS = "wsdl_exists";
     public static final String ERROR_WSDL_VALIDATOR_INTERRUPTED = "wsdl_validator_interrupted";
     public static final String ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE = "wsdl_validator_not_executable";
+
     public static final String WARNING_ADDING_SERVICES = "adding_services";
     public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
     public static final String WARNING_DELETING_SERVICES = "deleting_services";
