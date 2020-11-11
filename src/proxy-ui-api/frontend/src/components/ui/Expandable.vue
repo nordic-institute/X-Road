@@ -56,18 +56,17 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   name: 'expandable',
   components: {},
   props: {
     isOpen: {
-      type: Boolean as Prop<boolean>,
+      type: Boolean,
       required: true,
     },
     color: {
-      type: String as Prop<string>,
+      type: String,
       required: false,
     },
   },
