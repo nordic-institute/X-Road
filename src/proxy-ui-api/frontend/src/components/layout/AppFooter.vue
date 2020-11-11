@@ -75,17 +75,14 @@
           <v-row>
             <v-col class="py-0">
               <a class="footer-link" href="https://niis.org/" target="_blank">
-              {{ $t('footer.copyright.company') }}
+                {{ $t('footer.copyright.company') }}
               </a>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <a class="footer-link" href="https://github.com/nordic-institute/X-Road/blob/develop/src/LICENSE.txt" target="_blank">
-                {{ $t('footer.copyright.license') }}
-              </a> {{ $t('footer.copyright.and') }}
-              <a class="footer-link" href="https://github.com/nordic-institute/X-Road/blob/develop/src/3RD-PARTY-NOTICES.txt" target="_blank">
-                {{ $t('footer.copyright.3rdPartyNotices') }}
+              <a class="footer-link" href="https://x-road.global/xroad-licence-info" target="_blank">
+                {{ $t('footer.copyright.licenseInfo') }}
               </a>
             </v-col>
           </v-row>
