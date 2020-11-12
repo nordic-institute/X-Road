@@ -52,7 +52,7 @@
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageKeyLabel @cancel="cancel" @done="currentStep = 2" v-bind:tokenType="tokenType" />
+          <WizardPageKeyLabel @cancel="cancel" @done="currentStep = 2" :tokenType="tokenType" />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">

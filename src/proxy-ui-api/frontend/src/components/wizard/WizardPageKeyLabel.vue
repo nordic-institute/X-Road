@@ -27,7 +27,7 @@
   <div>
     {{ tokenType === 'HARDWARE' ? $t('wizard.signKey.info') : $t('keys.keyLabelInfo') }}
     <div class="row-wrap">
-      <FormLabel v-bind:labelText="keyLabelText" />
+      <FormLabel :labelText="keyLabelText" />
       <v-text-field
         class="form-input"
         type="text"
