@@ -26,5 +26,6 @@
 
 class LicenceInfoController < ApplicationController
   def index
+    # NOP
   end
 end
