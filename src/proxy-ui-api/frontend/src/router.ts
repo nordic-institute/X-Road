@@ -400,7 +400,7 @@ const router = new Router({
         },
         {
           name: RouteName.GenerateCertificateSignRequest,
-          path: '/generate-csr/:keyId',
+          path: '/generate-csr/:keyId/:tokenType',
           components: {
             default: GenerateCertificateSignRequest,
           },
