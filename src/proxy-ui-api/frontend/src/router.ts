@@ -408,7 +408,7 @@ const router = new Router({
         },
         {
           name: RouteName.AddKey,
-          path: '/add-key/:tokenId',
+          path: '/add-key/:tokenId/:tokenType',
           components: {
             default: AddKey,
           },
