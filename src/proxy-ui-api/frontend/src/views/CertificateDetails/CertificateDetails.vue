@@ -134,7 +134,7 @@ export default Vue.extend({
     },
     usage: {
       type: String,
-      required: true,
+      required: false,
     },
   },
   data() {
