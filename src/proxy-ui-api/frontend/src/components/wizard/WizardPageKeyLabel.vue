@@ -25,9 +25,10 @@
  -->
 <template>
   <div>
-    {{ $t('wizard.signKey.info') }}
+    {{ tokenType === 'HARDWARE' ? $t('wizard.signKey.info') : $t('keys.keyLabelInfo') }}
+    tokentype={{ tokenType }}
     <div class="row-wrap">
-      <FormLabel labelText="wizard.signKey.keyLabel" />
+      <FormLabel labelText="tokenType === 'HARDWARE' ? wizard.signKey.keyLabel : wizard.signOrAuthKey.keyLabel" />
       <v-text-field
         class="form-input"
         type="text"
@@ -64,6 +65,12 @@ export default Vue.extend({
     FormLabel,
     LargeButton,
   },
+  props: {
+      tokenType: {
+          type: String,
+          required: false,
+      },
+  },
   computed: {
     ...mapGetters(['csrForm']),
     keyLabel: {
@@ -74,6 +81,16 @@ export default Vue.extend({
         this.$store.commit('storeKeyLabel', value);
       },
     },
+    // keyLabelText: {
+    //   get(): string {
+    //       if (props.tokenType === 'HARDWARE') {
+    //           return this.$store.getters.keyLabel;
+    //       },
+    //       set(value: string) {
+    //           this.$store.commit('storeKeyLabel', value);
+    //       },
+    //   },
+
   },
   data() {
     return {
