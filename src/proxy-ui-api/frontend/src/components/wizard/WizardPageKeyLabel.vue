@@ -80,14 +80,12 @@ export default Vue.extend({
         this.$store.commit('storeKeyLabel', value);
       },
     },
-    keyLabelText: {
-      get(): string {
-        if (this.$props.tokenType === 'HARDWARE') {
-          return 'wizard.signKey.keyLabel';
-        } else {
-          return 'keys.keyLabelInput';
-        }
-      },
+    keyLabelText(): string {
+      if (this.$props.tokenType === 'HARDWARE') {
+        return 'wizard.signKey.keyLabel';
+      } else {
+        return 'keys.keyLabelInput';
+      }
     },
   },
   data() {
