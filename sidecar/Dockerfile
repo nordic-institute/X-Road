@@ -14,7 +14,7 @@ RUN apt-get -qq update \
 && apt-get -qq install postgresql postgresql-contrib \
 && apt-get -qq clean
 
-ARG DIST=bionic-6.23.0
+ARG DIST=bionic-6.24.0
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
