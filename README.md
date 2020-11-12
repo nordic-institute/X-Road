@@ -387,7 +387,7 @@ Modify your deployment pod definition in each container that you wish to consume
 [...]
 containers:
  - name: security-server-sidecar
-   image: niis/xroad-security-server-sidecar:latest
+   image: niis/xroad-security-server-sidecar:6.24.0
    imagePullPolicy: "Always"
    envFrom:
    - secretRef:
