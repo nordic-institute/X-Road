@@ -21,6 +21,7 @@
       * [4.3 Configuration](#43-configuration)
       * [4.4 Central Server configuration](#44-central-server-configuration)
    * [5 Back up and Restore](#5-back-up-and-restore)
+      * [5.1 Automatic Backups](#51-automatic-backups)
    * [6 Version update](#6-version-update)
    * [7 Monitoring](#7-monitoring)
       * [7.1 Environmental monitoring](#71-environmental-monitoring)
