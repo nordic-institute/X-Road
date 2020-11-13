@@ -371,7 +371,7 @@ For example to get the system metrics:
 
 - From the command line send a SOAP curl request (**reference data 1.3**):
 ```
-curl -d  @metrics.xml --header "Content-Type: text/xml" -X POST  http://localhost:<http port>
+curl -d  @system_metrics.xml --header "Content-Type: text/xml" -X POST  http://localhost:<http port>
 
 <?xml version="1.0" encoding="UTF-8"?>
 <SOAP-ENV:Envelope
