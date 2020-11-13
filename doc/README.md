@@ -322,7 +322,7 @@ Monitoring will be available if we use the regular version of the X-Road Securit
 ## 7.1 Environmental monitoring
 Environmental monitoring for the Security Server Sidecar provider can be used to obtain information about the platform it's running on.
 For example to get the system metrics:
-- Create a file call **system_metrics.xml** (**reference data: 2.2;2.3;2.4**):
+- Create a file called **system_metrics.xml** (**reference data: 2.2;2.3;2.4**):
 ```
 <SOAP-ENV:Envelope
 	xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/"
