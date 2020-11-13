@@ -88,7 +88,7 @@ Minimum recommended docker engine configuration to run the security server sidec
 - Memory: 2 GiB
 - Swap: 1 GiB
 - Disk space: 2 GiB
-- if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.11; 1.12; 1.13;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
+- If the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server need to be allowed (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
 - if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.18**).
 ## 2.5 Network
 
