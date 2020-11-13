@@ -1,3 +1,11 @@
+# Security Server Sidecar Installation User Guide <!-- omit in toc -->
+
+## Version history <!-- omit in toc -->
+
+ Date       | Version | Description                                                     | Author
+ ---------- | ------- | --------------------------------------------------------------- | --------------------
+ 13.11.2020 | 1.0     | Initial version                                                 |
+
 # Table of Contents
    * [1 Introduction](#1-introduction)
       * [1.1 Target Audience](#11-target-audience)
