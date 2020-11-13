@@ -40,6 +40,7 @@ import i18n from '@/i18n';
 
 export interface UserState {
   authenticated: boolean;
+  isSessionAlive: boolean | undefined;
   permissions: string[];
   username: string;
   currentSecurityServer: SecurityServer | Record<string, unknown>;
@@ -50,6 +51,7 @@ export interface UserState {
 export const getDefaultState = (): UserState => {
   return {
     authenticated: false,
+    isSessionAlive: undefined,
     permissions: [],
     username: '',
     currentSecurityServer: {},
@@ -64,6 +66,9 @@ const moduleState = getDefaultState();
 export const userGetters: GetterTree<UserState, RootState> = {
   isAuthenticated(state) {
     return state.authenticated;
+  },
+  isSessionAlive(state) {
+    return state.isSessionAlive;
   },
   firstAllowedTab(state, getters) {
     return getters.getAllowedTabs(mainTabs)[0];
@@ -142,6 +147,9 @@ export const mutations: MutationTree<UserState> = {
   authUser(state) {
     state.authenticated = true;
   },
+  setSessionAlive(state, value: boolean) {
+    state.isSessionAlive = value;
+  },
   clearAuthData(state) {
     Object.assign(state, getDefaultState());
   },
@@ -178,9 +186,21 @@ export const actions: ActionTree<UserState, RootState> = {
     })
       .then(() => {
         commit('authUser');
+        commit('setSessionAlive', true);
       })
       .catch((error) => {
         throw error;
+      });
+  },
+
+  async isSessionAlive({ commit }) {
+    return axios
+      .get('/notifications/session-status')
+      .then( (res: any) => {
+        commit('setSessionAlive', res?.data?.valid || false);
+      })
+      .catch(() => {
+        commit('setSessionAlive', false);
       });
   },
 

@@ -25,7 +25,6 @@
  */
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import VuexPersistence from 'vuex-persist';
 import { RootState } from './types';
 import { generalModule } from './modules/general';
 import { clientsModule } from './modules/clients';
@@ -38,8 +37,10 @@ import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
 import { module as initServer } from './modules/initializeServer';
 import { alertsModule } from '@/store/modules/alerts';
+import VuexPersistence from "vuex-persist";
 
 Vue.use(Vuex);
+
 const vuexLocal = new VuexPersistence({
   storage: window.sessionStorage,
   modules: ['user'],
@@ -62,7 +63,7 @@ const store: StoreOptions<RootState> = {
     initServer,
     alertsModule,
   },
-  plugins: [vuexLocal.plugin],
+  plugins: [vuexLocal.plugin]
 };
 
 export default new Vuex.Store<RootState>(store);

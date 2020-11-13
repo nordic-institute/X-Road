@@ -197,7 +197,11 @@ export const actions: ActionTree<NotificationsState, RootState> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   showError({ commit }, errorObject: any): void {
     // Show error using the error object
-    commit('setErrorObject', errorObject);
+    // Don't show errors when the errorcode is 401 which is usually because of session expiring
+    if(errorObject?.response?.status !== 401) {
+      commit('setErrorObject', errorObject);
+    }
+
   },
 };
 
