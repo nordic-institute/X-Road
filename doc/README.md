@@ -272,7 +272,7 @@ To add the docker volume, in the docker run command [docker run command](##2.6-I
 ```
 docker run -v (custom-volume-name):/etc/xroad
 ```
-Once the docker container it's running we can see the volume information and where is stored in our local machine running from the command line:
+Once the docker container is running we can see the volume information and where it is stored in our local machine by running the following command:
 ```
 docker volume inspect (custom-volume-name)
 [
