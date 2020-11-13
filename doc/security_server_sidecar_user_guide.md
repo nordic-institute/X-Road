@@ -290,6 +290,13 @@ docker volume inspect (custom-volume-name)
 ```
 We can manually backup the data stored in the "Mountpoint" every period of time.
 
+## 5.1 Automatic Backups
+By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the ''/etc/cron.d/xroad-proxy' file.
+Automatic backups will be stored in the folder '/var/lib/xroad/backup/'. We can create a volume for store the automatic backups by adding in the run command:
+```
+docker run -v (backups-volume-name):/etc/xroad/var/lib/xroad/backup/
+```
+
 # 6 Version update
 We can update the Security Server sidecar by creating a backup, running the image with the new version, and restore the backup or reuse the volume with the xroad config ([5](# 5-Back-up-and-Restore)).
 Another option, we can manually update the X-Road sidecar packages while the docker container is running.
