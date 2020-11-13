@@ -2,14 +2,13 @@ pipeline {
     agent any
     parameters {
         string(description: "Path to the Dockerfile to build", name: "DOCKERFILE_PATH", defaultValue: "${params?.DOCKERFILE_PATH}")
-        string(description: "Tag to publish the latest version", name: "LATEST_TAG", defaultValue: "${params?.LATEST_TAG}")
     }
     stages {
         stage('Clone X-Road Security Server Sidecar repository') {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'master']],
+                    branches: [[name: 'XRDDEV-1291']],
                     doGenerateSubmoduleConfigurations: false,
                     gitTool: 'Default',
                     userRemoteConfigs: [
@@ -21,17 +20,29 @@ pipeline {
                 ])
             }
         }
+        stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
+            steps {
+                sh '''
+                    docker run -d --name clair-db arminc/clair-db
+                    sleep 15 # wait for db to come up
+                    docker run -p 6060:6060 --link clair-db:postgres -d --name clair arminc/clair-local-scan
+                    DOCKER_GATEWAY=$(docker network inspect bridge --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}")
+                    curl -O -L https://github.com/arminc/clair-scanner/releases/download/v8/clair-scanner_linux_amd64 && mv clair-scanner_linux_amd64 clair-scanner && chmod +x clair-scanner
+                    ./clair-scanner --ip="$DOCKER_GATEWAY" niis/xroad-security-server-sidecar:6.24.0
+                    curl https://docs.anchore.com/current/docs/engine/quickstart/docker-compose.yaml > docker-compose.yaml
+                    docker-compose up -d
+                    export ANCHORE_CLI_URL=http://localhost:8228/v1
+                    export ANCHORE_CLI_USER=admin
+                    export ANCHORE_CLI_PASS=foobar
+                    anchore-cli image add niis/xroad-security-server-sidecar:6.24.0
+                    anchore-cli image vuln niis/xroad-security-server-sidecar:6.24.0 all
+                    anchore-cli evaluate check niis/xroad-security-server-sidecar:6.24.0 --detail
+                '''
+                }
+            }
         stage('Build X-Road Security Server Sidecar image') {
             steps {
                 sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
-            }
-        }
-        stage('Optionally add latest tag to X-Road Security Server Sidecar image') {
-            when {
-                expression { params.IS_LATEST == true }
-            }
-            steps {
-                sh 'docker tag niis/xroad-security-server-sidecar:${IMAGE_TAG} niis/xroad-security-server-sidecar:${LATEST_TAG}'
             }
         }
         stage('Run container') {
@@ -58,7 +69,11 @@ pipeline {
     }
     post {
         always {
-            sh 'docker rm -f sss-${IMAGE_TAG} || true'
+            sh '''
+                docker rm -f sss-${IMAGE_TAG} clair-db clair || true
+                rm clair-scanner
+                docker rmi arminc/clair-db:latest arminc/clair-local-scan:latest anchore/anchore-engine:v0.8.2
+            '''
         }
     }
 }
