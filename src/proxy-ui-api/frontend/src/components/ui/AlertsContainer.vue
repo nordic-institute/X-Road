@@ -43,7 +43,14 @@
       :value="showSoftTokenPinEnteredAlert"
       color="red"
     >
-      <span class="alert-text clickable-link" @click="tokenLogin()">
+      <span
+        v-if="showLoginLink"
+        class="alert-text clickable-link"
+        @click="tokenLogin()"
+      >
+        {{ $t('globalAlert.softTokenPinNotEntered') }}
+      </span>
+      <span v-else class="alert-text">
         {{ $t('globalAlert.softTokenPinNotEntered') }}
       </span>
     </v-alert>
@@ -76,6 +83,9 @@ export default Vue.extend({
         this.showRestoreInProgress
       );
     },
+    showLoginLink(): boolean {
+      return this.$route.name !== RouteName.SignAndAuthKeys;
+    },
     ...mapGetters([
       'showGlobalConfAlert',
       'showSoftTokenPinEnteredAlert',
@@ -99,8 +109,8 @@ export default Vue.extend({
   width: 100%;
   padding: 0;
   & > * {
-    margin-top: 4px;
-    margin-bottom: 0;
+    margin-top: 0;
+    margin-bottom: 4px;
     border-radius: 0;
   }
   & > :first-child {

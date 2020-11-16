@@ -37,7 +37,7 @@
         @click="click"
         :disabled="selectableTimestampingServices.length === 0"
         :requires-permission="permissions.ADD_TSP"
-      >
+        ><v-icon class="mr-1">mdi-plus-circle</v-icon>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}
       </large-button>
     </template>
@@ -84,13 +84,16 @@
           data-test="system-parameters-add-timestamping-service-dialog-cancel-button"
           outlined
           @click="close"
-          >{{ $t('action.cancel') }}</large-button
+        >
+          {{ $t('action.cancel') }}</large-button
         >
         <large-button
           data-test="system-parameters-add-timestamping-service-dialog-add-button"
           :loading="loading"
           :disabled="selectedTimestampingService === undefined"
           @click="add"
+        >
+          <v-icon class="mr-1">mdi-plus-circle</v-icon
           >{{ $t('action.add') }}</large-button
         >
       </v-card-actions>

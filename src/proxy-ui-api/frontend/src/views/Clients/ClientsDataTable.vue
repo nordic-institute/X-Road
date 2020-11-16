@@ -50,13 +50,16 @@
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
-          >{{ $t('action.addMember') }}</LargeButton
+          outlined
+          ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+          {{ $t('action.addMember') }}</LargeButton
         >
         <LargeButton
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
-          >{{ $t('action.addClient') }}</LargeButton
+          ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+          {{ $t('action.addClient') }}</LargeButton
         >
       </div>
     </div>
@@ -478,7 +481,7 @@ export default Vue.extend({
 
 <style lang="scss">
 .xrd-table-header {
-  border-bottom: 1px solid #9c9c9c !important;
+  border-bottom: 1px solid #dedce4 !important;
 }
 </style>
 
@@ -511,6 +514,7 @@ export default Vue.extend({
 
 .data-table-wrapper {
   width: 100%;
+  max-width: 1000px;
 }
 
 .data-table {

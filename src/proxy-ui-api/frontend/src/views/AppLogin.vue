@@ -24,14 +24,28 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid fill-height>
+  <v-container fluid fill-height class="view-wrap">
+    <div class="graphics">
+      <v-img
+        :src="require('../assets/xroad7_large.svg')"
+        height="195"
+        width="144"
+        max-height="195"
+        max-width="144"
+        class="xrd-logo"
+      ></v-img>
+    </div>
+
     <v-layout align-center justify-center>
-      <v-flex sm8 md4 class="set-width">
+      <v-flex class="set-width">
         <v-card flat>
           <v-toolbar flat class="login-form-toolbar">
-            <v-toolbar-title class="login-form-toolbar-title">{{
-              $t('login.logIn')
-            }}</v-toolbar-title>
+            <div class="title-wrap">
+              <div class="login-form-toolbar-title">
+                {{ $t('login.logIn') }}
+              </div>
+              <div class="sub-title">X-Road Security Server</div>
+            </div>
           </v-toolbar>
 
           <v-card-text>
@@ -45,6 +59,7 @@
                   <v-text-field
                     id="username"
                     name="username"
+                    outlined
                     :label="$t('fields.username')"
                     :error-messages="errors"
                     type="text"
@@ -62,6 +77,7 @@
                   <v-text-field
                     id="password"
                     name="password"
+                    outlined
                     :label="$t('fields.password')"
                     :error-messages="errors"
                     type="password"
@@ -72,12 +88,14 @@
               </ValidationObserver>
             </v-form>
           </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
+          <v-card-actions class="px-4">
             <large-button
               id="submit-button"
               color="primary"
               class="rounded-button"
+              gradient
+              block
+              large
               @click="submit"
               :min_width="120"
               rounded
@@ -256,24 +274,46 @@ export default (Vue as VueConstructor<
 </script>
 
 <style lang="scss" scoped>
-.app-custom {
+.graphics {
+  height: 100%;
+  width: 40%;
+  background-image: url('../assets/background.png');
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-wrap {
   background-color: white;
+  padding: 0;
+}
+
+.title-wrap {
+  display: flex;
+  flex-direction: column;
 }
 
 .login-form-toolbar {
   background-color: white;
-  border-bottom: 1px #9b9b9b solid;
   margin-bottom: 30px;
   padding-left: 0;
 }
 
 .login-form-toolbar-title {
   margin-left: 0;
-  color: #4a4a4a;
-  font-size: 36px;
-  font-weight: 300;
-  line-height: 44px;
-  margin-left: -24px;
+  color: #252121;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 40px;
+  line-height: 54px;
+}
+
+.sub-title {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 14px;
+  line-height: 19px;
 }
 
 .set-width {

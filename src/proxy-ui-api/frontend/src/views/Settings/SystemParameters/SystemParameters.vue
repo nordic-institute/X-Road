@@ -24,10 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="pt-10">
+  <div class="pt-6">
+    <h2 class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</h2>
+
     <v-card flat class="xrd-card">
       <v-container>
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
+        <v-row
+          no-gutters
+          class="mt-2"
+          v-if="hasPermission(permissions.VIEW_ANCHOR)"
+        >
           <v-col
             ><h3>
               {{ $t('systemParameters.configurationAnchor.title') }}
@@ -41,6 +47,7 @@
               outlined
               :requires-permission="permissions.DOWNLOAD_ANCHOR"
             >
+              <v-icon>mdi-arrow-down</v-icon>
               {{ $t('systemParameters.configurationAnchor.action.download') }}
             </large-button>
             <upload-configuration-anchor-dialog
@@ -82,9 +89,13 @@
             </table>
           </v-col>
         </v-row>
+      </v-container>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-container>
         <v-row
           no-gutters
-          class="mt-10"
+          class="mt-2"
           v-if="hasPermission(permissions.VIEW_TSPS)"
         >
           <v-col
@@ -99,6 +110,7 @@
             />
           </v-col>
         </v-row>
+
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
           <v-col>
             <table class="xrd-table">
@@ -135,9 +147,13 @@
             </table>
           </v-col>
         </v-row>
+      </v-container>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-container>
         <v-row
           no-gutters
-          class="mt-10"
+          class="mt-2"
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
@@ -313,8 +329,11 @@ export default Vue.extend({
 @import '../../../assets/tables';
 
 h3 {
-  color: lighten($XRoad-Black, 10);
-  font-weight: 500;
+  color: #211e1e;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0;
+  line-height: 24px;
 }
 
 table {
@@ -343,5 +362,9 @@ tr td:last-child {
 .interm-ca {
   font-weight: normal !important;
   padding-left: 2rem !important;
+}
+
+.xrd-card {
+  margin-bottom: 24px;
 }
 </style>

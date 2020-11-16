@@ -38,7 +38,9 @@
           :loading="previewing"
           :requires-permission="permissions.UPLOAD_ANCHOR"
           class="ml-5"
-          >{{
+        >
+          <v-icon>mdi-arrow-up</v-icon>
+          {{
             $t('systemParameters.configurationAnchor.action.upload.button')
           }}</large-button
         ></file-upload

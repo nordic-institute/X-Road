@@ -24,34 +24,31 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <v-flex mb-4 class="title-action">
-      <h1 v-if="client" class="display-1 mb-3 identifier-wrap">
-        {{ client.subsystem_code }} ({{ $t('subsystem') }})
-      </h1>
-      <div>
-        <DeleteClientButton v-if="showDelete" :id="id" />
-        <UnregisterClientButton
-          v-if="showUnregister"
-          :id="id"
-          @done="fetchClient"
-        />
-      </div>
-    </v-flex>
-    <v-tabs
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
+  <div class="xrd-sub-view-wrapper">
+    <sub-tabs :tab="tab">
       <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
         $t(tab.name)
       }}</v-tab>
-    </v-tabs>
+    </sub-tabs>
+    <alerts-container />
 
-    <router-view />
+    <div class="content xrd-view-common">
+      <v-flex mb-4 class="title-action">
+        <h1 v-if="client" class="display-1 mb-3 identifier-wrap">
+          {{ client.subsystem_code }} ({{ $t('subsystem') }})
+        </h1>
+        <div>
+          <DeleteClientButton v-if="showDelete" :id="id" />
+          <UnregisterClientButton
+            v-if="showUnregister"
+            :id="id"
+            @done="fetchClient"
+          />
+        </div>
+      </v-flex>
+
+      <router-view />
+    </div>
   </div>
 </template>
 
@@ -60,13 +57,17 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 export default Vue.extend({
   components: {
+    AlertsContainer,
     UnregisterClientButton,
     DeleteClientButton,
+    SubTabs,
   },
   props: {
     id: {
@@ -174,5 +175,9 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+}
+.content {
+  width: 1000px;
+  margin-top: 30px;
 }
 </style>

@@ -25,15 +25,10 @@
  -->
 <template>
   <v-app class="xrd-app">
-    <app-toolbar />
-    <v-main app>
-      <alerts-container />
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
+    <transition name="fade" mode="out-in">
+      <router-view />
+    </transition>
     <snackbar />
-    <app-footer />
   </v-app>
 </template>
 
@@ -42,17 +37,11 @@ import Vue from 'vue';
 import axios from 'axios';
 import Snackbar from '@/components/ui/Snackbar.vue';
 import { RouteName } from '@/global';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 export default Vue.extend({
   name: 'App',
   components: {
-    AppToolbar,
-    AppFooter,
     Snackbar,
-    AlertsContainer,
   },
   created() {
     // Add a response interceptor

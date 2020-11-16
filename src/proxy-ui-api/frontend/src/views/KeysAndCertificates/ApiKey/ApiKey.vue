@@ -25,6 +25,17 @@
  -->
 <template>
   <div class="wrapper">
+    <div class="title-row">
+      <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
+      <div>
+        <help-button
+          helpImage="api_keys.png"
+          helpTitle="keys.helpTitleApi"
+          helpText="keys.helpTextApi"
+        ></help-button>
+      </div>
+    </div>
+
     <div class="details-view-tools">
       <large-button
         v-if="canCreateApiKey"
@@ -65,10 +76,12 @@ import * as api from '@/util/api';
 import { RouteName, Permissions } from '@/global';
 import { ApiKey } from '@/global-types';
 import ApiKeyRow from '@/views/KeysAndCertificates/ApiKey/ApiKeyRow.vue';
+import HelpButton from '../HelpButton.vue';
 
 export default Vue.extend({
   components: {
     ApiKeyRow,
+    HelpButton,
   },
   computed: {
     canCreateApiKey(): boolean {
@@ -106,8 +119,19 @@ export default Vue.extend({
 @import '../../../assets/tables';
 @import '../../../assets/colors';
 
+.wrapper {
+  margin-top: 20px;
+  width: 100%;
+}
+
 .keytable-header {
   font-weight: 500;
   color: $XRoad-Black;
+}
+
+.title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
 }
 </style>

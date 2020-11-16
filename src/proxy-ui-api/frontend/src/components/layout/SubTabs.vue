@@ -24,20 +24,29 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>
-    <alerts-container />
-    <clientsDataTable />
-  </v-layout>
+  <div class="xrd-sub-view-wrapper">
+    <v-tabs
+      class="xrd-tabs"
+      color="primary"
+      background-color="#F4F3F6"
+      slider-size="2"
+    >
+      <v-tabs-slider
+        color="primary"
+        class="xrd-sub-tabs-slider"
+      ></v-tabs-slider>
+      <slot></slot>
+    </v-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import ClientsDataTable from './ClientsDataTable.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-export default Vue.extend({
-  components: {
-    AlertsContainer,
-    ClientsDataTable,
-  },
-});
+
+export default Vue.extend({});
 </script>
+<style lang="scss" scoped>
+.content {
+  width: 1000px;
+}
+</style>
