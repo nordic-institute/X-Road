@@ -111,6 +111,8 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
+@import './assets/colors';
+
 .fade-enter-active,
 .fade-leave-active {
   transition-duration: 0.2s;
@@ -125,6 +127,6 @@ export default Vue.extend({
 
 // Set the app background color
 .theme--light.v-application.xrd-app {
-  background: white;
+  background: $XRoad-WarmGrey30;
 }
 </style>

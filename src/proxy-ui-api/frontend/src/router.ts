@@ -452,7 +452,6 @@ const router = new Router({
         },
       ],
     },
-
     {
       path: '/login',
       name: RouteName.Login,
