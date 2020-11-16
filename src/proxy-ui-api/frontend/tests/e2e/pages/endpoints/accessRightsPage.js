@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-const addSubjectsPopup = require('../common/addSubjectsPopup'); // eslint-disable-line no-use-before-define
+const addSubjectsPopup = require('../common/addSubjectsPopup');
 
 const commands = [
   {
