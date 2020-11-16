@@ -44,7 +44,7 @@ import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import {mapGetters} from "vuex";
+import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   name: 'App',
@@ -55,7 +55,7 @@ export default Vue.extend({
     AlertsContainer,
   },
   computed: {
-    ...mapGetters(['isSessionAlive'])
+    ...mapGetters(['isSessionAlive']),
   },
   created() {
     // Add a response interceptor
@@ -69,7 +69,10 @@ export default Vue.extend({
           Check if error is a proper "unauthorized error" meaning it is not happening in sending login form data.
           Also the response from from session timeout polling is handled in AppBase -component
          */
-        if (error?.response?.status === 401 && this.$router.currentRoute.name !== 'login') {
+        if (
+          error?.response?.status === 401 &&
+          this.$router.currentRoute.name !== 'login'
+        ) {
           // if you ever get an unauthorized, logout the user
           this.$store.commit('setSessionAlive', false);
         }

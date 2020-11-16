@@ -37,7 +37,7 @@ import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
 import { module as initServer } from './modules/initializeServer';
 import { alertsModule } from '@/store/modules/alerts';
-import VuexPersistence from "vuex-persist";
+import VuexPersistence from 'vuex-persist';
 
 Vue.use(Vuex);
 
@@ -63,7 +63,7 @@ const store: StoreOptions<RootState> = {
     initServer,
     alertsModule,
   },
-  plugins: [vuexLocal.plugin]
+  plugins: [vuexLocal.plugin],
 };
 
 export default new Vuex.Store<RootState>(store);

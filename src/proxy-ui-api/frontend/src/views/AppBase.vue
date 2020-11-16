@@ -71,7 +71,7 @@ export default Vue.extend({
   computed: {
     showDialog(): boolean {
       return this.$store.getters.isSessionAlive === false;
-    }
+    },
   },
   created() {
     // Set interval to poll backend for session
@@ -83,18 +83,19 @@ export default Vue.extend({
   },
   methods: {
     pollSessionStatus() {
-      return api.get('/notifications/session-status')
-        .then( () => {
+      return api
+        .get('/notifications/session-status')
+        .then(() => {
           // Check alert status after a successfull session-status call
           this.$store.dispatch('checkAlertStatus');
         })
         .catch((error) => {
-        if (error?.response?.status === 401) {
-          this.$store.commit('setSessionAlive', false);
-          clearInterval(this.sessionPollInterval);
-          clearInterval(this.alertsPollInterval);
-        }
-      });
+          if (error?.response?.status === 401) {
+            this.$store.commit('setSessionAlive', false);
+            clearInterval(this.sessionPollInterval);
+            clearInterval(this.alertsPollInterval);
+          }
+        });
     },
     logout(): void {
       this.$store.dispatch('logout');

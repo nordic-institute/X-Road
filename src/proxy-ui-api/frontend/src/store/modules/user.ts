@@ -196,8 +196,8 @@ export const actions: ActionTree<UserState, RootState> = {
   async isSessionAlive({ commit }) {
     return axios
       .get('/notifications/session-status')
-      .then( (res: any) => {
-        commit('setSessionAlive', res?.data?.valid || false);
+      .then((res: any) => {
+        commit('setSessionAlive', res?.data?.valid ?? false);
       })
       .catch(() => {
         commit('setSessionAlive', false);
