@@ -7,35 +7,40 @@
  13.11.2020 | 1.0     | Initial version                                                 |
 
 # Table of Contents
-   * [1 Introduction](#1-introduction)
-      * [1.1 Target Audience](#11-target-audience)
-   * [2 Installation](#2-installation)
-      * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-      * [2.2 X-Road Security Server sidecar images](#22-x-road-security-server-sidecar-images)
-         * [2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim](#221-niisxroad-security-server-sidecarversion-slim)
-         * [2.2.2 niis/xroad-security-server-sidecar:&lt;version&gt;](#222-niisxroad-security-server-sidecarversion)
-         * [2.2.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi](#223-niisxroad-security-server-sidecarversion-slim-fi)
-         * [2.2.4](#224)
-      * [2.3 Reference data](#23-reference-data)
-      * [2.4 Requirements for the X-Road Security Server sidecar](#24-requirements-for-the-x-road-security-server-sidecar)
-      * [2.5 Network](#25-network)
-      * [2.6 Installation](#26-installation)
-      * [2.7 External database](#27-external-database)
-         * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
-   * [3 Verify installation](#3-verify-installation)
-   * [4 X-Road Security Server sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
-      * [4.1 Prerequisites](#41-prerequisites)
-      * [4.2 Reference data](#42-reference-data)
-      * [4.3 Configuration](#43-configuration)
-      * [4.4 Central Server configuration](#44-central-server-configuration)
-   * [5 Back up and Restore](#5-back-up-and-restore)
-      * [5.1 Automatic Backups](#51-automatic-backups)
-   * [6 Version update](#6-version-update)
-   * [7 Monitoring](#7-monitoring)
-      * [7.1 Environmental monitoring](#71-environmental-monitoring)
-      * [7.2 Operational Monitoring](#72-operational-monitoring)
-   * [8 Message log](#8-message-log)
-      * [8.1 Local storage of message log](#81-local-storage-of-message-log)
+* [1 Introduction](#1-introduction)
+   * [1.1 Target Audience](#11-target-audience)
+* [2 Installation](#2-installation)
+   * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+   * [2.2 X-Road Security Server sidecar images](#22-x-road-security-server-sidecar-images)
+      * [2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim](#221-niisxroad-security-server-sidecarversion-slim)
+      * [2.2.2 niis/xroad-security-server-sidecar:&lt;version&gt;](#222-niisxroad-security-server-sidecarversion)
+      * [2.2.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi](#223-niisxroad-security-server-sidecarversion-slim-fi)
+      * [2.2.4](#224)
+   * [2.3 Reference data](#23-reference-data)
+   * [2.4 Requirements for the X-Road Security Server sidecar](#24-requirements-for-the-x-road-security-server-sidecar)
+   * [2.5 Network](#25-network)
+   * [2.6 Installation](#26-installation)
+   * [2.7 External database](#27-external-database)
+      * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
+* [3 Verify installation](#3-verify-installation)
+* [4 X-Road Security Server sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
+   * [4.1 Prerequisites](#41-prerequisites)
+   * [4.2 Reference data](#42-reference-data)
+   * [4.3 Configuration](#43-configuration)
+   * [4.4 Central Server configuration](#44-central-server-configuration)
+* [5 Back up and Restore](#5-back-up-and-restore)
+   * [5.1 Automatic Backups](#51-automatic-backups)
+* [6 Version update](#6-version-update)
+* [7 Monitoring](#7-monitoring)
+   * [7.1 Environmental monitoring](#71-environmental-monitoring)
+   * [7.2 Operational Monitoring](#72-operational-monitoring)
+* [8 Message log](#8-message-log)
+   * [8.1 Local storage of message log](#81-local-storage-of-message-log)
+* [9 Deployment options](#9-deployment-options)
+   * [9.1 General](#91-general)
+   * [9.2 Local database](#92-local-database)
+   * [9.3 Remote database](#93-remote-database)
+   * [9.4 High Availability Setup](#94-high-availability-setup)
 
 
 # 1 Introduction
@@ -447,7 +452,7 @@ More information can be found in https://github.com/nordic-institute/X-Road/blob
 Note (1): The Security Server sidecar must have available certificates and a subsystem registered on the central server.
 
 ## 7.2 Operational Monitoring
-Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here https://github.com/nordic-institute/X-Road/blob/master/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md/
+Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols
 
 # 8 Message log
 Message log will be available if we use the regular version of the X-Road Security Server sidecar instead of the 'slim' version.
@@ -455,7 +460,7 @@ Message log will be available if we use the regular version of the X-Road Securi
 The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between security servers are signed and encrypted. For every regular request and response, the security server produces a complete signed and timestamped document (Associated Signature Container).
 
 Message log data is stored to the [messagelog database](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md) of the security server database host (**reference data: 1.7**) during message exchange. According to the configuration (see 8.1), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
-
+armin
 In case of synchronous timestamping, the timestamping is an integral part of the message exchange process (one timestamp is taken for the request and another for the response). If the timestamping fails, the message exchange fails as well and the security server responds with an error message.
 
 In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the security server uses asynchronous timestamping for better performance and availability.
@@ -472,3 +477,22 @@ From the docker run command [docker run command](##2.6-Installation) add the doc
 ```
 docker run -v (custom-volume-name):/var/lib/xroad/  
 ```
+
+# 9 Deployment options
+## 9.1 General
+X-Road Security Server Sidecar has multiple deployment options.  The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment. The images different images could be combine and any can be used as a consumer or provider server.
+
+## 9.2 Local database
+The simplest deployment option is to use a single security server sidecar with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
+![Security server with local database](img/ig-ss_local_db.svg)
+
+## 9.3 Remote database
+It is possible to use a remote database with X-Road Security Server Sidecar. This option is sometimes used in development and testing when there's need to externalize the database state.
+
+X-Road Security Server Sidecar supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
+![Security server with remote database](img/ig-ss_external_db.svg)
+
+## 9.4 High Availability Setup
+In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+
+![Security server high availability](img/ss_high_availability.svg)
