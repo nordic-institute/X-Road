@@ -72,7 +72,6 @@ export default Vue.extend({
   justify-content: center;
   border-bottom: 1px solid $XRoad-Grey40;
   color: $XRoad-Grey60;
-  font-family: Roboto;
   font-size: 34px;
   font-weight: 300;
   letter-spacing: 0.5px;

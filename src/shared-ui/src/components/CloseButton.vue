@@ -47,7 +47,6 @@ export default Vue.extend({
 @import '../assets/colors';
 
 #dlg-close-x {
-  font-family: Roboto;
   font-size: 34px;
   cursor: pointer;
   font-style: normal;

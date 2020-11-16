@@ -31,9 +31,10 @@
     :disabled="disabled"
     :min-width="min_width"
     :loading="loading"
+    :text="text"
     rounded
     color="primary"
-    class="xrd-small-button"
+    class="small-button"
     @click="click()"
   >
     <slot></slot>
@@ -62,6 +63,10 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
+    text: {
+      type: Boolean,
+      default: false,
+    },
     min_width: {
       type: Number,
       default: 120,
@@ -75,4 +80,8 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.small-button {
+  text-transform: none;
+}
+</style>

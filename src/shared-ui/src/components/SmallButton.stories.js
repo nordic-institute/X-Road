@@ -33,6 +33,7 @@ export default {
     outlined: { control: 'boolean' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
+    text: { control: 'boolean' },
     label: { control: 'text' },
     click: { action: 'click' },
   },

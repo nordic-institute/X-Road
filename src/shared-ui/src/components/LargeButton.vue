@@ -30,6 +30,9 @@
     :disabled="disabled"
     :min-width="min_width"
     :loading="loading"
+    :block="block"
+    :large="large"
+    :text="text"
     rounded
     color="primary"
     class="large-button"
@@ -62,9 +65,22 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
+    // Block buttons extend the full available width
+    block: {
+      type: Boolean,
+      default: false,
+    },
+    large: {
+      type: Boolean,
+      default: false,
+    },
+    text: {
+      type: Boolean,
+      default: false,
+    },
     min_width: {
       type: Number,
-      default: 140,
+      default: 80,
     },
     gradient: {
       type: Boolean,
