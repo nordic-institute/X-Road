@@ -26,7 +26,7 @@
 
 module.exports = {
   tags: ['ss', 'logout'],
-  'Security server logout': browser => {
+  'Security server logout': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
 
@@ -42,7 +42,7 @@ module.exports = {
       .enterPassword(browser.globals.login_pwd)
       .signin();
 
-    // Verify successful login    
+    // Verify successful login
     browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Logout and verify
@@ -50,9 +50,8 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="username"]');
 
     browser.end();
-
   },
-  'Security server timeout logout': browser => {
+  'Security server timeout logout': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
 
@@ -67,15 +66,22 @@ module.exports = {
       .enterPassword(browser.globals.login_pwd)
       .signin();
 
-    // Verify successful login    
+    // Verify successful login
     browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Wait for the timeout message to appear
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage, browser.globals.logout_timeout_ms + 60000, 1000); 
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Error: Request failed with status code 401');
+    browser.waitForElementVisible(
+      mainPage.elements.snackBarMessage,
+      browser.globals.logout_timeout_ms + 60000,
+      1000,
+    );
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Error: Request failed with status code 401',
+    );
     mainPage.closeSnackbar();
 
     browser.waitForElementVisible('//*[@id="username"]');
     browser.end();
-  }
+  },
 };

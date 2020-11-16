@@ -26,7 +26,7 @@
 
 module.exports = {
   tags: ['ss', 'login'],
-  'Security server failed login': browser => {
+  'Security server failed login': (browser) => {
     const frontPage = browser.page.ssFrontPage();
 
     // Open SUT and check that page is loaded
@@ -40,14 +40,14 @@ module.exports = {
       .signin();
 
     // Verify error message
-    browser.waitForElementVisible('//div[text() = "Wrong username or password"]');
+    browser.waitForElementVisible(
+      '//div[text() = "Wrong username or password"]',
+    );
 
     browser.end();
-
   },
-  'Security server passed login': browser => {
+  'Security server passed login': (browser) => {
     const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -61,7 +61,7 @@ module.exports = {
       .enterPassword(browser.globals.login_pwd)
       .signin();
 
-    // Verify successful login    
+    // Verify successful login
     browser.waitForElementVisible('//div[contains(@class, "server-name")]');
 
     // Test refresh
@@ -69,7 +69,6 @@ module.exports = {
       .refresh()
       .waitForElementVisible('//div[contains(@class, "server-name")]');
 
-    browser
-      .end();
-  }
+    browser.end();
+  },
 };
