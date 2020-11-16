@@ -180,17 +180,6 @@ For example:
   To install the Security Server Sidecar provider, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message logging, both for internal or remote database setup (more info about remote database support in section 1.6).
   To install the Security Server Sidecar provider with Finnish settings, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
-#### 1.9.1 Environmental Monitoring for Provider
-
-Environmental monitoring for the Security Server Sidecar provider can be  used to obtain information about the platform it's running on, check more information in <https://github.com/nordic-institute/X-Road/blob/master/doc/EnvironmentalMonitoring/Monitoring-architecture.md/>
-
-#### 1.9.2 Operational monitoring for provider
-
-Operational monitoring for the Security Server Sidecar provider can be  used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here <https://github.com/nordic-institute/X-Road/blob/master/doc/OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md/>
-
-#### 1.9.3 Environmental and Operational monitoring for consumer
-
-If we need to add environmental and operational monitoring in the consumer Sidecar, we can use for this the provider Sidecar that could be use as a consumer too.
 
 ### 1.10 Estimated time for new Security Server Sidecar Installation
 
@@ -227,56 +216,15 @@ For setting the environment variable we can either edit the /etc/environment fil
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
   ```
 
-## 2 Security Server Sidecar Initial Configuration
-
-### 2.1 Reference Data
-
- **Ref** | **Value**                                                | **Explanation**
- ---- | ----------------------------------------------------------- | -------------------------------------------------------
- 2.1  | &lt;global configuration anchor file&gt; or &lt;URL&gt;     | Global configuration anchor file or provider URL (1) (2)
- 2.2  | &lt;security server owner's member class&gt;<br>E.g.<br> COM - Commercial<br> ORG - Organisation            | Member class of the security server owner for the sidecar (2)
- 2.3  | &lt;security server owner's member code&gt;                 | Member code of the security server owner for the sidecar (2) (3)
- 2.4  | &lt;security server code&gt;                                | Security server code for the sidecar (4)
- 2.5  | &lt;PIN for software token&gt;                              | Software token PIN code (same as ref. data 1.3)
-
-Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the security server sidecar network.
-
-Note (2): Reference items 2.1 - 2.3 are provided to the security server owner by the X-Road central server's administrator.
-
-Note (3): The security server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
-
-Note (4): The security server code uniquely identifies the security server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.
-
-### 2.2 Configuration
-
-To perform the initial configuration, navigate to the Admin UI address:
-
-  ```bash
-    https://SECURITY_SERVER_SIDECAR_IP:ADMIN_UI_PORT/
-  ```
-
-(reference data 1.10, 1.2) and accept the self-signed certificate. To log in, use the admin username and password chosen during the installation (reference data 1.4).
-
-Upon first log-in, the system asks for the following information:
-
-- The global configuration anchor file (reference data: 2.1).
-
-Then, if the configuration is successfully downloaded, the system asks for the following information:
-
-- The security server owner's member class for the sidecar (reference data: 2.2)
-- The security server owner's member code for the sidecar (reference data: 2.3). If the member class and member code are correctly entered, the system displays the security server sidecar owner's name as registered in the Central Server
-- The security server code for the sidecar (reference data: 2.4), it has to be unique across the whole X-Road instance.
-- Software token PIN code (reference data: 2.5). The PIN will be used to protect the keys stored in the software token. The process xroad-autologin will automatically enter the PIN code after some time.
-
-## 3 Key Points and Limitations for X-Road Security Server Sidecar Deployment
+## 2 Key Points and Limitations for X-Road Security Server Sidecar Deployment
 
 - The current security server sidecar implementation is a Proof of Concept and it is meant for testing and development purposes.
 - The current security server sidecar implementation does not support message logging, operational monitoring nor environmental monitoring functionality, which is recommended for a service provider's security server role. This functionality will be included in future releases.
 - The security server sidecar creates and manages its own internal TLS keys and certificates and does TLS termination by itself. This configuration might not be fully compatible with the application load balancer configuration in a cloud environment.
 - The xroad services are run inside the container using supervisord as root, although the processes it starts are not. To avoid potential security issues, it is possible to set up Docker so that it uses Linux user namespaces, in which case root inside the container is not root (user id 0) on the host. For more information, see <https://docs.docker.com/engine/security/userns-remap/>.
 
-## 4 Kubernetes jobs readiness, liveness and startup probes
-### 4.1 Readiness probes
+## 3 Kubernetes jobs readiness, liveness and startup probes
+### 3.1 Readiness probes
 The readiness probes will perform a health check periodically in a specific time. If the health check fails, the pod will remain in a not ready state until the health check succeeds. The pod in a not ready state will be accessible through his private IP but not from the balancer and the balancer will not redirect any message to this pod. We use readiness probes instead of liveliness probes because with readiness probes we still can connect to the pod for configuring it (adding certificates...) instead of the liveliness probes that will restart the pod until the health check succeeds.
 
 The readiness probes are useful when the pod it's not ready to serve traffic but we don't want to restart it maybe because the pod needs to be configured to be ready,  for example,  adding the certificates.
@@ -303,7 +251,7 @@ containers:
   [...]
   ```
 
-### 4.2 Liveness probes
+### 3.2 Liveness probes
 The liveness probes are used to know when restart a container. The liveness probes will perform a health check each period of time and restart the container if it fails.
 
 The liveness probes are useful when the pod is not in a live state and can not be accessed through the UI, for example, due to the pod being caught in a deadlock or one of the services running in the container has stopped.
@@ -324,7 +272,7 @@ livenessProbe:
   [...]
   ```
 
-### 4.3 Startup probes
+### 3.3 Startup probes
 The startup probes indicate whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.
 
 Startup probes are useful for Pods that have containers that take a long time to come into service. This is not really useful in the Sidecar pod because it takes to short to start.
@@ -343,8 +291,8 @@ livenessProbe:
  [...]
  ```
 
-## 5 Kubernetes secrets
-### 5.1 Create secret
+## 4 Kubernetes secrets
+### 4.1 Create secret
 In this example we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
 Create a manifest file called for example "secret-env-variables.yaml" and fill it with the desired values of the environment variables.
 - replace <namespace_name> with the name of the namespace if it's different from `default`. If we want to use `default` namespace, we can delete the line.
@@ -369,7 +317,7 @@ Apply the manifest:
 $ kubectl apply -f secret-env-variables.yaml
 ```
 
-### 5.2 Consume secret
+### 4.2 Consume secret
 Modify your deployment pod definition in each container that you wish to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 ```bash
 [...]
