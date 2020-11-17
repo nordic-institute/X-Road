@@ -26,7 +26,7 @@
 
 module.exports = {
   tags: ['ss', 'clients', 'permissions'],
-  'Security server clients list system administrator role': browser => {
+  'Security server clients list system administrator role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -45,15 +45,19 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible('//div[contains(@class,"auth-container") and contains(text(),"'+browser.globals.login_system_administrator+'")]');
+    browser.waitForElementVisible(
+      '//div[contains(@class,"auth-container") and contains(text(),"' +
+        browser.globals.login_system_administrator +
+        '")]',
+    );
 
     // System admin should be in keys and certs view and not see clients tab
-    browser.waitForElementVisible(keysTab)
-    browser.waitForElementNotPresent(clientsTab)
+    browser.waitForElementVisible(keysTab);
+    browser.waitForElementNotPresent(clientsTab);
 
     browser.end();
   },
-  'Security server clients list security officer role': browser => {
+  'Security server clients list security officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -72,7 +76,11 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible('//div[contains(@class,"auth-container") and contains(text(),"'+browser.globals.login_security_officer+'")]');
+    browser.waitForElementVisible(
+      '//div[contains(@class,"auth-container") and contains(text(),"' +
+        browser.globals.login_security_officer +
+        '")]',
+    );
 
     // Security officer should see clients list
     mainPage.openClientsTab();
@@ -87,7 +95,7 @@ module.exports = {
 
     browser.end();
   },
-  'Security server clients list registration officer role': browser => {
+  'Security server clients list registration officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -106,7 +114,11 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible('//div[contains(@class,"auth-container") and contains(text(),"'+browser.globals.login_registration_officer+'")]');
+    browser.waitForElementVisible(
+      '//div[contains(@class,"auth-container") and contains(text(),"' +
+        browser.globals.login_registration_officer +
+        '")]',
+    );
 
     // Registration officer should see clients list
     mainPage.openClientsTab();
@@ -120,14 +132,22 @@ module.exports = {
 
     browser
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]')
-      .waitForElementVisible('//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]');
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
 
     browser.end();
   },
-  'Security server clients list service administrator role': browser => {
+  'Security server clients list service administrator role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -146,7 +166,11 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible('//div[contains(@class,"auth-container") and contains(text(),"'+browser.globals.login_service_administrator+'")]');
+    browser.waitForElementVisible(
+      '//div[contains(@class,"auth-container") and contains(text(),"' +
+        browser.globals.login_service_administrator +
+        '")]',
+    );
 
     // Security officer should see clients list
     mainPage.openClientsTab();
@@ -161,14 +185,22 @@ module.exports = {
 
     browser
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]')
-      .waitForElementVisible('//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]');
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
 
     browser.end();
   },
-  'Security server clients list security server observer role': browser => {
+  'Security server clients list security server observer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -187,7 +219,11 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible('//div[contains(@class,"auth-container") and contains(text(),"'+browser.globals.login_securityserver_observer+'")]');
+    browser.waitForElementVisible(
+      '//div[contains(@class,"auth-container") and contains(text(),"' +
+        browser.globals.login_securityserver_observer +
+        '")]',
+    );
 
     // Security server observer should see clients list
     mainPage.openClientsTab();
@@ -202,10 +238,18 @@ module.exports = {
 
     browser
       .waitForElementVisible('//h1[contains(text(),"TestGov")]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]')
-      .waitForElementVisible('//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]')
-      .waitForElementVisible('//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]');
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
     browser.end();
-  }
+  },
 };
