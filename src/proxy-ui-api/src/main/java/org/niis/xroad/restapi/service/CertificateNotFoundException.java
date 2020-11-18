@@ -27,10 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class CertificateNotFoundException extends NotFoundException {
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND;
 
-    public static final String ERROR_CERTIFICATE_NOT_FOUND = "certificate_not_found";
-    public static final String ERROR_CERTIFICATE_NOT_FOUND_WITH_ID = "certificate_id_not_found";
+public class CertificateNotFoundException extends NotFoundException {
 
     /**
      * default error

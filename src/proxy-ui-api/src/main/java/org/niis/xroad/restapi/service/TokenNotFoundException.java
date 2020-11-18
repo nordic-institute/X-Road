@@ -27,16 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_TOKEN_NOT_FOUND;
+
 /**
  * If token was not found
  */
 public class TokenNotFoundException extends NotFoundException {
-    public static final String ERROR_TOKEN_NOT_FOUND = "token_not_found";
-
-    public TokenNotFoundException(String s) {
-        super(s, createError());
-    }
-
     public TokenNotFoundException(Throwable t) {
         super(t, createError());
     }

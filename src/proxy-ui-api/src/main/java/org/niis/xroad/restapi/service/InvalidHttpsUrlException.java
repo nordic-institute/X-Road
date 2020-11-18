@@ -27,9 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class InvalidHttpsUrlException extends ServiceException {
-    public static final String ERROR_INVALID_HTTPS_URL = "invalid_https_url";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_HTTPS_URL;
 
+public class InvalidHttpsUrlException extends ServiceException {
     public InvalidHttpsUrlException() {
         super(createError());
     }

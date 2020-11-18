@@ -27,9 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class MissingParameterException extends ServiceException {
-    public static final String ERROR_MISSING_PARAMETER = "missing_parameter";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PARAMETER;
 
+public class MissingParameterException extends ServiceException {
     public MissingParameterException(String s) {
         super(s, new ErrorDeviation(ERROR_MISSING_PARAMETER));
     }

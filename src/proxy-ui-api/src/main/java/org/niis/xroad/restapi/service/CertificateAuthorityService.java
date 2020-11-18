@@ -63,6 +63,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
+
 /**
  * Service that handles approved certificate authorities
  */
@@ -341,7 +343,6 @@ public class CertificateAuthorityService {
      * Thrown when attempted to find CA certificate status and other details, but failed
      */
     public static class InconsistentCaDataException extends ServiceException {
-        public static final String ERROR_CA_CERT_PROCESSING = "ca_cert_status_processing_failure";
         public InconsistentCaDataException(String s, Throwable t) {
             super(s, t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }

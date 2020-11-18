@@ -27,12 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_NOT_FOUND;
+
 /**
  * If service was not found
  */
 public class ServiceNotFoundException extends NotFoundException {
-    public static final String ERROR_SERVICE_NOT_FOUND = "service_not_found";
-
     public ServiceNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_SERVICE_NOT_FOUND));
     }
