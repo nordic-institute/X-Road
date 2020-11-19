@@ -42,7 +42,7 @@ cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.rb %{buildroot}/usr/s
 cp -p %{srcdir}/../../../../doc/archive-hashchain-verifier.README %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 cp -p %{srcdir}/../../../asicverifier/build/libs/asicverifier.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/
-cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/
 
 %clean
@@ -63,7 +63,7 @@ rm -rf %{buildroot}
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 /usr/share/xroad/jlib/asicverifier.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt
-%doc /usr/share/doc/%{name}/securityserver-LICENSE.info
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %post

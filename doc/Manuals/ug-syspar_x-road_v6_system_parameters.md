@@ -380,9 +380,9 @@ the message log.
 
 | **Parameter**                                    | **Vanilla value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
-| ssl-properties                                   | /etc/xroad/ssl.properties                  | Absolute path to file which overrides the default properties of the SSL connections to REST APIs. |
-| key-management-api-whitelist                     | 127.0.0.0/8, ::1                  | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management APIs using basic authentication  |
-| regular-api-whitelist                            | 0.0.0.0/0, ::/0                 | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular APIs using api key authentication |
+| ssl-properties                                   | /etc/xroad/ssl.properties                  | Absolute path to file which overrides the default properties of the SSL connections to REST API. |
+| key-management-api-whitelist                     | 127.0.0.0/8, ::1                  | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call key management endpoints using basic authentication  |
+| regular-api-whitelist                            | 0.0.0.0/0, ::/0                 | Comma-separated list of plain IP addresses or address ranges in CIDR notation, which are allowed to call regular endpoints using api key authentication |
 | wsdl-validator-command                           |                                            | The command to validate the given X-Road service WSDL. The command script must:<br/>a) read the WSDL from the URI given as an argument,<br/>b) return exit code 0 on success,<br/>c) return exit code 0 and write warnings to the standard error (*stderr*), if warnings occurs,<br/>d) return exit code other then 0 and write error messages to the standard error (*stderr*), if errors occurs.<br/>Defaults to no operation. |
 | auth-cert-reg-signature-digest-algorithm-id      | SHA-512                                    | Signature digest algorithm used for generating authentication certificate registration request.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
 
@@ -397,8 +397,8 @@ Default values for the SSL properties are
 
 | **SSL Property**                                    | **Default value**                          | **Description** |
 |--------------------------------------------------|--------------------------------------------|-----------------|
-| server.ssl.key-store            | classpath:nginx.p12               | Path to the key store that holds the SSL certificate (currently bundled in JAR, will be replaced by a package-installed keystore in XRDDEV-414)  |
-| server.ssl.key-store-password   | nginx                             | Password used to access the key store |
+| server.ssl.key-store            | /etc/xroad/ssl/proxy-ui-api.p12   | Path to the key store that holds the SSL certificate |
+| server.ssl.key-store-password   | proxy-ui-api                      | Password used to access the key store |
 | server.ssl.enabled              | true                              | Whether to enable SSL support |
 | server.ssl.ciphers              | TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384  | Supported SSL ciphers |
 | server.ssl.protocol             | TLS                               | SSL protocol to use |

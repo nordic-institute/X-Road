@@ -40,7 +40,7 @@
       - xroad-proxy
       - xroad-confclient
       - xroad-signer
-      - xroad-jetty
+      - xroad-proxy-ui-api
 
 - name: remove UI editor groups
   group:

@@ -43,6 +43,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockCertificateWithoutExtensions;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockIntermediateCaCertificate;
 
 public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
@@ -204,6 +205,16 @@ public class PossibleActionsRuleEngineTest extends AbstractServiceTestContext {
                 new CertificateInfoBuilder()
                         .savedToConfiguration(false)
                         .certificate(getMockIntermediateCaCertificate())
+                        .build())
+                .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
+
+        // cert without X509v3 Key Usage extension -> can't be imported
+        assertFalse(possibleActionsRuleEngine.getPossibleCertificateActions(
+                new TokenInfoBuilder().build(),
+                new KeyInfoBuilder().build(),
+                new CertificateInfoBuilder()
+                        .savedToConfiguration(false)
+                        .certificate(getMockCertificateWithoutExtensions())
                         .build())
                 .contains(PossibleActionEnum.IMPORT_FROM_TOKEN));
     }

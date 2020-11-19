@@ -7,5 +7,5 @@
 ../../../../src/xroad/common/op-monitor/generate-opmonitor-certificate.sh usr/share/xroad/scripts
 
 ../../../../../LICENSE.txt usr/share/doc/xroad-opmonitor
-../../../../../securityserver-LICENSE.info usr/share/doc/xroad-opmonitor
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-opmonitor
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-opmonitor

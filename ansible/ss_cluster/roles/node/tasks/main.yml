@@ -21,7 +21,7 @@
       - xroad-proxy
       - xroad-confclient
       - xroad-signer
-      - xroad-jetty
+      - xroad-proxy-ui-api
   when: not node_ini.stat.exists
   register: services_stopped
 

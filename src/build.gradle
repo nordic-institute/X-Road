@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'org.owasp.dependencycheck' version '5.3.2'
+    id 'org.owasp.dependencycheck' version '6.0.3'
     id 'jacoco'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.10.RELEASE" apply false
@@ -64,6 +64,10 @@ dependencyCheck {
 
 
 allprojects {
+    jacoco {
+        toolVersion = "0.8.6"
+    }
+
     task allDependencies(type: DependencyReportTask) {}
 
     task printDeps {
@@ -86,10 +90,6 @@ subprojects {
     apply plugin: 'jacoco'
     group = 'ee.ria.xroad'
     version = '1.0'
-
-    jacoco {
-        toolVersion = "0.8.6"
-    }
 
     repositories {
         mavenCentral()
