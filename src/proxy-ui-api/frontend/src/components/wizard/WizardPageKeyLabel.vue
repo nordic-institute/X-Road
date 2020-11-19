@@ -25,7 +25,11 @@
  -->
 <template>
   <div>
-    {{ tokenType === 'HARDWARE' ? $t('wizard.signKey.info') : $t('keys.keyLabelInfo') }}
+    {{
+      tokenType === 'HARDWARE'
+        ? $t('wizard.signKey.info')
+        : $t('keys.keyLabelInfo')
+    }}
     <div class="row-wrap">
       <FormLabel :labelText="keyLabelText" />
       <v-text-field
@@ -65,10 +69,10 @@ export default Vue.extend({
     LargeButton,
   },
   props: {
-      tokenType: {
-          type: String,
-          required: false,
-      },
+    tokenType: {
+      type: String,
+      required: false,
+    },
   },
   computed: {
     ...mapGetters(['csrForm']),

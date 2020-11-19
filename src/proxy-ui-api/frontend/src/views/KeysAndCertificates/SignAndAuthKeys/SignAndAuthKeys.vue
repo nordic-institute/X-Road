@@ -194,8 +194,8 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.AddKey,
         params: {
-            tokenId: this.$store.getters.selectedToken.id,
-            tokenType: this.$store.getters.selectedToken.type,
+          tokenId: this.$store.getters.selectedToken.id,
+          tokenType: this.$store.getters.selectedToken.type,
         },
       });
     },
