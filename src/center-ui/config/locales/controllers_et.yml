@@ -19,6 +19,7 @@ et:
       title: "Abi"
       version: "Versioon"
       feedback: "Feedback"
+      licence_info: "Licence Info"
 
   common:
     auth_cert_imported: "Sertifikaat edukalt imporditud"

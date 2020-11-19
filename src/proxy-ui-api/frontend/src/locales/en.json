@@ -776,9 +776,7 @@
     "copyright": {
       "title": "Copyright",
       "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "license": "License",
-      "and": "and",
-      "3rdPartyNotices": "3rd party notices"
+      "licenceInfo": "Licence info"
     }
   },
   "diagnostics": {
