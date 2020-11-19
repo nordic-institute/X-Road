@@ -21,7 +21,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR8")
+    set('springCloudVersion', "Greenwich.SR5")
 }
 
 sourceSets {
@@ -49,6 +49,10 @@ processResources {
     from('frontend/dist/') {
         into 'public/'
     }
+}
+
+test {
+    testLogging.showStandardStreams = true
 }
 
 node {
