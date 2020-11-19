@@ -33,12 +33,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   methods: {
     close() {
       this.$emit('close');

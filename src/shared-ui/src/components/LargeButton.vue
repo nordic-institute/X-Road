@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -44,6 +45,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'large-button',
   props: {
     outlined: {
       type: Boolean,
@@ -59,9 +61,9 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
-    minWidth: {
+    min_width: {
       type: Number,
-      default: 120,
+      default: 140,
     },
   },
   methods: {
@@ -73,10 +75,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-$large-button-width: 140px;
-
 .large-button {
-  min-width: $large-button-width !important;
   border-radius: 4px;
   text-transform: uppercase;
   background-color: white;

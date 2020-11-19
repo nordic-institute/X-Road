@@ -120,17 +120,13 @@ import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    FileUpload,
-  },
   props: {
     id: {
       type: String,

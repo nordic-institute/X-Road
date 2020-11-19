@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,79 +25,84 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <input
-      v-show="false"
-      ref="fileInput"
-      type="file"
-      :accept="accepts"
-      @change="onUploadFileChanged"
-    />
-    <slot :upload="upload">
-      <large-button @click="upload">{{ $t('action.upload') }}</large-button>
-    </slot>
-  </div>
+  <v-dialog :value="dialog" :width="width" persistent>
+    <v-card class="xrd-card">
+      <v-card-title>
+        <span class="headline">{{ $t(title) }}</span>
+      </v-card-title>
+      <v-card-text class="content-wrapper">
+        <v-img :src="require('./../assets/' + imageSrc)"></v-img>
+        <div class="title-wrap">
+          <h2>{{ $t(title) }}</h2>
+        </div>
+        <div class="text-wrap">{{ $t(text) }}</div>
+      </v-card-text>
+      <v-card-actions class="xrd-card-actions">
+        <v-spacer></v-spacer>
+        <large-button @click="cancel()">{{ $t('keys.gotIt') }}</large-button>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script lang="ts">
+/** Component for help dialogs */
+
 import Vue from 'vue';
-import LargeButton from './LargeButton.vue';
-import { FileUploadResult } from '@/ui-types';
-
-type HTMLInputElementEvent = Event & {
-  target: HTMLInputElement;
-};
-
-type FileUploadEvent = HTMLInputElementEvent | DragEvent;
-
-// https://www.typescriptlang.org/docs/handbook/advanced-types.html#type-guards-and-differentiating-types
-const isDragEvent = (event: FileUploadEvent): event is DragEvent => {
-  return (event as DragEvent).dataTransfer !== undefined;
-};
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
-  name: 'FileUpload',
+  name: 'HelpDialog',
   components: {
     LargeButton,
   },
   props: {
-    accepts: {
+    // Title of the dialog
+    title: {
       type: String,
       required: true,
     },
-  },
-  methods: {
-    upload() {
-      (this.$refs.fileInput as HTMLInputElement).click();
+    // Dialog visible / hidden
+    dialog: {
+      type: Boolean,
+      required: true,
     },
-    onUploadFileChanged(event: FileUploadEvent) {
-      const files = isDragEvent(event)
-        ? event.dataTransfer?.files
-        : event.target.files;
-      if (!files) {
-        return; // No files uploaded
-      }
-      const file = files[0];
+    width: {
+      type: Number,
+      default: 850,
+    },
+    // Source for help image
+    imageSrc: {
+      type: String,
+    },
+    // Help text
+    text: {
+      type: String,
+    },
+  },
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        if (!e?.target?.result || !files) {
-          return;
-        }
-        this.$emit('file-changed', {
-          buffer: e.target.result as ArrayBuffer,
-          file: file,
-        } as FileUploadResult);
-      };
-      reader.readAsArrayBuffer(file);
-      (this.$refs.fileInput as HTMLInputElement).value = ''; //So we can re-upload the same file without a refresh
+  methods: {
+    cancel(): void {
+      this.$emit('cancel');
     },
   },
 });
 </script>
 
-<style scoped lang="scss">
-div {
-  display: inline;
+<style lang="scss" scoped>
+@import '../assets/dialogs';
+
+.content-wrapper {
+  margin-top: 20px;
+}
+
+.title-wrap {
+  margin-bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.text-wrap {
+  margin: 10px;
 }
 </style>

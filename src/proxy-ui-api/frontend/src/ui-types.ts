@@ -53,12 +53,6 @@ export interface ServiceCandidate {
   id: string;
 }
 
-// The result of the FileUpload components fileChanged event
-export type FileUploadResult = {
-  buffer: ArrayBuffer;
-  file: File;
-};
-
 // Data for snackbar notification
 export interface Notification {
   timeAdded: number;

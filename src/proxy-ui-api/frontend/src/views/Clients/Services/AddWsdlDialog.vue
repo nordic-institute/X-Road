@@ -58,11 +58,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidWsdlURL } from '@/util/helpers';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider },
+  components: { ValidationProvider },
   props: {
     dialog: {
       type: Boolean,

@@ -100,14 +100,12 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
 
 export default Vue.extend({
   components: {
-    SmallButton,
     CertificateRow,
   },
   props: {

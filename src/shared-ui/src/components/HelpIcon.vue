@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,69 +25,32 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    small
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="min_width"
-    :loading="loading"
-    v-if="isAllowed"
-    rounded
-    color="primary"
-    class="xrd-small-button"
-    @click="click()"
-  >
-    <slot></slot>
-  </v-btn>
+  <div class="help-wrapper">
+    <v-tooltip top>
+      <template v-slot:activator="{ on }">
+        <v-icon color="#202020" small dark v-on="on">mdi-help-circle</v-icon>
+      </template>
+      <span>{{ text }}</span>
+    </v-tooltip>
+  </div>
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
-
 import Vue from 'vue';
-import { Permissions } from '@/global';
 
 export default Vue.extend({
+  name: 'help-icon',
   props: {
-    outlined: {
-      type: Boolean,
-      default: true,
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    min_width: {
-      type: Number,
-      default: 120,
-    },
-    requiresPermission: {
-      required: false,
+    text: {
       type: String,
-      validator: (val) =>
-        Object.values(Permissions).some((permission) => permission === val),
-    },
-  },
-  computed: {
-    isAllowed(): boolean {
-      return (
-        this.requiresPermission === undefined ||
-        this.$store.getters.hasPermission(this.requiresPermission)
-      );
-    },
-  },
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
     },
   },
 });
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.help-wrapper {
+  cursor: default;
+  margin-left: 14px;
+}
+</style>

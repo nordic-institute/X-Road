@@ -4,7 +4,7 @@ const nodeExternals = require('webpack-node-externals');
 module.exports = {
   chainWebpack: (config) => {
     // Removes all node_modules from the built package
-    // If there is need to be specific then 
+    // If there is need to be specific then
     // another way to do this would be config.externals(["vue-i18n", "vee-validate", "vuetify"]);
     config.externals(nodeExternals());
 

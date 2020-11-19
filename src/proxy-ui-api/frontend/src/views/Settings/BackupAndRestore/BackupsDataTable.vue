@@ -68,7 +68,6 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
 import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 import { Prop } from 'vue/types/options';
 import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
@@ -79,7 +78,6 @@ export default Vue.extend({
   components: {
     DeleteBackupButton,
     RestoreBackupButton,
-    SmallButton,
   },
   props: {
     filter: {

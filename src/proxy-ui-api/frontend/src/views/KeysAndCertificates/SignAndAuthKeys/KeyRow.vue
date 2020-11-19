@@ -53,14 +53,10 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions } from '@/global';
 
 export default Vue.extend({
-  components: {
-    SmallButton,
-  },
   props: {
     tokenKey: {
       type: Object as Prop<Key>,

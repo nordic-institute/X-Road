@@ -221,7 +221,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import {
   Anchor,
   CertificateAuthority,
@@ -236,7 +235,6 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 
 export default Vue.extend({
   components: {
-    LargeButton,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,

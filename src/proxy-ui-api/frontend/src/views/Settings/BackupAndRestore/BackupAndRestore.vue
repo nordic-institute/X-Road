@@ -90,12 +90,9 @@
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
@@ -114,9 +111,6 @@ const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
 export default Vue.extend({
   components: {
     BackupsDataTable,
-    LargeButton,
-    ConfirmDialog,
-    FileUpload,
   },
   data() {
     return {

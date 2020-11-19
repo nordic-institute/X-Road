@@ -69,14 +69,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
   },

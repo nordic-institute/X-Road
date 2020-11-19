@@ -50,12 +50,8 @@
 // A dialog for backend warnings
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
-  components: {
-    SimpleDialog,
-  },
   props: {
     dialog: {
       type: Boolean,

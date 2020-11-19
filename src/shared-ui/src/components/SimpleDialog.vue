@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -60,7 +61,7 @@
 /** Base component for simple dialogs */
 
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
+import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
   components: {
@@ -127,8 +128,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/functions';
+@import '../assets/colors';
 
 .content-wrapper {
   margin-top: 18px;
@@ -151,6 +151,6 @@ export default Vue.extend({
 }
 
 #dlg-close-x:before {
-  content: unicode('00d7');
+  content: '\00d7';
 }
 </style>

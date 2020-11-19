@@ -86,11 +86,9 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
   components: {
-    SimpleDialog,
     ValidationProvider,
     ValidationObserver,
   },

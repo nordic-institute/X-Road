@@ -148,7 +148,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberDetailsPage from './MemberDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
@@ -161,7 +160,6 @@ const NO_SELECTION = 999;
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     MemberDetailsPage,
     TokenPage,
     SignKeyPage,

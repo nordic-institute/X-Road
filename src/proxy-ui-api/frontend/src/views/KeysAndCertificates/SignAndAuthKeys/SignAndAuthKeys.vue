@@ -76,7 +76,6 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
@@ -84,7 +83,6 @@ import { deepClone } from '@/util/helpers';
 export default Vue.extend({
   components: {
     TokenExpandable,
-    ConfirmDialog,
     TokenLoginDialog,
   },
   data() {

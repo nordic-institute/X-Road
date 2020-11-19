@@ -48,12 +48,8 @@
 /** Component for help dialogs */
 
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     // Title of the dialog
     title: {

@@ -35,12 +35,8 @@
  * Label and help icon that can be used with inputs
  */
 import Vue from 'vue';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 
 export default Vue.extend({
-  components: {
-    HelpIcon,
-  },
   props: {
     labelText: {
       type: String,

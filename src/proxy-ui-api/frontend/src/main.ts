@@ -26,6 +26,8 @@
 import Vue from 'vue';
 import axios from 'axios';
 import Router from 'vue-router';
+import SharedComponents from '@niis/shared-ui';
+Vue.use(SharedComponents); // This must be done before importing Vuetify
 import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
 import './filters';

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,80 +25,74 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header">
-      <div>
-        <v-btn fab icon small @click="clicked" class="no-hover">
-          <v-icon v-if="isOpen" class="button-icon">mdi-chevron-down</v-icon>
-          <v-icon v-else class="button-icon">mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-      <div class="header-link">
-        <slot name="link"></slot>
-      </div>
-
-      <v-spacer />
-      <div class="action-wrap">
-        <slot name="action"></slot>
-      </div>
+  <simpleDialog
+    :dialog="dialog"
+    :title="title"
+    @save="accept"
+    @cancel="cancel"
+    :cancelButtonText="cancelButtonText"
+    :saveButtonText="acceptButtonText"
+    :showClose="false"
+    :loading="loading"
+  >
+    <div slot="content" data-test="dialog-content-text">
+      {{ $t(text, data) }}
     </div>
-    <div v-if="isOpen" class="content-wrap">
-      <slot name="content"></slot>
-    </div>
-  </div>
+  </simpleDialog>
 </template>
 
 <script lang="ts">
+/**
+ * A dialog for simple "accept or cancel" functions
+ */
+
 import Vue from 'vue';
+import SimpleDialog from '@/components/SimpleDialog.vue';
 
 export default Vue.extend({
-  name: 'expandable',
-  components: {},
+  components: {
+    SimpleDialog,
+  },
   props: {
-    isOpen: {
+    dialog: {
       type: Boolean,
       required: true,
     },
+    title: {
+      type: String,
+      required: true,
+    },
+    text: {
+      type: String,
+      required: true,
+    },
+    cancelButtonText: {
+      type: String,
+      default: 'action.cancel',
+    },
+    acceptButtonText: {
+      type: String,
+      default: 'action.yes',
+    },
+    // Set save button loading spinner
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    // In case the confirmation text requires additional data
+    data: {
+      type: Object,
+      required: false,
+    },
   },
+
   methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
+    cancel(): void {
+      this.$emit('cancel');
+    },
+    accept(): void {
+      this.$emit('accept');
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '../../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.header {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  border-radius: 4px;
-  background-color: $XRoad-Grey10;
-  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
-}
-
-.action-wrap {
-  padding-right: 8px;
-}
-
-.content-wrap {
-  padding: 10px;
-}
-</style>

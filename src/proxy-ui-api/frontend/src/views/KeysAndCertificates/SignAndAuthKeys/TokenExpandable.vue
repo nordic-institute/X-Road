@@ -135,23 +135,17 @@
 // View for a token
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import Expandable from '@/components/ui/Expandable.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
+import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
 
 export default Vue.extend({
   components: {
-    Expandable,
-    LargeButton,
     KeysTable,
     UnknownKeysTable,
-    FileUpload,
   },
   props: {
     token: {

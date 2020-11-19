@@ -37,7 +37,7 @@
     <p></p>
 
     <div v-if="showRegisterOption">
-      <FormLabel labelText="wizard.client.register" />
+      <FormLabel :labelText="$t('wizard.client.register')" />
       <v-checkbox
         v-model="registerChecked"
         color="primary"
@@ -89,19 +89,15 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import FormLabel from '@/components/ui/FormLabel.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     WarningDialog,
-    FormLabel,
   },
   computed: {
     ...mapGetters([

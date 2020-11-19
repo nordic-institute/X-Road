@@ -154,19 +154,13 @@
 import Vue from 'vue';
 import { Permissions } from '@/global';
 import { GroupMember, LocalGroup } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import AddMembersDialog from './AddMembersDialog.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     AddMembersDialog,
-    ConfirmDialog,
-    LargeButton,
   },
   props: {
     clientId: {

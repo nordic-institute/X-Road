@@ -147,11 +147,9 @@ import {
   ServiceClient,
   ServiceDescription,
 } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+
 import { ServiceCandidate } from '@/ui-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
@@ -163,10 +161,8 @@ interface UiAccessRight extends AccessRight {
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
-    LargeButton,
     AddServiceClientServiceDialog,
-    ConfirmDialog,
+
   },
   props: {
     id: {

@@ -157,8 +157,6 @@ import Vue from 'vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import {
   Key,
   KeyUsageType,
@@ -171,9 +169,7 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    SmallButton,
     RegisterCertificateDialog,
-    ConfirmDialog,
     KeyRow,
     CertificateRow,
   },

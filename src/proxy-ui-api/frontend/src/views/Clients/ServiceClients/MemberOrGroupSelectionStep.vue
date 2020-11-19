@@ -101,13 +101,9 @@ import Vue from 'vue';
 import { ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     id: {
       type: String as Prop<string>,

@@ -52,8 +52,8 @@
       <ValidationObserver ref="form2" v-slot="{ invalid }">
         <div class="row-wrap">
           <FormLabel
-            labelText="wizard.memberName"
-            helpText="wizard.client.memberNameTooltip"
+            :labelText="$t('wizard.memberName')"
+            :helpText="$t('wizard.client.memberNameTooltip')"
           />
           <div data-test="selected-member-name" class="identifier-wrap">
             {{ memberName }}
@@ -62,8 +62,8 @@
 
         <div class="row-wrap">
           <FormLabel
-            labelText="wizard.memberClass"
-            helpText="wizard.client.memberClassTooltip"
+            :labelText="$t('wizard.memberClass')"
+            :helpText="$t('wizard.client.memberClassTooltip')"
           />
           <div data-test="selected-member-class" class="identifier-wrap">
             {{ memberClass }}
@@ -71,8 +71,8 @@
         </div>
         <div class="row-wrap">
           <FormLabel
-            labelText="wizard.memberCode"
-            helpText="wizard.client.memberCodeTooltip"
+            :labelText="$t('wizard.memberCode')"
+            :helpText="$t('wizard.client.memberCodeTooltip')"
           />
           <div data-test="selected-member-code" class="identifier-wrap">
             {{ memberCode }}
@@ -81,8 +81,8 @@
 
         <div class="row-wrap">
           <FormLabel
-            labelText="wizard.subsystemCode"
-            helpText="wizard.client.subsystemCodeTooltip"
+            :labelText="$t('wizard.subsystemCode')"
+            :helpText="$t('wizard.client.subsystemCodeTooltip')"
           />
 
           <ValidationProvider
@@ -105,7 +105,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel labelText="wizard.subsystem.registerSubsystem" />
+          <FormLabel :labelText="$t('wizard.subsystem.registerSubsystem')" />
           <v-checkbox
             v-model="registerChecked"
             color="primary"
@@ -153,11 +153,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
@@ -167,13 +163,9 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    FormLabel,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
-    SubViewTitle,
-    ConfirmDialog,
   },
   props: {
     instanceId: {

@@ -1,0 +1,37 @@
+{
+  "ignore": [
+    "**/*.md",
+    "**/*.svg",
+    "**/*.eot",
+    "**/*.ttf",
+    "**/*.xml",
+    "**/*.woff",
+    "**/*.DS_Store",
+    "**/*.config.js",
+    "**/*.cer",
+    "**/*.log",
+    "**/.*",
+    "src/openapi-types/",
+    "**/openapi-types.ts",
+    "scripts/dtsgen-wrapper.js",
+    "tests/unit/__snapshots__"
+  ],
+  "license": "LICENSE.txt",
+  "licenseFormats": {
+    "ts|js|css|scss": {
+      "prepend": "/*",
+      "append": " */",
+      "eachLine": {
+        "prepend": " * "
+      }
+    },
+    "vue": {
+      "prepend": "<!--",
+      "append": " -->",
+      "eachLine": {
+        "prepend": "   "
+      }
+    }
+  },
+  "trailingWhitespace": "TRIM"
+}

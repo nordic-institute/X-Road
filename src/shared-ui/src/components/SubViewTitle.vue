@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,13 +25,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="help-wrapper">
-    <v-tooltip top>
-      <template v-slot:activator="{ on }">
-        <v-icon color="#202020" small dark v-on="on">mdi-help-circle</v-icon>
-      </template>
-      <span>{{ text }}</span>
-    </v-tooltip>
+  <div class="new-content">
+    <div class="cert-dialog-header">
+      <span class="identifier-wrap">{{ title }}</span>
+      <v-spacer></v-spacer>
+      <i v-if="showClose" @click="close()" id="close-x"></i>
+    </div>
   </div>
 </template>
 
@@ -38,17 +38,55 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  name: 'SubViewTitle',
   props: {
-    text: {
+    title: {
       type: String,
+    },
+    showClose: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  data() {
+    return {};
+  },
+  methods: {
+    close() {
+      this.$emit('close');
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.help-wrapper {
-  cursor: default;
-  margin-left: 14px;
+@import '../assets/colors';
+
+.new-content {
+  max-width: 850px;
+  width: 100%;
+}
+
+.cert-dialog-header {
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid $XRoad-Grey40;
+  color: $XRoad-Grey60;
+  font-family: Roboto;
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  line-height: 51px;
+}
+
+#close-x {
+  cursor: pointer;
+  font-style: normal;
+  font-size: 50px;
+  color: $XRoad-Grey40;
+}
+
+#close-x:before {
+  content: '\00d7';
 }
 </style>

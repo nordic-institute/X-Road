@@ -119,12 +119,10 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Anchor } from '@/openapi-types';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 import { PostPutPatch } from '@/util/api';
 
 const EmptyAnchorPreview: Anchor = {
@@ -134,10 +132,6 @@ const EmptyAnchorPreview: Anchor = {
 
 export default Vue.extend({
   name: 'UploadConfigurationAnchorDialog',
-  components: {
-    LargeButton,
-    FileUpload,
-  },
   props: {
     initMode: {
       type: Boolean,

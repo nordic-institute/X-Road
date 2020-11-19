@@ -63,12 +63,11 @@
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
 import { Token } from '@/openapi-types';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider },
+  components: { ValidationProvider },
   props: {
     dialog: {
       type: Boolean,

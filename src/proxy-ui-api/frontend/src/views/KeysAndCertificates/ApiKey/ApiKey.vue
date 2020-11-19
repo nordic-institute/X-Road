@@ -61,7 +61,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { RouteName, Permissions } from '@/global';
 import { ApiKey } from '@/global-types';
@@ -69,7 +68,6 @@ import ApiKeyRow from '@/views/KeysAndCertificates/ApiKey/ApiKeyRow.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     ApiKeyRow,
   },
   computed: {

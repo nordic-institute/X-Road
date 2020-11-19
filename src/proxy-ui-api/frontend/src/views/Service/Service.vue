@@ -60,7 +60,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
 import { mapGetters } from 'vuex';
@@ -68,9 +67,6 @@ import { Tab } from '@/ui-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    SubViewTitle,
-  },
   props: {
     serviceId: {
       type: String,
