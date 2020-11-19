@@ -1,3 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`LargeButton.vue renders props.msg when passed 1`] = `<button type="button" class="large-button v-btn v-btn--contained v-btn--rounded theme--light v-size--default primary" style="min-width: 120px;" msg="Test"><span class="v-btn__content"></span></button>`;
+exports[`LargeButton.vue renders props.msg when passed 1`] = `<button type="button" class="large-button v-btn v-btn--contained v-btn--rounded theme--light v-size--default primary" style="min-width: 140px;" msg="Test"><span class="v-btn__content"></span></button>`;

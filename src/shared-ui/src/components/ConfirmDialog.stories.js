@@ -56,12 +56,12 @@ Primary.args = {
   primary: true,
   dialog: true,
   title: 'Hello world!',
-  text: 'Some text here'
+  text: 'Some text here',
 };
 
 export const Secondary = Template.bind({});
 Secondary.args = {
   dialog: true,
   title: 'This is a very very long label for a button',
-  text: 'Some text here'
+  text: 'Some text here',
 };
