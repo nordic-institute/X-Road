@@ -47,7 +47,7 @@
             :maxlength="255"
             :error-messages="errors"
             :loading="loading"
-            :disabled="!canEdit"
+            :disabled="!(hasEditPermission && canEditName())"
             @input="touched = true"
             autofocus
           ></v-text-field>
@@ -94,7 +94,7 @@ import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
-import { Token } from '@/openapi-types';
+import { PossibleAction, Token } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
@@ -111,7 +111,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    canEdit(): boolean {
+    hasEditPermission(): boolean {
       return this.$store.getters.hasPermission(
         Permissions.EDIT_TOKEN_FRIENDLY_NAME,
       );
@@ -160,6 +160,14 @@ export default Vue.extend({
         .finally(() => {
           this.loading = false;
         });
+    },
+
+    canEditName(): boolean {
+      return (
+        this.token?.possible_actions?.includes(
+          PossibleAction.EDIT_FRIENDLY_NAME,
+        ) ?? false
+      );
     },
   },
   created() {

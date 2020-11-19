@@ -157,7 +157,7 @@ export default Vue.extend({
     importCert(hash: string): void {
       this.$emit('import-cert-by-hash', hash);
     },
-    certificateClick(cert: TokenCertificate, key: Key ): void {
+    certificateClick(cert: TokenCertificate, key: Key): void {
       this.$router.push({
         name: RouteName.Certificate,
         params: {
