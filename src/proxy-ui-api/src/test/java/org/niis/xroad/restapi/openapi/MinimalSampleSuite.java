@@ -17,7 +17,7 @@ import org.junit.runners.Suite;
  *
  * * What went wrong:
  * Execution failed for task ':proxy-ui-api:test'.
- * > There were failing tests. See the report at: file:///home/janne/projects/niis/xroad-ui/git/X-Road-REST-UI/src/proxy-ui-api/build/reports/tests/test/index.html
+ * > There were failing tests. See the report at: file:///home/janne/projects/niis/xroad-ui/git/X-Road-...
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
