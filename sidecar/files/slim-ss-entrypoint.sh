@@ -94,22 +94,12 @@ then
           echo "serverconf.database.admin_user = ${XROAD_DATABASE_NAME}_admin" >> ${ROOT_PROPERTIES}
           echo "serverconf.hibernate.connection.username= ${XROAD_DATABASE_NAME}_serverconf" >> ${DB_PROPERTIES}
           echo "serverconf.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_serverconf" >> ${DB_PROPERTIES}
-          echo "op-monitor.database.admin_user = ${XROAD_DATABASE_NAME}_op_monitor_admin" >> ${ROOT_PROPERTIES}
-          echo "op-monitor.hibernate.connection.username= ${XROAD_DATABASE_NAME}_op-monitor" >> ${DB_PROPERTIES}
-          echo "op-monitor.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_op-monitor" >> ${DB_PROPERTIES}
-          echo "messagelog.database.admin_user = ${XROAD_DATABASE_NAME}_messagelog_admin" >> ${ROOT_PROPERTIES}
-          echo "messagelog.hibernate.connection.username= ${XROAD_DATABASE_NAME}_messagelog" >> ${DB_PROPERTIES}
-          echo "messagelog.hibernate.connection.url = jdbc:postgresql://${XROAD_DB_HOST}:${XROAD_DB_PORT}/${XROAD_DATABASE_NAME}_messagelog" >> ${DB_PROPERTIES}
         fi
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
-        dpkg-reconfigure -fnoninteractive xroad-opmonitor
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
-        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
-        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         pg_ctlcluster 10 main stop
     fi
 fi

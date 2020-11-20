@@ -9,7 +9,6 @@ INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_VERSION="$(cat /root/VERSION)"
 
 # Update X-Road configuration on startup, if necessary
-
 if [ -z "$(ls -A /etc/xroad/conf.d)" ]; then
     cp -a /root/VERSION /etc/xroad/VERSION
     cp -a /root/etc/xroad/* /etc/xroad/
@@ -97,9 +96,13 @@ then
         fi
         crudini --del /etc/supervisor/conf.d/xroad.conf program:postgres
         dpkg-reconfigure -fnoninteractive xroad-proxy
+        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
+        dpkg-reconfigure -fnoninteractive xroad-opmonitor
     else
         pg_ctlcluster 10 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
+        dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
+        dpkg-reconfigure -fnoninteractive xroad-opmonitor
         pg_ctlcluster 10 main stop
     fi
 fi
