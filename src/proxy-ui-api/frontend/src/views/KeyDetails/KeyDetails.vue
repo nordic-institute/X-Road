@@ -295,7 +295,7 @@ export default Vue.extend({
         .finally(() => (this.deleting = false));
     },
     setKeyName(): void {
-      if (this.key.name === '') {
+      if (this.key.name === undefined || this.key.name === '') {
         this.key.name = this.key.id;
       }
     },
