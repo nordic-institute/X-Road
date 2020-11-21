@@ -43,6 +43,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import javax.validation.ValidationException;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -174,6 +176,12 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
             tokensApiController.addKey(NOT_ACTIVE_TOKEN_ID, new KeyLabel().label(KEY_LABEL));
             fail("should have thrown exception");
         } catch (ConflictException expected) {
+        }
+
+        try {
+            tokensApiController.addKey(GOOD_TOKEN_ID, new KeyLabel());
+            fail("should have thrown exception");
+        } catch (ValidationException expected) {
         }
     }
 }

@@ -6020,13 +6020,16 @@ components:
         name: my-key-0
     KeyLabel: # ok
       type: object
+      required:
+        - label
       properties:
         label:
           type: string
           format: text
           description: label for the new key
-          minLength: 1
+          minLength: 0
           maxLength: 255
+          example: My new key
       example:
         label: My new key
     KeyLabelWithCsrGenerate: # ok
