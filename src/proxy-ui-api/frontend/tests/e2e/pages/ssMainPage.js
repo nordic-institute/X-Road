@@ -94,6 +94,36 @@ var clientTabCommands = {
   },
 };
 
+var keysTabCommands = {
+  openSignAndAuthKeys: function () {
+    this.click('@SignAndAuthKeysTab');
+    return this;
+  },
+  openAPIKeys: function () {
+    this.click('@APIKeysTab');
+    return this;
+  },
+  openSecurityServerTLSKey: function () {
+    this.click('@SecurityServerTLSKeyTab');
+    return this;
+  },
+};
+
+var settingsTabCommands = {
+  openSystemParameters: function () {
+    this.click('@SystemParametersTab');
+    return this;
+  },
+  openBackupAndRestore: function () {
+    this.click('@BackupAndRestoreTab');
+    return this;
+  },
+  openSecurityServerTLSKey: function () {
+    this.click('@SecurityServerTLSKeyTab');
+    return this;
+  },
+};
+
 var clientInfoCommands = {
   openDetailsTab: function () {
     this.click('@detailsTab');
@@ -660,6 +690,49 @@ module.exports = {
         },
       },
     },
+    keysTab: {
+      selector:
+        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
+      locateStrategy: 'xpath',
+      commands: [keysTabCommands],
+      elements: {
+        SignAndAuthKeysTab: {
+          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
+          locateStrategy: 'xpath',
+        },
+        APIKeysTab: {
+          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
+          locateStrategy: 'xpath',
+        },
+        SecurityServerTLSKeyTab: {
+          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Security Server TLS Key "]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
+    diagnosticsTab: {
+      selector:
+        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Diagnostics")]]//div[contains(@class, "base-full-width")]',
+      locateStrategy: 'xpath',
+      commands: [],
+      elements: {},
+    },
+    settingsTab: {
+      selector:
+        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Settings")]]//div[contains(@class, "base-full-width")]',
+      locateStrategy: 'xpath',
+      commands: [settingsTabCommands],
+      elements: {
+        SystemParametersTab: {
+          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
+          locateStrategy: 'xpath',
+        },
+        BackupAndRestoreTab: {
+          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
     clientInfo: {
       selector: 'h1.display-1',
       locateStrategy: 'css selector',
@@ -885,13 +958,6 @@ module.exports = {
           },
         },
       },
-    },
-    keysTab: {
-      selector:
-        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
-      locateStrategy: 'xpath',
-      commands: [],
-      elements: {},
     },
     certificatePopup: {
       selector:
