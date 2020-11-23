@@ -302,7 +302,7 @@
     "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
-    "addSubsystem": "add subsystem",
+    "addSubsystem": "Add subsystem",
     "addClient": "Add client",
     "addMember": "Add member",
     "search": "Search",

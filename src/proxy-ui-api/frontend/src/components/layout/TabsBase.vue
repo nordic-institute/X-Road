@@ -26,7 +26,7 @@
 <template>
   <v-layout class="main-content" align-left row>
     <v-img
-      :src="require('../../assets/xroad7_logo.png')"
+      :src="require('../../assets/xroad7_logo.svg')"
       height="35"
       width="132"
       max-height="35"

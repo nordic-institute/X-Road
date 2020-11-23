@@ -29,7 +29,7 @@
       <v-row>
         <v-col cols="6" sm="3" class="pt-6">
           <v-img
-            :src="require('../../assets/xroad7_logo.png')"
+            :src="require('../../assets/xroad7_logo.svg')"
             height="35"
             width="132"
             max-height="35"
