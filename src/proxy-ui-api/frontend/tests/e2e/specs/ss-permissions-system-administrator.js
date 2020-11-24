@@ -26,14 +26,15 @@
 
 module.exports = {
   tags: ['ss', 'xroad-system-administrator', 'permissions'],
-  before: (browser) => console.log('Test is starting...'),
   'Security server system administrator role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
     const keysTab = mainPage.section.keysTab;
     const diagnosticsTab = mainPage.section.diagnosticsTab;
     const settingsTab = mainPage.section.settingsTab;
+    const tokenName = mainPage.section.keysTab.elements.tokenName;
+    const createAPIKeyButton = mainPage.section.keysTab.elements.createAPIKeyButton;
+    const generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -54,24 +55,22 @@ module.exports = {
         '")]',
     );
 
-    // xroad-system-administrator should be in keys and certs view and not see clients tab
+    // xroad-system-administrator should be in keys and certs view
     browser.waitForElementVisible(keysTab);
-    browser.waitForElementNotPresent(clientsTab);
     keysTab.openSignAndAuthKeys();
+    browser.waitForElementVisible(tokenName);
     keysTab.openAPIKeys();
+    browser.waitForElementVisible(createAPIKeyButton);
     keysTab.openSecurityServerTLSKey();
+    browser.waitForElementVisible(generateKeyButton);
 
     // xroad-system-administrator should be able to open diagnostics tab
     mainPage.openDiagnosticsTab();
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Diagnostics"]',
-    );
+    browser.waitForElementVisible(diagnosticsTab);
 
     // xroad-system-administrator should be able to open settings tab
     mainPage.openSettingsTab();
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Settings"]',
-    );
+    browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
     settingsTab.openBackupAndRestore();
 

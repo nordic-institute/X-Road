@@ -96,7 +96,7 @@ var clientTabCommands = {
 
 var keysTabCommands = {
   openSignAndAuthKeys: function () {
-    this.click('@SignAndAuthKeysTab');
+    this.click('@signAndAuthKeysTab');
     return this;
   },
   openAPIKeys: function () {
@@ -104,22 +104,22 @@ var keysTabCommands = {
     return this;
   },
   openSecurityServerTLSKey: function () {
-    this.click('@SecurityServerTLSKeyTab');
+    this.click('@securityServerTLSKeyTab');
     return this;
   },
 };
 
 var settingsTabCommands = {
   openSystemParameters: function () {
-    this.click('@SystemParametersTab');
+    this.click('@systemParametersTab');
     return this;
   },
   openBackupAndRestore: function () {
-    this.click('@BackupAndRestoreTab');
+    this.click('@backupAndRestoreTab');
     return this;
   },
   openSecurityServerTLSKey: function () {
-    this.click('@SecurityServerTLSKeyTab');
+    this.click('@securityServerTLSKeyTab');
     return this;
   },
 };
@@ -696,7 +696,7 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [keysTabCommands],
       elements: {
-        SignAndAuthKeysTab: {
+        signAndAuthKeysTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
           locateStrategy: 'xpath',
         },
@@ -704,8 +704,20 @@ module.exports = {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
           locateStrategy: 'xpath',
         },
-        SecurityServerTLSKeyTab: {
+        securityServerTLSKeyTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Security Server TLS Key "]',
+          locateStrategy: 'xpath',
+        },
+        tokenName: {
+          selector: '//*[contains(@data-test, "token-name")]',
+          locateStrategy: 'xpath',
+        },
+        createAPIKeyButton: {
+          selector: '//*[contains(@data-test, "api-key-create-key-button")]',
+          locateStrategy: 'xpath',
+        },
+        generateKeyButton: {
+          selector: '//*[contains(@data-test, "security-server-tls-certificate-generate-key-button")]',
           locateStrategy: 'xpath',
         },
       },
@@ -723,11 +735,11 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [settingsTabCommands],
       elements: {
-        SystemParametersTab: {
+        systemParametersTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
           locateStrategy: 'xpath',
         },
-        BackupAndRestoreTab: {
+        backupAndRestoreTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
           locateStrategy: 'xpath',
         },
