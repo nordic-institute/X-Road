@@ -25,10 +25,15 @@
  -->
 <template>
   <v-app class="xrd-app">
-    <transition name="fade" mode="out-in">
-      <router-view />
-    </transition>
+    <!-- Dont show toolbar or footer in login view -->
+    <app-toolbar v-if="loginView" />
+    <v-main app>
+      <transition name="fade" mode="out-in">
+        <router-view />
+      </transition>
+    </v-main>
     <snackbar />
+    <app-footer v-if="loginView" />
   </v-app>
 </template>
 
@@ -36,12 +41,21 @@
 import Vue from 'vue';
 import axios from 'axios';
 import Snackbar from '@/components/ui/Snackbar.vue';
+import AppFooter from '@/components/layout/AppFooter.vue';
+import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
   name: 'App',
   components: {
+    AppFooter,
+    AppToolbar,
     Snackbar,
+  },
+  computed: {
+    loginView(): boolean {
+      return this.$route.name !== RouteName.Login;
+    },
   },
   created() {
     // Add a response interceptor

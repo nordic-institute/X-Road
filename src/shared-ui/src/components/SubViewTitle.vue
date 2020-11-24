@@ -70,12 +70,12 @@ export default Vue.extend({
 .cert-dialog-header {
   display: flex;
   justify-content: center;
-  border-bottom: 1px solid $XRoad-Grey40;
   color: $XRoad-Grey60;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 51px;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 34px;
+  color: $XRoad-WarmGrey100;
 }
 
 #close-x {

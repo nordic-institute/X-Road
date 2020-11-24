@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="pt-6">
-    <h2 class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</h2>
+    <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
 
     <v-card flat class="xrd-card">
       <v-container>

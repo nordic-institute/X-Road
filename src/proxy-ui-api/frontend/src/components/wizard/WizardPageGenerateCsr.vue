@@ -26,38 +26,41 @@
 <template>
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
-        <div class="label">
-          {{ $t('certificateProfile.' + item.label_key) }}
-        </div>
+      <div class="wizard-step-form-content">
+        <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
+          <div class="label">
+            {{ $t('certificateProfile.' + item.label_key) }}
+          </div>
 
-        <div>
-          <ValidationProvider
-            :name="item.id"
-            :rules="item.required && 'required'"
-            v-slot="{ errors }"
-          >
-            <v-text-field
-              class="form-input"
+          <div>
+            <ValidationProvider
               :name="item.id"
-              type="text"
-              v-model="item.default_value"
-              :disabled="item.read_only"
-              :error-messages="errors"
-              data-test="dynamic-csr-input"
-              autofocus
-            ></v-text-field>
-          </ValidationProvider>
+              :rules="item.required && 'required'"
+              v-slot="{ errors }"
+            >
+              <v-text-field
+                class="form-input"
+                :name="item.id"
+                type="text"
+                outlined
+                v-model="item.default_value"
+                :disabled="item.read_only"
+                :error-messages="errors"
+                data-test="dynamic-csr-input"
+                autofocus
+              ></v-text-field>
+            </ValidationProvider>
+          </div>
         </div>
-      </div>
-      <div class="generate-row">
-        <div>{{ $t('csr.saveInfo') }}</div>
-        <large-button
-          @click="generateCsr"
-          :disabled="invalid || !disableDone"
-          data-test="generate-csr-button"
-          >{{ $t('csr.generateCsr') }}</large-button
-        >
+        <div class="generate-row">
+          <div>{{ $t('csr.saveInfo') }}</div>
+          <large-button
+            @click="generateCsr"
+            :disabled="invalid || !disableDone"
+            data-test="generate-csr-button"
+            >{{ $t('csr.generateCsr') }}</large-button
+          >
+        </div>
       </div>
       <div class="button-footer">
         <div class="button-group">

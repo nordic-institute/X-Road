@@ -23,46 +23,37 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
   <div>
-    <app-toolbar />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <div>
-          <router-view name="top" />
-          <v-layout align-center justify-center>
-            <v-layout mt-0 align-center justify-center class="base-full-width">
-              <transition name="fade" mode="out-in">
-                <router-view />
-              </transition>
-            </v-layout>
-          </v-layout>
+    <router-view name="top" />
+    <v-layout align-center justify-center>
+      <v-layout align-center justify-center class="base-full-width">
+        <transition name="fade" mode="out-in">
+          <router-view />
+        </transition>
+      </v-layout>
+    </v-layout>
 
-          <v-dialog v-model="logoutDialog" width="500" persistent>
-            <v-card class="xrd-card">
-              <v-card-title>
-                <span class="headline">{{ $t('logout.sessionExpired') }}</span>
-              </v-card-title>
-              <v-card-text class="pt-4">{{
-                $t('logout.idleWarning')
-              }}</v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn
-                  color="primary"
-                  rounded
-                  dark
-                  class="mb-2 rounded-button elevation-0"
-                  @click="closeLogoutDialog()"
-                  >{{ $t('action.ok') }}</v-btn
-                >
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-        </div>
-      </transition>
-    </v-main>
-    <app-footer />
+    <v-dialog v-model="logoutDialog" width="500" persistent>
+      <v-card class="xrd-card">
+        <v-card-title>
+          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
+        </v-card-title>
+        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            rounded
+            dark
+            class="mb-2 rounded-button elevation-0"
+            @click="closeLogoutDialog()"
+            >{{ $t('action.ok') }}</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -70,14 +61,8 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import * as api from '@/util/api';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
 
 export default Vue.extend({
-  components: {
-    AppToolbar,
-    AppFooter,
-  },
   data() {
     return {
       sessionPollInterval: 0,

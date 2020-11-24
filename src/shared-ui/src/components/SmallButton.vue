@@ -69,7 +69,7 @@ export default Vue.extend({
     },
     min_width: {
       type: Number,
-      default: 120,
+      default: 20,
     },
   },
   methods: {

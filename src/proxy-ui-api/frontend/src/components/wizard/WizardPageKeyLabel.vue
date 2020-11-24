@@ -25,16 +25,19 @@
  -->
 <template>
   <div>
-    {{ $t('wizard.signKey.info') }}
-    <div class="row-wrap">
-      <FormLabel :labelText="$t('wizard.signKey.keyLabel')" />
-      <v-text-field
-        class="form-input"
-        type="text"
-        v-model="keyLabel"
-        data-test="key-label-button"
-        autofocus
-      ></v-text-field>
+    <div class="wizard-step-form-content">
+      {{ $t('wizard.signKey.info') }}
+      <div class="row-wrap">
+        <FormLabel :labelText="$t('wizard.signKey.keyLabel')" />
+        <v-text-field
+          class="form-input"
+          type="text"
+          v-model="keyLabel"
+          outlined
+          data-test="key-label-button"
+          autofocus
+        ></v-text-field>
+      </div>
     </div>
     <div class="button-footer">
       <div class="button-group">

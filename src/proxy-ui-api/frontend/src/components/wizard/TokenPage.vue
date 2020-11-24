@@ -25,45 +25,47 @@
  -->
 <template>
   <div>
-    {{ $t('wizard.token.info') }}
-    <v-text-field
-      v-model="search"
-      :label="$t('wizard.token.tokenName')"
-      single-line
-      hide-details
-      class="search-input"
-      data-test="token-search-input"
-      autofocus
-    >
-      <v-icon slot="append">mdi-magnify</v-icon>
-    </v-text-field>
+    <div class="wizard-step-form-content">
+      {{ $t('wizard.token.info') }}
+      <v-text-field
+        v-model="search"
+        :label="$t('wizard.token.tokenName')"
+        single-line
+        hide-details
+        class="search-input"
+        data-test="token-search-input"
+        autofocus
+      >
+        <v-icon slot="append">mdi-magnify</v-icon>
+      </v-text-field>
 
-    <v-radio-group v-model="tokenGroup">
-      <div class="radio-row" v-for="token in filteredTokens" :key="token.id">
-        <v-radio
-          :label="`Token ${token.name}`"
-          :value="token"
-          :disabled="!token.logged_in"
-          data-test="token-radio-button"
-        ></v-radio>
-        <div>
-          <large-button
-            @click="confirmLogin(token)"
-            v-if="!token.logged_in"
-            :disabled="!token.available"
-            data-test="token-login-button"
-            >{{ $t('keys.logIn') }}</large-button
-          >
-          <large-button
-            v-if="token.logged_in"
-            outlined
-            disabled
-            data-test="token-logout-button"
-            >{{ $t('wizard.token.loggedIn') }}</large-button
-          >
+      <v-radio-group v-model="tokenGroup">
+        <div class="radio-row" v-for="token in filteredTokens" :key="token.id">
+          <v-radio
+            :label="`Token ${token.name}`"
+            :value="token"
+            :disabled="!token.logged_in"
+            data-test="token-radio-button"
+          ></v-radio>
+          <div>
+            <large-button
+              @click="confirmLogin(token)"
+              v-if="!token.logged_in"
+              :disabled="!token.available"
+              data-test="token-login-button"
+              >{{ $t('keys.logIn') }}</large-button
+            >
+            <large-button
+              v-if="token.logged_in"
+              outlined
+              disabled
+              data-test="token-logout-button"
+              >{{ $t('wizard.token.loggedIn') }}</large-button
+            >
+          </div>
         </div>
-      </div>
-    </v-radio-group>
+      </v-radio-group>
+    </div>
 
     <div class="button-footer">
       <div class="button-group">

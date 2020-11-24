@@ -26,75 +26,84 @@
 <template>
   <div>
     <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.usage') }}
-          <helpIcon :text="$t('csr.helpUsage')" />
+      <div class="wizard-step-form-content">
+        <div class="row-wrap">
+          <div class="label">
+            {{ $t('csr.usage') }}
+            <helpIcon :text="$t('csr.helpUsage')" />
+          </div>
+
+          <ValidationProvider name="csr.usage" rules="required" v-slot="{}">
+            <v-select
+              :items="usageList"
+              class="form-input"
+              v-model="usage"
+              :disabled="isUsageReadOnly || !permissionForUsage"
+              data-test="csr-usage-select"
+              outlined
+            ></v-select>
+          </ValidationProvider>
         </div>
 
-        <ValidationProvider name="csr.usage" rules="required" v-slot="{}">
-          <v-select
-            :items="usageList"
-            class="form-input"
-            v-model="usage"
-            :disabled="isUsageReadOnly || !permissionForUsage"
-            data-test="csr-usage-select"
-          ></v-select>
-        </ValidationProvider>
-      </div>
+        <div class="row-wrap" v-if="usage === usageTypes.SIGNING">
+          <div class="label">
+            {{ $t('csr.client') }}
+            <helpIcon :text="$t('csr.helpClient')" />
+          </div>
 
-      <div class="row-wrap" v-if="usage === usageTypes.SIGNING">
-        <div class="label">
-          {{ $t('csr.client') }}
-          <helpIcon :text="$t('csr.helpClient')" />
+          <ValidationProvider name="csr.client" rules="required" v-slot="{}">
+            <v-select
+              :items="memberIds"
+              item-text="id"
+              item-value="id"
+              class="form-input"
+              v-model="client"
+              data-test="csr-client-select"
+              outlined
+            ></v-select>
+          </ValidationProvider>
         </div>
 
-        <ValidationProvider name="csr.client" rules="required" v-slot="{}">
-          <v-select
-            :items="memberIds"
-            item-text="id"
-            item-value="id"
-            class="form-input"
-            v-model="client"
-            data-test="csr-client-select"
-          ></v-select>
-        </ValidationProvider>
-      </div>
+        <div class="row-wrap">
+          <div class="label">
+            {{ $t('csr.certificationService') }}
+            <helpIcon :text="$t('csr.helpCertificationService')" />
+          </div>
 
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.certificationService') }}
-          <helpIcon :text="$t('csr.helpCertificationService')" />
+          <ValidationProvider
+            name="csr.certService"
+            rules="required"
+            v-slot="{}"
+          >
+            <v-select
+              :items="filteredServiceList"
+              item-text="name"
+              item-value="name"
+              class="form-input"
+              v-model="certificationService"
+              data-test="csr-certification-service-select"
+              outlined
+            ></v-select>
+          </ValidationProvider>
         </div>
 
-        <ValidationProvider name="csr.certService" rules="required" v-slot="{}">
-          <v-select
-            :items="filteredServiceList"
-            item-text="name"
-            item-value="name"
-            class="form-input"
-            v-model="certificationService"
-            data-test="csr-certification-service-select"
-          ></v-select>
-        </ValidationProvider>
-      </div>
+        <div class="row-wrap">
+          <div class="label">
+            {{ $t('csr.csrFormat') }}
+            <helpIcon :text="$t('csr.helpCsrFormat')" />
+          </div>
 
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.csrFormat') }}
-          <helpIcon :text="$t('csr.helpCsrFormat')" />
+          <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
+            <v-select
+              :items="csrFormatList"
+              class="form-input"
+              v-model="csrFormat"
+              data-test="csr-format-select"
+              outlined
+            ></v-select>
+          </ValidationProvider>
         </div>
-
-        <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
-          <v-select
-            :items="csrFormatList"
-            class="form-input"
-            v-model="csrFormat"
-            data-test="csr-format-select"
-          ></v-select>
-        </ValidationProvider>
       </div>
-
       <div class="button-footer">
         <large-button outlined @click="cancel" data-test="cancel-button">{{
           $t('action.cancel')

@@ -122,3 +122,11 @@
   /* identical to box height, or 142% */
   color: #575169;
 }
+
+.xrd-card {
+  .xrd-card-actions {
+    background-color: $XRoad-WarmGrey10;
+    height: 72px;
+    padding-right: 24px;
+  }
+}

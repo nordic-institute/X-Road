@@ -25,25 +25,27 @@
  -->
 <template>
   <div data-test="finish-content">
-    <p>{{ $t('wizard.finish.infoLine1') }}</p>
-    <p>{{ $t('wizard.finish.infoLine2') }}</p>
-    <br />
-    <p>{{ $t('wizard.finish.todo1') }}</p>
-    <p>{{ $t('wizard.finish.todo2') }}</p>
-    <p>{{ $t('wizard.finish.todo3') }}</p>
-    <br />
-    <br />
-    <p>{{ $t('wizard.finish.note') }}</p>
-    <p></p>
+    <div class="wizard-step-form-content">
+      <p>{{ $t('wizard.finish.infoLine1') }}</p>
+      <p>{{ $t('wizard.finish.infoLine2') }}</p>
+      <br />
+      <p>{{ $t('wizard.finish.todo1') }}</p>
+      <p>{{ $t('wizard.finish.todo2') }}</p>
+      <p>{{ $t('wizard.finish.todo3') }}</p>
+      <br />
+      <br />
+      <p>{{ $t('wizard.finish.note') }}</p>
+      <p></p>
 
-    <div v-if="showRegisterOption">
-      <FormLabel :labelText="$t('wizard.client.register')" />
-      <v-checkbox
-        v-model="registerChecked"
-        color="primary"
-        class="register-checkbox"
-        data-test="register-member-checkbox"
-      ></v-checkbox>
+      <div v-if="showRegisterOption">
+        <FormLabel :labelText="$t('wizard.client.register')" />
+        <v-checkbox
+          v-model="registerChecked"
+          color="primary"
+          class="register-checkbox"
+          data-test="register-member-checkbox"
+        ></v-checkbox>
+      </div>
     </div>
 
     <div class="button-footer">
