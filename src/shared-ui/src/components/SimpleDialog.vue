@@ -29,10 +29,15 @@
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
-          <span data-test="dialog-title" class="headline">{{ $t(title) }}</span>
+          <span data-test="dialog-title">{{ $t(title) }}</span>
         </slot>
         <v-spacer />
-        <i v-if="showClose" @click="cancel()" id="dlg-close-x"></i>
+        <close-button
+          v-if="showClose"
+          id="dlg-close-x"
+          data-test="dlg-close-x"
+          @click="cancel()"
+        />
       </v-card-title>
       <v-card-text class="content-wrapper">
         <slot name="content"></slot>
@@ -61,10 +66,12 @@
 /** Base component for simple dialogs */
 
 import Vue from 'vue';
+import CloseButton from '@/components/CloseButton.vue';
 import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
   components: {
+    CloseButton,
     LargeButton,
   },
   props: {
@@ -130,6 +137,14 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../assets/colors';
 
+.xrd-card {
+  .xrd-card-actions {
+    background-color: $XRoad-WarmGrey10;
+    height: 72px;
+    padding-right: 24px;
+  }
+}
+
 .content-wrapper {
   margin-top: 18px;
 }
@@ -138,19 +153,8 @@ export default Vue.extend({
   margin-right: 14px;
 }
 
-#dlg-close-x {
-  font-family: Roboto;
-  font-size: 34px;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  line-height: 21px;
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: $XRoad-Grey40;
-}
-
-#dlg-close-x:before {
-  content: '\00d7';
+.close-button {
+  margin-left: auto;
+  margin-right: 0;
 }
 </style>

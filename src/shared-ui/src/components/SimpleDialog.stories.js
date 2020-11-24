@@ -57,6 +57,7 @@ Primary.args = {
   primary: true,
   dialog: true,
   loading: false,
+  showClose: true,
   title: 'Title text',
   content: `Lorem ipsum dolor sit amet, 
   consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
@@ -68,6 +69,7 @@ LongText.args = {
   dialog: true,
   loading: false,
   title: 'Title text',
+  showClose: true,
   content: `This is a very, very long text: Lorem ipsum dolor sit amet, 
   consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
   Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit. 

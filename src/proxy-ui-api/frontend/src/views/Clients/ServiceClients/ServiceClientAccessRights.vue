@@ -162,7 +162,6 @@ interface UiAccessRight extends AccessRight {
 export default Vue.extend({
   components: {
     AddServiceClientServiceDialog,
-
   },
   props: {
     id: {

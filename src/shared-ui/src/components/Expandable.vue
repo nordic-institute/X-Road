@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div class="expandable-wrapper">
     <div class="header">
       <div>
         <v-btn fab icon small @click="clicked" class="no-hover">
@@ -84,13 +84,15 @@ export default Vue.extend({
   margin-right: 3px;
 }
 
+.expandable-wrapper {
+  border-radius: 4px;
+  background-color: $XRoad-Grey10;
+}
+
 .header {
   display: flex;
   align-items: center;
   height: 48px;
-  border-radius: 4px;
-  background-color: $XRoad-Grey10;
-  box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.2);
 }
 
 .action-wrap {

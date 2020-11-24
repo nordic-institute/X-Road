@@ -25,92 +25,37 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" :width="width" persistent>
-    <v-card class="xrd-card">
-      <v-card-title>
-        <span class="headline">{{ $t(title) }}</span>
-        <v-spacer />
-        <close-button @click="cancel()" />
-      </v-card-title>
-      <v-card-text class="content-wrapper">
-        <slot></slot>
-        <div class="text-wrap">{{ $t(text) }}</div>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <large-button @click="cancel()">{{ $t('keys.gotIt') }}</large-button>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+  <i @click="click()" id="dlg-close-x"></i>
 </template>
 
 <script lang="ts">
-/** Component for help dialogs */
+/** Wrapper for vuetify button with x-road look */
 
 import Vue from 'vue';
-import CloseButton from '@/components/CloseButton.vue';
-import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
-  name: 'HelpDialog',
-  components: {
-    CloseButton,
-    LargeButton,
-  },
-  props: {
-    // Title of the dialog
-    title: {
-      type: String,
-      required: true,
-    },
-    // Dialog visible / hidden
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
-    width: {
-      type: Number,
-      default: 850,
-    },
-    // Source for help image
-    imageSrc: {
-      type: String,
-    },
-    // Help text
-    text: {
-      type: String,
-    },
-  },
-
+  name: 'close-button',
   methods: {
-    cancel(): void {
-      this.$emit('cancel');
+    click(event: MouseEvent): void {
+      this.$emit('click', event);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/dialogs';
+@import '../assets/colors';
 
-.content-wrapper {
-  margin-top: 20px;
+#dlg-close-x {
+  font-size: 34px;
+  cursor: pointer;
+  font-style: normal;
+  font-weight: 300;
+  color: $XRoad-Purple100;
+  margin-top: -5px;
 }
 
-.title-wrap {
-  margin-bottom: 10px;
-  width: 100%;
-  text-align: center;
-}
-
-.text-wrap {
-  margin: 10px;
-}
-.xrd-card {
-  .xrd-card-actions {
-    background-color: $XRoad-WarmGrey10;
-    height: 72px;
-    padding-right: 24px;
-  }
+#dlg-close-x:before {
+  content: '\00d7';
 }
 </style>

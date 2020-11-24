@@ -24,37 +24,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import HelpDialog from './HelpDialog.vue';
+import CloseButton from './CloseButton.vue';
 
 export default {
-  title: 'X-Road/Help dialog',
-  component: HelpDialog,
+  title: 'X-Road/Close button',
+  component: CloseButton,
   argTypes: {
     outlined: { control: 'boolean' },
-    width: { control: 'boolean' },
-    dialog: { control: 'boolean' },
-    title: { control: 'text' },
-    cancel: { action: 'cancel' },
+    disabled: { control: 'boolean' },
+    loading: { control: 'boolean' },
+    click: { action: 'click' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { HelpDialog },
-  template: `<help-dialog @cancel="cancel" v-bind="$props" imageSrc="api_keys.png">
-    <div>hei</div>
-    </help-dialog>`,
+  components: { CloseButton },
+  template: '<close-button @click="click" v-bind="$props" />',
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
   primary: true,
-  title: 'Hello world!',
-  dialog: true,
-};
-
-export const Secondary = Template.bind({});
-Secondary.args = {
-  title: 'This is a very very long label for a button',
-  dialog: true,
+  label: 'Hello world!',
 };

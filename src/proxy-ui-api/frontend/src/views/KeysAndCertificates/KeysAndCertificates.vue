@@ -56,7 +56,9 @@
       :imageSrc="helpTab.helpImage"
       :title="helpTab.helpTitle"
       :text="helpTab.helpText"
-    />
+    >
+      <v-img :src="require('./../../assets/' + helpTab.helpImage)"></v-img>
+    </helpDialog>
   </div>
 </template>
 
@@ -64,7 +66,6 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
-import HelpDialog from '@/components/ui/HelpDialog.vue';
 
 interface KeysTab extends Tab {
   helpImage: string;
@@ -73,9 +74,6 @@ interface KeysTab extends Tab {
 }
 
 export default Vue.extend({
-  components: {
-    HelpDialog,
-  },
   data: () => ({
     tab: null,
     showHelp: false,
