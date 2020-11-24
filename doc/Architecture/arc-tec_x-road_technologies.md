@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.4  
-12.05.2020
+Version: 1.5<br/>
+15.09.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -18,6 +18,7 @@ Doc. ID: ARC-TEC
  17.04.2019 | 1.2     | Added RHEL7, Ubuntu 18.04, systemd and Postgres 10          | Petteri Kivimäki
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
  12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
+ 15.09.2020 | 1.5     | Updated to match security server REST API architecture      | Janne Mattila
 
 ## Table of Contents
 
@@ -67,24 +68,31 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 <a id="Ref_Technology_matrix_of_the_X_Road" class="anchor"></a>
 Table 1. Technology matrix of the X-Road
 
- **Technology**     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon**
------------------------ | ------------------- | ------------------ | ------------------- | -------------------
- Java 8             | X                   | X                  | X                       | X
- C                  | X                   | X                  |                         |
- Logback            | X                   | X                  | X                       | X
- Akka 2.X           | X                   | X                  | X                       | X
- Jetty 9            | X                   | X                  |                         |
- JRuby 9.X          | X                   | X                  |                         |
- Ubuntu 18.04       | X                   | X                  | X                       | X
- Red Hat Enterprise Linux 7 (RHEL7)       | X                   |                    |                         | X
- PostgreSQL 9.4     |                     | X\[[1](#Ref_1)\]               |                         |
- PostgreSQL 10      | X                   | X                  |                         | X
- nginx              | X                   | X                  | X                       |
- PAM                | X                   | X                  |                         |
- Liquibase          | X                   | X                  |                         | X
- systemd            | X                   | X                  | X                       | X
- PKCS \#11\[[2](#Ref_2)\]       | X                   | X                  | X                       |
- Dropwizard Metrics | X                   |                    |                         | X
+ **Technology**                     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon**
+----------------------------------- | ------------------- | ------------------ | ----------------------- | -------------------
+ Java 8                             | X                   | X                  | X                       | X
+ C                                  | X                   | X                  |                         |
+ Logback                            | X                   | X                  | X                       | X
+ Akka 2                             | X                   | X                  | X                       | X
+ Jetty 9                            | X\[[3](#Ref_3)\]    | X                  |                         |
+ JRuby 9                            |                     | X                  |                         |
+ Ubuntu 18.04                       | X                   | X                  | X                       | X
+ Red Hat Enterprise Linux 7 (RHEL7) | X                   |                    |                         | X
+ PostgreSQL 9.4                     |                     | X\[[1](#Ref_1)\]   |                         |
+ PostgreSQL 10                      | X                   | X                  |                         | X
+ nginx                              |                     | X                  | X                       |
+ PAM                                | X                   | X                  |                         |
+ Liquibase 3                        | X                   | X                  |                         | X
+ systemd                            | X                   | X                  | X                       | X
+ PKCS \#11\[[2](#Ref_2)\]           | X                   | X                  | X                       |
+ Dropwizard Metrics 4               | X                   |                    |                         | X
+ Spring Boot 2                      | X                   |                    |                         |  
+ Vue.js 2                           | X                   |                    |                         |  
+ Npm 6                              | X                   |                    |                         |  
+ Node 12                            | X                   |                    |                         |  
+ Typescript                         | X                   |                    |                         |  
+ OpenAPI 3                          | X                   |                    |                         |  
+ Embedded Tomcat 9                  | X                   |                    |                         |  
 
 See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 
@@ -94,6 +102,8 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
+<a id="Ref_3" class="anchor"></a>
+\[3\] Security Server uses embedded Jetty for clientproxy, serverproxy and OCSP responder
 
 ## 3 Central server technologies
 
@@ -107,15 +117,15 @@ Table 2. Technology matrix of the central server
  Java 8         | X          |                |                    | X                       |              | X                  | X
  C              |            |                | X                  |                         |              |                    |
  Logback        | X          |                |                    | X                       |              | X                  |
- Akka 2.X       | X          |                |                    | X                       |              | X                  |
+ Akka 2         | X          |                |                    | X                       |              | X                  |
  Jetty 9        |            |                |                    |                         |              |                    | X
- JRuby 9.X      |            |                |                    |                         |              | X                  |
+ JRuby 9        |            |                |                    |                         |              | X                  |
  Javascript     |            |                |                    |                         |              | X                  |
  PostgreSQL 9.4 |            |                |                    |                         | X\[[1](#Ref_1)\]         |                    |                  
  PostgreSQL 10  |            |                |                    |                         | X            |                    |
  nginx          |            | X              |                    |                         |              |                    |
  PAM            |            |                |                    |                         |              |                    | X
- Liquibase      |            |                |                    |                         | X            |                    |
+ Liquibase 3    |            |                |                    |                         | X            |                    |
  systemd        | X          | X              |                    |                         |              |                    | X
  PKCS \#11\[[2](#Ref_2)\]   | X          |                |                    |                         |              |                    |                  
 
@@ -132,7 +142,7 @@ Table 3. Technology matrix of the configuration proxy
 ----------------- | ---------------- | ----------------------------- | ------------ | ------------------------
  Java 8           |                  | X                             | X            | X
  Logback          |                  | X                             | X            | X
- Akka 2.X         |                  | X                             | X            |
+ Akka 2           |                  | X                             | X            |
  nginx            | X                |                               |              |
  systemd          | X                | X                             | X            | X
  PKCS \#11\[[2](#Ref_2)\]   |                |                             | X          |
@@ -149,21 +159,27 @@ See [[ARC-CP]](#ARC-CP) for the configuration proxy details.
 <a id="Ref_Technology_matrix_of_the_security_server" class="anchor"></a>
 Table 4. Technology matrix of the security server
 
- **Technology**     | **Signer**   | **Proxy**   | **Password Store**   | **Message Log**   | **Metadata Services**   | **Database**   | **Configuration Client**   | **User Interface**   | **Servlet Engine**   | **Monitor**   | **Environmental Monitoring Service**   | **Operational Monitoring Buffer**   | **Operational Monitoring Services**
-------------------- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | ---
- Java 8             | X   | X   |     | X   | X   |     | X   | X   | X   | X   | X   | X   | X
- C                  |     |     | X   |     |     |     |     |     |     |     |     |     |
- Logback            | X   | X   |     | X   | X   |     | X   | X   |     |     | X   | X   | X
- Akka 2.X           | X   | X   |     | X   |     |     |     | X   |     | X   | X   | X   |
- Jetty 9            |     |     |     |     |     |     |     |     | X   |     |     |     |
- JRuby 9.X          |     |     |     |     |     |     |     | X   |     |     |     |     |
- Javascript         |     |     |     |     |     |     |     | X   |     |     |     |     |
- PostgreSQL 10      |     |     |     |     |     | X   |     |     |     |     |     |     |
- PAM                |     |     |     |     |     |     |     |     | X   |     |     |     |
- Liquibase          |     |     |     |     |     | X   |     |     |     |     |     |     |
- systemd            | X   | X   |     |     |     |     | X   |     | X   |     |     |     |
- PKCS \#11\[[2](#Ref_2)\]       | X   |     |     |     |     |     |     |     |     |     |     |     |
- Dropwizard Metrics |     |     |     |     |     |     |     |     |     | X   |     |     |
+ **Technology**                 | **Signer** | **Proxy** | **Password Store** | **Message Log**  | **Metadata Services** | **Database** | **Configuration Client** | **User Interface frontend** | **REST API** | **Monitor** | **Environmental Monitoring Service** | **Operational Monitoring Buffer** | **Operational Monitoring Services**
+------------------------------- | ---------- | --------- | ------------------ | ---------------- | --------------------- | ------------ | ------------------------ | --------------------------- | ------------ | ----------- | ------------------------------------ | --------------------------------- | ---
+ Java 8                         | X          | X         |                    | X                | X                     |              | X                        |                             | X            | X           | X                                    | X                                 | X
+ C                              |            |           | X                  |                  |                       |              |                          |                             |              |             |                                      |                                   |
+ Logback                        | X          | X         |                    | X                | X                     |              | X                        |                             | X            |             | X                                    | X                                 | X
+ Akka 2                         | X          | X         |                    | X                |                       |              |                          |                             | X            | X           | X                                    | X                                 |
+ Embedded Jetty 9               |            | X         |                    |                  |                       |              |                          |                             |              |             |                                      |                                   |
+ Javascript                     |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ PostgreSQL 10                  |            |           |                    |                  |                       | X            |                          |                             | X            |             |                                      |                                   |
+ PAM                            |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+ Liquibase 3                    |            |           |                    |                  |                       | X            |                          |                             |              |             |                                      |                                   |
+ systemd                        | X          | X         |                    |                  |                       |              | X                        |                             | X            |             |                                      |                                   |
+ PKCS \#11\[[2](#Ref_2)\]       | X          |           |                    |                  |                       |              |                          |                             |              |             |                                      |                                   |
+ Dropwizard Metrics 4           |            |           |                    |                  |                       |              |                          |                             |              | X           |                                      |                                   |
+ Spring Boot 2                  |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+ Vue.js 2                       |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ Npm 6                          |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ Node 12                        |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ Typescript                     |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
+ OpenAPI 3                      |            |           |                    |                  |                       |              |                          | X                           | X            |             |                                      |                                   |      
+ Embedded Tomcat 9              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
 
 See [[ARC-SS]](#ARC-SS) for the security server details.
 
@@ -176,14 +192,14 @@ Note: OP-monitoring daemon is an additional component of the X-Road.
 <a id="Ref_Technology_matrix_of_the_operational_monitoring_daemon" class="anchor"></a>
 Table 5. Technology matrix of the operational monitoring daemon
 
-Technology         | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.<br/>Service | Configuration<br/>Client
-:----------------- | :----------------------: | :-------------------: | :------------------: | :---:
-Java 8             | X                        | X                     | X                    | X
-Logback            | X                        | X                     | X                    | X
-Akka 2.X           | X                        | X                     |                      |
-PostgreSQL 10      | X                        | X                     |                      |
-Liquibase          | X                        | X                     |                      |
-Dropwizard Metrics | X                        | X                     |                      |
-systemd            | X                        |                       |                      | X
+Technology           | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.<br/>Service | Configuration<br/>Client
+:------------------- | :----------------------: | :-------------------: | :------------------: | :---:
+Java 8               | X                        | X                     | X                    | X
+Logback              | X                        | X                     | X                    | X
+Akka 2               | X                        | X                     |                      |
+PostgreSQL 10        | X                        | X                     |                      |
+Liquibase 3          | X                        | X                     |                      |
+Dropwizard Metrics 4 | X                        | X                     |                      |
+systemd              | X                        |                       |                      | X
 
 See [[ARC-OPMOND]](#ARC-OPMOND) for the operational monitoring daemon details.

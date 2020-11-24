@@ -36,7 +36,7 @@
       multi-line
       @input="closeSuccess(notification.timeAdded)"
     >
-      <div class="row-wrapper-top scrollable">
+      <div class="row-wrapper-top scrollable identifier-wrap">
         <div class="row-wrapper">
           <div v-if="notification.successMessageCode">
             {{ $t(notification.successMessageCode) }}
@@ -67,7 +67,7 @@
       multi-line
       @input="closeError(notification.timeAdded)"
     >
-      <div class="row-wrapper-top scrollable">
+      <div class="row-wrapper-top scrollable identifier-wrap">
         <div class="row-wrapper">
           <!-- Show localised text by id -->
           <div v-if="notification.errorMessageCode">
@@ -263,6 +263,8 @@ export default Vue.extend({
 
 .buttons {
   height: 100%;
+  display: flex;
+  flex-direction: row;
 }
 
 .scrollable {

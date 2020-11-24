@@ -33,9 +33,11 @@ import {
   CsrSubjectFieldDescription,
   KeyWithCertificateSigningRequestId,
   KeyLabelWithCsrGenerate,
+  KeyUsageType,
+  CsrFormat,
+  TokenType,
 } from '@/openapi-types';
 import * as api from '@/util/api';
-import { UsageTypes, CsrFormatTypes } from '@/global';
 import { encodePathParameter } from '@/util/api';
 
 export interface CsrState {
@@ -49,6 +51,7 @@ export interface CsrState {
   form: CsrSubjectFieldDescription[];
   keyLabel: string | undefined;
   tokenId: string | undefined;
+  tokenType: string | null;
   memberIds: string[];
   isNewMember: boolean;
 }
@@ -59,12 +62,13 @@ const getDefaultState = () => {
     csrClient: null,
     usage: null,
     certificationService: '',
-    csrFormat: CsrFormatTypes.DER,
+    csrFormat: CsrFormat.DER,
     certificationServiceList: [],
     keyId: '',
     form: [],
     keyLabel: undefined,
     tokenId: undefined,
+    tokenType: null,
     memberIds: [],
     isNewMember: false,
   };
@@ -102,6 +106,10 @@ export const csrGetters: GetterTree<CsrState, RootState> = {
     return state.keyLabel;
   },
   isUsageReadOnly(state): boolean {
+    // if creating CSR for a hardware token, only sign CSRs can be created
+    if (state.tokenType === TokenType.HARDWARE) {
+      return true;
+    }
     // Usage type can be selected only when the Key doesn't have already have it set
     if (state.csrKey && state.csrKey.usage) {
       return true;
@@ -110,7 +118,7 @@ export const csrGetters: GetterTree<CsrState, RootState> = {
   },
   filteredServiceList(state): CertificateAuthority[] {
     // Return the list of available auth services based on the current usage type
-    if (state.usage === UsageTypes.SIGNING) {
+    if (state.usage === KeyUsageType.SIGNING) {
       const filtered = state.certificationServiceList.filter(
         (service: CertificateAuthority) => {
           return !service.authentication_only;
@@ -178,6 +186,9 @@ export const mutations: MutationTree<CsrState> = {
   storeCsrTokenId(state, tokenId: string) {
     state.tokenId = tokenId;
   },
+  storeCsrTokenType(state, tokenType: string) {
+    state.tokenType = tokenType;
+  },
   storeMemberIds(state, ids: string[]) {
     state.memberIds = ids;
   },
@@ -192,6 +203,13 @@ export const actions: ActionTree<CsrState, RootState> = {
   },
   setCsrTokenId({ commit }, tokenId: string) {
     commit('storeCsrTokenId', tokenId);
+  },
+  setCsrTokenType({ commit }, tokenType: string) {
+    if (tokenType === TokenType.HARDWARE) {
+      // can only create SIGNING CSRs for HARDWARE token
+      commit('storeUsage', KeyUsageType.SIGNING);
+    }
+    commit('storeCsrTokenType', tokenType);
   },
   setKeyId({ commit }, keyId: string) {
     commit('storeKeyId', keyId);
@@ -211,7 +229,7 @@ export const actions: ActionTree<CsrState, RootState> = {
       key_usage_type: state.usage,
     } as { [key: string]: unknown };
 
-    if (state.usage === UsageTypes.SIGNING) {
+    if (state.usage === KeyUsageType.SIGNING) {
       params = {
         ...params,
         member_id: state.csrClient,
@@ -316,11 +334,11 @@ export const actions: ActionTree<CsrState, RootState> = {
       label: '',
       certificates: [],
       certificate_signing_requests: [],
-      usage: UsageTypes.SIGNING,
+      usage: KeyUsageType.SIGNING,
     };
 
     commit('storeCsrKey', templateKey);
-    commit('storeUsage', UsageTypes.SIGNING);
+    commit('storeUsage', KeyUsageType.SIGNING);
   },
 
   fetchAllMemberIds({ commit }) {

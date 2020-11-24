@@ -50,6 +50,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_PARSING;
+
 /**
  * Parser for OpenAPI descriptions
  */
@@ -194,9 +196,6 @@ public class OpenApiParser {
      * OpenAPI Parsing Exception
      */
     public static class ParsingException extends ServiceException {
-
-        public static final String ERROR_OPENAPI_PARSING = "openapi_parsing_error";
-
         public ParsingException(String message) {
             super(new ErrorDeviation(ERROR_OPENAPI_PARSING, message));
         }

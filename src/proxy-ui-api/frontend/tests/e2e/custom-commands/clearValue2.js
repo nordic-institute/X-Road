@@ -35,6 +35,4 @@ module.exports = class CustomClear2 extends Events {
       this.emit('complete');
     });
   }
-}
-
-
+};

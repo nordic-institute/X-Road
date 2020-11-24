@@ -41,10 +41,6 @@ if [ "$1" = configure ]; then
     chmod 1750 /var/tmp/xroad
     chown xroad:xroad /var/tmp/xroad
 
-    # create socket directory
-    [ -d /var/run/xroad ] || \
-       install -d -m 2770 -o xroad -g xroad /var/run/xroad
-
     #local overrides
     test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
     test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
@@ -80,5 +76,8 @@ if [ "$1" = triggered ]; then
     chown -R xroad:xroad /etc/xroad/conf.d /etc/xroad/services ||:
     chmod -R u=rwX,g=rX,o= /etc/xroad/services /etc/xroad/conf.d ||:
 fi
+
+#DEBHELPER#
+
 exit 0
 

@@ -63,6 +63,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
 
 /**
  * test ServiceDescription service.
@@ -128,7 +131,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             fail("should throw exception warning about service addition");
         } catch (UnhandledWarningsException expected) {
             assertEquals(1, expected.getWarningDeviations().size());
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(WARNING_ADDING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
 
@@ -163,7 +166,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
             fail("should throw exception warning about service addition");
         } catch (UnhandledWarningsException expected) {
             assertEquals(1, expected.getWarningDeviations().size());
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(WARNING_DELETING_SERVICES, expected,
                     BIG_ATTACHMENT_V1_SERVICECODE, SMALL_ATTACHMENT_V1_SERVICECODE);
         }
 
@@ -210,11 +213,11 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         } catch (UnhandledWarningsException expected) {
             // we should get 3 warningDeviations
             assertEquals(3, expected.getWarningDeviations().size());
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(WARNING_DELETING_SERVICES, expected,
                     GET_RANDOM_V1_SERVICECODE);
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+            DeviationTestUtils.assertWarning(WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
 
@@ -245,7 +248,7 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         } catch (UnhandledWarningsException expected) {
             // we should get 1 warning
             assertEquals(1, expected.getWarningDeviations().size());
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+            DeviationTestUtils.assertWarning(WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
         // can be ignored
@@ -335,11 +338,11 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         } catch (UnhandledWarningsException expected) {
             // we should get 3 warningDeviations
             assertEquals(3, expected.getWarningDeviations().size());
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_ADDING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(WARNING_ADDING_SERVICES, expected,
                     SMALL_ATTACHMENT_V1_SERVICECODE);
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_DELETING_SERVICES, expected,
+            DeviationTestUtils.assertWarning(WARNING_DELETING_SERVICES, expected,
                     GET_RANDOM_V1_SERVICECODE);
-            DeviationTestUtils.assertWarning(ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS, expected,
+            DeviationTestUtils.assertWarning(WARNING_WSDL_VALIDATION_WARNINGS, expected,
                     "mock warning", "mock warning 2");
         }
 

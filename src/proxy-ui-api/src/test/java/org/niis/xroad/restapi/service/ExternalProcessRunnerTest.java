@@ -32,7 +32,7 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.niis.xroad.restapi.service.ProcessFailedException.PROCESS_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PROCESS_FAILED;
 
 public class ExternalProcessRunnerTest {
 
@@ -61,7 +61,7 @@ public class ExternalProcessRunnerTest {
         try {
             externalProcessRunner.executeAndThrowOnFailure(MOCK_FAIL_SCRIPT, SCRIPT_ARGS);
         } catch (ProcessFailedException e) {
-            assertEquals(PROCESS_FAILED, e.getErrorDeviation().getCode());
+            assertEquals(ERROR_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 

@@ -42,6 +42,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_DN_PARAMETER;
+
 /**
  * helper for working with DnFieldValues and -Descriptions
  */
@@ -103,8 +105,6 @@ public class DnFieldHelper {
      * Thrown if a subject dn parameter was invalid
      */
     public static class InvalidDnParameterException extends ServiceException {
-        public static final String ERROR_INVALID_DN_PARAMETER = "invalid_dn_parameter";
-
         public InvalidDnParameterException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_INVALID_DN_PARAMETER));
         }

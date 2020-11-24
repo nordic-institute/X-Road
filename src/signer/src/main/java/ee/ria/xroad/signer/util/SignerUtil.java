@@ -83,6 +83,7 @@ public final class SignerUtil {
      * Returns the digest prefix bytes for the given digest. The digest must
      * be calculated using one of the following algorithms: SHA1, SHA224,
      * SHA256, SHA384, SHA512.
+     *
      * @param digest the digest
      * @return the digest prefix bytes for the given digest
      */
@@ -92,9 +93,11 @@ public final class SignerUtil {
 
     /**
      * Creates data to be signed from the digest.
-     * @param digest the digest
+     *
+     * @param digest     the digest
      * @param signAlgoId sign algorithm id
      * @return the data to be signed
+     * @throws NoSuchAlgorithmException if the algorithm is not supported
      */
     public static byte[] createDataToSign(byte[] digest, String signAlgoId) throws NoSuchAlgorithmException {
         switch (signAlgoId) {
@@ -125,7 +128,7 @@ public final class SignerUtil {
 
     /**
      * @param tokenInfo the token
-     * @param keyId the key id
+     * @param keyId     the key id
      * @return true if the token contains a key with the specified id
      */
     public static boolean hasKey(TokenInfo tokenInfo, String keyId) {
@@ -141,6 +144,7 @@ public final class SignerUtil {
     /**
      * Creates a key id (lexical representation of xsd:hexBinary)
      * from the specified key object.
+     *
      * @param k the key
      * @return the id
      */
@@ -155,6 +159,7 @@ public final class SignerUtil {
     /**
      * Creates a key id (lexical representation of xsd:hexBinary)
      * from the specified certificate object.
+     *
      * @param c the certificate object
      * @return the id
      */
@@ -169,14 +174,15 @@ public final class SignerUtil {
 
     /**
      * Creates a certificate. The certificate is valid for 2 years.
+     *
      * @param commonName the common name attribute
-     * @param keyPair the key pair containing the public key
-     * @param signer the signer of the certificate
+     * @param keyPair    the key pair containing the public key
+     * @param signer     the signer of the certificate
      * @return the certificate
      * @throws Exception if an error occurs
      */
-    public static X509Certificate createCertificate(String commonName,
-            KeyPair keyPair, ContentSigner signer) throws Exception {
+    public static X509Certificate createCertificate(String commonName, KeyPair keyPair, ContentSigner signer)
+            throws Exception {
         Calendar cal = GregorianCalendar.getInstance();
 
         cal.add(Calendar.YEAR, -1);
@@ -215,7 +221,8 @@ public final class SignerUtil {
     /**
      * Convenience method for sending a message to an actor and returning
      * the result.
-     * @param actor the actor
+     *
+     * @param actor   the actor
      * @param message the message
      * @return the result
      * @throws Exception if an error occurs or if the result times out
@@ -224,11 +231,11 @@ public final class SignerUtil {
         return ask(actor, message, DEFAULT_ASK_TIMEOUT);
     }
 
-
     /**
      * Convenience method for sending a message to an actor and returning
      * the result.
-     * @param actor the actor
+     *
+     * @param actor   the actor
      * @param message the message
      * @param timeout the timeout for the result
      * @return the result
@@ -243,8 +250,9 @@ public final class SignerUtil {
     /**
      * Convenience method for sending a message to an actor selection
      * and returning the result.
+     *
      * @param actorSelection the actor selection
-     * @param message the message
+     * @param message        the message
      * @return the result
      * @throws Exception if an error occurs or if the result times out
      */
@@ -256,9 +264,10 @@ public final class SignerUtil {
     /**
      * Convenience method for sending a message to an actor selection
      * and returning the result.
+     *
      * @param actorSelection the actor selection
-     * @param message the message
-     * @param timeout the timeout for the result
+     * @param message        the message
+     * @param timeout        the timeout for the result
      * @return the result
      * @throws Exception if an error occurs or if the result times out
      */
@@ -287,8 +296,7 @@ public final class SignerUtil {
     /**
      * @return certificate matching certHash
      */
-    public static X509Certificate getCertForCertHash(String certHash)
-            throws Exception {
+    public static X509Certificate getCertForCertHash(String certHash) throws Exception {
         X509Certificate cert =
                 TokenManager.getCertificateForCertHash(certHash);
         if (cert != null) {
@@ -306,8 +314,8 @@ public final class SignerUtil {
 
     /**
      * @param tokenIdFormat the format of the token ID
-     * @param moduleType module type
-     * @param token pkcs11 token
+     * @param moduleType    module type
+     * @param token         pkcs11 token
      * @return formatted token ID
      */
     @SneakyThrows
@@ -316,10 +324,10 @@ public final class SignerUtil {
         iaik.pkcs.pkcs11.TokenInfo tokenInfo = token.getTokenInfo();
         String slotIndex = Long.toString(token.getSlot().getSlotID());
 
-        return tokenIdFormat.replaceAll("\\{moduleType\\}", moduleType)
-                .replaceAll("\\{slotIndex\\}", slotIndex)
-                .replaceAll("\\{serialNumber\\}", tokenInfo.getSerialNumber().trim())
-                .replaceAll("\\{label\\}", tokenInfo.getLabel().trim());
+        return tokenIdFormat.replace("{moduleType}", moduleType)
+                .replace("{slotIndex}", slotIndex)
+                .replace("{serialNumber}", tokenInfo.getSerialNumber().trim())
+                .replace("{label}", tokenInfo.getLabel().trim());
     }
 
     /**
@@ -328,7 +336,7 @@ public final class SignerUtil {
     public static OneForOneStrategy createPKCS11ExceptionEscalatingStrategy() {
         return new OneForOneStrategy(-1, Duration.Inf(),
                 throwable -> {
-                    if (throwable instanceof PKCS11Exception) {
+                    if (throwable instanceof Error || throwable instanceof PKCS11Exception) {
                         return SupervisorStrategy.escalate();
                     } else {
                         return SupervisorStrategy.resume();

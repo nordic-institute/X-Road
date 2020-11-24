@@ -38,29 +38,29 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
+
 /**
  * Helper class for transforming Spring validation errors into error dtos.
  * Used from {@link ExceptionTranslator} and {@link SpringInternalExceptionHandler}
  */
 @Component
 public class ValidationErrorHelper {
-    public static final String VALIDATION_FAILURE_ERROR = "validation_failure";
-
     /**
      * Create DeviationAware error code & metadata from given org.springframework.validation.Errors.
-     * Error code = {@link ValidationErrorHelper#VALIDATION_FAILURE_ERROR}, metadata is the
+     * Error code = {@link DeviationCodes#ERROR_VALIDATION_FAILURE}, metadata is the
      * String representation of {@link Errors}
      */
     public CodeWithDetails createError(Errors validationErrors) {
         CodeWithDetails result = new CodeWithDetails();
-        result.setCode(VALIDATION_FAILURE_ERROR);
+        result.setCode(ERROR_VALIDATION_FAILURE);
         result.setValidationErrors(getValidationErrorsAsMap(validationErrors));
         return result;
     }
 
     /**
      * Create DeviationAware error code & metadata from given MethodArgumentNotValidException.
-     * Error code = {@link ValidationErrorHelper#VALIDATION_FAILURE_ERROR}, metadata is the
+     * Error code = {@link DeviationCodes#ERROR_VALIDATION_FAILURE}, metadata is the
      * String representation of {@link Errors}
      */
     public CodeWithDetails createError(MethodArgumentNotValidException e) {

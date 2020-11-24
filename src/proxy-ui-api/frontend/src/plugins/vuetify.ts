@@ -39,6 +39,7 @@ export default new Vuetify({
         primary: '#663cdc',
         secondary: '#00C9E7',
         accent: '#8c9eff',
+        grey: '#9c9c9c',
       },
     },
   },

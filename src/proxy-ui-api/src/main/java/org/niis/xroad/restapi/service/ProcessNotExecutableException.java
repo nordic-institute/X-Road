@@ -27,10 +27,10 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class ProcessNotExecutableException extends ServiceException {
-    public static final String PROCESS_NOT_EXECUTABLE = "process_not_executable";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PROCESS_NOT_EXECUTABLE;
 
+public class ProcessNotExecutableException extends ServiceException {
     public ProcessNotExecutableException(Throwable t) {
-        super(t, new ErrorDeviation(PROCESS_NOT_EXECUTABLE));
+        super(t, new ErrorDeviation(ERROR_PROCESS_NOT_EXECUTABLE));
     }
 }

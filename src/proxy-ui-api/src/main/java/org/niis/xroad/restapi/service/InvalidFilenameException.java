@@ -27,9 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class InvalidFilenameException extends ServiceException {
-    public static final String ERROR_INVALID_FILENAME = "invalid_filename";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
 
+public class InvalidFilenameException extends ServiceException {
     public InvalidFilenameException(String msg) {
         super(msg, new ErrorDeviation(ERROR_INVALID_FILENAME));
     }

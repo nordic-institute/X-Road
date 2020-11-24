@@ -45,6 +45,7 @@
               :disabled="item.read_only"
               :error-messages="errors"
               data-test="dynamic-csr-input"
+              autofocus
             ></v-text-field>
           </ValidationProvider>
         </div>

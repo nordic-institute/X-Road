@@ -1,3 +1,0 @@
-#!/bin/bash
-
-test -d /var/run/xroad || mkdir -m0755 /var/run/xroad/ && chown xroad:xroad /var/run/xroad

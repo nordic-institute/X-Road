@@ -31,6 +31,7 @@
         :label="$t('services.service')"
         single-line
         hide-details
+        autofocus
         data-test="search-service"
         class="search-input"
       >

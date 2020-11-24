@@ -21,6 +21,18 @@
       dest: "{{ postgresql_data_dir }}/recovery.conf"
       owner: postgres
       group: postgres
+  when: ansible_distribution_release == "bionic"
+
+# recovery.conf is no longer supported in PostgreSQL12
+# see https://www.2ndquadrant.com/en/blog/replication-configuration-changes-in-postgresql-12/
+- name: install replication configuration
+  file:
+    path: "{{ postgresql_data_dir }}/standby.signal"
+    state: touch
+    mode: '0600'
+    owner: postgres
+    group: postgres
+  when: ansible_distribution_release == "focal"
 
 - name: configure slave database
   lineinfile:
@@ -41,6 +53,18 @@
       - {option: 'hot_standby_feedback', value: 'on'}
 # listen_addresses = 'localhost' for security, but changing it to '*' if the
 # slave is promoted to a master requires a restart
+
+# recovery.conf is no longer supported in PostgreSQL12
+# see https://www.2ndquadrant.com/en/blog/replication-configuration-changes-in-postgresql-12/
+- name: configure slave database
+  lineinfile:
+      dest: "{{ postgresql_config_dir }}/postgresql.conf"
+      regexp: "^\\s*#?{{ item.option }}\\s*="
+      line: "{{ item.option }} = {{ item.value }}"
+      state: "{{ item.state | default('present') }}"
+  with_items:
+      - {option: 'primary_conninfo', value: "'host={{ master_host }} port={{ serverconf_db_port }} user={{ nodename }} sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'"}
+  when: ansible_distribution_release == "focal"
 
 # this is needed if the slave is ever promoted to master
 - name: enable replication connections

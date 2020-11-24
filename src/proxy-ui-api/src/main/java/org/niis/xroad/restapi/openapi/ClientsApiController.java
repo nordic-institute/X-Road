@@ -130,8 +130,9 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_C
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
-import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * clients api
@@ -141,8 +142,6 @@ import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WS
 @Slf4j
 @PreAuthorize("denyAll")
 public class ClientsApiController implements ClientsApi {
-    public static final String ERROR_INVALID_CERT = "invalid_cert";
-
     private final ClientConverter clientConverter;
     private final ClientService clientService;
     private final LocalGroupConverter localGroupConverter;
@@ -420,7 +419,7 @@ public class ClientsApiController implements ClientsApi {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
             } catch (InterruptedException e) {
-                throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
+                throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
             }
         } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             try {
@@ -516,7 +515,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientService.ClientAlreadyExistsException
                 | ClientService.AdditionalMemberAlreadyExistsException e) {
             throw new ConflictException(e);
-        } catch (UnhandledWarningsException e) {
+        } catch (UnhandledWarningsException | ClientService.InvalidMemberClassException e) {
             throw new BadRequestException(e);
         }
         Client result = clientConverter.convert(added);
@@ -576,7 +575,8 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.registerClient(clientId);
-        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException e) {
+        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException
+                | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);

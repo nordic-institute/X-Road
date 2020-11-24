@@ -27,20 +27,16 @@ import { RootState } from './../../src/store/types';
 import mockJson from './mockClients.json';
 import compareJson from './mockClientsResult.json';
 import Vue from 'vue';
-import Vuex, { StoreOptions } from 'vuex';
+import Vuex, { Store, StoreOptions } from 'vuex';
 import { clientsModule } from '@/store/modules/clients';
 import { user as userModule } from '@/store/modules/user';
-import { TokenInitStatusEnum } from '@/global';
-import { InitializationStatus } from '@/openapi-types';
+import { InitializationStatus, TokenInitStatus } from '@/openapi-types';
 
 Vue.use(Vuex);
 
 describe('clients actions', () => {
   let store: any;
-  let setDataMock;
   beforeEach(() => {
-    setDataMock = jest.fn();
-
     const storeOptions: StoreOptions<RootState> = {
       modules: {
         clientsModule,
@@ -62,13 +58,10 @@ describe('clients actions', () => {
   });
 });
 
-
-
 describe('initialize store', () => {
-  let store: any;
+  let store: Store<any>;
 
   beforeEach(() => {
-
     const storeOptions: StoreOptions<RootState> = {
       modules: {
         userModule,
@@ -79,14 +72,13 @@ describe('initialize store', () => {
   });
 
   it('Needs initialization', () => {
-
     // Anchor is ok
     let mockInitStatus: InitializationStatus = {
       is_anchor_imported: true,
       is_server_code_initialized: false,
       is_server_owner_initialized: false,
-      software_token_init_status: TokenInitStatusEnum.UNKNOWN
-    }
+      software_token_init_status: TokenInitStatus.UNKNOWN,
+    };
     store.commit('storeInitStatus', mockInitStatus);
     expect(store.getters.needsInitialization).toBe(true);
 
@@ -95,8 +87,8 @@ describe('initialize store', () => {
       is_anchor_imported: false,
       is_server_code_initialized: false,
       is_server_owner_initialized: false,
-      software_token_init_status: TokenInitStatusEnum.NOT_INITIALIZED
-    }
+      software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
+    };
 
     store.commit('storeInitStatus', mockInitStatus);
     expect(store.getters.needsInitialization).toBe(true);
@@ -106,11 +98,10 @@ describe('initialize store', () => {
       is_anchor_imported: true,
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
-      software_token_init_status: TokenInitStatusEnum.INITIALIZED
-    }
+      software_token_init_status: TokenInitStatus.INITIALIZED,
+    };
 
     store.commit('storeInitStatus', mockInitStatus);
     expect(store.getters.needsInitialization).toBe(false);
-
   });
 });

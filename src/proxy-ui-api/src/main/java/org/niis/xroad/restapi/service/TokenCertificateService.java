@@ -49,6 +49,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.SecurityHelper;
@@ -82,6 +83,10 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CSR_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_USAGE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_NAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SIGN_CERT_NOT_SUPPORTED;
 import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
 
 /**
@@ -405,9 +410,9 @@ public class TokenCertificateService {
 
     /**
      * Convert cert bytes to X509Certificate, throw InvalidCertificateException if not possible
-     * @throws InvalidCertificateException
+     * @throws InvalidCertificateException if bytes did not represent a valid X509Certificate
      */
-    private X509Certificate convertToX509Certificate(byte[] certificateBytes) throws InvalidCertificateException {
+    public X509Certificate convertToX509Certificate(byte[] certificateBytes) throws InvalidCertificateException {
         X509Certificate x509Certificate;
         try {
             x509Certificate = CryptoUtils.readCertificate(certificateBytes);
@@ -547,28 +552,47 @@ public class TokenCertificateService {
     private void verifyActivateDisableAuthority(byte[] certificateBytes) throws InvalidCertificateException,
             AccessDeniedException {
 
-        if (isAuthCertBytes(certificateBytes)) {
+        X509Certificate x509Certificate = null;
+        try {
+            x509Certificate = convertToX509Certificate(certificateBytes);
+        } catch (InvalidCertificateException e) {
+            throw new InternalServerErrorException(e);
+        }
+
+        if (isValidAuthCert(x509Certificate)) {
             securityHelper.verifyAuthority("ACTIVATE_DISABLE_AUTH_CERT");
-        } else {
+        } else if (isValidSignCert(x509Certificate)) {
             securityHelper.verifyAuthority("ACTIVATE_DISABLE_SIGN_CERT");
+        } else {
+            throw new InvalidCertificateException("Certificate is neither auth nor sign cert");
         }
     }
 
     /**
-     * Check if given bytes represent an auth cert
-     * @param certificateBytes
-     * @throws InvalidCertificateException if bytes were not valid cert
-     * @throws AccessDeniedException if no authority to activate or disable cert
+     * Check if given certificate is a valid auth cert. Any exceptions (such as missing key usage extension)
+     * while processing result in a logged warning and return false
+     * @param x509Certificate the certificate
      */
-    public boolean isAuthCertBytes(byte[] certificateBytes) throws InvalidCertificateException,
-            AccessDeniedException {
-
-        X509Certificate x509Certificate = convertToX509Certificate(certificateBytes);
-
+    public boolean isValidAuthCert(X509Certificate x509Certificate) {
         try {
             return CertUtils.isAuthCert(x509Certificate);
         } catch (Exception e) {
-            throw new InvalidCertificateException("error in checking if certificate is auth cert", e);
+            log.warn("Invalid cert when checking if it is an auth cert", e);
+            return false;
+        }
+    }
+
+    /**
+     * Check if given certificate is a valid sign cert. Any exceptions (such as missing key usage extension)
+     * while processing result in a logged warning and return false
+     * @param x509Certificate the certificate
+     */
+    public boolean isValidSignCert(X509Certificate x509Certificate) {
+        try {
+            return CertUtils.isSigningCert(x509Certificate);
+        } catch (Exception e) {
+            log.warn("Invalid cert when checking if it is a sign cert", e);
+            return false;
         }
     }
 
@@ -945,7 +969,7 @@ public class TokenCertificateService {
         } catch (CodedException e) {
             if (isCausedByCertNotFound(e)) {
                 throw new CertificateNotFoundException(e, new ErrorDeviation(
-                        CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID,
+                        ERROR_CERTIFICATE_NOT_FOUND_WITH_ID,
                         certificateInfo.getId()));
             } else {
                 throw e;
@@ -1041,8 +1065,6 @@ public class TokenCertificateService {
      * Cert usage info is wrong (e.g. cert is both auth and sign or neither)
      */
     public static class WrongCertificateUsageException extends ServiceException {
-        public static final String ERROR_CERTIFICATE_WRONG_USAGE = "cert_wrong_usage";
-
         public WrongCertificateUsageException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_CERTIFICATE_WRONG_USAGE));
         }
@@ -1052,10 +1074,8 @@ public class TokenCertificateService {
      * Probably a rare case of when importing an auth cert from an HSM
      */
     public static class AuthCertificateNotSupportedException extends ServiceException {
-        public static final String AUTH_CERT_NOT_SUPPORTED = "auth_cert_not_supported";
-
         public AuthCertificateNotSupportedException(String msg) {
-            super(msg, new ErrorDeviation(AUTH_CERT_NOT_SUPPORTED));
+            super(msg, new ErrorDeviation(ERROR_AUTH_CERT_NOT_SUPPORTED));
         }
     }
 
@@ -1063,10 +1083,8 @@ public class TokenCertificateService {
      * When trying to register a sign cert
      */
     public static class SignCertificateNotSupportedException extends ServiceException {
-        public static final String SIGN_CERT_NOT_SUPPORTED = "sign_cert_not_supported";
-
         public SignCertificateNotSupportedException(String msg) {
-            super(msg, new ErrorDeviation(SIGN_CERT_NOT_SUPPORTED));
+            super(msg, new ErrorDeviation(ERROR_SIGN_CERT_NOT_SUPPORTED));
         }
     }
 }

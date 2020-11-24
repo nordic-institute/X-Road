@@ -63,7 +63,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.niis.xroad.restapi.service.KeyService.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
  * test key service.

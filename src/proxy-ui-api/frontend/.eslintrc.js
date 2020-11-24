@@ -10,7 +10,7 @@ module.exports = {
     '@vue/prettier',
     '@vue/prettier/@typescript-eslint',
   ],
-  ignorePatterns: ['tests/', 'node_modules/'],
+  ignorePatterns: ['node_modules/'],
   parserOptions: {
     ecmaVersion: 2020,
   },

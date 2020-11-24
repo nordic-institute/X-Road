@@ -43,6 +43,7 @@
       </v-col>
       <v-col cols="8">
         <v-text-field
+          autofocus
           v-model="distinguishedName"
           data-text="generate-internal-csr-distinguished-name-field"
           :placeholder="

@@ -46,7 +46,7 @@ cp -p %{srcdir}/../../../proxy-ui-api/build/libs/proxy-ui-api-1.0.jar %{buildroo
 cp -p %{srcdir}/default-configuration/proxy-ui-api.ini %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/default-configuration/proxy-ui-api-logback.xml %{buildroot}/etc/xroad/conf.d
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
-cp -p %{srcdir}/../../../securityserver-LICENSE.info %{buildroot}/usr/share/doc/%{name}/securityserver-LICENSE.info
+cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 cp -p %{srcdir}/../../../../CHANGELOG.md %{buildroot}/usr/share/doc/%{name}/CHANGELOG.md
 
 ln -s /usr/share/xroad/jlib/proxy-ui-api-1.0.jar %{buildroot}/usr/share/xroad/jlib/proxy-ui-api.jar
@@ -69,7 +69,7 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /usr/share/xroad/jlib/proxy-ui-api*.jar
 %doc /usr/share/doc/%{name}/LICENSE.txt
-%doc /usr/share/doc/%{name}/securityserver-LICENSE.info
+%doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
 %pre
