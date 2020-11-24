@@ -256,7 +256,7 @@ In order to properly set up the data replication, the slave nodes must be able t
    * Additionally, `rssh` shell can be used to to restrict slave access further, but note that it is not available on RHEL.
 
 7. Configure the node type as `master` in `/etc/xroad/conf.d/node.ini`:
-      ```
+      ```ini
       [node]
       type=master
       ```

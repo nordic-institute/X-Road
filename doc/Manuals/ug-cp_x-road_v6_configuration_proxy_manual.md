@@ -332,7 +332,7 @@ The configuration of proxy instances is described in [3.4](#34-proxy-instance-co
 
 1)  Create configuration files for the new proxy instance by invoking the 'confproxy-create-instance -p &lt;PROXY_NAME&gt;' command. Afterwards, use the 'confproxy-view-conf -p &lt;PROXY_NAME&gt;' command to verify that the operation has been successfully completed (example output follows):
 
-```cmd
+```bash
 confproxy-create-instance -p PROXY
 
 Populating 'conf.ini' with default values.
@@ -356,13 +356,13 @@ active-signing-key-id:
 
 2) Generate a signing key and a self signed certificate for the newly created proxy instance using the following command:
 
-```cmd
+```bash
 confproxy-add-signing-key -p <PROXY_NAME> -t <SECURITY_TOKEN_ID>
 ```
 
 If no active signing key is configured for the proxy instance, then the new key should be set as the currently active key (example output follows):
 
-```cmd
+```bash
 confproxy-add-signing-key -p PROXY -t 0
 
 Generated key with ID QWERTY123
@@ -377,7 +377,7 @@ QWERTY123 (Certificate: /etc/xroad/confproxy/PROXY/cert_QWERTY123.pem)
 ```
 Alternatively, one may add an existing key using the '–k &lt;KEY_ID&gt;' argument:
 
-```cmd
+```bash
 confproxy-add-signing-key -p PROXY -k QWERTY123
 
 No active key configured, setting new key as active in conf.ini
@@ -388,7 +388,7 @@ Saved self-signed certificate to cert_QWERTY123.pem
 
 4) The configuration proxy should be operational at this point. The periodic cron job (once a minute) should download the global configuration defined in '/etc/xroad/confproxy/&lt;PROXY_NAME&gt;/anchor.xml' and generate a directory for distribution. The output of 'confproxy-view-conf -p &lt;PROXY_NAME&gt;' should be similar to the following:
 
-```cmd
+```bash
 confproxy-view-conf -p PROXY
 
 Configuration for proxy 'PROXY'
@@ -409,13 +409,13 @@ QWERTY123 (Certificate: /etc/xroad/confproxy/PROXY/cert_QWERTY123.pem)
 
 5) To let clients download the generated global configuration an anchor file needs to be generated using the following command:
 
-```cmd
+```bash
 confproxy-generate-anchor -p <PROXY_NAME> -f <ANCHOR_FILENAME>
 ```
 
 If generation was successful the output should be simply:
 
-```cmd
+```bash
 confproxy-generate-anchor -p PROXY -f /home/xroad/anchor.xml
 
 Generated anchor xml to '/home/xroad/anchor.xml'
@@ -423,7 +423,7 @@ Generated anchor xml to '/home/xroad/anchor.xml'
 
 6) To make sure that the global configuration is being distributed correctly use the '/usr/share/xroad/scripts/download_instance_configuration.sh' script, giving it &lt;ANCHOR_FILENAME&gt; and the path, which should hold the downloaded files, as arguments (example output follows):
 
-```cmd
+```bash
 mkdir test_download
 /usr/share/xroad/scripts/download_instance_configuration.sh anchor.xml test_download/
 

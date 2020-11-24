@@ -176,7 +176,7 @@ The database users required by central server are listed in [Annex B Database Us
 
 **This is an optional step.** Central server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
-  ```
+  ```bash
   sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
   sudo mkdir /etc/xroad
   sudo chown xroad:xroad /etc/xroad
@@ -188,7 +188,7 @@ The database users required by central server are listed in [Annex B Database Us
 
 Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
 
-  ```
+  ```.properties
   adapter=postgresql
   encoding=utf8
   username=<database user>
@@ -208,7 +208,7 @@ When using a remote database server with the central server, you should verify t
 
 To use a remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. If storing the database administrator password on the central server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
 
-  ```
+  ```bash
   sudo touch /etc/xroad.properties
   sudo chown root:root /etc/xroad.properties
   sudo chmod 600 /etc/xroad.properties
@@ -216,7 +216,7 @@ To use a remote database server instead of the default locally installed one, yo
 
 Edit `/etc/xroad.properties` contents. See the example below. Replace the parameter values with your own.
 
-  ```
+  ```.properties
   postgres.connection.user = <database superuser name (postgres by default)>
   postgres.connection.password = <database superuser password>
   ```
@@ -227,13 +227,13 @@ Edit `/etc/xroad.properties` contents. See the example below. Replace the parame
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-  ```
+  ```bash
   curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
   ```
 
 Add X-Road package repository (**reference data: 1.1**)
 
-  ```
+  ```bash
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
@@ -241,7 +241,7 @@ Add X-Road package repository (**reference data: 1.1**)
 
 Issue the following commands to install the central server packages:
 
-  ```
+  ```bash
   sudo apt-get update
   sudo apt-get install xroad-centralserver
   ```
@@ -331,7 +331,7 @@ The installation is successful if the system services are started and the user i
 -   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the central server since it operates in one-shot mode.
 
     - Ubuntu 18.04
-        ```
+        ```bash
         sudo systemctl list-units "xroad*"
 
         UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
@@ -467,7 +467,7 @@ The interrupted installation can be finished using
 
 `/etc/xroad/db.properties`
 
-```
+```.properties
 adapter=postgresql
 encoding=utf8
 username=centerui

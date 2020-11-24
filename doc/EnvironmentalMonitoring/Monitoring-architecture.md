@@ -138,7 +138,7 @@ JMX is enabled by adding the required configuration in `/etc/xroad/services/loca
 
 The example configuration below enables JMX, binds it to port `9999` on any available interface with SSL and password authentication enabled:
 
-```
+```.properties
 MONITOR_PARAMS="$MONITOR_PARAMS \
 -Djava.rmi.server.hostname=0.0.0.0 \
 -Dcom.sun.management.jmxremote.port=9999 \

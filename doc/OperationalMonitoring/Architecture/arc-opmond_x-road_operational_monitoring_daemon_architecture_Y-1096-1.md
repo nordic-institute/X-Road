@@ -139,7 +139,7 @@ With the default configuration, JMX is disabled. JMX is enabled by adding the re
                                                  
 The example configuration below enables JMX, binds it to port `9011` on any available interface with SSL and password authentication enabled:
  
- ```
+ ```.properties
 OPMON_PARAMS="$OPMON_PARAMS \
  -Djava.rmi.server.hostname=0.0.0.0 \
  -Dcom.sun.management.jmxremote.port=9011 \

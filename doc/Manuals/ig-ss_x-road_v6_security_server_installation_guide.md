@@ -258,7 +258,7 @@ The database users required by security server are listed in [Annex B Database U
 
 **This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
 
-  ```
+  ```bash
   sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
   sudo mkdir /etc/xroad
   sudo chown xroad:xroad /etc/xroad
@@ -270,7 +270,7 @@ The database users required by security server are listed in [Annex B Database U
 
 Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply. The database names can be changed by modifying the `<database>.hibernate.connection.url` property e.g. `serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/custom`.
 
-  ```
+  ```.properties
   serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
   serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
   serverconf.hibernate.connection.username = <serverconf username>
@@ -290,7 +290,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 **This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. If storing the database administrator password on the security server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
 
-  ```
+  ```bash
   sudo touch /etc/xroad.properties
   sudo chown root:root /etc/xroad.properties
   sudo chmod 600 /etc/xroad.properties
@@ -298,7 +298,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-  ```
+  ```.properties
   postgres.connection.password = <database superuser password>
   postgres.connection.user = <database superuser name, postgres by default>
   ```
@@ -308,7 +308,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 **This is an optional step.** If you want to customize the names and/or passwords of the database admin users created by the installer, follow these steps. By default the installer generates these users with format `<database-name>_admin` and autogenerates the password. Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-  ```
+  ```.properties
   serverconf.database.admin_user = <serverconf-admin-username>
   serverconf.database.admin_password = <serverconf-admin-password>
   op-monitor.database.admin_user = <op-monitor-admin-username>
@@ -322,13 +322,13 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-  ```
+  ```bash
   curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
   ```
 
 Add X-Road package repository (**reference data: 1.1**)
 
-  ```
+  ```bash
   sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
   ```
 
@@ -337,7 +337,7 @@ Add X-Road package repository (**reference data: 1.1**)
 
 Issue the following commands to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
 
-  ```
+  ```bash
   sudo apt-get update
   sudo apt-get install xroad-securityserver
   ```
@@ -378,7 +378,7 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
-    ```
+    ```bash
     sudo systemctl list-units "xroad*"
 
     UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
@@ -601,7 +601,7 @@ To be sure that packages are installed correctly please use `sudo apt upgrade` o
 
 `/etc/xroad/db.properties`
 
-```
+```.properties
 serverconf.hibernate.jdbc.use_streams_for_binary = true
 serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
 serverconf.hibernate.connection.driver_class = org.postgresql.Driver
