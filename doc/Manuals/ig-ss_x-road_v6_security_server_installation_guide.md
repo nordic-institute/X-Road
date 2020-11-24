@@ -270,7 +270,7 @@ The database users required by security server are listed in [Annex B Database U
 
 Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply. The database names can be changed by modifying the `<database>.hibernate.connection.url` property e.g. `serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/custom`.
 
-  ```.properties
+  ```properties
   serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
   serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
   serverconf.hibernate.connection.username = <serverconf username>
@@ -298,7 +298,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-  ```.properties
+  ```properties
   postgres.connection.password = <database superuser password>
   postgres.connection.user = <database superuser name, postgres by default>
   ```
@@ -308,7 +308,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 **This is an optional step.** If you want to customize the names and/or passwords of the database admin users created by the installer, follow these steps. By default the installer generates these users with format `<database-name>_admin` and autogenerates the password. Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-  ```.properties
+  ```properties
   serverconf.database.admin_user = <serverconf-admin-username>
   serverconf.database.admin_password = <serverconf-admin-password>
   op-monitor.database.admin_user = <op-monitor-admin-username>
@@ -601,7 +601,7 @@ To be sure that packages are installed correctly please use `sudo apt upgrade` o
 
 `/etc/xroad/db.properties`
 
-```.properties
+```properties
 serverconf.hibernate.jdbc.use_streams_for_binary = true
 serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
 serverconf.hibernate.connection.driver_class = org.postgresql.Driver

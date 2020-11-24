@@ -188,7 +188,7 @@ The database users required by central server are listed in [Annex B Database Us
 
 Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
 
-  ```.properties
+  ```properties
   adapter=postgresql
   encoding=utf8
   username=<database user>
@@ -216,7 +216,7 @@ To use a remote database server instead of the default locally installed one, yo
 
 Edit `/etc/xroad.properties` contents. See the example below. Replace the parameter values with your own.
 
-  ```.properties
+  ```properties
   postgres.connection.user = <database superuser name (postgres by default)>
   postgres.connection.password = <database superuser password>
   ```
@@ -467,7 +467,7 @@ The interrupted installation can be finished using
 
 `/etc/xroad/db.properties`
 
-```.properties
+```properties
 adapter=postgresql
 encoding=utf8
 username=centerui
