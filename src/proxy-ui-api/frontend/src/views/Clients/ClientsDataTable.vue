@@ -32,18 +32,21 @@
     elevation-0
     class="data-table-wrapper xrd-view-common"
   >
-    <div class="table-toolbar">
-      <v-text-field
-        v-model="search"
-        :label="$t('action.search')"
-        data-test="search-clients-input"
-        single-line
-        hide-details
-        class="search-input"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+    <div class="table-toolbar pb-3 pt-5">
+      <div class="title-search">
+        <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
+        <v-text-field
+          v-model="search"
+          :label="$t('action.search')"
+          data-test="search-clients-input"
+          single-line
+          hide-details
+          class="search-input"
+          autofocus
+        >
+          <v-icon slot="append">mdi-magnify</v-icon>
+        </v-text-field>
+      </div>
       <div>
         <LargeButton
           v-if="showAddMember"
@@ -83,32 +86,32 @@
       <template v-slot:[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
-          <v-icon color="grey darken-2" class="icon-member icon-size"
-            >mdi-folder-open</v-icon
+          <v-icon color="primary" class="icon-member icon-size"
+            >mdi-folder</v-icon
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name identifier-wrap clickable"
+            class="member-name identifier-wrap clickable"
             @click="openClient(item)"
-            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+            >{{ item.visibleName }}
+            <span class="owner-box">{{ $t('client.owner') }}</span></span
           >
-
-          <span v-else class="font-weight-bold name identifier-wrap"
-            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+          <span v-else class="member-name identifier-wrap owner-box"
+            >{{ item.visibleName }} {{ $t('client.owner') }}</span
           >
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
-          <v-icon color="grey darken-2" class="icon-member icon-size"
-            >mdi-folder-open-outline</v-icon
+          <v-icon color="primary" class="icon-member icon-size"
+            >mdi-folder-outline</v-icon
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name identifier-wrap clickable"
+            class="member-name identifier-wrap clickable"
             @click="openClient(item)"
             >{{ item.visibleName }}</span
           >
-          <span v-else class="font-weight-bold name identifier-wrap">{{
+          <span v-else class="name identifier-wrap">{{
             item.visibleName
           }}</span>
         </template>
@@ -119,27 +122,22 @@
             item.type === clientTypes.MEMBER
           "
         >
-          <v-icon color="grey darken-2" class="icon-member icon-size"
-            >mdi-folder-open-outline</v-icon
+          <v-icon color="primary" class="icon-member icon-size"
+            >mdi-folder-outline</v-icon
           >
-          <span class="font-weight-bold identifier-wrap name-member">{{
+          <span class="identifier-wrap name-member">{{
             item.visibleName
           }}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
-          <v-icon color="grey darken-2" class="icon-subsystem icon-size"
-            >mdi-card-bulleted-outline</v-icon
-          >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name identifier-wrap clickable"
+            class="name identifier-wrap clickable"
             @click="openSubsystem(item)"
             >{{ item.visibleName }}</span
           >
-          <span v-else class="font-weight-bold name">{{
-            item.visibleName
-          }}</span>
+          <span v-else class="name">{{ item.visibleName }}</span>
         </template>
       </template>
 
@@ -161,7 +159,10 @@
               item.member_name &&
               showAddClient
             "
+            text
+            :outlined="false"
             @click="addSubsystem(item)"
+            ><v-icon class="mr-1">mdi-plus-circle</v-icon
             >{{ $t('action.addSubsystem') }}</SmallButton
           >
 
@@ -172,6 +173,8 @@
               item.status === 'SAVED' &&
               showRegister
             "
+            text
+            :outlined="false"
             @click="registerClient(item)"
             >{{ $t('action.register') }}</SmallButton
           >
@@ -486,6 +489,17 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
+.title-search {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-end;
+
+  .xrd-view-title {
+    margin-right: 20px;
+  }
+}
+
 .icon-member {
   padding-left: 0;
 }
@@ -504,7 +518,6 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: flex-end;
   width: 100%;
-  padding-left: 24px;
   margin-bottom: 24px;
 }
 
@@ -522,13 +535,37 @@ export default Vue.extend({
 }
 
 .name {
-  margin-left: 14px;
+  margin-left: 34px;
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
 
   &.clickable {
-    text-decoration: underline;
+    cursor: pointer;
+  }
+}
+
+.member-name {
+  @extend .name;
+  margin-left: 14px;
+}
+
+.owner-box {
+  border: solid 1px;
+  border-radius: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.4px;
+  color: #575169;
+  margin-left: 16px;
+
+  &.clickable {
+    text-decoration: none;
     cursor: pointer;
   }
 }
