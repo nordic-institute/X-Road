@@ -727,7 +727,12 @@ module.exports = {
         '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Diagnostics")]]//div[contains(@class, "base-full-width")]',
       locateStrategy: 'xpath',
       commands: [],
-      elements: {},
+      elements: {
+        globalConfiguration: {
+          selector: '//span[text()="Global configuration"]',
+          locateStrategy: 'xpath',
+        },
+      },
     },
     settingsTab: {
       selector:
@@ -741,6 +746,14 @@ module.exports = {
         },
         backupAndRestoreTab: {
           selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
+          locateStrategy: 'xpath',
+        },
+        anchorDownloadButton: {
+          selector: '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
+          locateStrategy: 'xpath',
+        },
+        backupButton: {
+          selector: '//*[contains(@data-test, "backup-create-configuration")]',
           locateStrategy: 'xpath',
         },
       },

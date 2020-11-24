@@ -35,6 +35,9 @@ module.exports = {
     const tokenName = mainPage.section.keysTab.elements.tokenName;
     const createAPIKeyButton = mainPage.section.keysTab.elements.createAPIKeyButton;
     const generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    const globalConfiguration = mainPage.section.diagnosticsTab.elements.globalConfiguration;
+    const anchorDownloadButton = mainPage.section.settingsTab.elements.anchorDownloadButton;
+    const backupButton = mainPage.section.settingsTab.elements.backupButton;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -55,7 +58,7 @@ module.exports = {
         '")]',
     );
 
-    // xroad-system-administrator should be in keys and certs view
+    // keys and certs
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(tokenName);
@@ -64,15 +67,18 @@ module.exports = {
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementVisible(generateKeyButton);
 
-    // xroad-system-administrator should be able to open diagnostics tab
+    // diagnostics
     mainPage.openDiagnosticsTab();
     browser.waitForElementVisible(diagnosticsTab);
+    browser.waitForElementVisible(globalConfiguration);
 
     // xroad-system-administrator should be able to open settings tab
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
+    browser.waitForElementVisible(anchorDownloadButton);
     settingsTab.openBackupAndRestore();
+    browser.waitForElementVisible(backupButton);
 
     browser.end();
   },
