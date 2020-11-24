@@ -7,7 +7,7 @@
 
 - set_fact:
     postgresql_version: "{{ postgresql_version_output.stdout | regex_replace('^(\\d+).*$','\\1') }}"
-  when: ansible_distribution_release == "bionic"
+  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
 
 - name: create the database
   become: yes
@@ -22,4 +22,4 @@
 
 - set_fact:
     postgresql_serverconf_service: "postgresql@{{ postgresql_version }}-serverconf"
-  when: ansible_distribution_release == "bionic"
+  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"

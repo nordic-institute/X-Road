@@ -76,6 +76,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_SSL_AUTH_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_READONLY;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -91,6 +92,9 @@ import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFI
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificate;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificateBytes;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockCertificateWithoutExtensions;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockCertificateWithoutExtensionsBytes;
+import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockSignCertificate;
 
 /**
  * Test TokenCertificateService
@@ -610,6 +614,23 @@ public class TokenCertificateServiceTest {
 
     @Test
     @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
+    public void deActivateUnknownCertificate() throws Exception {
+        // we want to use the real rules for this test
+        Mockito.reset(possibleActionsRuleEngine);
+        doReturn(new CertificateInfo(null, true, true, "status",
+                    "certID", getMockCertificateWithoutExtensionsBytes(), null))
+                .when(signerProxyFacade).getCertForHash(any());
+
+        try {
+            // trying to deactivate this cert, which is neither sign nor auth, should result in exception
+            tokenCertificateService.activateCertificate(EXISTING_CERT_IN_AUTH_KEY_HASH);
+            fail("should throw RuntimeException");
+        } catch (RuntimeException expected) {
+        }
+    }
+
+    @Test
+    @WithMockUser(authorities = { "ACTIVATE_DISABLE_AUTH_CERT", "ACTIVATE_DISABLE_SIGN_CERT" })
     public void activateMissingCertificate() throws Exception {
         try {
             tokenCertificateService.activateCertificate(MISSING_CERTIFICATE_HASH);
@@ -703,6 +724,20 @@ public class TokenCertificateServiceTest {
     public void unregisterSignCertificate() throws Exception {
         doAnswer(answer -> signCert).when(signerProxyFacade).getCertForHash(any());
         tokenCertificateService.unregisterAuthCert(MOCK_CERTIFICATE_HASH);
+    }
+
+    @Test
+    public void isValidAuthCert() {
+        assertTrue(tokenCertificateService.isValidAuthCert(getMockAuthCertificate()));
+        assertFalse(tokenCertificateService.isValidAuthCert(getMockSignCertificate()));
+        assertFalse(tokenCertificateService.isValidAuthCert(getMockCertificateWithoutExtensions()));
+    }
+
+    @Test
+    public void isValidSignCert() {
+        assertFalse(tokenCertificateService.isValidSignCert(getMockAuthCertificate()));
+        assertTrue(tokenCertificateService.isValidSignCert(getMockSignCertificate()));
+        assertFalse(tokenCertificateService.isValidSignCert(getMockCertificateWithoutExtensions()));
     }
 
     @Test

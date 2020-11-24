@@ -39,6 +39,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -66,11 +67,11 @@ public class OptionalPartsConf {
         KEY_VALIDATION_PROGRAM = "validation-program";
 
         RESERVED_FILE_NAMES = Arrays.asList(
-            ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
-            ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
+                ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS,
+                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         RESERVED_CONTENT_IDENTIFIERS = Arrays.asList(
-            ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS,
-            ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+                ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS,
+                ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
     }
 
     private final Map<String, String> partFileNameToValidationProgram =
@@ -158,16 +159,16 @@ public class OptionalPartsConf {
 
     @SneakyThrows
     private void processFile(File confFile) {
-        try {
+        try (InputStream is = new FileInputStream(confFile)) {
             Properties props = new Properties();
-            props.load(new FileInputStream(confFile));
+            props.load(is);
 
             String partFileName = props.getProperty(KEY_PART_FILE_NAME);
             String contentId = props.getProperty(KEY_CONTENT_IDENTIFIER);
 
             if (!isFileContentWellFormed(partFileName, contentId)) {
                 log.warn("Optional part configuration file '{}' is malformed, "
-                        + "please inspect it for correctness.",
+                                + "please inspect it for correctness.",
                         confFile.getAbsolutePath());
                 return;
             }
@@ -178,14 +179,13 @@ public class OptionalPartsConf {
 
             validateContentIdentifier(contentId);
 
-
             partFileNameToValidationProgram.put(partFileName, validationProgram);
             partFileNameToContentIdentifier.put(partFileName, contentId);
 
             allParts.add(new OptionalConfPart(partFileName, contentId));
         } catch (IOException e) {
             log.error("Loading optional parts from file '"
-                    + confFile.getAbsolutePath() + "' failed: {}",
+                            + confFile.getAbsolutePath() + "' failed: {}",
                     e.getMessage(), e); // throwable as last object param should work as of SLF4J 1.6.0
 
             errors.add(e.getMessage());

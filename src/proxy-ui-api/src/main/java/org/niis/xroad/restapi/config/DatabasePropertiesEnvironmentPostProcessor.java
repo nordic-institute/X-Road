@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Profile;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,15 +42,16 @@ import java.util.Map;
 @Profile("nontest")
 public class DatabasePropertiesEnvironmentPostProcessor extends PropertyFileReadingEnvironmentPostProcessor {
 
-    private static final Map<String, String> DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES =
-            new HashMap<>();
+    private static final Map<String, String> DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES;
+
     static {
-        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES
-                .put("serverconf.hibernate.connection.username", "spring.datasource.username");
-        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES
-                .put("serverconf.hibernate.connection.password", "spring.datasource.password");
-        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES
-                .put("serverconf.hibernate.connection.url", "spring.datasource.url");
+        final HashMap<String, String> tmp = new HashMap<>();
+        tmp.put("serverconf.hibernate.connection.username", "spring.datasource.username");
+        tmp.put("serverconf.hibernate.connection.password", "spring.datasource.password");
+        tmp.put("serverconf.hibernate.connection.url", "spring.datasource.url");
+        tmp.put("serverconf.hibernate.hikari.dataSource.currentSchema",
+                "spring.datasource.hikari.data-source-properties.currentSchema");
+        DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES = Collections.unmodifiableMap(tmp);
     }
 
     @Override

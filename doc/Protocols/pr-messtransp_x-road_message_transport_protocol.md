@@ -5,8 +5,8 @@
 # X-Road: Message Transport Protocol
 **Technical Specification**
 
-Version: 2.4  
-04.03.2019  
+Version: 2.5  
+22.10.2020  
 Doc. ID: PR-MESSTRANSP
 
 ---
@@ -28,6 +28,7 @@ Date       | Version | Description                                              
 17.10.2015 | 2.2	 | Anchored the figures in place	                                                                | Margus Freudenthal
 01.03.2019 | 2.3	 | X-Request-Id header	                                                                            | Caro Hautamäki
 04.03.2019 | 2.4	 | Converted into Markdown	                                                                        | Caro Hautamäki
+22.10.2020 | 2.5	 | Added REST message protocol                                                                      | Janne Mattila
  
 ## Table of Contents
 
@@ -47,10 +48,12 @@ Date       | Version | Description                                              
   * [3.3 Message Handling in Service Provider's Security Server](#33-message-handling-in-service-providers-security-server)
 - [4 Annex: Example Messages](#4-annex-example-messages)
   * [4.1 Response to OCSP Downloading Request](#41-response-to-ocsp-downloading-request)
-  * [4.2 Simple Request](#42-simple-request)
-  * [4.3 Simple Response](#43-simple-response)
-  * [4.4 Request with Attachments](#44-request-with-attachments)
-  * [4.5 Response with Fault as Last Part](#45-response-with-fault-as-last-part)
+  * [4.2 Simple SOAP Request](#42-simple-soap-request)
+  * [4.3 Simple SOAP Response](#43-simple-soap-response)
+  * [4.4 SOAP Request with Attachments](#44-soap-request-with-attachments)
+  * [4.5 SOAP Response with Fault as Last Part](#45-soap-response-with-fault-as-last-part)
+  * [4.6 REST Request](#46-rest-request)
+  * [4.7 REST Response](#47-rest-response)
 
 <!-- tocstop -->
 
@@ -70,7 +73,14 @@ This document describes the communications protocol that is used by service clie
 Figure 1. Protocols used in the X-Road system
 
 As can be seen from [Figure 1](#Messtransport_protocol_overview), three protocols are involved when exchanging messages between a service client and a service provider. These include:
-- X-Road message protocol – used for communication between an information system and a security server within an organization (see [PR-MESS](#Ref_PR-MESS) for details). X-Road message protocol is a profile of the SOAP protocol (<http://www.w3.org/TR/2000/NOTE-SOAP-20000508/>).
+- X-Road message protocol – used for communication between an information system and a security server within an organization
+  - There are two types of X-Road message protocols, one for SOAP and one for REST
+  - X-Road message protocol (for SOAP) is a profile of the SOAP protocol (<http://www.w3.org/TR/2000/NOTE-SOAP-20000508/>).
+  See [PR-MESS](#Ref_PR-MESS) for details.
+  - X-Road message protocol for REST is a protocol for consuming and producing REST services.
+  See [PR-REST](#Ref_PR-REST) for details.
+  - Same message protocol needs to be used in both ends. Using _message protocol for REST_ between service client's information system and
+  security server, and _message protocol for SOAP_ between service provider's security server and information system is not supported.
 
 - X-Road message transport protocol – a synchronous secure communication protocol that provides confidentiality and integrity when exchanging messages between two security servers over the public Internet. This protocol is described in the current document.
 
@@ -104,6 +114,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 3. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-MESS\] Cybernetica AS. X-Road: Profile of Messages. Document ID: [PR-MESS](../Protocols/pr-mess_x-road_message_protocol.md).
 
 4. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+5. <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road: Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 
 ## 2 Transport Layer
 
@@ -161,41 +173,69 @@ The X-Road message transport protocol is designed for streaming the message cont
 ### 3.1 X-Road Transport Message
 
 <a id="Messtransport_message" class="anchor"></a>
-![](img/pr-messtransport-message.png)
+![](img/pr-messtransport-message.svg)
 
 Figure 4. X-Road transport messages
 
-The X-Road transport messages are encoded as MIME multipart messages with content-type `multipart/related`. The content-type of the client request message is sent from the service client's security server to the service provider's security server and vice versa using the `x-original-content-type` HTTP header. The value of the original content type is used to forward the request or response message to the service provider's or service client's information system. All other HTTP headers sent by the service client's security server or service provider's security server are not preserved in the security server. MIME headers in the multipart message are preserved.
+The X-Road transport messages are encoded as MIME multipart messages with content-type `multipart/mixed`.
 
-The X-Road transport message encapsulates either the SOAP message package that arrives to the security server or a SOAP fault message (uses content-type `text/xml` instead of `multipart/related`). The latter is only sent from the service provider's security server to the service client's security server if an error occurred before processing the request message in the service provider's security server. The normal X-Road request message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message) The parts are mandatory unless stated otherwise):
+For SOAP messages, the content-type of the client request message is sent from the service client's security server
+to the service provider's security server and vice versa using the `x-original-content-type` HTTP header.
+The value of the original content type is used to forward the request or response message to the service provider's
+or service client's information system. All other HTTP headers sent by the service client's security server or service
+provider's security server are not preserved in the security server. MIME headers in the multipart message are preserved.
+
+For REST messages, the content-type of the client request message is sent from the service client's security server
+to the service provider's security server and vice versa using the `application/x-road-rest-request` and
+`application/x-road-rest-response` parts, which contain "REST header part" of the REST request or response.
+REST header part consists of HTTP request line (for requests), HTTP status line (for responses), and HTTP headers (for both).
+Besides `Content-Type` header, also other headers may be preserved by the security server, but the processing varies.
+Some new headers are added (replaced if one already exists) by the security server, for example `x-road-request-id`.
+Some headers will be removed, for example `User-Agent`.
+All other headers are passed through as-is, for example `X-Powered-By`.
+For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers".
+
+The X-Road transport message encapsulates either the SOAP/REST message package that arrives to the security server or a
+SOAP fault message (uses content-type `text/xml` instead of `multipart/mixed`). The latter is only sent from the
+service provider's security server to the service client's security server if an error occurred before processing the
+request message in the service provider's security server. The normal X-Road request message must consist of the
+following MIME message parts (see [Figure 4](#Messtransport_message)). The parts are mandatory unless stated otherwise:
 
 1. byte contents of OCSP responses (content-type `application/ocsp-response`) of the service client's security server authentication certificate chain that was used to authenticate the TLS connection;
 
-2. the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
+2. (optional, either this or REST message must exist) the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
 
 3. (optional) a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. This part is only present if the original SOAP message package contains attachments;
 
-4. (optional) if the signature is a batch signature, then:
+4. (optional, either this or SOAP message must exist) the REST message header (content-type `application/x-road-rest-request`)
+
+5. (optional) a REST request body (content-type `application/x-road-rest-body`) This part is only present if the REST request contains a body.
+
+6. (optional) if the signature is a batch signature, then:
 
     a) the hash chain result XML (content-type `application/hash-chain-result`) and
 
     b)	the hash chain XML (content-type `application/hash-chain`) of the signature.
 
-5. the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP message and any attachments of the encapsulated message;
+7. the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP/REST message and any attachments of the encapsulated message;
 
-The normal X-Road response message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message) The parts are mandatory unless stated otherwise):
+The normal X-Road response message must consist of the following MIME message parts (see [Figure 4](#Messtransport_message)). The parts are mandatory unless stated otherwise:
 
-1. the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
+1. (optional, either this or REST message must exist) the SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package);
 
 2. (optional) a nested MIME multipart (content-type `multipart/mixed) containing all attachments as parts. This part is only present if the original SOAP message package contains attachments;
 
-3. (optional) if the signature is a batch signature, then:
+3. (optional, either this or SOAP message must exist) the REST message header (content-type `application/x-road-rest-response`)
+
+4. (optional) a REST response body (content-type `application/x-road-rest-body`) This part is only present if the REST response contains a body.
+
+5. (optional) if the signature is a batch signature, then:
 
     a)	the hash chain result XML (content-type `application/hash-chain-result`) and
 
     b)	the hash chain XML (content-type `application/hash-chain`) of the signature.
 
-4. one of the following:
+6. one of the following:
 
     a)	the signature XML (content-type `signature/bdoc-1.0/ts`) associated with the SOAP message and any attachments of the encapsulated message; or
 
@@ -205,52 +245,82 @@ The normal X-Road response message must consist of the following MIME message pa
 
 The following describes the actions that the service client's security server must take in order to perform a secure message exchange between a service client and a service provider.
 
-1. Receive a SOAP message or a SOAP message package (if attachments are present) from the service client (message format described in [PR-MESS](#Ref_PR-MESS)).
+1. Receive a REST request, SOAP message or a SOAP message package (if attachments are present) from the service client (message format described in [PR-MESS](#Ref_PR-MESS)).
 
-2. Parse the SOAP message to determine the target service provider.
+2. Parse either the SOAP message or `X-Road-Client` header to determine the target service provider.
 
 3. Establish TLS connection with it's security server (see [Section 2.1](#21-tls-authentication)).
 
 4. Send an X-Road transport message to the service provider's security server (message format described in [Section 3.1](#31-x-road-transport-message)) in the following steps:
 
-    a)	Add the following HTTP headers to the HTTP headers of the HTTP request:
+    a)	For SOAP and REST messages, add the following HTTP headers to the HTTP headers of the HTTP request:
 
     * UUID (`x-road-request-id`). The id is shared between request/response pairs so one can easily find corresponding messages from logs if needed.
 
     * Hash algorithm identifier (`x-hash-algorithm`). The hash algorithm is used by the other party to calculate the hashes of the message parts to be used during message verification.
 
     * Original content type (`x-original-content-type`) of the request message.
+    
+    * Version (`x-proxy-version`) of the client X-Road proxy
+    
+    * (only for SOAP messages) original SOAPAction (`x-original-soapaction`)
 
-    b) Write an OCSP response part to the transport message (content-type `application/ocsp-response`) for each OCSP response in the authentication certificate chain used for establishing the TLS connection.
+    b)	For REST messages, add the following additional HTTP header:
 
-    c) Write the service client's request SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package) to the transport message. Calculate the hash of the request SOAP message.
+    * Message type discriminator (`x-road-message-type`) with value `REST`
 
-    d) If the original request was a SOAP message package, write a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. Copy the MIME headers of each attachment part and calculate the hash of the data. 
+    c) Write an OCSP response part to the transport message (content-type `application/ocsp-response`) for each OCSP response in the authentication certificate chain used for establishing the TLS connection.
 
-    e) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
+    d) For SOAP messages, write the service client's request SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package) to the transport message. Calculate the hash of the request SOAP message.
+
+    e) If the original request was a SOAP message package, write a nested MIME multipart (content-type `multipart/mixed`) containing all attachments as parts. Copy the MIME headers of each attachment part and calculate the hash of the data. 
+
+    f) For REST messages, write the REST request header part (content-type `application/x-road-rest-request`). This part contains HTTP request line and HTTP headers. Calculate the hash of this part.
+
+    * Some new headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
+
+    * Some headers must be removed, for example `User-Agent`
+
+    * All other headers must be copied from original request as-is, for example `X-Powered-By`
+
+    * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
+
+    g) For REST messages with a request body, write the part containing the REST request body (content-type `application/x-road-rest-body`). Calculate the hash of the body.
+
+    h) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
 
 5. Start reading a response from the target service provider's security server (message format described in [Section 3.1](#31-x-road-transport-message).
 
-6. If the content-type of the response is `multipart/related` then process the message parts as follows:
+6. If the content-type of the response is `multipart/mixed` then process the message parts as follows:
 
-    a) The first part must be the encapsulated SOAP response message with content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package. The message is not forwarded to the service client until it can be verified.
+    a) The first part must be the encapsulated SOAP response message or REST response message. The message is not forwarded to the service client until it can be verified.
 
-    b) If the content-type of the next part is `multipart/mixed` then this part is the nested attachments multipart. 
+    b) SOAP response is identified by content-type `text/xml` or `application/xop+xml` in case the response is a MTOM-encoded SOAP message package. 
 
-    c) If the content-type of the next part is `application/hash-chain-result` then this message contains a batch signature. The hash chain result is stored for message verification.
+    1. If the content-type of the next part is `multipart/mixed` then this part is the nested attachments multipart. 
 
-    d) If the content-type of the next part is `application/hash-chain` then this message contains a batch signature. The hash chain is stored for message verification. The hash chain result must be present if the hash chain is present.
+    c) REST response is identified by content-type `application/x-road-rest-response`
+    
+    1. REST response header part has content-type `application/x-road-rest-response`. This part contains the HTTP status line and HTTP headers.
 
-    e) If the content-type of the last part is `signature/bdoc-1.0/ts` then the part contains the signature of the message. If the content-type of the part is `text/xml` then the part contains a SOAP fault indicating that an error occurred during the processing of the message in the service provider's security server and it must be returned to the service client.
+    2. If the content-type of the next part is `application/x-road-rest-body` then this part is the body of the REST response. For responses without a body, this part does not exist.
+    
+    d) If the content-type of the next part is `application/hash-chain-result` then this message contains a batch signature. The hash chain result is stored for message verification.
+
+    e) If the content-type of the next part is `application/hash-chain` then this message contains a batch signature. The hash chain is stored for message verification. The hash chain result must be present if the hash chain is present.
+
+    f) If the content-type of the last part is `signature/bdoc-1.0/ts` then the part contains the signature of the message. If the content-type of the part is `text/xml` then the part contains a SOAP fault indicating that an error occurred during the processing of the message in the service provider's security server and it must be returned to the service client.
 
 If the content-type of the response is `text/xml` then an error occurred at the service provider's security server and the received SOAP Fault must be returned to the service client. In case of any other content-type, the response is malformed and a corresponding SOAP Fault must be returned to the service client.
 
 7. Verify the response message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\].
 
-8. Send the service provider's encapsulated response SOAP message (or a SOAP message package in case the response has attachments) to the service client.
+8. Send the service provider's REST response, encapsulated response SOAP message, or a SOAP message package in case the response has attachments to the service client.
+
+    a) For REST responses, response HTTP headers are copied from `application/x-road-rest-response`
 
 <a id="Messtransport_protocol_message_processing_client" class="anchor"></a>
-![](img/pr-messtransport-protocol-message-processing-client.png)
+![](img/pr-messtransport-protocol-message-processing-client.svg)
 
 Figure 5. Message processing on service client's side
 
@@ -262,13 +332,23 @@ The following describes the actions that the service provider's security server 
 
 2. Start reading the X-Road transport message from the service client's security server (message format described in [Section 3.1](#31-x-road-transport-message)).
 
-3. The content-type of the request message must be `multipart/related`. The security server must process the message parts as follows:
+3. The content-type of the request message must be `multipart/mixed`. The security server must process the message parts as follows:
 
     a) Read all the parts with content-type `application/ocsp-response`. These parts contain OCSP responses that must be used in when verifying the authentication certificate chain of the service client's security server.
 
-    b) The part that comes after OCSP responses must have the content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package, this part is the encapsulated SOAP request message. The message is not forwarded to the service provider until it can be verified.
+    b) The part that comes after OCSP responses must be either a SOAP or REST request
+    
+    c) SOAP request is identified by content-type `text/xml` or `application/xop+xml`
 
-    c) If the content-type of the next part is `multipart/mixed` then this part is the nested attachments multipart.
+    1. If content-type is `text/xml`, this part contains a regular SOAP request. If content-type is `application/xop+xml` this part contains the encapsulated SOAP request message for a MTOM-encoded SOAP message package. The message is not forwarded to the service provider until it can be verified.
+
+    2. If the content-type of the next part is `multipart/mixed` then this part is the nested attachments multipart.
+
+    d) REST request is identified by content-type `application/x-road-rest-request`
+
+    1. REST request header part has content-type `application/x-road-rest-response`. This part contains the HTTP request line and HTTP headers.
+
+    2. If the content-type of the next part is `application/x-road-rest-body` then this part is the body of the REST request. For requests without a body, this part does not exist.
 
     d) If the content-type of the next part is `application/hash-chain-result` then this message contains a batch signature. The hash chain result is stored for message verification.
 
@@ -278,7 +358,7 @@ The following describes the actions that the service provider's security server 
 
 4. Verify the request message using the stored message hash, attachment hashes, and signature in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\].
 
-5. Send the encapsulated SOAP message and any attachments to the target service provider.
+5. Either send the encapsulated SOAP message and any attachments to the target service provider, or execute a REST request against target service provider.
 
 6. Start reading a response from the target service provider (message format described in [PR-MESS](#Ref_PR-MESS)).
 
@@ -288,16 +368,28 @@ The following describes the actions that the service provider's security server 
 
     * Hash algorithm identifier (`x-hash-algorithm`). The hash algorithm is used by the other party to calculate the hashes of the message parts to be used during message verification.
 
-    * Original content type (`x-original-content-type`) of the request message.
+    * Only in the case of SOAP messages, original content type (`x-original-content-type`) of the request message.
 
-    b) Write the service provider's response SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package). Calculate the hash of the response SOAP message to be used when creating the signature.
+    b) For SOAP messages, write the service provider's response SOAP message (content-type `text/xml` or `application/xop+xml` in case the original message is a MTOM-encoded SOAP message package). Calculate the hash of the response SOAP message to be used when creating the signature.
 
     c) If the response from the service provider was a SOAP message package, write a nested MIME multipart (`multipart/mixed`) containing all attachments as parts. For each part, calculate the hash of the data to be used when creating the signature.
 
-    d) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
+    d) For REST messages, write the REST response header part (content-type `application/x-road-rest-response`). This part contains HTTP status line and HTTP headers. Calculate the hash of the response message to be used when creating the signature.
+
+    * Some new headers must be added (replaced if one already exists) by the security server, for example `x-road-request-id`
+
+    * Some headers must be removed, for example `User-Agent`
+
+    * All other headers must be copied from original request as-is, for example `X-Powered-By`
+
+    * For details, see \[[PR-REST](#Ref_PR-REST)\] and "Use of HTTP Headers"
+
+    e) If the response from the service provider contained a REST message body, write the part containing this (content-type `application/x-road-rest-body`). Calculate the hash of the body to be used when creating the signature. 
+
+    f) Calculate the signature using the stored message and attachment hashes in accordance with \[[PR-SIGDOC](#Ref_PR-SIGDOC), [BATCH-TS](#Ref_BATCH-TS)\]. Write the signature as the last part of the message (content-type `signature/bdoc-1.0/ts`).
     
 <a id="Messtransport_protocol_message_processing_service_provider" class="anchor"></a>
-![](img/pr-messtransport-protocol-message-processing-service-provider.png)
+![](img/pr-messtransport-protocol-message-processing-service-provider.svg)
 
 Figure 6. Message processing on service provider's side
 
@@ -317,10 +409,10 @@ Content-Type: application/ocsp-response
 --jetty625909216ic7gfi1u--
 ```
 
-### 4.2 Simple Request
+### 4.2 Simple SOAP Request
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xtop1357783211hcn1yiro 
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtop1357783211hcn1yiro 
 
 --xtop1357783211hcn1yiro 
 Content-Type: application/ocsp-response 
@@ -337,10 +429,10 @@ Content-Type: signature/bdoc-1.0/ts
 --xtop1357783211hcn1yiro--
 ```
 
-### 4.3 Simple Response
+### 4.3 Simple SOAP Response
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xatt569125687hcu8vfma
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xatt569125687hcu8vfma
 
 --xatt569125687hcu8vfma
 Content-Type: text/xml ; charset=UTF-8
@@ -353,10 +445,10 @@ Content-Type: signature/bdoc-1.0/ts
 --xatt569125687hcu8vfma--
 ```
 
-### 4.4 Request with Attachments
+### 4.4 SOAP Request with Attachments
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xtop1357783211hcn1yiro
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtop1357783211hcn1yiro
  
 --xtop1357783211hcn1yiro 
 Content-Type: application/ocsp-response 
@@ -397,10 +489,10 @@ Content-Type: signature/bdoc-1.0/ts
 --xtop1357783211hcn1yiro--
 ```
 
-### 4.5 Response with Fault as Last Part
+### 4.5 SOAP Response with Fault as Last Part
 
 ```
-Content-Type: multipart/related; charset=UTF-8; boundary=xatt569125687hcu8vfma
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xatt569125687hcu8vfma
 
 --xatt569125687hcu8vfma
 Content-Type: text/xml; charset=UTF-8
@@ -411,4 +503,64 @@ Content-Type: text/xml; charset=UTF-8
 
 ...SOAP fault...
 --xatt569125687hcu8vfma--
+```
+
+### 4.6 REST Request
+
+```
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/ocsp-response
+
+...ocsp response...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/x-road-rest-request
+
+...REST request header...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/x-road-rest-body
+
+...REST request body...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/hash-chain-result
+
+...hash chain result XML...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: application/hash-chain
+
+...hash chain XML...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe
+content-type: signature/bdoc-1.0/ts
+
+...signature XML...
+--xtopVuvPTiuLRQanuYKzamfNZBOlxZclEe--
+```
+
+### 4.7 REST Response
+
+```
+Content-Type: multipart/mixed; charset=UTF-8; boundary=xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/x-road-rest-response
+
+...REST response header...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/x-road-rest-body
+
+...REST response body...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/hash-chain-result
+
+...hash chain result XML...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: application/hash-chain
+
+...hash chain XML...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH
+content-type: signature/bdoc-1.0/ts
+
+...signature XML...
+--xtoptrgBinKkBvoijBRQYWabkZvkECcuIH--
 ```

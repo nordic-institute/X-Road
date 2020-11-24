@@ -51,8 +51,10 @@ public abstract class AbstractRequestHandler<T> extends UntypedAbstractActor {
     private static final Object NOTHING = null;
 
     @Override
-    public void onReceive(Object message) throws Exception {
-        log.trace("onReceive({})", message);
+    public void onReceive(Object message) {
+        if (log.isTraceEnabled()) {
+            log.trace("onReceive({}) from {}", message, sender());
+        }
         try {
             Object result = handle((T) message);
             if (result != nothing()) {
