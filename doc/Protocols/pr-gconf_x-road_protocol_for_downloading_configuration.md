@@ -245,7 +245,7 @@ In this setup, the X-Road 2 has complete control over configuration that is exch
 
 This example directory contains two parts. The first part contains private parameters and the second part contains shared parameters.
 
-```
+```http
 Content-Type: multipart/related; charset=UTF-8; boundary=envelopeboundary
 
 --envelopeboundary

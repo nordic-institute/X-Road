@@ -242,7 +242,7 @@ Test case for verifying that operational monitoring data is cleaned up periodica
        '0.0.0.0', 'Client', 1, 1, 'f');
    ```
 * The default value of the system parameter *op-monitor.clean-interval* is 12 hours. Add the following line to the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini` to run data cleanup once a minute:
-   ```
+   ```bash
    clean-interval="0 0/1 * 1/1 * ? *"
    ```
 * Restart the operational monitoring daemon (`sudo service xroad-opmonitor restart`).
@@ -267,7 +267,7 @@ While composing the operational data response, the number of records allowed in 
 
 All test steps are executed in security server *xtee9.ci.kit*.
 * The default value of the system parameter *op-monitor.max-records-in-payload* is 10,000. To limit the maximum number of records in payload to 1, add the following line to the `[op-monitor]` section of the file `/etc/xroad/conf.d/local.ini`:
-   ```
+   ```ini
    max-records-in-payload=1
    ```
 * Restart the operational monitoring daemon (`sudo service xroad-opmonitor restart`).

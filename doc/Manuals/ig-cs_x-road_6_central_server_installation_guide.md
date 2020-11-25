@@ -538,19 +538,19 @@ The following table lists a summary of the central server deployment options and
 
 First install PostgreSQL client.
 
-  ```
+  ```bash
   sudo apt install postgresql-client-10
   ```
 
 Login to the database server as the superuser (`postgres` by default).
 
-  ```
+  ```bash
   psql -h <database host> -U <superuser> -d postgres
   ```
 
 Run the following commands to create the necessary database structures and roles.
 
-  ```
+  ```sql
   create database <database name> encoding 'UTF8';
   REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
   CREATE ROLE <database user> LOGIN PASSWORD '<database password>';

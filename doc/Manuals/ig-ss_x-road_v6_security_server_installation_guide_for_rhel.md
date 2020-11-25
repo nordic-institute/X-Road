@@ -215,7 +215,7 @@ The database users required by security server are listed in [Annex B Database U
 
 **This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the `xroad` user, directory and the file as follows:
 
-  ```
+  ```bash
   sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
   sudo mkdir /etc/xroad
   sudo chown xroad:xroad /etc/xroad
@@ -227,7 +227,7 @@ The database users required by security server are listed in [Annex B Database U
 
 Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply. The database names can be changed by modifying the `<database>.hibernate.connection.url` property e.g. `serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/custom`.
 
-  ```
+  ```properties
   serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
   serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
   serverconf.hibernate.connection.username = <serverconf username>
@@ -247,7 +247,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 **This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. If storing the database administrator password on the security server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
 
-  ```
+  ```bash
   sudo touch /etc/xroad.properties
   sudo chown root:root /etc/xroad.properties
   sudo chmod 600 /etc/xroad.properties
@@ -255,7 +255,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
   Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-  ```
+  ```properties
   postgres.connection.password = <database superuser password>
   postgres.connection.user = <database superuser name, postgres by default>
   ```
@@ -265,7 +265,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 **This is an optional step.** If you want to customize the names and/or passwords of the database admin users created by the installer, follow these steps. By default the installer generates these users with format `<database-name>_admin` and autogenerates the password. Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
 
-  ```
+  ```properties
   serverconf.database.admin_user = <serverconf-admin-username>
   serverconf.database.admin_password = <serverconf-admin-password>
   op-monitor.database.admin_user = <op-monitor-admin-username>
@@ -279,7 +279,7 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
 
 Add X-Road package repository (**reference data: 1.1**) and Extra Packages for Enterprise Linux (EPEL) repository:
 
-  ```
+  ```bash
   RHEL_MAJOR_VERSION=$(source /etc/os-release;echo ${VERSION_ID%.*})
   sudo yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-${RHEL_MAJOR_VERSION}.noarch.rpm
   sudo yum-config-manager --add-repo https://artifactory.niis.org/xroad-release-rpm/rhel/${RHEL_MAJOR_VERSION}/current
@@ -289,7 +289,7 @@ The following packages are fetched from EPEL: `crudini`, and `rlwrap`.
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 
-  ```
+  ```bash
   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
   ```
 
@@ -298,13 +298,13 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
 
 Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
 
-  ```
+  ```bash
   sudo yum install xroad-securityserver
   ```
 
 Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
-  ```
+  ```bash
   sudo xroad-add-admin-user <username>
   ```
 
@@ -319,7 +319,7 @@ By default, `xroad-proxy` listens for consumer information system connections on
 
 Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[proxy]` section:
 
-  ```
+  ```ini
   [proxy]
   client-http-port=80
   client-https-port=443
@@ -330,7 +330,7 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
 
 Once the installation is completed, start the security server
 
-  ```
+  ```bash
   sudo systemctl start xroad-proxy
   ```
 
@@ -341,7 +341,7 @@ The installation is successful if system services are started and the user inter
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
   
-  ```
+  ```bash
   sudo systemctl list-units "xroad-*"
 
   UNIT                       LOAD   ACTIVE SUB     DESCRIPTION
@@ -433,7 +433,7 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 `/etc/xroad/db.properties`
 
-```
+```properties
 serverconf.hibernate.jdbc.use_streams_for_binary = true
 serverconf.hibernate.dialect = ee.ria.xroad.common.db.CustomPostgreSQLDialect
 serverconf.hibernate.connection.driver_class = org.postgresql.Driver
@@ -523,7 +523,7 @@ The following table lists a summary of the security server deployment options an
 
 First create the configuration file `/etc/xroad.properties`.
 
-  ```
+  ```bash
   sudo touch /etc/xroad.properties
   sudo chown root:root /etc/xroad.properties
   sudo chmod 600 /etc/xroad.properties
@@ -531,7 +531,7 @@ First create the configuration file `/etc/xroad.properties`.
 
 Edit `/etc/xroad.properties` contents.
 
-  ```
+  ```properties
   serverconf.database.admin_user = <serverconf admin username>
   serverconf.database.admin_password = <serverconf admin password>
   op-monitor.database.admin_user = <op-monitor admin username>
@@ -542,19 +542,19 @@ Edit `/etc/xroad.properties` contents.
 
 Next install PostgreSQL client.
 
-  ```
+  ```bash
   sudo apt install postgresql-client-10
   ```
 
 Login to the database server as the superuser (`postgres` by default).
 
-  ```
+  ```bash
   psql -h <database host> -U <superuser> -d postgres
   ```
 
 Run the following commands to create the necessary database structures and roles for `serverconf` and `messagelog` databases.
 
-  ```
+  ```sql
   CREATE DATABASE <serverconf database> ENCODING 'UTF8';
   REVOKE ALL ON DATABASE <serverconf database> FROM PUBLIC;
   CREATE ROLE <serverconf admin> LOGIN PASSWORD '<serverconf admin password>';
@@ -571,7 +571,7 @@ Run the following commands to create the necessary database structures and roles
   GRANT USAGE ON SCHEMA public to <serverconf user>;
   ```
 
-  ```
+  ```sql
   CREATE DATABASE <messagelog database> ENCODING 'UTF8';
   REVOKE ALL ON DATABASE <messagelog database> FROM PUBLIC;
   CREATE ROLE <messagelog admin> LOGIN PASSWORD '<messagelog admin password>';
@@ -589,7 +589,7 @@ Run the following commands to create the necessary database structures and roles
 
 If operational monitoring is going to be installed, run additionally the following commands.
 
-  ```
+  ```sql
   CREATE DATABASE <op-monitor database> ENCODING 'UTF8';
   REVOKE ALL ON DATABASE <op-monitor database> FROM PUBLIC;
   CREATE ROLE <op-monitor admin> LOGIN PASSWORD '<op-monitor admin password>';

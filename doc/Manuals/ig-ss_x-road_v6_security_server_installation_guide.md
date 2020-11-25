@@ -691,7 +691,7 @@ The following table lists a summary of the security server deployment options an
 
 First create the configuration file `/etc/xroad.properties`.
 
-  ```
+  ```bash
   sudo touch /etc/xroad.properties
   sudo chown root:root /etc/xroad.properties
   sudo chmod 600 /etc/xroad.properties
@@ -699,7 +699,7 @@ First create the configuration file `/etc/xroad.properties`.
 
 Edit `/etc/xroad.properties` contents.
 
-  ```
+  ```properties
   serverconf.database.admin_user = <serverconf admin username>
   serverconf.database.admin_password = <serverconf admin password>
   op-monitor.database.admin_user = <op-monitor admin username>
@@ -710,19 +710,19 @@ Edit `/etc/xroad.properties` contents.
 
 Next install PostgreSQL client.
 
-  ```
+  ```bash
   sudo apt install postgresql-client-10
   ```
 
 Login to the database server as the superuser (`postgres` by default).
 
-  ```
+  ```bash
   psql -h <database host> -U <superuser> -d postgres
   ```
 
 Run the following commands to create the necessary database structures and roles for `serverconf` and `messagelog` databases.
 
-  ```
+  ```sql
   CREATE DATABASE <serverconf database> ENCODING 'UTF8';
   REVOKE ALL ON DATABASE <serverconf database> FROM PUBLIC;
   CREATE ROLE <serverconf admin> LOGIN PASSWORD '<serverconf admin password>';
@@ -739,7 +739,7 @@ Run the following commands to create the necessary database structures and roles
   GRANT USAGE ON SCHEMA public to <serverconf user>;
   ```
 
-  ```
+  ```sql
   CREATE DATABASE <messagelog database> ENCODING 'UTF8';
   REVOKE ALL ON DATABASE <messagelog database> FROM PUBLIC;
   CREATE ROLE <messagelog admin> LOGIN PASSWORD '<messagelog admin password>';
@@ -757,7 +757,7 @@ Run the following commands to create the necessary database structures and roles
 
 If operational monitoring is going to be installed, run additionally the following commands.
 
-  ```
+  ```sql
   CREATE DATABASE <op-monitor database> ENCODING 'UTF8';
   REVOKE ALL ON DATABASE <op-monitor database> FROM PUBLIC;
   CREATE ROLE <op-monitor admin> LOGIN PASSWORD '<op-monitor admin password>';

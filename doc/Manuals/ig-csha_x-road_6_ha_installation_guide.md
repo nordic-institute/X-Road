@@ -162,7 +162,7 @@ After installing and configuring all the X-Road central server nodes, retrieve n
 
 It is possible to use a BDR database cluster from a pre-6.23.0 version. Before upgrading the software to version 6.23 (or newer), define the node name on each node like described in [4](#4-general-installation-of-ha-support). 
 The HA node name is displayed in the central server admin UI. It is also possible to query the local database node from command line:
-```
+```bash
 sudo -iu postgres psql -qtA -d centerui_production -c "select bdr.bdr_get_local_node_name()"
 ```
  
@@ -170,7 +170,7 @@ sudo -iu postgres psql -qtA -d centerui_production -c "select bdr.bdr_get_local_
 
 If the remote database supports fail over to a secondary host (e.g. when using PostgreSQL streaming replication with hot-standby), it is possible to define the secondary database hosts in `/etc/xroad/db.properties`. The system will automatically try the secondary hosts in case the primary fails.
 
-```
+```properties
 secondary_hosts=<comma separated list of hosts>
 
 # Example: 
@@ -188,7 +188,7 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 1.  On each node, edit file `/etc/xroad/conf.d/local.ini`, creating it if necessary
 2.  Add the following lines
-    ```
+    ```ini
     [center]
     ha-node-name=<node_name>
     ```
@@ -205,10 +205,10 @@ In addition, it is necessary to configure a unique node name for each node parti
 ## 5 Monitoring HA State on a Node
 
 It is possible to get HA status via a web interface, for example using curl:
-```
+```bash
 curl -k https://cs1.example.org:4000/public_system_status/check_ha_cluster_status
 ```
-```
+```json
 {
   "ha_node_status": {
     "ha_configured": true,
@@ -285,7 +285,7 @@ Edit `postgresql.conf` and verify the following settings:
 * Ubuntu: `/etc/postgresql/<version>/<cluster name>/postgresql.conf`
 * RHEL: In data directory, usually `/usr/lib/pgsql/data`
 
-```
+```properties
 # more secure password encryption (optional but recommended)
 password_encryption = scram-sha-256
 
@@ -312,7 +312,7 @@ hot_standby = on
 
 Edit pg_hba.conf (on Ubuntu by default in `/etc/postgresql/<version>/main/`) and add configuration for the replication user. For example, the following allows the user "standby" from a host in the same network to connect to the master. The connection requires TLS and uses challenge-response password authentication. See https://www.postgresql.org/docs/current/auth-pg-hba-conf.html for more information.
 
-```
+```properties
 # TYPE    DATABASE        USER            ADDRESS       METHOD
 hostssl   replication     standby         samenet       scram-sha-256
 ```
@@ -347,7 +347,7 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
 
 * Edit `recovery.conf` (in the data directory) and verify the settings:
   
-  ```
+  ```properties
   standby_mode = 'on'
   primary_conninfo = 'host=<master> user=<standby> password=<password>'
   primary_slot_name = 'standby_node1'
@@ -361,7 +361,7 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
 ### Verifying replication
 
 On master, check pg_stat_replication view:
-```
+```bash
 sudo -iu postgres psql -txc "SELECT * FROM pg_stat_replication"
 ...
 username         | standby
@@ -374,7 +374,7 @@ replay_lsn       | 0/2A03F000
 ```
 
 On standbys, check pg_stat_wal_receiver view:
-```
+```bash
 sudo -iu postgres psql -txc "SELECT * FROM pg_stat_wal_receiver"
 ...
 status                | streaming
@@ -393,7 +393,7 @@ The `status` should be _streaming_ and `sent_lsn` on master should be close to `
 See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) for instructions about migrating an existing central server database to an external database.
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
-```
+```properties
 adapter=postgresql
 encoding=utf8
 username=centerui
@@ -409,12 +409,12 @@ Restart central servers and verify that the cluster is working (see [5 Monitorin
 ### Fail-over
 
 In case the master server fails, one can manually promote the standby to a master by executing the following command on the standby server:
-```
+```bash
 sudo pg_ctl promote
 ```
 
 On Ubuntu pg_ctl is typically not in the path, use pg_ctlcluster instead:
-```
+```bash
 sudo pg_ctlcluster <major version> <cluster name> promote
 # e.g. sudo pg_ctlcluster 10 main promote
 ```
@@ -451,7 +451,7 @@ The migration is completed by following the steps below.
 2. Update Central Servers to version 6.23.0 (or later). See Central Server High Availability Installation Guide for instructions.
     - Verify that center.ha-node-name is configured in /etc/xroad/conf.d/local.ini (on each server).
 3. Create the destination database using DB super-user privileges:
-```
+```sql
 psql --host=<host> --username=<super-user, e.g. postgres> <<EOF
 create user centerui password '<password>';
 grant centerui to postgres; -- required e.g. by AWS RDS because the managed super-user does not have full privileges
@@ -467,19 +467,19 @@ EOF
     - If necessary, install a version of the postgresql-client package that has the same major version as the destination database (e.g. postgresql-client-10).
         - If a suitable version is not available from Ubuntu package repositories, please see https://www.postgresql.org/download/linux/ubuntu/
     - Use the pg_dump version that has the same major version as the destination database. Do not use pg_dump from the BDR version of PostgreSQL.
-```
+```bash
 /usr/lib/postgresql/<major version>/bin/pg_dump --host=localhost --username=centerui --no-privileges --no-owner --schema=public --exclude-table=xroad_bdr_replication_info --dbname=centerui_production --format=c -f center.dmp
 ```
 6. Restore the dump to the new database:
     - Use pg_restore that has the same major version as the destination database.
-```
+```bash
 /usr/lib/postgresql/<major version>/bin/pg_restore --list center.dmp | sed '/FUNCTION public get_xroad_bdr_replication_info()/d' >center.list
 /usr/lib/postgresql/<major version>/bin/pg_restore --host=<host> --username=centerui --dbname=centerui_production --no-owner --single-transaction --use-list=center.list center.dmp
 ```
 7. Update the configuration file /etc/xroad/db.properties with information about the new database.
 8. (Re)start Central Servers.
 9. If the local PosgreSQL is not used by other applications, stop the local instance and prevent it from starting:
-```
+```bash
 sudo systemctl stop postgresql
 sudo systemctl mask postgresql
 ```

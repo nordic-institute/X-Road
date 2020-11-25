@@ -2824,7 +2824,7 @@ for authentication when executing REST API calls to update server configuration.
     - 3.3 Actual API key with name `key`
     - Example:
 
-```
+```json
 {
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
@@ -2882,7 +2882,7 @@ for authentication when executing REST API calls to update server configuration.
     - System does *not* return the actual API keys
     - Example:
 
-```
+```json
 [
   {
     "id": 62,
@@ -2955,7 +2955,7 @@ for authentication when executing REST API calls to update server configuration.
     - 3.2 Roles linked to key, with name `roles`, in an array of strings
     - Example:
 
-```
+```json
 {
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
