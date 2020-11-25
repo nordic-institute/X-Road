@@ -25,19 +25,23 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-system-administrator', 'permissions'],
-  'Security server system administrator role': (browser) => {
+  tags: ['ss', 'xroad-security-officer', 'permissions'],
+  'Security server security officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = mainPage.section.keysTab;
+    const clientsTab = mainPage.section.clientsTab;
     const diagnosticsTab = mainPage.section.diagnosticsTab;
     const settingsTab = mainPage.section.settingsTab;
     const tokenName = mainPage.section.keysTab.elements.tokenName;
+    const searchField = mainPage.section.clientsTab.elements.searchField;
+    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
     const createAPIKeyButton = mainPage.section.keysTab.elements.createAPIKeyButton;
     const generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
     const globalConfiguration = mainPage.section.diagnosticsTab.elements.globalConfiguration;
     const anchorDownloadButton = mainPage.section.settingsTab.elements.anchorDownloadButton;
     const backupButton = mainPage.section.settingsTab.elements.backupButton;
+    const backupAndRestoreTab = mainPage.section.settingsTab.elements.backupAndRestoreTab;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -47,39 +51,37 @@ module.exports = {
     frontPage
       .clearUsername()
       .clearPassword()
-      .enterUsername(browser.globals.login_system_administrator)
+      .enterUsername(browser.globals.login_security_officer)
       .enterPassword(browser.globals.login_pwd)
       .signin();
 
     // Check username
     browser.waitForElementVisible(
       '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_system_administrator +
+        browser.globals.login_security_officer +
         '")]',
     );
+
+    // clients
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(searchField);
+    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // keys and certs
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(tokenName);
-    keysTab.openAPIKeys();
-    browser.waitForElementVisible(createAPIKeyButton);
+    browser.waitForElementNotPresent(APIKeysTab);
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementVisible(generateKeyButton);
-
-    // diagnostics
-    mainPage.openDiagnosticsTab();
-    browser.waitForElementVisible(diagnosticsTab);
-    browser.waitForElementVisible(globalConfiguration);
 
     // settings
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
     browser.waitForElementVisible(anchorDownloadButton);
-    settingsTab.openBackupAndRestore();
-    browser.waitForElementVisible(backupButton);
+    browser.waitForElementNotPresent(backupAndRestoreTab);
 
     browser.end();
   },
