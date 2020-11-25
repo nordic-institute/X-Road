@@ -829,7 +829,7 @@ To unregister a client, follow these steps.
 
 **Access rights:** [Registration Officer](#xroad-registration-officer)
 
-A security server client can be deleted if its state is "Saved", "Global error" or "Deletion in progress". Clients that are in states "Registered" or "Registration in progress" need to be unregistered before they can be deleted (see Section [4.5.1](#451-unregistering-a-client)).
+A security server client can be deleted if its state is "Saved", "Global error" or "Deletion in progress". Clients that are in states "Registered" or "Registration in progress" need to be unregistered before they can be deleted (see Section [4.6.1](#461-unregistering-a-client)).
 
 To delete a client, follow these steps.
 

@@ -191,7 +191,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
-20. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
+20. <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
     
 21. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Security Server Installation Guide for Ubuntu. Document ID: [IG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md).
 
@@ -453,7 +453,7 @@ Xroad-confclient offers admin interface C for commands and queries. This is used
 
 Xroad-confclient has single input port for admin commands and queries. The port number is for internal use and specified in the source code only.
 
-#### 3.3.4 Persistent data
+#### 3.3.5 Persistent data
 
 Xroad-confclient downloads and persists global configuration on disk.
 
