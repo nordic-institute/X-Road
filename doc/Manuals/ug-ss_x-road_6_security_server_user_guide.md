@@ -37,7 +37,7 @@ Doc. ID: UG-SS
  14.10.2015 | 2.2     | Instructions for using an external database for the message log corrected
  05.11.2015 | 2.3     | Updates related to backup and restore (Chapter [13](#13-back-up-and-restore))
  30.11.2015 | 2.4     | X-Road concepts updated (Section 1.2). Security server registration updated (Chapter [3](#3-security-server-registration)). Security server clients updated (Chapter [4](#4-security-server-clients)); only subsystems (and not members) can be registered as security server clients and have services or access rights configured. Cross-references fixed. Editorial changes made.
- 09.12.2015 | 2.5     | Security server client deletion updated (Section [4.5.2](#452-deleting-a-client)). Editorial changes made.
+ 09.12.2015 | 2.5     | Security server client deletion updated (Section 4.5.2). Editorial changes made.
  14.12.2015 | 2.6     | Message log updated (Chapter [11](#11-message-log))
  14.01.2016 | 2.7     | Logs updated (Chapter [16](#17-logs-and-system-services))
  08.02.2016 | 2.8     | Corrections in chapter [16](#17-logs-and-system-services)
@@ -56,7 +56,7 @@ Doc. ID: UG-SS
  10.04.2018 | 2.21    | Update internal server certificate documentation. | Jarkko Hyöty
  25.05.2018 | 2.22    | Update system parameters documentation. | Jarkko Hyöty
  15.11.2018 | 2.23    | Minor updates for Ubuntu 18.04 | Jarkko Hyöty
- 06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.4](#44-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
+ 06.02.2019 | 2.24    | Minor updates on security server client registration in Chapters [4.4](#44-configuring-a-signing-key-and-certificate-for-a-security-server-client) and [4.5](#45-registering-a-security-server-client-in-the-x-road-governing-authority). | Petteri Kivimäki
  15.03.2019 | 2.25    | Update documentation to cover REST service usage in chapter [6] | Jarkko Hyöty
  26.03.2019 | 2.26    | Added chapter on API keys [19](#19-management-rest-api) | Janne Mattila
  16.04.2019 | 2.27    | Minor updates regarding REST services in chapter [6] | Petteri Kivimäki
@@ -119,12 +119,13 @@ Doc. ID: UG-SS
 - [4 Security Server Clients](#4-security-server-clients)
   - [4.1 Security Server Client States](#41-security-server-client-states)
   - [4.2 Adding a Security Server Client](#42-adding-a-security-server-client)
-  - [4.3 Configuring a Signing Key and Certificate for a Security Server Client](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)
-  - [4.4 Registering a Security Server Client in the X-Road Governing Authority](#44-registering-a-security-server-client-in-the-x-road-governing-authority)
-    - [4.4.1 Registering a Security Server Client](#441-registering-a-security-server-client)
-  - [4.5 Deleting a Client from the Security Server](#45-deleting-a-client-from-the-security-server)
-    - [4.5.1 Unregistering a Client](#451-unregistering-a-client)
-    - [4.5.2 Deleting a Client](#452-deleting-a-client)
+  - [4.3 Adding a Security Server Member Subsystem](#43-adding-a-security-server-member-subsystem)
+  - [4.4 Configuring a Signing Key and Certificate for a Security Server Client](#44-configuring-a-signing-key-and-certificate-for-a-security-server-client)
+  - [4.5 Registering a Security Server Client in the X-Road Governing Authority](#45-registering-a-security-server-client-in-the-x-road-governing-authority)
+    - [4.5.1 Registering a Security Server Client](#451-registering-a-security-server-client)
+  - [4.6 Deleting a Client from the Security Server](#46-deleting-a-client-from-the-security-server)
+    - [4.6.1 Unregistering a Client](#461-unregistering-a-client)
+    - [4.6.2 Deleting a Client](#462-deleting-a-client)
 - [5 Security Tokens, Keys, and Certificates](#5-security-tokens-keys-and-certificates)
   - [5.1 Availability States of Security Tokens](#51-availability-states-of-security-tokens)
   - [5.2 Registration States of Certificates](#52-registration-states-of-certificates)
@@ -414,9 +415,9 @@ To use a security server for mediating (exchanging) messages, the security serve
 
 The signing keys used by the security servers for signing X-Road messages can be stored on software or hardware based (a Hardware Security Module or a smartcard) security tokens, according to the security policy of the X-Road instance.
 
-Depending on the certification policy, the signing keys are generated either in the security server or by the certification service provider. Sections [3.1.1](#311-generating-a-signing-key) to [3.1.3](#313-importing-a-certificate-from-the-local-file-system) describe the actions necessary to configure the signing key and certificate in case the key is generated in the security server. Section [3.1.4](#314-importing-a-certificate-from-a-security-token) describes the importing of the signing key and certificate in case the key is generated by the certification service provider.
+Depending on the certification policy, the signing keys are generated either in the security server or by the certification service provider. Sections [3.1.1](#311-generating-a-signing-key-and-certificate-signing-request) to [3.1.2](#312-importing-a-certificate-from-the-local-file-system) describe the actions necessary to configure the signing key and certificate in case the key is generated in the security server. Section [3.1.3](#313-importing-a-certificate-from-a-security-token) describes the importing of the signing key and certificate in case the key is generated by the certification service provider.
 
-The **background colors** of the devices, keys and certificate are explained in Section [5.1](#51-availability-states-of-security-tokens-keys-and-certificates).
+The **background colors** of the devices, keys and certificate are explained in Section [5.1](#51-availability-states-of-security-tokens).
 
 
 #### 3.1.1 Generating a Signing Key and Certificate Signing Request
@@ -500,7 +501,7 @@ To import a certificate from a security token, follow these steps.
 
 ### 3.2 Configuring the Authentication Key and Certificate for the Security Server
 
-The **background colors** of the devices, keys and certificate are explained in Section [5.1](#51-availability-states-of-security-tokens-keys-and-certificates).
+The **background colors** of the devices, keys and certificate are explained in Section [5.1](#51-availability-states-of-security-tokens).
 
 
 #### 3.2.1 Generating an Authentication Key
@@ -657,9 +658,9 @@ Once the owner change request is approved, the new member will be automatically 
 
 - A new member must be added to the security server (see [4.2](#42-adding-a-security-server-client)). If needed, specify the token on which the member is configured
 
-- If not yet available, a Signing Key and Certificate must be configured for the new member (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
+- If not yet available, a Signing Key and Certificate must be configured for the new member (see [4.4](#44-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
 
-- The new member must be registered in the X-Road Governing Authority (see [4.3](#44-registering-a-security-server-client-in-the-x-road-governing-authority)).
+- The new member must be registered in the X-Road Governing Authority (see [4.5](#45-registering-a-security-server-client-in-the-x-road-governing-authority)).
 
 - The security server owner change request must be submitted from the security server. To submit an owner change request follow these steps.
 
@@ -688,31 +689,31 @@ The security server distinguishes between the following client states.
 
 ![](img/ug-ss_saved.png) **Saved** – the client's information has been entered and saved into the security server's configuration (see [4.2](#42-adding-a-security-server-client)), but the association between the client and the security server is not registered in the X-Road governing authority. (If the association is registered in the central server prior to the entry of data, the client will move to the "Registered" state upon data entry.) From this state, the client can move to the following states:
 
--   "Registration in progress", if a registration request for the client is submitted from the security server (see [4.4.1](#441-registering-a-security-server-client));
+-   "Registration in progress", if a registration request for the client is submitted from the security server (see [4.5.1](#451-registering-a-security-server-client));
 
--   "Deleted", if the client's information is deleted from the security server configuration (see [4.5.2](#452-deleting-a-client)).
+-   "Deleted", if the client's information is deleted from the security server configuration (see [4.6.2](#462-deleting-a-client)).
 
 ![](img/ug-ss_registration_in_progress.png) **Registration in progress** – a registration request for the client is submitted from the security server to the central server, but the association between the client and the security server is not yet approved by the X-Road governing authority. From this state, the client can move to the following states:
 
--   "Registered", if the association between the client and the security server is approved by the X-Road governing authority (see [4.4.1](#441-registering-a-security-server-client));
+-   "Registered", if the association between the client and the security server is approved by the X-Road governing authority (see [4.5.1](#451-registering-a-security-server-client));
 
--   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.5.1](#451-unregistering-a-client)).
+-   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.6.1](#461-unregistering-a-client)).
 
 ![](img/ug-ss_registered.png) **Registered** – the association between the client and the security server has been approved in the X-Road governing authority. In this state, the client can provide and use X-Road services (assuming all other prerequisites are fulfilled). From this state, the client can move to the following states:
 
 -   "Global error", if the association between the client and the security server has been revoked by the X-Road governing authority;
 
--   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.5.1](#451-unregistering-a-client)).
+-   "Deletion in progress", if a client deletion request is submitted from the security server (see [4.6.1](#461-unregistering-a-client)).
 
 ![](img/ug-ss_global_error.png) **Global error** – the association between the client and the security server has been revoked in the central server. From this state, the client can move to the following states:
 
 -   "Registered", if the association between the client and the security server has been restored in the central server (e.g., the association between the client and the security server was lost due to an error);
 
--   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
+-   "Deleted", if the client's information is deleted from the security server's configuration (see [4.6.2](#462-deleting-a-client)).
 
 ![](img/ug-ss_deletion_in_progress.png) **Deletion in progress** – a client deletion request has been submitted from the security server. From this state, the client can move to the following state:
 
--   "Deleted", if the client's information is deleted from the security server's configuration (see [4.5.2](#452-deleting-a-client)).
+-   "Deleted", if the client's information is deleted from the security server's configuration (see [4.6.2](#462-deleting-a-client)).
 
 **Deleted** – the client's information has been deleted from the security server's configuration.
 
@@ -774,9 +775,9 @@ The process of configuring the signing key and certificate for a security server
 
 To register a security server client in the X-Road governing authority, the following actions must be completed.
 
--   A signing key and certificate must be configured for the member that owns the subsystem to be registered as a the security server client (see [4.3](#43-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
+-   A signing key and certificate must be configured for the member that owns the subsystem to be registered as a the security server client (see [4.4](#44-configuring-a-signing-key-and-certificate-for-a-security-server-client)).
 
--   The security server client registration request must be submitted from the security server (see [4.4.1](#441-registering-a-security-server-client)).
+-   The security server client registration request must be submitted from the security server (see [4.5.1](#451-registering-a-security-server-client)).
 
 -   A request for registering the client must be submitted to the X-Road governing authority according to the organizational procedures of the X-Road instance.
 
