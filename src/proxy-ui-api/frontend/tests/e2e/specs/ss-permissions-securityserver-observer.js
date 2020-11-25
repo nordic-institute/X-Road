@@ -30,14 +30,16 @@ module.exports = {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = mainPage.section.keysTab;
+    const clientsTab = mainPage.section.clientsTab;
     const diagnosticsTab = mainPage.section.diagnosticsTab;
     const settingsTab = mainPage.section.settingsTab;
     const tokenName = mainPage.section.keysTab.elements.tokenName;
+    const searchField = mainPage.section.clientsTab.elements.searchField;
     const createAPIKeyButton = mainPage.section.keysTab.elements.createAPIKeyButton;
     const generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
     const globalConfiguration = mainPage.section.diagnosticsTab.elements.globalConfiguration;
     const anchorDownloadButton = mainPage.section.settingsTab.elements.anchorDownloadButton;
-    const backupButton = mainPage.section.settingsTab.elements.backupButton;
+    const backupAndRestoreTab = mainPage.section.settingsTab.elements.backupAndRestoreTab;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -58,27 +60,32 @@ module.exports = {
         '")]',
     );
 
+    // clients
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(searchField);
+    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+
     // keys and certs
-    // browser.waitForElementVisible(keysTab);
-    // keysTab.openSignAndAuthKeys();
-    // browser.waitForElementVisible(tokenName);
-    // keysTab.openAPIKeys();
-    // browser.waitForElementVisible(createAPIKeyButton);
-    // keysTab.openSecurityServerTLSKey();
-    // browser.waitForElementVisible(generateKeyButton);
+    mainPage.openKeysTab();
+    browser.waitForElementVisible(keysTab);
+    keysTab.openSignAndAuthKeys();
+    browser.waitForElementVisible(tokenName);
+    keysTab.openAPIKeys();
+    browser.waitForElementNotPresent(createAPIKeyButton);
+    keysTab.openSecurityServerTLSKey();
+    browser.waitForElementNotPresent(generateKeyButton);
 
     // diagnostics
-    // mainPage.openDiagnosticsTab();
-    // browser.waitForElementVisible(diagnosticsTab);
-    // browser.waitForElementVisible(globalConfiguration);
+    mainPage.openDiagnosticsTab();
+    browser.waitForElementVisible(diagnosticsTab);
+    browser.waitForElementVisible(globalConfiguration);
 
     // settings
-    // mainPage.openSettingsTab();
-    // browser.waitForElementVisible(settingsTab);
-    // settingsTab.openSystemParameters();
-    // browser.waitForElementVisible(anchorDownloadButton);
-    // settingsTab.openBackupAndRestore();
-    // browser.waitForElementVisible(backupButton);
+    mainPage.openSettingsTab();
+    browser.waitForElementVisible(settingsTab);
+    settingsTab.openSystemParameters();
+    browser.waitForElementNotPresent(anchorDownloadButton);
+    browser.waitForElementNotPresent(backupAndRestoreTab);
 
     browser.end();
   },

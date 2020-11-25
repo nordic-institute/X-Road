@@ -664,6 +664,10 @@ module.exports = {
       locateStrategy: 'xpath',
       commands: [clientTabCommands],
       elements: {
+        searchField: {
+          selector: '//*[contains(@data-test, "search-clients-input")]',
+          locateStrategy: 'xpath',
+        },
         addClientButton: {
           selector: '//button[.//*[contains(text(), "add client")]]',
           locateStrategy: 'xpath',
