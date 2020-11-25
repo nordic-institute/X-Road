@@ -25,8 +25,8 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-system-administrator', 'permissions'],
-  'Security server system administrator role': (browser) => {
+  tags: ['ss', 'xroad-securityserver-observer', 'permissions'],
+  'Security server observer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = mainPage.section.keysTab;
@@ -47,38 +47,38 @@ module.exports = {
     frontPage
       .clearUsername()
       .clearPassword()
-      .enterUsername(browser.globals.login_system_administrator)
+      .enterUsername(browser.globals.login_securityserver_observer)
       .enterPassword(browser.globals.login_pwd)
       .signin();
 
     // Check username
     browser.waitForElementVisible(
       '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_system_administrator +
+        browser.globals.login_securityserver_observer +
         '")]',
     );
 
     // keys and certs
-    browser.waitForElementVisible(keysTab);
-    keysTab.openSignAndAuthKeys();
-    browser.waitForElementVisible(tokenName);
-    keysTab.openAPIKeys();
-    browser.waitForElementVisible(createAPIKeyButton);
-    keysTab.openSecurityServerTLSKey();
-    browser.waitForElementVisible(generateKeyButton);
+    // browser.waitForElementVisible(keysTab);
+    // keysTab.openSignAndAuthKeys();
+    // browser.waitForElementVisible(tokenName);
+    // keysTab.openAPIKeys();
+    // browser.waitForElementVisible(createAPIKeyButton);
+    // keysTab.openSecurityServerTLSKey();
+    // browser.waitForElementVisible(generateKeyButton);
 
     // diagnostics
-    mainPage.openDiagnosticsTab();
-    browser.waitForElementVisible(diagnosticsTab);
-    browser.waitForElementVisible(globalConfiguration);
+    // mainPage.openDiagnosticsTab();
+    // browser.waitForElementVisible(diagnosticsTab);
+    // browser.waitForElementVisible(globalConfiguration);
 
     // settings
-    mainPage.openSettingsTab();
-    browser.waitForElementVisible(settingsTab);
-    settingsTab.openSystemParameters();
-    browser.waitForElementVisible(anchorDownloadButton);
-    settingsTab.openBackupAndRestore();
-    browser.waitForElementVisible(backupButton);
+    // mainPage.openSettingsTab();
+    // browser.waitForElementVisible(settingsTab);
+    // settingsTab.openSystemParameters();
+    // browser.waitForElementVisible(anchorDownloadButton);
+    // settingsTab.openBackupAndRestore();
+    // browser.waitForElementVisible(backupButton);
 
     browser.end();
   },
