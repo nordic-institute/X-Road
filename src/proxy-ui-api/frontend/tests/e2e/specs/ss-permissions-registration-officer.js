@@ -25,19 +25,16 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-security-officer', 'permissions'],
-  'Security server security officer role': (browser) => {
+  tags: ['ss', 'xroad-registration-officer', 'permissions'],
+  'Security server registration officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = mainPage.section.keysTab;
     const clientsTab = mainPage.section.clientsTab;
-    const settingsTab = mainPage.section.settingsTab;
     const tokenName = mainPage.section.keysTab.elements.tokenName;
     const searchField = mainPage.section.clientsTab.elements.searchField;
     const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
     const generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
-    const anchorDownloadButton = mainPage.section.settingsTab.elements.anchorDownloadButton;
-    const backupAndRestoreTab = mainPage.section.settingsTab.elements.backupAndRestoreTab;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -47,21 +44,21 @@ module.exports = {
     frontPage
       .clearUsername()
       .clearPassword()
-      .enterUsername(browser.globals.login_security_officer)
+      .enterUsername(browser.globals.login_registration_officer)
       .enterPassword(browser.globals.login_pwd)
       .signin();
 
     // Check username
     browser.waitForElementVisible(
       '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_security_officer +
+        browser.globals.login_registration_officer +
         '")]',
     );
 
     // clients
     mainPage.openClientsTab();
     browser.waitForElementVisible(searchField);
-    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+    browser.waitForElementVisible(clientsTab.elements.addClientButton);
 
     // keys and certs
     mainPage.openKeysTab();
@@ -70,14 +67,8 @@ module.exports = {
     browser.waitForElementVisible(tokenName);
     browser.waitForElementNotPresent(APIKeysTab);
     keysTab.openSecurityServerTLSKey();
-    browser.waitForElementVisible(generateKeyButton);
-
-    // settings
-    mainPage.openSettingsTab();
-    browser.waitForElementVisible(settingsTab);
-    settingsTab.openSystemParameters();
-    browser.waitForElementVisible(anchorDownloadButton);
-    browser.waitForElementNotPresent(backupAndRestoreTab);
+    browser.waitForElementNotPresent(generateKeyButton);
+    browser.waitForElementVisible(keysTab.elements.exportCertButton);
 
     browser.end();
   },

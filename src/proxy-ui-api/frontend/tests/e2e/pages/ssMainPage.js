@@ -724,6 +724,10 @@ module.exports = {
           selector: '//*[contains(@data-test, "security-server-tls-certificate-generate-key-button")]',
           locateStrategy: 'xpath',
         },
+        exportCertButton: {
+          selector: '//*[contains(@data-test, "security-server-tls-certificate-export-certificate-button")]',
+          locateStrategy: 'xpath',
+        },
       },
     },
     diagnosticsTab: {
