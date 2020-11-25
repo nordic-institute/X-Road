@@ -29,8 +29,9 @@ module.exports = {
   'Security server security officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
     const clientsTab = mainPage.section.clientsTab;
+    const keysTab = mainPage.section.keysTab;
+    const diagnosticsTab = mainPage.section.diagnosticsTab;
     const settingsTab = mainPage.section.settingsTab;
     const tokenName = mainPage.section.keysTab.elements.tokenName;
     const searchField = mainPage.section.clientsTab.elements.searchField;
@@ -78,6 +79,8 @@ module.exports = {
     settingsTab.openSystemParameters();
     browser.waitForElementVisible(anchorDownloadButton);
     browser.waitForElementNotPresent(backupAndRestoreTab);
+
+    browser.waitForElementNotPresent(diagnosticsTab);
 
     browser.end();
   },

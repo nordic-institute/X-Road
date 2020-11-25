@@ -30,6 +30,9 @@ module.exports = {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
+    const keysTab = mainPage.section.keysTab;
+    const diagnosticsTab = mainPage.section.diagnosticsTab;
+    const settingsTab = mainPage.section.settingsTab;
     const searchField = mainPage.section.clientsTab.elements.searchField;
 
     // Open SUT and check that page is loaded
@@ -55,6 +58,10 @@ module.exports = {
     mainPage.openClientsTab();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+
+    browser.waitForElementNotPresent(keysTab);
+    browser.waitForElementNotPresent(diagnosticsTab);
+    browser.waitForElementNotPresent(settingsTab);
 
     browser.end();
   },

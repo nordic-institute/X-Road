@@ -29,6 +29,7 @@ module.exports = {
   'Security server system administrator role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
     const keysTab = mainPage.section.keysTab;
     const diagnosticsTab = mainPage.section.diagnosticsTab;
     const settingsTab = mainPage.section.settingsTab;
@@ -80,6 +81,8 @@ module.exports = {
     browser.waitForElementVisible(anchorDownloadButton);
     settingsTab.openBackupAndRestore();
     browser.waitForElementVisible(backupButton);
+
+    browser.waitForElementNotPresent(clientsTab);
 
     browser.end();
   },

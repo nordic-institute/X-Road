@@ -29,8 +29,10 @@ module.exports = {
   'Security server registration officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
     const clientsTab = mainPage.section.clientsTab;
+    const keysTab = mainPage.section.keysTab;
+    const diagnosticsTab = mainPage.section.diagnosticsTab;
+    const settingsTab = mainPage.section.settingsTab;
     const tokenName = mainPage.section.keysTab.elements.tokenName;
     const searchField = mainPage.section.clientsTab.elements.searchField;
     const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
@@ -69,6 +71,9 @@ module.exports = {
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementNotPresent(generateKeyButton);
     browser.waitForElementVisible(keysTab.elements.exportCertButton);
+
+    browser.waitForElementNotPresent(diagnosticsTab);
+    browser.waitForElementNotPresent(settingsTab);
 
     browser.end();
   },
