@@ -40,7 +40,7 @@ var keysTabCommands = {
 };
 
 const keysTab = {
-  url: process.env.VUE_DEV_SERVER_URL,
+  url: `${process.env.VUE_DEV_SERVER_URL}/keys`,
   selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
   commands: keysTabCommands,
   elements: {

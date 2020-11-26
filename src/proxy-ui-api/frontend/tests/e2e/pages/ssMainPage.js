@@ -63,36 +63,6 @@ var navigateCommands = {
   },
 };
 
-var keysTabCommands = {
-  openSignAndAuthKeys: function () {
-    this.click('@signAndAuthKeysTab');
-    return this;
-  },
-  openAPIKeys: function () {
-    this.click('@APIKeysTab');
-    return this;
-  },
-  openSecurityServerTLSKey: function () {
-    this.click('@securityServerTLSKeyTab');
-    return this;
-  },
-};
-
-var settingsTabCommands = {
-  openSystemParameters: function () {
-    this.click('@systemParametersTab');
-    return this;
-  },
-  openBackupAndRestore: function () {
-    this.click('@backupAndRestoreTab');
-    return this;
-  },
-  openSecurityServerTLSKey: function () {
-    this.click('@securityServerTLSKeyTab');
-    return this;
-  },
-};
-
 var clientInfoCommands = {
   openDetailsTab: function () {
     this.click('@detailsTab');

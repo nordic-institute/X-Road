@@ -40,7 +40,7 @@ var settingsTabCommands = {
 };
 
 const settingsTab = {
-  url: process.env.VUE_DEV_SERVER_URL,
+  url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
   selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Settings")]]//div[contains(@class, "base-full-width")]',
   commands: settingsTabCommands,
   elements: {

@@ -25,7 +25,7 @@
  */
 
 const diagnosticsTab = {
-  url: process.env.VUE_DEV_SERVER_URL,
+  url: `${process.env.VUE_DEV_SERVER_URL}/diagnostics`,
   selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Diagnostics")]]//div[contains(@class, "base-full-width")]',
   commands: [],
   elements: {
