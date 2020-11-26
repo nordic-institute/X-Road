@@ -1,6 +1,6 @@
 # Change Log
 
-## 6.25.0 - UNRELEASED
+## 6.25.0 - 2020-11-26
 - XRDDEV-1222: Update installation and user guides
 - XRDDEV-1299: Add Ubuntu 20.04 packaging
 - XRDDEV-1125: Initial support for running X-Road Security Server on Java 11 platform
@@ -14,7 +14,7 @@
 - XRDDEV-1366: Add defensive checks against bad client configuration when adding a new local client and sending a client registration request
 - XRDDEV-1324: Add Ubuntu 20 support to public Ansible deployment scripts
 - XRDDEV-1233: Replaced dtsgenerator tool with openapi-typescript-codegen.
-- XRDDEV-1394: In a Security Server cluster, remove access to management REST API from all non-observer roles on a secondary node. In case the observer role is not present, the API key does not grant any permissions. In this way, the API key does not grant access to any information that's not accessible on the primary node. In other words, the API key does not expose any additional information on the secondary node.
+- XRDDEV-1394: In a Security Server cluster, remove access to management REST API from all non-observer roles on a secondary node. In case the observer role is not present, the API key does not grant any permissions.
 - XRDDEV-1326: Add support for setting up Ubuntu 20 clusters with Ansible scripts. Fix /etc/xroad/jetty permission problems.
 - XRDDEV-1327: Jenkinsfile builds also Ubuntu 20 packages
 - XRDDEV-1446: Update licensing files and footer information
@@ -29,6 +29,8 @@
 - XRDDEV-1405: Fix security server user interface coming up with 401 error
 - XRDDEV-1445: Fix layout bug in snackbar
 - XRDDEV-1457: Fix broken certificate details link
+- XRDDEV-1448: Fix security server docker image does not work on kernel 5.8
+- XRDDEV-1487: Make connection timeouts between configuration proxy and signer less frequent
 
 ## 6.24.1 - 2020-09-18
 - XRDDEV-1306: Fix security server docker image build
