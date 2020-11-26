@@ -24,6 +24,10 @@
  * THE SOFTWARE.
  */
 
+const clientsTab = require('./tabs/clientsTab');
+const keysTab = require('./tabs/keysTab');
+const diagnosticsTab = require('./tabs/diagnosticsTab');
+const settingsTab = require('./tabs/settingsTab');
 const addSubjectsPopup = require('./common/addSubjectsPopup');
 
 var navigateCommands = {
@@ -55,41 +59,6 @@ var navigateCommands = {
   },
   closeSnackbar: function () {
     this.click('@snackBarCloseButton');
-    return this;
-  },
-};
-
-var clientTabCommands = {
-  clickNameHeader: function () {
-    this.click('@listNameHeader');
-    return this;
-  },
-  clickIDHeader: function () {
-    this.click('@listIDHeader');
-    return this;
-  },
-  clickStatusHeader: function () {
-    this.click('@listStatusHeader');
-    return this;
-  },
-  openTestGov: function () {
-    this.click('@testGovListItem');
-    return this;
-  },
-  openTestService: function () {
-    this.click('@testServiceListItem');
-    return this;
-  },
-  openClient: function (name) {
-    this.api.click(
-      this.selector + '//tbody//span[contains(text(),"' + name + '")]',
-    );
-    return this;
-  },
-  verifyRowName: function (row, name) {
-    this.api.waitForElementVisible(
-      '(//tbody/tr)[' + row + ']//span[contains(text(),"' + name + '")]',
-    );
     return this;
   },
 };
@@ -658,114 +627,10 @@ module.exports = {
     },
   },
   sections: {
-    clientsTab: {
-      selector:
-        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Clients")]]//div[contains(@class, "base-full-width")]',
-      locateStrategy: 'xpath',
-      commands: [clientTabCommands],
-      elements: {
-        searchField: {
-          selector: '//*[contains(@data-test, "search-clients-input")]',
-          locateStrategy: 'xpath',
-        },
-        addClientButton: {
-          selector: '//button[.//*[contains(text(), "add client")]]',
-          locateStrategy: 'xpath',
-        },
-        listNameHeader: {
-          selector: '//th[span[contains(text(),"Name")]]',
-          locateStrategy: 'xpath',
-        },
-        listIDHeader: {
-          selector: '//th[span[contains(text(),"ID")]]',
-          locateStrategy: 'xpath',
-        },
-        listStatusHeader: {
-          selector: '//th[span[contains(text(),"Status")]]',
-          locateStrategy: 'xpath',
-        },
-        testServiceListItem: {
-          selector: '//tbody//span[contains(text(),"TestService")]',
-          locateStrategy: 'xpath',
-        },
-        testGovListItem: {
-          selector: '//tbody//span[contains(text(),"TestGov")]',
-          locateStrategy: 'xpath',
-        },
-      },
-    },
-    keysTab: {
-      selector:
-        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
-      locateStrategy: 'xpath',
-      commands: [keysTabCommands],
-      elements: {
-        signAndAuthKeysTab: {
-          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
-          locateStrategy: 'xpath',
-        },
-        APIKeysTab: {
-          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
-          locateStrategy: 'xpath',
-        },
-        securityServerTLSKeyTab: {
-          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Security Server TLS Key "]',
-          locateStrategy: 'xpath',
-        },
-        tokenName: {
-          selector: '//*[contains(@data-test, "token-name")]',
-          locateStrategy: 'xpath',
-        },
-        createAPIKeyButton: {
-          selector: '//*[contains(@data-test, "api-key-create-key-button")]',
-          locateStrategy: 'xpath',
-        },
-        generateKeyButton: {
-          selector: '//*[contains(@data-test, "security-server-tls-certificate-generate-key-button")]',
-          locateStrategy: 'xpath',
-        },
-        exportCertButton: {
-          selector: '//*[contains(@data-test, "security-server-tls-certificate-export-certificate-button")]',
-          locateStrategy: 'xpath',
-        },
-      },
-    },
-    diagnosticsTab: {
-      selector:
-        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Diagnostics")]]//div[contains(@class, "base-full-width")]',
-      locateStrategy: 'xpath',
-      commands: [],
-      elements: {
-        globalConfiguration: {
-          selector: '//span[text()="Global configuration"]',
-          locateStrategy: 'xpath',
-        },
-      },
-    },
-    settingsTab: {
-      selector:
-        '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Settings")]]//div[contains(@class, "base-full-width")]',
-      locateStrategy: 'xpath',
-      commands: [settingsTabCommands],
-      elements: {
-        systemParametersTab: {
-          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
-          locateStrategy: 'xpath',
-        },
-        backupAndRestoreTab: {
-          selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
-          locateStrategy: 'xpath',
-        },
-        anchorDownloadButton: {
-          selector: '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
-          locateStrategy: 'xpath',
-        },
-        backupButton: {
-          selector: '//*[contains(@data-test, "backup-create-configuration")]',
-          locateStrategy: 'xpath',
-        },
-      },
-    },
+    clientsTab: clientsTab,
+    keysTab: keysTab,
+    diagnosticsTab: diagnosticsTab,
+    settingsTab: settingsTab,
     clientInfo: {
       selector: 'h1.display-1',
       locateStrategy: 'css selector',
