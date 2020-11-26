@@ -53,6 +53,9 @@ The document is intended for readers with a moderate knowledge of Linux server m
 ## 2.1 Prerequisites to Installation
 The Security Server sidecar installation requires an existing X-Road Central server installed and configured and a installation of Docker.
 
+Building with Docker BuildKit can slightly reduce the size of the resulting container image.
+See <https://docs.docker.com/develop/develop-images/build_enhancements/> for more information.
+
 ## 2.2 X-Road Security Server sidecar images
 Security Server sidecar server has different configurations combined with the versions (current supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
 All of the images can act as a provider or consumer Security Servers.

@@ -17,23 +17,7 @@ The X-Road Security Server sidecar software is built from pre-built packages dow
 
 The Security Server sidecar can be installed both on physical and virtualized hardware. The installation script setup_security_server_sidecar.sh runs on Unix-based operating systems (of the latter, Mac OS and Ubuntu have been tested).
 
-### 1.2 Prerequisites to installation
-
-The Security Server sidecar installation requires an existing installation of Docker.
-
-Building with Docker BuildKit can slightly reduce the size of the resulting container image.
-See <https://docs.docker.com/develop/develop-images/build_enhancements/> for more information.
-
-### 1.3 Requirements for the Security Server Sidecar
-
-Minimum recommended docker engine configuration to run the security server sidecar container:
-
-- CPUs: 2
-- Memory: 2 GiB
-- Swap: 1 GiB
-- Disk space: 2 GiB
-
-### 1.4 Reference Data
+### 1.2 Reference Data
 
 *Note*: The information in empty cells should be determined before the server's installation, by the person performing the installation.
 
@@ -61,7 +45,7 @@ Note (1): The TCP port 80 in the container is mapped to the user-defined TCP por
 
 Note (2): The TCP port 4000 in the container is mapped to the user-defined TCP port number provided (ref. data 1.2) on the Docker host.
 
-### 1.5 Installation
+### 1.3 Installation
 
 To install the Security Server sidecar in a local development environment, run the script setup_security_server_sidecar.sh providing the parameters in the order shown (reference data 1.1, 1.2, 1.3, 1.4):
 
@@ -94,72 +78,8 @@ The script setup_security_server_sidecar.sh will:
   - Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services.
   - Create sidecar-config directory on the host and mount it into the /etc/xroad config directory on the container.
 
-### 1.6 Installation with remote server configuration database
 
-It is possible to configure the security server sidecar to use a remote database, instead of the default locally installed one. To do that, you need to provide the remote database server hostname and port number as arguments when running the setup_security_server_sidecar.sh script in the order described below. Before running the script, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password:
-
-  ```bash
-  export XROAD_DB_PASSWORD=<remote database administrator master password>
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port>
-  ```
-The user for the connection will be the default database user "postgres".
-The following configuration is needed on the remote database server to allow external access to the remote PostgreSQL database from the security server sidecar:
-
-- Edit the PostgreSQL configuration file in `/etc/postgresql/10/main/postgresql.conf` to enable listening on external addresses and to verify the port. NOTE: If you change these settings, the postgresql service must be restarted.
-
-  ```bash
-  [...]
-    # - Connection Settings -
-
-    listen_addresses = '*'  # what IP address(es) to listen on;
-                            # comma-separated list of addresses;
-                            # defaults to 'localhost'; use '*' for all
-                            # (change requires restart)
-    port = 5432             # (change requires restart)
-  [...]
-  ```
-
-- Edit the PostgreSQL client authentication configuration file in `pg_hba.conf` to enable connections from outside localhost. Replace the IP `127.0.0.1/32` with `0.0.0.0/0`.
-
-  ```bash
-  [...]
-  # IPv4 local connections:
-  host    all             all             0.0.0.0/0            md5
-  [...]
-  ```
-
-- If the database is in your local machine you have to use the interface ip that uses the host to connect to the docker containers. You can check this ip by running "docker inspect container_name" and checking the gateway property.
-
-- The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database.
-
-#### 1.6.1 Reconfigure external database address after initialization
-
-It is possible to change the external database after the initialization while the Sidecar container is running. This will not recreate the database, so we need to make sure that the 'serverconf' database and a user with granted permissions to access it are already created. To change the database host we need to:
-- Run a new command on the sidecar container:
-```bash
-docker exec -it <sidecar_container_name> bash
-  ```
-- Inside the container open in a text editor (we can install any of the command line text editors like nano, vi ...) the `etc/xroad/db.properties` file:
- ```bash
-nano etc/xroad/db.properties
-  ```
-- Replace the connection host, the username and password with the properties of the new database:
-```bash
-  [...]
-    # -db.properties -
-serverconf.hibernate.connection.url = jdbc:postgresql://<new_host_ip>:5432/serverconf
-serverconf.hibernate.connection.username = <new_user>
-serverconf.hibernate.connection.password = <new_password>
-  [...]
-  ```
-  If other components like 'message_log' or 'op_monitor' are also configured in the `etc/xroad/db.properties` file to use an external database, we must change their properties in the same way as in the example above.
-
-- After the properties are changed, save and close the  `etc/xroad/db.properties` file  and restart the services by running:
-```bash
- supervisorctl restart all
-  ```
-
-### 1.7 Volume support
+### 1.4 Volume support
 
 It is possible to configure security server sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
 For adding volume support we have to modify the docker run sentence inside the setup_security_server_sidecar.sh script and add the volume support:
@@ -173,15 +93,15 @@ For example:
   [...]
   ```
 
-### 1.8 Finnish settings
+### 1.5 Finnish settings
   To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
 
-### 1.9 Security Server Sidecar
+### 1.6 Security Server Sidecar
   To install the Security Server Sidecar provider, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/provider/Dockerfile". The Sidecar provider is based on the Sidecar image and adds support for message logging, both for internal or remote database setup (more info about remote database support in section 1.6).
   To install the Security Server Sidecar provider with Finnish settings, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/provider/fi/Dockerfile"
 
 
-### 1.10 Estimated time for new Security Server Sidecar Installation
+### 1.7 Estimated time for new Security Server Sidecar Installation
 
 The installation process from scratch has been tested in the following environment:
 - Operating System: Ubuntu 18.04.4 LTS.
@@ -206,7 +126,7 @@ The timing results were:
 Based on the study, the installation and configuration of the Sidecar from scratch can take approximately 11 minutes for an advanced user.
 
 
-### 1.11 Logging Level
+### 1.8 Logging Level
 
 It is possible to configure the Security Server Sidecar to adjust the logging level so that it is less verbose. To do this, we must set the environment variable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO.
 For setting the environment variable we can either edit the /etc/environment file or run:
