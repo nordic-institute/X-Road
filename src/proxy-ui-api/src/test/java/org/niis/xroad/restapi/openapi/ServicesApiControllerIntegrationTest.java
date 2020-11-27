@@ -57,12 +57,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.service.AccessRightService.AccessRightNotFoundException.ERROR_ACCESSRIGHT_NOT_FOUND;
-import static org.niis.xroad.restapi.service.ClientNotFoundException.ERROR_CLIENT_NOT_FOUND;
-import static org.niis.xroad.restapi.service.InvalidHttpsUrlException.ERROR_INVALID_HTTPS_URL;
-import static org.niis.xroad.restapi.service.ServiceNotFoundException.ERROR_SERVICE_NOT_FOUND;
-import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_ERROR;
-import static org.niis.xroad.restapi.service.ServiceService.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_HTTPS_URL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_SERVER_SSL_ERROR;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR;
 
 /**
  * Test ServicesApiController

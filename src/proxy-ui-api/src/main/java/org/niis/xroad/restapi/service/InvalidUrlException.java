@@ -27,11 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_URL;
+
 public class InvalidUrlException extends ServiceException {
-
-    public static final String ERROR_MALFORMED_URL = "malformed_url";
-
-
     public InvalidUrlException() {
         super(createError());
     }

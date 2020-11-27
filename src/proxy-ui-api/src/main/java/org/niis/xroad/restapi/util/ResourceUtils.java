@@ -33,12 +33,12 @@ import org.springframework.core.io.Resource;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESOURCE_READ;
+
 /**
  * Resource utils
  */
 public final class ResourceUtils {
-    public static final String ERROR_RESOURCE_READ = "resource_read_failed";
-
     private ResourceUtils() {
         // noop
     }
