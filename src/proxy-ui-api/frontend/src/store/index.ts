@@ -42,7 +42,7 @@ import VuexPersistence from 'vuex-persist';
 Vue.use(Vuex);
 
 const vuexLocal = new VuexPersistence({
-  storage: window.sessionStorage,
+  storage: window.localStorage,
   modules: ['user'],
 });
 
