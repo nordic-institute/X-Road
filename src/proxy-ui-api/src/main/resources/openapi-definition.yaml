@@ -2086,7 +2086,7 @@ paths:
           This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
           If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
           <ul>
-            <li>server code has already been set for this Security Server (warning code <code>init_serverconf_exists</code>)</li>
+            <li>server code has already been set for this Security Server (warning code <code>init_servercode_exists</code>)</li>
             <li>server owner has already been set for this Security Server(warning code <code>init_server_owner_exists</code>)</li>
             <li>software token has already been initialized in this Security Server(warning code <code>init_software_token_initialized</code>)</li>
             <li>the provided owner member is unregistered(warning code <code>init_unregistered_member</code>)</li>
@@ -4993,7 +4993,7 @@ components:
           - code: init_unregistered_member
             metadata:
               - CS/ORG/123
-          - code: init_serverconf_exists
+          - code: init_servercode_exists
           - code: init_server_owner_exists
           - code: init_software_token_initialized
     DeleteKeyWarningExample:

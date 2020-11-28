@@ -51,6 +51,8 @@ import java.io.IOException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
+
 /**
  * Operations related to internal tls certificates
  */
@@ -59,8 +61,6 @@ import java.security.cert.X509Certificate;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
-
-    public static final String KEY_CERT_GENERATION_FAILED = "key_and_cert_generation_failed";
     public static final String IMPORT_INTERNAL_CERT_FAILED = "import_internal_cert_failed";
 
     private static final String CERT_PEM_FILENAME = "./cert.pem";
@@ -153,7 +153,7 @@ public class InternalTlsCertificateService {
                     generateCertScriptArgs.split("\\s+"));
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
             log.error("Failed to generate internal TLS key and cert", e);
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(KEY_CERT_GENERATION_FAILED));
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_KEY_CERT_GENERATION_FAILED));
         }
         // audit log hash of generated cert
         X509Certificate generatedCert = internalTlsCertificateRepository.getInternalTlsCertificate();

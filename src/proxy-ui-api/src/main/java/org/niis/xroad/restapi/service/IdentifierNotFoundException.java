@@ -27,10 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_IDENTIFIER_NOT_FOUND;
+
 public class IdentifierNotFoundException extends NotFoundException {
-
-    public static final String ERROR_IDENTIFIER_NOT_FOUND = "identifier_not_found";
-
     public IdentifierNotFoundException() {
         super(new ErrorDeviation(ERROR_IDENTIFIER_NOT_FOUND));
     }

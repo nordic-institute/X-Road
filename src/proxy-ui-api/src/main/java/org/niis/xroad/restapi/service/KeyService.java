@@ -57,6 +57,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHA
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
  * Service that handles keys
@@ -66,9 +67,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class KeyService {
-
-    public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
-
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;

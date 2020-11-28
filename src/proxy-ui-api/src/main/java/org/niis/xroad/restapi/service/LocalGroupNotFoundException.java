@@ -27,11 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP_NOT_FOUND;
+
 /**
  * If local group was not found
  */
 public class LocalGroupNotFoundException extends NotFoundException {
-    public static final String ERROR_LOCAL_GROUP_NOT_FOUND = "local_group_not_found";
     public LocalGroupNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_LOCAL_GROUP_NOT_FOUND));
     }

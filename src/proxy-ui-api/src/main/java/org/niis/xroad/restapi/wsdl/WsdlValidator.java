@@ -40,6 +40,8 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE;
+
 /**
  * WsdlValidator as done in X-Road addons: wsdlvalidator
  */
@@ -116,9 +118,6 @@ public class WsdlValidator {
      * Thrown if WSDL validation fails
      */
     public static class WsdlValidatorNotExecutableException extends WsdlValidationException {
-
-        public static final String ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE = "wsdl_validator_not_executable";
-
         public WsdlValidatorNotExecutableException(Throwable t) {
             super(t, new ErrorDeviation(ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE));
         }

@@ -23,4 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-// Empty file for git to notice this directory
+
+const diagnosticsTab = {
+  url: `${process.env.VUE_DEV_SERVER_URL}/diagnostics`,
+  selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Diagnostics")]]//div[contains(@class, "base-full-width")]',
+  locateStrategy: 'xpath',
+  commands: [],
+  elements: {
+    globalConfiguration: {
+      selector: '//span[text()="Global configuration"]',
+      locateStrategy: 'xpath',
+    },
+  },
+};
+
+module.exports = diagnosticsTab;
