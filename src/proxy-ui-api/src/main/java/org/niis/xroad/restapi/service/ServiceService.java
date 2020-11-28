@@ -57,6 +57,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TIMEOUT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TLS_AUTH;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_SERVER_SSL_ERROR;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR;
 
 /**
  * service class for handling services
@@ -66,10 +68,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL;
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class ServiceService {
-
-    public static final String WARNING_INTERNAL_SERVER_SSL_HANDSHAKE_ERROR = "internal_server_ssl_handshake_error";
-    public static final String WARNING_INTERNAL_SERVER_SSL_ERROR = "internal_server_ssl_error";
-
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final UrlValidator urlValidator;

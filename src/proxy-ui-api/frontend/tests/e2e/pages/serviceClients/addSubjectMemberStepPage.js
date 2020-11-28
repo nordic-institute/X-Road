@@ -24,23 +24,28 @@
  * THE SOFTWARE.
  */
 
-const commands = [{
-  setFilter: function(text) {
-    this.clearValue2('@filterField');
-    this.setValue('@filterField', text);
-    return this;
-  }
-}];
+const commands = [
+  {
+    setFilter: function (text) {
+      this.clearValue2('@filterField');
+      this.setValue('@filterField', text);
+      return this;
+    },
+  },
+];
 
 module.exports = {
-  url: (subsystemId) => `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}/add`,
+  url: (subsystemId) =>
+    `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}/add`,
   commands: commands,
   elements: {
     wizardStepIndicator: {
       selector: '//span[contains(@class, "primary") and contains(text(), "1")]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
     filterField: {
       selector: '//input[contains(@data-test, "search-service-client")]',
-      locateStrategy: 'xpath' },
-  }
+      locateStrategy: 'xpath',
+    },
+  },
 };

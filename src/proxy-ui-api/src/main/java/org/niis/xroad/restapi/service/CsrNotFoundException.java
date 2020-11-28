@@ -27,12 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CSR_NOT_FOUND;
+
 /**
  * Thrown if Certificate sign request was not found
  */
 public class CsrNotFoundException extends NotFoundException {
-    public static final String ERROR_CSR_NOT_FOUND = "csr_not_found";
-
     public CsrNotFoundException(String s) {
         super(s, createError());        }
 

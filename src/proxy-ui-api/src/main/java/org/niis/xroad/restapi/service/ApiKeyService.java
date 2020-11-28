@@ -47,6 +47,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_API_KEY_NOT_FOUND;
+
 /**
  * ApiKey service.
  */
@@ -222,8 +224,6 @@ public class ApiKeyService {
     }
 
     public static class ApiKeyNotFoundException extends NotFoundException {
-        public static final String ERROR_API_KEY_NOT_FOUND = "api_key_not_found";
-
         public ApiKeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_API_KEY_NOT_FOUND));
         }

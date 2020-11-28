@@ -39,14 +39,7 @@ import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.KeyUsage;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
-import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
-import org.niis.xroad.restapi.service.CertificateNotFoundException;
-import org.niis.xroad.restapi.service.ClientNotFoundException;
-import org.niis.xroad.restapi.service.CsrNotFoundException;
-import org.niis.xroad.restapi.service.InvalidCertificateException;
-import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
-import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -84,7 +77,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
-import static org.niis.xroad.restapi.service.TokenCertificateService.AuthCertificateNotSupportedException.AUTH_CERT_NOT_SUPPORTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_AUTH_CERT_NOT_SUPPORTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_WRONG_USAGE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CLIENT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CSR_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_NOT_FOUND;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getMockAuthCertificate;
@@ -198,7 +198,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(ClientNotFoundException.ERROR_CLIENT_NOT_FOUND, error.getCode());
+            assertEquals(ERROR_CLIENT_NOT_FOUND, error.getCode());
             assertEquals(FormatUtils.xRoadIdToEncodedId(notFoundId), error.getMetadata().get(0));
         }
     }
@@ -214,7 +214,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (ConflictException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(CertificateAlreadyExistsException.ERROR_CERTIFICATE_ALREADY_EXISTS, error.getCode());
+            assertEquals(ERROR_CERTIFICATE_ALREADY_EXISTS, error.getCode());
         }
     }
 
@@ -229,7 +229,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(InvalidCertificateException.INVALID_CERT, error.getCode());
+            assertEquals(ERROR_INVALID_CERT, error.getCode());
         }
     }
 
@@ -244,8 +244,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(TokenCertificateService.WrongCertificateUsageException.ERROR_CERTIFICATE_WRONG_USAGE,
-                    error.getCode());
+            assertEquals(ERROR_CERTIFICATE_WRONG_USAGE, error.getCode());
         }
     }
 
@@ -260,7 +259,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (ConflictException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(CsrNotFoundException.ERROR_CSR_NOT_FOUND, error.getCode());
+            assertEquals(ERROR_CSR_NOT_FOUND, error.getCode());
         }
     }
 
@@ -275,7 +274,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(KeyNotFoundException.ERROR_KEY_NOT_FOUND, error.getCode());
+            assertEquals(ERROR_KEY_NOT_FOUND, error.getCode());
         }
     }
 
@@ -287,7 +286,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificate(body);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(InvalidCertificateException.INVALID_CERT, error.getCode());
+            assertEquals(ERROR_INVALID_CERT, error.getCode());
         }
     }
 
@@ -368,7 +367,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.getCertificate("knock knock");
         } catch (ResourceNotFoundException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
+            assertEquals(ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
         }
     }
 
@@ -404,7 +403,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificateFromToken(MOCK_CERTIFICATE_HASH);
         } catch (ResourceNotFoundException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
+            assertEquals(ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
         }
     }
 
@@ -421,7 +420,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.importCertificateFromToken(MOCK_AUTH_CERTIFICATE_HASH);
         } catch (BadRequestException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(AUTH_CERT_NOT_SUPPORTED, error.getCode());
+            assertEquals(ERROR_AUTH_CERT_NOT_SUPPORTED, error.getCode());
         }
     }
 
@@ -492,7 +491,7 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
             tokenCertificatesApiController.deleteCertificate("knock knock");
         } catch (ResourceNotFoundException e) {
             ErrorDeviation error = e.getErrorDeviation();
-            assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
+            assertEquals(ERROR_CERTIFICATE_NOT_FOUND, error.getCode());
         }
     }
 

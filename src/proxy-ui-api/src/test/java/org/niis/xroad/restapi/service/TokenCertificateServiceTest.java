@@ -87,6 +87,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID;
 import static org.niis.xroad.restapi.service.TokenCertificateService.CERT_NOT_FOUND_FAULT_CODE;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_AUTH_CERTIFICATE_HASH;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.MOCK_CERTIFICATE_HASH;
@@ -490,7 +491,7 @@ public class TokenCertificateServiceTest {
             fail("should have thrown exception");
         } catch (CertificateNotFoundException expected) {
             ErrorDeviation errorDeviation = expected.getErrorDeviation();
-            assertEquals(CertificateNotFoundException.ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, errorDeviation.getCode());
+            assertEquals(ERROR_CERTIFICATE_NOT_FOUND_WITH_ID, errorDeviation.getCode());
             assertEquals(1, errorDeviation.getMetadata().size());
             assertEquals(SIGNER_EX_CERT_WITH_ID_NOT_FOUND_HASH, errorDeviation.getMetadata().iterator().next());
         }

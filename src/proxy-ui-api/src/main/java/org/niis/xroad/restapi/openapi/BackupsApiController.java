@@ -56,6 +56,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.BACKUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_BACKUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.RESTORE_BACKUP;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_BACKUP;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 
 /**
  * Backups controller
@@ -65,9 +67,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_BACKU
 @Slf4j
 @PreAuthorize("denyAll")
 public class BackupsApiController implements BackupsApi {
-    public static final String GENERATE_BACKUP_INTERRUPTED = "generate_backup_interrupted";
-    public static final String RESTORE_INTERRUPTED = "backup_restore_interrupted";
-
     private final BackupService backupService;
     private final RestoreService restoreService;
     private final BackupConverter backupConverter;
@@ -124,7 +123,7 @@ public class BackupsApiController implements BackupsApi {
             BackupFile backupFile = backupService.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(GENERATE_BACKUP_INTERRUPTED));
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
         }
     }
 
@@ -155,7 +154,7 @@ public class BackupsApiController implements BackupsApi {
         } catch (BackupFileNotFoundException e) {
             throw new BadRequestException(e);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(RESTORE_INTERRUPTED));
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_BACKUP_RESTORE_INTERRUPTED));
         } catch (RestoreProcessFailedException e) {
             throw new InternalServerErrorException(e);
         }

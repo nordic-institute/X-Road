@@ -37,7 +37,7 @@ import java.util.List;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSDL;
 
 /**
  * Test WSDLValidator

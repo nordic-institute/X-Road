@@ -23,4 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-// Empty file for git to notice this directory
+var nightwatch = require('./nightwatch.json');
+
+module.exports = ((settings) => {
+  settings.test_settings.chrome.desiredCapabilities.chromeOptions.prefs.download.default_directory =
+    __dirname + '/tests/e2e/testdata';
+  return settings;
+})(nightwatch);

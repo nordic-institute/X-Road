@@ -27,14 +27,14 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACTION_NOT_POSSIBLE;
+
 /**
  * Thrown if attempted to do an action (e.g. DELETE) on an object,
  * but action is not possible in object's current state
  */
 public class ActionNotPossibleException extends ServiceException {
-    public static final String ACTION_NOT_POSSIBLE = "action_not_possible";
-
     public ActionNotPossibleException(String msg) {
-        super(msg, new ErrorDeviation(ACTION_NOT_POSSIBLE));
+        super(msg, new ErrorDeviation(ERROR_ACTION_NOT_POSSIBLE));
     }
 }

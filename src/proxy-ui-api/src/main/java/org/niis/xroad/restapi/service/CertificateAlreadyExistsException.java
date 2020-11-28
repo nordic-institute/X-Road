@@ -27,11 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CERTIFICATE_ALREADY_EXISTS;
+
 /**
  * If trying to add certificate which already exists
  */
 public class CertificateAlreadyExistsException extends ServiceException {
-    public static final String ERROR_CERTIFICATE_ALREADY_EXISTS = "certificate_already_exists";
     public CertificateAlreadyExistsException(String s) {
         super(s, new ErrorDeviation(ERROR_CERTIFICATE_ALREADY_EXISTS));
     }
