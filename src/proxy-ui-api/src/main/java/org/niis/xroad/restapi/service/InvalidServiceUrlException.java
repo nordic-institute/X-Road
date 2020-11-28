@@ -29,10 +29,9 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_URL;
+
 public class InvalidServiceUrlException extends ServiceException {
-
-    public static final String ERROR_INVALID_SERVICE_URL = "invalid_service_url";
-
     public InvalidServiceUrlException(List<String> metadata) {
         super(new ErrorDeviation(ERROR_INVALID_SERVICE_URL, metadata));
     }

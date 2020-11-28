@@ -414,6 +414,13 @@
       "registered": "Registered",
       "deletion": "Deletion in progress",
       "globalError": "Global error"
+    },
+    "tokenStatus": {
+      "available": "",
+      "active": "",
+      "inactive": "Inactive",
+      "unavailable": "Blocked",
+      "unsaved": "Not saved"
     }
   },
   "ssTlsCertificate": {
@@ -678,7 +685,7 @@
     "warning": {
       "init_unregistered_member": "Member is unregistered",
       "init_server_id_exists": "Server id exists",
-      "init_serverconf_exists": "Serverconf exists",
+      "init_servercode_exists": "Servercode exists",
       "init_server_owner_exists": "Server owner exists",
       "init_software_token_initialized": "Software token is initialised"
     }

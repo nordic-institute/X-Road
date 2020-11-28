@@ -13,7 +13,9 @@
     "**/.*",
     "src/openapi-types/",
     "**/openapi-types.ts",
-    "scripts/dtsgen-wrapper.js"
+    "scripts/dtsgen-wrapper.js",
+    "tests/e2e/testdata/*.gz",
+    "tests/e2e/testdata/*.gz.crdownload"
   ],
   "license": "../LICENSE.txt",
   "licenseFormats": {

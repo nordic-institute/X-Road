@@ -27,9 +27,9 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class GlobalConfOutdatedException extends ServiceException {
-    public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OUTDATED_GLOBALCONF;
 
+public class GlobalConfOutdatedException extends ServiceException {
     public GlobalConfOutdatedException(Throwable t) {
         super(t, new ErrorDeviation(ERROR_OUTDATED_GLOBALCONF));
     }

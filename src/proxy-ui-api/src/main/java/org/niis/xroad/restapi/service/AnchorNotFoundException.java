@@ -27,14 +27,13 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_NOT_FOUND;
+
 /**
  * If anchor file was not found
  */
 public class AnchorNotFoundException extends NotFoundException {
-
-    public static final String ERROR_ANCHOR_NOT_FOUND = "anchor_not_found";
-
-    public AnchorNotFoundException(String s)  {
+    public AnchorNotFoundException(String s) {
         super(s, new ErrorDeviation(ERROR_ANCHOR_NOT_FOUND));
     }
 }
