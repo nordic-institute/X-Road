@@ -25,7 +25,7 @@
  -->
 <template>
   <div data-test="finish-content">
-    <div class="wizard-step-form-content">
+    <div class="wizard-step-form-content px-12 pt-10">
       <p>{{ $t('wizard.finish.infoLine1') }}</p>
       <p>{{ $t('wizard.finish.infoLine2') }}</p>
       <br />
@@ -49,33 +49,29 @@
     </div>
 
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="disableCancel"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
+      <large-button
+        outlined
+        @click="cancel"
+        :disabled="disableCancel"
+        data-test="cancel-button"
+        >{{ $t('action.cancel') }}</large-button
+      >
 
-      <div>
-        <large-button
-          @click="previous"
-          outlined
-          :disabled="disableCancel"
-          class="previous-button"
-          data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
+      <large-button
+        @click="previous"
+        outlined
+        :disabled="disableCancel"
+        class="previous-button"
+        data-test="previous-button"
+        >{{ $t('action.previous') }}</large-button
+      >
 
-        <large-button
-          @click="done"
-          :loading="submitLoading"
-          data-test="submit-button"
-          >{{ $t('action.submit') }}</large-button
-        >
-      </div>
+      <large-button
+        @click="done"
+        :loading="submitLoading"
+        data-test="submit-button"
+        >{{ $t('action.submit') }}</large-button
+      >
     </div>
     <!-- Accept warnings -->
     <warningDialog
@@ -252,5 +248,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 </style>

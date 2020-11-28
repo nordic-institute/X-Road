@@ -33,7 +33,7 @@
     class="data-table-wrapper xrd-view-common"
   >
     <div class="table-toolbar pb-3 pt-5">
-      <div class="title-search">
+      <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
         <v-text-field
           v-model="search"
@@ -489,16 +489,6 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-.title-search {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
-
-  .xrd-view-title {
-    margin-right: 20px;
-  }
-}
 
 .icon-member {
   padding-left: 0;
