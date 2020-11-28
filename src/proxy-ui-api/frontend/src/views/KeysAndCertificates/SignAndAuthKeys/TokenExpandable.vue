@@ -146,7 +146,6 @@ import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';
-import FileUpload from '@/components/ui/FileUpload.vue';
 import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
 import { Prop } from 'vue/types/options';
 import {
@@ -158,7 +157,6 @@ export default Vue.extend({
   components: {
     KeysTable,
     UnknownKeysTable,
-    FileUpload,
     TokenLoggingButton,
   },
   props: {
