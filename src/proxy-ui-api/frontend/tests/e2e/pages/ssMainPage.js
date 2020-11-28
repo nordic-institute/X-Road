@@ -98,41 +98,48 @@ var certificatePopupCommands = {
     this.click('@certificateInfoCloseButton');
     return this;
   },
-  deleteCert: function() {
+  deleteCert: function () {
     this.api.keys(this.api.Keys.PAGEUP);
     this.click('@deleteButton');
     return this;
-  }
+  },
 };
 
 var clientInternalServersCommands = {
-  addCert: function(certfile) {
-    this.api.setValue('//input[@type="file"]', require('path').resolve(__dirname + certfile));
+  addCert: function (certfile) {
+    this.api.setValue(
+      '//input[@type="file"]',
+      require('path').resolve(__dirname + certfile),
+    );
     return this;
   },
-  openAddCertDialog: function() {
+  openAddCertDialog: function () {
     this.click('@addButton');
     return this;
   },
-  exportCert: function() {
+  exportCert: function () {
     this.click('@exportButton');
     this.api.pause(1000);
     this.api.keys(this.api.Keys.ENTER);
     return this;
   },
-  openTLSCert: function(filter) {
+  openTLSCert: function () {
     this.click('@tlsCertificate');
     return this;
   },
-  selectConnectionType: function(type) {
+  selectConnectionType: function (type) {
     this.click('@connectionTypeMenu');
 
     this.api.pause(1000);
     // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click('//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"'+type+'")]');
+    this.api.click(
+      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
+        type +
+        '")]',
+    );
 
     return this;
-  }
+  },
 };
 
 var localGroupPopupCommands = {
@@ -681,23 +688,30 @@ module.exports = {
           },
         },
         internalServers: {
-          selector: '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "internal servers")]]',
+          selector:
+            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "internal servers")]]',
           locateStrategy: 'xpath',
           commands: [clientInternalServersCommands],
           elements: {
             addButton: {
               selector: '//button[.//*[contains(text(), "Add")]]',
-              locateStrategy: 'xpath' },
+              locateStrategy: 'xpath',
+            },
             exportButton: {
               selector: '//button[.//*[contains(text(), "Export")]]',
-              locateStrategy: 'xpath' },
+              locateStrategy: 'xpath',
+            },
             connectionTypeMenu: {
-              selector: '//div[contains(@class, "v-input") and ./preceding-sibling::*[contains(text(), "Connection type")]]//div[contains(@class, "v-select__selection")]',
-              locateStrategy: 'xpath' },
+              selector:
+                '//div[contains(@class, "v-input") and ./preceding-sibling::*[contains(text(), "Connection type")]]//div[contains(@class, "v-select__selection")]',
+              locateStrategy: 'xpath',
+            },
             tlsCertificate: {
-              selector: '//table[contains(@class, "server-certificates")]//span[contains(@class, "certificate-link")]',
-              locateStrategy: 'xpath' }
-          }
+              selector:
+                '//table[contains(@class, "server-certificates")]//span[contains(@class, "certificate-link")]',
+              locateStrategy: 'xpath',
+            },
+          },
         },
         localGroups: {
           selector:
@@ -889,12 +903,12 @@ module.exports = {
       elements: {
         certificateInfoCloseButton: {
           selector: 'div.cert-dialog-header #close-x',
-          locateStrategy: 'css selector'
+          locateStrategy: 'css selector',
         },
         deleteButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
-          locateStrategy: 'xpath'
-        }
+          locateStrategy: 'xpath',
+        },
       },
     },
     localGroupPopup: {
@@ -1480,17 +1494,20 @@ module.exports = {
       },
     },
     deleteCertPopup: {
-      selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Delete certificate?")]]',
+      selector:
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Delete certificate?")]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
         yesButton: {
           selector: '//button[@data-test="dialog-save-button"]',
-          locateStrategy: 'xpath' },
+          locateStrategy: 'xpath',
+        },
         cancelButton: {
           selector: '//button[@data-test="dialog-cancel-button"]',
-          locateStrategy: 'xpath' }
-      }
-    }
-  }
+          locateStrategy: 'xpath',
+        },
+      },
+    },
+  },
 };

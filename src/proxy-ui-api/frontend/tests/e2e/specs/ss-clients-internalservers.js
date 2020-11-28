@@ -24,9 +24,11 @@
  * THE SOFTWARE.
  */
 
+var fs = require('fs');
+
 module.exports = {
   tags: ['ss', 'clients', 'internalservers'],
-  'Security server client internal servers page': browser => {
+  'Security server client internal servers page': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -35,18 +37,20 @@ module.exports = {
     const deletePopup = mainPage.section.deleteCertPopup;
     const clientInternalServers = clientInfo.section.internalServers;
 
-    fs = require('fs');
-
     // Delete old test file
     try {
-      fs.unlinkSync(__dirname + browser.globals.e2etest_testdata + '/' + browser.globals.export_cert);
+      fs.unlinkSync(
+        __dirname +
+          browser.globals.e2etest_testdata +
+          '/' +
+          browser.globals.export_cert,
+      );
     } catch (err) {
-      if(err && err.code == 'ENOENT') {
+      if (err && err.code == 'ENOENT') {
         // no file to delete, do nothing
       } else {
         throw err;
       }
-      
     }
 
     // Open SUT and check that page is loaded
@@ -63,7 +67,10 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openInternalServersTab();
     browser.waitForElementVisible(clientInternalServers);
-    browser.assert.containsText(clientInternalServers.elements.connectionTypeMenu, 'HTTPS NO AUTH');
+    browser.assert.containsText(
+      clientInternalServers.elements.connectionTypeMenu,
+      'HTTPS NO AUTH',
+    );
 
     // Open TestService Internal Servers
     mainPage.openClientsTab();
@@ -74,45 +81,99 @@ module.exports = {
     browser.waitForElementVisible(clientInternalServers);
 
     // Change connection type
-    browser.assert.containsText(clientInternalServers.elements.connectionTypeMenu, 'HTTPS');
-    browser.assert.not.containsText(clientInternalServers.elements.connectionTypeMenu, 'HTTPS NO AUTH');
+    browser.assert.containsText(
+      clientInternalServers.elements.connectionTypeMenu,
+      'HTTPS',
+    );
+    browser.assert.not.containsText(
+      clientInternalServers.elements.connectionTypeMenu,
+      'HTTPS NO AUTH',
+    );
     clientInternalServers.selectConnectionType('HTTP');
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Connection type updated');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Connection type updated',
+    );
     mainPage.closeSnackbar();
-    browser.assert.containsText(clientInternalServers.elements.connectionTypeMenu, 'HTTP');
-    browser.assert.not.containsText(clientInternalServers.elements.connectionTypeMenu, 'HTTPS');
+    browser.assert.containsText(
+      clientInternalServers.elements.connectionTypeMenu,
+      'HTTP',
+    );
+    browser.assert.not.containsText(
+      clientInternalServers.elements.connectionTypeMenu,
+      'HTTPS',
+    );
 
     // Add certificate
-    clientInternalServers.addCert(browser.globals.e2etest_testdata + '/' + browser.globals.test_cert);
-    browser.assert.containsText(clientInternalServers.elements.tlsCertificate, '29:F4:6E:58:F2:ED:A0:6A:AC:37:10:95:35:F8:7A:79:B6:C3:70:0E');
-    clientInternalServers.addCert(browser.globals.e2etest_testdata + '/' + browser.globals.test_cert);
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Certificate already exists');
+    clientInternalServers.addCert(
+      browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
+    );
+    browser.assert.containsText(
+      clientInternalServers.elements.tlsCertificate,
+      '29:F4:6E:58:F2:ED:A0:6A:AC:37:10:95:35:F8:7A:79:B6:C3:70:0E',
+    );
+    clientInternalServers.addCert(
+      browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
+    );
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Certificate already exists',
+    );
     mainPage.closeSnackbar();
 
-    // Open and verify certificate info 
+    // Open and verify certificate info
     clientInternalServers.openTLSCert();
-    browser.waitForElementVisible(certificatePopup); 
+    browser.waitForElementVisible(certificatePopup);
 
-    browser.assert.containsText(certificatePopup, "CN=restuitest-ss1.i.x-road.rocks");
-    browser.assert.containsText(certificatePopup, "SHA256withRSA");
-    browser.assert.containsText(certificatePopup, "29:F4:6E:58:F2:ED:A0:6A:AC:37:10:95:35:F8:7A:79:B6:C3:70:0E");
+    browser.assert.containsText(
+      certificatePopup,
+      'CN=restuitest-ss1.i.x-road.rocks',
+    );
+    browser.assert.containsText(certificatePopup, 'SHA256withRSA');
+    browser.assert.containsText(
+      certificatePopup,
+      '29:F4:6E:58:F2:ED:A0:6A:AC:37:10:95:35:F8:7A:79:B6:C3:70:0E',
+    );
 
     // Delete cert
     certificatePopup.deleteCert();
-    browser.waitForElementVisible(certificatePopup); 
+    browser.waitForElementVisible(certificatePopup);
     deletePopup.confirm();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Certificate deleted');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Certificate deleted',
+    );
     mainPage.closeSnackbar();
-    browser.waitForElementNotPresent(clientInternalServers.elements.tlsCertificate); 
- 
+    browser.waitForElementNotPresent(
+      clientInternalServers.elements.tlsCertificate,
+    );
+
     // Export certificate
-    browser.assert.equal(fs.existsSync(__dirname + browser.globals.e2etest_testdata + '/' + browser.globals.export_cert), false, 'Export output file should not exist before export');
+    browser.assert.equal(
+      fs.existsSync(
+        __dirname +
+          browser.globals.e2etest_testdata +
+          '/' +
+          browser.globals.export_cert,
+      ),
+      false,
+      'Export output file should not exist before export',
+    );
     clientInternalServers.exportCert();
 
     browser.perform(function () {
-      browser.assert.equal(fs.existsSync(__dirname + browser.globals.e2etest_testdata + '/' + browser.globals.export_cert), true, 'Export file downloaded successfully');
+      browser.assert.equal(
+        fs.existsSync(
+          __dirname +
+            browser.globals.e2etest_testdata +
+            '/' +
+            browser.globals.export_cert,
+        ),
+        true,
+        'Export file downloaded successfully',
+      );
     });
 
     browser.end();
-  }
+  },
 };

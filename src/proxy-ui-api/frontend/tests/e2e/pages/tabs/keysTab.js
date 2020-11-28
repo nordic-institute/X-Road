@@ -41,20 +41,24 @@ var keysTabCommands = {
 
 const keysTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/keys`,
-  selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
+  selector:
+    '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: keysTabCommands,
   elements: {
     signAndAuthKeysTab: {
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
       locateStrategy: 'xpath',
     },
     APIKeysTab: {
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
       locateStrategy: 'xpath',
     },
     securityServerTLSKeyTab: {
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Security Server TLS Key "]',
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Security Server TLS Key "]',
       locateStrategy: 'xpath',
     },
     tokenName: {
@@ -66,11 +70,13 @@ const keysTab = {
       locateStrategy: 'xpath',
     },
     generateKeyButton: {
-      selector: '//*[contains(@data-test, "security-server-tls-certificate-generate-key-button")]',
+      selector:
+        '//*[contains(@data-test, "security-server-tls-certificate-generate-key-button")]',
       locateStrategy: 'xpath',
     },
     exportCertButton: {
-      selector: '//*[contains(@data-test, "security-server-tls-certificate-export-certificate-button")]',
+      selector:
+        '//*[contains(@data-test, "security-server-tls-certificate-export-certificate-button")]',
       locateStrategy: 'xpath',
     },
   },

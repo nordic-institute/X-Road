@@ -41,20 +41,24 @@ var settingsTabCommands = {
 
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
-  selector: '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Settings")]]//div[contains(@class, "base-full-width")]',
+  selector:
+    '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Settings")]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
     systemParametersTab: {
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
       locateStrategy: 'xpath',
     },
     backupAndRestoreTab: {
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
       locateStrategy: 'xpath',
     },
     anchorDownloadButton: {
-      selector: '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
+      selector:
+        '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
       locateStrategy: 'xpath',
     },
     backupButton: {

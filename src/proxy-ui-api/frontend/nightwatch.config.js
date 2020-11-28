@@ -23,8 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+var nightwatch = require('./nightwatch.json');
 
 module.exports = ((settings) => {
-  settings.test_settings.chrome.desiredCapabilities.chromeOptions.prefs.download.default_directory = __dirname+ "/tests/e2e/testdata";
+  settings.test_settings.chrome.desiredCapabilities.chromeOptions.prefs.download.default_directory =
+    __dirname + '/tests/e2e/testdata';
   return settings;
-})(require("./nightwatch.json"));
+})(nightwatch);

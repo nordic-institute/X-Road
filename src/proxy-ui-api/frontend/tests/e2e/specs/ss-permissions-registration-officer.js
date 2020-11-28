@@ -36,7 +36,8 @@ module.exports = {
     const tokenName = mainPage.section.keysTab.elements.tokenName;
     const searchField = mainPage.section.clientsTab.elements.searchField;
     const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
-    const generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    const generateKeyButton =
+      mainPage.section.keysTab.elements.generateKeyButton;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
