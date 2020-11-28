@@ -133,14 +133,15 @@ export default Vue.extend({
     },
     generateCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
-
+      this.disableDone = false;
       if (this.keyAndCsr) {
         // Create key and CSR
         this.$store.dispatch('generateKeyAndCsr', tokenId).then(
           () => {
-            this.disableDone = false;
+            // noop
           },
           (error) => {
+            this.disableDone = true;
             this.$store.dispatch('showError', error);
           },
         );
@@ -148,9 +149,10 @@ export default Vue.extend({
         // Create only CSR
         this.$store.dispatch('generateCsr').then(
           () => {
-            this.disableDone = false;
+            // noop
           },
           (error) => {
+            this.disableDone = true;
             this.$store.dispatch('showError', error);
           },
         );
