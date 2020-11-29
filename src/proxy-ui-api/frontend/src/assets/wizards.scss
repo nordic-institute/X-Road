@@ -24,30 +24,48 @@
  * THE SOFTWARE.
  */
 
-@import './colors';
-@import './shared';
+@import "./colors";
+@import "./shared";
 
 .wizard-step-form-content {
   margin: 24px;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .label {
-  width: 230px;
+  width: 405px;
   display: flex;
   flex-direction: row;
   align-items: baseline;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 14px;
 }
 
 .row-wrap {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  align-items: stretch;
   min-height: 60px;
+  width: 840px;
+  margin-bottom: 20px;
+  // children
+  > * {
+    &:first-child {
+      margin-right: 15px;
+    }
+
+    &:last-child {
+      margin-left: 15px;
+    }
+  }
 }
 
 .form-input {
-  width: 300px;
+  width: 405px;
 }
 
 .button-footer {
@@ -60,16 +78,11 @@
   padding-right: 24px;
   padding-left: 24px;
 
-}
-
-.button-group {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  margin-right: 16px;
-
-  :not(:last-child) {
-    margin-right: 20px;
+  // children
+  > * {
+    &:not(:last-child) {
+      margin-right: 20px;
+    }
   }
 }
 
@@ -95,7 +108,6 @@
   width: 100%;
   max-width: 100%;
   margin: 30px;
-
 }
 
 .stepper-content {
@@ -117,8 +129,11 @@
 .info-block {
   display: flex;
   flex-direction: row;
-  margin: 20px;
+  margin-left: auto;
+  margin-right: auto;
   margin-bottom: 40px;
+  margin-top: 40px;
+  width: 840px;
 
   .action-block {
     margin-top: 30px;

@@ -30,26 +30,25 @@
       :title="$t('wizard.subsystem.title')"
       :showClose="false"
     />
-
-    <div class="content">
-      <div class="info-block">
-        <div>
-          {{ $t('wizard.subsystem.info1') }}
-          <br />
-          <br />
-          {{ $t('wizard.subsystem.info2') }}
+    <ValidationObserver ref="form2" v-slot="{ invalid }">
+      <div class="wizard-step-form-content">
+        <div class="info-block">
+          <div>
+            {{ $t('wizard.subsystem.info1') }}
+            <br />
+            <br />
+            {{ $t('wizard.subsystem.info2') }}
+          </div>
+          <div class="action-block">
+            <large-button
+              @click="showSelectClient = true"
+              outlined
+              data-test="select-subsystem-button"
+              >{{ $t('wizard.subsystem.selectSubsystem') }}</large-button
+            >
+          </div>
         </div>
-        <div class="action-block">
-          <large-button
-            @click="showSelectClient = true"
-            outlined
-            data-test="select-subsystem-button"
-            >{{ $t('wizard.subsystem.selectSubsystem') }}</large-button
-          >
-        </div>
-      </div>
 
-      <ValidationObserver ref="form2" v-slot="{ invalid }">
         <div class="row-wrap">
           <FormLabel
             :labelText="$t('wizard.memberName')"
@@ -113,41 +112,39 @@
             data-test="register-subsystem-checkbox"
           ></v-checkbox>
         </div>
-        <div class="button-footer">
-          <div class="button-group">
-            <large-button
-              outlined
-              @click="exitView"
-              data-test="cancel-button"
-              >{{ $t('action.cancel') }}</large-button
-            >
-          </div>
-          <large-button
-            @click="done"
-            :disabled="invalid || duplicateClient"
-            data-test="submit-add-subsystem-button"
-            :loading="submitLoading"
-            >{{ $t('action.addSubsystem') }}</large-button
-          >
+      </div>
+
+      <div class="button-footer">
+        <div class="button-group">
+          <large-button outlined @click="exitView" data-test="cancel-button">{{
+            $t('action.cancel')
+          }}</large-button>
         </div>
-      </ValidationObserver>
+        <large-button
+          @click="done"
+          :disabled="invalid || duplicateClient"
+          data-test="submit-add-subsystem-button"
+          :loading="submitLoading"
+          >{{ $t('action.addSubsystem') }}</large-button
+        >
+      </div>
+    </ValidationObserver>
 
-      <SelectClientDialog
-        :dialog="showSelectClient"
-        :selectableClients="selectableSubsystems"
-        @cancel="showSelectClient = false"
-        @save="saveSelectedClient"
-      />
+    <SelectClientDialog
+      :dialog="showSelectClient"
+      :selectableClients="selectableSubsystems"
+      @cancel="showSelectClient = false"
+      @save="saveSelectedClient"
+    />
 
-      <ConfirmDialog
-        :dialog="confirmRegisterClient"
-        title="clients.action.register.confirm.title"
-        text="clients.action.register.confirm.text"
-        @cancel="exitView"
-        @accept="registerSubsystem"
-        :loading="registerClientLoading"
-      />
-    </div>
+    <ConfirmDialog
+      :dialog="confirmRegisterClient"
+      title="clients.action.register.confirm.title"
+      text="clients.action.register.confirm.text"
+      @cancel="exitView"
+      @accept="registerSubsystem"
+      :loading="registerClientLoading"
+    />
   </div>
 </template>
 
@@ -312,9 +309,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
-@import '../../assets/wizards';
+@import '~styles/wizards';
 
 .view-wrap {
   width: 100%;

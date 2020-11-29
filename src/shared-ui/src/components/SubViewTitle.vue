@@ -29,16 +29,20 @@
     <div class="cert-dialog-header">
       <span class="identifier-wrap">{{ title }}</span>
       <v-spacer></v-spacer>
-      <i v-if="showClose" @click="close()" id="close-x"></i>
+      <close-button v-if="showClose" data-test="close-x" @click="close()" />
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import CloseButton from '@/components/CloseButton.vue';
 
 export default Vue.extend({
   name: 'SubViewTitle',
+  components: {
+    CloseButton,
+  },
   props: {
     title: {
       type: String,
@@ -76,16 +80,5 @@ export default Vue.extend({
   font-size: 24px;
   line-height: 34px;
   color: $XRoad-WarmGrey100;
-}
-
-#close-x {
-  cursor: pointer;
-  font-style: normal;
-  font-size: 50px;
-  color: $XRoad-Grey40;
-}
-
-#close-x:before {
-  content: '\00d7';
 }
 </style>

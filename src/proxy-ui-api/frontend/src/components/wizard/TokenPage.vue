@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="wizard-step-form-content">
+    <div class="wizard-token-step-form-content">
       {{ $t('wizard.token.info') }}
       <v-text-field
         v-model="search"
@@ -52,12 +52,15 @@
               @click="confirmLogin(token)"
               v-if="!token.logged_in"
               :disabled="!token.available"
+              :outlined="false"
+              text
               data-test="token-login-button"
               >{{ $t('keys.logIn') }}</large-button
             >
             <large-button
               v-if="token.logged_in"
-              outlined
+              text
+              :outlined="false"
               disabled
               data-test="token-logout-button"
               >{{ $t('wizard.token.loggedIn') }}</large-button
@@ -68,32 +71,28 @@
     </div>
 
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="!disableDone"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
+      <large-button
+        outlined
+        @click="cancel"
+        :disabled="!disableDone"
+        data-test="cancel-button"
+        >{{ $t('action.cancel') }}</large-button
+      >
 
-      <div>
-        <large-button
-          @click="previous"
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
+      <large-button
+        @click="previous"
+        outlined
+        class="previous-button"
+        data-test="previous-button"
+        >{{ $t('action.previous') }}</large-button
+      >
 
-        <large-button
-          @click="done"
-          :disabled="disableNext"
-          data-test="next-button"
-          >{{ $t('action.next') }}</large-button
-        >
-      </div>
+      <large-button
+        @click="done"
+        :disabled="disableNext"
+        data-test="next-button"
+        >{{ $t('action.next') }}</large-button
+      >
     </div>
     <TokenLoginDialog
       :dialog="loginDialog"
@@ -191,7 +190,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
+
+.wizard-token-step-form-content {
+  width: 100%;
+  padding: 30px;
+}
 
 .search-input {
   width: 300px;

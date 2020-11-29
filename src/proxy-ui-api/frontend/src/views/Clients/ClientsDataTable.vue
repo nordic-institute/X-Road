@@ -489,7 +489,6 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-
 .icon-member {
   padding-left: 0;
 }
