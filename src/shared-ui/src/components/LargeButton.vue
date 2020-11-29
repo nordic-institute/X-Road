@@ -44,9 +44,10 @@
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
-
 import Vue from 'vue';
+/**
+ * Wrapper for vuetify button with x-road look
+ * */
 
 export default Vue.extend({
   name: 'large-button',
