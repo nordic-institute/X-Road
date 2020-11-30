@@ -1,7 +1,7 @@
-### Terms and abbreviations
+## Terms and abbreviations
 - [\[TA-TERMS\] Terms of X-Road](terms_x-road_docs.md)
 
-### Architecture
+## Architecture
 - [\[ARC-G\] X-Road Architecture](Architecture/arc-g_x-road_arhitecture.md)
 - [\[ARC-SS\] Security Server Architecture](Architecture/arc-ss_x-road_security_server_architecture.md)
 - [\[ARC-CP\] Configuration Proxy Architecture](Architecture/arc-cp_x-road_configuration_proxy_architecture.md)
@@ -11,7 +11,7 @@
 - [\[ARC-OPMOND\] Operational Monitoring Daemon Architecture](OperationalMonitoring/Architecture/arc-opmond_x-road_operational_monitoring_daemon_architecture_Y-1096-1.md)
 - [\[ARC-ENVMON\] Environmental Monitoring Architecture](EnvironmentalMonitoring/Monitoring-architecture.md)
 
-### Protocols
+## Protocols
 - [\[PR-REST\] Message Protocol for REST](Protocols/pr-rest_x-road_message_protocol_for_rest.md)
 - [\[PR-MESS\] Message Protocol](Protocols/pr-mess_x-road_message_protocol.md)
 - [\[PR-MESSTRANSP\] Message Transport Protocol](Protocols/pr-messtransp_x-road_message_transport_protocol.md)
@@ -24,8 +24,7 @@
 - [\[PR-OPMONJMX\] Operational Monitoring JMX Protocol](OperationalMonitoring/Protocols/pr-opmonjmx_x-road_operational_monitoring_jmx_protocol_Y-1096-3.md)
 - [\[PR-ENVMONMES\] Environmental Monitoring Messages](EnvironmentalMonitoring/Monitoring-messages.md)
 
-### Manuals
-
+## Manuals
 - [\[IG-SS\] Security Server Installation Guide](Manuals/ig-ss_x-road_v6_security_server_installation_guide.md)
 - [\[IG-SS-RHEL\] Security Server Installation Guide for RHEL](Manuals/ig-ss_x-road_v6_security_server_installation_guide_for_rhel.md)
 - [\[IG-CS\] Central Server Installation Guide](Manuals/ig-cs_x-road_6_central_server_installation_guide.md)
@@ -39,8 +38,7 @@
 - [\[UG-SYSPAR\] System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)
 - [\[UG-OPMONSYSPAR\] Operational Monitoring System Parameters](OperationalMonitoring/Manuals/ug-opmonsyspar_x-road_operational_monitoring_system_parameters_Y-1099-1.md)
 
-
-### Use Cases
+## Use Cases
 - [\[UC-SS\] Security Server Management](UseCases/uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md)
 - [\[UC-CP\] Configuration Proxy](UseCases/uc-cp_x-road_configuration_proxy_use_case_model_1.2_Y-883-5.md)
 - [\[UC-CS\] Central Server Management](UseCases/uc-cs_x-road_use_case_model_for_central_server_management_1.2_Y-883-6.md)
@@ -52,13 +50,11 @@
 - [\[UC-SERVICE\] Service Management](UseCases/uc-service_x-road_use_case_model_for_service_management_1.6_Y-883-3.md)
 - [\[UC-OPMON\] Use Case Model for Operational Monitoring Daemon](OperationalMonitoring/UseCases/uc-opmon_x-road_use_case_model_for_operational_monitoring_daemon_Y-1095-2.md)
 
-### Data Models
-
+## Data Models
 - [\[DM-SS\] Security Server Configuration](DataModels/dm-ss_x-road_security_server_configuration_data_model.md)
 - [\[DM-CS\] Central Server Configuration](DataModels/dm-cs_x-road_central_server_configuration_data_model.md)
 - [\[DM-ML\] Message Log](DataModels/dm-ml_x-road_message_log_data_model.md)
 
-### Testing
-
+## Testing
 - [\[TEST-OPMON\] Operational Monitoring Testing Plan](OperationalMonitoring/Testing/test-opmon_x-road_operational_monitoring_testing_plan_Y-1104-2.md)
 - [\[TEST-OPMONSTRAT\] Operational Monitoring Testing Strategy](OperationalMonitoring/Testing/test-opmonstrat_x-road_operational_monitoring_testing_strategy_Y-1104-1.md)
