@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <v-flex mb-4 class="title-action">
-      <h1 v-if="client" class="display-1 mb-3">
+      <h1 v-if="client" class="display-1 mb-3 identifier-wrap">
         {{ client.subsystem_code }} ({{ $t('subsystem') }})
       </h1>
       <div>

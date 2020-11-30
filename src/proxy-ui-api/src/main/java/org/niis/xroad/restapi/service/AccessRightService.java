@@ -800,7 +800,7 @@ public class AccessRightService {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
                 String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
-                return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
+                return memberClass.equalsIgnoreCase(clientMemberClass);
             } else {
                 return false;
             }
@@ -811,11 +811,11 @@ public class AccessRightService {
         return dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
-            // -> always return
+            // -> always return true
             if (xRoadId instanceof LocalGroupId) {
                 return true;
             } else {
-                return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
+                return instance.equalsIgnoreCase(dto.getSubjectId().getXRoadInstance());
             }
         };
     }

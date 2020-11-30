@@ -3,18 +3,18 @@ buildscript {
         jcenter()
     }
     dependencies {
-      classpath ('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
-        exclude group: 'org.springframework', module: 'spring-core'
-      }
+        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
+            exclude group: 'org.springframework', module: 'spring-core'
+        }
     }
 }
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'org.owasp.dependencycheck' version '5.3.2'
+    id 'org.owasp.dependencycheck' version '6.0.3'
     id 'jacoco'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.9.RELEASE" apply false
+    id "io.spring.dependency-management" version "1.0.10.RELEASE" apply false
     id 'org.springframework.boot' version '2.2.9.RELEASE' apply false
 }
 
@@ -64,6 +64,10 @@ dependencyCheck {
 
 
 allprojects {
+    jacoco {
+        toolVersion = "0.8.6"
+    }
+
     task allDependencies(type: DependencyReportTask) {}
 
     task printDeps {
@@ -87,14 +91,9 @@ subprojects {
     group = 'ee.ria.xroad'
     version = '1.0'
 
-    jacoco {
-        toolVersion = "0.8.4"
-    }
-
     repositories {
         mavenCentral()
         mavenLocal()
-
         // XXX In case mavenCentral is unreachable, use this mirror instead
         // maven {
         //     url "http://mirrors.ibiblio.org/pub/mirrors/maven2"
@@ -104,25 +103,22 @@ subprojects {
         //maven {
         //    url "http://ground.zero.ee/maven2"
         //}
-
-        // repository containing an up-to-date xerces fork
-        maven {
-            url "https://repository.jboss.org/nexus/content/repositories/thirdparty-releases/"
-        }
     }
 
     configurations {
-        provided
         testArtifacts.extendsFrom testRuntime
     }
 
     dependencies {
-        testCompile 'org.hamcrest:hamcrest:2.2'
-        testCompile 'org.hamcrest:hamcrest-library:2.2'
-        testCompile 'junit:junit:4.13'
+        testImplementation 'org.hamcrest:hamcrest:2.2'
+        testImplementation 'org.hamcrest:hamcrest-library:2.2'
+        testImplementation 'junit:junit:4.13'
 
-        provided 'org.projectlombok:lombok:1.18.8'
+        compileOnly 'org.projectlombok:lombok:1.18.12'
+        annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
+        testCompileOnly 'org.projectlombok:lombok:1.18.12'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     }
 
     task testJar(type: Jar) {
@@ -152,27 +148,16 @@ subprojects {
         testArtifacts testJar
     }
 
-    sourceSets.main.compileClasspath += configurations.provided
-    sourceSets.test.compileClasspath += configurations.provided
-
-    eclipse {
-        classpath {
-            plusConfigurations += [configurations.provided]
-        }
-    }
-
-    idea {
-        module {
-            scopes.PROVIDED.plus += [configurations.provided]
-        }
-    }
-
     checkstyle {
         toolVersion = "8.29"
-        configDir = file("${project.rootDir}/config/checkstyle")
-        configFile = file("${configDir}/checkstyle.xml")
+        configDirectory = file("${project.rootDir}/config/checkstyle")
+        configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
         showViolations = false
+    }
+
+    checkstyleMain {
+        source = fileTree('src/main/java')
     }
 
     jacocoTestReport {
@@ -195,7 +180,7 @@ subprojects {
     }
 }
 
-configure(subprojects.findAll { it.name.contains('-ui') or it.name.contains('center-service') or it.name.contains('center-common') }) {
+configure(subprojects.findAll { it.name.contains('center-') or it.name.contains('common-ui') }) {
 
     apply plugin: 'com.github.hierynomus.license'
 
@@ -233,8 +218,4 @@ configure(subprojects.findAll({ it.name.contains('center-common') or it.name.con
 
 task clean(type: Delete) {
     delete "${rootDir}/packages/build"
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '4.1'
 }

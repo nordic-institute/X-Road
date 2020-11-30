@@ -35,43 +35,33 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
+import java.io.IOException;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Type;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * This class contains various json related utility methods.
  */
 public final class JsonUtils {
 
-    private JsonUtils() {
-    }
+    private static final Gson GSON;
+    private static final Gson GSON_WITH_NULLS;
 
-    /**
-     * Get Gson with custom serializer.
-     * Default serializer does not serialize nulls
-     * @return Gson instance with custom serializer.
-     */
-    public static Gson getSerializer() {
-        return getSerializer(false);
-    }
-
-    /**
-     * Get Gson with custom serializer.
-     * @param serializeNulls if null values should be serialized
-     * @return Gson instance with custom serializer.
-     */
-    public static Gson getSerializer(boolean serializeNulls) {
+    static {
         GsonBuilder builder = new GsonBuilder();
         builder.disableHtmlEscaping();
         builder.registerTypeAdapter(ClientId.class, new ClientIdSerializer());
-        if (serializeNulls) {
-            builder.serializeNulls();
-        }
-
+        builder.registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter());
         builder.setExclusionStrategies(new ExclusionStrategy() {
             @Override
             public boolean shouldSkipField(FieldAttributes f) {
@@ -83,10 +73,34 @@ public final class JsonUtils {
                 return false;
             }
         });
-
-        return builder.create();
+        GSON = builder.create();
+        builder.serializeNulls();
+        GSON_WITH_NULLS = builder.create();
     }
 
+    private JsonUtils() {
+    }
+
+    /**
+     * Get Gson with custom serializer.
+     * Default serializer does not serialize nulls
+     * @return Gson instance with custom serializer.
+     */
+    public static Gson getSerializer() {
+        return GSON;
+    }
+
+    /**
+     * Get Gson with custom serializer.
+     * @param serializeNulls if null values should be serialized
+     * @return Gson instance with custom serializer.
+     */
+    public static Gson getSerializer(boolean serializeNulls) {
+        if (serializeNulls) {
+            return GSON_WITH_NULLS;
+        }
+        return GSON;
+    }
 
     private static class ClientIdSerializer implements JsonSerializer<ClientId> {
         @Override
@@ -111,6 +125,23 @@ public final class JsonUtils {
     @Retention(RetentionPolicy.RUNTIME)
     @Target(ElementType.FIELD)
     public @interface Exclude {
+    }
+
+    private static class OffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
+
+        @Override
+        public void write(JsonWriter out, OffsetDateTime value) throws IOException {
+            out.value(value == null ? null : value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        }
+
+        @Override
+        public OffsetDateTime read(JsonReader in) throws IOException {
+            if (in.peek().equals(JsonToken.NULL)) {
+                in.nextNull();
+                return null;
+            }
+            return OffsetDateTime.parse(in.nextString());
+        }
     }
 
 }

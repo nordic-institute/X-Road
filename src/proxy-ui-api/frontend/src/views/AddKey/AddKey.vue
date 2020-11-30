@@ -52,7 +52,11 @@
       <v-stepper-items class="stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
-          <WizardPageKeyLabel @cancel="cancel" @done="currentStep = 2" />
+          <WizardPageKeyLabel
+            @cancel="cancel"
+            @done="currentStep = 2"
+            :tokenType="tokenType"
+          />
         </v-stepper-content>
         <!-- Step 2 -->
         <v-stepper-content step="2">
@@ -96,6 +100,10 @@ export default Vue.extend({
       type: String,
       required: true,
     },
+    tokenType: {
+      type: String,
+      required: false,
+    },
   },
   data() {
     return {
@@ -136,6 +144,7 @@ export default Vue.extend({
   },
   created() {
     this.$store.dispatch('setCsrTokenId', this.tokenId);
+    this.$store.dispatch('setCsrTokenType', this.tokenType);
     this.fetchCertificateAuthorities();
   },
 });

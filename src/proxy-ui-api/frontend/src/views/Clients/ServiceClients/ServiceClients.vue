@@ -33,6 +33,7 @@
         hide-details
         data-test="search-service-client"
         class="search-input"
+        autofocus
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -63,8 +64,8 @@
             @click="showAccessRights(sc.id)"
             data-test="open-access-rights"
           >
-            <td>{{ sc.name }}</td>
-            <td>{{ sc.id }}</td>
+            <td class="identifier-wrap">{{ sc.name }}</td>
+            <td class="identifier-wrap">{{ sc.id }}</td>
           </tr>
         </tbody>
       </template>

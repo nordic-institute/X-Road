@@ -18,14 +18,16 @@ info:
     url: https://opensource.org/licenses/MIT
 tags:
   - name: security server
-    description: <br>Security Server operations and API calls
+    description: Security Server operations and API calls
   - name: central server
-    description: <br>Central Server operations and API calls
+    description: Central Server operations and API calls
 paths:
   /login:
     post: # ok
       tags:
         - security server
+      operationId: login
+      description: Login with cookie authentication
       summary: Logs in and returns the authentication cookie
       requestBody:
         required: true

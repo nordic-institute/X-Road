@@ -1,6 +1,9 @@
 dependencies {
-    compile project(':common-ui')
-    compile 'org.postgresql:postgresql:42.2.14'
+    implementation  project(':common-util')
+    implementation  project(':common-ui')
+    implementation  project(':signer-protocol')
+    implementation  'org.postgresql:postgresql:42.2.16'
+    implementation  'commons-configuration:commons-configuration:1.10'
 }
 
 clean {
@@ -48,7 +51,7 @@ task copyCenterCommon {
 
 task copyDeps(dependsOn: [copyCommon, copyCenterCommon], type: Copy) {
     into "$buildDir/libs"
-    from configurations.compile
+    from configurations.runtimeClasspath
 }
 
 task generateJsTranslations(type: Exec) {

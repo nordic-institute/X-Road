@@ -64,6 +64,8 @@ public abstract class AbstractModuleManager extends AbstractUpdateableActor {
                     if (throwable instanceof PKCS11Exception) {
                         // PKCS11Exceptions should make the module reinitialized
                         return SupervisorStrategy.restart();
+                    } else if (throwable instanceof Error) {
+                        return SupervisorStrategy.escalate();
                     } else {
                         return SupervisorStrategy.resume();
                     }

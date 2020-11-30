@@ -46,7 +46,7 @@ public class IdlePercentCalculatorBehavior {
                 27232919, 16826, 64593485, 188316115, 672027, 4, 4882, 0);
         CpuStats current = new CpuStats(
                 27233052, 16826, 64593978, 188317718, 672029, 4, 4882, 0);
-        double idlePercent = IdlePercentCalculator.calculate(
+        Double idlePercent = IdlePercentCalculator.calculate(
                 previous, current);
         assertNotNull(idlePercent);
         log.info("Idle percent: '{}'", idlePercent);
@@ -60,8 +60,7 @@ public class IdlePercentCalculatorBehavior {
         CpuStats previous = null;
         CpuStats current = new CpuStats(
                 27233052, 16826, 64593978, 188317718, 672029, 4, 4882, 0);
-        Double idlePercent = IdlePercentCalculator.calculate(
-                previous, current);
+        Double idlePercent = IdlePercentCalculator.calculate(previous, current);
 
         assertNull(idlePercent);
     }

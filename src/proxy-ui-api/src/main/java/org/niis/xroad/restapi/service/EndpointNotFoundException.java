@@ -34,7 +34,7 @@ public class EndpointNotFoundException extends NotFoundException {
     private static final String MESSAGE = "Endpoint not found with id: %s";
 
     public EndpointNotFoundException(String id) {
-        super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND, id));
+        super(String.format(MESSAGE, id), new ErrorDeviation(ERROR_ENDPOINT_NOT_FOUND));
     }
 
     public EndpointNotFoundException(String errorCode, String msg) {

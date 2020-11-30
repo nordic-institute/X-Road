@@ -132,7 +132,7 @@ module.exports = {
     clientLocalGroups.confirmAddDialog();
     browser.assert.containsText(mainPage.elements.snackBarMessage, "Local group code already exists");
     mainPage.closeSnackbar();
- 
+
     // Add a new group and verify
     clientLocalGroups.enterCode('abc');
     clientLocalGroups.enterDescription('addDesc');
@@ -172,28 +172,32 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
-    clientLocalGroups.openDetails('abb');
+    clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
 
     // Add new member to local group, cancel case
     localGroupPopup.openAddMembers();
     localGroupPopup.searchMembers();
-    localGroupPopup.selectNewTestComMember();
+    localGroupPopup.selectMember('REST-UI-TEST:COM:1710128-9:TestClient');
+    localGroupPopup.selectMember('REST-UI-TEST:GOV:0245437-2:TestService');
+    localGroupPopup.selectMember('REST-UI-TEST:ORG:2908758-4:Management');
     localGroupPopup.cancelAddMembersDialog();
 
     browser.waitForElementNotVisible('//span[contains(@class, "headline") and contains(text(), "Add Members")]');
     browser.waitForElementVisible(localGroupPopup);
-    browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]')
+    browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]');
 
     // Add new member to local group
     localGroupPopup.openAddMembers();
     localGroupPopup.searchMembers();
-    localGroupPopup.selectNewTestComMember();
+    localGroupPopup.selectMember('REST-UI-TEST:COM:1710128-9:TestClient');
+    localGroupPopup.selectMember('REST-UI-TEST:GOV:0245437-2:TestService');
+    localGroupPopup.selectMember('REST-UI-TEST:ORG:2908758-4:Management');
     localGroupPopup.addSelectedMembers();
 
     browser.waitForElementNotVisible('//span[contains(@class, "headline") and contains(text(), "Add Members")]');
     browser.waitForElementVisible(localGroupPopup);
-    browser.assert.elementPresent('//*[contains(text(),"TestCom")]')
+    browser.assert.elementPresent('//*[contains(text(),"TestCom")]');
 
     browser.end();
 
@@ -219,11 +223,10 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
-    clientLocalGroups.openDetails('bac');
+    clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
 
-
-    // Remove single 
+    // Remove single
     localGroupPopup.clickRemoveTestComMember();
     localGroupPopup.cancelMemberRemove();
     browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Remove member?")]');
@@ -236,7 +239,7 @@ module.exports = {
     localGroupPopup.close();
 
     // Remove All
-    clientLocalGroups.openDetails('bac');
+    clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
     browser.assert.elementPresent('//*[contains(text(),"TestGov")]');
     browser.assert.elementPresent('//*[contains(text(),"TestOrg")]');
@@ -310,13 +313,13 @@ module.exports = {
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "'+browser.globals.test_string_300.slice(0,255)+'")]]')
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
-    localGroupPopup.changeDescription('GroupChanged');
+    localGroupPopup.changeDescription('Group4');
     localGroupPopup.clickDescriptionLabel();
     browser.assert.containsText('//div[contains(@class, "v-snack__content")]', 'Description saved');
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Description saved');
     mainPage.closeSnackbar();
     localGroupPopup.close();
-    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "GroupChanged")]]')
+    browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]')
     browser.end();
 
   },
@@ -344,15 +347,15 @@ module.exports = {
     browser.waitForElementVisible(clientLocalGroups);
 
     // Delete and confirm
-    browser.assert.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]')
-    clientLocalGroups.openDetails('bac');
+    browser.assert.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]');
+    clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
     browser.waitForElementVisible(localGroupPopup.elements.localGroupPopupCloseButton);
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
     localGroupPopup.confirmDelete();
     browser.waitForElementVisible(clientLocalGroups);
-    browser.assert.not.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]')
+    browser.assert.not.elementPresent('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"abc")]]');
 
     // Delete and cancel
     clientLocalGroups.openDetails('cbb');
@@ -360,9 +363,10 @@ module.exports = {
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
     localGroupPopup.cancelDelete();
-    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');   
+    browser.waitForElementNotVisible('//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]');
     localGroupPopup.close();
     browser.waitForElementVisible('//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]')
 
   }
+
 };

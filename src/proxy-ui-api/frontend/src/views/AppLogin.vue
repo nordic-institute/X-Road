@@ -33,6 +33,7 @@
               $t('login.logIn')
             }}</v-toolbar-title>
           </v-toolbar>
+
           <v-card-text>
             <v-form>
               <ValidationObserver ref="form">
@@ -49,6 +50,7 @@
                     type="text"
                     v-model="username"
                     @keyup.enter="submit"
+                    autofocus
                   ></v-text-field>
                 </ValidationProvider>
 
@@ -203,15 +205,13 @@ export default (Vue as VueConstructor<
         .dispatch('fetchInitializationStatus')
         .then(
           () => {
-            if(!this.$store.getters.hasInitState) {
+            if (!this.$store.getters.hasInitState) {
               this.$store.dispatch(
                 'showErrorMessageCode',
                 'initialConfiguration.noInitializationStatus',
               );
               redirectToLogin();
-
             } else if (this.$store.getters.needsInitialization) {
-
               // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                 this.$store.dispatch(

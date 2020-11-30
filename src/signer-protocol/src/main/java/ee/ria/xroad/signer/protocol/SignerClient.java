@@ -34,7 +34,6 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Identify;
 import akka.actor.Props;
-import akka.actor.Terminated;
 import akka.actor.UntypedAbstractActor;
 import akka.pattern.Patterns;
 import akka.util.Timeout;
@@ -42,6 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 import scala.concurrent.Await;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -69,6 +69,7 @@ public final class SignerClient {
 
     /**
      * Initializes the client with the provided actor system.
+     *
      * @param system the actor system
      * @throws Exception if an error occurs
      */
@@ -78,6 +79,7 @@ public final class SignerClient {
 
     /**
      * Initializes the client with the provided actor system.
+     *
      * @param system          the actor system
      * @param signerIpAddress IP address for remote signer
      *                        or 127.0.0.1 for local signer
@@ -89,6 +91,7 @@ public final class SignerClient {
 
     /**
      * Forwards a message to the signer.
+     *
      * @param message  the message
      * @param receiver the receiver actor
      */
@@ -99,6 +102,7 @@ public final class SignerClient {
     /**
      * Sends a message and waits for a response, returning it. If the response
      * is an exception, throws it.
+     *
      * @param <T>     the type of result
      * @param message the message
      * @return the response
@@ -115,6 +119,7 @@ public final class SignerClient {
     /**
      * Returns the object as the instance or throws exception, if the object
      * is throwable.
+     *
      * @param <T>    the type of result
      * @param result the result object
      * @return result
@@ -123,16 +128,19 @@ public final class SignerClient {
     @SuppressWarnings("unchecked")
     public static <T> T result(Object result) throws Exception {
         if (result instanceof Throwable) {
-            throw (Exception)result;
+            throw (Exception) result;
         } else {
-            return (T)result;
+            return (T) result;
         }
     }
 
     /**
-     * Watches Signer request processor actor using Akka actor lifecycle monitoring. Proactively keeps the
-     * actor reference up to date. For example, in case of a Signer restart, the watcher detects that the request
-     * processor disappears and is (eventually) replaced with an new actor.
+     * Watches Signer request processor and proactively keeps the actor reference up to date.
+     * For example, in case of a Signer restart, the watcher detects that the request
+     * processor is replaced with an new actor. Uses only ActorIdentity messages to avoid quarantine in case the
+     * communications is interrupted. The disadvantage is that detecting e.g. Signer restart and shutdown is
+     * somewhat slower and requires constant polling (Akka remote watch also uses polling, so the amount of messages
+     * is not higher).
      *
      * @see <a href="https://doc.akka.io/docs/akka/current/actors.html#actor-lifecycle">Akka documentation about Actor
      * Lifecycle</a>
@@ -146,12 +154,16 @@ public final class SignerClient {
          */
         private static volatile CompletableFuture<ActorRef> requestProcessorFuture = null;
 
-        private static final Duration WATCH_DELAY = Duration.ofSeconds(1);
+        private static final Duration WATCH_DELAY = Duration
+                .ofSeconds(SystemProperties.getSignerClientHeartbeatInterval());
+        public static final int UNREACHABLE_THRESHOLD = SystemProperties.getSignerClientFailureThreshold();
+
         private static final int REF_GET_TIMEOUT = 7;
 
         /**
          * Returns an actor reference to the Signer request processor. Waits up to {@link #REF_GET_TIMEOUT} seconds
          * for the reference to be available.
+         *
          * @throws IllegalStateException if the signer client has not been initialized (see {@link #init(ActorSystem,
          *                               String)})
          * @throws CodedException        if the signer does not become available in {@link #REF_GET_TIMEOUT} seconds or
@@ -188,6 +200,7 @@ public final class SignerClient {
         }
 
         private long correlationId = 0;
+        private long lastSeenCorrelationId = 0;
 
         //the handle to the currently known SignerRequestProcessor actor
         //can be null if the actor is not know yet (we are starting, or signer has just restarted)
@@ -211,28 +224,22 @@ public final class SignerClient {
 
         @Override
         public void postStop() {
-            if (requestProcessorRef != null) {
-                context().unwatch(requestProcessorRef);
-            }
+            requestProcessorRef = null;
             resetRequestProcessorFuture(null);
         }
 
         @Override
         public void onReceive(final Object message) {
+            log.trace("onReceive({})", message);
+
             if (Watch.class == message) {
-                if (requestProcessorRef == null) {
-                    // requestProcessor actor is not (yet) known, try to identify it
-                    identifyProcessor();
-                    // Schedule a new watch event to guarantee that we eventually get a response (unless
-                    // the Signer never comes online..).
-                    scheduleWatch();
+                if (correlationId - lastSeenCorrelationId > UNREACHABLE_THRESHOLD) {
+                    detachProcessor();
                 }
-            } else if (message instanceof ActorIdentity) {
-                attachProcessor((ActorIdentity)message);
-            } else if (message instanceof Terminated) {
-                detachProcessor((Terminated)message);
-                //processor terminated, start polling again
+                identifyProcessor();
                 scheduleWatch();
+            } else if (message instanceof ActorIdentity) {
+                attachProcessor((ActorIdentity) message);
             } else {
                 unhandled(message);
             }
@@ -243,38 +250,38 @@ public final class SignerClient {
                     .scheduleOnce(WATCH_DELAY, self(), Watch.class, context().system().dispatcher(), self());
         }
 
-        private void detachProcessor(final Terminated message) {
-            if (requestProcessorRef != null && requestProcessorRef.equals(message.getActor())) {
-                log.warn("Signer has terminated");
-                context().unwatch(requestProcessorRef);
+        private void detachProcessor() {
+            if (requestProcessorRef != null) {
+                log.warn("Signer is unreachable");
                 requestProcessorRef = null;
                 resetRequestProcessorFuture(new CompletableFuture<>());
             }
         }
 
         private void attachProcessor(final ActorIdentity message) {
-            if (message.correlationId().equals(correlationId)) {
-                // The correlationId is used to ignore responses to old Identify messages since there can be
-                // several in flight.
-                if (requestProcessorRef != null) {
-                    context().unwatch(requestProcessorRef);
+
+            final Long id = (Long) message.correlationId();
+            if (id > lastSeenCorrelationId) {
+                lastSeenCorrelationId = id;
+            } else {
+                return;
+            }
+
+            final ActorRef ref = message.getActorRef().orElse(null);
+            if (Objects.equals(ref, requestProcessorRef)) return;
+
+            requestProcessorRef = ref;
+            if (requestProcessorRef != null) {
+                if (!requestProcessorFuture.complete(requestProcessorRef)) {
+                    // In case the future was already completed, replace it
+                    // Can e.g. happen if the signer has restarted and we have not detected it yet
+                    resetRequestProcessorFuture(CompletableFuture.completedFuture(requestProcessorRef));
                 }
-                requestProcessorRef = message.getActorRef().orElse(null);
-                if (requestProcessorRef != null) {
-                    context().watch(requestProcessorRef);
-                    if (!requestProcessorFuture.complete(requestProcessorRef)) {
-                        //In case the future was already completed, replace it
-                        //Should normally not happen, but it is difficult to prove that this can not happen in some
-                        //edge case
-                        resetRequestProcessorFuture(CompletableFuture.completedFuture(requestProcessorRef));
-                    }
-                    log.info("Signer is available");
-                } else {
-                    log.debug("Signer is unreachable");
-                    if (requestProcessorFuture.isDone()) {
-                        //Should normally not happen
-                        resetRequestProcessorFuture(new CompletableFuture<>());
-                    }
+                log.info("Signer is available");
+            } else {
+                log.warn("Signer is unreachable");
+                if (requestProcessorFuture.isDone()) {
+                    resetRequestProcessorFuture(new CompletableFuture<>());
                 }
             }
         }

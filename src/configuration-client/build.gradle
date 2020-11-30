@@ -1,14 +1,15 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow'
 }
 
 dependencies {
-    compile project(':common-verifier')
+    implementation project(':common-util')
+    implementation project(':common-verifier')
 
-    compile 'commons-cli:commons-cli:1.4'
+    implementation 'commons-cli:commons-cli:1.4'
 
-    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
-    testCompile project(':common-test')
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation project(':common-test')
 }
 
 ext {
@@ -22,6 +23,7 @@ jar {
 }
 
 shadowJar {
+    exclude('**/module-info.class')
     classifier = ''
 }
 

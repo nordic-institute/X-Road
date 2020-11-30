@@ -43,9 +43,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
-import org.mockito.Mockito;
-import org.mockito.runners.MockitoJUnitRunner;
-import org.powermock.api.mockito.PowerMockito;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,9 +61,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.powermock.api.mockito.PowerMockito.when;
+import static org.mockito.Mockito.when;
 
 /**
  * Class for testing {@link TokenManager} merging of configuration files
@@ -162,7 +161,7 @@ public class TokenManagerMergeTest {
 
         Files.copy(ADDED_KEY_FILE_PATH, testingFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        TokenMergeAddedCertificatesListener listenerMock = Mockito.mock(TokenMergeAddedCertificatesListener.class);
+        TokenMergeAddedCertificatesListener listenerMock = mock(TokenMergeAddedCertificatesListener.class);
 
         TokenManager.merge(listenerMock);
 
@@ -207,7 +206,7 @@ public class TokenManagerMergeTest {
         // assert no ocsp response exists before test
         assertNull("test setup failure", beforeCertInfo.getOcspBytes());
 
-        OCSPResp shouldMatchResponse = PowerMockito.mock(OCSPResp.class);
+        OCSPResp shouldMatchResponse = mock(OCSPResp.class);
         final byte[] shouldMatchOcspResponseBytes = "some example string  11 2 34".getBytes();
         when(shouldMatchResponse.getEncoded()).thenReturn(shouldMatchOcspResponseBytes);
         TokenManager.setOcspResponse(testCertId, shouldMatchResponse);

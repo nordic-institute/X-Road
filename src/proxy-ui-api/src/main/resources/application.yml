@@ -1,6 +1,8 @@
 # shared properties for dev/prod runtime
 # test runtime has a separate application.properties
 spring:
+  main:
+    banner-mode: log
   jpa:
     hibernate:
       ddl-auto: none
@@ -26,4 +28,3 @@ server:
 
 logging:
   config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml
-

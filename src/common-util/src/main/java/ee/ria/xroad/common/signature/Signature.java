@@ -33,6 +33,7 @@ import org.apache.xml.security.signature.Manifest;
 import org.apache.xml.security.signature.ObjectContainer;
 import org.apache.xml.security.signature.Reference;
 import org.apache.xml.security.signature.XMLSignature;
+import org.apache.xml.security.signature.XMLSignatureException;
 import org.apache.xml.security.utils.Constants;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -109,6 +110,8 @@ public class Signature {
             document = XmlUtils.parseDocument(signatureXml);
             readSignature();
             readObjectContainer();
+        } catch (XMLSignatureException e) {
+            throw new CodedException(X_MALFORMED_SIGNATURE, e);
         } catch (Exception e) {
             throw translateException(e);
         }
@@ -116,8 +119,8 @@ public class Signature {
 
     /**
      * Constructs new signature from specified parts.
-     * @param document document part of the signature object
-     * @param signature signature part of the signature object
+     * @param document        document part of the signature object
+     * @param signature       signature part of the signature object
      * @param objectContainer object container part of the signature object
      */
     public Signature(Document document, XMLSignature signature, ObjectContainer objectContainer) {
@@ -269,7 +272,7 @@ public class Signature {
     public String getSignatureTimestamp() throws Exception {
         return getXadesElement(ENCAPSULATED_TIMESTAMP_TAG)
                 .orElseGet(() -> getXadesElement(SIGNATURE_TIMESTAMP_TAG) // For backward compatibility.
-                .orElseThrow(() -> elementNotFound(ENCAPSULATED_TIMESTAMP_TAG)))
+                        .orElseThrow(() -> elementNotFound(ENCAPSULATED_TIMESTAMP_TAG)))
                 .getTextContent();
     }
 
@@ -315,7 +318,7 @@ public class Signature {
         }
 
         for (int i = 0; i < certificateRefs.getLength(); i++) {
-            Element certRef =  (Element) certificateRefs.item(i);
+            Element certRef = (Element)certificateRefs.item(i);
             String certId = certRef.getAttribute(URI_ATTRIBUTE);
 
             if (certId == null || certId.isEmpty()) {
@@ -333,13 +336,13 @@ public class Signature {
                 X509Certificate x509 = CryptoUtils.readCertificate(certElem.getTextContent());
 
                 // we now have the certificate constructed, verify the digest
-                if (!verifyDigest((Element) certRef.getFirstChild(), x509.getEncoded())) {
+                if (!verifyDigest((Element)certRef.getFirstChild(), x509.getEncoded())) {
                     throw new CodedException(X_MALFORMED_SIGNATURE, "Certificate (%s) digest does not match",
                             x509.getSerialNumber());
                 }
 
                 extraCertificates.add(x509);
-            } catch (CertificateException | NoSuchAlgorithmException | IOException | OperatorCreationException  e) {
+            } catch (CertificateException | NoSuchAlgorithmException | IOException | OperatorCreationException e) {
                 throw new CodedException(X_MALFORMED_SIGNATURE, e);
             }
         }
@@ -360,7 +363,7 @@ public class Signature {
         }
 
         for (int i = 0; i < ocspValueElements.getLength(); i++) {
-            Element ocspResponseElem = (Element) ocspValueElements.item(i);
+            Element ocspResponseElem = (Element)ocspValueElements.item(i);
 
             // we have the ocsp response in base64 form, attempt to parse it
             String base64 = ocspResponseElem.getTextContent();
@@ -388,6 +391,6 @@ public class Signature {
      */
     private void readObjectContainer() throws Exception {
         Element objectElement = getFirstElementByTagName(document, dsElement(Constants._TAG_OBJECT));
-        objectContainer =  new ObjectContainer(objectElement, BASE_URI);
+        objectContainer = new ObjectContainer(objectElement, BASE_URI);
     }
 }

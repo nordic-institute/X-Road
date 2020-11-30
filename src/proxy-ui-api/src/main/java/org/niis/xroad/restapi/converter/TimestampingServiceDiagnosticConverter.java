@@ -31,7 +31,6 @@ import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
-import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -54,8 +53,7 @@ public class TimestampingServiceDiagnosticConverter {
                 diagnosticsStatus.getReturnCode());
         timestampingServiceDiagnostics.setStatusClass(statusClass.orElse(null));
         if (diagnosticsStatus.getPrevUpdate() != null) {
-            timestampingServiceDiagnostics.setPrevUpdateAt(FormatUtils.fromLocalTimeToOffsetDateTime(
-                    diagnosticsStatus.getPrevUpdate(), true));
+            timestampingServiceDiagnostics.setPrevUpdateAt(diagnosticsStatus.getPrevUpdate());
         }
 
         return timestampingServiceDiagnostics;

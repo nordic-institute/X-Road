@@ -28,8 +28,8 @@ package ee.ria.xroad.common.message;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.namespace.QName;

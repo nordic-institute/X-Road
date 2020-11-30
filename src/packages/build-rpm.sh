@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-VERSION=6.24.1
+VERSION=6.25.0
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1

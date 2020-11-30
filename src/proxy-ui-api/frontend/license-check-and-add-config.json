@@ -11,6 +11,7 @@
     "**/*.cer",
     "**/*.log",
     "**/.*",
+    "src/openapi-types/",
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js"
   ],

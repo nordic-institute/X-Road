@@ -40,6 +40,7 @@
         single-line
         hide-details
         class="search-input"
+        autofocus
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -73,8 +74,10 @@
       hide-default-footer
       class="elevation-0 data-table"
       item-key="id"
+      :loader-height="2"
     >
-      <template v-slot:item.visibleName="{ item }">
+      <!-- https://stackoverflow.com/questions/61344980/v-slot-directive-doesnt-support-any-modifier -->
+      <template v-slot:[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <v-icon color="grey darken-2" class="icon-member icon-size"
@@ -82,12 +85,12 @@
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name clickable"
+            class="font-weight-bold name identifier-wrap clickable"
             @click="openClient(item)"
             >{{ item.visibleName }} ({{ $t('client.owner') }})</span
           >
 
-          <span v-else class="font-weight-bold name"
+          <span v-else class="font-weight-bold name identifier-wrap"
             >{{ item.visibleName }} ({{ $t('client.owner') }})</span
           >
         </template>
@@ -98,11 +101,11 @@
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name clickable"
+            class="font-weight-bold name identifier-wrap clickable"
             @click="openClient(item)"
             >{{ item.visibleName }}</span
           >
-          <span v-else class="font-weight-bold name">{{
+          <span v-else class="font-weight-bold name identifier-wrap">{{
             item.visibleName
           }}</span>
         </template>
@@ -110,13 +113,13 @@
         <template
           v-else-if="
             item.type === clientTypes.VIRTUAL_MEMBER ||
-              item.type === clientTypes.MEMBER
+            item.type === clientTypes.MEMBER
           "
         >
           <v-icon color="grey darken-2" class="icon-member icon-size"
             >mdi-folder-open-outline</v-icon
           >
-          <span class="font-weight-bold name-member">{{
+          <span class="font-weight-bold identifier-wrap name-member">{{
             item.visibleName
           }}</span>
         </template>
@@ -127,7 +130,7 @@
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name clickable"
+            class="font-weight-bold name identifier-wrap clickable"
             @click="openSubsystem(item)"
             >{{ item.visibleName }}</span
           >
@@ -137,19 +140,23 @@
         </template>
       </template>
 
-      <template v-slot:item.status="{ item }">
+      <template v-slot:[`item.id`]="{ item }">
+        <span class="identifier-wrap">{{ item.id }}</span>
+      </template>
+
+      <template v-slot:[`item.status`]="{ item }">
         <client-status :status="item.status" />
       </template>
 
-      <template v-slot:item.button="{ item }">
+      <template v-slot:[`item.button`]="{ item }">
         <div class="button-wrap">
           <SmallButton
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
                 item.type === clientTypes.VIRTUAL_MEMBER) &&
-                item.member_name &&
-                showAddClient
+              item.member_name &&
+              showAddClient
             "
             @click="addSubsystem(item)"
             >{{ $t('action.addSubsystem') }}</SmallButton
@@ -158,9 +165,9 @@
           <SmallButton
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
-                item.type !== clientTypes.VIRTUAL_MEMBER &&
-                item.status === 'SAVED' &&
-                showRegister
+              item.type !== clientTypes.VIRTUAL_MEMBER &&
+              item.status === 'SAVED' &&
+              showRegister
             "
             @click="registerClient(item)"
             >{{ $t('action.register') }}</SmallButton

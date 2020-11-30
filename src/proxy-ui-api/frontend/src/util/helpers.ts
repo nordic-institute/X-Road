@@ -49,9 +49,7 @@ export function selectedFilter<T, K extends keyof T>(
     }
 
     return filteredKeys.find((key: K) => {
-      return String(g[key])
-        .toLowerCase()
-        .includes(mysearch);
+      return String(g[key]).toLowerCase().includes(mysearch);
     });
   });
 
@@ -73,7 +71,7 @@ export function isValidRestURL(str: string): boolean {
 export function saveResponseAsFile(
   response: AxiosResponse,
   defaultFileName = 'certs.tar.gz',
-) {
+): void {
   let suggestedFileName;
   const disposition = response.headers['content-disposition'];
 
@@ -155,7 +153,7 @@ export function createClientId(
 export const debounce = <F extends (...args: any[]) => any>(
   func: F,
   waitFor: number,
-) => {
+): ((...args: Parameters<F>) => Promise<ReturnType<F>>) => {
   let timeout: number | undefined;
 
   return (...args: Parameters<F>): Promise<ReturnType<F>> =>

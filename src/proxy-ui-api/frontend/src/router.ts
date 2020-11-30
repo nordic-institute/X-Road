@@ -291,7 +291,7 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate/:hash/:usage',
+          path: '/certificate/:hash',
           components: {
             default: CertificateDetails,
           },
@@ -400,7 +400,7 @@ const router = new Router({
         },
         {
           name: RouteName.GenerateCertificateSignRequest,
-          path: '/generate-csr/:keyId',
+          path: '/generate-csr/:keyId/:tokenType',
           components: {
             default: GenerateCertificateSignRequest,
           },
@@ -408,7 +408,7 @@ const router = new Router({
         },
         {
           name: RouteName.AddKey,
-          path: '/add-key/:tokenId',
+          path: '/add-key/:tokenId/:tokenType',
           components: {
             default: AddKey,
           },

@@ -42,6 +42,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.restapi.service.ClientService;
+import org.niis.xroad.restapi.service.GlobalConfService;
 import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.TestUtils;
@@ -51,6 +52,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -72,7 +74,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private ServerConfService serverConfService;
     @Autowired
     private ClientService clientService;
-
+    @Autowired
+    private GlobalConfService globalConfService;
 
     private static final ClientId OWNER_MEMBER =
             TestUtils.getClientId("FI", "GOV", "M1", null);
@@ -88,6 +91,8 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     private static final String CERT_NEW_OWNER_HASH = "cert-new-owner";
     private static final String KEY_AUTH_ID = "key-auth";
     private static final String CERT_AUTH_HASH = "cert-auth";
+    private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
+            TestUtils.MEMBER_CLASS_PRO);
 
     @Before
     public void setup() throws Exception {
@@ -153,6 +158,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         when(signerProxyFacade.getTokens()).thenReturn(new ArrayList<>(tokens.values()));
         when(signerProxyFacade.execute(new GetAuthKey(any()))).thenReturn(new AuthKeyInfo(
                 KEY_AUTH_ID, null, null, certificateInfo));
+        when(globalConfService.getMemberClassesForThisInstance()).thenReturn(new HashSet<>(MEMBER_CLASSES));
     }
 
     @Test

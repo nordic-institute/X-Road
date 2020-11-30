@@ -1,5 +1,37 @@
 # Change Log
 
+## 6.25.0 - 2020-11-26
+- XRDDEV-1222: Update installation and user guides
+- XRDDEV-1299: Add Ubuntu 20.04 packaging
+- XRDDEV-1125: Initial support for running X-Road Security Server on Java 11 platform
+- XRDDEV-1340: Fix admin user groups on a secondary security server
+- XRDDEV-1085: Upgrade Gradle to version 6.6
+- XRDDEV-1090, XRDDEV-1091, XRDDEV-1344: Update installation guides to describe the deployment options, database setup customization, database user roles and customization and how the required database users can be created manually
+- XRDDEV-1353: Use key id as a label in UI if auth or sign key is missing both label and friendly name
+- XRDDEV-1360: Fix add member and add client showing member classes from federated instances.
+- XRDDEV-1302: Use secure Akka remote transport
+- XRDDEV-1362: Fix add member and add client showing members and clients from federated instances
+- XRDDEV-1366: Add defensive checks against bad client configuration when adding a new local client and sending a client registration request
+- XRDDEV-1324: Add Ubuntu 20 support to public Ansible deployment scripts
+- XRDDEV-1233: Replaced dtsgenerator tool with openapi-typescript-codegen.
+- XRDDEV-1394: In a Security Server cluster, remove access to management REST API from all non-observer roles on a secondary node. In case the observer role is not present, the API key does not grant any permissions.
+- XRDDEV-1326: Add support for setting up Ubuntu 20 clusters with Ansible scripts. Fix /etc/xroad/jetty permission problems.
+- XRDDEV-1327: Jenkinsfile builds also Ubuntu 20 packages
+- XRDDEV-1446: Update licensing files and footer information
+- XRDDEV-1403: Fix signer becomes unreachable in certain conditions
+- XRDDEV-1371: Fix proxy-ui-api does not apply database schema setting
+- XRDDEV-1421: Fix http 500 errors from security server UI when HSM contained certificates which were neither sign nor auth certificates. 
+- XRDDEV-1425: Fix problem where security server UI allowed attempts to create authentication CSR for a HSM key (only signing CSRs should be possible to create for HSM)
+- XRDDEV-1286: Add missing error message localisations
+- XRDDEV-1237: Security server user interface input fields are autofocused
+- XRDDEV-1244, XRDDEV-1391: Very long identifiers no longer break security server layout
+- XRDDEV-1365: Improve client selection instance id dropdown
+- XRDDEV-1405: Fix security server user interface coming up with 401 error
+- XRDDEV-1445: Fix layout bug in snackbar
+- XRDDEV-1457: Fix broken certificate details link
+- XRDDEV-1448: Fix security server docker image does not work on kernel 5.8
+- XRDDEV-1487: Make connection timeouts between configuration proxy and signer less frequent
+
 ## 6.24.1 - 2020-09-18
 - XRDDEV-1306: Fix security server docker image build
 - XRDDEV-1305: Fix central server schema rename when BDR 1.0 is in use.
@@ -199,6 +231,7 @@
 - XRDDEV-383: Add security server Dockerfile and usage instructions.
 - XRDDEV-411: Fix SonarQube duplication warning.
 - XRDDEV-443: Fix updating REST service code removes all access rights.
+- XRDDEV-1455: Security server footer opens a web page containing licensing information
 
 ## 6.20.1 - 2019-02-05
 - XRDDEV-351: Fix XRDDEV-351
@@ -318,6 +351,7 @@
 - PVAYLADEV-986: X-Road installation and update changed to require identical package version numbers in dependencies
 - PVAYLADEV-1091: Upgraded some third party dependencies (for security fixes).
 - PVAYLADEV-1029: Fix intermittent test failure
+- PVAYLADEV-1426: HSM tokens got incorrectly grouped with SIGN keys
 
 ## 6.16.0 - 2017-09-13
 - PVAYLADEV-848	Updated Gradle to version 4.1

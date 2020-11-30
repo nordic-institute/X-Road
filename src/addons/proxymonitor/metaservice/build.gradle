@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow'
 }
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
@@ -13,18 +13,28 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':common-util')
-    compile project(':proxy')
-    compile project(':monitor-common')
-    compile project(':monitoring-conf')
-    compile project(':addons:proxymonitor:common')
-    compile 'com.google.guava:guava:28.0-jre'
+    //"shadow" includes also transitive dependencies
+    implementation project(path: ':proxy', configuration: 'shadow')
 
-    testCompile project (path: ":proxy", configuration: 'testArtifacts')
-    testCompile project(':common-test')
-    testCompile 'org.hamcrest:hamcrest:2.2'
-    testCompile 'com.github.stefanbirkner:system-rules:1.19.0'
-    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
+    //workaround for Idea
+    implementation project(':common-util')
+    implementation project(":serverconf")
+    implementation project(":common-op-monitoring")
+    //workaround
+
+    implementation project(':monitor-common')
+    implementation project(':monitoring-conf')
+    implementation project(':addons:proxymonitor:common')
+
+    implementation 'com.google.guava:guava:29.0-jre'
+
+    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
+    testImplementation project(path: ":proxy", configuration: 'testArtifacts')
+    testImplementation project(':common-test')
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+    testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
 }
 
 task createDirs() {
@@ -53,8 +63,9 @@ jar {
 }
 
 shadowJar {
-    baseName = "proxymonitor-metaservice"
-    classifier = ''
+    archiveBaseName = "proxymonitor-metaservice"
+    archiveClassifier = ''
+    exclude('**/module-info.class')
     dependencies {
         include(project(':addons:proxymonitor:common'))
         include(project(':monitor-common'))
@@ -66,12 +77,6 @@ build.dependsOn shadowJar
 buildall.dependsOn shadowJar
 
 compileJava.dependsOn processResources
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}
-
 
 task runProxymonitorMetaserviceTest(type: JavaExec) {
 

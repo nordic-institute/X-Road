@@ -1,33 +1,27 @@
 #!/bin/bash
-
-set -e
-
 umask 027
 
 if [ "$1" = configure ]; then
     # Make sure the administrative user exists
     if ! getent passwd xroad > /dev/null; then
-        adduser --system --quiet --home /var/lib/xroad --no-create-home \
-            --shell /bin/bash --group --gecos "X-Road system user" xroad
+        adduser --system --quiet --home /var/lib/xroad --shell /bin/bash --group --gecos "X-Road system user" xroad
     fi
 
     # check validity of xroad user and group
     if [ "`id -u xroad`" -eq 0 ]; then
-        echo "The xroad system user must not have uid 0 (root).
-Please fix this and reinstall this package." >&2
+        echo "The xroad system user must not have uid 0 (root).Please fix this and reinstall this package." >&2
         exit 1
     fi
     if [ "`id -g xroad`" -eq 0 ]; then
-        echo "The xroad system user must not have root as primary group.
-Please fix this and reinstall this package." >&2
+        echo "The xroad system user must not have root as primary group. Please fix this and reinstall this package." >&2
         exit 1
     fi
     #add xroad to shadow group for pam
-    adduser xroad shadow
+    usermod --append -G shadow xroad
 
     # ensure home directory ownership
     mkdir -p /var/lib/xroad/backup
-    su - xroad -c "test -O /var/lib/xroad && test -G /var/lib/xroad" || chown xroad:xroad /var/lib/xroad
+    chown xroad:xroad /var/lib/xroad
     chown xroad:xroad /var/lib/xroad/backup
     chmod 0755 /var/lib/xroad
     chmod -R go-w /var/lib/xroad
@@ -38,18 +32,14 @@ Please fix this and reinstall this package." >&2
     chmod 1770 /var/log/xroad
     chown xroad:adm /var/log/xroad
 
-    # test and fix config folder
-    su - xroad -c "test -O /etc/xroad && test -G /etc/xroad" || chown xroad:xroad /etc/xroad
+    # config folder permissions
+    chown xroad:xroad /etc/xroad
     chmod 0751 /etc/xroad
 
     #tmp folder
     mkdir -p /var/tmp/xroad
     chmod 1750 /var/tmp/xroad
     chown xroad:xroad /var/tmp/xroad
-
-    # create socket directory
-    [ -d /var/run/xroad ] || \
-       install -d -m 2770 -o xroad -g xroad /var/run/xroad
 
     #local overrides
     test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
@@ -86,5 +76,8 @@ if [ "$1" = triggered ]; then
     chown -R xroad:xroad /etc/xroad/conf.d /etc/xroad/services ||:
     chmod -R u=rwX,g=rX,o= /etc/xroad/services /etc/xroad/conf.d ||:
 fi
+
+#DEBHELPER#
+
 exit 0
 

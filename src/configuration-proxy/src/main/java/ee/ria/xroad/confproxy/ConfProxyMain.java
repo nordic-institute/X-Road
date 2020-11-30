@@ -32,12 +32,9 @@ import ee.ria.xroad.signer.protocol.SignerClient;
 import akka.actor.ActorSystem;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
-import scala.concurrent.Await;
-import scala.concurrent.duration.Duration;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeoutException;
 
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
 
@@ -122,8 +119,8 @@ public final class ConfProxyMain {
     /**
      * Shutdown configuration proxy components.
      */
-    private static void shutdown() throws TimeoutException, InterruptedException {
+    private static void shutdown() {
         log.trace("shutdown()");
-        Await.ready(actorSystem.terminate(), Duration.Inf());
+        actorSystem.terminate();
     }
 }

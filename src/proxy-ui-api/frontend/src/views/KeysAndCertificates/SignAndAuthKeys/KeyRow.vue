@@ -27,8 +27,11 @@
   <tr>
     <td class="name-wrap-top no-border">
       <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
-      <div class="clickable-link" @click="keyClick">
-        {{ tokenKey.name }}
+      <div class="clickable-link identifier-wrap" @click="keyClick">
+        <span v-if="!tokenKey.name || tokenKey.name === ''">{{
+          tokenKey.id
+        }}</span>
+        <span v-else>{{ tokenKey.name }}</span>
       </div>
     </td>
     <td class="no-border" colspan="4"></td>
@@ -51,8 +54,8 @@
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, TokenCertificate } from '@/openapi-types';
-import { PossibleActions, Permissions } from '@/global';
+import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -85,10 +88,10 @@ export default Vue.extend({
       // Check if the generate csr action should be disabled
       if (
         this.tokenKey.possible_actions?.includes(
-          PossibleActions.GENERATE_AUTH_CSR,
+          PossibleAction.GENERATE_AUTH_CSR,
         ) ||
         this.tokenKey.possible_actions?.includes(
-          PossibleActions.GENERATE_SIGN_CSR,
+          PossibleAction.GENERATE_SIGN_CSR,
         )
       ) {
         return false;
@@ -99,13 +102,13 @@ export default Vue.extend({
   },
   methods: {
     keyClick(): void {
-      this.$emit('keyClick');
+      this.$emit('key-click');
     },
     certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$emit('certificateClick', { cert, key });
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(): void {
-      this.$emit('generateCsr');
+      this.$emit('generate-csr');
     },
   },
 });

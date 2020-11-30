@@ -12,8 +12,8 @@ sourceSets {
 }
 
 dependencies {
-    compile project(':common-util')
-    compile project(':common-verifier')
+    implementation project(':common-util')
+    implementation project(':common-verifier')
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -63,8 +63,3 @@ xjc.mustRunAfter processResources
 
 compileJava.dependsOn xjc
 compileJava.dependsOn processResources
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}

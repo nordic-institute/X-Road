@@ -33,6 +33,7 @@
         hide-details
         data-test="search-service-client"
         class="search-input"
+        autofocus
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -62,8 +63,8 @@
               />
             </div>
           </td>
-          <td>{{ accessRight.service_code }}</td>
-          <td>{{ accessRight.title }}</td>
+          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+          <td class="identifier-wrap">{{ accessRight.title }}</td>
         </tr>
       </tbody>
     </table>
@@ -75,8 +76,8 @@
       class="empty"
       v-if="
         serviceCandidates.length > 0 &&
-          searchResults &&
-          searchResults.length === 0
+        searchResults &&
+        searchResults.length === 0
       "
     >
       {{ $t('action.emptySearch', { msg: search }) }}
@@ -140,7 +141,9 @@ export default Vue.extend({
   computed: {
     searchResults(): ServiceCandidate[] {
       return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code.includes(this.search),
+        candidate.service_code
+          .toLowerCase()
+          .includes(this.search.toLowerCase()),
       );
     },
   },

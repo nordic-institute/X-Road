@@ -26,7 +26,7 @@
 <template>
   <div class="new-content">
     <div class="cert-dialog-header">
-      <span class="cert-headline">{{ title }}</span>
+      <span class="identifier-wrap">{{ title }}</span>
       <v-spacer></v-spacer>
       <i v-if="showClose" @click="close()" id="close-x"></i>
     </div>
@@ -59,6 +59,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/colors';
+@import '../../assets/functions';
 
 .new-content {
   max-width: 850px;
@@ -85,6 +86,6 @@ export default Vue.extend({
 }
 
 #close-x:before {
-  content: '\00d7';
+  content: unicode('00d7');
 }
 </style>

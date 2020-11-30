@@ -1,48 +1,43 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow'
 }
 
 dependencies {
-    compile project(':serverconf')
-    compile project(':signer-protocol')
-    compile project(':common-messagelog')
-    compile project(':common-op-monitoring')
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':serverconf')
+    implementation project(':signer-protocol')
+    implementation project(':common-messagelog')
+    implementation project(':common-op-monitoring')
 
-    compile "org.eclipse.jetty:jetty-xml:$jettyVersion"
-    compile 'xerces:xercesImpl:2.12.0'
+    implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
+    implementation 'xerces:xercesImpl:2.12.0'
 
-    testCompile project(':common-test')
-    testCompile 'org.hsqldb:hsqldb:2.5.0'
-    testCompile "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation project(':common-test')
+    testImplementation project(path: ':common-util', configuration: 'testArtifacts')
 
-    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
-    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
-    testCompile 'io.rest-assured:rest-assured:3.3.0'
-
-    testCompile 'wsdl4j:wsdl4j:1.6.3'
-
-    testCompile files(this.project(':common-util').sourceSets.test.output)
-    testCompile files(this.project(':common-util').sourceSets.test.runtimeClasspath)
-
-    testCompile project(':common-verifier').sourceSets.test.output
+    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation 'io.rest-assured:rest-assured:4.3.1'
+    testImplementation 'wsdl4j:wsdl4j:1.6.3'
 }
 
 jar {
   manifest {
     attributes('Main-Class':'ee.ria.xroad.proxy.ProxyMain')
   }
+  enabled = false
 }
 
 shadowJar {
-    classifier = ''
+    archiveClassifier = ''
     append('reference.conf')
+    exclude('**/module-info.class')
     from rootProject.file("LICENSE.txt")
 }
 
 testJar.enabled = true
-jar.enabled = false
-build.dependsOn shadowJar
-buildall.dependsOn shadowJar
+build.finalizedBy shadowJar
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
@@ -83,6 +78,9 @@ test {
     useJUnit {
         excludeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
     }
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/unitTest.exec")
+    }
 }
 
 task integrationTest(type: Test) {
@@ -121,21 +119,10 @@ jacoco {
     applyTo runProxyTest
 }
 
-runProxyTest.jacoco.append=false
-
 task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
     // merge jacoco results from normal tests and runProxyTest
     destinationFile = file("$buildDir/jacoco/test.exec")
     executionData test, integrationTest, runProxyTest
-}
-
-runProxyTest.doLast {
-    tasks.mergedJacoco.execute()
-}
-
-task mergedCoverageReport(type:JacocoReport){
-    executionData = files("$buildDir/jacoco/test.exec")
-    sourceSets sourceSets.main
 }
 
 task runBatchSigner(type: JavaExec) {
@@ -145,4 +132,5 @@ task runBatchSigner(type: JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
 }
 
+runProxyTest.finalizedBy mergedJacoco
 check.dependsOn integrationTest

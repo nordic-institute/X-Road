@@ -29,7 +29,7 @@
       <div class="name-wrap">
         <i
           class="icon-xrd_certificate icon clickable"
-          @click="certificateClick(cert, key)"
+          @click="certificateClick()"
         ></i>
         <div class="clickable-link" @click="certificateClick()">
           {{ cert.certificate_details.issuer_common_name }}
@@ -71,7 +71,7 @@ export default Vue.extend({
 
   methods: {
     certificateClick(): void {
-      this.$emit('certificateClick');
+      this.$emit('certificate-click');
     },
   },
 });
