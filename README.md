@@ -19,34 +19,8 @@ Please check
 
 The Security Server sidecar can be installed both on physical and virtualized hardware. The installation script setup_security_server_sidecar.sh runs on Unix-based operating systems (of the latter, Mac OS and Ubuntu have been tested).
 
-
-
 ## 1.2 Installation
 See the [User guide](doc/security_server_sidecar_user_guide.md) for information about how to install and configure sidecar.
-
-## 1.3 Estimated time for new Security Server Sidecar Installation
-
-The installation process from scratch has been tested in the following environment:
-- Operating System: Ubuntu 18.04.4 LTS.
-- Memory: 16 GB .
-- Disk: 512GB SSD.
-- CPU: Intel(R) Core(TM) i7-8565U CPU @ 1.80GHz.
-- Cores: 4.
-- Internet connection: 120 mbps download, 106 mbps upload.
-
-The timing results were:
-- Download and install pre-requisites (Git): 1 minute.
-- Download and install Docker: 30 seconds.
-- Clone Security Server Sidecar repository: 10 seconds.
-- Run image: 30 seconds.
-- Wait until the UI becomes accessible: 50 seconds
-- Import anchor and initial configuration: 1 minute
-- Pick timestamp service: 30 seconds
-- Create CSRs and send them for signing, import certificates and register the auth certificate: about 3 minutes for an advanced user (This measurement does not take into account the time it takes to sign the certificates because it is out of our hands)
-- Configure member in central server and register the subsystem: about 2 minutes for an advanced user
-- Add client and wait until it's green: 1 minute and 30 seconds
-
-Based on the study, the installation and configuration of the Sidecar from scratch can take approximately 11 minutes for an advanced user.
 
 
 ## 2 Key Points and Limitations for X-Road Security Server Sidecar Deployment
