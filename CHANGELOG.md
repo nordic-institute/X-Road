@@ -1,5 +1,7 @@
 # Change Log
 
+## 6.26.0 - UNRELEASED
+
 ## 6.25.0 - 2020-11-26
 - XRDDEV-1222: Update installation and user guides
 - XRDDEV-1299: Add Ubuntu 20.04 packaging
