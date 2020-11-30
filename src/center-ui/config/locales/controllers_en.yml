@@ -19,6 +19,7 @@ en:
       title: "Help"
       version: "Version"
       feedback: "Feedback"
+      licence_info: "Licence Info"
 
   common:
     db_error: "Cannot connect to database server"

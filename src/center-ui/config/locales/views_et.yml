@@ -33,6 +33,11 @@ et:
       sign_up: "Sign up"
       backlog: "X-Road Backlog"
 
+  licence_info:
+    index:
+      info_text_html: "X-Road is open source software and licensed under the MIT licence. %{service_desk_link}."
+      link_label: "More information"
+
   backup:
     index:
       item:
