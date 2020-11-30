@@ -163,7 +163,6 @@ export default Vue.extend({
 }
 
 .main-tabs {
-  //width: 100%;
   max-width: 1000px;
 }
 
