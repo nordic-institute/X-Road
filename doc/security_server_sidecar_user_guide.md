@@ -125,6 +125,49 @@ In | Consumer Information System | Security Server | 80, 443 | tcp | Source in t
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 
 ## 2.6 Installation
+For installing X-Road Security Server sidecar we can run the script setup_security_server_sidecar.sh wich will build and run the image or we can run directly one of the public images already published on Dockerhub. Both installation will have the same resulting running container.
+
+### 2.6.2 Installation using setup script
+
+To install the Security Server sidecar in a local development environment, run the script setup_security_server_sidecar.sh providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
+
+  ```bash
+  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> (<remote database server hostname> <remote database server port> <remote_database_name>)
+  ```
+
+The script setup_security_server_sidecar.sh will:
+
+- Create a docker bridge-type network called xroad-network to provide container-to-container communication.
+- Build xroad-sidecar-security-server-image performing the following configuration steps:
+  - Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.22.0 or later).
+  - Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
+  - Removes the default admin username (to be re-generated in the initial configuration script).
+  - Removes the generated internal and nginx certificates (to be re-generated in the initial configuration script).
+  - Enables health check port and interfaces (by default all available interfaces).
+  - Backs up the read-only xroad packages' configuration to allow security server sidecar configuration updates.
+  - Copies the xroad security server sidecar custom configuration files.
+  - Exposes the container ports 80 (HTTP), 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
+- Start a new security server sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
+  - Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (reference data 1.2).
+  - Maps port 5588 (proxy health check) to the same host port.
+  - Updates security server sidecar configuration on startup if the installed version of the image has been updated.
+  - Configures xroad-autologin custom software token PIN code with user-supplied PIN (reference data 1.3).
+  - Configures admin credentials with user-supplied username and password (reference data 1.4).
+  - Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
+  - Recreates serverconf database and properties file with serverconf username and random password.
+  - Optionally configures the security server sidecar to use a remote database server.
+  - Starts security server sidecar services.
+  - Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services.
+  - Create sidecar-config directory on the host and mount it into the /etc/xroad config directory on the container.
+
+#### 2.6.2.1 Security Server Sidecar Slim
+To install the Security Server Sidecar slim, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/slim/Dockerfile". The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
+To install the Security Server Sidecar slim with Finnish settings, modify the docker image build path in the setup_security_server_sidecar.sh script by changing the path "sidecar/Dockerfile" to "sidecar/slim/fi/Dockerfile"
+
+#### 2.6.2.2 Finnish settings
+  To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
+
+### 2.6.2 Installation using Dockerhub image
 First, create a docker network to allow communication between containers, we can run the docker command:
 ```
 docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d bridge xroad-network
@@ -133,21 +176,6 @@ To install the Security Server sidecar in a local development environment, we ca
 ```
 docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name> --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
-
-The script setup_security_server_sidecar.sh will:
-
-- Create a docker bridge-type network called xroad-network to provide container-to-container communication..
-- Run a new security server sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
-  - Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (reference data 1.2).
-  - Maps port 5588 (proxy health check) to the same host port.
-  - Updates security server sidecar configuration on startup if the installed version of the image has been updated.
-  - Configures xroad-autologin custom software token PIN code with user-supplied PIN (reference data 1.3).
-  - Configures admin credentials with user-supplied username and password (reference data 1.4).
-  - Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
-  - (In version 6.23.0 or lower). Recreates serverconf database and properties file with serverconf username and random password.
-  - Optionally configures the security server sidecar to use a remote database server.
-  - Starts security server sidecar services.
-  - Replace 'initctl' for 'supervisorctl' in 'xroad_restore.sh' for start and stop the services.
 
 ## 2.7 External database
 It is possible to configure the security server sidecar to use a remote database, instead of the default locally installed one. To do that, you need to provide the remote database server hostname (&lt;database-host&gt;) and port number (&lt;database-port&gt; ) as parameters when running 'docker build' command. Before running the script, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
@@ -211,6 +239,31 @@ serverconf.hibernate.connection.password = <new_password>
 ```bash
  supervisorctl restart all
   ```
+
+## 2.8 Logging Level
+
+  It is possible to configure the Security Server Sidecar to adjust the logging level so that it is less verbose. To do this, we must set the environment variable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO.
+  For setting the environment variable we can either edit the /etc/environment file or run:
+
+   ```bash
+    export XROAD_LOG_LEVEL=<logging level value>
+    ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
+    ```
+
+## 2.9 Volume support
+
+    It is possible to configure security server sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
+    For adding volume support we have to modify the docker run sentence inside the setup_security_server_sidecar.sh script and add the volume support:
+
+    `-v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main`
+
+    For example:
+      ```bash
+      [...]
+        docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
+      [...]
+      ```
+
 
 # 3 Verify installation
 The installation is successful if docker image is running, the system services are started inside the container and the user interface is responding.
@@ -505,3 +558,113 @@ X-Road Security Server Sidecar supports a variety of cloud databases including A
 In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security server high availability](img/ss_high_availability.svg)
+
+
+# 10 Kubernetes
+## 10.1 Kubernetes jobs readiness, liveness and startup probes
+### 10.1.1 Readiness probes
+The readiness probes will perform a health check periodically in a specific time. If the health check fails, the pod will remain in a not ready state until the health check succeeds. The pod in a not ready state will be accessible through his private IP but not from the balancer and the balancer will not redirect any message to this pod. We use readiness probes instead of liveliness probes because with readiness probes we still can connect to the pod for configuring it (adding certificates...) instead of the liveliness probes that will restart the pod until the health check succeeds.
+
+The readiness probes are useful when the pod it's not ready to serve traffic but we don't want to restart it maybe because the pod needs to be configured to be ready,  for example,  adding the certificates.
+
+We will use the following parameters in the Kubernetes configuration file to set up the readiness probe:
+ - initialDelaySeconds:  Number of seconds after the container has started before readiness probes are initiated. For this example we will use 200 seconds to have enough time for the image be downloaded and the services are ready.
+ - periodSeconds:  How often (in seconds) to perform the probe.
+ - successThreshold: Minimum consecutive successes for the probe to be considered successful after having failed.
+ - failureThreshold:  When a probe fails, Kubernetes will try failureThreshold times before giving up and mark the container as not ready.
+ - port: Healthcheck port
+ - path: Healthcheck path
+
+  ```bash
+  [...]
+containers:
+  readinessProbe:
+    httpGet:
+      path: /
+      port: 5588
+    initialDelaySeconds: 200
+    periodSeconds: 30
+    successThreshold: 1
+    failureThreshold: 1
+  [...]
+  ```
+
+### 10.1.2 Liveness probes
+The liveness probes are used to know when restart a container. The liveness probes will perform a health check each period of time and restart the container if it fails.
+
+The liveness probes are useful when the pod is not in a live state and can not be accessed through the UI, for example, due to the pod being caught in a deadlock or one of the services running in the container has stopped.
+
+The parameters for the liveness probes are the same than for the readiness probes, but using the port 80 to check if nginx is running and serving the application instead of using port 5588 to check if the Sidecar pod is ready to serve traffic. It is recommended also to increase the failureThreshold value.
+
+  ```bash
+  [...]
+containers:
+livenessProbe:
+  httpGet:
+   path: /
+   port: 80
+  initialDelaySeconds: 100
+  periodSeconds: 10
+  successThreshold: 1
+  failureThreshold: 5
+  [...]
+  ```
+
+### 10.1.3 Startup probes
+The startup probes indicate whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.
+
+Startup probes are useful for Pods that have containers that take a long time to come into service. This is not really useful in the Sidecar pod because it takes to short to start.
+In a different scenario where the Sidecar would take a long time to start, the startup probe can be used in combination with the liveness probe, so that it waits until the startup probe has succeeded before starting the liveness probe. The tricky part is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
+
+ ```bash
+ [...]
+containers:
+livenessProbe:
+ httpGet:
+  path: /
+  port: 80
+ periodSeconds: 10
+ successThreshold: 1
+ failureThreshold: 50
+ [...]
+ ```
+
+## 10.2 Kubernetes secrets
+### 10.2.1 Create secret
+In this example we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
+Create a manifest file called for example "secret-env-variables.yaml" and fill it with the desired values of the environment variables.
+- replace <namespace_name> with the name of the namespace if it's different from `default`. If we want to use `default` namespace, we can delete the line.
+```bash
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-sidecar-variables
+  namespace: <namespace_name>
+type: Opaque
+stringData:
+  XROAD_TOKEN_PIN: "1234"
+  XROAD_ADMIN_USER: "xrd"
+  XROAD_ADMIN_PASSWORD: "secret"
+  XROAD_DB_HOST: "<db_host>"
+  XROAD_DB_PWD: "<db_password>"
+  XROAD_DB_PORT: "5432"
+  XROAD_LOG_LEVEL: "INFO"
+```
+Apply the manifest:
+```bash
+$ kubectl apply -f secret-env-variables.yaml
+```
+
+### 10.2.2 Consume secret
+Modify your deployment pod definition in each container that you wish to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
+```bash
+[...]
+containers:
+ - name: security-server-sidecar
+   image: niis/xroad-security-server-sidecar:latest
+   imagePullPolicy: "Always"
+   envFrom:
+   - secretRef:
+     name: secret-sidecar-variables
+[...]
+```
