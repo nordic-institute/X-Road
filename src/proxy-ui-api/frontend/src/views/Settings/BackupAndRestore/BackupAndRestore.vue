@@ -24,19 +24,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <div class="table-toolbar">
-      <v-text-field
-        v-model="search"
-        :label="$t('action.search')"
-        single-line
-        hide-details
-        class="search-input"
-        data-test="backup-search"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+  <div class="xrd-view-common">
+    <div class="table-toolbar mt-2 pl-0">
+      <div class="xrd-title-search">
+        <div class="xrd-view-title">
+          {{ $t('tab.settings.backupAndRestore') }}
+        </div>
+        <v-text-field
+          v-model="search"
+          :label="$t('action.search')"
+          single-line
+          hide-details
+          class="search-input"
+          data-test="backup-search"
+          autofocus
+        >
+          <v-icon slot="append">mdi-magnify</v-icon>
+        </v-text-field>
+      </div>
       <div>
         <large-button
           v-if="canBackup"

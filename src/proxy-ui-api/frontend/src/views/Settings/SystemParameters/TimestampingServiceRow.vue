@@ -27,7 +27,7 @@
   <tr data-test="system.parameters-timestamping-service-row">
     <td>{{ timestampingService.name }}</td>
     <td>{{ timestampingService.url }}</td>
-    <td>
+    <td class="pr-4">
       <small-button
         data-test="system-parameters-timestamping-service-delete-button"
         @click="confirmDeleteDialog = true"

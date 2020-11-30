@@ -26,6 +26,8 @@
 <template>
   <small-button
     :min_width="50"
+    text
+    :outlined="false"
     class="xrd-table-button"
     data-test="backup-restore"
     @click="showConfirmation = true"

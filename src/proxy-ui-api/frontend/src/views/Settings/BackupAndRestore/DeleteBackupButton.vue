@@ -28,6 +28,8 @@
     v-if="canBackup"
     :min_width="50"
     :loading="deleting"
+    text
+    :outlined="false"
     class="xrd-table-button"
     data-test="backup-delete"
     @click="showConfirmation = true"

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card flat>
+  <v-card flat class="pb-3">
     <table class="xrd-table">
       <thead>
         <tr>
@@ -40,6 +40,8 @@
               <small-button
                 v-if="canBackup"
                 :min_width="50"
+                text
+                :outlined="false"
                 class="xrd-table-button"
                 data-test="backup-download"
                 @click="downloadBackup(backup.filename)"
@@ -121,6 +123,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
+@import '~styles/colors';
+@import '~styles/tables';
 </style>
