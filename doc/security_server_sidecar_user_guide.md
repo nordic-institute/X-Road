@@ -86,7 +86,7 @@ This image uses the slim as base image and includes the packages for support [en
 ### 2.2.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi
 This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish settings configuration included.
 
-### 2.2.4
+### 2.2.4 niis/xroad-security-server-sidecar:&lt;version&gt;-fi
 This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt; but with the Finnish settings configuration included.
 
 ## 2.3 Reference data
