@@ -1,7 +1,3 @@
-## X-Road Documentation
-
-Index of X-Road Documentation
-
 ### Terms and abbreviations
 - [\[TA-TERMS\] Terms of X-Road](terms_x-road_docs.md)
 
