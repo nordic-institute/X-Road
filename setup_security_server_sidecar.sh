@@ -13,8 +13,9 @@ usage="
 
     #6 Hostname to connect to the external postgresql database (default 127.0.0.1)
     #7 Port number to connect to the external postgresql database (default 5432)
+    #8 Database name in case we want to reuse a host with an existing database (default empty)
 
-    If you provide the two parameters above, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
+    If you provide the three parameters above, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
 "
 
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ] || [ -z "$5" ]; then
@@ -36,10 +37,6 @@ then
     "
     exit 0;
   fi
-  rm -f xroad.properties
-  echo "postgres.connection.password = ${XROAD_DB_PASSWORD}" >> xroad.properties
-  external_db_args="--mount type=bind,source="$(pwd)"/xroad.properties,target=/etc/xroad.properties,readonly"
-
 fi
 
 httpport=$(($2 + 1))
@@ -51,7 +48,8 @@ docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
 echo "=====> Run container"
-docker run ${external_db_args} --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL --name $1 xroad-sidecar-security-server-image:latest
+docker run  --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PWD  -e XROAD_LOG_LEVEL=$XROAD_DB_PWD -e XROAD_DATABASE_NAME=$8 --name $1 xroad-sidecar-security-server-image
+docker run  --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL -e XROAD_DATABASE_NAME=$8 --name $1 xroad-sidecar-security-server-image:6.24.0
 
 printf "\n
 Sidecar security server software token PIN is set to $3
