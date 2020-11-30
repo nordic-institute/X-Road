@@ -7,6 +7,9 @@
  13.11.2020 | 1.0     | Initial version                                                 |
 
 # Table of Contents
+* [Security Server Sidecar Installation User Guide ](#security-server-sidecar-installation-user-guide-)
+   * [Version history ](#version-history-)
+* [Table of Contents](#table-of-contents)
 * [1 Introduction](#1-introduction)
    * [1.1 Target Audience](#11-target-audience)
 * [2 Installation](#2-installation)
@@ -20,8 +23,14 @@
    * [2.4 Requirements for the X-Road Security Server sidecar](#24-requirements-for-the-x-road-security-server-sidecar)
    * [2.5 Network](#25-network)
    * [2.6 Installation](#26-installation)
+      * [2.6.2 Installation using setup script](#262-installation-using-setup-script)
+         * [2.6.2.1 Security Server Sidecar Slim](#2621-security-server-sidecar-slim)
+         * [2.6.2.2 Finnish settings](#2622-finnish-settings)
+      * [2.6.2 Installation using Dockerhub image](#262-installation-using-dockerhub-image)
    * [2.7 External database](#27-external-database)
       * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
+   * [2.8 Logging Level](#28-logging-level)
+   * [2.9 Volume support](#29-volume-support)
 * [3 Verify installation](#3-verify-installation)
 * [4 X-Road Security Server sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
    * [4.1 Prerequisites](#41-prerequisites)
@@ -41,6 +50,14 @@
    * [9.2 Local database](#92-local-database)
    * [9.3 Remote database](#93-remote-database)
    * [9.4 High Availability Setup](#94-high-availability-setup)
+* [10 Kubernetes](#10-kubernetes)
+   * [10.1 Kubernetes jobs readiness, liveness and startup probes](#101-kubernetes-jobs-readiness-liveness-and-startup-probes)
+      * [10.1.1 Readiness probes](#1011-readiness-probes)
+      * [10.1.2 Liveness probes](#1012-liveness-probes)
+      * [10.1.3 Startup probes](#1013-startup-probes)
+   * [10.2 Kubernetes secrets](#102-kubernetes-secrets)
+      * [10.2.1 Create secret](#1021-create-secret)
+      * [10.2.2 Consume secret](#1022-consume-secret)
 
 
 # 1 Introduction
@@ -125,7 +142,7 @@ In | Consumer Information System | Security Server | 80, 443 | tcp | Source in t
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 
 ## 2.6 Installation
-For installing X-Road Security Server sidecar we can run the script setup_security_server_sidecar.sh wich will build and run the image or we can run directly one of the public images already published on Dockerhub. Both installation will have the same resulting running container.
+To install X-Road Security Server sidecar we can run the script setup_security_server_sidecar.sh wich will build and run the image or we can run directly one of the public images published on Dockerhub. Both installations will have the same resulting running container.
 
 ### 2.6.2 Installation using setup script
 
