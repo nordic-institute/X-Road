@@ -55,11 +55,11 @@ public class ApiKeyAuthenticationHelper {
 
     /**
      * get matching key
-     * @param key
+     * @param key plaintext key
      * @return
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    public PersistentApiKeyType get(String key) throws ApiKeyService.ApiKeyNotFoundException {
+    public PersistentApiKeyType getForPlaintextKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
         String encodedKey = passwordEncoder.encode(key);
         List<PersistentApiKeyType> keys = apiKeyRepository.getAllApiKeys();
         for (PersistentApiKeyType apiKeyType : keys) {

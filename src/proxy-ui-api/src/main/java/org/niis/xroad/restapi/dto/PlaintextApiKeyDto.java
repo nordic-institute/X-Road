@@ -23,36 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.domain;
+package org.niis.xroad.restapi.dto;
 
 import lombok.Getter;
-import lombok.Setter;
+import org.niis.xroad.restapi.domain.Role;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Api key which is persisted in DB. Contains encoded key (instead of plaintext)
+ * DTO for API key that has just been created, and contains also plain text key.
+ * For other use cases, {@link org.niis.xroad.restapi.domain.PersistentApiKeyType},
+ * which does not contain the transient plaintext key, may be better.
  */
 @Getter
-public class PersistentApiKeyType {
+public class PlaintextApiKeyDto {
     private Long id;
+    private String plaintextKey;
     private String encodedKey;
-    @Setter
     private Set<Role> roles;
 
-    /**
-     * Create api key
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String encodedKey, Collection<Role> roles) {
+    public PlaintextApiKeyDto(Long id, String plaintextKey, String encodedKey, Set<Role> roles) {
+        this.id = id;
+        this.plaintextKey = plaintextKey;
         this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    public PersistentApiKeyType() {
+        this.roles = roles;
     }
 }
