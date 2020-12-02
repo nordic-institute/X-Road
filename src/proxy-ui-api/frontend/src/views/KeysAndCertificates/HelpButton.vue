@@ -24,20 +24,66 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>
-    <alerts-container />
-    <clientsDataTable />
-  </v-layout>
+  <div class="xrd-view-common xrd-sub-view-wrapper">
+    <v-hover v-slot:default="{ hover }">
+      <v-icon
+        :color="hover ? '#663CDC' : '#9c9c9c'"
+        dark
+        class="help-icon"
+        @click="helpClick()"
+        >mdi-help-circle</v-icon
+      >
+    </v-hover>
+
+    <helpDialog
+      :dialog="showHelp"
+      @cancel="closeHelp"
+      :title="helpTitle"
+      :text="helpText"
+    >
+      <v-img :src="require('./../../assets/' + helpImage)"></v-img>
+    </helpDialog>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import ClientsDataTable from './ClientsDataTable.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+
 export default Vue.extend({
-  components: {
-    AlertsContainer,
-    ClientsDataTable,
+  props: {
+    helpImage: {
+      type: String,
+      required: true,
+    },
+    helpTitle: {
+      type: String,
+      required: true,
+    },
+    helpText: {
+      type: String,
+      required: true,
+    },
+  },
+
+  data: () => ({
+    showHelp: false,
+  }),
+
+  methods: {
+    helpClick(): void {
+      this.showHelp = true;
+    },
+    closeHelp(): void {
+      this.showHelp = false;
+    },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.help-icon {
+  margin-left: 20px;
+  margin-bottom: 4px;
+  font-size: 22px;
+}
+</style>

@@ -67,9 +67,9 @@
 .xrd-tabs {
   margin-left: auto;
   margin-right: auto;
+  padding-left: 80px;
+  background-color: $XRoad-WarmGrey10;
   width: 100%;
-  max-width: 1000px;
-  border-bottom: $XRoad-Grey40 solid 1px;
 }
 
 // Set validation provider to full width
@@ -82,12 +82,18 @@
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: $XRoad-Black;
-  font-family: Roboto;
+  color: $XRoad-Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
   line-height: 30px;
+}
+
+.xrd-sub-view-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 // LAYOUT
@@ -106,4 +112,20 @@
 // Break long identifiers
 .identifier-wrap {
   word-break: break-word;
+}
+
+// X-Road 7
+.xrd-view-title {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 24px;
+  color: $XRoad-WarmGrey100;
+}
+
+.xrd-card {
+  .xrd-card-actions {
+    background-color: $XRoad-WarmGrey10;
+    height: 72px;
+    padding-right: 24px;
+  }
 }

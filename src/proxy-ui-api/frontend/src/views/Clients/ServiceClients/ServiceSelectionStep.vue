@@ -193,7 +193,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';
-@import '../../../assets/global-style';
 @import '../../../assets/shared';
 @import '../../../assets/wizards';
 

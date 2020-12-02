@@ -34,7 +34,7 @@ import './filters';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import 'roboto-fontface/css/roboto/roboto-fontface.css';
+import 'fontsource-open-sans';
 import './assets/icons.css';
 import i18n from './i18n';
 

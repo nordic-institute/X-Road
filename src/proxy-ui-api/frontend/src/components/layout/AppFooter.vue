@@ -24,16 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-footer color="grey lighten-3">
-    <v-layout align-center justify-center>
-      <v-row class="xrd-tab-max-width">
-        <v-col cols="6" sm="3" class="pt-2">
+  <v-footer class="footer">
+    <v-layout align-left justify-left class="footer-inner">
+      <v-row>
+        <v-col cols="6" sm="3" class="pt-6">
           <v-img
-            :src="require('../../assets/xroad_logo_64_purple.png')"
-            height="64"
-            width="128"
-            max-height="64"
-            max-width="128"
+            :src="require('../../assets/xroad7_logo.svg')"
+            height="35"
+            width="132"
+            max-height="35"
+            max-width="132"
           ></v-img>
         </v-col>
         <v-col cols="3" class="footer-col pt-5">
@@ -117,11 +117,26 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-$text-color: darken(#9e9e9e, 15);
+@import '../../assets/colors';
+$text-color: $XRoad-Black100;
+
+.footer {
+  background: $XRoad-WarmGrey30;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.footer-inner {
+  max-width: 1000px;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
 
 .footer-title {
   color: $text-color;
-  text-transform: uppercase;
   font-size: 0.9rem;
   font-weight: bold;
 }
@@ -132,6 +147,6 @@ $text-color: darken(#9e9e9e, 15);
 }
 
 .footer-link {
-  color: $text-color;
+  color: $XRoad-Purple100;
 }
 </style>

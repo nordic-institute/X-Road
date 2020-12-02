@@ -23,11 +23,12 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
   <div>
     <router-view name="top" />
     <v-layout align-center justify-center>
-      <v-layout mt-5 align-center justify-center class="base-full-width frame">
+      <v-layout align-center justify-center class="base-full-width">
         <transition name="fade" mode="out-in">
           <router-view />
         </transition>
@@ -109,8 +110,7 @@ export default Vue.extend({
 @import '../assets/shared';
 .base-full-width {
   width: 100%;
-  max-width: $view-area-max-width;
-  margin: 10px;
+  padding-bottom: 40px;
 }
 .fade-enter-active,
 .fade-leave-active {
@@ -121,9 +121,5 @@ export default Vue.extend({
 .fade-enter,
 .fade-leave-active {
   opacity: 0;
-}
-
-.frame {
-  padding-bottom: 40px;
 }
 </style>

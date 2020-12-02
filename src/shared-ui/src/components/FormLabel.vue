@@ -25,9 +25,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="label">
-    {{ labelText }}
-    <helpIcon v-if="helpText" :text="helpText" />
+  <div class="form-label">
+    <div class="label-text">
+      {{ labelText }}
+    </div>
+    <div class="info-text">{{ helpText }}</div>
   </div>
 </template>
 
@@ -36,13 +38,9 @@
  * Label and help icon that can be used with inputs
  */
 import Vue from 'vue';
-import HelpIcon from '@/components/HelpIcon.vue';
 
 export default Vue.extend({
   name: 'FormLabel',
-  components: {
-    HelpIcon,
-  },
   props: {
     labelText: {
       type: String,
@@ -57,11 +55,26 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.label {
-  width: 230px;
-  min-width: 230px;
+.form-label {
+  width: 405px;
+  min-width: 405px;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: baseline;
+  color: #211e1e;
+
+  .label-text {
+    font-style: normal;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 19px;
+  }
+
+  .info-text {
+    font-style: normal;
+    font-weight: normal;
+    font-size: 14px;
+    line-height: 19px;
+  }
 }
 </style>

@@ -25,19 +25,28 @@
  -->
 <template>
   <div class="wrapper">
-    <div class="search-row">
-      <v-text-field
-        v-model="search"
-        :label="$t('services.service')"
-        single-line
-        hide-details
-        class="search-input"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+    <div class="title-and-search">
+      <div class="xrd-view-title">{{ $t('systemParameters.title') }}</div>
+      <div>
+        <help-button
+          helpImage="keys_and_certificates.png"
+          helpTitle="keys.helpTitleKeys"
+          helpText="keys.helpTextKeys"
+        ></help-button>
+      </div>
+      <div class="search-row">
+        <v-text-field
+          v-model="search"
+          :label="$t('services.service')"
+          single-line
+          hide-details
+          class="search-input"
+          autofocus
+        >
+          <v-icon slot="append">mdi-magnify</v-icon>
+        </v-text-field>
+      </div>
     </div>
-
     <div v-if="filtered && filtered.length < 1">
       {{ $t('services.noMatches') }}
     </div>
@@ -76,12 +85,14 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
+import HelpButton from '../HelpButton.vue';
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
+    HelpButton,
     TokenExpandable,
     TokenLoginDialog,
   },
@@ -191,7 +202,10 @@ export default Vue.extend({
     addKey() {
       this.$router.push({
         name: RouteName.AddKey,
-        params: { tokenId: this.$store.getters.selectedToken.id },
+        params: {
+          tokenId: this.$store.getters.selectedToken.id,
+          tokenType: this.$store.getters.selectedToken.type,
+        },
       });
     },
   },
@@ -207,14 +221,18 @@ export default Vue.extend({
   width: 100%;
 }
 
+.title-and-search {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
 .search-row {
+  margin-left: 20px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
+  align-items: center;
 }
 
 .search-input {

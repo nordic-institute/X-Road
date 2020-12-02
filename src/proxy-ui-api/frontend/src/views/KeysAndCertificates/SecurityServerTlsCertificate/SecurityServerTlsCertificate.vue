@@ -25,6 +25,17 @@
  -->
 <template>
   <div class="wrapper">
+    <div class="title-row">
+      <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
+      <div>
+        <help-button
+          helpImage="tls_certificate.png"
+          helpTitle="keys.helpTitleSS"
+          helpText="keys.helpTextSS"
+        ></help-button>
+      </div>
+    </div>
+
     <div class="details-view-tools">
       <large-button
         v-if="generateKeyVisible"
@@ -112,10 +123,12 @@ import * as api from '@/util/api';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 import { FileUploadResult } from '@niis/shared-ui';
+import HelpButton from '../HelpButton.vue';
 
 export default Vue.extend({
   components: {
     GenerateTlsAndCertificateDialog,
+    HelpButton,
   },
   data() {
     return {
@@ -207,6 +220,12 @@ export default Vue.extend({
 .wrapper {
   margin-top: 20px;
   width: 100%;
+}
+
+.title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
 }
 
 .content-title {

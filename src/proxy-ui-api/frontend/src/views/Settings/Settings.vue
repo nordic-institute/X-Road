@@ -24,20 +24,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <v-tabs
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>
-        {{ $t(tab.name) }}
-      </v-tab>
-    </v-tabs>
-    <div class="content">
+  <div class="xrd-sub-view-wrapper">
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+    <alerts-container />
+    <div class="content xrd-view-common">
       <router-view />
     </div>
   </div>
@@ -47,8 +41,14 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
+  components: {
+    AlertsContainer,
+    SubTabs,
+  },
   data() {
     return {
       tab: null,

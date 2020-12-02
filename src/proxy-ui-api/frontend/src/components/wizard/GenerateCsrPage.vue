@@ -26,28 +26,31 @@
 <template>
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
-        <div class="label">
-          {{ $t('certificateProfile.' + item.label_key) }}
-        </div>
+      <div class="wizard-step-form-content">
+        <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
+          <div class="label">
+            {{ $t('certificateProfile.' + item.label_key) }}
+          </div>
 
-        <div>
-          <ValidationProvider
-            :name="item.id"
-            :rules="item.required && 'required'"
-            v-slot="{ errors }"
-          >
-            <v-text-field
-              class="form-input"
+          <div>
+            <ValidationProvider
               :name="item.id"
-              type="text"
-              v-model="item.default_value"
-              :disabled="item.read_only"
-              :error-messages="errors"
-              autofocus
-              data-test="dynamic-csr-input"
-            ></v-text-field>
-          </ValidationProvider>
+              :rules="item.required && 'required'"
+              v-slot="{ errors }"
+            >
+              <v-text-field
+                class="form-input"
+                :name="item.id"
+                type="text"
+                v-model="item.default_value"
+                :disabled="item.read_only"
+                :error-messages="errors"
+                outlined
+                autofocus
+                data-test="dynamic-csr-input"
+              ></v-text-field>
+            </ValidationProvider>
+          </div>
         </div>
       </div>
       <div class="button-footer">

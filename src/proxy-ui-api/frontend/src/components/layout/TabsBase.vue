@@ -24,30 +24,62 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-center justify-center column>
-    <v-tabs
-      v-model="tab"
-      class="main-tabs"
-      grow
-      mb-10
-      color="secondary"
-      slider-size="4"
-    >
-      <v-tabs-slider
-        color="secondary"
-        class="xrd-main-tabs-slider"
-      ></v-tabs-slider>
-      <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
-        $t(tab.name)
-      }}</v-tab>
-    </v-tabs>
+  <v-layout class="main-content" align-left row>
+    <v-img
+      :src="require('../../assets/xroad7_logo.svg')"
+      height="35"
+      width="132"
+      max-height="35"
+      max-width="132"
+      class="xrd-logo"
+      @click="home()"
+    ></v-img>
+    <div class="tabs-wrap">
+      <v-tabs
+        v-model="tab"
+        class="main-tabs"
+        color="black"
+        height="56px"
+        slider-size="2"
+        slider-color="primary"
+        :show-arrows="true"
+      >
+        <v-tabs-slider
+          color="primary"
+          class="xrd-main-tabs-slider"
+        ></v-tabs-slider>
+        <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
+          $t(tab.name)
+        }}</v-tab>
+      </v-tabs>
+    </div>
+
+    <div class="drop-menu">
+      <v-menu bottom right>
+        <template v-slot:activator="{ on }">
+          <v-btn text v-on="on">
+            {{ username }}
+            <v-icon>mdi-chevron-down</v-icon>
+          </v-btn>
+        </template>
+
+        <v-list>
+          <v-list-item id="logout-list-tile" @click="logout">
+            <v-list-item-title id="logout-title">{{
+              $t('login.logOut')
+            }}</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </div>
   </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
+import { mainTabs, RouteName } from '@/global';
 
 export default Vue.extend({
   data() {
@@ -56,15 +88,51 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapGetters(['username']),
+
     allowedTabs(): Tab[] {
       return this.$store.getters.getAllowedTabs(mainTabs);
+    },
+  },
+  methods: {
+    home(): void {
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
+        })
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.log('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
+        });
+    },
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
 </script>
 
 <style lang="scss">
+@import '../../assets/colors';
+
 .v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v-tab {
+  text-transform: none;
+}
+
+.v-tabs-slider.xrd-sub-tabs-slider {
   width: 40px;
   margin-left: auto;
   margin-right: auto;
@@ -73,11 +141,35 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .main-content {
-  margin-top: 50px;
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
+}
+
+.xrd-logo {
+  margin-top: auto;
+  margin-bottom: auto;
+  cursor: pointer;
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
+}
+
+.tabs-wrap {
+  margin-left: 20px;
 }
 
 .main-tabs {
-  width: 100%;
   max-width: 1000px;
+}
+
+.drop-menu {
+  margin-left: auto;
+  margin-right: 70px;
+  display: flex;
+  align-items: center;
 }
 </style>

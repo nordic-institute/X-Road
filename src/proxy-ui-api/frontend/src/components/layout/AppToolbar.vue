@@ -24,21 +24,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar app dark color="#202020" elevation="2">
-    <v-img
-      :src="require('../../assets/xroad_logo_64.png')"
-      height="64"
-      width="128"
-      max-height="64"
-      max-width="128"
-      @click="home()"
-      class="xrd-logo"
-    ></v-img>
+  <v-app-bar app dark absolute color="#636161" flat height="32" max-height="32">
     <div class="auth-container" v-if="isAuthenticated">
-      <div class="separator"></div>
-      <div class="server-type">Security Server</div>
+      <div class="server-type">X-ROAD SECURITY SERVER</div>
       <div
-        class="white--text server-name"
+        class="server-name"
         data-test="app-toolbar-server-name"
         v-show="currentSecurityServer.id"
         :title="currentSecurityServer.server_address"
@@ -47,23 +37,6 @@
           `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
         }}
       </div>
-      <v-spacer></v-spacer>
-      {{ username }}
-      <v-menu bottom left>
-        <template v-slot:activator="{ on }">
-          <v-btn icon v-on="on">
-            <v-icon>mdi-account-circle</v-icon>
-          </v-btn>
-        </template>
-
-        <v-list>
-          <v-list-item id="logout-list-tile" @click="logout">
-            <v-list-item-title id="logout-title">{{
-              $t('login.logOut')
-            }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
     </div>
   </v-app-bar>
 </template>
@@ -76,7 +49,7 @@ import { RouteName } from '@/global';
 export default Vue.extend({
   name: 'toolbar',
   computed: {
-    ...mapGetters(['username', 'currentSecurityServer', 'isAuthenticated']),
+    ...mapGetters(['currentSecurityServer', 'isAuthenticated']),
   },
   methods: {
     home(): void {
@@ -105,29 +78,13 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .server-name {
-  font-size: 14px;
   margin: 20px;
 }
 
-.separator {
-  width: 2px;
-  height: 24px;
-  margin-left: 6px;
-  background-color: white;
-}
-
-.xrd-logo {
-  cursor: pointer;
-}
-
 .server-type {
-  height: 20px;
-  width: 112px;
-  border-radius: 4px;
-  background-color: #00c8e6;
-  text-align: center;
-  margin-left: 22px;
-  font-size: 12px;
+  font-style: normal;
+  font-weight: bold;
+  margin-left: 64px;
   user-select: none;
 
   @media only screen and (max-width: 920px) {
@@ -136,6 +93,10 @@ export default Vue.extend({
 }
 
 .auth-container {
+  font-size: 12px;
+  line-height: 16px;
+  text-align: center;
+  color: #dedce4;
   display: flex;
   height: 100%;
   align-items: center;

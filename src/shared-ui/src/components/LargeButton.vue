@@ -79,7 +79,7 @@ export default Vue.extend({
       default: false,
     },
     min_width: {
-      type: Number,
+      type: [Number, String],
       default: 80,
     },
     gradient: {

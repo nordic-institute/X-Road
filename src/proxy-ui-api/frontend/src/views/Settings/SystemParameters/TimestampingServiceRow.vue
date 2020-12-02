@@ -30,9 +30,10 @@
     <td>
       <small-button
         data-test="system-parameters-timestamping-service-delete-button"
-        outlined
         @click="confirmDeleteDialog = true"
         :requires-permission="permissions.DELETE_TSP"
+        :outlined="false"
+        text
       >
         {{
           $t('systemParameters.timestampingServices.table.action.delete.button')

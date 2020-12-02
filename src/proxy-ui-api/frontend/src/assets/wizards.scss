@@ -27,6 +27,11 @@
 @import './colors';
 @import './shared';
 
+.wizard-step-form-content {
+  margin: 24px;
+  text-align: center;
+}
+
 .label {
   width: 230px;
   display: flex;
@@ -37,7 +42,7 @@
 .row-wrap {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: flex-start;
   min-height: 60px;
 }
 
@@ -48,17 +53,20 @@
 .button-footer {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-  border-top: solid 1px $XRoad-Grey40;
-  margin-top: 40px;
-  padding-top: 30px;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
+  padding-right: 24px;
+  padding-left: 24px;
+
 }
 
 .button-group {
   display: flex;
   flex-direction: row;
   align-items: baseline;
+  margin-right: 16px;
 
   :not(:last-child) {
     margin-right: 20px;
@@ -67,4 +75,61 @@
 
 .previous-button {
   margin-right: 10px;
+}
+
+.view-wrap {
+  width: 100%;
+  max-width: 1050px;
+  margin: 10px;
+  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
+  border-radius: 4px;
+
+  // override Vuetify style
+  .v-stepper__content {
+    padding: 0;
+  }
+  background-color: #ffffff;
+}
+
+.view-title {
+  width: 100%;
+  max-width: 100%;
+  margin: 30px;
+
+}
+
+.stepper-content {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stepper {
+  width: 100%;
+}
+
+.noshadow {
+  -webkit-box-shadow: none;
+  -moz-box-shadow: none;
+  box-shadow: none;
+}
+
+.info-block {
+  display: flex;
+  flex-direction: row;
+  margin: 20px;
+  margin-bottom: 40px;
+
+  .action-block {
+    margin-top: 30px;
+    margin-left: auto;
+    margin-right: 0px;
+  }
+}
+
+.duplicate-warning {
+  margin-left: 230px;
+  margin-top: 10px;
+  color: #ff5252;
+  font-size: 12px;
 }

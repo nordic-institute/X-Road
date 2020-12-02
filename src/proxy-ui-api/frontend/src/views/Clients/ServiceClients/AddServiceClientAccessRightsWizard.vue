@@ -147,7 +147,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/global-style';
 @import '../../../assets/shared';
 @import '../../../assets/wizards';
 

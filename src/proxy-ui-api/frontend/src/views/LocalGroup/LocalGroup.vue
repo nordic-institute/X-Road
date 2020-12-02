@@ -366,8 +366,7 @@ export default Vue.extend({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: $XRoad-Black;
-  font-family: Roboto;
+  color: $XRoad-Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -380,8 +379,7 @@ export default Vue.extend({
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: $XRoad-Black;
-  font-family: Roboto;
+  color: $XRoad-Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
