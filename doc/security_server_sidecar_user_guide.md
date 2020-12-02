@@ -1,4 +1,4 @@
-# Security Server Sidecar Installation User Guide <!-- omit in toc -->
+# Security Server Sidecar User Guide <!-- omit in toc -->
 
 ## Version history <!-- omit in toc -->
 
