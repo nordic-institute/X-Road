@@ -4,7 +4,7 @@
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 13.11.2020 | 1.0     | Initial version                                                 |
+ 13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
 
 # Table of Contents
 * [1 Introduction](#1-introduction)
@@ -565,13 +565,13 @@ docker run -v (custom-volume-name):/var/lib/xroad/
 ## 9.1 General
 X-Road Security Server Sidecar has multiple deployment options.  The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment. The images different images could be combine and any can be used as a consumer or provider server.
 
-## 9.2 Local database
-The simplest deployment option is to use a single security server sidecar with local database. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
+## 9.2 Container database
+The simplest deployment option is to use a single security server sidecar with local database inside the container. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security server with local database](img/ig-ss_local_db.svg)
 
 ## 9.3 Remote database
-It is possible to use a remote database with X-Road Security Server Sidecar. This option is sometimes used in development and testing when there's need to externalize the database state.
+It is possible to use a remote database with X-Road Security Server Sidecar.
 
 X-Road Security Server Sidecar supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
 
