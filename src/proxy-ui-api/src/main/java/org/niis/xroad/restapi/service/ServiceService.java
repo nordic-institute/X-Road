@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -40,7 +41,6 @@ import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -67,23 +67,13 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class ServiceService {
     private final ClientRepository clientRepository;
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final UrlValidator urlValidator;
     private final AuditDataHelper auditDataHelper;
     private final InternalServerTestService internalServerTestService;
-
-    @Autowired
-    public ServiceService(ClientRepository clientRepository, ServiceDescriptionRepository serviceDescriptionRepository,
-            UrlValidator urlValidator, AuditDataHelper auditDataHelper,
-            InternalServerTestService internalServerTestService) {
-        this.clientRepository = clientRepository;
-        this.serviceDescriptionRepository = serviceDescriptionRepository;
-        this.urlValidator = urlValidator;
-        this.auditDataHelper = auditDataHelper;
-        this.internalServerTestService = internalServerTestService;
-    }
 
     /**
      * get ServiceType by ClientId and service code that includes service version

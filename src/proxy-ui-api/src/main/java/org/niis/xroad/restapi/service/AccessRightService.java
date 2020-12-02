@@ -38,6 +38,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -47,7 +48,6 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +80,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_A
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class AccessRightService {
 
     private final GlobalConfFacade globalConfFacade;
@@ -89,22 +90,6 @@ public class AccessRightService {
     private final AuditDataHelper auditDataHelper;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ClientService clientService;
-
-    @Autowired
-    public AccessRightService(GlobalConfFacade globalConfFacade,
-            ClientRepository clientRepository, IdentifierService identifierService,
-            EndpointService endpointService,
-            ServiceDescriptionService serviceDescriptionService,
-            ClientService clientService,
-            AuditDataHelper auditDataHelper) {
-        this.globalConfFacade = globalConfFacade;
-        this.clientRepository = clientRepository;
-        this.identifierService = identifierService;
-        this.endpointService = endpointService;
-        this.serviceDescriptionService = serviceDescriptionService;
-        this.clientService = clientService;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * Remove AccessRights from a Service

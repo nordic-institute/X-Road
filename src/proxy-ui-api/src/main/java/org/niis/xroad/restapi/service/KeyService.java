@@ -31,14 +31,13 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,6 +65,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class KeyService {
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
@@ -74,26 +74,6 @@ public class KeyService {
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
-
-    /**
-     * KeyService constructor
-     */
-    @Autowired
-    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            ManagementRequestSenderService managementRequestSenderService,
-            SecurityHelper securityHelper,
-            AuditDataHelper auditDataHelper,
-            AuditEventHelper auditEventHelper,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
-        this.tokenService = tokenService;
-        this.signerProxyFacade = signerProxyFacade;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.managementRequestSenderService = managementRequestSenderService;
-        this.securityHelper = securityHelper;
-        this.auditDataHelper = auditDataHelper;
-        this.auditEventHelper = auditEventHelper;
-    }
 
     /**
      * Return one key

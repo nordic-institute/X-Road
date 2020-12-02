@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
@@ -51,7 +52,6 @@ import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -94,6 +94,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
 @Service
 @Transactional(rollbackFor = ServiceException.class)
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
@@ -112,34 +113,6 @@ public class ServiceDescriptionService {
     private final OpenApiParser openApiParser;
     private final AuditDataHelper auditDataHelper;
     private final EndpointHelper endpointHelper;
-
-    /**
-     * ServiceDescriptionService constructor
-     *
-     * @param serviceDescriptionRepository
-     * @param clientService
-     * @param clientRepository
-     * @param urlValidator
-     * @param endpointHelper
-     */
-    @Autowired
-    public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository,
-            ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator, UrlValidator urlValidator,
-            OpenApiParser openApiParser, AuditDataHelper auditDataHelper,
-            EndpointHelper endpointHelper) {
-
-        this.serviceDescriptionRepository = serviceDescriptionRepository;
-        this.clientService = clientService;
-        this.clientRepository = clientRepository;
-        this.serviceChangeChecker = serviceChangeChecker;
-        this.wsdlValidator = wsdlValidator;
-        this.urlValidator = urlValidator;
-        this.openApiParser = openApiParser;
-        this.auditDataHelper = auditDataHelper;
-        this.endpointHelper = endpointHelper;
-    }
 
     /**
      * Disable 1 services

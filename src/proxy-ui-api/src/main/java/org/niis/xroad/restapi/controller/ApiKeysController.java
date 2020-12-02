@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.controller;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -34,7 +35,6 @@ import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.ApiKeyService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,18 +62,13 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 @RequestMapping(ApiKeysController.API_KEYS_V1_PATH)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class ApiKeysController {
 
     public static final String API_KEYS_V1_PATH = API_V1_PREFIX + "/api-keys";
 
     private final ApiKeyService apiKeyService;
     private final PublicApiKeyDataConverter publicApiKeyDataConverter;
-
-    @Autowired
-    public ApiKeysController(ApiKeyService apiKeyService, PublicApiKeyDataConverter publicApiKeyDataConverter) {
-        this.apiKeyService = apiKeyService;
-        this.publicApiKeyDataConverter = publicApiKeyDataConverter;
-    }
 
     /**
      * create a new api key

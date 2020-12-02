@@ -31,6 +31,7 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientConverter;
@@ -56,7 +57,6 @@ import org.niis.xroad.restapi.service.ServerConfService;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.restapi.service.WrongKeyUsageException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -79,6 +79,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_KEY_N
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class KeysApiController implements KeysApi {
 
     private final KeyService keyService;
@@ -88,26 +89,6 @@ public class KeysApiController implements KeysApi {
     private final ServerConfService serverConfService;
     private final CsrFilenameCreator csrFilenameCreator;
     private final PossibleActionConverter possibleActionConverter;
-
-    /**
-     * KeysApiController constructor
-     */
-    @Autowired
-    public KeysApiController(KeyService keyService,
-            KeyConverter keyConverter,
-            ClientConverter clientConverter,
-            TokenCertificateService tokenCertificateService,
-            ServerConfService serverConfService,
-            CsrFilenameCreator csrFilenameCreator,
-            PossibleActionConverter possibleActionConverter) {
-        this.keyService = keyService;
-        this.keyConverter = keyConverter;
-        this.clientConverter = clientConverter;
-        this.tokenCertificateService = tokenCertificateService;
-        this.serverConfService = serverConfService;
-        this.csrFilenameCreator = csrFilenameCreator;
-        this.possibleActionConverter = possibleActionConverter;
-    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_KEYS')")

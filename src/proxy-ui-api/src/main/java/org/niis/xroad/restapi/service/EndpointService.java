@@ -29,10 +29,10 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.EndpointRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,19 +50,12 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ILLEGAL_GEN
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class EndpointService {
 
     private final ClientRepository clientRepository;
     private final EndpointRepository endpointRepository;
     private final ServiceService serviceService;
-
-    @Autowired
-    public EndpointService(ClientRepository clientRepository, EndpointRepository endpointRepository,
-            ServiceService serviceService) {
-        this.clientRepository = clientRepository;
-        this.endpointRepository = endpointRepository;
-        this.serviceService = serviceService;
-    }
 
     /**
      * Get endpoint by endpoint id
