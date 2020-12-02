@@ -40,6 +40,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
@@ -60,6 +61,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.service.CertificateAuthorityService.GET_CERTIFICATE_AUTHORITIES_CACHE;
 
 /**
  * test CertificateAuthorityService
@@ -70,7 +72,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     CertificateAuthorityService certificateAuthorityService;
 
     @Autowired
-    CertificateAuthorityService.CacheEvictor cacheEvictor;
+    CacheManager cacheManager;
 
     public static final String MOCK_AUTH_CERT_SUBJECT =
             "SERIALNUMBER=CS/SS1/ORG, CN=ss1, O=SS5, C=FI";
@@ -152,8 +154,6 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
 
     @Test
     public void caching() throws Exception {
-        cacheEvictor.setEvict(false);
-
         certificateAuthorityService.getCertificateAuthorities(null);
         int expectedExecutions = 1;
         verify(globalConfFacade, times(expectedExecutions)).getAllCaCerts(any());
@@ -193,8 +193,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
     }
 
     private void evictCache() {
-        cacheEvictor.setEvict(true);
-        cacheEvictor.evict();
+        cacheManager.getCache(GET_CERTIFICATE_AUTHORITIES_CACHE).clear();
     }
 
     @Test
@@ -277,7 +276,7 @@ public class CertificateAuthorityServiceTest extends AbstractServiceTestContext 
         assertEquals("not available", ca2.getOcspResponse());
         assertEquals(OffsetDateTime.parse("2039-11-23T09:20:27Z"), ca2.getNotAfter());
 
-        cacheEvictor.evict();
+        evictCache();
         when(globalConfFacade.getAllCaCerts(any())).thenReturn(new ArrayList<>());
         when(signerProxyFacade.getOcspResponses(any())).thenReturn(new String[] {});
         assertEquals(0, certificateAuthorityService.getCertificateAuthorities(KeyUsageInfo.SIGNING).size());
