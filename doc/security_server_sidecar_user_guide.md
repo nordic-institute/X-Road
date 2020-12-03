@@ -97,7 +97,7 @@ This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;
 1.5    | &lt;admin user&gt;                        | Admin username
 1.6    | &lt;admin password&gt;                    | Admin password
 1.7    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database.
-1.8    | &lt;database port&gt;                     | Optional parameter, database port when we are using an external database, recommended 5432
+1.8    | &lt;database port&gt;                     | (Optional) database port when using an external database, recommended 5432
 1.9    | &lt;xroad db password&gt;                        | Environmental variable with the DB password in case we are using a external database
 1.10    | &lt;xroad log level&gt;                         | Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
 1.11    | &lt;database-name&gt;                     | Optional parameter, this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
