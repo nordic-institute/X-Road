@@ -565,7 +565,7 @@ docker run -v (custom-volume-name):/var/lib/xroad/
 ## 9.1 General
 X-Road Security Server Sidecar has multiple deployment options.  The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment. The images different images could be combine and any can be used as a consumer or provider server.
 
-## 9.2 Container database
+## 9.2 Container local database
 The simplest deployment option is to use a single security server sidecar with local database inside the container. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
 
 ![Security server with local database](img/ig-ss_local_db.svg)
