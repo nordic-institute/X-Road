@@ -135,7 +135,7 @@ In | Consumer Information System | Security Server | 80, 443 | tcp | Source in t
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 
 ## 2.6 Installation
-To install X-Road Security Server sidecar we can run the script setup_security_server_sidecar.sh wich will build and run the image or we can run directly one of the public images published on Dockerhub. Both installations will have the same resulting running container.
+To install X-Road Security Server sidecar we can run the script `setup_security_server_sidecar.sh` which will build and run the image. Alternatively one of the images published on Dockerhub can be used. Both methods result in the same running container.
 
 ### 2.6.2 Installation using setup script
 
