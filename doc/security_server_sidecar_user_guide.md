@@ -73,7 +73,14 @@ See <https://docs.docker.com/develop/develop-images/build_enhancements/> for mor
 
 ## 2.2 X-Road Security Server sidecar images
 The Security Server sidecar has different configurations combined with the versions (currently supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
-All of the images can act as a provider or consumer Security Servers.
+All of the images can act as a provider or consumer Security Servers, but some of the images have less features available.
+
+**Image tag**                                                | **Description**                               
+------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
+niis/xroad-security-server-sidecar:&lt;version&gt;-slim      | This is the base image of the Security Server sidecar with the minimum required packages and configuration to function.
+niis/xroad-security-server-sidecar:&lt;version&gt;           | This image uses the slim as the base image and includes the packages that support [environmental monitoring](https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md), [operational monitoring](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring) and [message logging](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md).
+niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi   | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish settings configuration included.
+niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt; but with the Finnish settings configuration included.
 
 ### 2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim
 This is the base image of the Security Server sidecar with the minimum required packages and configuration to function.
@@ -122,8 +129,8 @@ Minimum recommended docker engine configuration to run the security server sidec
 - Disk space: 2 GiB
 - If the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server need to be allowed (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
 - if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.18**).
-## 2.5 Network
 
+## 2.5 Network
 The table below lists the required connections between different components.
 
 **Connection Type** | **Source** | **Target** | **Target Ports** | **Protocol** | **Note** |
@@ -218,7 +225,7 @@ host    all             all             0.0.0.0/0            md5
 
 - If the database is in your local machine you have to use the interface ip that uses the host to connect to the docker containers. You can check this ip by running "docker inspect container_name" and checking the gateway property.
 
-- The external database has been tested both for external PostgreSQL database running i1n our local machine, in a remote server or inside another docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostegreSQL engine, both with version 10 of the PostgreSQL database.
+- The external database has been tested both for external PostgreSQL database running on our local machine, on a remote server and inside another docker container. It can also be integrated with AWS RDS and it has been tested with PostgreSQL and Aurora PostgreSQL engines, both with version 10 of the PostgreSQL database.
 
 ### 2.7.1 Reconfigure external database address after initialization
 
@@ -354,17 +361,17 @@ Upon first log-in, the system asks for the following information.
  - Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
  - Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
-## 4.4 Central Server configuration
+## 4.4 Security Server registration
 After the Security Server sidecar it's configured, we need to register it in the central server, information about how to configure the Security Server sidecar on the central server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
 
 # 5 Back up and Restore
 Information of how to backup and restore the Security Server sidecar can be found on the [Security Server User guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore).
 
-The Security Server sidecar stored its configuration on the local file system folder:
+The Security Server sidecar stores its configuration in the local file system folder:
 ```
 /etc/xroad/
 ```
-It is possible store this configuration outside the docker container using docker volumes. Adding a docker volume will allow to keep the configuration even if the container is removed and the possibility to use the same configuration in other docker containers.
+It is possible to store this configuration outside the docker container using docker volumes. Adding a docker volume will allow keeping the configuration even if the container is removed and makes it possible to use the same configuration in other docker containers.
 To add the docker volume, in the docker run command [docker run command](##2.6-Installation) add the docker volume parameter mapping to the config folder:
 ```
 docker run -v (custom-volume-name):/etc/xroad
