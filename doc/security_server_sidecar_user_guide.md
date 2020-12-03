@@ -94,8 +94,8 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 1.6    | &lt;admin password&gt;                    | Admin password
 1.7    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database.
 1.8    | &lt;database port&gt;                     | (Optional) database port when using an external database, recommended 5432
-1.9    | &lt;xroad db password&gt;                        | Environmental variable with the DB password in case we are using a external database
-1.10    | &lt;xroad log level&gt;                         | Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
+1.9    | &lt;xroad db password&gt;                        | (Optional)Environmental variable with the DB password in case we are using a external database
+1.10    | &lt;xroad log level&gt;                         | (Optional) Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
 1.11    | &lt;database-name&gt;                     | Optional parameter, this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
 1.12    | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
 &nbsp; | TCP 5577                                  | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
@@ -183,13 +183,27 @@ First, create a docker network to allow communication between containers, we can
 ```
 docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d bridge xroad-network
 ```
-To install the Security Server sidecar in a local development environment, we can run the docker command:
+To install the Security Server sidecar in a local development environment, we can run the docker command (**reference data: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11**):
 ```
-docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name> --name <container name> niis/xroad-security-server-sidecar:<image tag>
+docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
 
 ## 2.7 External database
-It is possible to configure the security server sidecar to use a remote database, instead of the default locally installed one. To do that, you need to provide the remote database server hostname (&lt;database-host&gt;) and port number (&lt;database-port&gt; ) as parameters when running 'docker build' command. Before running the script, you must also set the environment variable XROAD_DB_PASSWORD with the remote database administrator master password.
+It is possible to configure the security server sidecar to use a remote database, instead of the default locally installed one. To do that, you need to provide the remote database server hostname and port number as arguments when running the 'setup_security_server_sidecar.sh' script in the order described below. Before running the script, you must also set the environment variable:
+```
+  XROAD_DB_PASSWORD
+```
+with the remote database administrator master password.
+```
+export XROAD_DB_PASSWORD=<remote database administrator master password>
+./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port>
+```
+
+If we are using the [dockerhub image for the installation](#262-installation-using-dockerhub-image) we must fill the optional parameters in the run command (**reference data: 1.7, 1.8, 1.9**):
+```
+docker run ... -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> ...
+```
+
 The user for the connection will be the default database user "postgres". The following configuration is needed on the remote database server to allow external access to the remote PostgreSQL database from the security server sidecar:
 ```bash
 [...]
