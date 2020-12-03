@@ -60,7 +60,7 @@
 
 # 1 Introduction
 ## 1.1 Target Audience
-The intended audience of this User Guide are X-Road Security server system administrators responsible for installing and using X-Road Security Server Sidecar software.
+The intended audience of this User Guide are X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar software.
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker and X-Road.
 
