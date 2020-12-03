@@ -95,7 +95,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 1.8    | &lt;database port&gt;                     | (Optional) database port when using an external database, recommended 5432
 1.9    | &lt;xroad db password&gt;                        | (Optional)Environmental variable with the DB password in case we are using a external database
 1.10    | &lt;xroad log level&gt;                         | (Optional) Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
-1.11    | &lt;database-name&gt;                     | Optional parameter, this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
+1.11    | &lt;database-name&gt;                     | (Optional) this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
 1.12    | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
 &nbsp; | TCP 5577                                  | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
 &nbsp; | TCP 80 (1)                                | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
@@ -107,7 +107,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 1.16   |                                           | Internal IP address and hostname(s) for security server sidecar
 1.17   |                                           | Public IP address, NAT address for security server sidecar
 
-It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks**.
+To protect the Security Server from unwanted access it is strongly recommended to use a firewall (hardware- or software-based). The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks**.
 
 ## 2.4 Requirements for the X-Road Security Server sidecar
 Minimum recommended Docker engine configuration to run the security server sidecar container:
@@ -135,11 +135,11 @@ In | Consumer Information System | Security Server | 80, 443 | tcp | Source in t
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 
 ## 2.6 Installation
-To install X-Road Security Server sidecar we can run the script setup_security_server_sidecar.sh wich will build and run the image or we can run directly one of the public images published on Dockerhub. Both installations will have the same resulting running container.
+To install X-Road Security Server sidecar we can run the script `setup_security_server_sidecar.sh` which will build and run the image. Alternatively one of the images published on Dockerhub can be used. Both methods result in the same running container.
 
 ### 2.6.2 Installation using setup script
 
-To install the Security Server sidecar in a local development environment, run the script setup_security_server_sidecar.sh providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
+To install the Security Server sidecar in a local development environment, run the script `setup_security_server_sidecar.sh` providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
 
   ```bash
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> (<remote database server hostname> <remote database server port> <remote_database_name>)
