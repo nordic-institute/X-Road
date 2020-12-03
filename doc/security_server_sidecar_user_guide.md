@@ -304,7 +304,7 @@ xroad-proxy                      RUNNING   pid 473, uptime 0:15:55
 xroad-proxy-ui-api               RUNNING   pid 476, uptime 0:15:55
 xroad-signer                     RUNNING   pid 472, uptime 0:15:55
 ```
-- Ensure that the security server user interface at https://SECURITYSERVER:&lt;ui-port&gt;/ (**reference data: 1.3**) can be opened in a Web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**). While the user interface is still starting up, the Web browser may display a connection refused -error.
+- Ensure that the security server user interface at https://SECURITYSERVER: &lt;ui-port&gt; (**reference data: 1.3**) can be opened in a Web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 # 4 X-Road Security Server sidecar initial configuration
 During the security server initial configuration, the server’s X-Road membership information and the software token’s PIN are set
