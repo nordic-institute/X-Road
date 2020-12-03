@@ -96,10 +96,10 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 1.9    | &lt;xroad db password&gt;                        | (Optional)Environmental variable with the DB password in case we are using a external database
 1.10    | &lt;xroad log level&gt;                         | (Optional) Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
 1.11    | &lt;database-name&gt;                     | (Optional) this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
-1.12    | TCP 5500                                  | Ports for outbound connections (from the security server to the external network)<br> Message exchange between security servers
-&nbsp; | TCP 5577                                  | Ports for outbound connections (from the security server to the external network)<br> Querying of OCSP responses between security servers
-&nbsp; | TCP 80 (1)                                | Ports for outbound connections (from the security server to the external network)<br> Downloading global configuration
-&nbsp; | TCP 80 (1),443                            | Ports for outbound connections (from the security server to the external network)<br> Most common OCSP service
+1.12    | TCP 5500                                  | Ports for outbound connections (from the Security Server to the external network)<br> Message exchange between Security Servers
+&nbsp; | TCP 5577                                  | Ports for outbound connections (from the Security Server to the external network)<br> Querying of OCSP responses between Security Servers
+&nbsp; | TCP 80 (1)                                | Ports for outbound connections (from the Security Server to the external network)<br> Downloading global configuration
+&nbsp; | TCP 80 (1),443                            | Ports for outbound connections (from the Security Server to the external network)<br> Most common OCSP service
 1.13   | TCP 80 (1)                                | Ports for information system access points (in the local network)<br> Connections from information systems
 &nbsp; | TCP 443                                   | Ports for information system access points (in the local network)<br> Connections from information systems
 1.14    | TCP 5588                                  | Port for health check (local network)
@@ -115,8 +115,8 @@ Minimum recommended Docker engine configuration to run the Security Server Sidec
 - Memory: 2 GiB
 - Swap: 1 GiB
 - Disk space: 2 GiB
-- If the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server need to be allowed (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
-- if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.18**).
+- If the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server need to be allowed (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
+- if the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.18**).
 
 ## 2.5 Network
 The table below lists the required connections between different components.
@@ -323,31 +323,31 @@ xroad-proxy                      RUNNING   pid 473, uptime 0:15:55
 xroad-proxy-ui-api               RUNNING   pid 476, uptime 0:15:55
 xroad-signer                     RUNNING   pid 472, uptime 0:15:55
 ```
-- Ensure that the security server user interface at https://SECURITYSERVER: &lt;ui port&gt; (**reference data: 1.3**) can be opened in a web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**). While the user interface is still starting up, the web browser may display a connection refused -error.
+- Ensure that the Security Server user interface at https://SECURITYSERVER: &lt;ui port&gt; (**reference data: 1.3**) can be opened in a web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**). While the user interface is still starting up, the web browser may display a connection refused -error.
 
 # 4 X-Road Security Server Sidecar initial configuration
-During the security server initial configuration, the server’s X-Road membership information and the software token’s PIN are set
+During the Security Server initial configuration, the server’s X-Road membership information and the software token’s PIN are set
 
 ## 4.1 Prerequisites
-Configuring the security server assumes that the security server owner is a member of the X-Road.
+Configuring the Security Server assumes that the Security Server owner is a member of the X-Road.
 
 ## 4.2 Reference data
-ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the security server owner by the X-Road central’s administrator.
+ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the Security Server owner by the X-Road central’s administrator.
 
 **Ref** | **Value**                                               | **Explanation**
 ------ | -----------------------------------------                | --------------------------------------------
 2.1    | &lt;global configuration anchor file&gt; or &lt;URL&gt;  | Global configuration anchor file container
-2.2    | 	<security server owner's member class> *E.g.*  *GOV-government*; *COM - commercial*             | Member class of the security server's owner
-2.3    | &lt;security server owner register code&gt;              | Member code of the security server's owner
+2.2    | 	<security server owner's member class> *E.g.*  *GOV-government*; *COM - commercial*             | Member class of the Security Server's owner
+2.3    | &lt;security server owner register code&gt;              | Member code of the Security Server's owner
 2.4    | &lt;choose security server identificator name&gt;        | Security server's code
 
 Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the Security Server Sidecar network.
 
-Note (2): Reference items 2.1 - 2.3 are provided to the security server owner by the X-Road central server's administrator.
+Note (2): Reference items 2.1 - 2.3 are provided to the Security Server owner by the X-Road central server's administrator.
 
-Note (3): The security server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
+Note (3): The Security Server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
 
-Note (4): The security server code uniquely identifies the security server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.
+Note (4): The Security Server code uniquely identifies the Security Server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.
 
 ## 4.3 Configuration
 To perform the initial configuration, open the address
@@ -362,11 +362,11 @@ Upon first log-in, the system asks for the following information.
 
  If the configuration is successfully downloaded, the system asks for the following information.
 
- - The security server owner’s member class (**reference data: 2.2**).
- - The security server owner’s member code (**reference data: 2.3**).
+ - The Security Server  owner’s member class (**reference data: 2.2**).
+ - The Security Server  owner’s member code (**reference data: 2.3**).
 
- If the member class and member code are correctly entered, the system displays the security server owner’s name as registered in the X-Road center.
- - Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
+ If the member class and member code are correctly entered, the system displays the Security Server  owner’s name as registered in the X-Road center.
+ - Security server code (**reference data: 2.4**), which is chosen by the Security Server  administrator and which has to be unique across all the Security Server s belonging to the same X-Road member.
  - Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
 ## 4.4 Security Server registration
@@ -550,18 +550,18 @@ More information can be found in https://github.com/nordic-institute/X-Road/blob
 Note (1): The Security Server Sidecar must have available certificates and a subsystem registered on the central server.
 
 ## 7.2 Operational Monitoring
-Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the security servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols
+Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the Security Servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols
 
 # 8 Message log
 Message log will be available if we use the regular version of the X-Road Security Server Sidecar instead of the 'slim' version.
 
-The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between security servers are signed and encrypted. For every regular request and response, the security server produces a complete signed and timestamped document (Associated Signature Container).
+The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between Security Servers are signed and encrypted. For every regular request and response, the Security Server produces a complete signed and timestamped document (Associated Signature Container).
 
-Message log data is stored to the [messagelog database](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md) of the security server database host (**reference data: 1.7**) during message exchange. According to the configuration (see 8.1), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
+Message log data is stored to the [messagelog database](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md) of the Security Server database host (**reference data: 1.7**) during message exchange. According to the configuration (see 8.1), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
 armin
-In case of synchronous timestamping, the timestamping is an integral part of the message exchange process (one timestamp is taken for the request and another for the response). If the timestamping fails, the message exchange fails as well and the security server responds with an error message.
+In case of synchronous timestamping, the timestamping is an integral part of the message exchange process (one timestamp is taken for the request and another for the response). If the timestamping fails, the message exchange fails as well and the Security Server responds with an error message.
 
-In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the security server uses asynchronous timestamping for better performance and availability.
+In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the Security Server uses asynchronous timestamping for better performance and availability.
 
 ## 8.1 Local storage of message log
 The Security Server Sidecar periodically composes signed (and timestamped) documents from the message log data and archives them in the local file system folder:
@@ -578,7 +578,7 @@ docker run -v (custom-volume-name):/var/lib/xroad/
 
 # 9 Deployment options
 ## 9.1 General
-X-Road Security Server Sidecar has multiple deployment options.  The simplest choice is to have a single security server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment. The images different images could be combine and any can be used as a consumer or provider server.
+X-Road Security Server Sidecar has multiple deployment options.  The simplest choice is to have a single Security Server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment. The images different images could be combine and any can be used as a consumer or provider server.
 
 ## 9.2 Container local database
 The simplest deployment option is to use a single Security Server Sidecar with local database inside the container. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
@@ -593,7 +593,7 @@ X-Road Security Server Sidecar supports a variety of cloud databases including A
 ![Security server with remote database](img/ig-ss_external_db.svg)
 
 ## 9.4 High Availability Setup
-In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple security servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security server high availability](img/ss_high_availability.svg)
 
