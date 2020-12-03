@@ -79,7 +79,7 @@ All of the images can act as a provider or consumer Security Servers.
 Base image of the Security Server sidecar with the minimum necessary packages.
 
 ### 2.2.2 niis/xroad-security-server-sidecar:&lt;version&gt;
-This image uses the slim as base image and includes the packages for support [environmental](https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md) and [operational monitoring](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring) along with support for [message logging](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md).
+This image uses the slim as the base image and includes the packages that support [environmental monitoring](https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md), [operational monitoring](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring) and [message logging](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md).
 
 ### 2.2.3 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi
 This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish settings configuration included.
