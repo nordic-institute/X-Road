@@ -91,7 +91,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 1.4    | &lt;token pin&gt;                         | Software token PIN code
 1.5    | &lt;admin user&gt;                        | Admin username
 1.6    | &lt;admin password&gt;                    | Admin password
-1.7    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database.
+1.7    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database
 1.8    | &lt;database port&gt;                     | (Optional) database port when using an external database, recommended 5432
 1.9    | &lt;xroad db password&gt;                        | (Optional)Environmental variable with the DB password in case we are using a external database
 1.10    | &lt;xroad log level&gt;                         | (Optional) Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
@@ -152,10 +152,10 @@ The script setup_security_server_sidecar.sh will:
   - Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.23.0 or later).
   - Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
   - Removes the default admin username (to be re-generated in the initial configuration script).
-  - Removes the generated internal and nginx certificates (to be re-generated in the initial configuration script).
+  - Removes the generated internal and proxy-ui-api certificates (to be re-generated in the initial configuration script).
   - Enables health check port and interfaces (by default all available interfaces).
   - Backs up the read-only xroad packages' configuration to allow Security Server Sidecar configuration updates.
-  - Copies the xroad Security Server Sidecar custom configuration files.
+  - Copies the Security Server Sidecar custom configuration files.
   - Exposes the container ports 80 (HTTP), 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
 - Start a new Security Server Sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
   - Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (reference data 1.2).
@@ -165,7 +165,7 @@ The script setup_security_server_sidecar.sh will:
   - Configures admin credentials with user-supplied username and password (reference data 1.4).
   - Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
   - Recreates serverconf database and properties file with serverconf username and random password.
-  - Optionally configures the Security Server Sidecar to use a remote database server.
+  - Optionally configures the Security Server Sidecar to use an external database server.
   - Starts Security Server Sidecar services.
   - Replace `initctl` for `supervisorctl` in `xroad_restore.sh` for starting and stopping the services.
   - Create sidecar-config directory on the host and mount it into the /etc/xroad config directory on the container.
@@ -233,7 +233,7 @@ docker inspect <container_name>
 ```
 and checking the gateway property.
 
-- The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another Docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostgreSQL engine, both with version 10 of the PostgreSQL database.
+- The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another Docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL version 10).
 
 ### 2.7.1 Reconfigure external database address after initialization
 
@@ -282,10 +282,12 @@ serverconf.hibernate.connection.password = <new_password>
 
 ## 2.9 Volume support
 
-    It is possible to configure Security Server Sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
-    For adding volume support we have to modify the Docker run sentence inside the setup_security_server_sidecar.sh script and add the volume support:
+    It is possible to configure the Security Server Sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
+    For adding volume support we have to modify the Docker run sentence inside the `setup_security_server_sidecar.sh` script and add the volume support:
 
-    `-v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main`
+    ```
+    -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main
+    ```
 
     For example:
       ```bash
@@ -337,24 +339,24 @@ ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the S
 **Ref** | **Value**                                               | **Explanation**
 ------ | -----------------------------------------                | --------------------------------------------
 2.1    | &lt;global configuration anchor file&gt; or &lt;URL&gt;  | Global configuration anchor file container
-2.2    | 	<security server owner's member class> *E.g.*  *GOV-government*; *COM - commercial*             | Member class of the Security Server's owner
-2.3    | &lt;security server owner register code&gt;              | Member code of the Security Server's owner
-2.4    | &lt;choose security server identificator name&gt;        | Security server's code
+2.2    | 	<Security Server owner's member class> *E.g.*  *GOV-government*; *COM - commercial*             | Member class of the Security Server's owner
+2.3    | &lt;Security Server owner register code&gt;              | Member code of the Security Server's owner
+2.4    | &lt;choose Security Server identificator name&gt;        | Security Server's code
 
 Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the Security Server Sidecar network.
 
-Note (2): Reference items 2.1 - 2.3 are provided to the Security Server owner by the X-Road central server's administrator.
+Note (2): Reference items 2.1 - 2.3 are provided to the Security Server owner by the X-Road Central Server's administrator.
 
 Note (3): The Security Server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
 
-Note (4): The Security Server code uniquely identifies the Security Server in an X-Road instance. X-Road instance's governing authority may dictate rules how the code should be chosen.
+Note (4): The Security Server code uniquely identifies the Security Server in an X-Road instance. X-Road instance's governing authority may dictate rules on how the code should be chosen.
 
 ## 4.3 Configuration
 To perform the initial configuration, open the address
 ```
 https://SECURITYSERVER:<ui-port>/
 ```
-in a Web browser (**reference data: 1.2**). To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**).
+in a web browser (**reference data: 1.2**). To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**).
 Upon first log-in, the system asks for the following information.
 - The global configuration anchor file (**reference data: 2.1**).
 
@@ -365,12 +367,12 @@ Upon first log-in, the system asks for the following information.
  - The Security Server  owner’s member class (**reference data: 2.2**).
  - The Security Server  owner’s member code (**reference data: 2.3**).
 
- If the member class and member code are correctly entered, the system displays the Security Server  owner’s name as registered in the X-Road center.
- - Security server code (**reference data: 2.4**), which is chosen by the Security Server  administrator and which has to be unique across all the Security Server s belonging to the same X-Road member.
+ If the member class and member code are correctly entered, the system displays the Security Server  owner’s name as registered in the X-Road Central Server.
+ - Security Server code (**reference data: 2.4**), which is chosen by the Security Server  administrator and which has to be unique across all the Security Server s belonging to the same X-Road member.
  - Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
 ## 4.4 Security Server registration
-After the Security Server Sidecar it's configured, we need to register it in the central server, information about how to configure the Security Server Sidecar on the central server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
+After the Security Server Sidecar is configured, we need to register it in the Central Server, information about how to configure the Security Server Sidecar on the Central Server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
 
 # 5 Back up and Restore
 Information of how to backup and restore the Security Server Sidecar can be found on the [Security Server User guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore).
@@ -403,8 +405,8 @@ docker volume inspect (custom-volume-name)
 We can manually backup the data stored in the "Mountpoint" every period of time.
 
 ## 5.1 Automatic Backups
-By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the ''/etc/cron.d/xroad-proxy' file.
-Automatic backups will be stored in the folder '/var/lib/xroad/backup/'. We can create a volume for store the automatic backups by adding in the run command:
+By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
+Automatic backups will be stored in the folder `/var/lib/xroad/backup/`. We can create a volume for store the automatic backups by adding in the run command:
 ```
 docker run -v (backups-volume-name):/etc/xroad/var/lib/xroad/backup/
 ```
@@ -547,21 +549,13 @@ curl -d  @system_metrics.xml --header "Content-Type: text/xml" -X POST  http://l
 
 More information can be found in https://github.com/nordic-institute/X-Road/blob/master/doc/EnvironmentalMonitoring/Monitoring-architecture.md/
 
-Note (1): The Security Server Sidecar must have available certificates and a subsystem registered on the central server.
+Note (1): The Security Server Sidecar must have available certificates and a subsystem registered on the Central Server.
 
 ## 7.2 Operational Monitoring
 Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the Security Servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found here https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols
 
 # 8 Message log
 Message log will be available if we use the regular version of the X-Road Security Server Sidecar instead of the 'slim' version.
-
-The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between Security Servers are signed and encrypted. For every regular request and response, the Security Server produces a complete signed and timestamped document (Associated Signature Container).
-
-Message log data is stored to the [messagelog database](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md) of the Security Server database host (**reference data: 1.7**) during message exchange. According to the configuration (see 8.1), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
-armin
-In case of synchronous timestamping, the timestamping is an integral part of the message exchange process (one timestamp is taken for the request and another for the response). If the timestamping fails, the message exchange fails as well and the Security Server responds with an error message.
-
-In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the Security Server uses asynchronous timestamping for better performance and availability.
 
 ## 8.1 Local storage of message log
 The Security Server Sidecar periodically composes signed (and timestamped) documents from the message log data and archives them in the local file system folder:
@@ -578,24 +572,24 @@ docker run -v (custom-volume-name):/var/lib/xroad/
 
 # 9 Deployment options
 ## 9.1 General
-X-Road Security Server Sidecar has multiple deployment options.  The simplest choice is to have a single Security Server with local database. This is usually fine for majority of the cases, but there are multiple reasons to tailor the deployment. The images different images could be combine and any can be used as a consumer or provider server.
+X-Road Security Server sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases. Nevertheless, there are other Security Server images available that can be used for tailoring the deployment to specific needs. These different images could be combined. Any of these Security Server sidecar images can be used either as a consumer or provider role.
 
 ## 9.2 Container local database
-The simplest deployment option is to use a single Security Server Sidecar with local database inside the container. For development and testing purposes there is rarely need for anything else, but for production the requirements may be stricter.
+The simplest deployment option is to use a single Security Server sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, for running the Security Server sidecar on a production environment, the requirements may be stricter.
 
-![Security server with local database](img/ig-ss_local_db.svg)
+![Security Server with local database](img/ig-ss_local_db.svg)
 
 ## 9.3 Remote database
 It is possible to use a remote database with X-Road Security Server Sidecar.
 
-X-Road Security Server Sidecar supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
+X-Road Security Server Sidecar supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in a cloud environment, where the use of cloud-native database is the first choice.
 
-![Security server with remote database](img/ig-ss_external_db.svg)
+![Security Server with remote database](img/ig-ss_external_db.svg)
 
 ## 9.4 High Availability Setup
-In production systems it's rarely acceptable to have a single point of failure. Security server supports provider side high availability setup via so called internal load balancing mechanism. The setup works so that the same member / member class / member code / subsystem / service code is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
+In production systems, it's rarely acceptable to have a single point of failure. Security Server supports provider side high-availability setup via the so-called internal load balancing mechanism. The setup works so that the same combination of <member>/<member class>/<member code>/<subsystem>/<service code> is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
-![Security server high availability](img/ss_high_availability.svg)
+![Security Server high availability](img/ss_high_availability.svg)
 
 
 # 10 Kubernetes
@@ -669,7 +663,7 @@ livenessProbe:
 
 ## 10.2 Kubernetes secrets
 ### 10.2.1 Create secret
-In this example we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
+In this example, we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
 - Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables.
 - Replace <namespace_name> with the name of the namespace if it's different from `default`. If we want to use `default` namespace, we can delete the line.
 ```bash
