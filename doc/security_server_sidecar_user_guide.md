@@ -571,7 +571,7 @@ The simplest deployment option is to use a single security server sidecar with l
 ![Security server with local database](img/ig-ss_local_db.svg)
 
 ## 9.3 Remote database
-It is possible to use a remote database with X-Road Security Server Sidecar.
+It is possible to use a remote database with X-Road Security Server sidecar.
 
 X-Road Security Server Sidecar supports a variety of cloud databases including AWS RDS and Azure Database for PostgreSQL. This deployment option is useful when doing development in cloud environment, where use of cloud native database is the first choice.
 
