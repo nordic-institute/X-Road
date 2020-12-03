@@ -7,7 +7,7 @@
  13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
 
 # Table of Contents
-* [1 Introduction](#1-introduction)
+   * [1 Introduction](#1-introduction)
       * [1.1 Target Audience](#11-target-audience)
    * [2 Installation](#2-installation)
       * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
