@@ -72,7 +72,7 @@ Building with Docker BuildKit can slightly reduce the size of the resulting cont
 See <https://docs.docker.com/develop/develop-images/build_enhancements/> for more information.
 
 ## 2.2 X-Road Security Server sidecar images
-Security Server sidecar server has different configurations combined with the versions (current supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
+The Security Server sidecar has different configurations combined with the versions (currently supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
 All of the images can act as a provider or consumer Security Servers.
 
 ### 2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim
