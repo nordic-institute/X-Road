@@ -673,7 +673,7 @@ stringData:
   XROAD_DB_PORT: "5432"
   XROAD_LOG_LEVEL: "INFO"
 ```
-Apply the manifest:
+- Apply the manifest:
 ```bash
 $ kubectl apply -f secret-env-variables.yaml
 ```
