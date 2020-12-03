@@ -107,7 +107,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 1.16   |                                           | Internal IP address and hostname(s) for security server sidecar
 1.17   |                                           | Public IP address, NAT address for security server sidecar
 
-It is strongly recommended to protect the security server from unwanted access using a firewall (hardware or software based). The firewall can be applied to both incoming and outgoing connections depending on the security requirements of the environment where the security server is deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the security server vulnerable to exploits and attacks**.
+To protect the Security Server from unwanted access it is strongly recommended to use a firewall (hardware- or software-based). The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks**.
 
 ## 2.4 Requirements for the X-Road Security Server sidecar
 Minimum recommended docker engine configuration to run the security server sidecar container:
