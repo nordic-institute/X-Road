@@ -139,7 +139,7 @@ To install X-Road Security Server sidecar we can run the script `setup_security_
 
 ### 2.6.2 Installation using setup script
 
-To install the Security Server sidecar in a local development environment, run the script setup_security_server_sidecar.sh providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
+To install the Security Server sidecar in a local development environment, run the script `setup_security_server_sidecar.sh` providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
 
   ```bash
   ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> (<remote database server hostname> <remote database server port> <remote_database_name>)
