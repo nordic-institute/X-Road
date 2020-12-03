@@ -76,7 +76,7 @@ The Security Server sidecar has different configurations combined with the versi
 All of the images can act as a provider or consumer Security Servers.
 
 ### 2.2.1 niis/xroad-security-server-sidecar:&lt;version&gt;-slim
-Base image of the Security Server sidecar with the minimum necessary packages.
+This is the base image of the Security Server sidecar with the minimum required packages and configuration to function.
 
 ### 2.2.2 niis/xroad-security-server-sidecar:&lt;version&gt;
 This image uses the slim as the base image and includes the packages that support [environmental monitoring](https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md), [operational monitoring](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring) and [message logging](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md).
