@@ -335,7 +335,7 @@ To perform the initial configuration, open the address
 ```
 https://SECURITYSERVER:<ui-port>/
 ```
-in a Web browser (**reference data: 1.2**). To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6 **).
+in a Web browser (**reference data: 1.2**). To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**).
 Upon first log-in, the system asks for the following information.
 - The global configuration anchor file (**reference data: 2.1**).
 
