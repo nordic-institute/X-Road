@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.config;
 
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
@@ -49,7 +50,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class TtlConcurrentMapCacheConfiguration {
 
-    public static final int TTL_SECONDS = 60;
+    @Value("${cache.simple.ttl}")
+    private int timeToLiveSeconds;
 
     @Bean
     public CacheManager cacheManager() {
@@ -64,7 +66,7 @@ public class TtlConcurrentMapCacheConfiguration {
                     throw new IllegalStateException("storeByValue is not supported");
                 }
                 ConcurrentMap<Object, Object> store = CacheBuilder.newBuilder()
-                        .expireAfterWrite(TTL_SECONDS, TimeUnit.SECONDS)
+                        .expireAfterWrite(timeToLiveSeconds, TimeUnit.SECONDS)
                         .build()
                         .asMap();
                 return new ConcurrentMapCache(name, store, isAllowNullValues());

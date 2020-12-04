@@ -145,10 +145,7 @@ public class ApiKeyService {
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
         auditLog(id, roleNames);
-        PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
-        if (apiKeyType == null) {
-            throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
-        }
+        PersistentApiKeyType apiKeyType = getForId(id);
         if (roleNames.isEmpty()) {
             throw new InvalidRoleNameException("missing roles");
         }
@@ -224,10 +221,7 @@ public class ApiKeyService {
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
     public void removeForId(long id) throws ApiKeyService.ApiKeyNotFoundException {
-        PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
-        if (apiKeyType == null) {
-            throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
-        }
+        PersistentApiKeyType apiKeyType = getForId(id);
         auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
