@@ -62,6 +62,7 @@ export default Vue.extend({
   flex-direction: column;
   align-items: baseline;
   color: #211e1e;
+  text-align: left;
 
   .label-text {
     font-style: normal;

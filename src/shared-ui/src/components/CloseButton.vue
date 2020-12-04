@@ -29,10 +29,11 @@
 </template>
 
 <script lang="ts">
-/** Wrapper for vuetify button with x-road look */
 
 import Vue from 'vue';
-
+/**
+ * Component for close action with X icon.
+ */
 export default Vue.extend({
   name: 'close-button',
   methods: {

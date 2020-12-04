@@ -26,7 +26,7 @@
 <template>
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div class="wizard-step-form-content">
+      <div class="wizard-step-form-content pt-6">
         <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
           <div class="label">
             {{ $t('certificateProfile.' + item.label_key) }}
@@ -54,26 +54,23 @@
         </div>
       </div>
       <div class="button-footer">
-        <div class="button-group">
-          <large-button outlined @click="cancel" data-test="cancel-button">{{
-            $t('action.cancel')
-          }}</large-button>
-        </div>
-        <div>
-          <large-button
-            @click="previous"
-            outlined
-            class="previous-button"
-            data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
-          >
-          <large-button
-            @click="done"
-            :disabled="invalid"
-            data-test="save-button"
-            >{{ $t(saveButtonText) }}</large-button
-          >
-        </div>
+        <large-button outlined @click="cancel" data-test="cancel-button">{{
+          $t('action.cancel')
+        }}</large-button>
+
+        <large-button
+          @click="previous"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+          >{{ $t('action.previous') }}</large-button
+        >
+        <large-button
+          @click="done"
+          :disabled="invalid"
+          data-test="save-button"
+          >{{ $t(saveButtonText) }}</large-button
+        >
       </div>
     </ValidationObserver>
   </div>
@@ -117,7 +114,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 
 .generate-row {
   margin-top: 40px;

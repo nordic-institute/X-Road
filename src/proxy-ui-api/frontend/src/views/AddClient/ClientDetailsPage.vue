@@ -122,20 +122,13 @@
         </div>
       </div>
       <div class="button-footer">
-        <div class="button-group">
-          <large-button
-            outlined
-            @click="cancel"
-            data-test="cancel-button"
-            min_width="160"
-            >{{ $t('action.cancel') }}</large-button
-          >
-        </div>
+        <large-button outlined @click="cancel" data-test="cancel-button">{{
+          $t('action.cancel')
+        }}</large-button>
         <large-button
           @click="done"
           :disabled="invalid || duplicateClient"
           data-test="next-button"
-          min_width="160"
           >{{ $t('action.next') }}</large-button
         >
       </div>
@@ -336,5 +329,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 </style>

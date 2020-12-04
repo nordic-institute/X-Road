@@ -28,10 +28,10 @@
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
         <div class="row-wrap">
-          <div class="label">
-            {{ $t('csr.usage') }}
-            <helpIcon :text="$t('csr.helpUsage')" />
-          </div>
+          <FormLabel
+            :labelText="$t('csr.usage')"
+            :helpText="$t('csr.helpUsage')"
+          />
 
           <ValidationProvider name="csr.usage" rules="required" v-slot="{}">
             <v-select
@@ -46,10 +46,10 @@
         </div>
 
         <div class="row-wrap" v-if="usage === usageTypes.SIGNING">
-          <div class="label">
-            {{ $t('csr.client') }}
-            <helpIcon :text="$t('csr.helpClient')" />
-          </div>
+          <FormLabel
+            :labelText="$t('csr.client')"
+            :helpText="$t('csr.helpClient')"
+          />
 
           <ValidationProvider name="csr.client" rules="required" v-slot="{}">
             <v-select
@@ -65,10 +65,10 @@
         </div>
 
         <div class="row-wrap">
-          <div class="label">
-            {{ $t('csr.certificationService') }}
-            <helpIcon :text="$t('csr.helpCertificationService')" />
-          </div>
+          <FormLabel
+            :labelText="$t('csr.certificationService')"
+            :helpText="$t('csr.helpCertificationService')"
+          />
 
           <ValidationProvider
             name="csr.certService"
@@ -93,6 +93,11 @@
             <helpIcon :text="$t('csr.helpCsrFormat')" />
           </div>
 
+          <FormLabel
+            :labelText="$t('csr.csrFormat')"
+            :helpText="$t('csr.helpCsrFormat')"
+          />
+
           <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
             <v-select
               :items="csrFormatList"
@@ -109,22 +114,20 @@
           $t('action.cancel')
         }}</large-button>
 
-        <div>
-          <large-button
-            v-if="showPreviousButton"
-            @click="previous"
-            outlined
-            class="previous-button"
-            data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
-          >
-          <large-button
-            :disabled="invalid"
-            @click="done"
-            data-test="save-button"
-            >{{ $t(saveButtonText) }}</large-button
-          >
-        </div>
+        <large-button
+          v-if="showPreviousButton"
+          @click="previous"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+          >{{ $t('action.previous') }}</large-button
+        >
+        <large-button
+          :disabled="invalid"
+          @click="done"
+          data-test="save-button"
+          >{{ $t(saveButtonText) }}</large-button
+        >
       </div>
     </ValidationObserver>
   </div>

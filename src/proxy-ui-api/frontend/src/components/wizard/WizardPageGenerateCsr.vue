@@ -63,31 +63,28 @@
         </div>
       </div>
       <div class="button-footer">
-        <div class="button-group">
-          <large-button
-            outlined
-            @click="cancel"
-            :disabled="!disableDone"
-            data-test="cancel-button"
-            >{{ $t('action.cancel') }}</large-button
-          >
-        </div>
-        <div>
-          <large-button
-            @click="previous"
-            outlined
-            class="previous-button"
-            data-test="previous-button"
-            :disabled="!disableDone"
-            >{{ $t('action.previous') }}</large-button
-          >
-          <large-button
-            @click="done"
-            :disabled="disableDone"
-            data-test="save-button"
-            >{{ $t(saveButtonText) }}</large-button
-          >
-        </div>
+        <large-button
+          outlined
+          @click="cancel"
+          :disabled="!disableDone"
+          data-test="cancel-button"
+          >{{ $t('action.cancel') }}</large-button
+        >
+
+        <large-button
+          @click="previous"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+          :disabled="!disableDone"
+          >{{ $t('action.previous') }}</large-button
+        >
+        <large-button
+          @click="done"
+          :disabled="disableDone"
+          data-test="save-button"
+          >{{ $t(saveButtonText) }}</large-button
+        >
       </div>
     </ValidationObserver>
   </div>

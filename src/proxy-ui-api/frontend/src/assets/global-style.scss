@@ -129,3 +129,14 @@
     padding-right: 24px;
   }
 }
+
+.xrd-title-search {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-end;
+
+  .xrd-view-title {
+    margin-right: 20px;
+  }
+}

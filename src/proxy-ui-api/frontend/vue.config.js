@@ -29,6 +29,8 @@ module.exports = {
         vuetify: path.resolve('./node_modules/vuetify'),
         'vue-i18n': path.resolve('./node_modules/vue-i18n'),
         'vee-validate': path.resolve('./node_modules/vee-validate'),
+        // alias for styles
+        styles: path.resolve(__dirname, './src/assets'),
       },
     },
   },
