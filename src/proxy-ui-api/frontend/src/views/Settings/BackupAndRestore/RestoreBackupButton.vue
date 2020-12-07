@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <small-button
+  <large-button
     :min_width="50"
     text
     :outlined="false"
@@ -41,7 +41,7 @@
       @cancel="showConfirmation = false"
       @accept="restoreBackup"
     />
-  </small-button>
+  </large-button>
 </template>
 
 <script lang="ts">

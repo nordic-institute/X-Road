@@ -43,14 +43,9 @@
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            rounded
-            dark
-            class="mb-2 rounded-button elevation-0"
-            @click="logout()"
-            >{{ $t('action.ok') }}</v-btn
-          >
+          <large-button class="mb-2" @click="logout()">{{
+            $t('action.ok')
+          }}</large-button>
         </v-card-actions>
       </v-card>
     </v-dialog>
