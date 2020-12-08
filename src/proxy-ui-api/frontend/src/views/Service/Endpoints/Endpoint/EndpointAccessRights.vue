@@ -24,15 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <div>
+  <div class="xrd-tab-max-width main-wrap">
+    <div class="pa-4">
       <subViewTitle
         :title="`${endpoint.method}${endpoint.path}`"
         @close="close"
       />
     </div>
 
-    <div class="group-members-row">
+    <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
         <large-button
@@ -52,7 +52,7 @@
       </div>
     </div>
 
-    <table class="xrd-table">
+    <table class="xrd-table mb-4">
       <thead>
         <tr>
           <th>{{ $t('accessRights.memberName') }}</th>
@@ -67,18 +67,15 @@
             <td class="identifier-wrap">{{ sc.name }}</td>
             <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
-            <td class="button-wrap">
-              <v-btn
+            <td>
+              <large-button
                 v-if="canEdit"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
+                text
+                :outlined="false"
                 @click="remove(sc)"
                 data-test="remove-access-right"
                 >{{ $t('action.remove') }}
-              </v-btn>
+              </large-button>
             </td>
           </tr>
         </template>
@@ -249,8 +246,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import 'src/assets/colors';
-@import 'src/assets/tables';
+@import '~styles/tables';
 
 .group-members-row {
   width: 100%;

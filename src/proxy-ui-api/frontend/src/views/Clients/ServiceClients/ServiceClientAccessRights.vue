@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <subViewTitle :title="serviceClientId" @close="close" />
+  <div class="xrd-tab-max-width xrd-view-common main-wrap">
+    <subViewTitle :title="serviceClientId" @close="close" class="pa-4" />
     <v-card flat>
       <table class="xrd-table service-client-margin">
         <thead>
@@ -41,7 +41,7 @@
       </table>
     </v-card>
 
-    <div class="group-members-row">
+    <div class="group-members-row px-4">
       <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
       <div class="row-buttons">
         <large-button
@@ -83,16 +83,14 @@
           <td>{{ accessRight.rights_given_at }}</td>
           <td>
             <div class="button-wrap">
-              <v-btn
+              <large-button
                 v-if="canEdit"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
+                text
+                :outlined="false"
+                class="mr-4"
                 data-test="access-right-remove"
                 @click="remove(accessRight)"
-                >{{ $t('action.remove') }}</v-btn
+                >{{ $t('action.remove') }}</large-button
               >
             </div>
           </td>
@@ -100,9 +98,9 @@
       </tbody>
     </table>
 
-    <h3 v-else class="service-client-margin">
+    <p v-else class="pa-6">
       {{ $t('serviceClients.noAccessRights') }}
-    </h3>
+    </p>
 
     <div class="footer-buttons-wrap">
       <large-button @click="close()" data-test="close">{{
@@ -316,7 +314,14 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
+
+.main-wrap {
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
+}
 
 .group-members-row {
   width: 100%;
@@ -355,7 +360,8 @@ export default Vue.extend({
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
+  padding: 20px;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
 }
 </style>

@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width">
-    <div>
+  <div class="xrd-tab-max-width main-wrap">
+    <div class="pa-4">
       <subViewTitle :title="groupCode" @close="close" />
 
       <template>
@@ -38,7 +38,7 @@
       </template>
     </div>
 
-    <div class="edit-row">
+    <div class="edit-row px-4">
       <template v-if="canEditDescription">
         <div>{{ $t('localGroup.editDesc') }}</div>
         <v-text-field
@@ -54,7 +54,7 @@
       </template>
     </div>
 
-    <div class="group-members-row">
+    <div class="group-members-row px-4">
       <div class="row-title">{{ $t('localGroup.groupMembers') }}</div>
       <div class="row-buttons">
         <large-button
@@ -91,15 +91,12 @@
 
             <td>
               <div class="button-wrap">
-                <v-btn
+                <large-button
                   v-if="canEditMembers"
-                  small
-                  outlined
-                  rounded
-                  color="primary"
-                  class="xrd-small-button"
+                  text
+                  :outlined="false"
                   @click="removeMember(groupMember)"
-                  >{{ $t('action.remove') }}</v-btn
+                  >{{ $t('action.remove') }}</large-button
                 >
               </div>
             </td>
@@ -343,8 +340,15 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/tables';
+@import '~styles/tables';
+
+.main-wrap {
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
+  font-size: 14px;
+}
 
 .edit-row {
   display: flex;
@@ -404,7 +408,8 @@ export default Vue.extend({
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
+  padding: 20px;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
 }
 </style>

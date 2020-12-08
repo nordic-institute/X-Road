@@ -34,9 +34,9 @@
 
     <div class="content xrd-view-common">
       <v-flex mb-4 class="title-action">
-        <h1 v-if="client" class="display-1 mb-3 identifier-wrap">
+        <div v-if="client" class="xrd-view-title mb-3">
           {{ client.subsystem_code }} ({{ $t('subsystem') }})
-        </h1>
+        </div>
         <div>
           <DeleteClientButton v-if="showDelete" :id="id" />
           <UnregisterClientButton

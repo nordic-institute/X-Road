@@ -24,16 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <div class="new-content">
-      <SubViewTitle :title="$t('cert.certificate')" @close="close" />
+  <div class="certificate-details-wrapper xrd-view-common">
+    <SubViewTitle :title="$t('cert.certificate')" @close="close" />
+    <div class="pl-4">
       <template v-if="certificate">
         <div class="cert-hash-wrapper">
           <certificateHash :hash="certificate.hash" />
         </div>
         <certificateInfo :certificate="certificate" />
       </template>
-      <SubViewFooter @close="close" />
     </div>
   </div>
 </template>
@@ -78,25 +77,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/detail-views';
-
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  max-width: 850px;
-  height: 100%;
-  width: 100%;
-}
-
-.cert-hash-wrapper {
-  margin-top: 30px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.button-spacing {
-  margin-left: 20px;
-}
+@import '~styles/detail-views';
+@import '~styles/wizards';
 </style>
