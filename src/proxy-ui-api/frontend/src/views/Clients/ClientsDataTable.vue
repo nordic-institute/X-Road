@@ -86,7 +86,10 @@
       <template v-slot:[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
-          <v-icon color="primary" class="icon-member icon-size"
+          <v-icon
+            color="primary"
+            class="icon-member icon-size"
+            @click="openClient(item)"
             >mdi-folder</v-icon
           >
           <span
@@ -122,7 +125,7 @@
             item.type === clientTypes.MEMBER
           "
         >
-          <v-icon color="primary" class="icon-member icon-size"
+          <v-icon class="icon-virtual-member icon-size"
             >mdi-folder-outline</v-icon
           >
           <span class="identifier-wrap name-member">{{
@@ -151,7 +154,7 @@
 
       <template v-slot:[`item.button`]="{ item }">
         <div class="button-wrap">
-          <SmallButton
+          <LargeButton
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
@@ -163,10 +166,10 @@
             :outlined="false"
             @click="addSubsystem(item)"
             ><v-icon class="mr-1">mdi-plus-circle</v-icon
-            >{{ $t('action.addSubsystem') }}</SmallButton
+            >{{ $t('action.addSubsystem') }}</LargeButton
           >
 
-          <SmallButton
+          <LargeButton
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
               item.type !== clientTypes.VIRTUAL_MEMBER &&
@@ -176,7 +179,7 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}</SmallButton
+            >{{ $t('action.register') }}</LargeButton
           >
         </div>
       </template>
@@ -486,15 +489,24 @@ export default Vue.extend({
 .xrd-table-header {
   border-bottom: 1px solid #dedce4 !important;
 }
+
+// Override Vuetify default table cell height
+.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
+.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
+.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
+  height: 56px;
+}
 </style>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
 .icon-member {
   padding-left: 0;
 }
 
-.icon-subsystem {
-  padding-left: 40px;
+.icon-virtual-member {
+  padding-left: 0;
+  color: black;
 }
 
 .icon-size {
@@ -531,6 +543,8 @@ export default Vue.extend({
 
   &.clickable {
     cursor: pointer;
+    text-decoration: none;
+    color: $XRoad-Link;
   }
 }
 
@@ -555,6 +569,7 @@ export default Vue.extend({
 
   &.clickable {
     text-decoration: none;
+    color: $XRoad-Link;
     cursor: pointer;
   }
 }
