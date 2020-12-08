@@ -225,6 +225,7 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: flex-end;
+  margin-bottom: 40px;
 }
 
 .search-row {

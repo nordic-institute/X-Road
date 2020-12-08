@@ -24,17 +24,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr class="grey--text text--darken-1" :data-test="`api-key-row-${apiKey.id}`">
-    <td><i class="icon-xrd_key icon"></i></td>
+  <tr :data-test="`api-key-row-${apiKey.id}`">
+    <td>
+      <icon-base icon-name="key" class="icon"><icon-key /></icon-base>
+    </td>
     <td>{{ apiKey.id }}</td>
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
     <td class="text-right">
-      <small-button
+      <large-button
         v-if="canEdit"
         @click="openEditDialog"
+        text
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
-        >{{ $t('apiKey.table.action.edit.button') }}</small-button
+        >{{ $t('apiKey.table.action.edit.button') }}</large-button
       >
       <simpleDialog
         :dialog="showEditDialog"
@@ -71,13 +74,14 @@
           </v-row>
         </div>
       </simpleDialog>
-      <small-button
+      <large-button
         v-if="canRevoke"
         class="ml-5"
+        text
         :data-test="`api-key-row-${apiKey.id}-revoke-button`"
         :loading="removingApiKey"
         @click="confirmRevoke = true"
-        >{{ $t('apiKey.table.action.revoke.button') }}</small-button
+        >{{ $t('apiKey.table.action.revoke.button') }}</large-button
       >
       <confirm-dialog
         :data-test="`api-key-row-${apiKey.id}-revoke-confirmation`"
@@ -99,8 +103,15 @@ import { Prop } from 'vue/types/options';
 import { ApiKey } from '@/global-types';
 import { Roles, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
+import IconBase from '@/components/ui/icons/IconBase.vue';
+import IconKey from '@/components/ui/icons/IconKey.vue';
+
 export default Vue.extend({
   name: 'ApiKeyRow',
+  components: {
+    IconKey,
+    IconBase,
+  },
   props: {
     apiKey: {
       type: Object as Prop<ApiKey>,

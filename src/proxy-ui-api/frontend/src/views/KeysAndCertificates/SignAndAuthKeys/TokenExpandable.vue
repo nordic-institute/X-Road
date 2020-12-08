@@ -73,6 +73,7 @@
             @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
+            ><v-icon>mdi-plus-circle</v-icon
             >{{ $t('keys.addKey') }}</large-button
           >
           <file-upload
@@ -87,7 +88,9 @@
               :disabled="!token.logged_in"
               @click="upload"
               data-test="token-import-cert-button"
-              >{{ $t('keys.importCert') }}</large-button
+            >
+              <v-icon>mdi-import</v-icon>
+              {{ $t('keys.importCert') }}</large-button
             >
           </file-upload>
         </div>
@@ -340,8 +343,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .token-logging-button {
   display: inline-flex;
@@ -353,10 +356,6 @@ export default Vue.extend({
   &.label {
     margin-right: 24px;
     text-decoration: none;
-  }
-
-  &.token-name {
-    text-decoration: underline;
   }
 
   &.inactive {
@@ -376,7 +375,7 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Purple100;
   cursor: pointer;
 }
 
@@ -386,6 +385,7 @@ export default Vue.extend({
 
 .button-wrap {
   margin-top: 10px;
+  padding-right: 16px;
   width: 100%;
   display: flex;
   justify-content: flex-end;

@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <table class="xrd-table">
+    <table class="xrd-table keys-table">
       <thead>
         <tr>
           <th class="title-col">{{ $t(title) }}</th>
@@ -54,14 +54,16 @@
             @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
-              <SmallButton
+              <LargeButton
                 class="table-button-fix test-register"
+                :outlined="false"
+                text
                 v-if="
                   showRegisterCertButton &&
                   cert.possible_actions.includes('REGISTER')
                 "
                 @click="showRegisterCertDialog(cert)"
-                >{{ $t('action.register') }}</SmallButton
+                >{{ $t('action.register') }}</LargeButton
               >
             </div>
           </CertificateRow>
@@ -84,11 +86,13 @@
           >
             <div slot="certificateAction">
               <template v-if="canImportFromToken">
-                <SmallButton
+                <LargeButton
                   v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                   class="table-button-fix"
+                  :outlined="false"
+                  text
                   @click="importCert(cert.certificate_details.hash)"
-                  >{{ $t('keys.importCert') }}</SmallButton
+                  >{{ $t('keys.importCert') }}</LargeButton
                 >
 
                 <!-- Special case where HW cert has auth usage -->
@@ -113,19 +117,23 @@
           >
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-xrd_certificate icon"></i>
+                <icon-base icon-name="certificate" class="icon"
+                  ><icon-certificate
+                /></icon-base>
                 <div>{{ $t('keys.request') }}</div>
               </div>
             </td>
             <td colspan="4">{{ req.id }}</td>
             <td class="td-align-right">
-              <SmallButton
+              <LargeButton
                 class="table-button-fix"
+                :outlined="false"
+                text
                 v-if="
                   req.possible_actions.includes('DELETE') && canDeleteCsr(key)
                 "
                 @click="showDeleteCsrDialog(req, key)"
-                >{{ $t('keys.deleteCsr') }}</SmallButton
+                >{{ $t('keys.deleteCsr') }}</LargeButton
               >
             </td>
           </tr>
@@ -166,13 +174,18 @@ import {
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import IconBase from '@/components/ui/icons/IconBase.vue';
+import IconCertificate from '@/components/ui/icons/IconCertificate.vue';
 
 export default Vue.extend({
   components: {
     RegisterCertificateDialog,
     KeyRow,
     CertificateRow,
+    IconCertificate,
+    IconBase,
   },
+
   props: {
     keys: {
       type: Array,
@@ -287,10 +300,14 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
 .icon {
-  margin-left: 18px;
+  color: $XRoad-Black100;
   margin-right: 20px;
+}
+
+.keys-table {
+  margin-top: 20px;
 }
 
 .table-button-fix {
@@ -311,7 +328,8 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-left: 0.5rem;
+
+  margin-left: 2rem;
 
   i.v-icon.mdi-file-document-outline {
     margin-left: 42px;

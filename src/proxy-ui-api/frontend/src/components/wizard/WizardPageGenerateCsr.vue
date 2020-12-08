@@ -165,6 +165,7 @@ export default Vue.extend({
 
 .generate-row {
   margin-top: 40px;
+  width: 840px;
   display: flex;
   flex-direction: row;
   align-items: baseline;

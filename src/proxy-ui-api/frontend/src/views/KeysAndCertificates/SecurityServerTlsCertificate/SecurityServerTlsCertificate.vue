@@ -76,42 +76,49 @@
       @saved="newCertificateGenerated"
     />
 
-    <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
-    <div class="horizontal-line-dark"></div>
+    <div class="content-card">
+      <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
+      <div class="horizontal-line-dark"></div>
 
-    <div class="content-wrap">
-      <div>
-        <div class="key-wrap">
-          <i class="icon-xrd_key icon"></i>
-          {{ $t('ssTlsCertificate.keyText') }}
-        </div>
-        <div class="cert-wrap">
-          <i
-            class="icon-xrd_certificate icon clickable"
-            @click="certificateClick()"
-          ></i>
-          <div
-            class="clickable-link"
-            v-if="certificate"
-            @click="certificateClick()"
-          >
-            {{ certificate.hash | colonize }}
+      <div class="content-wrap">
+        <div>
+          <div class="key-wrap">
+            <icon-base icon-name="key" class="icon"><icon-key /></icon-base>
+            {{ $t('ssTlsCertificate.keyText') }}
+          </div>
+          <div class="cert-wrap">
+            <icon-base
+              icon-name="certificate"
+              class="icon clickable-link"
+              @click="certificateClick()"
+              ><icon-certificate
+            /></icon-base>
+
+            <div
+              class="clickable-link"
+              v-if="certificate"
+              @click="certificateClick()"
+            >
+              {{ certificate.hash | colonize }}
+            </div>
           </div>
         </div>
+
+        <div>
+          <LargeButton
+            v-if="generateCsrVisible"
+            class="mr-2"
+            @click="generateCsr()"
+            text
+            :outlined="false"
+            data-test="security-server-tls-certificate-generate-csr-button"
+            >{{ $t('ssTlsCertificate.generateCsr') }}</LargeButton
+          >
+        </div>
       </div>
 
-      <div>
-        <SmallButton
-          v-if="generateCsrVisible"
-          class="table-button-fix"
-          @click="generateCsr()"
-          data-test="security-server-tls-certificate-generate-csr-button"
-          >{{ $t('ssTlsCertificate.generateCsr') }}</SmallButton
-        >
-      </div>
+      <div class="horizontal-line-light"></div>
     </div>
-
-    <div class="horizontal-line-light"></div>
   </div>
 </template>
 
@@ -125,10 +132,17 @@ import { saveResponseAsFile } from '@/util/helpers';
 import { FileUploadResult } from '@niis/shared-ui';
 import HelpButton from '../HelpButton.vue';
 
+import IconBase from '@/components/ui/icons/IconBase.vue';
+import IconKey from '@/components/ui/icons/IconKey.vue';
+import IconCertificate from '@/components/ui/icons/IconCertificate.vue';
+
 export default Vue.extend({
   components: {
     GenerateTlsAndCertificateDialog,
     HelpButton,
+    IconKey,
+    IconBase,
+    IconCertificate,
   },
   data() {
     return {
@@ -169,6 +183,7 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.GenerateInternalCSR,
       });
+      // this.showGenCsr = true;
     },
     fetchData(): void {
       api
@@ -233,11 +248,18 @@ export default Vue.extend({
   font-size: 14px;
   font-weight: 500;
   margin-top: 40px;
+  padding-top: 16px;
+  padding-left: 16px;
   margin-bottom: 12px;
 }
 
 .button-spacing {
   margin-left: 20px;
+}
+
+.content-card {
+  background-color: $XRoad-White100;
+  border-radius: 4px;
 }
 
 .content-wrap {
@@ -280,8 +302,8 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
   cursor: pointer;
   height: 100%;
+  color: $XRoad-Link;
 }
 </style>

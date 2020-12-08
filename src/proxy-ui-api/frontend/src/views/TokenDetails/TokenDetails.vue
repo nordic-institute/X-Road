@@ -25,61 +25,58 @@
  -->
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
-    <div>
-      <subViewTitle :title="$t('keys.tokenDetails')" @close="close" />
-    </div>
-
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="edit-row">
-        <div>{{ $t('keys.friendlyName') }}</div>
-        <ValidationProvider
-          rules="required"
-          name="keys.friendlyName"
-          v-slot="{ errors }"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="token.name"
-            single-line
-            class="code-input"
+      <div class="detail-view-wrapper">
+        <subViewTitle :title="$t('keys.tokenDetails')" @close="close" />
+
+        <div class="edit-row">
+          <div>{{ $t('keys.friendlyName') }}</div>
+          <ValidationProvider
+            rules="required"
             name="keys.friendlyName"
-            type="text"
-            :maxlength="255"
-            :error-messages="errors"
-            :loading="loading"
-            :disabled="!canEdit"
-            @input="touched = true"
-            autofocus
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
-
-      <div>
-        <h3 class="info-title">{{ $t('keys.tokenInfo') }}</h3>
-        <div class="info-row">
-          <div class="row-title">{{ $t('keys.tokenId') }}</div>
-          <div class="row-data">{{ token.id }}</div>
-        </div>
-        <div class="info-row">
-          <div class="row-title">{{ $t('keys.type') }}</div>
-          <div class="row-data">{{ token.type }}</div>
-        </div>
-      </div>
-
-      <v-card flat>
-        <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{
-            $t('action.cancel')
-          }}</large-button>
-          <large-button
-            class="save-button"
-            :loading="saveBusy"
-            @click="save()"
-            :disabled="!touched || invalid"
-            >{{ $t('action.save') }}</large-button
+            v-slot="{ errors }"
+            class="validation-provider"
           >
+            <v-text-field
+              v-model="token.name"
+              single-line
+              class="code-input"
+              name="keys.friendlyName"
+              type="text"
+              outlined
+              :maxlength="255"
+              :error-messages="errors"
+              :loading="loading"
+              :disabled="!canEdit"
+              @input="touched = true"
+              autofocus
+            ></v-text-field>
+          </ValidationProvider>
         </div>
-      </v-card>
+
+        <div>
+          <h3 class="info-title">{{ $t('keys.tokenInfo') }}</h3>
+          <div class="info-row">
+            <div class="row-title">{{ $t('keys.tokenId') }}</div>
+            <div class="row-data">{{ token.id }}</div>
+          </div>
+          <div class="info-row">
+            <div class="row-title">{{ $t('keys.type') }}</div>
+            <div class="row-data">{{ token.type }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-button-wrap">
+        <large-button @click="close()" outlined>{{
+          $t('action.cancel')
+        }}</large-button>
+        <large-button
+          :loading="saveBusy"
+          @click="save()"
+          :disabled="!touched || invalid"
+          >{{ $t('action.save') }}</large-button
+        >
+      </div>
     </ValidationObserver>
   </div>
 </template>
@@ -166,4 +163,8 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/detail-views';
+
+.code-input {
+  width: 450px;
+}
 </style>
