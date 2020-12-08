@@ -212,9 +212,9 @@ public class KeysApiController implements KeysApi {
             keyService.deleteKey(keyId, ignoreWarnings);
         } catch (KeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
-        } catch (GlobalConfOutdatedException | UnhandledWarningsException e) {
+        } catch (UnhandledWarningsException e) {
             throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

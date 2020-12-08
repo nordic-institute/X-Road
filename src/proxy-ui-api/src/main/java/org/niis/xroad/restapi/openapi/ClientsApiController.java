@@ -512,10 +512,8 @@ public class ClientsApiController implements ClientsApi {
             orphanRemovalService.deleteOrphans(clientId);
         } catch (OrphanRemovalService.OrphansNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
-        } catch (GlobalConfOutdatedException e) {
-            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -540,12 +538,12 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.registerClient(clientId);
-        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException
+        } catch (ClientService.CannotRegisterOwnerException
                 | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -558,11 +556,10 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.unregisterClient(clientId);
-        } catch (GlobalConfOutdatedException e) {
-            throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException
+                | ClientService.CannotUnregisterOwnerException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -576,11 +573,11 @@ public class ClientsApiController implements ClientsApi {
         try {
             clientService.changeOwner(clientId.getMemberClass(), clientId.getMemberCode(),
                     clientId.getSubsystemCode());
-        } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
+        } catch (ClientService.MemberAlreadyOwnerException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
