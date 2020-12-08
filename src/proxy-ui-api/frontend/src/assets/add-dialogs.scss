@@ -24,8 +24,8 @@
  * THE SOFTWARE.
  */
 
-@import './colors';
-@import './functions';
+@import "./colors";
+@import "./functions";
 
 .exp-title {
   text-align: right;
@@ -85,15 +85,14 @@
   font-weight: 300;
   letter-spacing: 0.5px;
   line-height: 21px;
-
   cursor: pointer;
   font-style: normal;
   font-size: 36px;
-  color:  $XRoad-Purple100;
+  color: $XRoad-Purple100;
 }
 
 #close-x:before {
-  content: unicode('00d7');
+  content: unicode("00d7");
 }
 
 // Override vuetify default box-shadow
