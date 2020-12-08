@@ -247,7 +247,6 @@ public class ClientService {
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         auditDataHelper.put(enumValue);
         clientType.setIsAuthentication(connectionType);
-        clientRepository.saveOrUpdate(clientType);
         return clientType;
     }
 
@@ -300,7 +299,6 @@ public class ClientService {
         }
 
         clientType.getIsCert().add(certificateType);
-        clientRepository.saveOrUpdateAndFlush(clientType);
         return certificateType;
     }
 
@@ -352,7 +350,6 @@ public class ClientService {
         auditDataHelper.put(certificateType.get());
 
         clientType.getIsCert().remove(certificateType.get());
-        clientRepository.saveOrUpdate(clientType);
         return clientType;
     }
 
@@ -527,7 +524,6 @@ public class ClientService {
             client.setClientStatus(ClientType.STATUS_REGINPROG);
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
-            clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -561,7 +557,6 @@ public class ClientService {
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DELINPROG);
-            clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

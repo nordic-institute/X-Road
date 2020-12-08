@@ -180,8 +180,6 @@ public class ServiceService {
                     serviceType, service);
         });
 
-        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
-
         return serviceType;
     }
 

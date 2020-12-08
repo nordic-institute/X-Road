@@ -503,7 +503,6 @@ public class AccessRightService {
             }
         }
 
-        clientRepository.saveOrUpdate(clientType);
         return addedAccessRights;
     }
 

@@ -103,7 +103,6 @@ public class LocalGroupService {
 
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
-        localGroupRepository.saveOrUpdate(localGroupType);
         return localGroupType;
     }
 
@@ -155,9 +154,7 @@ public class LocalGroupService {
             throw new DuplicateLocalGroupCodeException(
                     "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
         }
-        localGroupRepository.persist(localGroupTypeToAdd);
         clientType.getLocalGroup().add(localGroupTypeToAdd);
-        clientRepository.saveOrUpdate(clientType);
         return localGroupTypeToAdd;
     }
 
@@ -196,9 +193,7 @@ public class LocalGroupService {
             groupMemberType.setGroupMemberId(clientIdToBeAdded);
             membersToBeAdded.add(groupMemberType);
         }
-        localGroupRepository.saveOrUpdateAll(membersToBeAdded);
         localGroupType.getGroupMember().addAll(membersToBeAdded);
-        localGroupRepository.saveOrUpdate(localGroupType);
     }
 
     /**
@@ -258,7 +253,6 @@ public class LocalGroupService {
             throw new LocalGroupMemberNotFoundException("the requested group member was not found in local group");
         }
         managedLocalGroup.getGroupMember().removeAll(membersToBeRemoved);
-        localGroupRepository.saveOrUpdate(managedLocalGroup);
     }
 
     /**

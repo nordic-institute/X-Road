@@ -92,7 +92,6 @@ public class EndpointService {
         ClientType clientType = clientRepository.getClientByEndpointId(id);
         clientType.getAcl().removeIf(acl -> acl.getEndpoint().getId().equals(id));
         clientType.getEndpoint().removeIf(ep -> ep.getId().equals(id));
-        clientRepository.saveOrUpdate(clientType);
     }
 
     /**
@@ -146,8 +145,6 @@ public class EndpointService {
             throw new EndpointAlreadyExistsException("Endpoint with equivalent service code, method and path already "
                     + "exists for this client");
         }
-
-        endpointRepository.saveOrUpdate(endpoint);
 
         return endpoint;
     }

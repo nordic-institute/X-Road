@@ -92,7 +92,7 @@ import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
  */
 @Slf4j
 @Service
-@Transactional(rollbackFor = ServiceException.class)
+@Transactional
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ServiceDescriptionService {
@@ -158,7 +158,6 @@ public class ServiceDescriptionService {
         if (!toEnabled) {
             serviceDescriptionType.setDisabledNotice(disabledNotice);
         }
-        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
         auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
     }
@@ -185,7 +184,6 @@ public class ServiceDescriptionService {
         cleanAccessRights(client, serviceDescriptionType);
         cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);
-        clientRepository.saveOrUpdate(client);
     }
 
     private void cleanEndpoints(ClientType client, ServiceDescriptionType serviceDescriptionType) {
@@ -254,7 +252,6 @@ public class ServiceDescriptionService {
 
         client.getEndpoint().addAll(endpointsToAdd);
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
         return serviceDescriptionType;
     }
 
@@ -384,7 +381,6 @@ public class ServiceDescriptionService {
         // Populate client with new servicedescription and endpoints
         client.getEndpoint().addAll(endpoints);
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
     }
@@ -497,8 +493,6 @@ public class ServiceDescriptionService {
 
         checkDuplicateServiceCodes(serviceDescriptionType);
         checkDuplicateUrl(serviceDescriptionType);
-
-        clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
     }
@@ -651,8 +645,6 @@ public class ServiceDescriptionService {
                 ignoreWarnings,
                 serviceDescriptionType);
 
-        clientRepository.saveOrUpdateAndFlush(serviceDescriptionType.getClient());
-
         return serviceDescriptionType;
     }
 
@@ -706,7 +698,6 @@ public class ServiceDescriptionService {
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
 
-        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
         return serviceDescription;
     }
 
@@ -767,8 +758,6 @@ public class ServiceDescriptionService {
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
-
-        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
 
         return serviceDescription;
     }
@@ -1005,8 +994,6 @@ public class ServiceDescriptionService {
         // add new endpoints
         Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
         client.getEndpoint().addAll(endpointsToAdd);
-
-        clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
     }
