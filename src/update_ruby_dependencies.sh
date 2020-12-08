@@ -11,7 +11,7 @@ JRUBY_VERSION=$(cat $XROAD_HOME/.jruby-version)
 source ~/.rvm/scripts/rvm
 rvm use jruby-$JRUBY_VERSION
 
-RUBY_PROJECTS="center-service common-ui center-common center-ui"
+RUBY_PROJECTS="common-ui center-common center-service center-ui"
 
 for each in $RUBY_PROJECTS
 do
