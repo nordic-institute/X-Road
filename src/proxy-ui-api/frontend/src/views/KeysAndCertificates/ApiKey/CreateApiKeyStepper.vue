@@ -25,12 +25,14 @@
  -->
 <template>
   <v-container class="xrd-view-common justify-center wrapper">
-    <sub-view-title
-      :title="$t('apiKey.createApiKey.title')"
-      :show-close="true"
-      @close="close"
-    ></sub-view-title>
     <v-stepper :alt-labels="true" v-model="step" class="stepper mt-2">
+      <sub-view-title
+        :title="$t('apiKey.createApiKey.title')"
+        :show-close="true"
+        @close="close"
+        class="pa-4"
+      ></sub-view-title>
+
       <v-stepper-header class="stepper-header">
         <v-stepper-step :complete="step > 1" step="1">{{
           $t('apiKey.createApiKey.step.roles.name')
@@ -42,98 +44,98 @@
       </v-stepper-header>
       <v-stepper-items>
         <v-stepper-content step="1" class="pa-0">
-          <v-row class="mb-5">
-            <v-col>
-              <h3>{{ $t('apiKey.createApiKey.step.roles.description') }}</h3>
-            </v-col>
-          </v-row>
-          <v-row no-gutters v-for="role in roles" :key="role">
-            <v-col class="checkbox-wrapper">
-              <v-checkbox
-                v-model="selectedRoles"
-                height="10px"
-                :value="role"
-                :label="$t(`apiKey.role.${role}`)"
-              />
-            </v-col>
-          </v-row>
-          <v-row class="stepper-item-footer mt-12" no-gutters>
-            <v-col>
-              <large-button outlined @click="close">
-                {{ $t('action.cancel') }}
-              </large-button>
-            </v-col>
-            <v-col class="text-right">
-              <large-button :disabled="nextButtonDisabled" @click="step++">
-                {{ $t('action.next') }}
-              </large-button>
-            </v-col>
+          <div class="px-6">
+            <v-row class="mb-5">
+              <v-col>
+                <h3>{{ $t('apiKey.createApiKey.step.roles.description') }}</h3>
+              </v-col>
+            </v-row>
+            <v-row no-gutters v-for="role in roles" :key="role">
+              <v-col class="checkbox-wrapper">
+                <v-checkbox
+                  v-model="selectedRoles"
+                  height="10px"
+                  :value="role"
+                  :label="$t(`apiKey.role.${role}`)"
+                />
+              </v-col>
+            </v-row>
+          </div>
+          <v-row class="button-footer mt-12" no-gutters>
+            <large-button outlined @click="close">
+              {{ $t('action.cancel') }}
+            </large-button>
+
+            <large-button :disabled="nextButtonDisabled" @click="step++">
+              {{ $t('action.next') }}
+            </large-button>
           </v-row>
         </v-stepper-content>
-        <v-stepper-content step="2">
-          <v-row>
-            <v-col class="text-right">
-              <large-button
-                :disabled="keyGenerated"
-                :loading="generatingKey"
-                @click="generateKey"
-              >
-                {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
-              </large-button>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="6" sm="3" class="api-key-label">
-              {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
-            </v-col>
-            <v-col cols="6" sm="9">
-              {{ apiKey.key }}
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="6" sm="3" class="api-key-label">
-              {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
-            </v-col>
-            <v-col cols="6" sm="9">
-              {{ apiKey.id }}
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="6" sm="3" class="api-key-label">
-              {{ $t('apiKey.createApiKey.step.keyDetails.assignedRoles') }}
-            </v-col>
-            <v-col cols="6" sm="9">
-              {{ translatedRoles | commaSeparate }}
-            </v-col>
-          </v-row>
-          <v-row class="mt-12">
-            <v-col>
-              {{ $t('apiKey.createApiKey.step.keyDetails.note') }}
-            </v-col>
-          </v-row>
-          <v-row class="stepper-item-footer mt-12" no-gutters>
-            <v-col>
-              <large-button
-                outlined
-                @click="close"
-                :disabled="keyGenerated || generatingKey"
-              >
-                {{ $t('action.cancel') }}
-              </large-button>
-            </v-col>
-            <v-col class="text-right">
-              <large-button
-                outlined
-                @click="step--"
-                class="mr-5"
-                :disabled="keyGenerated || generatingKey"
-              >
-                {{ $t('action.previous') }}
-              </large-button>
-              <large-button :disabled="!keyGenerated" @click="close">
-                {{ $t('action.finish') }}
-              </large-button>
-            </v-col>
+        <v-stepper-content step="2" class="pa-0">
+          <div class="px-6">
+            <v-row>
+              <v-col class="text-right">
+                <large-button
+                  :disabled="keyGenerated"
+                  :loading="generatingKey"
+                  @click="generateKey"
+                >
+                  {{
+                    $t('apiKey.createApiKey.step.keyDetails.createKeyButton')
+                  }}
+                </large-button>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="6" sm="3" class="api-key-label">
+                {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
+              </v-col>
+              <v-col cols="6" sm="9">
+                {{ apiKey.key }}
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="6" sm="3" class="api-key-label">
+                {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
+              </v-col>
+              <v-col cols="6" sm="9">
+                {{ apiKey.id }}
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="6" sm="3" class="api-key-label">
+                {{ $t('apiKey.createApiKey.step.keyDetails.assignedRoles') }}
+              </v-col>
+              <v-col cols="6" sm="9">
+                {{ translatedRoles | commaSeparate }}
+              </v-col>
+            </v-row>
+            <v-row class="mt-12">
+              <v-col>
+                {{ $t('apiKey.createApiKey.step.keyDetails.note') }}
+              </v-col>
+            </v-row>
+          </div>
+          <v-row class="button-footer mt-12" no-gutters>
+            <large-button
+              outlined
+              @click="close"
+              :disabled="keyGenerated || generatingKey"
+            >
+              {{ $t('action.cancel') }}
+            </large-button>
+
+            <large-button
+              outlined
+              @click="step--"
+              class="mr-5"
+              :disabled="keyGenerated || generatingKey"
+            >
+              {{ $t('action.previous') }}
+            </large-button>
+            <large-button :disabled="!keyGenerated" @click="close">
+              {{ $t('action.finish') }}
+            </large-button>
           </v-row>
         </v-stepper-content>
       </v-stepper-items>
@@ -193,8 +195,8 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '../../../assets/detail-views';
-@import '../../../assets/colors';
+@import '~styles/detail-views';
+@import '~styles/wizards';
 .wrapper {
   max-width: 850px;
   height: 100%;

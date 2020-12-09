@@ -63,13 +63,53 @@
 }
 
 .footer-button-wrap {
-  margin-top: 48px;
   display: flex;
+  flex-direction: row;
+  align-items: center;
   justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
+  padding-right: 24px;
+  padding-left: 24px;
+  border-radius: 0px 0px 4px 4px;
+
+  // children
+  > * {
+    &:not(:last-child) {
+      margin-right: 20px;
+    }
+  }
 }
 
 .save-button {
   margin-left: 20px;
+}
+
+
+.certificate-details-wrapper {
+    display: flex;
+  justify-content: center;
+  flex-direction: column;
+  max-width: 850px;
+  height: 100%;
+  width: 100%;
+  background-color: $XRoad-White100;
+  padding: 16px;
+  margin: 20px;
+  border-radius: 4px;
+}
+
+.cert-hash-wrapper {
+  margin-top: 30px;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.detail-view-wrapper {
+  padding: 16px;
+  padding-bottom: 40px;
+  margin-top: 20px;
+  background-color: $XRoad-White100;
+  border-radius: 4px 4px 0px 0px;
 }

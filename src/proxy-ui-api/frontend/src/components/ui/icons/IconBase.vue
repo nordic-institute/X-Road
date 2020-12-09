@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,93 +24,59 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
-      <div>
-        <v-btn
-          fab
-          icon
-          small
-          @click="clicked"
-          class="no-hover"
-          v-bind:style="{ color: color }"
-        >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-      <div>
-        <slot name="link"></slot>
-      </div>
-
-      <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action"></slot>
-      </div>
-    </div>
-    <div v-if="isOpen" class="exp-content-wrap">
-      <slot name="content"></slot>
-    </div>
-  </div>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    :width="width"
+    :height="height"
+    viewBox="0 0 24 24"
+    :aria-labelledby="iconName"
+    role="presentation"
+    @click="keyClick"
+  >
+    <title :id="iconName" lang="en">{{ iconName }} icon</title>
+    <g :fill="iconColor">
+      <slot />
+    </g>
+  </svg>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
-/**
- * Expandable can be clicked open and has slots for a link and ans action
- */
 export default Vue.extend({
-  name: 'expandable',
+  name: 'IconBase',
   props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-    color: {
+    iconName: {
       type: String,
-      required: false,
+      default: 'box',
+    },
+    width: {
+      type: [Number, String],
+      default: 24,
+    },
+    height: {
+      type: [Number, String],
+      default: 24,
+    },
+    iconColor: {
+      type: String,
+      default: 'currentColor',
     },
   },
   methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
+    keyClick(): void {
+      this.$emit('click');
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: $XRoad-White;
-}
-
-.exp-header {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 10px;
-}
-
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
+svg {
+  display: inline-block;
+  vertical-align: baseline;
+  // padding-bottom: 10px;
+  min-width: 24px;
+  min-height: 24px;
 }
 </style>

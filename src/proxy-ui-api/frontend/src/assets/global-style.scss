@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-@import '../assets/colors';
+@import "./colors";
 
 // Use this to set up font etc. common things for normal views
 .xrd-view-common {
@@ -139,4 +139,10 @@
   .xrd-view-title {
     margin-right: 20px;
   }
+}
+
+.xrd-clickable {
+  color: $XRoad-Link;
+
+  cursor: pointer;
 }

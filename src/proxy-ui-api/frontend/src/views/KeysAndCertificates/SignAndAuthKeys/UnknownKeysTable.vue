@@ -58,12 +58,12 @@
           <td></td>
           <td></td>
           <td class="align-right">
-            <SmallButton
+            <LargeButton
               v-if="canCreateCsr"
               class="table-button-fix"
               :disabled="disableGenerateCsr(key)"
               @click="generateCsr(key)"
-              >{{ $t('keys.generateCsr') }}</SmallButton
+              >{{ $t('keys.generateCsr') }}</LargeButton
             >
           </td>
         </tr>
@@ -76,11 +76,11 @@
         >
           <div slot="certificateAction">
             <template v-if="canImportFromToken">
-              <SmallButton
+              <LargeButton
                 v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                 class="table-button-fix"
                 @click="importCert(cert.certificate_details.hash)"
-                >{{ $t('keys.importCert') }}</SmallButton
+                >{{ $t('keys.importCert') }}</LargeButton
               >
 
               <!-- Special case where HW cert has auth usage -->

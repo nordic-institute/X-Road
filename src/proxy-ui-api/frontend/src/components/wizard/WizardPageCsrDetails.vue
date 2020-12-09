@@ -88,11 +88,6 @@
         </div>
 
         <div class="row-wrap">
-          <div class="label">
-            {{ $t('csr.csrFormat') }}
-            <helpIcon :text="$t('csr.helpCsrFormat')" />
-          </div>
-
           <FormLabel
             :labelText="$t('csr.csrFormat')"
             :helpText="$t('csr.helpCsrFormat')"

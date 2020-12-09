@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,34 +24,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
-      <div>
-        <v-btn
-          fab
-          icon
-          small
-          @click="clicked"
-          class="no-hover"
-          v-bind:style="{ color: color }"
-        >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-      <div>
-        <slot name="link"></slot>
-      </div>
-
-      <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action"></slot>
-      </div>
-    </div>
-    <div v-if="isOpen" class="exp-content-wrap">
-      <slot name="content"></slot>
-    </div>
-  </div>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M21.043 15.4571L19.629 14.0431L17.129 16.7151L15.983 15.5691L18.044 13.5081L16.63 12.0941L14.569 14.1551L11.21 10.7961L11.515 10.1591C12.426 8.25006 12.035 5.96406 10.543 4.47206C8.59099 2.52006 5.41899 2.52006 3.46999 4.47006C1.52099 6.41906 1.52099 9.59206 3.46999 11.5411C4.96199 13.0331 7.24799 13.4241 9.15699 12.5131L9.79399 12.2081L18.543 20.9571L19.957 19.5431L18.543 18.1291L21.043 15.4571ZM9.12699 10.1271C7.95699 11.2971 6.05399 11.2971 4.88399 10.1271C3.71399 8.95706 3.71399 7.05406 4.88399 5.88406C6.05399 4.71406 7.95699 4.71406 9.12699 5.88406C10.296 7.05406 10.296 8.95706 9.12699 10.1271Z"
+  />
 </template>
 
 <script lang="ts">
@@ -62,56 +38,6 @@ import Vue from 'vue';
  * Expandable can be clicked open and has slots for a link and ans action
  */
 export default Vue.extend({
-  name: 'expandable',
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: false,
-    },
-  },
-  methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
-    },
-  },
+  name: 'icon-key',
 });
 </script>
-
-<style lang="scss" scoped>
-@import '../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: $XRoad-White;
-}
-
-.exp-header {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 10px;
-}
-
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
-}
-</style>

@@ -30,6 +30,7 @@
       :title="$t('wizard.addMemberTitle')"
       @close="cancel()"
       data-test="wizard-title"
+      :showClose="false"
     />
 
     <v-stepper

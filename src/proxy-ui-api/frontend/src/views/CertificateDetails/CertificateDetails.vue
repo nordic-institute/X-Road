@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <div class="new-content">
-      <subViewTitle :title="$t('cert.certificate')" @close="close" />
+  <div class="certificate-details-wrapper xrd-view-common">
+    <subViewTitle :title="$t('cert.certificate')" @close="close" />
+    <div class="pl-4">
       <div class="details-view-tools" v-if="certificate">
         <large-button
           v-if="showActivate"
@@ -336,23 +336,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/detail-views';
-
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  max-width: 850px;
-  height: 100%;
-  width: 100%;
-}
-
-.cert-hash-wrapper {
-  margin-top: 30px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
+@import '~styles/detail-views';
 
 .button-spacing {
   margin-left: 20px;

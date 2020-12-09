@@ -25,6 +25,7 @@
  * THE SOFTWARE.
  */
 import Expandable from './Expandable.vue';
+import DemoContent from './ExpandableDemoContent.vue';
 
 export default {
   title: 'X-Road/Expandable',
@@ -38,8 +39,9 @@ export default {
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { Expandable },
-  template: `<expandable @open="open" @close="close" v-bind="$props">
+  components: { Expandable, DemoContent },
+  template: `<div style="background-color: gray; width: 100%; height: 100%; padding: 20px;">
+  <expandable @open="open" @close="close" v-bind="$props">
     <template v-slot:action>
       <v-switch></v-switch>
     </template>
@@ -49,11 +51,9 @@ const Template = (args, { argTypes }) => ({
       </div>
     </template>
     <template v-slot:content>
-      <div>
-        Content slot
-      </div>
+      <demo-content />
     </template>
-    </expandable>`,
+    </expandable></div>`,
 });
 
 export const Primary = Template.bind({});
