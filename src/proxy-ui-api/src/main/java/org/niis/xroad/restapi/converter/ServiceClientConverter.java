@@ -75,7 +75,7 @@ public class ServiceClientConverter {
                 break;
             case GLOBALGROUP:
                 GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
-                serviceClient.setName(globalConfFacade.getGlobalGroupDescription(globalGroupId));
+                serviceClient.setName(serviceClientDto.getGlobalGroupDescription());
                 serviceClient.setId(globalGroupConverter.convertId(globalGroupId));
                 serviceClient.setServiceClientType(ServiceClientType.GLOBALGROUP);
                 break;

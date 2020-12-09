@@ -107,7 +107,7 @@ public class ServiceClientService {
                 }
             }
         }
-        return new ArrayList(uniqueServiceClientMap.values());
+        return new ArrayList<>(uniqueServiceClientMap.values());
     }
 
     /**

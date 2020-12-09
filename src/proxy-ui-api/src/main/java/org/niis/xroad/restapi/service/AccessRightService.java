@@ -450,6 +450,9 @@ public class AccessRightService {
             serviceClientDto.setLocalGroupId(localGroupType.getId().toString());
             serviceClientDto.setLocalGroupCode(localGroupType.getGroupCode());
             serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
+        } else if (subjectId.getObjectType() == XRoadObjectType.GLOBALGROUP) {
+            GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
+            serviceClientDto.setGlobalGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
         }
         return serviceClientDto;
     }
@@ -686,7 +689,7 @@ public class AccessRightService {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 ServiceClientDto serviceClientDto = new ServiceClientDto();
                 serviceClientDto.setSubjectId(globalGroupInfo.getId());
-                serviceClientDto.setLocalGroupDescription(globalGroupInfo.getDescription());
+                serviceClientDto.setGlobalGroupDescription(globalGroupInfo.getDescription());
                 globalGroups.add(serviceClientDto);
             });
         }
@@ -805,8 +808,10 @@ public class AccessRightService {
         return dto -> {
             String memberName = dto.getMemberName();
             String localGroupDescription = dto.getLocalGroupDescription();
+            String globalGroupDescription = dto.getGlobalGroupDescription();
             boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
-                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
+                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
+                    || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
             return isMatch;
         };
     }

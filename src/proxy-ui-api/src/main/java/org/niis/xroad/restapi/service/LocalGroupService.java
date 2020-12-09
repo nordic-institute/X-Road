@@ -154,6 +154,7 @@ public class LocalGroupService {
             throw new DuplicateLocalGroupCodeException(
                     "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
         }
+        localGroupRepository.persist(localGroupTypeToAdd); // explicit persist to get the id to the return value
         clientType.getLocalGroup().add(localGroupTypeToAdd);
         return localGroupTypeToAdd;
     }
