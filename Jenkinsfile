@@ -57,6 +57,20 @@ pipeline {
                 }
             }
         }
+        stage('Ubuntu focal packaging') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-focal'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh focal'
+                }
+            }
+        }
         stage('RHEL 7 packaging') {
             agent {
                 dockerfile {
