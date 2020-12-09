@@ -183,7 +183,6 @@ export default Vue.extend({
       this.$router.push({
         name: RouteName.GenerateInternalCSR,
       });
-      // this.showGenCsr = true;
     },
     fetchData(): void {
       api
