@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <small-button
+  <large-button
     v-if="canBackup"
     :min_width="50"
     :loading="deleting"
@@ -42,7 +42,7 @@
       @cancel="showConfirmation = false"
       @accept="deleteBackup"
     />
-  </small-button>
+  </large-button>
 </template>
 
 <script lang="ts">

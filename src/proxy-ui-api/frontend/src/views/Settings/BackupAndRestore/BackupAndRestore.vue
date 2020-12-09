@@ -219,7 +219,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
 .search-input {
   max-width: 300px;
 }
