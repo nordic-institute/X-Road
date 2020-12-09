@@ -28,10 +28,10 @@
     <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
 
     <v-card flat class="xrd-card">
-      <v-container>
+      <v-card-text class="card-text">
         <v-row
           no-gutters
-          class="mt-2"
+          class="px-4"
           v-if="hasPermission(permissions.VIEW_ANCHOR)"
         >
           <v-col
@@ -81,7 +81,7 @@
               >
                 <tr>
                   <td>{{ this.configuratonAnchor.hash | colonize }}</td>
-                  <td>
+                  <td class="pr-4">
                     {{ this.configuratonAnchor.created_at | formatDateTime }}
                   </td>
                 </tr>
@@ -89,13 +89,13 @@
             </table>
           </v-col>
         </v-row>
-      </v-container>
+      </v-card-text>
     </v-card>
     <v-card flat class="xrd-card">
-      <v-container>
+      <v-card-text class="card-text">
         <v-row
           no-gutters
-          class="mt-2"
+          class="px-4"
           v-if="hasPermission(permissions.VIEW_TSPS)"
         >
           <v-col
@@ -147,13 +147,13 @@
             </table>
           </v-col>
         </v-row>
-      </v-container>
+      </v-card-text>
     </v-card>
     <v-card flat class="xrd-card">
-      <v-container>
+      <v-card-text class="card-text">
         <v-row
           no-gutters
-          class="mt-2"
+          class="px-4"
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
@@ -224,13 +224,13 @@
                       )
                     }}
                   </td>
-                  <td>{{ approvedCA.not_after | formatDate }}</td>
+                  <td class="pr-4">{{ approvedCA.not_after | formatDate }}</td>
                 </tr>
               </tbody>
             </table>
           </v-col>
         </v-row>
-      </v-container>
+      </v-card-text>
     </v-card>
   </div>
 </template>
@@ -325,8 +325,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
+@import '~styles/colors';
+@import '~styles/tables';
 
 h3 {
   color: #211e1e;
@@ -336,13 +336,9 @@ h3 {
   line-height: 24px;
 }
 
-table {
-  font-size: 0.9rem;
-}
-
-tr th {
-  font-weight: 500;
-  color: lighten($XRoad-Black, 20);
+.card-text {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 tr td {

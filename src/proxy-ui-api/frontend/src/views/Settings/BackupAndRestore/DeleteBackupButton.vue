@@ -24,10 +24,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <small-button
+  <large-button
     v-if="canBackup"
     :min_width="50"
     :loading="deleting"
+    text
+    :outlined="false"
     class="xrd-table-button"
     data-test="backup-delete"
     @click="showConfirmation = true"
@@ -40,7 +42,7 @@
       @cancel="showConfirmation = false"
       @accept="deleteBackup"
     />
-  </small-button>
+  </large-button>
 </template>
 
 <script lang="ts">

@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-sub-view-wrapper">
     <sub-tabs :tab="tab">
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
         $t(tab.name)
       }}</v-tab>
     </sub-tabs>

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card flat>
+  <v-card flat class="pb-3">
     <table class="xrd-table">
       <thead>
         <tr>
@@ -37,14 +37,16 @@
           <td>{{ backup.filename }}</td>
           <td>
             <div class="d-flex justify-end">
-              <small-button
+              <large-button
                 v-if="canBackup"
                 :min_width="50"
+                text
+                :outlined="false"
                 class="xrd-table-button"
                 data-test="backup-download"
                 @click="downloadBackup(backup.filename)"
                 >{{ $t('action.download') }}
-              </small-button>
+              </large-button>
               <restore-backup-button
                 v-if="canRestore"
                 :backup="backup"
@@ -121,6 +123,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
+@import '~styles/colors';
+@import '~styles/tables';
 </style>
