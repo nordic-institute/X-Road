@@ -44,7 +44,6 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.EndpointHelper;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -106,8 +105,8 @@ public class ServiceDescriptionService {
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
-    private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
+    private final ServiceService serviceService;
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
     private final OpenApiParser openApiParser;

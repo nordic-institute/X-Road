@@ -39,12 +39,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
@@ -73,7 +74,7 @@ public class ApiKeysController {
     /**
      * create a new api key
      */
-    @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     @AuditEventMethod(event = API_KEY_CREATE)
     @PreAuthorize("hasAuthority('CREATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
@@ -88,7 +89,7 @@ public class ApiKeysController {
     /**
      * update an existing api key
      */
-    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @AuditEventMethod(event = API_KEY_UPDATE)
     @PreAuthorize("hasAuthority('UPDATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
@@ -106,7 +107,7 @@ public class ApiKeysController {
     /**
      * list api keys from db
      */
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<Collection<PublicApiKeyData>> list() {
         Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
@@ -118,16 +119,16 @@ public class ApiKeysController {
      * @param id
      * @return
      */
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/{id}")
     @AuditEventMethod(event = API_KEY_REMOVE)
     @PreAuthorize("hasAuthority('REVOKE_API_KEY')")
-    public ResponseEntity revoke(@PathVariable("id") long id) {
+    public ResponseEntity<Void> revoke(@PathVariable("id") long id) {
         try {
             apiKeyService.removeById(id);
         } catch (ApiKeyService.ApiKeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
 }

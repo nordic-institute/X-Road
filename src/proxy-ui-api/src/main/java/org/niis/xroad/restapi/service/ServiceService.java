@@ -39,7 +39,6 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
-import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -70,7 +69,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_
 @RequiredArgsConstructor
 public class ServiceService {
     private final ClientRepository clientRepository;
-    private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final UrlValidator urlValidator;
     private final AuditDataHelper auditDataHelper;
     private final InternalServerTestService internalServerTestService;
@@ -79,6 +77,7 @@ public class ServiceService {
      * get ServiceType by ClientId and service code that includes service version
      * see {@link FormatUtils#getServiceFullName(ServiceType)}.
      * ServiceType has serviceType.serviceDescription.client.endpoints lazy field fetched.
+     *
      * @param clientId
      * @param fullServiceCode
      * @return
@@ -99,6 +98,7 @@ public class ServiceService {
 
     /**
      * Get {@link ServiceType} from a {@link ClientType} by comparing the full service code (with version).
+     *
      * @param client
      * @param fullServiceCode
      * @return ServiceType
@@ -118,6 +118,7 @@ public class ServiceService {
 
     /**
      * update a Service. clientId and fullServiceCode identify the updated service.
+     *
      * @param clientId clientId of the client associated with the service
      * @param fullServiceCode service code that includes service version
      * see {@link FormatUtils#getServiceFullName(ServiceType)}
@@ -219,13 +220,13 @@ public class ServiceService {
     /**
      * Add new endpoint to a service
      *
-     * @param serviceType                                                       service where endpoint is added
-     * @param method                                                            method
-     * @param path                                                              path
+     * @param serviceType service where endpoint is added
+     * @param method method
+     * @param path path
      * @return
-     * @throws EndpointAlreadyExistsException                                   equivalent endpoint already exists for
-     *                                                                          this client
-     * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException   if trying to add endpoint to a WSDL
+     * @throws EndpointAlreadyExistsException equivalent endpoint already exists for
+     * this client
+     * @throws ServiceDescriptionService.WrongServiceDescriptionTypeException if trying to add endpoint to a WSDL
      */
     public EndpointType addEndpoint(ServiceType serviceType, String method, String path)
             throws EndpointAlreadyExistsException, ServiceDescriptionService.WrongServiceDescriptionTypeException {
@@ -245,5 +246,4 @@ public class ServiceService {
         clientRepository.saveOrUpdate(client);
         return endpointType;
     }
-
 }
