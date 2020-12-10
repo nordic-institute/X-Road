@@ -34,7 +34,7 @@
     :large="large"
     :text="text"
     rounded
-    color="primary"
+    color="primary elevation-0"
     class="large-button"
     v-bind:class="{ gradient: showGradient }"
     @click="click"
