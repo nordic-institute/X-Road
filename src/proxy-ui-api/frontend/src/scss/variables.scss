@@ -1,0 +1,13 @@
+/* Overrides for Vuetify variables
+"Once installed, create a folder called sass, scss or styles in your src directory with 
+a file named variables.scss or variables.sass. The vuetify-loader will automatically 
+bootstrap your variables into Vue CLI’s compilation process, overwriting the framework defaults."
+https://vuetifyjs.com/en/features/sass-variables/#vue-cli-install
+
+
+List of Vuetify SASS variables: https://vuetifyjs.com/en/api/vuetify/#sass-variables
+*/
+
+// Globals
+$body-font-family: 'Open Sans', sans-serif;
+

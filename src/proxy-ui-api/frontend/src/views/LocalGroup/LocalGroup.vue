@@ -38,13 +38,13 @@
       </template>
     </div>
 
-    <div class="edit-row px-4">
+    <div class="px-4 description-field">
       <template v-if="canEditDescription">
-        <div>{{ $t('localGroup.editDesc') }}</div>
         <v-text-field
           v-model="description"
           @change="saveDescription"
-          single-line
+          outlined
+          :label="$t('localGroup.description')"
           hide-details
           class="description-input"
         ></v-text-field>
@@ -346,8 +346,8 @@ export default Vue.extend({
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
-  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
-  font-size: 14px;
+  box-shadow: $XRoad-DefaultShadow;
+  font-size: $XRoad-DefaultFontSize;
 }
 
 .edit-row {
@@ -411,5 +411,10 @@ export default Vue.extend({
   padding: 20px;
   background-color: $XRoad-WarmGrey10;
   height: 72px;
+}
+
+.description-field {
+  width: 404px;
+  margin-top: 20px;
 }
 </style>

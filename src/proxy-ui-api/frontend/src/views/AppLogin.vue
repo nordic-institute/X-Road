@@ -274,6 +274,8 @@ export default (Vue as VueConstructor<
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
 .graphics {
   height: 100%;
   width: 40%;
@@ -313,7 +315,7 @@ export default (Vue as VueConstructor<
 .sub-title {
   font-style: normal;
   font-weight: normal;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
   line-height: 19px;
 }
 

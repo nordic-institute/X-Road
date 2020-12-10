@@ -349,14 +349,14 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/dialogs';
+@import '~styles/colors';
+@import '~styles/dialogs';
 
 .main-wrap {
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
-  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
+  box-shadow: $XRoad-DefaultShadow;
 }
 
 .edit-row {

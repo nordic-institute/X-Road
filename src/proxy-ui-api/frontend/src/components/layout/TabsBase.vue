@@ -57,7 +57,7 @@
     <div class="drop-menu">
       <v-menu bottom right>
         <template v-slot:activator="{ on }">
-          <v-btn text v-on="on">
+          <v-btn text v-on="on" class="no-uppercase">
             {{ username }}
             <v-icon>mdi-chevron-down</v-icon>
           </v-btn>
@@ -171,5 +171,9 @@ export default Vue.extend({
   margin-right: 70px;
   display: flex;
   align-items: center;
+}
+
+.no-uppercase {
+  text-transform: none;
 }
 </style>
