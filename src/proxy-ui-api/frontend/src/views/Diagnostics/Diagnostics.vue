@@ -348,14 +348,14 @@ export default Vue.extend({
 
   font-style: normal;
   font-weight: bold;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
   line-height: 20px;
   color: $XRoad-Black100;
 
   span {
     font-style: normal;
     font-weight: normal;
-    font-size: 14px;
+    font-size: $XRoad-DefaultFontSize;
     line-height: 20px;
   }
 }

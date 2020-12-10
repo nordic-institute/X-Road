@@ -558,14 +558,16 @@ export default Vue.extend({
   border-radius: 5px;
   padding-left: 3px;
   padding-right: 3px;
+  height: 16px;
   text-transform: uppercase;
   font-style: normal;
   font-weight: bold;
   font-size: 12px;
-  line-height: 16px;
+  line-height: 20px;
   letter-spacing: 0.4px;
   color: #575169;
   margin-left: 16px;
+  padding-top: 1px;
 
   &.clickable {
     text-decoration: none;

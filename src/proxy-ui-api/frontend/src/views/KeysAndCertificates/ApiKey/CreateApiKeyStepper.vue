@@ -205,6 +205,7 @@ export default Vue.extend({
 }
 .stepper {
   box-shadow: unset;
+  box-shadow: $XRoad-DefaultShadow;
 }
 .stepper-header {
   box-shadow: unset;

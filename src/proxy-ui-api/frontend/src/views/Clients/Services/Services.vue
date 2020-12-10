@@ -114,7 +114,7 @@
                 text
                 :loading="refreshBusy[serviceDesc.id]"
                 color="primary"
-                class="xrd-small-button xrd-table-button"
+                class="xrd-table-button"
                 @click="refresh(serviceDesc)"
                 data-test="refresh-button"
                 >{{ $t('action.refresh') }}</large-button

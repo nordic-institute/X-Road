@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="certificate-details-wrapper xrd-view-common">
+  <div class="certificate-details-wrapper xrd-default-shadow">
     <subViewTitle :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <div class="details-view-tools" v-if="certificate">

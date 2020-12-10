@@ -32,10 +32,10 @@
     saveButtonText="login.logIn"
     :disableSave="!isValid"
     :loading="loading"
+    width="620"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('fields.tokenPin') }}</div>
+      <div class="pt-5 dlg-input-width">
         <ValidationProvider
           rules="required"
           ref="tokenPin"
@@ -46,9 +46,9 @@
           <v-text-field
             type="password"
             v-model="pin"
-            single-line
+            outlined
+            :label="$t('fields.tokenPin')"
             autofocus
-            class="dlg-row-input"
             name="tokenPin"
             :error-messages="errors"
             v-on:keyup.enter="save"
@@ -140,5 +140,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/dialogs';
+@import '~styles/dialogs';
 </style>

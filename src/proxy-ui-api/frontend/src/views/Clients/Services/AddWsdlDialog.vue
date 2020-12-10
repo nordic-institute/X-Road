@@ -30,10 +30,10 @@
     @save="save"
     @cancel="cancel"
     :disableSave="!isValid"
+    width="620"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('services.url') }}</div>
+      <div class="pt-4 dlg-input-width">
         <ValidationProvider
           rules="required|wsdlUrl"
           ref="serviceUrl"
@@ -43,8 +43,9 @@
         >
           <v-text-field
             v-model="url"
-            single-line
+            :label="$t('services.url')"
             autofocus
+            outlined
             class="dlg-row-input"
             name="serviceUrl"
             :error-messages="errors"

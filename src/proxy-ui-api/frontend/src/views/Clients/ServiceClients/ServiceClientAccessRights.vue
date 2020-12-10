@@ -320,7 +320,7 @@ export default Vue.extend({
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
-  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
+  box-shadow: $XRoad-DefaultShadow;
 }
 
 .group-members-row {
