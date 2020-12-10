@@ -31,11 +31,13 @@
         class="server-name"
         data-test="app-toolbar-server-name"
         v-show="currentSecurityServer.id"
-        :title="currentSecurityServer.server_address"
       >
         {{
           `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
         }}
+      </div>
+      <div data-test="app-toolbar-server-address">
+        {{ currentSecurityServer.server_address }}
       </div>
     </div>
   </v-app-bar>
@@ -79,6 +81,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 .server-name {
   margin: 20px;
+  margin-right: 10px;
 }
 
 .server-type {

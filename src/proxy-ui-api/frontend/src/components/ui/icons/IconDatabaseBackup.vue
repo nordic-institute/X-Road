@@ -25,6 +25,43 @@
  -->
 <template>
   <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M10 7C13.866 7 17 5.88071 17 4.5C17 3.11929 13.866 2 10 2C6.13401 2 3 3.11929 3 4.5C3 5.88071 6.13401 7 10 7Z"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M17 10C17 11.1067 13.8889 12 10 12C6.11111 12 3 11.1067 3 10"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M21 8V19.5294C21 20.8965 17.8889 22 14 22C12.0341 22 10.267 21.718 9 21.2625"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M3 4V15.5294C3 16.8965 6.11111 18 10 18C13.8889 18 17 16.8965 17 15.5294V4"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
+
+  <!-- <svg
     xmlns="http://www.w3.org/2000/svg"
     :width="width"
     :height="height"
@@ -35,9 +72,36 @@
   >
     <title :id="iconName" lang="en">{{ iconName }} icon</title>
     <g :fill="iconColor">
-      <slot />
+      <path
+        d="M10 7C13.866 7 17 5.88071 17 4.5C17 3.11929 13.866 2 10 2C6.13401 2 3 3.11929 3 4.5C3 5.88071 6.13401 7 10 7Z"
+        stroke="black"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M17 10C17 11.1067 13.8889 12 10 12C6.11111 12 3 11.1067 3 10"
+        stroke="black"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M21 8V19.5294C21 20.8965 17.8889 22 14 22C12.0341 22 10.267 21.718 9 21.2625"
+        stroke="black"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="M3 4V15.5294C3 16.8965 6.11111 18 10 18C13.8889 18 17 16.8965 17 15.5294V4"
+        stroke="black"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
     </g>
-  </svg>
+  </svg> -->
 </template>
 
 <script lang="ts">
@@ -77,5 +141,6 @@ svg {
   vertical-align: baseline;
   min-width: 24px;
   min-height: 24px;
+  margin-right: 10px;
 }
 </style>
