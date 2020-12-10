@@ -35,7 +35,6 @@ import HelpIcon from './components/HelpIcon.vue';
 import LargeButton from './components/LargeButton.vue';
 import ProgressLinear from './components/ProgressLinear.vue';
 import SimpleDialog from './components/SimpleDialog.vue';
-import SmallButton from './components/SmallButton.vue';
 import StatusIcon from './components/StatusIcon.vue';
 import SubViewFooter from './components/SubViewFooter.vue';
 import SubViewTitle from './components/SubViewTitle.vue';
@@ -54,7 +53,6 @@ const SharedComponents = {
     Vue.component('LargeButton', LargeButton);
     Vue.component('ProgressLinear', ProgressLinear);
     Vue.component('SimpleDialog', SimpleDialog);
-    Vue.component('SmallButton', SmallButton);
     Vue.component('StatusIcon', StatusIcon);
     Vue.component('SubViewFooter', SubViewFooter);
     Vue.component('SubViewTitle', SubViewTitle);
