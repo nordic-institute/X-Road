@@ -30,12 +30,13 @@
     </div>
 
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="px-4">
+      <div class="px-4 pt-4">
         <div class="edit-row">
-          <div class="edit-title">
-            {{ $t('services.serviceUrl') }}
-            <helpIcon :text="$t('services.urlTooltip')" />
-          </div>
+          <FormLabel
+            class="edit-title"
+            :labelText="$t('services.serviceUrl')"
+            :helpText="$t('services.urlTooltip')"
+          />
 
           <div class="edit-input">
             <ValidationProvider
@@ -47,7 +48,7 @@
               <v-text-field
                 v-model="service.url"
                 @input="changeUrl()"
-                single-line
+                outlined
                 class="description-input"
                 name="serviceUrl"
                 :error-messages="errors"
@@ -68,10 +69,12 @@
         </div>
 
         <div class="edit-row">
-          <div class="edit-title">
-            {{ $t('services.timeoutSec') }}
-            <helpIcon :text="$t('services.timeoutTooltip')" />
-          </div>
+          <FormLabel
+            class="edit-title"
+            :labelText="$t('services.timeoutSec')"
+            :helpText="$t('services.timeoutTooltip')"
+          />
+
           <div class="edit-input">
             <ValidationProvider
               :rules="{ required: true, between: { min: 0, max: 1000 } }"
@@ -81,7 +84,7 @@
             >
               <v-text-field
                 v-model="service.timeout"
-                single-line
+                outlined
                 @input="setTouched()"
                 type="number"
                 style="max-width: 200px"
@@ -105,10 +108,12 @@
         </div>
 
         <div class="edit-row">
-          <div class="edit-title">
-            {{ $t('services.verifyTls') }}
-            <helpIcon :text="$t('services.tlsTooltip')" />
-          </div>
+          <FormLabel
+            class="edit-title"
+            :labelText="$t('services.verifyTls')"
+            :helpText="$t('services.tlsTooltip')"
+          />
+
           <div class="edit-input">
             <v-checkbox
               :disabled="!isHttpsMethod() || !canEdit"
@@ -496,6 +501,7 @@ export default Vue.extend({
     display: flex;
     align-content: center;
     min-width: 200px;
+    max-width: 400px;
     margin-right: 20px;
   }
 
@@ -503,6 +509,7 @@ export default Vue.extend({
     display: flex;
     align-content: center;
     width: 100%;
+    max-width: 400px;
   }
 
   & > .table-checkbox:last-child {

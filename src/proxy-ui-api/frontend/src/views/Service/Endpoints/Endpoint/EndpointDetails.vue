@@ -41,23 +41,19 @@
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="px-4">
         <div class="dlg-edit-row">
-          <div class="dlg-row-title long-row-title">
-            {{ $t('endpoints.httpRequestMethod') }}
-          </div>
           <v-select
             class="dlg-row-input"
             @input="touched = true"
             data-test="endpoint-method"
             v-model="endpoint.method"
+            :label="$t('endpoints.httpRequestMethod')"
             autofocus
+            outlined
             :items="methods"
           />
         </div>
 
         <div class="dlg-edit-row">
-          <div class="dlg-row-title long-row-title">
-            {{ $t('endpoints.path') }}
-          </div>
           <ValidationProvider
             rules="required"
             ref="path"
@@ -67,17 +63,17 @@
           >
             <v-text-field
               v-model="endpoint.path"
-              single-line
+              outlined
               :error-messages="errors"
               name="path"
+              :label="$t('endpoints.path')"
               data-test="endpoint-path"
               @input="touched = true"
             ></v-text-field>
           </ValidationProvider>
         </div>
 
-        <div class="dlg-edit-row helper-text">
-          <div class="dlg-row-title long-row-title"></div>
+        <div class="helper-text pl-2">
           <div>
             <div>{{ $t('endpoints.endpointHelp1') }}</div>
             <div>{{ $t('endpoints.endpointHelp2') }}</div>
