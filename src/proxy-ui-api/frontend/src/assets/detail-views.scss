@@ -24,8 +24,8 @@
  * THE SOFTWARE.
  */
 
-@import 'colors';
-@import 'dialogs';
+@import "colors";
+@import "dialogs";
 
 .info-title {
   margin-top: 30px;
@@ -85,7 +85,6 @@
   margin-left: 20px;
 }
 
-
 .certificate-details-wrapper {
   display: flex;
   justify-content: center;
@@ -107,11 +106,10 @@
   margin-bottom: 20px;
 }
 
-
 .detail-view-outer {
   margin-top: 20px;
-    box-shadow: $XRoad-DefaultShadow;
-    font-size: $XRoad-DefaultFontSize;
+  box-shadow: $XRoad-DefaultShadow;
+  font-size: $XRoad-DefaultFontSize;
 }
 
 .detail-view-content {

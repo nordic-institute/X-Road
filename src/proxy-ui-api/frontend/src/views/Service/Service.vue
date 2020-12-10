@@ -39,15 +39,6 @@
       color="primary"
       slider-size="2"
     >
-      <!--
-    <v-tabs
-      v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL"
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    > -->
       <v-tabs-slider
         color="primary"
         class="xrd-sub-tabs-slider"
