@@ -18,7 +18,6 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         pg_isready -t 10
         dpkg-reconfigure xroad-proxy xroad-addon-messagelog
         pg_ctlcluster 10 main stop
-        nginx -s stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
     fi
