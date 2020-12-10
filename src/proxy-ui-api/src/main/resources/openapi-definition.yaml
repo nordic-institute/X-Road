@@ -5225,6 +5225,7 @@ components:
         - rsa_public_key_exponent
         - hash
         - key_usages
+        - subject_alternative_names
       properties:
         issuer_distinguished_name:
           type: string
@@ -5326,6 +5327,13 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/KeyUsage'
+        subject_alternative_names:
+          type: string
+          format: text
+          description: certificate subject alternative names
+          example: DNS:*.dev.acme.org
+          minLength: 1
+          maxLength: 1000
     CertificateAuthority: # ok
       type: object
       description: approved certificate authority information. Only for top CAs.

@@ -77,11 +77,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -136,6 +139,37 @@ public final class CertUtils {
         return cn;
     }
 
+    /**
+     * Reads subject alternative names from certificate and returns its string representation
+     * @param cert certificate for which to get the subject alternative names
+     * @return string representation of the subject alternative names
+     */
+    @SuppressWarnings("checkstyle:magicnumber")
+    public static String getSubjectAlternativeNames(X509Certificate cert) {
+        List<String> fieldNames = Collections.unmodifiableList(
+                Arrays.asList("othername", "email", "DNS", "x400", "DirName", "ediPartyName",
+                        "URI", "IP Address", "Registered ID"));
+        List<Integer> unsupportedFields = Collections.unmodifiableList(Arrays.asList(0, 3, 5));
+        String result = "";
+        Collection<List<?>> subjectAlternativeNames = null;
+        try {
+            subjectAlternativeNames = cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException e) {
+            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+                    "Failed parsing the certificate information");
+        }
+        if (subjectAlternativeNames != null) {
+            for (final List<?> sanItem : subjectAlternativeNames) {
+                final Integer itemType = (Integer) sanItem.get(0);
+                if (itemType >= 0 && itemType <= 8) {
+                    String prefix = result.isEmpty() ? "" : ", ";
+                    String value = unsupportedFields.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1);
+                    result += String.format("%s%s:%s", prefix, fieldNames.get(itemType), value);
+                }
+            }
+        }
+        return result.isEmpty() ? null : result;
+    }
 
     /**
      * @param cert certificate from which to get the subject serial number
