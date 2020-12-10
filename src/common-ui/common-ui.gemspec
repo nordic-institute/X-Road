@@ -10,10 +10,12 @@ Gem::Specification.new do |s|
   s.summary     = "Common UI parts"
   s.author      = "Cybernetica AS"
 
+  s.required_ruby_version = '~> 2.3.3'
+
   s.files = Dir["{app,config,lib}/**/*"] + ["Rakefile"]
 
   s.add_dependency "rails", "~> 3.2.0"
-  s.add_dependency 'rack-cache', '~> 1.6.0'
+  s.add_dependency 'rack-cache', '~> 1.6.1'
 
   s.add_dependency "addressable", '~> 2.4.0'
   s.add_dependency "psych", '~> 3.0.3'

@@ -125,6 +125,11 @@ task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
     executionData test, integrationTest, runProxyTest
 }
 
+jacocoTestReport {
+  shouldRunAfter mergedJacoco
+  executionData file("$buildDir/jacoco/test.exec")
+}
+
 task runBatchSigner(type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
 

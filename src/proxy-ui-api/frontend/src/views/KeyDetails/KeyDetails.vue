@@ -145,6 +145,7 @@ import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { mapGetters } from 'vuex';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
+import { isEmpty } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -292,7 +293,7 @@ export default Vue.extend({
         .finally(() => (this.deleting = false));
     },
     setKeyName(): void {
-      if (this.key.name === '') {
+      if (isEmpty(this.key.name)) {
         this.key.name = this.key.id;
       }
     },

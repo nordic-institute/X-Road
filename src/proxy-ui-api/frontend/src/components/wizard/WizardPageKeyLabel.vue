@@ -27,10 +27,15 @@
   <div>
     <div class="wizard-step-form-content pt-6">
       <div class="row-wrap">
-        <FormLabel
+        <FormLabel v-if="tokenType === 'HARDWARE'"
           :labelText="$t('wizard.signKey.keyLabel')"
           :helpText="$t('wizard.signKey.info')"
         />
+        <FormLabel v-else
+          :labelText="$t('wizard.signKey.keyLabel')"
+          :helpText="$t('wizard.signKey.info')"
+        />
+
         <v-text-field
           class="form-input"
           type="text"
@@ -62,6 +67,12 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 
 export default Vue.extend({
+  props: {
+    tokenType: {
+      type: String,
+      required: false,
+    },
+  },
   computed: {
     ...mapGetters(['csrForm']),
     keyLabel: {
@@ -71,6 +82,13 @@ export default Vue.extend({
       set(value: string) {
         this.$store.commit('storeKeyLabel', value);
       },
+    },
+    keyLabelText(): string {
+      if (this.$props.tokenType === 'HARDWARE') {
+        return 'wizard.signKey.keyLabel';
+      } else {
+        return 'keys.keyLabelInput';
+      }
     },
   },
   data() {

@@ -83,18 +83,10 @@
             <v-col>
               <a
                 class="footer-link"
-                href="https://github.com/nordic-institute/X-Road/blob/develop/src/LICENSE.txt"
+                href="https://x-road.global/xroad-licence-info"
                 target="_blank"
               >
-                {{ $t('footer.copyright.license') }}
-              </a>
-              {{ $t('footer.copyright.and') }}
-              <a
-                class="footer-link"
-                href="https://github.com/nordic-institute/X-Road/blob/develop/src/3RD-PARTY-NOTICES.txt"
-                target="_blank"
-              >
-                {{ $t('footer.copyright.3rdPartyNotices') }}
+                {{ $t('footer.copyright.licenceInfo') }}
               </a>
             </v-col>
           </v-row>

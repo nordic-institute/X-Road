@@ -101,9 +101,6 @@ setup_database() {
       chmod 600 ${root_properties}
     fi
 
-    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
-    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
-
     if [[ $db_schema == "public" ]]; then
       db_schema="$db_user"
     fi
@@ -141,7 +138,10 @@ GRANT TEMPORARY,CONNECT ON DATABASE "${db_database}" TO "${db_user}";
 GRANT USAGE ON SCHEMA public to "${db_user}";
 EOF
       fi
-    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed."
+    } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
+
+    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
+    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
   fi
 
   if [[ ! -f "$db_properties" ]]; then
@@ -159,7 +159,7 @@ EOF
   crudini --set ${db_properties} '' "$db_name.hibernate.connection.username" "${db_conn_user}"
   crudini --set ${db_properties} '' "$db_name.hibernate.connection.password" "${db_password}"
 
-  cd /usr/share/xroad/db/
+  cd /usr/share/xroad/db/ || die "Running migrations failed, plase check that directory /usr/share/xroad/db exists"
 
   context="--contexts=user"
   if [[ "$db_user" != "$db_admin_user" ]]; then
@@ -175,5 +175,5 @@ EOF
     --defaultSchemaName="${db_schema}" \
     $context \
     update ||
-    die "Connection to database has failed, please check database availability and configuration in ${db_properties} file"
+    die "Running database migrations failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 }
