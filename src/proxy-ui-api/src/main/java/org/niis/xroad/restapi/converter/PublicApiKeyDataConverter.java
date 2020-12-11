@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import com.google.common.collect.Streams;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -42,8 +43,15 @@ public class PublicApiKeyDataConverter {
     public PublicApiKeyData convert(PersistentApiKeyType persistentApiKeyType) {
         PublicApiKeyData publicApiKeyData = new PublicApiKeyData();
         publicApiKeyData.setId(persistentApiKeyType.getId());
-        publicApiKeyData.setKey(persistentApiKeyType.getPlaintTextKey());
         publicApiKeyData.setRoles(persistentApiKeyType.getRoles());
+        return publicApiKeyData;
+    }
+
+    public PublicApiKeyData convert(PlaintextApiKeyDto plaintextApiKeyDto) {
+        PublicApiKeyData publicApiKeyData = new PublicApiKeyData();
+        publicApiKeyData.setId(plaintextApiKeyDto.getId());
+        publicApiKeyData.setKey(plaintextApiKeyDto.getPlaintextKey());
+        publicApiKeyData.setRoles(plaintextApiKeyDto.getRoles());
         return publicApiKeyData;
     }
 
