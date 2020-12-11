@@ -33,6 +33,7 @@
           :items="connectionTypes"
           class="select-connection"
           :key="revertHack"
+          outlined
           :disabled="!canEditConnectionType"
           :readonly="!canEditConnectionType"
         ></v-select>
@@ -51,9 +52,10 @@
           @file-changed="onFileChange"
           v-slot="{ upload }"
         >
-          <large-button outlined color="primary" @click="upload">{{
-            $t('action.add')
-          }}</large-button>
+          <large-button outlined color="primary" @click="upload"
+            ><v-icon class="mr-1">mdi-plus-circle</v-icon
+            >{{ $t('action.add') }}</large-button
+          >
         </file-upload>
       </div>
       <div class="cert-table-title pl-4">
