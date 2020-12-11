@@ -46,6 +46,12 @@ spec:
         volumeMounts:
         - name: sidecar-config-volume
           mountPath: /etc/xroad/
+        allowPrivilegeEscalation: false
+        runAsUser:
+          rule: 'MustRunAsNonRoot'
+        securityContext:
+          capabilities:
+            drop: ["NET_RAW"]
         env:
         - name: XROAD_TOKEN_PIN
           value: "12345"
