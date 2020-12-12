@@ -27,7 +27,7 @@
   <div class="view-wrap">
     <subViewTitle
       class="view-title"
-      :title="$t('wizard.subsystem.title')"
+      :title="$t('wizard.addSubsystemTitle')"
       :showClose="false"
     />
 
@@ -133,6 +133,8 @@
       </ValidationObserver>
 
       <SelectClientDialog
+        title="wizard.addSubsystemTitle"
+        searchLabel="wizard.subsystem.searchLabel"
         :dialog="showSelectClient"
         :selectableClients="selectableSubsystems"
         @cancel="showSelectClient = false"
