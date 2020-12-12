@@ -28,7 +28,7 @@
     <div class="search-row">
       <v-text-field
         v-model="search"
-        :label="$t('services.service')"
+        :label="$t('action.search')"
         single-line
         hide-details
         class="search-input"
