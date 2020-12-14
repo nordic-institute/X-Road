@@ -281,6 +281,7 @@ export default (Vue as VueConstructor<
   width: 40%;
   max-width: 576px; // width of the backround image
   background-image: url('../assets/background.png');
+  background-size: cover;
   display: flex;
   flex-direction: column;
   align-items: center;
