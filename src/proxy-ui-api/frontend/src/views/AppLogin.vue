@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid fill-height class="view-wrap">
+  <v-container fluid fill-height class="login-view-wrap">
     <div class="graphics">
       <v-img
         :src="require('../assets/xroad7_large.svg')"
@@ -288,7 +288,7 @@ export default (Vue as VueConstructor<
   justify-content: center;
 }
 
-.view-wrap {
+.login-view-wrap {
   background-color: white;
   padding: 0;
 }
