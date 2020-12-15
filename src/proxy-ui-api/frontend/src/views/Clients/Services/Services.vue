@@ -39,28 +39,26 @@
       </v-text-field>
 
       <div>
-        <v-btn
+        <large-button
           v-if="showAddButton"
           color="primary"
           :loading="addRestBusy"
           @click="showAddRestDialog"
           outlined
-          rounded
           data-test="add-rest-button"
-          class="rounded-button elevation-0 rest-button"
-          >{{ $t('services.addRest') }}</v-btn
+          class="rest-button"
+          ><v-icon class="mr-1">mdi-plus-circle</v-icon
+          >{{ $t('services.addRest') }}</large-button
         >
 
-        <v-btn
+        <large-button
           v-if="showAddButton"
-          color="primary"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
-          outlined
-          rounded
           data-test="add-wsdl-button"
-          class="ma-0 rounded-button elevation-0"
-          >{{ $t('services.addWsdl') }}</v-btn
+          class="ma-0"
+          ><v-icon class="mr-1">mdi-plus-circle</v-icon
+          >{{ $t('services.addWsdl') }}</large-button
         >
       </div>
     </div>
@@ -109,18 +107,17 @@
                 {{ $t('services.lastRefreshed') }}
                 {{ serviceDesc.refreshed_at | formatDateTime }}
               </div>
-              <v-btn
+              <large-button
                 v-if="showRefreshButton(serviceDesc.type)"
                 :key="refreshButtonComponentKey"
-                small
-                outlined
-                rounded
+                :outlined="false"
+                text
                 :loading="refreshBusy[serviceDesc.id]"
                 color="primary"
-                class="xrd-small-button xrd-table-button"
+                class="xrd-table-button"
                 @click="refresh(serviceDesc)"
                 data-test="refresh-button"
-                >{{ $t('action.refresh') }}</v-btn
+                >{{ $t('action.refresh') }}</large-button
               >
             </div>
 
@@ -138,7 +135,7 @@
                   v-bind:key="service.id"
                 >
                   <td
-                    class="service-code identifier-wrap"
+                    class="clickable-link"
                     @click="serviceClick(serviceDesc, service)"
                     data-test="service-link"
                   >
@@ -684,7 +681,7 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Link;
   cursor: pointer;
 }
 
@@ -703,11 +700,6 @@ export default Vue.extend({
 
 .expandable {
   margin-bottom: 10px;
-}
-
-.service-code {
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 .service-url {

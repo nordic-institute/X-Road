@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width">
-    <div>
+  <div class="xrd-tab-max-width main-wrap">
+    <div class="pa-4">
       <subViewTitle
         v-if="serviceDesc.type === serviceType.WSDL"
         :title="$t('services.wsdlDetails')"
@@ -52,72 +52,75 @@
       </div>
     </div>
 
-    <div class="edit-row">
-      <div>{{ $t('services.serviceType') }}</div>
-
-      <div class="code-input" v-if="serviceDesc.type === serviceType.REST">
-        {{ $t('services.restApiBasePath') }}
-      </div>
-      <div
-        class="code-input"
-        v-else-if="serviceDesc.type === serviceType.OPENAPI3"
-      >
-        {{ $t('services.OpenApi3Description') }}
-      </div>
-      <div class="code-input" v-else>{{ $t('services.wsdlDescription') }}</div>
-    </div>
-
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="edit-row">
-        <div>{{ $t('services.editUrl') }}</div>
+      <div class="px-4">
+        <div class="edit-row">
+          <div>{{ $t('services.serviceType') }}</div>
 
-        <ValidationProvider
-          rules="required|wsdlUrl"
-          name="url"
-          v-slot="{ errors }"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="serviceDesc.url"
-            single-line
-            class="url-input"
-            name="url"
-            :error-messages="errors"
-            type="text"
-            @input="touched = true"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
+          <div class="code-input" v-if="serviceDesc.type === serviceType.REST">
+            {{ $t('services.restApiBasePath') }}
+          </div>
+          <div
+            class="code-input"
+            v-else-if="serviceDesc.type === serviceType.OPENAPI3"
+          >
+            {{ $t('services.OpenApi3Description') }}
+          </div>
+          <div class="code-input" v-else>
+            {{ $t('services.wsdlDescription') }}
+          </div>
+        </div>
 
-      <div class="edit-row">
-        <template
-          v-if="
-            serviceDesc.type === serviceType.REST ||
-            serviceDesc.type === serviceType.OPENAPI3
-          "
-        >
-          <div>{{ $t('services.serviceCode') }}</div>
+        <div class="edit-row">
+          <div>{{ $t('services.editUrl') }}</div>
 
           <ValidationProvider
-            rules="required|xrdIdentifier"
-            name="code_field"
+            rules="required|wsdlUrl"
+            name="url"
             v-slot="{ errors }"
             class="validation-provider"
           >
             <v-text-field
-              v-model="currentServiceCode"
+              v-model="serviceDesc.url"
               single-line
-              class="code-input"
-              name="code_field"
-              type="text"
-              :maxlength="255"
+              class="url-input"
+              name="url"
               :error-messages="errors"
+              type="text"
               @input="touched = true"
             ></v-text-field>
           </ValidationProvider>
-        </template>
-      </div>
+        </div>
 
+        <div class="edit-row">
+          <template
+            v-if="
+              serviceDesc.type === serviceType.REST ||
+              serviceDesc.type === serviceType.OPENAPI3
+            "
+          >
+            <div>{{ $t('services.serviceCode') }}</div>
+
+            <ValidationProvider
+              rules="required|xrdIdentifier"
+              name="code_field"
+              v-slot="{ errors }"
+              class="validation-provider"
+            >
+              <v-text-field
+                v-model="currentServiceCode"
+                single-line
+                class="code-input"
+                name="code_field"
+                type="text"
+                :maxlength="255"
+                :error-messages="errors"
+                @input="touched = true"
+              ></v-text-field>
+            </ValidationProvider>
+          </template>
+        </div>
+      </div>
       <v-card flat>
         <div class="footer-button-wrap">
           <large-button @click="close()" outlined>{{
@@ -346,8 +349,15 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/dialogs';
+@import '~styles/colors';
+@import '~styles/dialogs';
+
+.main-wrap {
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: $XRoad-DefaultShadow;
+}
 
 .edit-row {
   display: flex;
@@ -377,8 +387,9 @@ export default Vue.extend({
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
+  padding: 20px;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
 }
 
 .save-button {

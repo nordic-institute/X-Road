@@ -27,11 +27,13 @@
   <div>
     <div class="wizard-step-form-content pt-6">
       <div class="row-wrap">
-        <FormLabel v-if="tokenType === 'HARDWARE'"
+        <FormLabel
+          v-if="tokenType === 'HARDWARE'"
           :labelText="$t('wizard.signKey.keyLabel')"
           :helpText="$t('wizard.signKey.info')"
         />
-        <FormLabel v-else
+        <FormLabel
+          v-else
           :labelText="$t('wizard.signKey.keyLabel')"
           :helpText="$t('wizard.signKey.info')"
         />

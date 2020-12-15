@@ -24,19 +24,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="750" scrollable persistent>
-    <v-card class="xrd-card">
+  <v-dialog :value="dialog" width="842" scrollable persistent>
+    <v-card class="xrd-card px-0 mx-0">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px" class="elevation-0">
-        <v-expansion-panels class="elevation-0" v-model="expandPanel" multiple>
-          <v-expansion-panel class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0 px-0">
+        <v-expansion-panels
+          class="elevation-0 px-0"
+          v-model="expandPanel"
+          multiple
+        >
+          <v-expansion-panel class="elevation-0 px-0">
             <v-expansion-panel-header></v-expansion-panel-header>
-            <v-expansion-panel-content class="elevation-0">
+            <v-expansion-panel-content class="elevation-0 px-0">
               <template v-slot:header>
                 <v-spacer />
                 <div class="exp-title">
@@ -50,7 +54,7 @@
                     <v-text-field
                       v-model="name"
                       :label="$t('name')"
-                      single-line
+                      outlined
                       autofocus
                       hide-details
                       class="flex-input"
@@ -62,6 +66,7 @@
                       :label="$t('instance')"
                       class="flex-input"
                       clearable
+                      outlined
                     ></v-select>
                   </div>
 
@@ -72,11 +77,12 @@
                       :label="$t('member_class')"
                       class="flex-input"
                       clearable
+                      outlined
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
                       :label="$t('member_code')"
-                      single-line
+                      outlined
                       hide-details
                       class="flex-input"
                     ></v-text-field>
@@ -84,7 +90,7 @@
                   <v-text-field
                     v-model="subsystemCode"
                     :label="$t('subsystem_code')"
-                    single-line
+                    outlined
                     hide-details
                     class="flex-input"
                   ></v-text-field>

@@ -132,7 +132,7 @@ export default Vue.extend({
 }
 
 .cert-name {
-  text-decoration: underline;
+  color: $XRoad-Link;
   cursor: pointer;
 }
 

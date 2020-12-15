@@ -244,7 +244,7 @@ export default Vue.extend({
 
 .content-title {
   color: $XRoad-Black;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
   font-weight: 500;
   margin-top: 40px;
   padding-top: 16px;

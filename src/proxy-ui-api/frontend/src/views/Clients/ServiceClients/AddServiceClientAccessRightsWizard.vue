@@ -29,6 +29,7 @@
       :title="$t('serviceClients.addServiceClientTitle')"
       :showClose="false"
       data-test="add-subject-title"
+      class="pa-4"
     />
 
     <v-stepper :alt-labels="true" v-model="step" class="stepper noshadow">

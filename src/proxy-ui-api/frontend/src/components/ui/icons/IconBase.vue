@@ -75,7 +75,6 @@ export default Vue.extend({
 svg {
   display: inline-block;
   vertical-align: baseline;
-  // padding-bottom: 10px;
   min-width: 24px;
   min-height: 24px;
 }

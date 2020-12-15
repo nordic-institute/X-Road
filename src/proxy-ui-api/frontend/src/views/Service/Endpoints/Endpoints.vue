@@ -24,21 +24,17 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <div class="wrap-right">
-      <v-btn
+  <div class="">
+    <div class="wrap-right px-4">
+      <large-button
         v-if="canEdit"
-        color="primary"
         @click="isAddEndpointDialogVisible = true"
-        outlined
-        rounded
-        class="rounded-button elevation-0 rest-button"
         data-test="endpoint-add"
-        >{{ $t('endpoints.addEndpoint') }}</v-btn
+        >{{ $t('endpoints.addEndpoint') }}</large-button
       >
     </div>
 
-    <table class="xrd-table">
+    <table class="xrd-table mb-4">
       <thead>
         <tr>
           <th>{{ $t('endpoints.httpRequestMethod') }}</th>
@@ -60,27 +56,22 @@
           </td>
           <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
-            <v-btn
+            <large-button
               v-if="!endpoint.generated && canEdit"
-              small
-              outlined
-              rounded
-              color="primary"
-              class="xrd-small-button xrd-table-button"
+              text
+              class="xrd-table-button"
               data-test="endpoint-edit"
               @click="editEndpoint(endpoint)"
-              >{{ $t('action.edit') }}</v-btn
+              >{{ $t('action.edit') }}</large-button
             >
-            <v-btn
+            <large-button
               v-if="canViewAccessRights"
-              small
-              outlined
-              rounded
-              color="primary"
-              class="xrd-small-button xrd-table-button"
+              text
+              :outlined="false"
+              class="xrd-table-button"
               data-test="endpoint-edit-accessrights"
               @click="editAccessRights(endpoint)"
-              >{{ $t('accessRights.title') }}</v-btn
+              >{{ $t('accessRights.title') }}</large-button
             >
           </td>
         </tr>

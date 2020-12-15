@@ -78,20 +78,16 @@
     </v-radio-group>
 
     <div class="button-footer full-width">
-      <div class="button-group">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
-          $t('action.cancel')
-        }}</large-button>
-      </div>
+      <large-button outlined @click="cancel" data-test="cancel-button">{{
+        $t('action.cancel')
+      }}</large-button>
 
-      <div>
-        <large-button
-          :disabled="!selection"
-          @click="$emit('set-step')"
-          data-test="next-button"
-          >{{ $t('action.next') }}</large-button
-        >
-      </div>
+      <large-button
+        :disabled="!selection"
+        @click="$emit('set-step')"
+        data-test="next-button"
+        >{{ $t('action.next') }}</large-button
+      >
     </div>
   </div>
 </template>
@@ -167,12 +163,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/shared';
-@import '../../../assets/wizards';
+@import '~styles/tables';
+@import '~styles/wizards';
 
 .search-field {
   max-width: 300px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  margin-left: 20px;
 }
 </style>

@@ -36,7 +36,6 @@
   display: flex;
   width: 100%;
   justify-content: space-between;
-  padding-right: 10px;
 }
 
 .flex-wrap {
@@ -47,8 +46,10 @@
 }
 
 .flex-input {
-  margin: 4px;
-  max-width: 310px;
+  margin: 0;
+  margin-top: 4px;
+  margin-bottom: 4px;
+  max-width: 380px;
 }
 
 .search-wrap {
@@ -58,7 +59,7 @@
 }
 
 .button-margin {
-  margin-right: 14px;
+  margin-right: $XRoad-DefaultFontSize;
 }
 
 .empty-row {

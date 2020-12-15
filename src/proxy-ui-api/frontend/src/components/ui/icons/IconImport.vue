@@ -24,59 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="certificate-details-wrapper xrd-default-shadow">
-    <SubViewTitle :title="$t('cert.certificate')" @close="close" />
-    <div class="pl-4">
-      <template v-if="certificate">
-        <div class="cert-hash-wrapper">
-          <certificateHash :hash="certificate.hash" />
-        </div>
-        <certificateInfo :certificate="certificate" />
-      </template>
-    </div>
-  </div>
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M8 2V11H13V8L17 12L13 16V13H8V22H20V2H8ZM8 13V11H4V13H8Z"
+  />
 </template>
-
-<script lang="ts">
-import Vue from 'vue';
-import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types';
-import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import CertificateHash from '@/components/certificate/CertificateHash.vue';
-
-export default Vue.extend({
-  components: {
-    CertificateInfo,
-    CertificateHash,
-  },
-  props: {},
-  data() {
-    return {
-      certificate: undefined as CertificateDetails | undefined,
-    };
-  },
-  methods: {
-    close(): void {
-      this.$router.go(-1);
-    },
-    fetchData(): void {
-      api
-        .get<CertificateDetails>('/system/certificate')
-        .then((res) => {
-          this.certificate = res.data;
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        });
-    },
-  },
-  created() {
-    this.fetchData();
-  },
-});
-</script>
-
-<style lang="scss" scoped>
-@import '~styles/detail-views';
-@import '~styles/wizards';
-</style>

@@ -29,7 +29,6 @@
 </template>
 
 <script lang="ts">
-
 import Vue from 'vue';
 /**
  * Component for close action with X icon.

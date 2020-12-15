@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="row-wrap">
+  <div class="cert-row-wrap">
     <StatusIcon :status="statusIconType" />
     <div>{{ $t(status) }}</div>
   </div>
@@ -92,7 +92,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.row-wrap {
+.cert-row-wrap {
   display: flex;
   flex-direction: row;
   align-items: baseline;

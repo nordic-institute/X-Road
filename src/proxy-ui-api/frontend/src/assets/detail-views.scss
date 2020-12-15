@@ -24,8 +24,8 @@
  * THE SOFTWARE.
  */
 
-@import 'colors';
-@import 'dialogs';
+@import "colors";
+@import "dialogs";
 
 .info-title {
   margin-top: 30px;
@@ -85,11 +85,11 @@
   margin-left: 20px;
 }
 
-
 .certificate-details-wrapper {
-    display: flex;
+  display: flex;
   justify-content: center;
   flex-direction: column;
+  font-size: $XRoad-DefaultFontSize;
   max-width: 850px;
   height: 100%;
   width: 100%;
@@ -106,10 +106,15 @@
   margin-bottom: 20px;
 }
 
-.detail-view-wrapper {
+.detail-view-outer {
+  margin-top: 20px;
+  box-shadow: $XRoad-DefaultShadow;
+  font-size: $XRoad-DefaultFontSize;
+}
+
+.detail-view-content {
   padding: 16px;
   padding-bottom: 40px;
-  margin-top: 20px;
   background-color: $XRoad-White100;
   border-radius: 4px 4px 0px 0px;
 }

@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="850" scrollable persistent>
-    <v-card class="xrd-card">
+  <v-dialog :value="dialog" width="842" scrollable persistent>
+    <v-card class="xrd-card px-0 mx-0">
       <v-card-title>
         <span class="headline">{{
           $t('accessRights.addServiceClientsTitle')
@@ -34,9 +34,13 @@
         <i @click="cancel()" id="close-x" data-test="cancel"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px" class="elevation-0">
-        <v-expansion-panels class="elevation-0" v-model="expandPanel" multiple>
-          <v-expansion-panel class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0 px-0">
+        <v-expansion-panels
+          class="elevation-0 px-0"
+          v-model="expandPanel"
+          multiple
+        >
+          <v-expansion-panel class="elevation-0 px-0">
             <v-expansion-panel-header></v-expansion-panel-header>
             <v-expansion-panel-content class="elevation-0">
               <template v-slot:header>
@@ -52,9 +56,9 @@
                     <v-text-field
                       v-model="name"
                       :label="$t('name')"
-                      single-line
                       hide-details
                       autofocus
+                      outlined
                       data-test="name"
                       class="flex-input"
                     ></v-text-field>
@@ -65,6 +69,7 @@
                       :label="$t('instance')"
                       class="flex-input"
                       data-test="instance"
+                      outlined
                       clearable
                     ></v-select>
                   </div>
@@ -77,14 +82,15 @@
                       data-test="memberClass"
                       class="flex-input"
                       clearable
+                      outlined
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
                       :label="$t('serviceClients.memberGroupCodeLabel')"
-                      single-line
                       hide-details
                       data-test="memberCode"
                       class="flex-input"
+                      outlined
                     ></v-text-field>
                   </div>
 
@@ -92,10 +98,10 @@
                     <v-text-field
                       v-model="subsystemCode"
                       :label="$t('subsystem_code')"
-                      single-line
                       hide-details
                       data-test="subsystemCode"
                       class="flex-input"
+                      outlined
                     ></v-text-field>
 
                     <v-select
@@ -104,6 +110,7 @@
                       label="Subject type"
                       class="flex-input"
                       data-test="serviceClientType"
+                      outlined
                       clearable
                     ></v-select>
                   </div>

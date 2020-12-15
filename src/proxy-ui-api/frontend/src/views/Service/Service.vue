@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width">
+  <div class="xrd-tab-max-width main-wrap">
     <subViewTitle
       :title="service.full_service_code"
       @close="close"
@@ -34,12 +34,15 @@
     <v-tabs
       v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL"
       v-model="tab"
+      background-color="#F4F3F6"
       class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
+      color="primary"
+      slider-size="2"
     >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
+      <v-tabs-slider
+        color="primary"
+        class="xrd-sub-tabs-slider"
+      ></v-tabs-slider>
       <v-tab
         v-for="tab in tabs"
         v-bind:key="tab.key"
@@ -149,6 +152,7 @@ export default Vue.extend({
 
 .sub-view-title-spacing {
   margin-bottom: 30px;
+  padding: 16px;
 }
 
 .sub-view-spacing {

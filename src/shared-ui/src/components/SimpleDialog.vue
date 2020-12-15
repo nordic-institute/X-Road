@@ -46,6 +46,7 @@
         <v-spacer></v-spacer>
         <large-button
           data-test="dialog-cancel-button"
+          class="mr-3"
           outlined
           @click="cancel()"
           >{{ $t(cancelButtonText) }}</large-button
@@ -99,8 +100,8 @@ export default Vue.extend({
       default: 'action.add',
     },
     width: {
-      type: Number,
-      default: 550,
+      type: [Number, String],
+      default: 620,
     },
     showClose: {
       type: Boolean,

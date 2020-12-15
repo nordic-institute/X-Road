@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="certificate-details-wrapper xrd-view-common">
+  <div class="certificate-details-wrapper xrd-default-shadow">
     <subViewTitle :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <div class="details-view-tools" v-if="certificate">
@@ -58,6 +58,9 @@
           outlined
           @click="showConfirmDelete()"
           data-test="delete-button"
+        >
+          <icon-base icon-name="delete" class="icon mr-1"
+            ><icon-declined /></icon-base
           >{{ $t('action.delete') }}</large-button
         >
       </div>
@@ -114,12 +117,16 @@ import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
+import IconBase from '@/components/ui/icons/IconBase.vue';
+import IconDeclined from '@/components/ui/icons/IconDeclined.vue';
 
 export default Vue.extend({
   components: {
     CertificateInfo,
     CertificateHash,
     UnregisterErrorDialog,
+    IconBase,
+    IconDeclined,
   },
   props: {
     hash: {

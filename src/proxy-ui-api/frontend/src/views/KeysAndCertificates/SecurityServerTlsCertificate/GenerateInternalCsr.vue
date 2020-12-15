@@ -130,8 +130,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/detail-views';
-@import '../../../assets/colors';
+@import '~styles/detail-views';
+@import '~styles/colors';
 @import '~styles/wizards';
 
 $spacing: 12rem;
@@ -142,6 +142,7 @@ $spacing: 12rem;
   width: 100%;
   color: $XRoad-Grey60;
   background-color: $XRoad-White100;
+  box-shadow: $XRoad-DefaultShadow;
   border-radius: 4px;
   padding: 0px;
   margin-top: 20px;

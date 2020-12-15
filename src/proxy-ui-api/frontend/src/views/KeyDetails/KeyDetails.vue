@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
+  <div class="xrd-tab-max-width detail-view-outer">
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="detail-view-wrapper">
+      <div class="detail-view-content">
         <div>
           <subViewTitle
             v-if="key.usage == 'SIGNING'"

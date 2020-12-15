@@ -34,12 +34,12 @@
 
     <div class="content xrd-view-common">
       <v-flex mb-4 class="title-action identifier-wrap">
-        <h1 v-if="client && client.owner" class="display-1 mb-3">
+        <div v-if="client && client.owner" class="xrd-view-title mb-3">
           {{ client.member_name }} ({{ $t('client.owner') }})
-        </h1>
-        <h1 v-else-if="client" class="display-1 mb-3">
+        </div>
+        <div v-else-if="client" class="xrd-view-title mb-3">
           {{ client.member_name }} ({{ $t('client.member') }})
-        </h1>
+        </div>
 
         <div class="action-block">
           <MakeOwnerButton

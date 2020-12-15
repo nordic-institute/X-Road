@@ -84,29 +84,25 @@
     </div>
 
     <div class="button-footer full-width">
-      <div class="button-group">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
-          $t('action.cancel')
-        }}</large-button>
-      </div>
+      <large-button outlined @click="cancel" data-test="cancel-button">{{
+        $t('action.cancel')
+      }}</large-button>
 
-      <div>
-        <large-button
-          @click="$emit('set-step')"
-          data-test="next-button"
-          outlined
-          class="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
+      <large-button
+        @click="$emit('set-step')"
+        data-test="next-button"
+        outlined
+        class="previous-button"
+        >{{ $t('action.previous') }}</large-button
+      >
 
-        <large-button
-          data-test="finish-button"
-          @click="saveServices"
-          :disabled="!selections || selections.length === 0"
-        >
-          {{ $t('serviceClients.addSelected') }}
-        </large-button>
-      </div>
+      <large-button
+        data-test="finish-button"
+        @click="saveServices"
+        :disabled="!selections || selections.length === 0"
+      >
+        {{ $t('serviceClients.addSelected') }}
+      </large-button>
     </div>
   </div>
 </template>
@@ -193,12 +189,12 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';
-@import '../../../assets/shared';
 @import '../../../assets/wizards';
 
 .search-field {
   max-width: 300px;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
+  margin-left: 20px;
 }
 
 .empty {

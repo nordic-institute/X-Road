@@ -30,25 +30,24 @@
     @save="save"
     @cancel="cancel"
     :disableSave="!formReady"
+    width="620"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('localGroup.code') }}</div>
+      <div class="dlg-input-width">
         <v-text-field
           v-model="code"
-          single-line
+          outlined
+          :label="$t('localGroup.code')"
           autofocus
-          class="dlg-row-input"
         ></v-text-field>
       </div>
 
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('localGroup.description') }}</div>
+      <div class="dlg-input-width">
         <v-text-field
           v-model="description"
           hint
-          single-line
-          class="dlg-row-input"
+          :label="$t('localGroup.description')"
+          outlined
         ></v-text-field>
       </div>
     </div>

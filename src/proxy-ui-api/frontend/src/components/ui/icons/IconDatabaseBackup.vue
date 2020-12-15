@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,95 +24,81 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="min_width"
-    :loading="loading"
-    :block="block"
-    :large="large"
-    :text="text"
-    rounded
-    color="primary elevation-0"
-    class="large-button"
-    v-bind:class="{ gradient: showGradient }"
-    @click="click"
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
   >
-    <slot></slot>
-  </v-btn>
+    <path
+      d="M10 7C13.866 7 17 5.88071 17 4.5C17 3.11929 13.866 2 10 2C6.13401 2 3 3.11929 3 4.5C3 5.88071 6.13401 7 10 7Z"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M17 10C17 11.1067 13.8889 12 10 12C6.11111 12 3 11.1067 3 10"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M21 8V19.5294C21 20.8965 17.8889 22 14 22C12.0341 22 10.267 21.718 9 21.2625"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+    <path
+      d="M3 4V15.5294C3 16.8965 6.11111 18 10 18C13.8889 18 17 16.8965 17 15.5294V4"
+      :stroke="iconColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    />
+  </svg>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-/**
- * Wrapper for vuetify button with x-road look
- * */
 
 export default Vue.extend({
-  name: 'large-button',
+  name: 'IconBase',
   props: {
-    outlined: {
-      type: Boolean,
-      default: false,
+    iconName: {
+      type: String,
+      default: 'box',
     },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Block buttons extend the full available width
-    block: {
-      type: Boolean,
-      default: false,
-    },
-    large: {
-      type: Boolean,
-      default: false,
-    },
-    text: {
-      type: Boolean,
-      default: false,
-    },
-    min_width: {
+    width: {
       type: [Number, String],
-      default: 80,
+      default: 24,
     },
-    gradient: {
-      type: Boolean,
-      default: false,
+    height: {
+      type: [Number, String],
+      default: 24,
     },
-  },
-  computed: {
-    showGradient(): boolean {
-      if (this.disabled === true) {
-        return false;
-      }
-      if (this.gradient === true) {
-        return true;
-      }
-      return false;
+    iconColor: {
+      type: String,
+      default: 'currentColor',
     },
   },
   methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    keyClick(): void {
+      this.$emit('click');
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.large-button {
-  border-radius: 20px;
-  text-transform: none;
-}
-
-.gradient {
-  background: linear-gradient(270deg, #663cdc 0%, #cd9dc8 99.58%);
+svg {
+  display: inline-block;
+  vertical-align: baseline;
+  min-width: 24px;
+  min-height: 24px;
+  margin-right: 10px;
 }
 </style>

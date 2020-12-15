@@ -75,7 +75,7 @@
       </table>
     </div>
     <div slot="content" v-else>
-      <h3>{{ $t('serviceClients.noAvailableServices') }}</h3>
+      <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </div>
   </simpleDialog>
 </template>

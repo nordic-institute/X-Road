@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid fill-height class="view-wrap">
+  <v-container fluid fill-height class="login-view-wrap">
     <div class="graphics">
       <v-img
         :src="require('../assets/xroad7_large.svg')"
@@ -274,18 +274,21 @@ export default (Vue as VueConstructor<
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
 .graphics {
   height: 100%;
   width: 40%;
   max-width: 576px; // width of the backround image
   background-image: url('../assets/background.png');
+  background-size: cover;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
 
-.view-wrap {
+.login-view-wrap {
   background-color: white;
   padding: 0;
 }
@@ -313,7 +316,7 @@ export default (Vue as VueConstructor<
 .sub-title {
   font-style: normal;
   font-weight: normal;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
   line-height: 19px;
 }
 

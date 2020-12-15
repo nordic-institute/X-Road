@@ -26,7 +26,7 @@
 <template>
   <div class="wrapper">
     <div class="title-and-search">
-      <div class="xrd-view-title">{{ $t('systemParameters.title') }}</div>
+      <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
       <div>
         <help-button
           helpImage="keys_and_certificates.png"

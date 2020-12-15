@@ -42,7 +42,7 @@
   align-items: baseline;
   font-style: normal;
   font-weight: bold;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
 }
 
 .row-wrap {
@@ -95,7 +95,7 @@
   width: 100%;
   max-width: 1050px;
   margin: 10px;
-  box-shadow: 20px 20px 30px rgba(148, 141, 168, 0.3);
+  box-shadow: $XRoad-DefaultShadow;
   border-radius: 4px;
 
   // override Vuetify style

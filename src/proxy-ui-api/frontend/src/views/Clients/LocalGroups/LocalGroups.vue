@@ -36,14 +36,13 @@
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
-      <v-btn
+
+      <LargeButton
         v-if="showAddGroup"
-        color="primary"
         @click="addGroup"
-        outlined
-        rounded
-        class="ma-0 rounded-button elevation-0"
-        >{{ $t('localGroups.addGroup') }}</v-btn
+        data-test="add-group-button"
+        ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+        {{ $t('localGroups.addGroup') }}</LargeButton
       >
     </div>
 
@@ -168,10 +167,10 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
 
 .cert-name {
-  text-decoration: underline;
+  color: $XRoad-Link;
   cursor: pointer;
 }
 
