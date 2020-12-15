@@ -31,6 +31,7 @@ import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -83,7 +84,7 @@ public class ApiKeysController {
     @PreAuthorize("hasAuthority('CREATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
         try {
-            PersistentApiKeyType createdKeyData = apiKeyService.create(roles);
+            PlaintextApiKeyDto createdKeyData = apiKeyService.create(roles);
             return new ResponseEntity<>(publicApiKeyDataConverter.convert(createdKeyData), HttpStatus.OK);
         } catch (InvalidRoleNameException e) {
             throw new BadRequestException(e);
@@ -109,6 +110,20 @@ public class ApiKeysController {
     }
 
     /**
+     * get an existing api key
+     */
+    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
+    public ResponseEntity<PublicApiKeyData> getKey(@PathVariable("id") long id) {
+        try {
+            PersistentApiKeyType key = apiKeyService.getForId(id);
+            return new ResponseEntity<>(publicApiKeyDataConverter.convert(key), HttpStatus.OK);
+        } catch (ApiKeyService.ApiKeyNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        }
+    }
+
+    /**
      * list api keys from db
      */
     @RequestMapping(method = RequestMethod.GET)
@@ -128,7 +143,7 @@ public class ApiKeysController {
     @PreAuthorize("hasAuthority('REVOKE_API_KEY')")
     public ResponseEntity revoke(@PathVariable("id") long id) {
         try {
-            apiKeyService.removeById(id);
+            apiKeyService.removeForId(id);
         } catch (ApiKeyService.ApiKeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
