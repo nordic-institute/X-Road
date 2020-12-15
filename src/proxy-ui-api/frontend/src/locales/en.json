@@ -468,7 +468,8 @@
     "helpCsrFormat": "Format of the certificate signing request according to the CA’s requirements."
   },
   "wizard": {
-    "addClientTitle": "Add a Client",
+    "addClientTitle": "Add client",
+    "addSubsystemTitle": "Add subsystem",
     "addMemberTitle": "Add member",
     "clientDetails": "Client details",
     "clientInfo1": "Specify the details of the Client you want to add.",
@@ -480,7 +481,7 @@
     "selectClient": "Select Client",
     "client": {
       "addClient": "Add Client",
-      "member": "Member",
+      "searchLabel": "Client",
       "memberNameTooltip": "Name of the member organization.",
       "memberClassTooltip": "Code identifying the member class (e.g., government agency, private enterprise etc.).",
       "memberCodeTooltip": "Member code that uniquely identifies this X-Road member within its member class (e.g. business ID).",
@@ -509,6 +510,7 @@
       "note": "NOTE: if you click Cancel, all data will be lost"
     },
     "member": {
+      "searchLabel": "Member",
       "info1": "Specify the details of the Member you want to add.",
       "info2": "If the Member is already existing, you can select it from the Global list.",
       "select": "Select member",
@@ -516,7 +518,7 @@
       "register": "Register member"
     },
     "subsystem": {
-      "title": "Add a Subsystem",
+      "searchLabel": "Subsystem",
       "selectSubsystem": "Select Subsystem",
       "info1": "Specify the code of the subsystem to be added.",
       "info2": "If the subsystem is already existing, you can select it from the Global list.",
