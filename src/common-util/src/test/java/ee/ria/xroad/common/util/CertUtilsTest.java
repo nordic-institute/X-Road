@@ -137,7 +137,7 @@ public class CertUtilsTest {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         try (FileInputStream in = new FileInputStream(certPath)) {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
-            assertEquals("DNS:*.dev.acme.org", CertUtils.getSubjectAlternativeNames(cert));
+            assertEquals("DNS:*.example.org", CertUtils.getSubjectAlternativeNames(cert));
         }
     }
 
@@ -147,9 +147,9 @@ public class CertUtilsTest {
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         try (FileInputStream in = new FileInputStream(certPath)) {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
-            assertEquals("email:my@other.address, URI:http://my.url.here/, "
-                            + "DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, DNS:*.dev.acme.org,"
-                            + " othername:<unsupported>, Registered ID:1.2.3.4, IP Address:192.168.7.1",
+            assertEquals("email:my@example.org, URI:http://example.org/, "
+                    + "DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, DNS:*.example.org, "
+                    + "othername:<unsupported>, Registered ID:1.2.3.4, IP Address:192.168.7.1",
                     CertUtils.getSubjectAlternativeNames(cert));
         }
     }
@@ -161,8 +161,8 @@ public class CertUtilsTest {
         try (FileInputStream in = new FileInputStream(certPath)) {
             X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
             assertEquals("DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, "
-                            + "URI:http://my.url.here/, othername:<unsupported>, Registered ID:1.2.3.4,"
-                            + " IP Address:192.168.7.1, email:my@other.address, DNS:*.dev.acme.org",
+                            + "URI:http://example.org/, othername:<unsupported>, Registered ID:1.2.3.4,"
+                            + " IP Address:192.168.7.1, email:my@example.org, DNS:*.example.org",
                     CertUtils.getSubjectAlternativeNames(cert));
         }
     }

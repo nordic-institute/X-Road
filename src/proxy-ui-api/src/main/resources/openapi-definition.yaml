@@ -5331,7 +5331,7 @@ components:
           type: string
           format: text
           description: certificate subject alternative names
-          example: DNS:*.dev.acme.org
+          example: DNS:*.example.org
           minLength: 1
           maxLength: 1000
     CertificateAuthority: # ok

@@ -144,14 +144,19 @@ public final class CertUtils {
      * @param cert certificate for which to get the subject alternative names
      * @return string representation of the subject alternative names
      */
-    @SuppressWarnings("checkstyle:magicnumber")
     public static String getSubjectAlternativeNames(X509Certificate cert) {
         List<String> fieldNames = Collections.unmodifiableList(
                 Arrays.asList("othername", "email", "DNS", "x400", "DirName", "ediPartyName",
                         "URI", "IP Address", "Registered ID"));
-        List<Integer> unsupportedFields = Collections.unmodifiableList(Arrays.asList(0, 3, 5));
-        String result = "";
-        Collection<List<?>> subjectAlternativeNames = null;
+        final int minIdx = 0;
+        final int maxIdx = 8;
+        final int othernameIdx = 0;
+        final int x400Idx = 3;
+        final int ediPartyNameIdx = 5;
+        List<Integer> unsupportedFields = Collections.unmodifiableList(Arrays.asList(othernameIdx, x400Idx,
+                ediPartyNameIdx));
+        StringBuilder builder = new StringBuilder();
+        Collection<List<?>> subjectAlternativeNames;
         try {
             subjectAlternativeNames = cert.getSubjectAlternativeNames();
         } catch (CertificateParsingException e) {
@@ -161,14 +166,14 @@ public final class CertUtils {
         if (subjectAlternativeNames != null) {
             for (final List<?> sanItem : subjectAlternativeNames) {
                 final Integer itemType = (Integer) sanItem.get(0);
-                if (itemType >= 0 && itemType <= 8) {
-                    String prefix = result.isEmpty() ? "" : ", ";
+                if (itemType >= minIdx && itemType <= maxIdx) {
+                    String prefix = builder.toString().isEmpty() ? "" : ", ";
                     String value = unsupportedFields.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1);
-                    result += String.format("%s%s:%s", prefix, fieldNames.get(itemType), value);
+                    builder.append(String.format("%s%s:%s", prefix, fieldNames.get(itemType), value));
                 }
             }
         }
-        return result.isEmpty() ? null : result;
+        return builder.toString().isEmpty() ? null : builder.toString();
     }
 
     /**
