@@ -116,6 +116,7 @@
 
     <SelectClientDialog
       title="wizard.addMemberTitle"
+      searchLabel="wizard.member.searchLabel"
       :dialog="showSelectClient"
       :selectableClients="selectableMembers"
       @cancel="showSelectClient = false"

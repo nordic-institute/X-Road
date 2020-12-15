@@ -85,3 +85,7 @@ url:
   diagnostics-globalconf: http://localhost:%s/status
   diagnostics-timestamping-services: http://localhost:%s/timestampstatus
   diagnostics-ocsp-responders: http://localhost:%s/status
+
+cache:
+  simple:
+    ttl: 60
