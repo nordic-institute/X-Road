@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.53  
+Version: 2.54  
 Doc. ID: UG-SS
 
 ---
@@ -86,6 +86,7 @@ Doc. ID: UG-SS
  13.10.2020 | 2.51    | Added a section about the warning responses [19.5 Warning responses](#195-warning-responses) | Caro Hautamäki
  15.10.2020 | 2.52    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
  22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
+ 01.12.2020 | 2.54    | Added endpoint for getting one API key to [19.1.2 Listing API keys](#1912-listing-api-keys) | Janne Mattila
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -2233,6 +2234,21 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
   {
     "id": 60,
 ...
+
+```
+
+You can also retrieve a single API key with a `GET` request to `/api/v1/api-keys/{id}`.
+
+```
+curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys/59 -k
+{
+  "id": 59,
+  "roles": [
+    "XROAD_REGISTRATION_OFFICER",
+    "XROAD_SECURITYSERVER_OBSERVER",
+    "XROAD_SERVICE_ADMINISTRATOR"
+  ]
+}
 
 ```
 
