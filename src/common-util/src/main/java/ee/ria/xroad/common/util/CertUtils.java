@@ -170,7 +170,7 @@ public final class CertUtils {
             for (final List<?> sanItem : subjectAlternativeNames) {
                 final Integer itemType = (Integer) sanItem.get(0);
                 if (itemType >= 0 && itemType <= MAX_IDX) {
-                    String prefix = builder.toString().isEmpty() ? "" : ", ";
+                    if (builder.length() > 0) builder.append(", ");
                     String value = unsupportedFields.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1);
                     builder.append(String.format("%s%s:%s", prefix, FIELD_NAMES.get(itemType), value));
                 }
