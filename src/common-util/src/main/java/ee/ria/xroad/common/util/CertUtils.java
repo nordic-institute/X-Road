@@ -101,6 +101,19 @@ public final class CertUtils {
     private static final int KEY_ENCIPHERMENT_IDX = 2;
     private static final int DATA_ENCIPHERMENT_IDX = 3;
 
+    private static final List<String> FIELD_NAMES = Collections.unmodifiableList(
+            Arrays.asList("othername", "email", "DNS", "x400", "DirName", "ediPartyName",
+                    "URI", "IP Address", "Registered ID"));
+
+    private static final int OTHER_NAME_IDX = 0;
+    private static final int X400_IDX = 3;
+    private static final int EDI_PARTY_NAME_IDX = 5;
+    private static final int MAX_IDX = 8;
+
+    private static List<Integer> unsupportedFields = Collections.unmodifiableList(Arrays.asList(
+            OTHER_NAME_IDX, X400_IDX,
+            EDI_PARTY_NAME_IDX));
+
     private CertUtils() {
     }
 
@@ -145,16 +158,6 @@ public final class CertUtils {
      * @return string representation of the subject alternative names
      */
     public static String getSubjectAlternativeNames(X509Certificate cert) {
-        List<String> fieldNames = Collections.unmodifiableList(
-                Arrays.asList("othername", "email", "DNS", "x400", "DirName", "ediPartyName",
-                        "URI", "IP Address", "Registered ID"));
-        final int minIdx = 0;
-        final int maxIdx = 8;
-        final int othernameIdx = 0;
-        final int x400Idx = 3;
-        final int ediPartyNameIdx = 5;
-        List<Integer> unsupportedFields = Collections.unmodifiableList(Arrays.asList(othernameIdx, x400Idx,
-                ediPartyNameIdx));
         StringBuilder builder = new StringBuilder();
         Collection<List<?>> subjectAlternativeNames;
         try {
@@ -166,10 +169,10 @@ public final class CertUtils {
         if (subjectAlternativeNames != null) {
             for (final List<?> sanItem : subjectAlternativeNames) {
                 final Integer itemType = (Integer) sanItem.get(0);
-                if (itemType >= minIdx && itemType <= maxIdx) {
+                if (itemType >= 0 && itemType <= MAX_IDX) {
                     String prefix = builder.toString().isEmpty() ? "" : ", ";
                     String value = unsupportedFields.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1);
-                    builder.append(String.format("%s%s:%s", prefix, fieldNames.get(itemType), value));
+                    builder.append(String.format("%s%s:%s", prefix, FIELD_NAMES.get(itemType), value));
                 }
             }
         }
