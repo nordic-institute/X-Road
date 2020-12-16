@@ -110,9 +110,10 @@ public final class CertUtils {
     private static final int EDI_PARTY_NAME_IDX = 5;
     private static final int MAX_IDX = 8;
 
-    private static List<Integer> unsupportedFields = Collections.unmodifiableList(Arrays.asList(
-            OTHER_NAME_IDX, X400_IDX,
-            EDI_PARTY_NAME_IDX));
+    private static final List<Integer> UNSUPPORTED_FIELDS = Collections
+            .unmodifiableList(Arrays.asList(
+                    OTHER_NAME_IDX, X400_IDX,
+                    EDI_PARTY_NAME_IDX));
 
     private CertUtils() {
     }
@@ -171,8 +172,9 @@ public final class CertUtils {
                 final Integer itemType = (Integer) sanItem.get(0);
                 if (itemType >= 0 && itemType <= MAX_IDX) {
                     if (builder.length() > 0) builder.append(", ");
-                    String value = unsupportedFields.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1);
-                    builder.append(String.format("%s%s:%s", prefix, FIELD_NAMES.get(itemType), value));
+                    builder.append(FIELD_NAMES.get(itemType));
+                    builder.append(':');
+                    builder.append(UNSUPPORTED_FIELDS.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1));
                 }
             }
         }
