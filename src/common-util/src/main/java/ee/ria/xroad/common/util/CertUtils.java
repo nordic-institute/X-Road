@@ -176,7 +176,7 @@ public final class CertUtils {
                 }
             }
         }
-        return builder.toString().isEmpty() ? null : builder.toString();
+        return builder.length() == 0 ? null : builder.toString();
     }
 
     /**
