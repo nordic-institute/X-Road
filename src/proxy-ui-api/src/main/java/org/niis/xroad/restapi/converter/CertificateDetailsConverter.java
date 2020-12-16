@@ -83,18 +83,24 @@ public class CertificateDetailsConverter {
 
         String issuerCommonName = null;
         String subjectCommonName = null;
+        String subjectAlternativeNames = null;
         try {
             issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
-        } catch (CodedException didNotFindCommonName) {
+        } catch (CodedException didNotFindIssuerCommonName) {
         }
         try {
             subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
-        } catch (CodedException didNotFindCommonName) {
+        } catch (CodedException didNotFindSubjectCommonName) {
+        }
+        try {
+            subjectAlternativeNames = CertUtils.getSubjectAlternativeNames(x509Certificate);
+        } catch (CodedException certParsingFailed) {
         }
         certificate.setIssuerCommonName(issuerCommonName);
         certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
         certificate.setSubjectCommonName(subjectCommonName);
         certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
+        certificate.setSubjectAlternativeNames(subjectAlternativeNames);
 
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
         certificate.setVersion(x509Certificate.getVersion());
