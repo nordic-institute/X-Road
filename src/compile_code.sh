@@ -1,4 +1,8 @@
 #!/bin/bash
+
+echo "compile_code.sh parameters: $@"
+exit 1
+
 source compile_env.sh
 
 RELEASE="SNAPSHOT"
