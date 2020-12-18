@@ -1,10 +1,13 @@
 # Building X-Road
 
-Running the X-Road software requires Linux (Ubuntu or RHEL). As a development environment,  only Ubuntu (>=16.04, 20.04 recommended) is currently supported. It should be possible to use some other Linux distribution for development, but the instructions and helper scripts assume Ubuntu. If you are using some other operating system (e.g. Windows or macOS), the easiest option is to first install Ubuntu into a virtual machine.
+Running the X-Road software requires Linux (Ubuntu or RHEL). As a development environment, only Ubuntu (>=16.04, 20.04 recommended) is currently supported. It should be possible to use some other Linux distribution for development, but the instructions and helper scripts assume Ubuntu. Alternatively the software can be built entirely inside docker containers (see below) making the build host distribution agnostic but also a bit slower. If you are using some other operating system (e.g. Windows or macOS), the easiest option is to first install Ubuntu into a virtual machine.
 
 **Tools**
 
-*Required for building*
+*Required for deb/rpm packaging and/or building in Docker*
+* Docker
+
+*Required for building natively (without Docker)*
 * OpenJDK / JDK version 8
 * Gradle
 * JRuby and rvm (ruby version manager)
@@ -19,7 +22,15 @@ Running the X-Road software requires Linux (Ubuntu or RHEL). As a development en
 
 The development environment should have at least 8GB of memory and 20GB of free disk space (applies to a virtual machine as well), especially if you set up a local X-Road instance.
 
-## Dependency installation and building instructions
+## Dependency installation and instructions for building in Docker
+
+* Install Docker
+
+* Build the software and installation packages:
+
+    `./build_packages.sh -d`
+
+## Dependency installation and instructions for building natively (without Docker)
 
 * Requires Ubuntu >=16.04, 20.04 is recommended.
 
