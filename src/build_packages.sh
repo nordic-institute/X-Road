@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "build_packages.sh parameters: $@"
-
-
 export XROAD=$(cd "$(dirname "$0")"; pwd)
 
 HAS_DOCKER=""
@@ -14,7 +11,6 @@ errorExit() {
 }
 
 buildInDocker() {
-    exit 1
     test -n "$HAS_DOCKER" || errorExit "Error, docker is not installed/running."
     echo "Building in docker..."
     docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
@@ -28,11 +24,9 @@ buildLocally() {
 }
 
 usage () {
-  echo >&2 "$@"
-  echo
   echo "Usage: $0 [options for $0...] [other options]"
   echo "Options for $0:"
-  echo " -p, --packageonly     Skip compilation, just build packages'"
+  echo " -p, --package-only    Skip compilation, just build packages'"
   echo " -d, --docker-compile  Compile in docker container instead of native gradle build"
   echo " -h, --help            This help text."
   echo "Other options are passed on to compile_code.sh"
@@ -46,16 +40,13 @@ fi
 
 for i in "$@"; do
 shift
-echo "...checking parameter $i"
 case "$i" in
-    "--packageonly"|"-p")
+    "--package-only"|"-p")
         PACKAGE_ONLY=1
-        echo "set package_only"
         continue
         ;;
     "--docker-compile"|"-d")
-        DOCKER_BUILD=1
-        echo "set docker build"
+        DOCKER_COMPILE=1
         continue
         ;;
     "--help"|"-h")
@@ -63,29 +54,20 @@ case "$i" in
         ;;
     *) set -- "$@" "$i";;
 esac
-echo "params now $@"
-echo "PACKAGE_ONLY=$PACKAGE_ONLY DOCKER_BUILD=$DOCKER_BUILD"
 done
 
-echo "buildmode detection done, PACKAGE_ONLY=$PACKAGE_ONLY DOCKER_BUILD=$DOCKER_BUILD"
-echo "build_packages.sh parameters now: $@"
-
-if [[ -n "$PACKAGE_ONLY" && -n "$DOCKER_BUILD" ]]; then
-    echo "Can't use both packageonly and docker-compile options"
+if [[ -n "$PACKAGE_ONLY" && -n "$DOCKER_COMPILE" ]]; then
+    echo "Can't use both package-only and docker-compile options at the same time"
     usage
 fi
 
-echo "checking parameter $1"
-
-case "$1" in
-    --packageonly|-p) echo "packageonly";;
-    --docker-build|-d) echo "buildInDocker" && echo "second";;
-    *) echo "local-build";;
-esac
-
-
-echo "build_packages.sh parameters after buildmode: $@"
-exit 1
+if [[ -n "$PACKAGE_ONLY" ]]; then
+    echo "Skipping compilation..."
+elif [[ -n "$DOCKER_COMPILE" ]]; then
+    buildInDocker "$@"
+else
+    buildLocally "$@"
+fi
 
 if [ -n "$HAS_DOCKER" ]; then
     docker build -q -t xroad-deb-bionic "$XROAD/packages/docker/deb-bionic" || errorExit "Error building deb-bionic image."
