@@ -25,7 +25,7 @@
       * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
    * [2.8 Logging Level](#28-logging-level)
    * [2.9 Volume support](#29-volume-support)
-     * [2.9.1 Store sensitive information in volumes](#291-store-sensitive-information-in-volumes)
+      * [2.9.1 Store sensitive information in volumes](#291-store-sensitive-information-in-volumes)
 * [3 Verify installation](#3-verify-installation)
 * [4 X-Road Security Server Sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
    * [4.1 Prerequisites](#41-prerequisites)
@@ -133,7 +133,7 @@ Out | Security Server | Producer Information System | 80, 443, other | tcp | Tar
 In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
 In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
-In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
+In | Admin | Security Server | &lt;ui port&gt; (**reference data 1.2**) | tcp | Source in the internal network |
 
 ## 2.6 Installation
 To install X-Road Security Server Sidecar we can run the script `setup_security_server_sidecar.sh` which will build and run the image. Alternatively one of the images published on Dockerhub can be used. Both methods result in the same running container.
@@ -303,7 +303,6 @@ The file `/etc/xroad.properties` contains sensitive information to access the ex
 [...]
 ```
 
-
 # 3 Verify installation
 The installation is successful if Docker image is running, the system services are started inside the container and the user interface is responding.
 - Ensure from the command line that the container is running  (**reference data: 1.1; 1.3**):
@@ -338,7 +337,7 @@ ATTENTION: Reference items 2.1 - 2.3 in the reference data are provided to the S
 **Ref** | **Value**                                               | **Explanation**
 ------ | -----------------------------------------                | --------------------------------------------
 2.1    | &lt;global configuration anchor file&gt; or &lt;URL&gt;  | Global configuration anchor file container
-2.2    | 	<Security Server owner's member class> *E.g.*  *GOV-government*; *COM - commercial*             | Member class of the Security Server's owner
+2.2    | &lt;Security Server owner's member class&gt; *E.g.*  *GOV-government*; *COM - commercial*             | Member class of the Security Server's owner
 2.3    | &lt;Security Server owner register code&gt;              | Member code of the Security Server's owner
 2.4    | &lt;choose Security Server identificator name&gt;        | Security Server's code
 
