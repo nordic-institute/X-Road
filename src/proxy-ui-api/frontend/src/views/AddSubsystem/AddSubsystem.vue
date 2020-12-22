@@ -27,7 +27,7 @@
   <div class="view-wrap">
     <subViewTitle
       class="view-title"
-      :title="$t('wizard.subsystem.title')"
+      :title="$t('wizard.addSubsystemTitle')"
       :showClose="false"
     />
 
@@ -49,13 +49,15 @@
         </div>
       </div>
 
-      <ValidationObserver ref="form2" v-slot="{ validate, invalid }">
+      <ValidationObserver ref="form2" v-slot="{ invalid }">
         <div class="row-wrap">
           <FormLabel
             labelText="wizard.memberName"
             helpText="wizard.client.memberNameTooltip"
           />
-          <div data-test="selected-member-name">{{ memberName }}</div>
+          <div data-test="selected-member-name" class="identifier-wrap">
+            {{ memberName }}
+          </div>
         </div>
 
         <div class="row-wrap">
@@ -63,14 +65,18 @@
             labelText="wizard.memberClass"
             helpText="wizard.client.memberClassTooltip"
           />
-          <div data-test="selected-member-class">{{ memberClass }}</div>
+          <div data-test="selected-member-class" class="identifier-wrap">
+            {{ memberClass }}
+          </div>
         </div>
         <div class="row-wrap">
           <FormLabel
             labelText="wizard.memberCode"
             helpText="wizard.client.memberCodeTooltip"
           />
-          <div data-test="selected-member-code">{{ memberCode }}</div>
+          <div data-test="selected-member-code" class="identifier-wrap">
+            {{ memberCode }}
+          </div>
         </div>
 
         <div class="row-wrap">
@@ -89,6 +95,7 @@
               type="text"
               :error-messages="errors"
               v-model="subsystemCode"
+              autofocus
               data-test="subsystem-code-input"
             ></v-text-field>
           </ValidationProvider>
@@ -126,6 +133,8 @@
       </ValidationObserver>
 
       <SelectClientDialog
+        title="wizard.addSubsystemTitle"
+        searchLabel="wizard.subsystem.searchLabel"
         :dialog="showSelectClient"
         :selectableClients="selectableSubsystems"
         @cancel="showSelectClient = false"

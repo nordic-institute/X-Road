@@ -37,6 +37,7 @@
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
         single-line
+        autofocus
         hide-details
         data-test="search-service-client"
         class="search-input"

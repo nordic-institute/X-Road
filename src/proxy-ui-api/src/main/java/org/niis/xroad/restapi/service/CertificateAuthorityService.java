@@ -36,8 +36,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
@@ -47,11 +45,8 @@ import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.OcspUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +57,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CA_CERT_PROCESSING;
 
 /**
  * Service that handles approved certificate authorities
@@ -76,8 +73,7 @@ public class CertificateAuthorityService {
     // Used in addition to CertificateInfo statuses such as OCSP_RESPONSE_SUSPENDED
     public static final String OCSP_RESPONSE_NOT_AVAILABLE = "not available";
 
-    private static final String GET_CERTIFICATE_AUTHORITIES_CACHE = "certificate-authorities";
-    private static final int CACHE_EVICT_RATE = 60000; // 1 min
+    public static final String GET_CERTIFICATE_AUTHORITIES_CACHE = "certificate-authorities";
 
     private final GlobalConfService globalConfService;
     private final GlobalConfFacade globalConfFacade;
@@ -110,28 +106,6 @@ public class CertificateAuthorityService {
     public List<ApprovedCaDto> getCertificateAuthorities(KeyUsageInfo keyUsageInfo)
             throws InconsistentCaDataException {
         return getCertificateAuthorities(keyUsageInfo, false);
-    }
-
-    /**
-     * scheduled method needs to be in a separate component,
-     * otherwise we get a problem with service level PreAuthorize
-     * and "missing authentication"
-     */
-    @Component("certificateAuthorityCacheEvictor")
-    class CacheEvictor {
-        /**
-         * Tests need to be able to turn off cache eviction to be predictable
-         */
-        @Getter
-        @Setter
-        private boolean evict = true;
-
-        @CacheEvict(allEntries = true, cacheNames = { GET_CERTIFICATE_AUTHORITIES_CACHE },
-                condition = "@certificateAuthorityCacheEvictor.evict")
-        @Scheduled(fixedDelay = CACHE_EVICT_RATE)
-        public void evict() {
-            // method is empty on purpose. Functionality is based on annotations
-        }
     }
 
     /**
@@ -341,7 +315,6 @@ public class CertificateAuthorityService {
      * Thrown when attempted to find CA certificate status and other details, but failed
      */
     public static class InconsistentCaDataException extends ServiceException {
-        public static final String ERROR_CA_CERT_PROCESSING = "ca_cert_status_processing_failure";
         public InconsistentCaDataException(String s, Throwable t) {
             super(s, t, new ErrorDeviation(ERROR_CA_CERT_PROCESSING));
         }

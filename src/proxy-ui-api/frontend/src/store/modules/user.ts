@@ -35,21 +35,23 @@ import {
   Version,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
-import { mainTabs, TokenInitStatusEnum } from '@/global';
+import { mainTabs } from '@/global';
 import i18n from '@/i18n';
 
 export interface UserState {
   authenticated: boolean;
+  isSessionAlive: boolean | undefined;
   permissions: string[];
   username: string;
-  currentSecurityServer: SecurityServer | {};
-  securityServerVersion: Version | {};
+  currentSecurityServer: SecurityServer | Record<string, unknown>;
+  securityServerVersion: Version | Record<string, unknown>;
   initializationStatus: InitializationStatus | undefined;
 }
 
 export const getDefaultState = (): UserState => {
   return {
     authenticated: false,
+    isSessionAlive: undefined,
     permissions: [],
     username: '',
     currentSecurityServer: {},
@@ -64,6 +66,9 @@ const moduleState = getDefaultState();
 export const userGetters: GetterTree<UserState, RootState> = {
   isAuthenticated(state) {
     return state.authenticated;
+  },
+  isSessionAlive(state) {
+    return state.isSessionAlive;
   },
   firstAllowedTab(state, getters) {
     return getters.getAllowedTabs(mainTabs)[0];
@@ -121,7 +126,7 @@ export const userGetters: GetterTree<UserState, RootState> = {
     return state.initializationStatus?.software_token_init_status;
   },
 
-  hasInitState: (state) => {
+  hasInitState: (state: UserState) => {
     return typeof state.initializationStatus !== 'undefined';
   },
 
@@ -131,9 +136,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
       state.initializationStatus.is_server_code_initialized &&
       state.initializationStatus.is_server_owner_initialized &&
       (state.initializationStatus.software_token_init_status ===
-        TokenInitStatusEnum.INITIALIZED ||
+        TokenInitStatus.INITIALIZED ||
         state.initializationStatus.software_token_init_status ===
-          TokenInitStatusEnum.UNKNOWN)
+          TokenInitStatus.UNKNOWN)
     );
   },
 };
@@ -141,6 +146,9 @@ export const userGetters: GetterTree<UserState, RootState> = {
 export const mutations: MutationTree<UserState> = {
   authUser(state) {
     state.authenticated = true;
+  },
+  setSessionAlive(state, value: boolean) {
+    state.isSessionAlive = value;
   },
   clearAuthData(state) {
     Object.assign(state, getDefaultState());
@@ -178,9 +186,21 @@ export const actions: ActionTree<UserState, RootState> = {
     })
       .then(() => {
         commit('authUser');
+        commit('setSessionAlive', true);
       })
       .catch((error) => {
         throw error;
+      });
+  },
+
+  async isSessionAlive({ commit }) {
+    return axios
+      .get('/notifications/session-status')
+      .then((res) => {
+        commit('setSessionAlive', res?.data?.valid ?? false);
+      })
+      .catch(() => {
+        commit('setSessionAlive', false);
       });
   },
 
@@ -234,7 +254,7 @@ export const actions: ActionTree<UserState, RootState> = {
       .finally(() => {
         if (reload) {
           // Reload the browser page to clean up the memory
-          location.reload(true);
+          location.reload();
         }
       });
   },
@@ -256,7 +276,7 @@ export const actions: ActionTree<UserState, RootState> = {
       is_anchor_imported: true,
       is_server_code_initialized: true,
       is_server_owner_initialized: true,
-      software_token_init_status: TokenInitStatusEnum.INITIALIZED,
+      software_token_init_status: TokenInitStatus.INITIALIZED,
     };
 
     commit('storeInitStatus', initStatus);

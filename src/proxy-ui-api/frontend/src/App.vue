@@ -26,12 +26,12 @@
 <template>
   <v-app class="xrd-app">
     <app-toolbar />
-    <v-content app>
+    <v-main app>
       <alerts-container />
       <transition name="fade" mode="out-in">
         <router-view />
       </transition>
-    </v-content>
+    </v-main>
     <snackbar />
     <app-footer />
   </v-app>
@@ -41,10 +41,10 @@
 import Vue from 'vue';
 import axios from 'axios';
 import Snackbar from '@/components/ui/Snackbar.vue';
-import { RouteName } from '@/global';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   name: 'App',
@@ -54,27 +54,28 @@ export default Vue.extend({
     Snackbar,
     AlertsContainer,
   },
+  computed: {
+    ...mapGetters(['isSessionAlive']),
+  },
   created() {
     // Add a response interceptor
     axios.interceptors.response.use(
       (response) => {
+        this.$store.commit('authUser');
         return response;
       },
       (error) => {
-        // Check that it's proper "unauthorized error".
-        // Also the response from from session timeout polling is handled elsewhere
+        /*
+          Check if error is a proper "unauthorized error" meaning it is not happening in sending login form data.
+          Also the response from from session timeout polling is handled in AppBase -component
+         */
         if (
-          error.response.status === 401 &&
-          error.response.config &&
-          !error.response.config.__isRetryRequest &&
-          !error.request.responseURL.includes('notifications/session-status')
+          error?.response?.status === 401 &&
+          this.$router.currentRoute.name !== 'login'
         ) {
           // if you ever get an unauthorized, logout the user
-          this.$store.dispatch('clearAuth');
-          this.$store.dispatch('clearAlerts');
-          this.$router.replace({ name: RouteName.Login });
+          this.$store.commit('setSessionAlive', false);
         }
-
         // If the request is made with responseType: blob, but backend responds with json error
         if (
           error.request.responseType === 'blob' &&
@@ -102,6 +103,10 @@ export default Vue.extend({
         return Promise.reject(error);
       },
     );
+
+    // Session-status api is called before accessing any view. The session-status data is only used to prevent
+    // opening views that user aren't allowed to see (flickering).
+    this.$store.dispatch('isSessionAlive');
   },
 });
 </script>

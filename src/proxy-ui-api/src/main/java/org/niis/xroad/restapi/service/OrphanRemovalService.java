@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ORPHANS_NOT_FOUND;
+
 /**
  * orphan cert and csr removal service
  */
@@ -242,20 +244,8 @@ public class OrphanRemovalService {
      * Thrown when someone tries to remove orphans, but none exist
      */
     public static class OrphansNotFoundException extends NotFoundException {
-        public static final String ERROR_ORPHANS_NOT_FOUND = "orphans_not_found";
         public OrphansNotFoundException() {
             super(new ErrorDeviation(ERROR_ORPHANS_NOT_FOUND));
         }
     }
-
-    /**
-     * Thrown when someone tries to remove orphans, but the client has not been deleted
-     */
-    public static class ClientNotDeletedException extends ServiceException {
-        public static final String ERROR_CLIENT_NOT_DELETED = "client_not_deleted";
-        public ClientNotDeletedException(String s) {
-            super(s, new ErrorDeviation(ERROR_CLIENT_NOT_DELETED));
-        }
-    }
-
 }

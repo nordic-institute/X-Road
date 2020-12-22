@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="dlg-edit-row">
         <div class="dlg-row-title long-row-title">
           {{ $t('endpoints.httpRequestMethod') }}
@@ -48,6 +48,7 @@
           @input="touched = true"
           data-test="endpoint-method"
           v-model="endpoint.method"
+          autofocus
           :items="methods"
         />
       </div>

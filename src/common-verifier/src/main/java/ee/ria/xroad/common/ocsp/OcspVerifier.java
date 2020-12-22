@@ -48,7 +48,6 @@ import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.joda.time.DateTime;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -280,9 +279,7 @@ public final class OcspVerifier {
      * @return true, if the OCSP response is expired
      */
     public boolean isExpired(SingleResp singleResp, Date atDate) {
-        Date allowedThisUpdate = new DateTime(atDate)
-                .minusSeconds(ocspFreshnessSeconds).toDate();
-
+        final Date allowedThisUpdate = Date.from(atDate.toInstant().minusSeconds(ocspFreshnessSeconds));
         log.trace("isExpired(thisUpdate: {}, allowedThisUpdate: {}, "
                 + "atDate: {})", new Object[] {singleResp.getThisUpdate(),
                     allowedThisUpdate, atDate });

@@ -24,19 +24,17 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.restapi.converter;
+
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
-import org.joda.time.DateTimeUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
-import org.niis.xroad.restapi.util.TestUtils;
 
-import java.time.LocalTime;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,31 +46,18 @@ import static org.junit.Assert.assertEquals;
  */
 public class TimestampingServiceDiagnosticConverterTest {
     private TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
-    private static final String CURRENT_TIME = "2020-03-16T10:16:12.123";
     private static final String URL_1 = "https://tsa1.example.com";
-    private static final String PREVIOUS_UPDATE_STR_1 = "2020-03-16T10:15:40.703";
-    private static final LocalTime PREVIOUS_UPDATE_1 = LocalTime.of(10, 15, 40, 703000000);
-    private static final String URL_2 = "https://tsa1.example.com";
-    private static final String PREVIOUS_UPDATE_STR_2 = "2020-03-16T10:15:42.123";
-    private static final LocalTime PREVIOUS_UPDATE_2 = LocalTime.of(10, 15, 42, 123000000);
+    private static final String URL_2 = "https://tsa2.example.com";
 
     @Before
     public void setup() {
         timestampingServiceDiagnosticConverter = new TimestampingServiceDiagnosticConverter();
-        DateTimeUtils.setCurrentMillisFixed(TestUtils.fromDateTimeToMilliseconds(CURRENT_TIME));
-    }
-
-    @After
-    public final void tearDown() {
-        DateTimeUtils.setCurrentMillisSystem();
     }
 
     @Test
     public void convertSingleTimestampingServiceDiagnostics() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils
-                .fromDateTimeToMilliseconds(CURRENT_TIME));
-        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE_1);
+        final OffsetDateTime now = OffsetDateTime.now();
+        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, now);
         diagnosticsStatus.setDescription(URL_1);
         TimestampingServiceDiagnostics timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter.convert(
                 diagnosticsStatus
@@ -80,19 +65,18 @@ public class TimestampingServiceDiagnosticConverterTest {
 
         assertEquals(TimestampingStatus.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
         assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
-                (Long)timestampingServiceDiagnostics.getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(now, timestampingServiceDiagnostics.getPrevUpdateAt());
     }
 
     @Test
     public void convertMultipleTimestampingServiceDiagnostics() {
-        DateTimeUtils.setCurrentMillisFixed(TestUtils
-                .fromDateTimeToMilliseconds(CURRENT_TIME));
-        DiagnosticsStatus diagnosticsStatus1 = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, PREVIOUS_UPDATE_1);
+        final OffsetDateTime prevUpdate = OffsetDateTime.now();
+        final OffsetDateTime prevUpdate2 = prevUpdate.plusSeconds(60);
+        DiagnosticsStatus diagnosticsStatus1 =
+                new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_INTERNAL, prevUpdate);
         diagnosticsStatus1.setDescription(URL_1);
-        DiagnosticsStatus diagnosticsStatus2 = new DiagnosticsStatus(
-                DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, PREVIOUS_UPDATE_2);
+        DiagnosticsStatus diagnosticsStatus2 =
+                new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, prevUpdate2);
         diagnosticsStatus2.setDescription(URL_2);
         List<DiagnosticsStatus> list = new ArrayList<>(Arrays.asList(diagnosticsStatus1, diagnosticsStatus2));
         List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
@@ -103,14 +87,12 @@ public class TimestampingServiceDiagnosticConverterTest {
         assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
         assertEquals(TimestampingStatus.ERROR_CODE_INTERNAL, timestampingServiceDiagnostics.get(0).getStatusCode());
         assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_1),
-                (Long)timestampingServiceDiagnostics.get(0).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(prevUpdate, timestampingServiceDiagnostics.get(0).getPrevUpdateAt());
 
         assertEquals(URL_2, timestampingServiceDiagnostics.get(1).getUrl());
         assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED, timestampingServiceDiagnostics.get(1)
                 .getStatusCode());
         assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(1).getStatusClass());
-        assertEquals(TestUtils.fromDateTimeToMilliseconds(PREVIOUS_UPDATE_STR_2),
-                (Long)timestampingServiceDiagnostics.get(1).getPrevUpdateAt().toInstant().toEpochMilli());
+        assertEquals(prevUpdate2, timestampingServiceDiagnostics.get(1).getPrevUpdateAt());
     }
 }

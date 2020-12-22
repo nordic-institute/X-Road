@@ -77,31 +77,32 @@ export enum Permissions {
   ADD_CLIENT = 'ADD_CLIENT', // clients > add client
   ADD_CLIENT_INTERNAL_CERT = 'ADD_CLIENT_INTERNAL_CERT', // add TLS certificate in client "internal servers"
   ADD_LOCAL_GROUP = 'ADD_LOCAL_GROUP', // client > local groups
-  ADD_TSP = 'ADD_TSP',
+  ADD_TSP = 'ADD_TSP', // settings > system parameters
   ADD_WSDL = 'ADD_WSDL', // client > services > add WSDL / REST
-  BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION',
+  BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION', // settings > backup and restore
   CREATE_API_KEY = 'CREATE_API_KEY', // api key
   DELETE_AUTH_CERT = 'DELETE_AUTH_CERT', // certificate details
   DELETE_AUTH_KEY = 'DELETE_AUTH_KEY', // key details
-  DELETE_CLIENT = 'DELETE_CLIENT',
+  DELETE_CLIENT = 'DELETE_CLIENT', // client
   DELETE_CLIENT_INTERNAL_CERT = 'DELETE_CLIENT_INTERNAL_CERT', // detete certificate in client - cetificate view
   DELETE_KEY = 'DELETE_KEY', // key details
   DELETE_LOCAL_GROUP = 'DELETE_LOCAL_GROUP', // client > local groups
   DELETE_SIGN_CERT = 'DELETE_SIGN_CERT', // sign cert details
   DELETE_SIGN_KEY = 'DELETE_SIGN_KEY', // key details
-  DELETE_TSP = 'DELETE_TSP',
+  DELETE_TSP = 'DELETE_TSP', // settings > system parameters
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
   DIAGNOSTICS = 'DIAGNOSTICS', // diagnostics tab
-  DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR',
-  EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES',
+  DOWNLOAD_ANCHOR = 'DOWNLOAD_ANCHOR', // settings > system parameters
+  EDIT_ACL_SUBJECT_OPEN_SERVICES = 'EDIT_ACL_SUBJECT_OPEN_SERVICES', // client > service clients
   EDIT_CLIENT_INTERNAL_CONNECTION_TYPE = 'EDIT_CLIENT_INTERNAL_CONNECTION_TYPE', // internal servers > connection type
-  EDIT_KEY_FRIENDLY_NAME = 'EDIT_KEY_FRIENDLY_NAME',
+  EDIT_ENDPOINT_ACL = 'EDIT_ENDPOINT_ACL', // edit endpoint acess rights
+  EDIT_KEY_FRIENDLY_NAME = 'EDIT_KEY_FRIENDLY_NAME', // keys and certificates > sign and auth keys > key
   EDIT_LOCAL_GROUP_DESC = 'EDIT_LOCAL_GROUP_DESC', // client > local groups
   EDIT_LOCAL_GROUP_MEMBERS = 'EDIT_LOCAL_GROUP_MEMBERS', // client > local groups
-  EDIT_SERVICE_ACL = 'EDIT_SERVICE_ACL',
-  EDIT_SERVICE_PARAMS = 'EDIT_SERVICE_PARAMS',
-  EDIT_TOKEN_FRIENDLY_NAME = 'EDIT_TOKEN_FRIENDLY_NAME',
+  EDIT_SERVICE_ACL = 'EDIT_SERVICE_ACL', // client > service clients > access rights
+  EDIT_SERVICE_PARAMS = 'EDIT_SERVICE_PARAMS', // client > services > rest/wsdl > service params
+  EDIT_TOKEN_FRIENDLY_NAME = 'EDIT_TOKEN_FRIENDLY_NAME', // token details
   EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description
   ENABLE_DISABLE_WSDL = 'ENABLE_DISABLE_WSDL', // client > services > enable / disable WSDL switch
   EXPORT_INTERNAL_TLS_CERT = 'EXPORT_INTERNAL_TLS_CERT', // export SS TLS certificate in "internal servers" view & system parameters
@@ -113,10 +114,10 @@ export enum Permissions {
   IMPORT_AUTH_CERT = 'IMPORT_AUTH_CERT',
   IMPORT_INTERNAL_TLS_CERT = 'IMPORT_INTERNAL_TLS_CERT', // Import security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
-  INIT_CONFIG = 'INIT_CONFIG',
+  INIT_CONFIG = 'INIT_CONFIG', // can initialise security server
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
   REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
-  REFRESH_REST = 'REFRESH_REST', // client > services > refresh rest
+  REFRESH_REST = 'REFRESH_REST', // not used?
   REFRESH_OPENAPI3 = 'REFRESH_OPENAPI3', // client > services > refresh openapi3
   RESTORE_CONFIGURATION = 'RESTORE_CONFIGURATION',
   REVOKE_API_KEY = 'REVOKE_API_KEY', // api key
@@ -127,7 +128,7 @@ export enum Permissions {
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor
-  VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES',
+  VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES', // not needed because roles can't access the view
   VIEW_ANCHOR = 'VIEW_ANCHOR', // settings > system paramters > configuration anchor
   VIEW_APPROVED_CERTIFICATE_AUTHORITIES = 'VIEW_APPROVED_CERTIFICATE_AUTHORITIES', // Settings / certificate authorities
   VIEW_CLIENTS = 'VIEW_CLIENTS', // clients tab (clients table)
@@ -138,9 +139,10 @@ export enum Permissions {
   VIEW_CLIENT_INTERNAL_CONNECTION_TYPE = 'VIEW_CLIENT_INTERNAL_CONNECTION_TYPE', // internal servers > connection type
   VIEW_CLIENT_LOCAL_GROUPS = 'VIEW_CLIENT_LOCAL_GROUPS', // subsystem "local groups" tab
   VIEW_CLIENT_SERVICES = 'VIEW_CLIENT_SERVICES', // subsystem "services" tab
+  VIEW_ENDPOINT_ACL = 'VIEW_ENDPOINT_ACL', // client > services > rest > endpoint > acces rights
   VIEW_INTERNAL_TLS_CERT = 'VIEW_INTERNAL_TLS_CERT', // view server TLS certificate in client "internal servers" or in system parameters
   VIEW_KEYS = 'VIEW_KEYS', // keys and certificates tab
-  VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL',
+  VIEW_SERVICE_ACL = 'VIEW_SERVICE_ACL', // not needed because roles can't access the view
   VIEW_SYS_PARAMS = 'VIEW_SYS_PARAMS', // settings > system paramters tab
   VIEW_TSPS = 'VIEW_TSPS', // settings > system paramters > timestamping services
 }
@@ -148,40 +150,6 @@ export enum Permissions {
 export enum UsageTypes {
   SIGNING = 'SIGNING',
   AUTHENTICATION = 'AUTHENTICATION',
-}
-
-export enum CsrFormatTypes {
-  PEM = 'PEM',
-  DER = 'DER',
-}
-
-export enum PossibleActions {
-  DELETE = 'DELETE',
-  ACTIVATE = 'ACTIVATE',
-  DISABLE = 'DISABLE',
-  LOGIN = 'LOGIN',
-  LOGOUT = 'LOGOUT',
-  REGISTER = 'REGISTER',
-  UNREGISTER = 'UNREGISTER',
-  IMPORT_FROM_TOKEN = 'IMPORT_FROM_TOKEN',
-  GENERATE_KEY = 'GENERATE_KEY',
-  EDIT_FRIENDLY_NAME = 'EDIT_FRIENDLY_NAME',
-  GENERATE_AUTH_CSR = 'GENERATE_AUTH_CSR',
-  GENERATE_SIGN_CSR = 'GENERATE_SIGN_CSR',
-}
-
-export enum CertificateStatus {
-  SAVED = 'SAVED',
-  REGISTRATION_IN_PROGRESS = 'REGISTRATION_IN_PROGRESS',
-  REGISTERED = 'REGISTERED',
-  DELETION_IN_PROGRESS = 'DELETION_IN_PROGRESS',
-  GLOBAL_ERROR = 'GLOBAL_ERROR',
-}
-
-export enum TokenInitStatusEnum {
-  INITIALIZED = 'INITIALIZED',
-  NOT_INITIALIZED = 'NOT_INITIALIZED',
-  UNKNOWN = 'UNKNOWN',
 }
 
 export const mainTabs: Tab[] = [

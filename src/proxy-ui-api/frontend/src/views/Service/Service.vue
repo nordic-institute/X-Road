@@ -50,7 +50,7 @@
     </v-tabs>
 
     <router-view
-      v-on:updateService="fetchData"
+      v-on:update-service="fetchData"
       service="service"
       class="sub-view-spacing"
     />

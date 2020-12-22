@@ -27,12 +27,14 @@ package ee.ria.xroad.common;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.HierarchicalINIConfiguration;
-import org.apache.commons.configuration.SubnodeConfiguration;
+import org.apache.commons.configuration2.INIConfiguration;
+import org.apache.commons.configuration2.SubnodeConfiguration;
+import org.apache.commons.configuration2.convert.DisabledListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -104,6 +106,7 @@ public class SystemPropertiesLoader {
     static final class FileWithSections {
         private final String name;
         private final String[] sections;
+
         private FileWithSections(String name, String... sections) {
             this.name = name;
             this.sections = sections;
@@ -129,7 +132,7 @@ public class SystemPropertiesLoader {
 
                     return sb.toString();
                 }
-    };
+            };
 
     private final String prefix;
     private final List<FileWithSections> files = new ArrayList<>();
@@ -212,9 +215,9 @@ public class SystemPropertiesLoader {
 
     /**
      * Specifies the ini file to be loaded.
-     * @param fileName the file name of the INI.
+     * @param fileName     the file name of the INI.
      * @param sectionNames optional section names to be parsed from the INI.
-     * If not specified, all sections are parsed.
+     *                     If not specified, all sections are parsed.
      * @return this instance
      */
     public SystemPropertiesLoader with(String fileName,
@@ -225,13 +228,13 @@ public class SystemPropertiesLoader {
 
     /**
      * Specifies the optional local ini file to be loaded.
-     * @param fileName the file name of the INI.
+     * @param fileName     the file name of the INI.
      * @param sectionNames optional section names to be parsed from the INI.
-     * If not specified, all sections are parsed.
+     *                     If not specified, all sections are parsed.
      * @return this instance
      */
     public SystemPropertiesLoader withLocalOptional(String fileName,
-                                       String... sectionNames) {
+            String... sectionNames) {
         optionalLocalFiles.add(new FileWithSections(fileName, sectionNames));
         return this;
     }
@@ -343,13 +346,13 @@ public class SystemPropertiesLoader {
     }
 
     private void load(FileWithSections file) {
-        try {
-            // turn off list delimiting (before parsing),
-            // otherwise we lose everything after first ","
-            // in loadSection/sec.getString(key)
-            HierarchicalINIConfiguration ini = new HierarchicalINIConfiguration();
-            ini.setDelimiterParsingDisabled(true);
-            ini.load(file.getName());
+        INIConfiguration ini = new INIConfiguration();
+        // turn off list delimiting (before parsing),
+        // otherwise we lose everything after first ","
+        // in loadSection/sec.getString(key)
+        ini.setListDelimiterHandler(DisabledListDelimiterHandler.INSTANCE);
+        try (Reader r = Files.newBufferedReader(Paths.get(file.getName()))) {
+            ini.read(r);
 
             for (String sectionName : ini.getSections()) {
                 if (isEmpty(file.getSections())
@@ -357,9 +360,8 @@ public class SystemPropertiesLoader {
                     loadSection(sectionName, ini.getSection(sectionName));
                 }
             }
-        } catch (ConfigurationException e) {
-            log.warn("Error while loading {}: {}", file.getName(),
-                    e);
+        } catch (ConfigurationException | IOException e) {
+            log.warn("Error while loading {}: {}", file.getName(), e);
         }
     }
 

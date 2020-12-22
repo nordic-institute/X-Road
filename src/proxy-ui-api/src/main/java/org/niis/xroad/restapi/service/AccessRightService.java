@@ -68,6 +68,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_C
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_CODES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_IDS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_ACCESSRIGHT;
 
 /**
  * Service class for handling access rights.
@@ -584,8 +586,6 @@ public class AccessRightService {
      * If access right was not found
      */
     public static class AccessRightNotFoundException extends NotFoundException {
-        public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
-
         public AccessRightNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
         }
@@ -600,9 +600,6 @@ public class AccessRightService {
      * If duplicate access right was found
      */
     public static class DuplicateAccessRightException extends ServiceException {
-
-        public static final String ERROR_DUPLICATE_ACCESSRIGHT = "duplicate_accessright";
-
         public DuplicateAccessRightException(String msg) {
             super(msg, new ErrorDeviation(ERROR_DUPLICATE_ACCESSRIGHT));
         }
@@ -800,7 +797,7 @@ public class AccessRightService {
             XRoadId xRoadId = dto.getSubjectId();
             if (xRoadId instanceof ClientId) {
                 String clientMemberClass = ((ClientId) xRoadId).getMemberClass();
-                return StringUtils.containsIgnoreCase(clientMemberClass, memberClass);
+                return memberClass.equalsIgnoreCase(clientMemberClass);
             } else {
                 return false;
             }
@@ -811,11 +808,11 @@ public class AccessRightService {
         return dto -> {
             XRoadId xRoadId = dto.getSubjectId();
             // In case the Subject is a LocalGroup: LocalGroups do not have explicit X-Road instances
-            // -> always return
+            // -> always return true
             if (xRoadId instanceof LocalGroupId) {
                 return true;
             } else {
-                return StringUtils.containsIgnoreCase(dto.getSubjectId().getXRoadInstance(), instance);
+                return instance.equalsIgnoreCase(dto.getSubjectId().getXRoadInstance());
             }
         };
     }

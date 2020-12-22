@@ -1,6 +1,6 @@
 # Building X-Road
 
-Running the X-Road software requires Linux (Ubuntu or RHEL). As a development environment,  only Ubuntu (>=16.04, 18.04 recommended) is currently supported. It should be possible to use some other Linux distribution for development, but the instructions and helper scripts assume Ubuntu. If you are using some other operating system (e.g. Windows or macOS), the easiest option is to first install Ubuntu 18.04 into a virtual machine.
+Running the X-Road software requires Linux (Ubuntu or RHEL). As a development environment,  only Ubuntu (>=16.04, 20.04 recommended) is currently supported. It should be possible to use some other Linux distribution for development, but the instructions and helper scripts assume Ubuntu. If you are using some other operating system (e.g. Windows or macOS), the easiest option is to first install Ubuntu into a virtual machine.
 
 **Tools**
 
@@ -21,7 +21,7 @@ The development environment should have at least 8GB of memory and 20GB of free 
 
 ## Dependency installation and building instructions
 
-* Requires Ubuntu >=16.04, 18.04 is recommended.
+* Requires Ubuntu >=16.04, 20.04 is recommended.
 
 * Execute the following command once to install the required dependencies on a clean building host. The script is supposed to be run as the user who will build the source. The script will ask for user password (using sudo) for installing some new packages as well.
 

@@ -14,5 +14,5 @@
 
 ../../../../../asicverifier/build/libs/asicverifier.jar usr/share/xroad/jlib/
 ../../../../../LICENSE.txt usr/share/doc/xroad-addon-messagelog/
-../../../../../securityserver-LICENSE.info usr/share/doc/xroad-addon-messagelog/
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-addon-messagelog/
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-addon-messagelog/

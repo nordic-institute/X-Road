@@ -30,7 +30,7 @@ import ee.ria.xroad.common.CodedException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.james.mime4j.MimeException;
 import org.apache.james.mime4j.parser.AbstractContentHandler;
@@ -38,13 +38,13 @@ import org.apache.james.mime4j.parser.MimeStreamParser;
 import org.apache.james.mime4j.stream.BodyDescriptor;
 import org.apache.james.mime4j.stream.Field;
 import org.apache.james.mime4j.stream.MimeConfig;
-import org.joda.time.DateTime;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
+import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -358,7 +358,7 @@ public class ConfigurationParser {
         }
     }
 
-    private static DateTime parseExpireDate(String expireDateStr) {
+    private static OffsetDateTime parseExpireDate(String expireDateStr) {
         if (StringUtils.isBlank(expireDateStr)) {
             throw new CodedException(X_MALFORMED_GLOBALCONF, "Missing header " + HEADER_EXPIRE_DATE);
         }

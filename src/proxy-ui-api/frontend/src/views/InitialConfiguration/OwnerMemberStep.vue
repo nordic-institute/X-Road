@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <ValidationObserver ref="form1" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="row-wrap">
         <FormLabel
           labelText="wizard.memberName"
@@ -70,6 +70,7 @@
             :error-messages="errors"
             :disabled="isServerOwnerInitialized"
             v-model="memberCode"
+            autofocus
             data-test="member-code-input"
           ></v-text-field>
         </ValidationProvider>

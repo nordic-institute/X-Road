@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
  * Created by hyoty on 25.9.2015.
  */
 @Slf4j
-public final class MonitorClient {
+public class MonitorClient {
 
     public static final int TIMEOUT_AWAIT = 10;
     public static final int TIMEOUT_REQUEST = 5;

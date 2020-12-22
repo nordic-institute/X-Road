@@ -54,6 +54,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
+
 /**
  * Backups service.
  */
@@ -61,10 +64,6 @@ import java.util.Optional;
 @Service
 @PreAuthorize("isAuthenticated()")
 public class BackupService {
-
-    private static final String BACKUP_GENERATION_FAILED = "backup_generation_failed";
-    private static final String WARNING_FILE_ALREADY_EXISTS = "warning_file_already_exists";
-
     private final BackupRepository backupRepository;
     private final ServerConfService serverConfService;
     private final ExternalProcessRunner externalProcessRunner;
@@ -153,13 +152,13 @@ public class BackupService {
             log.info(String.join("\n", processResult.getProcessOutput()));
             log.info(" --- Backup script console output - END --- ");
         } catch (ProcessNotExecutableException | ProcessFailedException e) {
-            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(BACKUP_GENERATION_FAILED));
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_BACKUP_GENERATION_FAILED));
         }
 
         Optional<BackupFile> backupFile = getBackup(filename);
         if (!backupFile.isPresent()) {
             throw new DeviationAwareRuntimeException(getFileNotFoundExceptionMessage(filename),
-                    new ErrorDeviation(BACKUP_GENERATION_FAILED));
+                    new ErrorDeviation(ERROR_BACKUP_GENERATION_FAILED));
         }
         return backupFile.get();
     }

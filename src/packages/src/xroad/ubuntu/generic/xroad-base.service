@@ -1,0 +1,13 @@
+[Unit]
+Description=X-Road initialization
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStartPre=/bin/mkdir -p -m0750 /var/run/xroad
+ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
+ExecStart=/usr/share/xroad/scripts/xroad-base.sh
+ExecStopPost=/bin/rm -rf /var/run/xroad
+
+[Install]
+WantedBy=multi-user.target

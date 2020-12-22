@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.service.ManagementRequestSendingFailedException;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.security.cert.X509Certificate;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -81,15 +83,17 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     private final TokenCertificateConverter tokenCertificateConverter;
     private final PossibleActionConverter possibleActionConverter;
     private final AuditDataHelper auditDataHelper;
+    private final SecurityHelper securityHelper;
 
     @Autowired
     public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
             TokenCertificateConverter tokenCertificateConverter, PossibleActionConverter possibleActionConverter,
-            AuditDataHelper auditDataHelper) {
+            AuditDataHelper auditDataHelper, SecurityHelper securityHelper) {
         this.tokenCertificateService = tokenCertificateService;
         this.tokenCertificateConverter = tokenCertificateConverter;
         this.possibleActionConverter = possibleActionConverter;
         this.auditDataHelper = auditDataHelper;
+        this.securityHelper = securityHelper;
     }
 
     @Override
@@ -147,7 +151,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_CERT')")
+    @PreAuthorize("hasAnyAuthority('VIEW_AUTH_CERT', 'VIEW_SIGN_CERT', 'VIEW_UNKNOWN_CERT')")
     public ResponseEntity<TokenCertificate> getCertificate(String hash) {
         CertificateInfo certificateInfo;
         try {
@@ -155,6 +159,23 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
+
+        // verify that correct permission exists, based on cert type
+        X509Certificate x509Certificate = null;
+        String requiredAuthority = null;
+        try {
+            x509Certificate = tokenCertificateService.convertToX509Certificate(certificateInfo.getCertificateBytes());
+        } catch (InvalidCertificateException e) {
+            throw new InternalServerErrorException(e);
+        }
+        if (tokenCertificateService.isValidAuthCert(x509Certificate)) {
+            requiredAuthority = "VIEW_AUTH_CERT";
+        } else if (tokenCertificateService.isValidSignCert(x509Certificate)) {
+            requiredAuthority = "VIEW_SIGN_CERT";
+        } else {
+            requiredAuthority = "VIEW_UNKNOWN_CERT";
+        }
+        securityHelper.verifyAuthority(requiredAuthority);
 
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificateInfo);
         return new ResponseEntity<>(tokenCertificate, HttpStatus.OK);
@@ -198,7 +219,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('VIEW_KEYS')")
+    @PreAuthorize("hasAnyAuthority('VIEW_KEYS','VIEW_SIGN_CERT','VIEW_AUTH_CERT')")
     public ResponseEntity<List<PossibleAction>> getPossibleActionsForCertificate(String hash) {
         try {
             EnumSet<PossibleActionEnum> actions = tokenCertificateService

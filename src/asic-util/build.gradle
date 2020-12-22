@@ -1,7 +1,8 @@
 dependencies {
-    compile project(':common-verifier')
-    compile 'xerces:xercesImpl:2.12.0'
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation 'xerces:xercesImpl:2.12.0'
 
-    testCompile project(':common-test')
+    testImplementation project(':common-test')
 }
 

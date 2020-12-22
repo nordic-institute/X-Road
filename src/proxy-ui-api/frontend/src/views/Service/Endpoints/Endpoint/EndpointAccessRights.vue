@@ -36,12 +36,14 @@
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
         <large-button
+          v-if="canEdit"
           @click="removeAll()"
           outlined
           data-test="remove-all-access-rights"
           >{{ $t('action.removeAll') }}
         </large-button>
         <large-button
+          v-if="canEdit"
           @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
@@ -62,11 +64,12 @@
       <tbody>
         <template>
           <tr v-for="sc in serviceClients" :key="sc.id">
-            <td>{{ sc.name }}</td>
-            <td>{{ sc.id }}</td>
+            <td class="identifier-wrap">{{ sc.name }}</td>
+            <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
-            <td class="wrap-right-tight">
+            <td class="button-wrap">
               <v-btn
+                v-if="canEdit"
                 small
                 outlined
                 rounded
@@ -107,7 +110,7 @@
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
-      @serviceClientsAdded="doAddServiceClients"
+      @service-clients-added="doAddServiceClients"
     />
   </div>
 </template>
@@ -121,6 +124,7 @@ import LargeButton from '@/components/ui/LargeButton.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 import { encodePathParameter } from '@/util/api';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   name: 'EndpointAccessRights',
@@ -142,7 +146,7 @@ export default Vue.extend({
   },
   data: () => {
     return {
-      endpoint: {} as Endpoint | {},
+      endpoint: {} as Endpoint | Record<string, unknown>,
       serviceClients: [] as ServiceClient[],
       confirmDeleteAll: false as boolean,
       confirmDeleteOne: false as boolean,
@@ -150,6 +154,11 @@ export default Vue.extend({
       addSubjectsDialogVisible: false as boolean,
       serviceClientsToAdd: [] as ServiceClient[],
     };
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.EDIT_ENDPOINT_ACL);
+    },
   },
   methods: {
     close(): void {
@@ -262,12 +271,6 @@ export default Vue.extend({
   * {
     margin-left: 20px;
   }
-}
-
-.wrap-right-tight {
-  display: flex;
-  width: 100%;
-  justify-content: flex-end;
 }
 
 .row-title {

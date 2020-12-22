@@ -28,7 +28,7 @@ package ee.ria.xroad.opmonitordaemon;
 import ee.ria.xroad.common.db.DatabaseCtx;
 import ee.ria.xroad.common.db.TransactionCallback;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.EmptyInterceptor;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;

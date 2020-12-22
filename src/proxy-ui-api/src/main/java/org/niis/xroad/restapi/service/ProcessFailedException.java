@@ -29,14 +29,14 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 import java.util.List;
 
-public class ProcessFailedException extends ServiceException {
-    public static final String PROCESS_FAILED = "process_failed";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PROCESS_FAILED;
 
+public class ProcessFailedException extends ServiceException {
     public ProcessFailedException(String msg) {
-        super(msg, new ErrorDeviation(PROCESS_FAILED));
+        super(msg, new ErrorDeviation(ERROR_PROCESS_FAILED));
     }
 
     public ProcessFailedException(String msg, List<String> metadata) {
-        super(msg, new ErrorDeviation(PROCESS_FAILED, metadata));
+        super(msg, new ErrorDeviation(ERROR_PROCESS_FAILED, metadata));
     }
 }

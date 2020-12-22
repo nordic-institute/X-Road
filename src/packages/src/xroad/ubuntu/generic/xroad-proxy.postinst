@@ -30,6 +30,11 @@ case "$1" in
   chmod 0440 /etc/sudoers.d/xroad-proxy
   chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
   chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
+  chown -R xroad:xroad /etc/xroad/jetty
+  chmod 0751 /etc/xroad/jetty
+  chmod 0640 /etc/xroad/jetty/clientproxy.xml
+  chmod 0640 /etc/xroad/jetty/ocsp-responder.xml
+  chmod 0640 /etc/xroad/jetty/serverproxy.xml
 
   mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
   mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
@@ -42,6 +47,7 @@ case "$1" in
   db_get xroad-common/username
   AUSER="$RET"
 
+  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
   groupnames=""
   if [[ "$node_type" == "slave" ]]; then
       log "Cluster slave node detected, configuring slave compatible groups"

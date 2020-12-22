@@ -36,7 +36,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.cert.X509Certificate;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -115,7 +114,6 @@ public final class HealthChecks {
         };
     }
 
-
     /**
      * Caches the result from the {@link HealthCheckProvider} for the specified time. You might want to check
      * often if a previously ok system is still ok but check more rarely if a previously
@@ -131,23 +129,20 @@ public final class HealthChecks {
 
         return (healthCheckProvider) -> new HealthCheckProvider() {
 
-            // the problem with this memoizing supplier is that you set the cache time upon creation, not
-            // when getting/putting the value
             private Supplier<HealthCheckResult> resultSupplier = Suppliers
                     .memoizeWithExpiration(healthCheckProvider::get, resultValidFor, timeUnit);
 
-            HealthCheckResult previousResult = null;
+            boolean previousResult = true;
 
             @Override
             public HealthCheckResult get() {
                 HealthCheckResult result = resultSupplier.get();
 
                 // if the result has changed, switch to the other (longer/shorter) cache if necessary
-                if (Optional.ofNullable(previousResult).orElse(OK).isOk() != result.isOk()
-                        && resultValidFor != errorResultValidFor) {
+                if (previousResult != result.isOk()) {
                     resetCacheAndPut(result);
+                    previousResult = result.isOk();
                 }
-                previousResult = result;
                 return result;
             }
 
@@ -156,9 +151,13 @@ public final class HealthChecks {
 
                 // recreate the (lightweight) cache, and "put" the value we already have by wrapping it
                 // in a decorator that caches that result once.
-                resultSupplier = Suppliers
+                final Supplier<HealthCheckResult> supplier = Suppliers
                         .memoizeWithExpiration(cacheResultOnce(healthCheckProvider, result)::get,
                                 validityTime, timeUnit);
+                // pull the value from the cache into the supplier. Avoids returning an old value if the
+                // new supplier is not accessed during the validityTime.
+                supplier.get();
+                resultSupplier = supplier;
             }
         };
     }
@@ -166,21 +165,23 @@ public final class HealthChecks {
     /**
      * As the name implies, caches the given result once and calls the given provider on subsequent calls.
      *
-     * @param provider the provider for {@link HealthCheckResult}s beyond the first result
+     * @param provider         the provider for {@link HealthCheckResult}s beyond the first result
      * @param cachedOnceResult the first result to return
      * @return a provider wrapping the given provider
      */
     public static HealthCheckProvider cacheResultOnce(HealthCheckProvider provider,
-                                                      HealthCheckResult cachedOnceResult) {
+            HealthCheckResult cachedOnceResult) {
         return new HealthCheckProvider() {
 
-            private HealthCheckResult cachedResult = cachedOnceResult;
+            private boolean once = true;
 
             @Override
             public HealthCheckResult get() {
-                HealthCheckResult result = Optional.ofNullable(cachedResult).orElseGet(provider);
-                cachedResult = null;
-                return result;
+                if (once) {
+                    once = false;
+                    return cachedOnceResult;
+                }
+                return provider.get();
             }
         };
     }

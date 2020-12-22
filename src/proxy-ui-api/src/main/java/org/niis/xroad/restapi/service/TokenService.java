@@ -57,6 +57,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PIN_INCORRECT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_TOKEN_NOT_ACTIVE;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
@@ -405,9 +407,6 @@ public class TokenService {
     }
 
     public static class PinIncorrectException extends ServiceException {
-
-        public static final String ERROR_PIN_INCORRECT = "pin_incorrect";
-
         public PinIncorrectException(Throwable t) {
             super(t, createError());
         }
@@ -419,9 +418,6 @@ public class TokenService {
     }
 
     public static class TokenNotActiveException extends ServiceException {
-
-        public static final String ERROR_TOKEN_NOT_ACTIVE = "token_not_active";
-
         public TokenNotActiveException(Throwable t) {
             super(t, createError());
         }

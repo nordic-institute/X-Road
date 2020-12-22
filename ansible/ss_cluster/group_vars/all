@@ -3,6 +3,9 @@
 serverconf_password: serverconf
 serverconf_admin_password: serverconfadmin
 
+# serverconf_admin database password for local connections
+serverconf_admin_password: serverconf_admin
+
 # postgresql port for the separate serverconf instance
 serverconf_db_port: 5433
 

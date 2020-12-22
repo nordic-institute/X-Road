@@ -4,7 +4,12 @@
     path: "/etc/yum.repos.d/epel.repo"
   register: epel
 
-- name: Install epel repository (RHEL)
+- name: EPEL repo key
+  rpm_key:
+    state: present
+    key: https://getfedora.org/static/fedora.gpg
+
+- name: Install EPEL repository (RHEL)
   yum:
     name: "https://dl.fedoraproject.org/pub/epel/epel-release-latest-{{ansible_distribution_major_version}}.noarch.rpm"
   when: not epel.stat.exists

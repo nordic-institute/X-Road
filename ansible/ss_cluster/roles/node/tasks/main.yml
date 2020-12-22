@@ -21,6 +21,7 @@
       - xroad-proxy
       - xroad-confclient
       - xroad-signer
+      - xroad-proxy-ui-api
   when: not node_ini.stat.exists
   register: services_stopped
 
@@ -80,15 +81,6 @@
   with_items:
       - {option: 'serverconf.hibernate.connection.url', value: 'jdbc:postgresql://127.0.0.1:{{ serverconf_db_port }}/serverconf'}
       - {option: 'serverconf.hibernate.connection.password', value: '{{ serverconf_password }}'}
-
-- name: configure xroad (db) properties
-  ini_file:
-      dest: "/etc/xroad.properties"
-      section: null
-      option: "{{ item.option }}"
-      value: "{{ item.value }}"
-  with_items:
-      - {option: 'serverconf.database.admin_password', value: '{{ serverconf_admin_password }}'}
 
 - name: ensure that rsync is installed
   package:

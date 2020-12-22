@@ -52,7 +52,7 @@ var loginCommands = {
     this.setValue('@passwordInput', this.api.globals.login_pwd);
     this.click('@loginButton');
     return this;
-  }
+  },
 };
 
 module.exports = {
@@ -61,6 +61,6 @@ module.exports = {
   elements: {
     usernameInput: { selector: 'input[id=username]' },
     passwordInput: { selector: 'input[id=password]' },
-    loginButton: { selector: 'button[id=submit-button]' }
-  }
+    loginButton: { selector: 'button[id=submit-button]' },
+  },
 };

@@ -29,6 +29,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +40,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 
@@ -117,5 +119,51 @@ public class CertUtilsTest {
         CertUtils.createPkcs12("src/test/resources/internal.key", "src/test/resources/internal.crt", pkcsPath);
         Path path = Paths.get(pkcsPath);
         assertTrue(Files.exists(path));
+    }
+
+    @Test
+    public void testGetSubjectAlternativeNamesEmpty() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_empty.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals(null, CertUtils.getSubjectAlternativeNames(cert));
+        }
+    }
+
+    @Test
+    public void testGetSubjectAlternativeNamesSimple() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_simple.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals("DNS:*.example.org", CertUtils.getSubjectAlternativeNames(cert));
+        }
+    }
+
+    @Test
+    public void testGetSubjectAlternativeNamesMulti() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_multi.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals("email:my@example.org, URI:http://example.org/, "
+                    + "DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, DNS:*.example.org, "
+                    + "othername:<unsupported>, Registered ID:1.2.3.4, IP Address:192.168.7.1",
+                    CertUtils.getSubjectAlternativeNames(cert));
+        }
+    }
+
+    @Test
+    public void testGetSubjectAlternativeNamesMultiAlternativeOrder() throws CertificateException, IOException {
+        final String certPath = "src/test/resources/cert_multi2.pem";
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        try (FileInputStream in = new FileInputStream(certPath)) {
+            X509Certificate cert = (X509Certificate) cf.generateCertificate(in);
+            assertEquals("DirName:CN=My Name,OU=My Unit,O=My Organization,C=UK, "
+                            + "URI:http://example.org/, othername:<unsupported>, Registered ID:1.2.3.4,"
+                            + " IP Address:192.168.7.1, email:my@example.org, DNS:*.example.org",
+                    CertUtils.getSubjectAlternativeNames(cert));
+        }
     }
 }

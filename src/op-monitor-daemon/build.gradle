@@ -1,5 +1,5 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '4.0.4'
+    id 'com.github.johnrengelman.shadow'
 }
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
@@ -16,16 +16,19 @@ sourceSets {
 }
 
 dependencies {
-    compile 'javax.validation:validation-api:1.1.0.Final'
-    compile "io.dropwizard.metrics:metrics-core:$metricsVersion"
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
+    implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
-    compile project(':common-db')
-    compile project(':common-op-monitoring')
-    compile project(':monitoring-conf')
+    implementation project(':common-verifier')
+    implementation project(':common-util')
+    implementation project(':common-db')
+    implementation project(':common-op-monitoring')
+    implementation project(':monitoring-conf')
 
     // Using HSQLDB for an in-memory database in tests.
-    testCompile 'org.hsqldb:hsqldb:2.5.0'
-    testCompile 'commons-cli:commons-cli:1.4'
+    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation 'commons-cli:commons-cli:1.4'
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -59,6 +62,7 @@ task xjc() {
 shadowJar {
     append('reference.conf')
     classifier = ''
+    exclude('**/module-info.class')
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
     }
@@ -103,12 +107,7 @@ compileJava.dependsOn xjc
 compileJava.dependsOn processResources
 
 test {
-    //testLogging {
-    //    showStandardStreams = true;
-    //}
-
     jacoco {
-        append = false
         destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
     }
     finalizedBy jacocoTestReport
@@ -120,9 +119,4 @@ jacocoTestReport {
         csv.enabled false
         html.enabled true
     }
-}
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
 }

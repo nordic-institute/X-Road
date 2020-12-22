@@ -33,7 +33,7 @@
       />
     </div>
 
-    <div style="height: 120px;">
+    <div style="height: 120px">
       <template v-if="configuratonAnchor">
         <div class="row-wrap">
           <div class="label">{{ $t('initialConfiguration.anchor.hash') }}</div>

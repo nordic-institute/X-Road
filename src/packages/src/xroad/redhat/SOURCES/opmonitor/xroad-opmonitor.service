@@ -1,14 +1,12 @@
 [Unit]
 Description=X-Road opmonitor daemon
-After=network.target xroad-confclient.target
+After=network.target xroad-base.service xroad-confclient.service
+Requires=xroad-base.service
 Wants=postgresql.service
 Wants=xroad-confclient.service
 
 [Service]
 EnvironmentFile=-/etc/sysconfig/xroad-opmonitor
-PermissionsStartOnly=true
-ExecStartPre=/bin/mkdir -p -m0755 /var/run/xroad
-ExecStartPre=/bin/chown xroad:xroad /var/run/xroad
 User=xroad
 Group=xroad
 ExecStart=/usr/share/xroad/bin/xroad-opmonitor

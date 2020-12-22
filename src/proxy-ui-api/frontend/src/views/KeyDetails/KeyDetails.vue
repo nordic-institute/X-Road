@@ -48,7 +48,7 @@
       </div>
     </div>
 
-    <ValidationObserver ref="form" v-slot="{ validate, invalid }">
+    <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
         <div>{{ $t('fields.keys.friendlyName') }}</div>
         <ValidationProvider
@@ -83,7 +83,7 @@
         </div>
         <div class="info-row">
           <div class="row-title">{{ $t('keys.readOnly') }}</div>
-          <div class="row-data">{{ key.read_only }}</div>
+          <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
         </div>
       </div>
 
@@ -130,13 +130,22 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { UsageTypes, Permissions, PossibleActions } from '@/global';
-import { Key, PossibleActions as PossibleActionsList } from '@/openapi-types';
+import { Permissions } from '@/global';
+import {
+  Key,
+  KeyUsageType,
+  PossibleAction,
+  PossibleActions as PossibleActionsList,
+  Token,
+} from '@/openapi-types';
 import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
+import { mapGetters } from 'vuex';
+import { PossibleActions } from '@/openapi-types/models/PossibleActions';
+import { isEmpty } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
@@ -159,15 +168,17 @@ export default Vue.extend({
       touched: false,
       saveBusy: false,
       key: {} as Key,
-      possibleActions: [] as string[],
+      possibleActions: [] as PossibleActions,
       deleting: false as boolean,
       warningInfo: [] as string[],
       warningDialog: false as boolean,
+      tokenForCurrentKey: {} as Token,
     };
   },
   computed: {
+    ...mapGetters(['tokens']),
     canEdit(): boolean {
-      if (!this.possibleActions.includes(PossibleActions.EDIT_FRIENDLY_NAME)) {
+      if (!this.possibleActions.includes(PossibleAction.EDIT_FRIENDLY_NAME)) {
         return false;
       }
 
@@ -176,15 +187,15 @@ export default Vue.extend({
       );
     },
     canDelete(): boolean {
-      if (!this.possibleActions.includes(PossibleActions.DELETE)) {
+      if (!this.possibleActions.includes(PossibleAction.DELETE)) {
         return false;
       }
 
-      if (this.key.usage === UsageTypes.SIGNING) {
+      if (this.key.usage === KeyUsageType.SIGNING) {
         return this.$store.getters.hasPermission(Permissions.DELETE_SIGN_KEY);
       }
 
-      if (this.key.usage === UsageTypes.AUTHENTICATION) {
+      if (this.key.usage === KeyUsageType.AUTHENTICATION) {
         return this.$store.getters.hasPermission(Permissions.DELETE_AUTH_KEY);
       }
 
@@ -213,17 +224,34 @@ export default Vue.extend({
     },
 
     fetchData(id: string): void {
-      api
-        .get<Key>(`/keys/${encodePathParameter(id)}`)
+      const promises = [];
+      const keyPromise = api.get<Key>(`/keys/${encodePathParameter(id)}`);
+
+      promises.push(keyPromise);
+
+      if (this.tokens?.length === 0) {
+        const tokenPromise = this.$store.dispatch('fetchTokens');
+        promises.push(tokenPromise);
+      }
+
+      keyPromise
         .then((res) => {
           this.key = res.data;
           this.fetchPossibleActions(id);
+          // If the key has no name, use key id instead
+          this.setKeyName();
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
         });
-    },
 
+      // Find the token that contains current key after token and keys are fetched
+      Promise.all(promises).then(() => {
+        this.tokenForCurrentKey = this.tokens.find((token: Token) =>
+          token.keys.find((key: Key) => key.id === this.id),
+        );
+      });
+    },
     fetchPossibleActions(id: string): void {
       api
         .get<PossibleActionsList>(
@@ -266,6 +294,11 @@ export default Vue.extend({
           }
         })
         .finally(() => (this.deleting = false));
+    },
+    setKeyName(): void {
+      if (isEmpty(this.key.name)) {
+        this.key.name = this.key.id;
+      }
     },
   },
   created() {

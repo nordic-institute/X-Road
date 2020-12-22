@@ -32,12 +32,13 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import org.bouncycastle.cert.ocsp.CertificateStatus;
 import org.bouncycastle.cert.ocsp.OCSPResp;
-import org.joda.time.DateTime;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -79,7 +80,7 @@ public class OcspCacheTest {
      */
     @Test
     public void putGet() throws Exception {
-        Date thisUpdate = new DateTime().plusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 
@@ -94,7 +95,7 @@ public class OcspCacheTest {
      */
     @Test
     public void expiredResponse() throws Exception {
-        Date thisUpdate = new DateTime().minusDays(1).toDate();
+        Date thisUpdate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
         OCSPResp ocsp = OcspTestUtils.createOCSPResponse(subject, issuer,
                 signer, signerKey, CertificateStatus.GOOD, thisUpdate, null);
 

@@ -35,6 +35,9 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
+
+import javax.servlet.http.HttpServletRequest;
 
 import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
 
@@ -70,7 +73,9 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
                 .and()
                 .and()
             .csrf()
-                .disable()
+                .requireCsrfProtectionMatcher(ManageApiKeysWebSecurityConfigurerAdapter::sessionExists)
+                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
+                .and()
             .formLogin()
                 .disable();
     }
@@ -80,5 +85,11 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
         builder.authenticationProvider(authenticationProvider);
     }
 
+    /**
+     * Check if an alive session exists
+     */
+    private static boolean sessionExists(HttpServletRequest request) {
+        return request.getSession(false) != null;
+    }
 
 }

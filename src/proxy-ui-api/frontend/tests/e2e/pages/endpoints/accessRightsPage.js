@@ -26,40 +26,52 @@
 
 const addSubjectsPopup = require('../common/addSubjectsPopup');
 
-const commands = [{
-  openAddSubjectsDialog: function() {
-    this.click('@addSubjectsButton');
-    return this;
+const commands = [
+  {
+    openAddSubjectsDialog: function () {
+      this.click('@addSubjectsButton');
+      return this;
+    },
+    close: function () {
+      this.click('@closeButton');
+      return this;
+    },
+    verifyAccessRightsPage: function (path) {
+      this.api.waitForElementVisible(
+        `//div[contains(@class, "group-members-row")]//div[contains(@class, "row-title") and contains(text(), "Access Rights")]`,
+      );
+      this.api.waitForElementVisible(
+        `//div[contains(@class, "cert-dialog-header")]//span[contains(@class, "identifier-wrap") and contains(text(), ${path})]`,
+      );
+      return this;
+    },
   },
-  close: function() {
-    this.click('@closeButton');
-    return this;
-  },
-  verifyAccessRightsPage: function(path) {
-    this.api.waitForElementVisible(`//div[contains(@class, "group-members-row")]//div[contains(@class, "row-title") and contains(text(), "Access Rights")]`);
-    this.api.waitForElementVisible(`//div[contains(@class, "cert-dialog-header")]//span[contains(@class, "cert-headline") and contains(text(), ${path})]`);
-    return this;
-  },
-}];
+];
 
 module.exports = {
-  url: (clientId, serviceId, endpointId) => `${process.env.VUE_DEV_SERVER_URL}/#/service/${clientId}/${serviceId}/endpoints/${endpointId}/accessrights`,
+  url: (clientId, serviceId, endpointId) =>
+    `${process.env.VUE_DEV_SERVER_URL}/#/service/${clientId}/${serviceId}/endpoints/${endpointId}/accessrights`,
   commands: commands,
   elements: {
     removeAllButton: {
       selector: '//button[@data-test="remove-all-access-rights"]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
     addSubjectsButton: {
       selector: '//button[@data-test="add-subjects-dialog"]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
     closeButton: {
       selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
     pageHeader: {
-      selector: '//div[contains(@class, "group-members-row)]//div[contains(@class, "row-title")]/text()',
-      locateStrategy: 'xpath' },
+      selector:
+        '//div[contains(@class, "group-members-row)]//div[contains(@class, "row-title")]/text()',
+      locateStrategy: 'xpath',
+    },
   },
   sections: {
     addSubjectsPopup,
-  }
+  },
 };

@@ -12,7 +12,7 @@
 - name: do initial configuration sync
   become_user: xroad
   become: yes
-  command: rsync -e "ssh -o StrictHostKeyChecking=no" -aqz --delete-delay --exclude "/db.properties" --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/jetty" --exclude "/backup.d" "{{ xroad_slave_ssh_user }}@{{ master_host }}":/etc/xroad/ /etc/xroad/
+  command: rsync -e "ssh -o StrictHostKeyChecking=no" -aqz --delete-delay --exclude "/db.properties" --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/nginx" --exclude "/backup.d" "{{ xroad_slave_ssh_user }}@{{ master_host }}":/etc/xroad/ /etc/xroad/
 
 - name: install configuration sync
   include_tasks: "{{ ansible_distribution | lower }}.yml"
@@ -40,6 +40,7 @@
       - xroad-proxy
       - xroad-confclient
       - xroad-signer
+      - xroad-proxy-ui-api
 
 - name: remove UI editor groups
   group:

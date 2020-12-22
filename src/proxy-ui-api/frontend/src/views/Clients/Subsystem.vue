@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-tab-max-width xrd-view-common">
     <v-flex mb-4 class="title-action">
-      <h1 v-if="client" class="display-1 mb-3">
+      <h1 v-if="client" class="display-1 mb-3 identifier-wrap">
         {{ client.subsystem_code }} ({{ $t('subsystem') }})
       </h1>
       <div>
@@ -102,7 +102,7 @@ export default Vue.extend({
         return false;
       }
 
-      return this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ);
+      return this.$store.getters.hasPermission(Permissions.DELETE_CLIENT);
     },
 
     tabs(): Tab[] {

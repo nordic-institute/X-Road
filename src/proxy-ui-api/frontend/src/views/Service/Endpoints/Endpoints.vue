@@ -27,6 +27,7 @@
   <div class="xrd-tab-max-width xrd-view-common">
     <div class="wrap-right">
       <v-btn
+        v-if="canEdit"
         color="primary"
         @click="isAddEndpointDialogVisible = true"
         outlined
@@ -57,10 +58,10 @@
             }}</span>
             <span v-else>{{ endpoint.method }}</span>
           </td>
-          <td>{{ endpoint.path }}</td>
+          <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
             <v-btn
-              v-if="!endpoint.generated"
+              v-if="!endpoint.generated && canEdit"
               small
               outlined
               rounded
@@ -71,6 +72,7 @@
               >{{ $t('action.edit') }}</v-btn
             >
             <v-btn
+              v-if="canViewAccessRights"
               small
               outlined
               rounded
@@ -99,7 +101,7 @@ import { mapGetters } from 'vuex';
 import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
-import { RouteName } from '@/global';
+import { RouteName, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
@@ -113,6 +115,14 @@ export default Vue.extend({
       return this.service.endpoints.filter((endpoint: Endpoint) => {
         return !this.isBaseEndpoint(endpoint);
       });
+    },
+
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
+    },
+
+    canViewAccessRights(): boolean {
+      return this.$store.getters.hasPermission(Permissions.VIEW_ENDPOINT_ACL);
     },
   },
   data() {
@@ -139,7 +149,7 @@ export default Vue.extend({
         })
         .finally(() => {
           this.isAddEndpointDialogVisible = false;
-          this.$emit('updateService', this.service.id);
+          this.$emit('update-service', this.service.id);
         });
     },
     isBaseEndpoint(endpoint: Endpoint): boolean {

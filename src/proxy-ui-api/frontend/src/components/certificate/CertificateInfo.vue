@@ -65,6 +65,10 @@
       arrayType
       :sourceObject="certificate"
     />
+    <certificate-line
+      childKey="subject_alternative_names"
+      :sourceObject="certificate"
+    />
     <certificate-line childKey="signature" :sourceObject="certificate" chunk />
   </div>
 </template>

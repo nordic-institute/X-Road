@@ -10,13 +10,14 @@ module.exports = {
     '@vue/prettier',
     '@vue/prettier/@typescript-eslint',
   ],
-  ignorePatterns: ['tests/', 'node_modules/'],
+  ignorePatterns: ['node_modules/'],
   parserOptions: {
     ecmaVersion: 2020,
   },
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/camelcase': 'off',
     'vue/no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any':

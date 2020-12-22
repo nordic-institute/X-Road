@@ -182,6 +182,7 @@ const router = new Router({
           props: {
             default: true,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.AddClient,
@@ -189,6 +190,7 @@ const router = new Router({
           components: {
             default: AddClient,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.AddMember,
@@ -199,6 +201,7 @@ const router = new Router({
           props: {
             default: true,
           },
+          meta: { permissions: [Permissions.ADD_CLIENT] },
         },
         {
           name: RouteName.Subsystem,
@@ -288,7 +291,7 @@ const router = new Router({
         },
         {
           name: RouteName.Certificate,
-          path: '/certificate/:hash/:usage',
+          path: '/certificate/:hash',
           components: {
             default: CertificateDetails,
           },
@@ -397,7 +400,7 @@ const router = new Router({
         },
         {
           name: RouteName.GenerateCertificateSignRequest,
-          path: '/generate-csr/:keyId',
+          path: '/generate-csr/:keyId/:tokenType',
           components: {
             default: GenerateCertificateSignRequest,
           },
@@ -405,7 +408,7 @@ const router = new Router({
         },
         {
           name: RouteName.AddKey,
-          path: '/add-key/:tokenId',
+          path: '/add-key/:tokenId/:tokenType',
           components: {
             default: AddKey,
           },
@@ -469,7 +472,10 @@ router.beforeEach((to: Route, from: Route, next: Next) => {
     return;
   }
 
-  if (store.getters.isAuthenticated) {
+  // User is allowed to access any other view than login only after authenticated information has been fetched
+  // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
+  // user to be redirected to a view that contains api calls (s)he is not allowed.
+  if (store.getters.isSessionAlive && store.getters.isAuthenticated) {
     // Server is not initialized
     if (store.getters.needsInitialization) {
       if (to.name !== RouteName.InitialConfiguration) {

@@ -1,0 +1,18 @@
+[Unit]
+Description=X-Road opmonitor daemon
+After=network.target xroad-base.service xroad-confclient.service
+Requires=xroad-base.service
+Wants=postgresql.service
+Wants=xroad-confclient.service
+
+[Service]
+User=xroad
+Group=xroad
+ExecStart=/usr/share/xroad/bin/xroad-opmonitor
+Restart=on-failure
+SuccessExitStatus=143
+
+[Install]
+WantedBy=multi-user.target
+WantedBy=xroad-proxy.service
+

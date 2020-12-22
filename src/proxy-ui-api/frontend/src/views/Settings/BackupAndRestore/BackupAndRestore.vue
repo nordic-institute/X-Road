@@ -33,6 +33,7 @@
         hide-details
         class="search-input"
         data-test="backup-search"
+        autofocus
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
@@ -47,7 +48,7 @@
         </large-button>
         <file-upload
           accepts=".tar"
-          @fileChanged="onFileUploaded"
+          @file-changed="onFileUploaded"
           v-slot="{ upload }"
         >
           <large-button

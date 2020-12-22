@@ -57,6 +57,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST;
 
 /**
  * Global configuration service.
@@ -67,10 +68,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 @Service
 @PreAuthorize("isAuthenticated()")
 public class GlobalConfService {
-
     private static final int CONF_CLIENT_ADMIN_PORT = SystemProperties.getConfigurationClientAdminPort();
     private static final int REST_TEMPLATE_TIMEOUT_MS = 60000;
-    private static final String ERROR_GLOBAL_CONF_DOWNLOAD_REQUEST = "global_conf_download_request_failed";
 
     private final GlobalConfFacade globalConfFacade;
     private final ServerConfService serverConfService;

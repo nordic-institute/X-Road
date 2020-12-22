@@ -31,6 +31,7 @@
         :label="$t('services.service')"
         single-line
         hide-details
+        autofocus
         data-test="search-service"
         class="search-input"
       >
@@ -137,7 +138,7 @@
                   v-bind:key="service.id"
                 >
                   <td
-                    class="service-code"
+                    class="service-code identifier-wrap"
                     @click="serviceClick(serviceDesc, service)"
                     data-test="service-link"
                   >

@@ -34,7 +34,7 @@
         <i @click="cancel()" id="close-x" data-test="cancel"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px;" class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0">
         <v-expansion-panels class="elevation-0" v-model="expandPanel" multiple>
           <v-expansion-panel class="elevation-0">
             <v-expansion-panel-header></v-expansion-panel-header>
@@ -54,6 +54,7 @@
                       :label="$t('name')"
                       single-line
                       hide-details
+                      autofocus
                       data-test="name"
                       class="flex-input"
                     ></v-text-field>
@@ -79,7 +80,7 @@
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
-                      label="Member group code"
+                      :label="$t('serviceClients.memberGroupCodeLabel')"
                       single-line
                       hide-details
                       data-test="memberCode"
@@ -237,7 +238,7 @@ export default Vue.extend({
     canSave(): boolean {
       return this.selectedIds.length > 0;
     },
-    ServiceClientTypeItems(): object[] {
+    ServiceClientTypeItems(): Record<string, unknown>[] {
       // Returns items for subject type select with translated texts
       return [
         {
@@ -268,7 +269,7 @@ export default Vue.extend({
     },
     search(): void {
       this.noResults = false;
-      let query = `/clients/${this.clientId}/service-client-candidates?name=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
+      let query = `/clients/${this.clientId}/service-client-candidates?member_name_group_description=${this.name}&member_group_code=${this.memberCode}&subsystem_code=${this.subsystemCode}`;
 
       // These checks are needed because instance, subject type and member class (dropdowns) return undefined if they are first selected and then cleared
       if (this.instance) {
@@ -318,7 +319,7 @@ export default Vue.extend({
       this.$emit('cancel');
     },
     save(): void {
-      this.$emit('serviceClientsAdded', this.selectedIds);
+      this.$emit('service-clients-added', this.selectedIds);
       this.clearForm();
     },
 

@@ -29,40 +29,46 @@
     @open="descOpen(token.id)"
     @close="descClose(token.id)"
     :isOpen="isExpanded(token.id)"
+    :color="tokenStatusColor"
   >
     <template v-slot:action>
       <template v-if="canActivateToken">
-        <large-button
-          @click="confirmLogin()"
-          v-if="!token.logged_in"
-          :disabled="!token.available"
-          data-test="token-login-button"
-          >{{ $t('keys.logIn') }}</large-button
+        <span
+          v-if="tokenLabelKey && tokenLabelKey.length > 1"
+          class="token-status-indicator label"
+          v-bind:class="tokenStatusClass"
         >
-        <large-button
-          @click="confirmLogout()"
-          v-if="token.logged_in"
-          outlined
-          data-test="token-logout-button"
-          >{{ $t('keys.logOut') }}</large-button
-        >
+          {{ $t(tokenLabelKey) }}
+        </span>
+        <TokenLoggingButton
+          class="token-logging-button"
+          :token="token"
+          @token-logout="logout()"
+          @token-login="login()"
+        />
       </template>
     </template>
 
     <template v-slot:link>
       <div
-        class="clickable-link"
+        class="clickable-link identifier-wrap"
         @click="tokenClick(token)"
         data-test="token-name"
       >
-        {{ $t('keys.token') }} {{ token.name }}
+        <span
+          class="token-status-indicator token-name"
+          v-bind:class="tokenStatusClass"
+        >
+          {{ $t('keys.token') }} {{ token.name }}
+        </span>
       </div>
     </template>
 
     <template v-slot:content>
       <div>
-        <div class="button-wrap" v-if="canActivateToken">
+        <div class="button-wrap">
           <large-button
+            v-if="canAddKey"
             outlined
             @click="addKey()"
             :disabled="!token.logged_in"
@@ -70,8 +76,9 @@
             >{{ $t('keys.addKey') }}</large-button
           >
           <file-upload
+            v-if="canImportCertificate"
             accepts=".pem, .cer, .der"
-            @fileChanged="importCert"
+            @file-changed="importCert"
             v-slot="{ upload }"
           >
             <large-button
@@ -92,11 +99,11 @@
           title="keys.authKeyCert"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @certificateClick="certificateClick"
-          @importCertByHash="importCertByHash"
-          @refreshList="fetchData"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @certificate-click="certificateClick"
+          @import-cert-by-hash="importCertByHash"
+          @refresh-list="fetchData"
         />
 
         <!-- SIGN keys table -->
@@ -106,11 +113,11 @@
           title="keys.signKeyCert"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @certificateClick="certificateClick"
-          @importCertByHash="importCertByHash"
-          @refreshList="fetchData"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @certificate-click="certificateClick"
+          @import-cert-by-hash="importCertByHash"
+          @refresh-list="fetchData"
         />
 
         <!-- Keys with unknown type -->
@@ -120,9 +127,9 @@
           title="keys.unknown"
           :tokenLoggedIn="token.logged_in"
           :tokenType="token.type"
-          @keyClick="keyClick"
-          @generateCsr="generateCsr"
-          @importCertByHash="importCertByHash"
+          @key-click="keyClick"
+          @generate-csr="generateCsr"
+          @import-cert-by-hash="importCertByHash"
         />
       </div>
     </template>
@@ -132,16 +139,22 @@
 <script lang="ts">
 // View for a token
 import Vue from 'vue';
-import { Permissions, RouteName, UsageTypes } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import Expandable from '@/components/ui/Expandable.vue';
 import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 import FileUpload from '@/components/ui/FileUpload.vue';
 import { FileUploadResult } from '@/ui-types';
-import { encodePathParameter } from '@/util/api';
+import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
+import { Prop } from 'vue/types/options';
+import {
+  getTokenUIStatus,
+  TokenUIStatus,
+} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
 
 export default Vue.extend({
   components: {
@@ -150,10 +163,11 @@ export default Vue.extend({
     KeysTable,
     UnknownKeysTable,
     FileUpload,
+    TokenLoggingButton,
   },
   props: {
     token: {
-      type: Object,
+      type: Object as Prop<Token>,
       required: true,
     },
   },
@@ -163,20 +177,70 @@ export default Vue.extend({
         Permissions.ACTIVATE_DEACTIVATE_TOKEN,
       );
     },
+    canImportCertificate(): boolean {
+      return (
+        this.$store.getters.hasPermission(Permissions.IMPORT_AUTH_CERT) ||
+        this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT)
+      );
+    },
+    canAddKey(): boolean {
+      return this.$store.getters.hasPermission(Permissions.GENERATE_KEY);
+    },
+    tokenLabelKey(): string {
+      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
+
+      if (status === TokenUIStatus.Inactive) {
+        return 'keys.tokenStatus.inactive';
+      } else if (status === TokenUIStatus.Unavailable) {
+        return 'keys.tokenStatus.unavailable';
+      } else if (status === TokenUIStatus.Unsaved) {
+        return 'keys.tokenStatus.unsaved';
+      }
+
+      return ''; // if TokenUIStatus is Active or Available or unknown return empty string
+    },
+    tokenStatusClass(): string {
+      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
+
+      if (status === TokenUIStatus.Inactive) {
+        return 'inactive';
+      } else if (status === TokenUIStatus.Unavailable) {
+        return 'unavailable';
+      } else if (status === TokenUIStatus.Unsaved) {
+        return 'unsaved';
+      }
+
+      return '';
+    },
+    tokenStatusColor(): string {
+      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
+
+      if (status === TokenUIStatus.Inactive) {
+        return '#9c9c9c';
+      } else if (
+        status === TokenUIStatus.Unavailable ||
+        status === TokenUIStatus.Unsaved
+      ) {
+        return '#ff0032'; // XRoad-Red
+      } else {
+        return '#202020'; // XRoad-Black
+      }
+    },
   },
   methods: {
-    confirmLogout(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('tokenLogout');
-    },
-    confirmLogin(): void {
-      this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('tokenLogin');
-    },
-
     addKey(): void {
       this.$store.dispatch('setSelectedToken', this.token);
-      this.$emit('addKey');
+      this.$emit('add-key');
+    },
+
+    login(): void {
+      this.$store.dispatch('setSelectedToken', this.token);
+      this.$emit('token-login');
+    },
+
+    logout(): void {
+      this.$store.dispatch('setSelectedToken', this.token);
+      this.$emit('token-logout');
     },
 
     tokenClick(token: Token): void {
@@ -205,40 +269,23 @@ export default Vue.extend({
 
     getAuthKeys(keys: Key[]): Key[] {
       const filtered = keys.filter((key: Key) => {
-        return key.usage === UsageTypes.AUTHENTICATION;
+        return key.usage === KeyUsageType.AUTHENTICATION;
       });
 
       return filtered;
     },
 
     getSignKeys(keys: Key[]): Key[] {
-      const filtered = keys.filter((key: Key) => {
-        if (
-          this.token.type === 'HARDWARE' &&
-          key.usage !== UsageTypes.SIGNING &&
-          key.usage !== UsageTypes.AUTHENTICATION
-        ) {
-          // Hardware keys are SIGNING type by definition
-          // If a hardware token's key doesn't have a usage type make it a SIGNING key
-          return true;
-        }
-        return key.usage === UsageTypes.SIGNING;
-      });
-
-      return filtered;
+      return keys.filter((key: Key) => key.usage === KeyUsageType.SIGNING);
     },
 
     getOtherKeys(keys: Key[]): Key[] {
       // Keys that don't have assigned usage type
-      const filtered = keys.filter((key: Key) => {
-        return (
-          this.token.type !== 'HARDWARE' &&
-          key.usage !== UsageTypes.SIGNING &&
-          key.usage !== UsageTypes.AUTHENTICATION
-        );
-      });
-
-      return filtered;
+      return keys.filter(
+        (key: Key) =>
+          key.usage !== KeyUsageType.SIGNING &&
+          key.usage !== KeyUsageType.AUTHENTICATION,
+      );
     },
 
     descClose(tokenId: string) {
@@ -284,12 +331,15 @@ export default Vue.extend({
     generateCsr(key: Key) {
       this.$router.push({
         name: RouteName.GenerateCertificateSignRequest,
-        params: { keyId: key.id },
+        params: {
+          keyId: key.id,
+          tokenType: this.token.type,
+        },
       });
     },
     fetchData(): void {
       // Fetch tokens from backend
-      this.$emit('refreshList');
+      this.$emit('refresh-list');
     },
   },
 });
@@ -297,6 +347,39 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';
+@import '../../../assets/colors';
+
+.token-logging-button {
+  display: inline-flex;
+}
+
+.token-status-indicator {
+  font-weight: bold;
+
+  &.label {
+    margin-right: 24px;
+    text-decoration: none;
+  }
+
+  &.token-name {
+    text-decoration: underline;
+  }
+
+  &.inactive {
+    color: $XRoad-Grey40;
+    text-decoration-color: $XRoad-Grey40;
+  }
+
+  &.unavailable {
+    color: $XRoad-Red;
+    text-decoration-color: $XRoad-Red;
+  }
+
+  &.unsaved {
+    color: $XRoad-Red;
+    text-decoration-color: $XRoad-Red;
+  }
+}
 
 .clickable-link {
   text-decoration: underline;

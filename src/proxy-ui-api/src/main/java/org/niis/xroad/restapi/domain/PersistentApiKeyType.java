@@ -38,7 +38,6 @@ import java.util.Set;
 @Getter
 public class PersistentApiKeyType {
     private Long id;
-    private String plaintTextKey;
     private String encodedKey;
     @Setter
     private Set<Role> roles;
@@ -49,19 +48,6 @@ public class PersistentApiKeyType {
      * @param roles
      */
     public PersistentApiKeyType(String encodedKey, Collection<Role> roles) {
-        this.encodedKey = encodedKey;
-        this.roles = new HashSet<>();
-        this.roles.addAll(roles);
-    }
-
-    /**
-     * Create api key
-     * @param plaintTextKey
-     * @param encodedKey
-     * @param roles
-     */
-    public PersistentApiKeyType(String plaintTextKey, String encodedKey, Collection<Role> roles) {
-        this.plaintTextKey = plaintTextKey;
         this.encodedKey = encodedKey;
         this.roles = new HashSet<>();
         this.roles.addAll(roles);

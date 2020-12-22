@@ -58,8 +58,3 @@ licenseTest.dependsOn licenseTestJava
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}

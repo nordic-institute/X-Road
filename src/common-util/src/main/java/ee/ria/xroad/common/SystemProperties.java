@@ -92,7 +92,6 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
             PREFIX + "proxy-ui-api.regular-api-whitelist";
 
-
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
@@ -340,7 +339,6 @@ public final class SystemProperties {
 
     private static final int OCSP_VERIFIER_CACHE_PERIOD_MAX = 180;
 
-
     // Signer -----------------------------------------------------------------
 
     /** Property name of the key configuration file. */
@@ -390,6 +388,16 @@ public final class SystemProperties {
 
     public static final String DEFAULT_SIGNER_MODULE_MANAGER_UPDATE_INTERVAL = "60";
 
+    public static final String SIGNER_CLIENT_HEARTBEAT_INTERVAL =
+            PREFIX + "signer.client.heartbeat-interval";
+
+    private static final String DEFAULT_SIGNER_CLIENT_HEARTBEAT_INTERVAL = "1";
+
+    public static final String SIGNER_CLIENT_FAILURE_THRESHOLD =
+            PREFIX + "signer.client.failure-threshold";
+
+    private static final String DEFAULT_SIGNER_CLIENT_FAILURE_THRESHOLD = "7";
+
     // AntiDos ----------------------------------------------------------------
 
     /** Property name of the AntiDos on/off switch */
@@ -419,7 +427,6 @@ public final class SystemProperties {
 
     public static final String CONFIGURATION_CLIENT_ADMIN_PORT =
             PREFIX + "configuration-client.admin-port";
-
 
     public static final String CONFIGURATION_CLIENT_UPDATE_INTERVAL_SECONDS =
             PREFIX + "configuration-client.update-interval";
@@ -648,7 +655,6 @@ public final class SystemProperties {
     public static final String CONF_FILE_ADDON_PATH =
             getConfPath() + "conf.d/addons/";
 
-
     // --------------------------------------------------------------------- //
 
     // For testing purpose only!
@@ -699,6 +705,7 @@ public final class SystemProperties {
 
     /**
      * TO DO: not correct, fix
+     *
      * @return whitelist for Proxy UI API's key management API, "127.0.0.0/8, ::1" (localhost) by default
      */
     public static String getKeyManagementApiWhitelist() {
@@ -776,7 +783,6 @@ public final class SystemProperties {
     public static String getWsdlValidatorCommand() {
         return System.getProperty(WSDL_VALIDATOR_COMMAND, null);
     }
-
 
     /**
      * @return signature digest algorithm ID used for generating authentication certificate registration request,
@@ -926,6 +932,23 @@ public final class SystemProperties {
     }
 
     /**
+     * @return the signer client heartbeat interval in seconds
+     */
+    public static int getSignerClientHeartbeatInterval() {
+        return Integer.parseInt(
+                System.getProperty(SIGNER_CLIENT_HEARTBEAT_INTERVAL, DEFAULT_SIGNER_CLIENT_HEARTBEAT_INTERVAL));
+    }
+
+    /**
+     * @return the signer client failure threshold (how many lost heartbeat messages until signer is considered
+     * unreachable).
+     */
+    public static int getSignerClientFailureThreshold() {
+        return Integer.parseInt(
+                System.getProperty(SIGNER_CLIENT_FAILURE_THRESHOLD, DEFAULT_SIGNER_CLIENT_FAILURE_THRESHOLD));
+    }
+
+    /**
      * @return the HTTP port on which the configuration client is listening, '5665' by default.
      */
     public static int getConfigurationClientPort() {
@@ -940,7 +963,6 @@ public final class SystemProperties {
         return Integer.parseInt(System.getProperty(CONFIGURATION_CLIENT_ADMIN_PORT,
                 Integer.toString(PortNumbers.CONFIGURATION_CLIENT_ADMIN_PORT)));
     }
-
 
     /**
      * @return the update interval in seconds at which configuration client
@@ -1191,7 +1213,6 @@ public final class SystemProperties {
     public static int getEnvMonitorCertificateInfoSensorInterval() {
         return Integer.parseInt(System.getProperty(ENV_MONITOR_CERTIFICATE_INFO_SENSOR_INTERVAL, ONE_DAY_AS_SECONDS));
     }
-
 
     /**
      * @return path to the file containing network statistics,
@@ -1553,6 +1574,7 @@ public final class SystemProperties {
             throw new IllegalArgumentException("Illegal minimum global configuration version in system parameters");
         }
     }
+
     /**
      * @return Whether to throw an exception about expired or not yet valid certificates, 'false' by default..
      */

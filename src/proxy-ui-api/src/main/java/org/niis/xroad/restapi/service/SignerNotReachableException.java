@@ -28,12 +28,12 @@ package org.niis.xroad.restapi.service;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SIGNER_NOT_REACHABLE;
+
 /**
  * When signer operation fails
  */
 public class SignerNotReachableException extends DeviationAwareRuntimeException {
-    public static final String ERROR_SIGNER_NOT_REACHABLE = "signer_not_reachable";
-
     public SignerNotReachableException(String msg, Throwable t) {
         super(msg, t, new ErrorDeviation(ERROR_SIGNER_NOT_REACHABLE));
     }

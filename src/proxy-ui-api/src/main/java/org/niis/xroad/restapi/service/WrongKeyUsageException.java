@@ -27,12 +27,13 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_KEY_USAGE;
+
 /**
  * Thrown if attempted to use KeyUsageInfo.SIGNING when only KeyUsageInfo.AUTHENTICATION
  * was allowed, or vice versa.
  */
 public class WrongKeyUsageException extends ServiceException {
-    public static final String ERROR_WRONG_KEY_USAGE = "wrong_key_usage";
     public WrongKeyUsageException() {
         super(new ErrorDeviation(ERROR_WRONG_KEY_USAGE));
     }

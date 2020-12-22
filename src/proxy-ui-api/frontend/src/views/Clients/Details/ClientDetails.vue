@@ -29,19 +29,19 @@
       <table class="xrd-table detail-table" v-if="client">
         <tr>
           <td>{{ $t('client.memberName') }}</td>
-          <td>{{ client.member_name }}</td>
+          <td class="identifier-wrap">{{ client.member_name }}</td>
         </tr>
         <tr>
           <td>{{ $t('client.memberClass') }}</td>
-          <td>{{ client.member_class }}</td>
+          <td class="identifier-wrap">{{ client.member_class }}</td>
         </tr>
         <tr>
           <td>{{ $t('client.memberCode') }}</td>
-          <td>{{ client.member_code }}</td>
+          <td class="identifier-wrap">{{ client.member_code }}</td>
         </tr>
         <tr v-if="client.subsystem_code">
           <td>{{ $t('client.subsystemCode') }}</td>
-          <td>{{ client.subsystem_code }}</td>
+          <td class="identifier-wrap">{{ client.subsystem_code }}</td>
         </tr>
       </table>
     </v-card>
@@ -80,8 +80,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { RouteName, UsageTypes } from '@/global';
-import { TokenCertificate } from '@/openapi-types';
+import { RouteName } from '@/global';
+import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
@@ -102,7 +102,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: cert.certificate_details.hash,
-          usage: UsageTypes.SIGNING,
+          usage: KeyUsageType.SIGNING,
         },
       });
     },

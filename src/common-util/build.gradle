@@ -1,6 +1,10 @@
 import org.apache.tools.ant.filters.ReplaceTokens
+plugins {
+    id 'java-library'
+}
 
 project.ext.schemaTargetDir = new File("$buildDir/generated-sources")
+testJar.enabled = true
 
 configurations {
     xjc
@@ -13,43 +17,41 @@ sourceSets {
 }
 
 dependencies {
-    compile 'org.apache.james:apache-mime4j-core:0.8.3'
-    compile 'org.apache.commons:commons-lang3:3.9'
-    compile 'org.apache.santuario:xmlsec:2.1.4'
+    api 'org.apache.santuario:xmlsec:2.2.0'
+    api 'org.bouncycastle:bcpkix-jdk15on:1.66'
+    api 'org.apache.commons:commons-lang3:3.11'
+    api 'commons-io:commons-io:2.8.0'
+    api 'org.slf4j:jcl-over-slf4j:1.7.30'
+    api 'org.apache.james:apache-mime4j-core:0.8.3'
+    api "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.2'
+    api 'com.sun.activation:jakarta.activation:1.2.2'
+    api "org.eclipse.jetty:jetty-server:$jettyVersion"
+    api 'org.apache.httpcomponents:httpclient:4.5.6'
+    api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
-    compile 'org.bouncycastle:bcpkix-jdk15on:1.64'
-    compile 'commons-configuration:commons-configuration:1.10'
-    compile 'commons-io:commons-io:2.6'
-    compile 'commons-jxpath:commons-jxpath:1.3'
-    compile 'org.slf4j:jcl-over-slf4j:1.7.26'
-    compile "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+    api "com.typesafe.akka:akka-actor_$akkaVersion"
+    api "com.typesafe.akka:akka-remote_$akkaVersion"
+    api "com.typesafe.akka:akka-slf4j_$akkaVersion"
 
-    compile "org.eclipse.jetty:jetty-server:$jettyVersion"
+    api "com.fasterxml.jackson.core:jackson-databind:${project.property('jackson.version')}"
+    api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${project.property('jackson.version')}"
 
-    compile 'ch.qos.logback:logback-classic:1.2.3'
+    api 'com.google.code.gson:gson:2.8.6'
+    api 'com.google.guava:guava:29.0-jre'
 
-    compile ('org.quartz-scheduler:quartz:2.3.2') {
+    api ('org.quartz-scheduler:quartz:2.3.2') {
         exclude module: 'c3p0'
     }
 
-    compile 'joda-time:joda-time:2.10.3'
-    compile 'xalan:serializer:2.7.2'
+    api 'org.apache.commons:commons-configuration2:2.7'
 
-    compile 'org.apache.httpcomponents:httpclient:4.5.6'
-    compile 'org.apache.httpcomponents:httpasyncclient:4.1.4'
+    implementation 'ch.qos.logback:logback-classic:1.2.3'
 
-    compile "com.typesafe.akka:akka-actor_$akkaVersion"
-    compile "com.typesafe.akka:akka-remote_$akkaVersion"
-    compile "com.typesafe.akka:akka-slf4j_$akkaVersion"
-
-    compile "com.fasterxml.jackson.core:jackson-databind:${project.property('jackson.version')}"
-    compile 'com.google.code.gson:gson:2.8.5'
-    compile 'com.google.guava:guava:28.0-jre'
-
-    testCompile 'org.powermock:powermock-module-junit4:2.0.7'
-    testCompile 'org.powermock:powermock-api-mockito2:2.0.7'
-    testCompile 'org.mockito:mockito-core:3.4.6'
-    testCompile project(':common-test').sourceSets.main.output
+    testImplementation 'org.powermock:powermock-module-junit4:2.0.7'
+    testImplementation 'org.powermock:powermock-api-mockito2:2.0.7'
+    testImplementation "org.mockito:mockito-core:$mockitoVersion"
+    testImplementation project(':common-test')
 
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
@@ -153,11 +155,6 @@ clean.dependsOn makeClean
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
 
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}
-
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
@@ -172,12 +169,6 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
-idea.module {
-    excludeDirs -= file(buildDir)
-    buildDir.listFiles({ d, f -> f != 'generated-sources' } as FilenameFilter).each { excludeDirs += it }
-}
-
 
 def gitCommitHash() {
     def env = System.getenv()

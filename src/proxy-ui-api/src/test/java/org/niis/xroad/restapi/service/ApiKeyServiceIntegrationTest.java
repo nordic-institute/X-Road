@@ -53,21 +53,21 @@ public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void testDelete() throws Exception {
         String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
-                .getPlaintTextKey();
+                .getPlaintextKey();
         assertEquals(KEYS_CREATED_ELSEWHERE + 1, apiKeyService.listAll().size());
-        PersistentApiKeyType apiKey = apiKeyService.get(plainKey);
+        PersistentApiKeyType apiKey = apiKeyService.getForPlaintextKey(plainKey);
         assertEquals(2, apiKey.getRoles().size());
 
         // after remove, listall should be reduced and get(key) should fail
-        apiKeyService.remove(plainKey);
+        apiKeyService.removeForPlaintextKey(plainKey);
         assertEquals(KEYS_CREATED_ELSEWHERE, apiKeyService.listAll().size());
         try {
-            apiKey = apiKeyService.get(plainKey);
+            apiKeyService.removeForPlaintextKey(plainKey);
             fail("should throw exception");
         } catch (ApiKeyService.ApiKeyNotFoundException expected) {
         }
         try {
-            apiKeyService.remove(plainKey);
+            apiKeyService.removeForPlaintextKey(plainKey);
             fail("should throw exception");
         } catch (ApiKeyService.ApiKeyNotFoundException expected) {
         }
@@ -78,16 +78,21 @@ public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTest
         // Save
         String plainKey = apiKeyService.create(
                 Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"))
-                .getPlaintTextKey();
+                .getPlaintextKey();
         // Load
-        PersistentApiKeyType loaded = apiKeyService.get(plainKey);
+        PersistentApiKeyType loaded = apiKeyService.getForPlaintextKey(plainKey);
         assertNotNull(loaded);
         String encodedKey = loaded.getEncodedKey();
+
         assertEquals(new Long(KEYS_CREATED_ELSEWHERE + 1), loaded.getId());
         assertTrue(!plainKey.equals(encodedKey));
         assertEquals(encodedKey, loaded.getEncodedKey());
         assertEquals(2, loaded.getRoles().size());
         assertTrue(loaded.getRoles().contains(Role.XROAD_SECURITY_OFFICER));
+
+        // Load by encoded key
+        assertNotNull(apiKeyService.getForEncodedKey(encodedKey));
+
         // Update
         PersistentApiKeyType updated = apiKeyService.update(loaded.getId(),
                 Arrays.asList("XROAD_SECURITYSERVER_OBSERVER"));
@@ -100,14 +105,14 @@ public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void testDifferentRoles() throws Exception {
         try {
-            String key = apiKeyService.create(new ArrayList<>()).getPlaintTextKey();
+            String key = apiKeyService.create(new ArrayList<>()).getPlaintextKey();
             fail("should fail due to missing roles");
         } catch (InvalidRoleNameException expected) {
         }
 
         try {
             String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                    "FOOBAR")).getPlaintTextKey();
+                    "FOOBAR")).getPlaintextKey();
             fail("should fail due to bad role");
         } catch (InvalidRoleNameException expected) {
         }
@@ -125,6 +130,6 @@ public class ApiKeyServiceIntegrationTest extends AbstractServiceIntegrationTest
         }
 
         String key = apiKeyService.create(Arrays.asList("XROAD_SECURITY_OFFICER",
-                "XROAD_REGISTRATION_OFFICER")).getPlaintTextKey();
+                "XROAD_REGISTRATION_OFFICER")).getPlaintextKey();
     }
 }

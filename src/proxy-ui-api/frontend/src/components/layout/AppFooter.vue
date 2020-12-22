@@ -74,13 +74,19 @@
           </v-row>
           <v-row>
             <v-col class="py-0">
-              {{ $t('footer.copyright.company') }}
+              <a class="footer-link" href="https://niis.org/" target="_blank">
+                {{ $t('footer.copyright.company') }}
+              </a>
             </v-col>
           </v-row>
           <v-row>
             <v-col>
-              <a class="footer-link" href="https://niis.org/" target="_blank">
-                {{ $t('footer.copyright.companyUrlTitle') }}
+              <a
+                class="footer-link"
+                href="https://x-road.global/xroad-licence-info"
+                target="_blank"
+              >
+                {{ $t('footer.copyright.licenceInfo') }}
               </a>
             </v-col>
           </v-row>

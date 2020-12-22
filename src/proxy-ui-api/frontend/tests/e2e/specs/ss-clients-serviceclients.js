@@ -26,7 +26,9 @@
 
 module.exports = {
   tags: ['ss', 'clients', 'serviceclients'],
-  'Security server service clients list shows wsdl service with access rights': browser => {
+  'Security server service clients list shows wsdl service with access rights': (
+    browser,
+  ) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
@@ -55,16 +57,23 @@ module.exports = {
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
 
     // Verify buttons are visible
-    browser.expect.element(serviceClientsPage.elements.addServiceClientButton).to.be.visible;
-    browser.expect.element(serviceClientsPage.elements.unregisterButton).to.be.visible;
+    browser.expect.element(serviceClientsPage.elements.addServiceClientButton)
+      .to.be.visible;
+    browser.expect.element(serviceClientsPage.elements.unregisterButton).to.be
+      .visible;
 
     // Add wsdl
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_1);
+    clientServices.enterServiceUrl(
+      browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+    );
     clientServices.confirmAddDialog();
-    browser.assert.containsText(clientServices.elements.serviceDescription, browser.globals.testdata + '/' + browser.globals.wsdl_url_1);
+    browser.assert.containsText(
+      clientServices.elements.serviceDescription,
+      browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+    );
     mainPage.closeSnackbar();
 
     // Add access right to wsdl service
@@ -76,11 +85,20 @@ module.exports = {
     addSubjectsPopup.startSearch();
     addSubjectsPopup.selectSubject('TestOrg');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights added successfully');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Access rights added successfully',
+    );
     mainPage.closeSnackbar();
     operationDetails.close();
 
     // Verify SOAP service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -92,12 +110,17 @@ module.exports = {
     browser.waitForElementVisible(serviceDetails);
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description deleted');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Service description deleted',
+    );
     mainPage.closeSnackbar();
 
     browser.end();
   },
-  'Security server service clients list shows rest service with service level access right': browser => {
+  'Security server service clients list shows rest service with service level access right': (
+    browser,
+  ) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
@@ -110,8 +133,10 @@ module.exports = {
     const restEndpoints = mainPage.section.restServiceEndpoints;
     const clientServices = clientInfo.section.services;
     const addEndpointPopup = mainPage.section.addEndpointPopup;
-    const addEndpointAccessRightPopup = endpointAccessRightsPage.section.addSubjectsPopup;
-    const removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
+    const addEndpointAccessRightPopup =
+      endpointAccessRightsPage.section.addSubjectsPopup;
+    const removeAllAccessRightsPopup =
+      mainPage.section.removeAllAccessRightsPopup;
     const serviceDetails = mainPage.section.restServiceDetails;
 
     // Open SUT and check that page is loaded
@@ -131,7 +156,9 @@ module.exports = {
 
     // Add first rest service to be used
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.rest_url_1);
+    clientServices.enterServiceUrl(
+      browser.globals.testdata + '/' + browser.globals.rest_url_1,
+    );
     clientServices.selectRESTPath();
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
@@ -145,11 +172,20 @@ module.exports = {
     addSubjectsPopup.startSearch();
     addSubjectsPopup.selectSubject('TestOrg');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights added successfully');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Access rights added successfully',
+    );
     mainPage.closeSnackbar();
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -157,6 +193,7 @@ module.exports = {
     // Add endpoint for the rest service
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
+    clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(restOperationDetails);
     restOperationDetails.openEndpointsTab();
@@ -166,7 +203,10 @@ module.exports = {
     addEndpointPopup.enterPath('/test');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'New endpoint created successfully');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'New endpoint created successfully',
+    );
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.close();
@@ -191,7 +231,10 @@ module.exports = {
     addEndpointAccessRightPopup.startSearch();
     addEndpointAccessRightPopup.selectSubject('TestOrg');
     addEndpointAccessRightPopup.addSelected();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights added successfully');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Access rights added successfully',
+    );
     mainPage.closeSnackbar();
     endpointAccessRightsPage.close();
     browser.waitForElementVisible(restEndpoints);
@@ -210,14 +253,25 @@ module.exports = {
     restOperationDetails.removeAllAccessRights();
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.confirm();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights removed successfully');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Access rights removed successfully',
+    );
     mainPage.closeSnackbar();
 
     // Verify service client doesn't exist when REST service has only endpoint level access rights
     restOperationDetails.close();
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.expect.elements('//tr[contains(@data-test, "open-access-rights")]').count.to.equal(0);
+    browser.expect
+      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .count.to.equal(0);
 
     // Remove REST service description
     clientInfo.openServicesTab();
@@ -226,12 +280,15 @@ module.exports = {
     browser.waitForElementVisible(serviceDetails);
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description deleted');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Service description deleted',
+    );
     mainPage.closeSnackbar();
 
     browser.end();
   },
-  'Security server service client view filtering': browser => {
+  'Security server service client view filtering': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
@@ -260,7 +317,9 @@ module.exports = {
 
     // Add first rest service to be used
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(browser.globals.testdata + '/' + browser.globals.rest_url_1);
+    clientServices.enterServiceUrl(
+      browser.globals.testdata + '/' + browser.globals.rest_url_1,
+    );
     clientServices.selectRESTPath();
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
@@ -277,11 +336,20 @@ module.exports = {
     addSubjectsPopup.selectSubject('Group1');
     addSubjectsPopup.selectSubject('Group3');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Access rights added successfully');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Access rights added successfully',
+    );
     mainPage.closeSnackbar();
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openTestService();
+    browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
@@ -290,13 +358,21 @@ module.exports = {
     browser.waitForElementVisible('//tr[td[contains(text(),"Group3")]]');
 
     // Verify filtering works
-    browser.expect.elements('//tr[contains(@data-test, "open-access-rights")]').count.to.equal(4);
-    serviceClientsPage.enterServiceClientSearchWord("Test");
-    browser.expect.elements('//tr[contains(@data-test, "open-access-rights")]').count.to.equal(2);
-    serviceClientsPage.enterServiceClientSearchWord("group");
-    browser.expect.elements('//tr[contains(@data-test, "open-access-rights")]').count.to.equal(2);
-    serviceClientsPage.enterServiceClientSearchWord("management");
-    browser.expect.element('//tr[contains(@data-test, "open-access-rights")]//td[contains(text(), "TestOrg")]').to.be.visible;
+    browser.expect
+      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .count.to.equal(4);
+    serviceClientsPage.enterServiceClientSearchWord('Test');
+    browser.expect
+      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .count.to.equal(2);
+    serviceClientsPage.enterServiceClientSearchWord('group');
+    browser.expect
+      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .count.to.equal(2);
+    serviceClientsPage.enterServiceClientSearchWord('management');
+    browser.expect.element(
+      '//tr[contains(@data-test, "open-access-rights")]//td[contains(text(), "TestOrg")]',
+    ).to.be.visible;
 
     // Remove REST service description
     clientInfo.openServicesTab();
@@ -305,9 +381,12 @@ module.exports = {
     browser.waitForElementVisible(serviceDetails);
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Service description deleted');
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Service description deleted',
+    );
     mainPage.closeSnackbar();
 
     browser.end();
-  }
+  },
 };

@@ -22,6 +22,9 @@
         "login_system_administrator" : "xrd-sys",
         "login_securityserver_observer" : "xrd-obs",
         "logout_timeout_ms" : 60000,
+        "test_cert" : "cert.cer",
+        "export_cert" : "certs.tar.gz",
+        "e2etest_testdata" : "/../testdata",
         "wsdl_url_1": "testservice1.wsdl",
         "wsdl_url_2": "testservice2.wsdl",
         "rest_url_1": "testapi/v1/rest/",
@@ -40,8 +43,20 @@
         "acceptSslCerts" : true,
         "acceptInsecureCerts": true,
         "chromeOptions" : {
-          "w3c": false
+          "w3c": false,
+          "prefs" : {
+            "download": {
+            }
+          }
         }
+      }
+    },
+    "screenshot" : {
+      "screenshots" : {
+        "enabled" : true,
+        "on_failure" : true,
+        "on_error" : true,
+        "path" : "./error_screenshots"
       }
     }
   }

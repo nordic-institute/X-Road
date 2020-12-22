@@ -2,7 +2,7 @@
 
 This ansible playbook configures a master (1) - slave (n) security server cluster. In addition, setting up a load balancer (out of scope) is needed.
 
-The playbook has been tested in AWS EC2 using stock RHEL 7 and Ubuntu 18.04 AMIs running default X-Road security server installation. Other environments might require modifications to the playbook.
+The playbook has been tested in AWS EC2 using stock RHEL 7, Ubuntu 18.04 and Ubuntu 20.04 AMIs running default X-Road security server installation. Other environments might require modifications to the playbook.
 
 ## Prerequisites
 
@@ -16,13 +16,13 @@ The playbook has been tested in AWS EC2 using stock RHEL 7 and Ubuntu 18.04 AMIs
 * The control host executing this playbook has ssh access with sudo privileges on all the hosts.
     * Ansible version >2.1 required
     * The control host can be one of the cluster servers (e.g. the master node), but a separate control host is recommended.
-* Decide names for the cluster members and configure the nodes in the ansible inventory.
+* Decide names for the cluster members and configure the nodes in the ansible inventory. 
     * See hosts/cluster-example.txt for an example (nodename parameter)
     * Node names are related to certificate DN's, see "Set up SSL keys" for specifics
 * Change serverconf_password and serverconf_admin_password in group_vars/all and preferably encrypt the file using ansible vault.
     * The serverconf_password and serverconf_admin_password are used to authenticate the local connections to the serverconf database. The defaults are 'serverconf' and 'serverconfadmin', respectively.
 
-All the servers in a cluster should have the same operating system (Ubuntu 18.04 or RHEL 7). The setup also assumes that the servers are in the same subnet. If that is not the case, one needs to modify master's pg_hba.conf so that it accepts replication configurations from the correct network(s); for instance, in `/etc/postgresql/10/serverconf/pg_hba.conf`, below the line `hostssl replication +slavenode samenet cert` (which assumes the same subnet), an entry for another subnet can be added like so:
+All the servers in a cluster should have the same operating system (Ubuntu 18.04, Ubuntu 20.04 or RHEL 7). The setup also assumes that the servers are in the same subnet. If that is not the case, one needs to modify master's pg_hba.conf so that it accepts replication configurations from the correct network(s); for instance, in `/etc/postgresql/10/serverconf/pg_hba.conf`, below the line `hostssl replication +slavenode samenet cert` (which assumes the same subnet), an entry for another subnet can be added like so:
 ```
 hostssl replication +slavenode 10.65.228.0/24 cert
 ```
