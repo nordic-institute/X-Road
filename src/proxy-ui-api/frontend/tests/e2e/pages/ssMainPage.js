@@ -1509,5 +1509,21 @@ module.exports = {
         },
       },
     },
+    deleteCSRPopup: {
+      selector:
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Delete CSR?")]]',
+      locateStrategy: 'xpath',
+      commands: [confirmationDialogCommands],
+      elements: {
+        yesButton: {
+          selector: '//button[@data-test="dialog-save-button"]',
+          locateStrategy: 'xpath',
+        },
+        cancelButton: {
+          selector: '//button[@data-test="dialog-cancel-button"]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
   },
 };
