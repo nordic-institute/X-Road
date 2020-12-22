@@ -35,7 +35,7 @@
       <v-card-text style="height: 500px" class="elevation-0">
         <v-text-field
           v-model="search"
-          :label="$t('wizard.client.member')"
+          :label="$t(searchLabel)"
           single-line
           hide-details
           class="search-input"
@@ -113,6 +113,10 @@ export default Vue.extend({
     title: {
       type: String,
       default: 'wizard.client.addClient',
+    },
+    searchLabel: {
+      type: String,
+      default: 'action.search',
     },
     selectableClients: {
       type: Array as PropType<Client[]>,

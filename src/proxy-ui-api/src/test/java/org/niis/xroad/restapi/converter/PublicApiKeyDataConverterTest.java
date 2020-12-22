@@ -31,6 +31,7 @@ import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 
 import java.util.Arrays;
 import java.util.List;
@@ -44,7 +45,7 @@ import static org.junit.Assert.assertTrue;
  */
 public class PublicApiKeyDataConverterTest {
 
-    private static final int ID = 0;
+    private static final Long ID = 0L;
     private static final String PLAIN = "plain";
     private static final String ENCODED = "encoded";
     private PublicApiKeyDataConverter publicApiKeyDataConverter;
@@ -57,10 +58,10 @@ public class PublicApiKeyDataConverterTest {
     @Test
     public void convertNewKey() throws InvalidRoleNameException {
         Set<Role> roles = Role.getForNames(Arrays.asList("XROAD_SECURITY_OFFICER", "XROAD_REGISTRATION_OFFICER"));
-        PersistentApiKeyType key = new PersistentApiKeyType(PLAIN, ENCODED, roles);
+        PlaintextApiKeyDto key = new PlaintextApiKeyDto(ID, PLAIN, ENCODED, roles);
 
         PublicApiKeyData publicApiKeyData = publicApiKeyDataConverter.convert(key);
-        assertEquals(null, publicApiKeyData.getId());
+        assertEquals(ID, publicApiKeyData.getId());
         assertEquals(PLAIN, publicApiKeyData.getKey());
         assertEquals(2, publicApiKeyData.getRoles().size());
         assertTrue(publicApiKeyData.getRoles().contains(Role.XROAD_REGISTRATION_OFFICER));

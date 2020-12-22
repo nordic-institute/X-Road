@@ -10,10 +10,14 @@ Gem::Specification.new do |s|
   s.summary     = "Database and domain model layers of central server."
   s.author      = "Cybernetica AS"
 
+  s.required_ruby_version = '~> 2.3.3'
+
   s.files = Dir["{app,config,lib}/**/*"] + ["Rakefile"]
 
   s.add_dependency "rails", "~> 3.2.10"
 
   s.add_dependency "transaction_isolation", "~> 1.0.3"
   s.add_dependency "foreigner", "~> 1.7.0"
+  s.add_dependency 'rack-cache', '~> 1.6.1'
+
 end

@@ -132,6 +132,8 @@
     </ValidationObserver>
 
     <SelectClientDialog
+      title="wizard.addClientTitle"
+      searchLabel="wizard.client.searchLabel"
       :dialog="showSelectClient"
       :selectableClients="selectableClients"
       @cancel="showSelectClient = false"

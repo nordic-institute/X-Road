@@ -32,6 +32,7 @@ import org.mockito.Mock;
 import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -50,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 /**
  * Test api key service and api key authentication helper
- * caching while mocking DB. Will aquire a new application context because mocks EntityManager, Session and Query
+ * caching while mocking DB. Will acquire a new application context because mocks EntityManager, Session and Query
  */
 public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrationTestContext {
 
@@ -79,11 +80,16 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
         apiKeyService.listAll();
         verify(query, times(0)).list();
         // Create one key and then get it
-        PersistentApiKeyType key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        PlaintextApiKeyDto key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
         apiKeyService.listAll();
         apiKeyService.listAll();
         verify(query, times(1)).list();
     }
+
+    private PersistentApiKeyType getPersistedKey(PlaintextApiKeyDto plainKey) {
+        return new PersistentApiKeyType(plainKey.getEncodedKey(), plainKey.getRoles());
+    }
+
 
     @Test
     public void testCacheEviction() throws Exception {
@@ -91,15 +97,14 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
-        PersistentApiKeyType key =
-                apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(key);
+        PlaintextApiKeyDto key = apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
+        List<PersistentApiKeyType> listOfOne = Arrays.asList(getPersistedKey(key));
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyService.get(key.getPlaintTextKey());
-        apiKeyService.get(key.getPlaintTextKey());
-        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
-        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
+        apiKeyService.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyService.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyAuthenticationHelper.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyAuthenticationHelper.getForPlaintextKey(key.getPlaintextKey());
         verify(query, times(1)).list();
 
         // list uses the same cache
@@ -116,11 +121,11 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
         // revoke a key to force cache invalidation
         // (remove(key) itself already uses query.findAll,
         // but it's a cache hit)
-        apiKeyService.remove(key.getPlaintTextKey());
+        apiKeyService.removeForPlaintextKey(key.getPlaintextKey());
         verify(query, times(2)).list();
-        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
-        apiKeyService.get(key.getPlaintTextKey());
-        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyAuthenticationHelper.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyService.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyService.getForPlaintextKey(key.getPlaintextKey());
         verify(query, times(3)).list();
     }
 
@@ -130,14 +135,14 @@ public class ApiKeyServiceCachingIntegrationTest extends AbstractServiceIntegrat
         when(entityManager.unwrap(any())).thenReturn(session);
         when(session.createQuery(anyString())).thenReturn(query);
         doNothing().when(session).persist(any());
-        PersistentApiKeyType key =
+        PlaintextApiKeyDto key =
                 apiKeyService.create(Role.XROAD_REGISTRATION_OFFICER.name());
-        List<PersistentApiKeyType> listOfOne = Arrays.asList(key);
+        List<PersistentApiKeyType> listOfOne = Arrays.asList(getPersistedKey(key));
         when(query.list()).thenReturn(listOfOne);
         // then get this key
-        apiKeyService.get(key.getPlaintTextKey());
-        apiKeyAuthenticationHelper.get(key.getPlaintTextKey());
-        apiKeyService.get(key.getPlaintTextKey());
+        apiKeyService.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyAuthenticationHelper.getForPlaintextKey(key.getPlaintextKey());
+        apiKeyService.getForPlaintextKey(key.getPlaintextKey());
         verify(query, times(1)).list();
     }
 

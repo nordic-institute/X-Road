@@ -87,7 +87,7 @@ public class ApiKeyAuthenticationManager implements AuthenticationManager {
             PersistentApiKeyType key;
 
             try {
-                key = apiKeyAuthenticationHelper.get(apiKeyValue);
+                key = apiKeyAuthenticationHelper.getForPlaintextKey(apiKeyValue);
             } catch (ApiKeyService.ApiKeyNotFoundException notFound) {
                 throw new BadCredentialsException("The API key was not found or not the expected value.");
             } catch (Exception e) {
