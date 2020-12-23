@@ -180,7 +180,9 @@ export default Vue.extend({
   },
   computed: {
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_ACL);
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
+      );
     },
   },
   data() {

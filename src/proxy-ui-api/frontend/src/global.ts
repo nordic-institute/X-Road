@@ -78,7 +78,9 @@ export enum Permissions {
   ADD_CLIENT_INTERNAL_CERT = 'ADD_CLIENT_INTERNAL_CERT', // add TLS certificate in client "internal servers"
   ADD_LOCAL_GROUP = 'ADD_LOCAL_GROUP', // client > local groups
   ADD_TSP = 'ADD_TSP', // settings > system parameters
-  ADD_WSDL = 'ADD_WSDL', // client > services > add WSDL / REST
+  ADD_WSDL = 'ADD_WSDL', // client > services > add WSDL
+  ADD_OPENAPI3 = 'ADD_OPENAPI3', // client > services > add REST
+  ADD_OPENAPI3_ENDPOINT = 'ADD_OPENAPI3_ENDPOINT', // client > services > service > endpoints > edit endpoint
   BACKUP_CONFIGURATION = 'BACKUP_CONFIGURATION', // settings > backup and restore
   CREATE_API_KEY = 'CREATE_API_KEY', // api key
   DELETE_AUTH_CERT = 'DELETE_AUTH_CERT', // certificate details
@@ -103,7 +105,10 @@ export enum Permissions {
   EDIT_SERVICE_ACL = 'EDIT_SERVICE_ACL', // client > service clients > access rights
   EDIT_SERVICE_PARAMS = 'EDIT_SERVICE_PARAMS', // client > services > rest/wsdl > service params
   EDIT_TOKEN_FRIENDLY_NAME = 'EDIT_TOKEN_FRIENDLY_NAME', // token details
-  EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description
+  EDIT_WSDL = 'EDIT_WSDL', // client > services > edit service description of type WSDL
+  EDIT_REST = 'EDIT_REST', // client > services > edit service description of type rest
+  EDIT_OPENAPI3 = 'EDIT_OPENAPI3', // client > services > edit service description of type openapi3
+  EDIT_OPENAPI3_ENDPOINT = 'EDIT_OPENAPI3_ENDPOINT', // client > services > service > endpoints > edit endpoint
   ENABLE_DISABLE_WSDL = 'ENABLE_DISABLE_WSDL', // client > services > enable / disable WSDL switch
   EXPORT_INTERNAL_TLS_CERT = 'EXPORT_INTERNAL_TLS_CERT', // export SS TLS certificate in "internal servers" view & system parameters
   GENERATE_AUTH_CERT_REQ = 'GENERATE_AUTH_CERT_REQ',
