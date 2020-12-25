@@ -5,7 +5,7 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
- 24.12.2020 | 1.1     | Add description of features of different image versions         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Petteri Kivimäki
+ 24.12.2020 | 1.1     | Add description of features of different image versions         | Petteri Kivimäki
  
 # Table of Contents
 * [1 Introduction](#1-introduction)
