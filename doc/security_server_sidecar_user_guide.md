@@ -5,7 +5,8 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
-
+ 24.12.2020 | 1.1     | Add description of features of different image versions         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~| Petteri Kivimäki
+ 
 # Table of Contents
 * [1 Introduction](#1-introduction)
    * [1.1 Target Audience](#11-target-audience)
@@ -71,8 +72,7 @@ Building with Docker BuildKit can slightly reduce the size of the resulting cont
 See <https://docs.docker.com/develop/develop-images/build_enhancements/> for more information.
 
 ## 2.2 X-Road Security Server Sidecar images
-The Security Server Sidecar has different configurations combined with the versions (currently supported versions are "6.23.0" and "6.24.0") of the X-Road Security Server to create different types of images.
-All of the images can act as a provider or consumer Security Servers, but some of the images have less features available.
+The Security Server Sidecar has four different images with alternative configurations. Each Security Server version number (e.g., 6.24.0, 6.25.0, etc.) has its own set of images.
 
 **Image**                                                | **Description**                               
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
@@ -81,6 +81,15 @@ niis/xroad-security-server-sidecar:&lt;version&gt;           | This image uses t
 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi   | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish settings configuration included.
 niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt; but with the Finnish settings configuration included.
 
+All of the images can act as a provider or consumer Security Servers, but some of the images have less features available. The images with a country code suffix (e.g., `-fi`) come with a country-specific configuration. The images without a country code suffix come with the X-Road default configuration.
+
+**Feature**                      | **Sidecar** | **Sidecar Slim** | 
+---------------------------------|-------------|------------------|
+Consume services                 | Yes         | Yes              |
+Provide services                 | Yes         | Yes              |       
+Message logging                  | Yes         | No               |                  
+Environmental monitoring         | Yes         | No               |          
+Operational monitoring           | Yes         | No               |          
 
 ## 2.3 Reference data
 **Ref** | **Value**                                | **Explanation**
@@ -142,10 +151,10 @@ To install X-Road Security Server Sidecar we can run the script `setup_security_
 To install the Security Server Sidecar in a local development environment, run the script `setup_security_server_sidecar.sh` providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
 
   ```bash
-  ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> (<remote database server hostname> <remote database server port> <remote_database_name>)
+  ./setup_security_server_sidecar.sh <name of the Sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> (<remote database server hostname> <remote database server port> <remote_database_name>)
   ```
 
-The script setup_security_server_sidecar.sh will:
+The script `setup_security_server_sidecar.sh` will:
 
 - Create a Docker bridge-type network called xroad-network to provide container-to-container communication.
 - Build xroad-sidecar-security-server-image performing the following configuration steps:
@@ -173,11 +182,11 @@ The script setup_security_server_sidecar.sh will:
 Note (1): The installation using the setup script will only be available for linux systems, in case of Windows or Mac we should install it using the [dockerhub image](#262-installation-using-dockerhub-image).
 
 #### 2.6.2.1 Security Server Sidecar Slim
-To install the Security Server Sidecar slim, modify the Docker image build path in the setup_security_server_sidecar.sh script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`. The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
+To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`. The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
 To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`
 
 #### 2.6.2.2 Finnish settings
-  To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the setup_security_server_sidecar.sh changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
+  To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the `setup_security_server_sidecar.sh` changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
 
 ### 2.6.2 Installation using Dockerhub image
 First, create a Docker network to allow communication between containers, we can run the Docker command:
@@ -238,7 +247,7 @@ and checking the gateway property.
 ### 2.7.1 Reconfigure external database address after initialization
 
 It is possible to change the external database after the initialization while the Sidecar container is running. This will not recreate the database, so we need to make sure that the `serverconf` database and a user with granted permissions to access it are already created. To change the database host we need to:
-- Run a new command on the sidecar container:
+- Run a new command on the Sidecar container:
 ```bash
 docker exec -it <sidecar_container_name> bash
   ```
@@ -413,7 +422,7 @@ docker run -v (backups-volume-name):/etc/xroad/var/lib/xroad/backup/
 
 # 6 Version update
 We can update the Security Server Sidecar by creating a backup, running the image with the new version, and restore the backup or reuse the volume with the xroad config ([5](# 5-Back-up-and-Restore)).
-Another option, we can manually update the X-Road sidecar packages while the Docker container is running.
+Another option, we can manually update the X-Road Sidecar packages while the Docker container is running.
 To do this we must:
 - From the command line open a bash terminal inside the container:
 ```
@@ -572,10 +581,10 @@ docker run -v (custom-volume-name):/var/lib/xroad/
 
 # 9 Deployment options
 ## 9.1 General
-X-Road Security Server sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases. Nevertheless, there are other Security Server images available that can be used for tailoring the deployment to specific needs. These different images could be combined. Any of these Security Server sidecar images can be used either as a consumer or provider role.
+X-Road Security Server Sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases. Nevertheless, there are other Security Server images available that can be used for tailoring the deployment to specific needs. These different images could be combined. Any of these Security Server Sidecar images can be used either as a consumer or provider role.
 
 ## 9.2 Container local database
-The simplest deployment option is to use a single Security Server sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, for running the Security Server sidecar on a production environment, the requirements may be stricter.
+The simplest deployment option is to use a single Security Server Sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, for running the Security Server Sidecar on a production environment, the requirements may be stricter.
 
 ![Security Server with local database](img/ig-ss_local_db.svg)
 
@@ -646,7 +655,7 @@ livenessProbe:
 The startup probes indicate whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.
 
 Startup probes are useful for Pods that have containers that take a long time to come into service. This is not really useful in the Sidecar pod because it takes to short to start.
-In a different scenario where the sidecar container would take a long time to start, the startup probe can be used in combination with the liveness probe, so that it waits until the startup probe has succeeded before starting the liveness probe. The tricky part is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
+In a different scenario where the Sidecar container would take a long time to start, the startup probe can be used in combination with the liveness probe, so that it waits until the startup probe has succeeded before starting the liveness probe. The tricky part is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
 
  ```bash
  [...]
