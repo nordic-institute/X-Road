@@ -236,11 +236,10 @@ host    all             all             0.0.0.0/0            md5
 [...]
 ```
 
-- If the database is in your local machine you have to use the interface ip that uses the host to connect to the Docker containers. You can check this ip by running:
+- If the database is in your local machine you have to use the interface ip that uses the host to connect to the Docker containers. You can get this ip by running the command below and checking the gateway property:
 ```
 docker inspect <container_name>
 ```
-and checking the gateway property.
 
 - The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another Docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL version 10).
 
@@ -287,23 +286,22 @@ serverconf.hibernate.connection.password = <new_password>
    ```bash
     export XROAD_LOG_LEVEL=<logging level value>
     ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password>
-    ```
+   ```
 
 ## 2.9 Volume support
 
-    It is possible to configure the Security Server Sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main  config directories on the container.
-    For adding volume support we have to modify the Docker run sentence inside the `setup_security_server_sidecar.sh` script and add the volume support:
+It is possible to configure the Security Server Sidecar to use volume support. This will allow us to  create sidecar-config and sidecar-config-db directory on the host and mount it into the /etc/xroad and /var/lib/postgresql/10/main config directories on the container.
+For adding volume support we have to modify the Docker run sentence inside the `setup_security_server_sidecar.sh` script and add the volume support:
+```
+-v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main
+```
 
-    ```
-    -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main
-    ```
-
-    For example:
-      ```bash
-      [...]
-        docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
-      [...]
-      ```
+For example:
+```bash
+[...]
+docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
+[...]
+```
 
 #### 2.9.1 Store sensitive information in volumes
 The file `/etc/xroad.properties` contains sensitive information to access the external database. For security reasons, it is strongly recommended to store this file outside the Security Server Sidecar container by configuring a volume:
