@@ -25,7 +25,7 @@
       * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
    * [2.8 Logging Level](#28-logging-level)
    * [2.9 Volume support](#29-volume-support)
-         * [2.9.1 Store sensitive information in volumes](#291-store-sensitive-information-in-volumes)
+     * [2.9.1 Store sensitive information in volumes](#291-store-sensitive-information-in-volumes)
 * [3 Verify installation](#3-verify-installation)
 * [4 X-Road Security Server Sidecar initial configuration](#4-x-road-security-server-sidecar-initial-configuration)
    * [4.1 Prerequisites](#41-prerequisites)
