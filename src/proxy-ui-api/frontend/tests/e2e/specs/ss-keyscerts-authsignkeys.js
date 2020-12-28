@@ -58,8 +58,7 @@ module.exports = {
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
-    browser.expect.element(signAuthTab.elements.expandButton).to.be.enabled;
-
+    browser.waitForElementVisible(signAuthTab.elements.expandButton);
     signAuthTab.toggleExpandToken();
 
     browser.waitForElementNotPresent(
