@@ -54,7 +54,7 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
+    //browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
