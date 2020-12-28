@@ -58,7 +58,7 @@ module.exports = {
     browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
-
+    keysTab.navigate();
     browser.pause(1000);
     console.log("Verifying expand");
     browser.waitForElementVisible(signAuthTab.elements.expandButton);
