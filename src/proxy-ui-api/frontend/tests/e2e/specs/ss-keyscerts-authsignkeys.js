@@ -54,10 +54,13 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    //browser.maximizeWindow();
+    browser.pause(1000);
+    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
+    browser.pause(1000);
+    console.log("Verifying expand");
     browser.waitForElementVisible(signAuthTab.elements.expandButton);
     signAuthTab.toggleExpandToken();
 
