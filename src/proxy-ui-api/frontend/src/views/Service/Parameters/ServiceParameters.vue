@@ -559,5 +559,4 @@ export default Vue.extend({
   display: flex;
   justify-content: flex-end;
 }
-
 </style>

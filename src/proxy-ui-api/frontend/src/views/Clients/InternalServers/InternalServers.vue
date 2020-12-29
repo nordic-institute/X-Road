@@ -53,7 +53,7 @@
           v-slot="{ upload }"
         >
           <large-button outlined color="primary" @click="upload"
-            ><v-icon class="mr-1">mdi-plus-circle</v-icon
+            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
             >{{ $t('action.add') }}</large-button
           >
         </file-upload>
@@ -68,9 +68,7 @@
             v-bind:key="certificate.hash"
           >
             <td class="cert-icon">
-              <icon-base icon-name="certificate" class="icon"
-                ><icon-certificate
-              /></icon-base>
+              <i class="icon-Certificate icon" />
             </td>
             <td>
               <span
@@ -97,10 +95,7 @@
         <template v-if="ssCertificate">
           <tr>
             <td class="cert-icon pl-4 pt-2">
-              <!-- <i class="icon-xrd_certificate icon"></i> -->
-              <icon-base icon-name="certificate" class="icon"
-                ><icon-certificate
-              /></icon-base>
+              <i class="icon-Certificate icon" />
             </td>
             <td>
               <span>{{ ssCertificate.hash | colonize }}</span>
@@ -134,8 +129,6 @@ import { CertificateDetails } from '@/openapi-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconCertificate from '@/components/ui/icons/IconCertificate.vue';
 
 export default Vue.extend({
   props: {
@@ -143,10 +136,6 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-  },
-  components: {
-    IconBase,
-    IconCertificate,
   },
   data() {
     return {

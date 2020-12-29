@@ -26,7 +26,7 @@
 <template>
   <tr :data-test="`api-key-row-${apiKey.id}`">
     <td>
-      <icon-base icon-name="key" class="icon"><icon-key /></icon-base>
+      <i class="icon-Key icon" />
     </td>
     <td>{{ apiKey.id }}</td>
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
@@ -103,15 +103,9 @@ import { Prop } from 'vue/types/options';
 import { ApiKey } from '@/global-types';
 import { Roles, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconKey from '@/components/ui/icons/IconKey.vue';
 
 export default Vue.extend({
   name: 'ApiKeyRow',
-  components: {
-    IconKey,
-    IconBase,
-  },
   props: {
     apiKey: {
       type: Object as Prop<ApiKey>,
@@ -190,5 +184,5 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '../../../assets/tables';
+@import '~styles/tables';
 </style>

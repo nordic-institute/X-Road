@@ -27,9 +27,7 @@
   <tr>
     <td class="td-name">
       <div class="name-wrap" @click="certificateClick()">
-        <icon-base icon-name="certificate" class="cert-icon clickable-link"
-          ><icon-certificate
-        /></icon-base>
+        <i class="icon-Certificate cert-icon clickable-link" />
         <div class="clickable-link">
           {{ cert.certificate_details.issuer_common_name }}
           {{ cert.certificate_details.serial }}
@@ -56,14 +54,10 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import CertificateStatus from './CertificateStatus.vue';
 import { TokenCertificate } from '@/openapi-types';
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconCertificate from '@/components/ui/icons/IconCertificate.vue';
 
 export default Vue.extend({
   components: {
     CertificateStatus,
-    IconCertificate,
-    IconBase,
   },
   props: {
     cert: {
