@@ -24,10 +24,11 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="">
+  <div>
     <div class="wrap-right px-4">
       <large-button
-        v-if="canEdit"
+        v-if="canAddEndpoint"
+        color="primary"
         @click="isAddEndpointDialogVisible = true"
         data-test="endpoint-add"
         >{{ $t('endpoints.addEndpoint') }}</large-button
@@ -57,7 +58,7 @@
           <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
             <large-button
-              v-if="!endpoint.generated && canEdit"
+              v-if="!endpoint.generated && canEditEndpoint"
               text
               class="xrd-table-button"
               data-test="endpoint-edit"
@@ -108,8 +109,16 @@ export default Vue.extend({
       });
     },
 
-    canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
+    canAddEndpoint(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ADD_OPENAPI3_ENDPOINT,
+      );
+    },
+
+    canEditEndpoint(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_OPENAPI3_ENDPOINT,
+      );
     },
 
     canViewAccessRights(): boolean {
