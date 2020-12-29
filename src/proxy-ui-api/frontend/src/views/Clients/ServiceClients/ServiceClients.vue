@@ -158,13 +158,4 @@ export default Vue.extend({
   color: $XRoad-Link;
   cursor: pointer;
 }
-
-.footer-button-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
 </style>

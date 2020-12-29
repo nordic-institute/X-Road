@@ -54,7 +54,7 @@
 
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="px-4">
-        <div class="edit-row">
+        <div class="edit-row pb-4">
           <div>{{ $t('services.serviceType') }}</div>
 
           <div class="code-input" v-if="serviceDesc.type === serviceType.REST">
@@ -82,7 +82,7 @@
           >
             <v-text-field
               v-model="serviceDesc.url"
-              single-line
+              outlined
               class="url-input"
               name="url"
               :error-messages="errors"
@@ -109,9 +109,9 @@
             >
               <v-text-field
                 v-model="currentServiceCode"
-                single-line
                 class="code-input"
                 name="code_field"
+                outlined
                 type="text"
                 :maxlength="255"
                 :error-messages="errors"
@@ -122,12 +122,11 @@
         </div>
       </div>
       <v-card flat>
-        <div class="footer-button-wrap">
+        <div class="footer-button-wrap mt-12">
           <large-button @click="close()" outlined>{{
             $t('action.cancel')
           }}</large-button>
           <large-button
-            class="save-button"
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
@@ -351,6 +350,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/colors';
 @import '~styles/dialogs';
+@import '~styles/detail-views';
 
 .main-wrap {
   background-color: white;
@@ -362,11 +362,11 @@ export default Vue.extend({
 .edit-row {
   display: flex;
   align-content: center;
-  align-items: baseline;
+  align-items: flex-start;
   margin-top: 30px;
 
   > div {
-    min-width: 90px;
+    min-width: 120px;
   }
 
   .code-input {
@@ -381,18 +381,5 @@ export default Vue.extend({
   margin-top: 50px;
   display: flex;
   justify-content: flex-end;
-}
-
-.footer-button-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
-
-.save-button {
-  margin-left: 20px;
 }
 </style>

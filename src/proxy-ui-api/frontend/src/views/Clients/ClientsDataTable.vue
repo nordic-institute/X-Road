@@ -54,14 +54,14 @@
           data-test="add-member-button"
           class="add-member"
           outlined
-          ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
           {{ $t('action.addMember') }}</LargeButton
         >
         <LargeButton
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
-          ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
           {{ $t('action.addClient') }}</LargeButton
         >
       </div>
@@ -86,11 +86,8 @@
       <template v-slot:[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
-          <v-icon
-            color="primary"
-            class="icon-member icon-size"
-            @click="openClient(item)"
-            >mdi-folder</v-icon
+          <i @click="openClient(item)">
+            <v-icon class="icon-member icon-size">icon-Folder</v-icon></i
           >
           <span
             v-if="canOpenClient"
@@ -105,8 +102,10 @@
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
-          <v-icon color="primary" class="icon-member icon-size"
-            >mdi-folder-outline</v-icon
+          <i @click="openClient(item)">
+            <v-icon class="icon-member icon-size"
+              >icon-Folder-outline</v-icon
+            ></i
           >
           <span
             v-if="canOpenClient"
@@ -126,8 +125,9 @@
           "
         >
           <v-icon class="icon-virtual-member icon-size"
-            >mdi-folder-outline</v-icon
+            >icon-Folder-outline</v-icon
           >
+
           <span class="identifier-wrap name-member">{{
             item.visibleName
           }}</span>
@@ -165,7 +165,7 @@
             text
             :outlined="false"
             @click="addSubsystem(item)"
-            ><v-icon class="mr-1">mdi-plus-circle</v-icon
+            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
             >{{ $t('action.addSubsystem') }}</LargeButton
           >
 
@@ -212,7 +212,6 @@ import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
-
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
@@ -486,6 +485,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+@import '~styles/colors';
 .xrd-table-header {
   border-bottom: 1px solid #dedce4 !important;
 }
@@ -495,6 +495,7 @@ export default Vue.extend({
 .v-data-table > .v-data-table__wrapper > table > thead > tr > td,
 .v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
   height: 56px;
+  color: $XRoad-Black100;
 }
 </style>
 
@@ -502,15 +503,18 @@ export default Vue.extend({
 @import '~styles/colors';
 .icon-member {
   padding-left: 0;
+  color: $XRoad-Link;
+  cursor: pointer;
 }
 
 .icon-virtual-member {
   padding-left: 0;
-  color: black;
+  color: $XRoad-Black100;
 }
 
 .icon-size {
   font-size: 20px;
+  padding-bottom: 4px;
 }
 
 .table-toolbar {

@@ -1,0 +1,95 @@
+@font-face {
+    font-family: "icons";
+    src: url("./icons.eot?7a3c501d468300328bcdc0116ef0df4d#iefix") format("embedded-opentype"),
+        url("./icons.woff2?7a3c501d468300328bcdc0116ef0df4d") format("woff2"),
+        url("./icons.woff?7a3c501d468300328bcdc0116ef0df4d") format("woff");
+}
+
+i[class^="icon-"]:before,
+i[class*=" icon-"]:before {
+    font-family: icons !important;
+    font-style: normal;
+    font-weight: normal !important;
+    font-variant: normal;
+    text-transform: none;
+    font-size: 26px;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-Add:before {
+    content: "\f101";
+}
+.icon-Certificate:before {
+    content: "\f102";
+}
+.icon-Checker:before {
+    content: "\f103";
+}
+.icon-Close:before {
+    content: "\f104";
+}
+.icon-Copy:before {
+    content: "\f105";
+}
+.icon-Database-backup:before {
+    content: "\f106";
+}
+.icon-Database:before {
+    content: "\f107";
+}
+.icon-Datepicker:before {
+    content: "\f108";
+}
+.icon-Declined:before {
+    content: "\f109";
+}
+.icon-Download:before {
+    content: "\f10a";
+}
+.icon-Dropdown-open:before {
+    content: "\f10b";
+}
+.icon-Error-notification:before {
+    content: "\f10c";
+}
+.icon-Folder-outline:before {
+    content: "\f10d";
+}
+.icon-Folder:before {
+    content: "\f10e";
+}
+.icon-Import:before {
+    content: "\f10f";
+}
+.icon-Key:before {
+    content: "\f110";
+}
+.icon-Menu:before {
+    content: "\f111";
+}
+.icon-Plus:before {
+    content: "\f112";
+}
+.icon-Search:before {
+    content: "\f113";
+}
+.icon-Security-Server:before {
+    content: "\f114";
+}
+.icon-Sorting-arrow:before {
+    content: "\f115";
+}
+.icon-Table-backup:before {
+    content: "\f116";
+}
+.icon-Tooltip:before {
+    content: "\f117";
+}
+.icon-Upload:before {
+    content: "\f118";
+}
+.icon-Warning:before {
+    content: "\f119";
+}
