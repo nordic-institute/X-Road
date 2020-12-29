@@ -73,7 +73,7 @@
             @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
-            ><v-icon>mdi-plus-circle</v-icon
+            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
             >{{ $t('keys.addKey') }}</large-button
           >
           <file-upload
@@ -89,7 +89,7 @@
               @click="upload"
               data-test="token-import-cert-button"
             >
-              <v-icon>mdi-import</v-icon>
+              <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
               {{ $t('keys.importCert') }}</large-button
             >
           </file-upload>

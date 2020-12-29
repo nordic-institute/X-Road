@@ -41,11 +41,9 @@
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
-        <v-card-actions>
+        <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <large-button class="mb-2" @click="logout()">{{
-            $t('action.ok')
-          }}</large-button>
+          <large-button @click="logout()">{{ $t('action.ok') }}</large-button>
         </v-card-actions>
       </v-card>
     </v-dialog>

@@ -24,14 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common xrd-sub-view-wrapper">
+  <div class="xrd-view-common xrd-sub-view-wrapper" @click="helpClick()">
     <v-hover v-slot:default="{ hover }">
-      <v-icon
-        :color="hover ? '#663CDC' : '#9c9c9c'"
-        dark
-        class="help-icon"
-        @click="helpClick()"
-        >mdi-help-circle</v-icon
+      <v-icon :color="hover ? '#663cdc' : '#575169'" dark class="help-icon"
+        >icon-Tooltip</v-icon
       >
     </v-hover>
 
@@ -85,5 +81,6 @@ export default Vue.extend({
   margin-left: 20px;
   margin-bottom: 4px;
   font-size: 22px;
+  cursor: pointer;
 }
 </style>

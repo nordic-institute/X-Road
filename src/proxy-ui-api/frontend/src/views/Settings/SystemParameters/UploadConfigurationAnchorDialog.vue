@@ -39,7 +39,7 @@
           :requires-permission="permissions.UPLOAD_ANCHOR"
           class="ml-5"
         >
-          <v-icon>mdi-arrow-up</v-icon>
+          <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
           {{
             $t('systemParameters.configurationAnchor.action.upload.button')
           }}</large-button

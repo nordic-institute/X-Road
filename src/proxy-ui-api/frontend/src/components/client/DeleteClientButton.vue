@@ -29,6 +29,7 @@
       data-test="delete-client-button"
       @click="confirmDelete = true"
       outlined
+      ><v-icon class="xrd-large-button-icon">icon-Declined</v-icon
       >{{ $t('action.delete') }}</LargeButton
     >
 

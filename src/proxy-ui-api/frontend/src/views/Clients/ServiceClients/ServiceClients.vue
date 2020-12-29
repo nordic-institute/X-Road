@@ -42,8 +42,8 @@
         color="primary"
         @click="addServiceClient"
         data-test="add-service-client"
-        class="ma-0 rounded-button elevation-0"
-        ><v-icon class="mr-1">mdi-plus-circle</v-icon
+        class="ma-0 elevation-0"
+        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
         >{{ $t('serviceClients.addServiceClient') }}
       </large-button>
     </div>

@@ -31,12 +31,6 @@
   font-size: $XRoad-DefaultFontSize;
 }
 
-.rounded-button {
-  padding-left: 24px;
-  padding-right: 24px;
-  border-radius: 4px;
-}
-
 .xrd-table-button {
   margin-top: auto;
   margin-bottom: auto;
@@ -60,18 +54,6 @@
 // Set validation provider to full width
 .validation-provider {
   width: 100%;
-}
-
-// Sub view header
-.sub-view-header {
-  margin-top: 50px;
-  display: flex;
-  justify-content: space-between;
-  color: $XRoad-Black100;
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  line-height: 30px;
 }
 
 .xrd-sub-view-wrapper {
@@ -126,11 +108,20 @@
   }
 }
 
+// Helper for elements that need the "clickable" look
 .xrd-clickable {
   color: $XRoad-Link;
   cursor: pointer;
 }
 
+// Default shadow for "modals" and "card" components
 .xrd-default-shadow {
   box-shadow: $XRoad-DefaultShadow;
+}
+
+// For adjusting the position of an icon when used inside a button component
+.xrd-large-button-icon {
+  margin-right: 5px;
+  margin-left: -2px;
+  min-width: 20px; // needs a width or the buttons with short text "collapse"
 }
