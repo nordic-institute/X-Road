@@ -47,7 +47,8 @@
           "prefs" : {
             "download": {
             }
-          }
+          },
+          "args" : ["--window-size=1280,900"]
         }
       }
     },
