@@ -207,14 +207,6 @@ module.exports = {
 
     var initialKeys;
 
-    browser.waitForElementNotPresent(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "SIGN Key and Certificate")]]//span[text()=""]',
-    );
-
-    browser.waitForElementVisible(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
-    );
-
     browser.elements(
       'xpath',
       '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
@@ -303,10 +295,6 @@ module.exports = {
 
     var initialKeys;
 
-    browser.waitForElementNotPresent(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "AUTH Key and Certificate")]]//span[text()=""]',
-    );
-
     // Get number of inital auth key are links
     browser.elements(
       'xpath',
@@ -326,7 +314,6 @@ module.exports = {
     addKeyWizardCSR.selectUsageMethod('AUTHENTICATION');
     addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('PEM');
-    //addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
 
     addKeyWizardCSR.next();
     browser.waitForElementVisible(addKeyWizardGenerate);

@@ -123,12 +123,14 @@ var confirmationDialogCommands = {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
+    //TODO: This is a workaround for intermittent confirmation button click failures
     //this.click('@yesButton');
     return this;
   },
   cancel: function () {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
+    //TODO: This is a workaround for intermittent cancel button click failures
     //this.click('@cancelButton');
     return this;
   },
@@ -139,12 +141,14 @@ var loginDialogCommands = {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
+    //TODO: This is a workaround for intermittent confirmation button click failures
     //this.click('@yesButton');
     return this;
   },
   cancel: function () {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
+    //TODO: This is a workaround for intermittent cancel button click failures
     //this.click('@cancelButton');
     return this;
   },
