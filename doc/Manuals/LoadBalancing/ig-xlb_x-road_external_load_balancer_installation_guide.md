@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.10  
+Version: 1.11  
 Doc. ID: IG-XLB
 
 
@@ -17,6 +17,7 @@ Doc. ID: IG-XLB
 | 08.10.2020  | 1.8         | Added notes about API keys and caching                                                                                   | Janne Mattila                |
 | 19.10.2020  | 1.9         | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
 | 19.10.2020  | 1.10        | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
+| 23.12.2020  | 1.11        | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                 |
 
 ## Table of Contents
 
@@ -30,15 +31,17 @@ Doc. ID: IG-XLB
   * [1.3 References](#13-references)
 * [2. Overview](#2-overview)
   * [2.1 Goals and assumptions](#21-goals-and-assumptions)
+    * [2.1.1 Basic Assumptions about the load balanced environment](#211-basic-assumptions-about-the-load-balanced-environment)
+    * [2.1.2 Consequences of the selected implementation model](#212-consequences-of-the-selected-implementation-model)
   * [2.2 Communication with external servers and services: The cluster from the point of view of a client or service](#22-communication-with-external-servers-and-services-the-cluster-from-the-point-of-view-of-a-client-or-service)
   * [2.3 State replication from the master to the slaves](#23-state-replication-from-the-master-to-the-slaves)
     * [2.3.1 Replicated state](#231-replicated-state)
-        * [2.3.1.1 `serverconf` database replication](#2311-serverconf-database-replication)
-        * [2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`](#2312-key-configuration-and-software-token-replication-from-etcxroadsigner)
-        * [2.3.1.3 Other server configuration parameters from `/etc/xroad/*`](#2313-other-server-configuration-parameters-from-etcxroad)
+      * [2.3.1.1 `serverconf` database replication](#2311-serverconf-database-replication)
+      * [2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`](#2312-key-configuration-and-software-token-replication-from-etcxroadsigner)
+      * [2.3.1.3 Other server configuration parameters from `/etc/xroad/*`](#2313-other-server-configuration-parameters-from-etcxroad)
     * [2.3.2 Non-replicated state](#232-non-replicated-state)
-        * [2.3.2.1 `messagelog` database](#2321-messagelog-database)
-        * [2.3.2.2 OCSP responses from `/var/cache/xroad/`](#2322-ocsp-responses-from-varcachexroad)
+      * [2.3.2.1 `messagelog` database](#2321-messagelog-database)
+      * [2.3.2.2 OCSP responses from `/var/cache/xroad/`](#2322-ocsp-responses-from-varcachexroad)
 * [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
   * [3.2 Master installation](#32-master-installation)
@@ -56,7 +59,7 @@ Doc. ID: IG-XLB
 * [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
   * [5.1 Set up SSH between slaves and the master](#51-set-up-ssh-between-slaves-and-the-master)
   * [5.2 Set up periodic configuration synchronization on the slave nodes](#52-set-up-periodic-configuration-synchronization-on-the-slave-nodes)
-    * [5.2.1 RHEL/Ubuntu 18.04: Use systemd for configuration synchronization](#521-rhelubuntu-1804-use-systemd-for-configuration-synchronization)
+    * [5.2.1 Use systemd for configuration synchronization](#521-use-systemd-for-configuration-synchronization)
   * [5.3 Set up log rotation for the sync log on the slave nodes](#53-set-up-log-rotation-for-the-sync-log-on-the-slave-nodes)
 * [6. Verifying the setup](#6-verifying-the-setup)
   * [6.1 Verifying rsync+ssh replication](#61-verifying-rsyncssh-replication)
@@ -123,15 +126,14 @@ status, this is described in more detail in section [3.4 Health check service co
 The load balancing support is implemented with a few assumptions about the environment that users should be aware of.
 Carefully consider these assumptions before deciding if the supported features are suitable for your needs.
 
-<a name="basic_assumptions"></a>
-__Basic Assumptions about the load balanced environment:__
+#### 2.1.1 Basic Assumptions about the load balanced environment
 * Adding or removing nodes to or from the cluster is infrequent. New nodes need to be added manually and this takes some
   time.
 * Changes to the configuration files are relatively infrequent and some downtime in ability to propagate the changes can
   be tolerated.
 * The cluster uses a master-slave model and the configuration master is not replicated.
 
-__Consequences of the selected implementation model:__
+#### 2.1.2 Consequences of the selected implementation model
 * Changes to the `serverconf` database, authorization and signing keys are applied via the configuration master, which is
   a member of the cluster. The replication is one-way from master to slaves and the slaves should treat the configuration
   as read-only.
@@ -169,7 +171,7 @@ as needed.
 
 #### 2.3.1 Replicated state
 
-###### 2.3.1.1 `serverconf` database replication
+##### 2.3.1.1 `serverconf` database replication
 | Data            | Replication          | Replication method                                 |
 | ------------------- | -------------------- | -------------------------------------------------- |
 | serverconf database | **replication required** | PostgreSQL streaming replication (Hot standby) |
@@ -178,7 +180,7 @@ The serverconf database replication is done using streaming replication with hot
 is all-or-nothing: it is not possible to exclude databases from the replication. This is why the replicated serverconf and
 non-replicated messagelog databases need to be separated to different instances.
 
-###### 2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`
+##### 2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`
 | Data                           | Replication          | Replication method                                 |
 | ------------------------------- | -------------------- | -------------------------------------------------- |
 | keyconf and the software token  | **replicated**       |  `rsync+ssh`  (scheduled)                          |
@@ -190,13 +192,14 @@ keyconf.xml to be applied on slave nodes without service disruptions. The actual
 rsync over ssh. This might take a few minutes so a slight delay in propagating the changes must be tolerated by the
 clustered environment. A small delay should usually cause no problems as new keys and certificates are unlikely to be used
 immediately for X-Road messaging. Changes to the configuration are also usually relatively infrequent. These were one of
-the [basic assumptions](#basic_assumptions) about the environment. Users should make sure this holds true for them.
+the [basic assumptions](#211-basic-assumptions-about-the-load-balanced-environment) about the environment. 
+Users should make sure this holds true for them.
 
 The slave nodes use the `keyconf.xml` in read-only mode: no changes made from the admin UI are persisted to disk. Slaves
 reload the configuration from disk periodically and apply the changes to their running in-memory configuration.
 
 
-###### 2.3.1.3 Other server configuration parameters from `/etc/xroad/*`
+##### 2.3.1.3 Other server configuration parameters from `/etc/xroad/*`
 | Data                                 | Replication          | Replication method                                 |
 | ------------------------------------- | -------------------- | -------------------------------------------------- |
 | other server configuration parameters | **replicated**       |  `rsync+ssh`  (scheduled)                          |
@@ -210,7 +213,7 @@ The following configurations are excluded from replication:
 
 #### 2.3.2 Non-replicated state
 
-###### 2.3.2.1 `messagelog` database
+##### 2.3.2.1 `messagelog` database
 
 The messagelog database is not replicated. Each node has its own separate messagelog database. **However**, in order to
 support PostgreSQL streaming replication (hot standby mode) for the serverconf data, the serverconf and messagelog
@@ -218,8 +221,7 @@ databases must be separated. This requires modifications to the installation (a 
 for the messagelog database) and has some implications on the security server resource requirements as a separate
 instance uses some memory.
 
-
-###### 2.3.2.2 OCSP responses from `/var/cache/xroad/`
+##### 2.3.2.2 OCSP responses from `/var/cache/xroad/`
 
 The OCSP responses are currently not replicated. Replicating them could make the cluster more fault tolerant but the
 replication cannot simultaneously create a single point of failure. A distributed cache could be used for the responses.
@@ -430,17 +432,17 @@ Continue to [chapter 6](#6-verifying-the-setup) to verify the setup.
 
 ## 4. Database replication setup
 
-For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/9.2/static/high-availability.html).
+For technical details on the PostgreSQL replication, refer to the [official documentation](https://www.postgresql.org/docs/10/high-availability.html).
 Note that the versions of PostgreSQL distributed with RHEL and Ubuntu are different. At the time of writing, RHEL 7
-distributes PostgreSQL version 9.2, and Ubuntu 18.04 version 10; the replication configuration is the same
-for all these versions.
+distributes PostgreSQL version 9.2, and RHEL 8 and Ubuntu 18.04 version 10; the replication configuration is the same
+for all these versions. On Ubuntu 20.04 using PostgreSQL 12, the configuration has some differences.
 
 ### 4.1 Setting up TLS certificates for database authentication
+
 This section describes how to create and set up certificate authentication between the slave and master database instances.
 
 For further details on the certificate authentication, see the
-[PostgreSQL documentation](https://www.postgresql.org/docs/9.2/static/auth-methods.html#AUTH-CERT).
-
+[PostgreSQL documentation](https://www.postgresql.org/docs/10/auth-methods.html#AUTH-CERT).
 
 1. Generate the Certificate Authority key and a self-signed certificate for the root-of-trust:
 
@@ -449,8 +451,7 @@ For further details on the certificate authentication, see the
    ```
    The subject name does not really matter here. Remember to keep the `ca.key` file in a safe place.
 
-   > Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the
-   > database cluster root-of-trust and use that for issuing the slave and master certificates.
+   Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the database cluster root-of-trust and use that for issuing the slave and master certificates.
 
 2. Generate keys and certificates signed by the CA for each postgresql instance, including the master. Do not use the CA
    certificate and key as the database certificate and key.
@@ -460,16 +461,15 @@ For further details on the certificate authentication, see the
    openssl req -new -nodes -days 7300 -keyout server.key -out server.csr -subj "/O=cluster/CN=<nodename>"
    ```
 
-    **Note:** The `<nodename>` (the subject common name) will be used for identifying the cluster nodes. For slave nodes,
-    it needs to match the replication user name that is added to the master database and the username that the slave node
-    database uses to connect to the master. For example, in a system with one master and two slaves, the names of the nodes
-    could be `master`, `slave1` and `slave2`. Other parts of the subject name do not matter and can be named as is
-    convenient.
+   **Note:** The `<nodename>` (the subject common name) will be used for identifying the cluster nodes. For slave nodes,
+   it needs to match the replication user name that is added to the master database and the username that the slave node
+   database uses to connect to the master. For example, in a system with one master and two slaves, the names of the nodes
+   could be `master`, `slave1` and `slave2`. Other parts of the subject name do not matter and can be named as is
+   convenient.
 
-    For more information on adding the replication user name to the master database, see chapter
-   [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication).
-    Configuring the username into `recovery.conf` on the slave nodes is detailed in chapter
-   [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)).
+   For more information on adding the replication user name to the master database, see chapter [4.3 Configuring the master instance for replication](#43-configuring-the-master-instance-for-replication).
+
+   Configuring the username on the slave nodes is detailed in chapter [4.4 Configuring the slave instance for replication](#44-configuring-the-slave-instance-for-replication)).
 
    Sign the CSR with the CA, creating a certificate:
 
@@ -521,19 +521,15 @@ systemctl enable postgresql-serverconf
 #### 4.2.2 on Ubuntu
 
 ```bash
-sudo -u postgres pg_createcluster -p 5433 9.3 serverconf
+sudo -u postgres pg_createcluster -p 5433 10 serverconf
 ```
-In the above command, `9.3` is the postgresql major version. Use `pg_lsclusters` to find out what version(s) are available.
-
-
-**PostgreSQL configuration location:**
-> On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.
-> Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/9.3/serverconf`
-
+In the above command, `10` is the postgresql major version. Use `pg_lsclusters` to find out what version(s) are available.
 
 ### 4.3 Configuring the master instance for replication
 
 Edit `postgresql.conf` and set the following options:
+>On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
+>Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`)
 
 ```
 ssl = on
@@ -541,15 +537,20 @@ ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
 ssl_key_file  = '/etc/xroad/postgresql/server.key'
 
-listen_addresses = '*'    # (default is localhost. Alternatively: localhost, <IP of the interface the slaves connect to>")
+listen_addresses  = '*'  # (default is localhost. Alternatively: localhost, <IP of the interface the slaves connect to>")
+
+# PostgreSQL 9.2 (RHEL 7)
 wal_level = hot_standby
+
+# PostgreSQL >=10 (RHEL 8, Ubuntu 18.04, Ubuntu 20.04)
+wal_level = replica
+
 max_wal_senders   = 3   # should be ~ number of slaves plus some small number. Here, we assume there are two slaves.
 wal_keep_segments = 8   # keep some wal segments so that slaves that are offline can catch up.
 ```
 
 For more information about the streaming replication configuration options,
-see the [PostgreSQL documentation](https://www.postgresql.org/docs/9.2/static/runtime-config-replication.html).
-
+see the [PostgreSQL documentation](https://www.postgresql.org/docs/10/runtime-config-replication.html).
 
 Edit `pg_hba.conf` and enable connections to the replication pseudo database using client certificates. See chapter
 [4.1](#41-setting-up-tls-certificates-for-database-authentication) for the authentication setup.
@@ -557,8 +558,8 @@ Edit `pg_hba.conf` and enable connections to the replication pseudo database usi
 ```
 hostssl     replication     +slavenode  samenet     cert
 ```
-**Note:** The CN field in the certificate subject must match a replication user name in postgresql. See the [PostgreSQL
- documentation](https://www.postgresql.org/docs/9.3/static/auth-pg-hba-conf.html) for more details.
+**Note:** The CN field in the certificate subject must match a replication user name in postgresql. 
+See the [PostgreSQL documentation](https://www.postgresql.org/docs/10/auth-pg-hba-conf.html) for more details.
 
 The `samenet` above assumes that the slaves will be in the same subnet as the master.
 
@@ -568,6 +569,12 @@ Start the master instance:
 
 ```bash
 systemctl start postgresql@10-serverconf
+```
+
+**Ubuntu 20.04:**
+
+```bash
+systemctl start postgresql@12-serverconf
 ```
 
 **RHEL:**
@@ -599,14 +606,12 @@ To avoid confusion, the *old* `serverconf` database on the master should be rena
 sudo -u postgres psql -p 5432 -c "ALTER DATABASE serverconf RENAME TO serverconf_old";
 ```
 
-
 ### 4.4 Configuring the slave instance for replication
 
 Prerequisites:
 * A separate postgresql instance has been created.
 * TLS keys and certificates have been configured in `/etc/xroad/postgresql` as described in section
 [4.1 Setting up TLS certificates for database authentication](#41-setting-up-tls-certificates-for-database-authentication)
-
 
 Go to the postgresql data directory:
  * RHEL: `/var/lib/pgsql/serverconf`
@@ -629,8 +634,7 @@ Where `<master>` is the DNS or IP address of the master node and `<nodename>` is
 NOTICE: WAL archiving is not enabled; you must ensure that all required WAL segments are copied through other means to complete the backup
 ```
 
-Next, add the following `recovery.conf` to the data directory:
-
+On *RHEL 7/8 or Ubuntu 18.04 (PostgreSQL <12)*, add the following `recovery.conf` to the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 ```
 standby_mode = 'on'
 primary_conninfo = 'host=<master> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
@@ -638,10 +642,11 @@ trigger_file = '/var/lib/xroad/postgresql.trigger'
 ```
 Where, as above, `<master>` is the DNS or IP address of the master node and `<nodename>` is the node name (the replication user name added to the master database).
 
-Then set the owner of the `recovery.conf` to `postgres:postgres`, mode `0600`.
+On *Ubuntu 20.04 (PostgreSQL >=12)*, create an empty `standby.signal` file in the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
 
 Next, modify `postgresql.conf`:
-
+>On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
+>Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`)
 ```
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
@@ -658,6 +663,13 @@ listen_addresses = localhost
 hot_standby = on
 hot_standby_feedback = on
 ```
+
+*On Ubuntu 20.04 (PostgreSQL 12) only*, add the primary_conninfo to postgresql.conf:
+```
+primary_conninfo = 'host=<master> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
+```
+Where, as above, `<master>` is the DNS or IP address of the master node and `<nodename>` is the node name (the replication user name added to the master database).
+
 Notice that on RHEL, during `pg_basebackup` the `postgresql.conf` was copied from the master node so the WAL sender
 parameters should be disabled. Also check that `listen_addresses` is localhost-only.
 
@@ -671,6 +683,11 @@ systemctl start postgresql-serverconf
 **Ubuntu 18.04:**
 ```bash
 systemctl start postgresql@10-serverconf
+```
+
+**Ubuntu 20.04:**
+```bash
+systemctl start postgresql@12-serverconf
 ```
 
 ## 5. Configuring data replication with rsync over SSH
@@ -708,10 +725,10 @@ periodically (once per minute) and before the services are started. That means t
 available, the configuration will be synchronized before the `xroad-proxy` service is started. If the master node is down,
 there will be a small delay before the services are started.
 
-> Note that only modifications to the signer keyconf will be applied when the system is running. Changes to any other
+Note that only modifications to the signer keyconf will be applied when the system is running. Changes to any other
 configuration files,  like `local.ini`, require restarting the services, which is not automatic.
 
-#### 5.2.1 RHEL/Ubuntu 18.04: Use systemd for configuration synchronization
+#### 5.2.1 Use systemd for configuration synchronization
 
 First, add `xroad-sync` as a `systemd` service.
 
@@ -770,13 +787,13 @@ systemctl enable xroad-sync.timer xroad-sync.service
 systemctl start xroad-sync.timer
 ```
 
-**A note about the `rsync` options:**
+>**About the `rsync` options**
 >
 >* `--delay-updates` and `--delete-delay` make the sync more atomic by delaying modifications until data has been
-> downloaded. It is not fully atomic, however, since the files will be moved into place one by one. If the synchronization
-> is disrupted, no modifications will be made.
-> * low connect timeout (5 seconds) and receive timeout (10 seconds) ensure that the synchronization won't hang if e.g.
-> a network connection fails.
+>  downloaded. It is not fully atomic, however, since the files will be moved into place one by one. If the synchronization
+>  is disrupted, no modifications will be made.
+>* low connect timeout (5 seconds) and receive timeout (10 seconds) ensure that the synchronization won't hang if e.g.
+>  a network connection fails.
 
 
 ### 5.3 Set up log rotation for the sync log on the slave nodes
@@ -797,12 +814,10 @@ Create a new file `/etc/logrotate.d/xroad-slave-sync` on the slave nodes:
 }
 ```
 
-
 ## 6. Verifying the setup
 
 This chapter briefly describes how to check that the replication works. Message delivery is difficult to test without a
 connection to an X-Road instance test environment.
-
 
 ### 6.1 Verifying rsync+ssh replication
 
@@ -835,7 +850,7 @@ A successful replication with two slave nodes could look like this:
 | 1890 |    16719 | hdev-ss3 | walreceiver      | 172.31.128.151 |                 |       45275 | 2017-03-10 06:30:50.470084+02 | streaming | 0/4058A40     | 0/4058A40      | 0/4058A40      | 0/4058A40       |             0 | async      |
 | 1891 |    16718 | hdev-ss2 | walreceiver      | 172.31.128.82  |                 |       50174 | 2017-03-10 06:30:50.918481+02 | streaming | 0/4058A40     | 0/4058A40      | 0/4058A40      | 0/4058A40       |             0 | async      |
 
-For more information on the `pg_stat_replication` view, see the [PostgreSQL documentation](https://www.postgresql.org/docs/9.2/static/monitoring-stats.html#PG-STAT-REPLICATION-VIEW).
+For more information on the `pg_stat_replication` view, see the [PostgreSQL documentation](https://www.postgresql.org/docs/10/monitoring-stats.html#PG-STAT-REPLICATION-VIEW).
 
 ### 6.3 Verifying replication from the admin user interface
 
@@ -948,6 +963,7 @@ The steps are in more detail below, but in short, the procedure is:
       curl -i http://localhost:<health-check-port>
       ```
       See [3.4 Health check service configuration](#34-health-check-service-configuration) for more details.
+
 #### 7.2.3 Upgrade a single slave node
 
 Repeat this process for each slave node, one by one.
