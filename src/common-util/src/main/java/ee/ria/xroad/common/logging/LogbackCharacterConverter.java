@@ -24,18 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package ee.ria.xroad.common.logging;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.pattern.CompositeConverter;
+import com.google.common.base.CharMatcher;
 
 /**
- * Logback converter that replaces unwanted characters in log files
+ * Logback converter that replaces unwanted/exploitable characters in log files
  */
-public class CRLFConverter extends CompositeConverter<ILoggingEvent> {
+public class LogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
+
+    private static final char REPLACEMENT_CHARACTER = '_';
+
+    public static String replaceLogForgingCharacters(String in) {
+        return CharMatcher.javaIsoControl().replaceFrom(in, REPLACEMENT_CHARACTER);
+    }
 
     @Override
     protected String transform(ILoggingEvent event, String in) {
-        return in.replace('\u0085', '_').replace('\u008D', '_');
+        return replaceLogForgingCharacters(in);
     }
 }
