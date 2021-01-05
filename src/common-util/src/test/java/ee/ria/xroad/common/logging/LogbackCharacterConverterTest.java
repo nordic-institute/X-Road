@@ -39,6 +39,8 @@ public class LogbackCharacterConverterTest {
     public void testIllegalCharReplacement() {
         assertEquals("hello_world", LogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld"));
         assertEquals("hello_world", LogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld"));
+        assertEquals("hello_world", LogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld"));
+        assertEquals("hello__world", LogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
         assertEquals("hello_world", LogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
         assertEquals("hello_world", LogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld"));
         assertEquals("hello world A", LogbackCharacterConverter.replaceLogForgingCharacters("hello world A"));
