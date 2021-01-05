@@ -43,6 +43,6 @@ public class LogbackCharacterConverter extends CompositeConverter<ILoggingEvent>
 
     @Override
     protected String transform(ILoggingEvent event, String in) {
-        return replaceLogForgingCharacters(event.getFormattedMessage());
+        return replaceLogForgingCharacters(in);
     }
 }
