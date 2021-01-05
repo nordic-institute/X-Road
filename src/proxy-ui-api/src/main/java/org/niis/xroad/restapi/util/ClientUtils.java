@@ -52,9 +52,9 @@ public final class ClientUtils {
             String ocspResponseStatus = null;
             try {
                 ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
-            } catch (OcspUtils.OcspStatusExtractionException | RuntimeException e) {
+            } catch (OcspUtils.OcspStatusExtractionException e) {
                 log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
-                return false;
+                break;
             }
             if (clientId.memberEquals(certificateInfo.getMemberId())
                     && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
