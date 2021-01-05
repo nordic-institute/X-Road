@@ -125,7 +125,7 @@ RC=1
 while [[ $RC -ne 0 ]]
 do
  sleep 5
- #Synchronize with primary pod and updates archive-interval and clean-interval properties in the file /etc/xroad/conf.d/local.ini setting a long time interval for disable the archive of messagelogs in the socndary pods
+ #Synchronize with primary pod and updates archive-interval and clean-interval properties in the file /etc/xroad/conf.d/local.ini setting a long time interval for disable the archive of messagelogs in the secondary pods
  rsync -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log  xroad-slave@${XROAD_PRIMARY_DNS}:/etc/xroad/ /etc/xroad/
  RC=$?
 done
@@ -138,7 +138,7 @@ rm -f /etc/cron.d/xroad-state-sync &&
 rm -f /etc/cron.d/xroad-proxy &&
 rm -f /etc/cron.d/sysstat &&
 
-#Add to the cron job the synchronizaction with primary pod and updates archive-interval and clean-interval properties in the file /etc/xroad/conf.d/local.ini setting a long time interval for disable the archive of messagelogs in the socndary pods
+#Add to the cron job the synchronizaction with primary pod and updates archive-interval and clean-interval properties in the file /etc/xroad/conf.d/local.ini setting a long time interval for disable the archive of messagelogs in the secondary pods
 echo "* * * * * root rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_PRIMARY_DNS:/etc/xroad/ /etc/xroad/ 2>&1 && crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' && crudini --set /etc/xroad/conf.d/local.ini message-log clean-interval '0 * * ? * * 2099'" > /etc/cron.d/xroad-state-sync &&
 
 chown root:root /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync &&
