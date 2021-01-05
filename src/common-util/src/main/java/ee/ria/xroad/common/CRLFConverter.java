@@ -36,6 +36,6 @@ public class CRLFConverter extends CompositeConverter<ILoggingEvent> {
 
     @Override
     protected String transform(ILoggingEvent event, String in) {
-        return in.replace('\n', '_').replace('\r', '_');
+        return in.replace('\u0085', '_').replace('\u008D', '_');
     }
 }
