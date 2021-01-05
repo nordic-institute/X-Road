@@ -40,7 +40,7 @@
 
       <div>
         <v-btn
-          v-if="showAddWSDLButton"
+          v-if="showAddRestButton"
           color="primary"
           :loading="addRestBusy"
           @click="showAddRestDialog"
@@ -52,7 +52,7 @@
         >
 
         <v-btn
-          v-if="showAddRestButton"
+          v-if="showAddWSDLButton"
           color="primary"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
