@@ -1811,6 +1811,10 @@ To restore configuration from the command line, the following data must be avail
 
 -   The X-Road ID of the security server
 
+To find the X-Road ID of the security server, the following command can be used:
+
+    tar -tf /var/lib/xroad/backup/<security server conf backup file> | head -1
+
 It is expected that the restore command is run by the xroad user.
 
 In order to restore configuration, the following command should be used:
