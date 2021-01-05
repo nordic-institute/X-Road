@@ -3,6 +3,14 @@
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
       "madeAt": 1600081668835
+    },
+    "1594|axios": {
+      "decision": "fix",
+      "madeAt": 1609831088079
+    },
+    "1594|chromedriver>axios": {
+      "decision": "fix",
+      "madeAt": 1609831138211
     }
   },
   "rules": {},
