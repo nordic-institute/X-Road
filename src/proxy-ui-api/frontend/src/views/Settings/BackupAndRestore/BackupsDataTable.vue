@@ -33,6 +33,7 @@
         </tr>
       </thead>
       <template v-if="backups && backups.length > 0">
+        <tbody>
         <tr v-for="backup in filtered()" v-bind:key="backup.filename">
           <td>{{ backup.filename }}</td>
           <td>
@@ -60,6 +61,7 @@
             </div>
           </td>
         </tr>
+        </tbody>
       </template>
     </table>
   </v-card>
