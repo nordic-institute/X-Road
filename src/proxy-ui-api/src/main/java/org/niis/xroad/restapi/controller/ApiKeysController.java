@@ -134,7 +134,7 @@ public class ApiKeysController {
      * @param id
      * @return
      */
-    @DeleteMapping(value = "/{id}")
+    @DeleteMapping("/{id}")
     @AuditEventMethod(event = API_KEY_REMOVE)
     @PreAuthorize("hasAuthority('REVOKE_API_KEY')")
     public ResponseEntity<Void> revoke(@PathVariable("id") long id) {
