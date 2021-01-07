@@ -24,7 +24,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.logging;
+package ee.ria.xroad.common.validation;
+
+import ee.ria.xroad.common.validation.XroadLogbackCharacterConverter;
 
 import org.junit.Test;
 
@@ -43,6 +45,8 @@ public class XroadLogbackCharacterConverterTest {
         assertEquals("hello__world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
         assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
         assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld"));
+        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\uFEFFworld"));
+        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u200Bworld"));
         assertEquals("hello world A", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello world A"));
     }
 }

@@ -24,11 +24,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.logging;
+package ee.ria.xroad.common.validation;
 
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.pattern.CompositeConverter;
 import com.google.common.base.CharMatcher;
+
+import static ee.ria.xroad.common.validation.SpringFirewallValidationRules.FORBIDDEN_BOM;
+import static ee.ria.xroad.common.validation.SpringFirewallValidationRules.FORBIDDEN_ZWSP;
 
 /**
  * Logback converter that replaces unwanted/exploitable characters in log files
@@ -38,7 +41,10 @@ public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingE
     private static final char REPLACEMENT_CHARACTER = '_';
 
     public static String replaceLogForgingCharacters(String in) {
-        return CharMatcher.javaIsoControl().replaceFrom(in, REPLACEMENT_CHARACTER);
+        return CharMatcher.javaIsoControl()
+                .or(CharMatcher.is(FORBIDDEN_BOM))
+                .or(CharMatcher.is(FORBIDDEN_ZWSP))
+                .replaceFrom(in, REPLACEMENT_CHARACTER);
     }
 
     @Override

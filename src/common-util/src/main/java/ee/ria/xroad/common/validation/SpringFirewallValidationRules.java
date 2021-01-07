@@ -46,10 +46,10 @@ public final class SpringFirewallValidationRules {
     private static final char FORBIDDEN_BACKSLASH = '\\';
 
     //byte order mark / zero-width no-break space
-    private static final char FORBIDDEN_BOM = '\ufeff';
+    static final char FORBIDDEN_BOM = '\ufeff';
 
     //zero-width space
-    private static final char FORBIDDEN_ZWSP = '\u200b';
+    static final char FORBIDDEN_ZWSP = '\u200b';
 
 
     public static boolean containsPercent(String s) {
