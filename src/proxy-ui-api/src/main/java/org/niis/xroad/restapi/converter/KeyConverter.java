@@ -29,10 +29,10 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -42,23 +42,13 @@ import java.util.stream.Collectors;
  * Convert Key related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class KeyConverter {
 
     private final TokenCertificateConverter tokenCertificateConverter;
     private final TokenCertificateSigningRequestConverter tokenCsrConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
-
-    @Autowired
-    public KeyConverter(TokenCertificateConverter tokenCertificateConverter,
-            TokenCertificateSigningRequestConverter tokenCsrConverter,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            PossibleActionConverter possibleActionConverter) {
-        this.tokenCertificateConverter = tokenCertificateConverter;
-        this.tokenCsrConverter = tokenCsrConverter;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.possibleActionConverter = possibleActionConverter;
-    }
 
     /**
      * Convert {@link KeyInfo} to openapi {@link Key} object
