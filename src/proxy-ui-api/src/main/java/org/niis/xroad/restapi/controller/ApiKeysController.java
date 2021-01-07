@@ -108,7 +108,7 @@ public class ApiKeysController {
     /**
      * get an existing api key
      */
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
+    @GetMapping("/{id}")
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<PublicApiKeyData> getKey(@PathVariable("id") long id) {
         try {
