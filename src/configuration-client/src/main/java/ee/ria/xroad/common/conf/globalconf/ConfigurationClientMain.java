@@ -113,6 +113,13 @@ public final class ConfigurationClientMain {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
         } else {
+
+            log.info("hello world");
+            log.info("hello world");
+            log.info("hello " + '\u0085' + " world");
+            log.info("hello world");
+            log.info("hello world");
+
             // Run configuration client in daemon mode.
             startDaemon();
         }
