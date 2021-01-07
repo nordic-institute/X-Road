@@ -33,33 +33,35 @@
         </tr>
       </thead>
       <template v-if="backups && backups.length > 0">
-        <tr v-for="backup in filtered()" v-bind:key="backup.filename">
-          <td>{{ backup.filename }}</td>
-          <td>
-            <div class="d-flex justify-end">
-              <large-button
-                v-if="canBackup"
-                :min_width="50"
-                text
-                :outlined="false"
-                class="xrd-table-button"
-                data-test="backup-download"
-                @click="downloadBackup(backup.filename)"
-                >{{ $t('action.download') }}
-              </large-button>
-              <restore-backup-button
-                v-if="canRestore"
-                :backup="backup"
-                @restored="refreshData"
-              />
-              <delete-backup-button
-                :can-backup="canBackup"
-                :backup="backup"
-                @deleted="refreshData"
-              />
-            </div>
-          </td>
-        </tr>
+        <tbody>
+          <tr v-for="backup in filtered()" v-bind:key="backup.filename">
+            <td>{{ backup.filename }}</td>
+            <td>
+              <div class="d-flex justify-end">
+                <large-button
+                  v-if="canBackup"
+                  :min_width="50"
+                  text
+                  :outlined="false"
+                  class="xrd-table-button"
+                  data-test="backup-download"
+                  @click="downloadBackup(backup.filename)"
+                  >{{ $t('action.download') }}
+                </large-button>
+                <restore-backup-button
+                  v-if="canRestore"
+                  :backup="backup"
+                  @restored="refreshData"
+                />
+                <delete-backup-button
+                  :can-backup="canBackup"
+                  :backup="backup"
+                  @deleted="refreshData"
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
       </template>
     </table>
   </v-card>
