@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 CENTERUI_HOME=$XROAD_HOME/center-ui
 

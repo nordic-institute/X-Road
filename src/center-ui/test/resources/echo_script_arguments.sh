@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # This is for testing ScriptUtils by printing the command line arguments and
 # the options as seen by getopts, that may or may not contain spaces.
