@@ -33,7 +33,7 @@ import com.google.common.base.CharMatcher;
 /**
  * Logback converter that replaces unwanted/exploitable characters in log files
  */
-public class LogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
+public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
     private static final char REPLACEMENT_CHARACTER = '_';
 

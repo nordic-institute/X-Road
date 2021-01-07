@@ -5,7 +5,7 @@
 
     <property name="logOutputPath" value="/var/log/xroad" />
 
-    <conversionRule conversionWord="convert" converterClass="ee.ria.xroad.common.logging.LogbackCharacterConverter" />
+    <conversionRule conversionWord="xrdcheck" converterClass="ee.ria.xroad.common.logging.XroadLogbackCharacterConverter" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/proxy_ui_api.log</file>
@@ -14,7 +14,7 @@
             <maxFileSize>100MB</maxFileSize>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} [%thread] correlation-id:[%X{X-B3-TraceId:-}] %-5level %logger{36} - %convert(%msg)%n</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} [%thread] correlation-id:[%X{X-B3-TraceId:-}] %-5level %logger{36} - %xrdcheck(%msg)%n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -30,7 +30,7 @@
         <syslogHost>127.0.0.1</syslogHost>
         <port>514</port>
         <facility>LOCAL0</facility>
-        <suffixPattern>correlation-id:[%X{X-B3-TraceId:-}] %-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} - %convert(%msg)</suffixPattern>
+        <suffixPattern>correlation-id:[%X{X-B3-TraceId:-}] %-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} - %xrdcheck(%msg)</suffixPattern>
     </appender>
 
     <logger name="akka" level="WARN" />
