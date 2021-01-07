@@ -162,19 +162,16 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Clients },
     key: 'clients',
     name: 'tab.main.clients',
-    permissions: [Permissions.VIEW_CLIENTS],
   },
   {
     to: { name: RouteName.SignAndAuthKeys },
     key: 'keys',
     name: 'tab.main.keys',
-    permissions: [Permissions.VIEW_KEYS],
   },
   {
     to: { name: RouteName.Diagnostics },
     key: 'diagnostics',
     name: 'tab.main.diagnostics',
-    permissions: [Permissions.DIAGNOSTICS],
   },
   {
     to: { name: RouteName.SystemParameters },

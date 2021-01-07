@@ -49,7 +49,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
@@ -72,7 +72,6 @@ export default Vue.extend({
           to: {
             name: RouteName.SignAndAuthKeys,
           },
-          permissions: [Permissions.VIEW_KEYS],
         },
         {
           key: 'apiKey',
@@ -80,12 +79,6 @@ export default Vue.extend({
           to: {
             name: RouteName.ApiKey,
           },
-          permissions: [
-            Permissions.CREATE_API_KEY,
-            Permissions.VIEW_API_KEYS,
-            Permissions.UPDATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
         },
         {
           key: 'ssTlsCertificate',
@@ -93,7 +86,6 @@ export default Vue.extend({
           to: {
             name: RouteName.SSTlsCertificate,
           },
-          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
         },
       ];
 

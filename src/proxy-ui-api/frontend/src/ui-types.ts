@@ -34,7 +34,7 @@ import { Location } from 'vue-router';
 export interface Tab {
   key: string;
   name: string;
-  to: string | Location; // Same type as https://router.vuejs.org/api/#to
+  to: Location; // Same type as https://router.vuejs.org/api/#to
   permissions?: string[];
 }
 
@@ -52,6 +52,12 @@ export interface ServiceCandidate {
   service_title?: string;
   id: string;
 }
+
+// The result of the FileUpload components fileChanged event
+export type FileUploadResult = {
+  buffer: ArrayBuffer;
+  file: File;
+};
 
 // Data for snackbar notification
 export interface Notification {
