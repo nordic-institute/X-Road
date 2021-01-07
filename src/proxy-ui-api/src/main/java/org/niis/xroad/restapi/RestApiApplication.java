@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi;
 
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
@@ -39,18 +38,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableCaching
 @EnableScheduling
-@Slf4j
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {
     /**
      * start application
      */
     public static void main(String[] args) {
-        log.info("hello world");
-        log.info("hello world");
-        log.info("hello " + '\u0085' + " world");
-        log.info("hello world");
-        log.info("hello world");
         SpringApplication.run(RestApiApplication.class, args);
     }
 }

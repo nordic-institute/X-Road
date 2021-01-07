@@ -67,6 +67,13 @@ public class StartStopListener implements ApplicationListener<ApplicationEvent> 
      */
     private synchronized void start() {
         log.info("start");
+
+        log.info("hello world");
+        log.info("hello world");
+        log.info("hello " + '\u0085' + " world");
+        log.info("hello world");
+        log.info("hello world");
+
         if (uiApiActorSystem == null) {
             uiApiActorSystem = new UIServices("ProxyUIApi", "proxyuiapi");
             SignerClient.init(uiApiActorSystem.getActorSystem(), signerIp);
