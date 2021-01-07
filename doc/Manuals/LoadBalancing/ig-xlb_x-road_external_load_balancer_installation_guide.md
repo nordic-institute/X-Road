@@ -31,7 +31,7 @@ Doc. ID: IG-XLB
   * [1.3 References](#13-references)
 * [2. Overview](#2-overview)
   * [2.1 Goals and assumptions](#21-goals-and-assumptions)
-    * [2.1.1 Basic Assumptions about the load balanced environment](#211-basic-assumptions-about-the-load-balanced-environment)
+    * [2.1.1 Basic assumptions about the load balanced environment](#211-basic-assumptions-about-the-load-balanced-environment)
     * [2.1.2 Consequences of the selected implementation model](#212-consequences-of-the-selected-implementation-model)
   * [2.2 Communication with external servers and services: The cluster from the point of view of a client or service](#22-communication-with-external-servers-and-services-the-cluster-from-the-point-of-view-of-a-client-or-service)
   * [2.3 State replication from the master to the slaves](#23-state-replication-from-the-master-to-the-slaves)
@@ -126,7 +126,7 @@ status, this is described in more detail in section [3.4 Health check service co
 The load balancing support is implemented with a few assumptions about the environment that users should be aware of.
 Carefully consider these assumptions before deciding if the supported features are suitable for your needs.
 
-#### 2.1.1 Basic Assumptions about the load balanced environment
+#### 2.1.1 Basic assumptions about the load balanced environment
 * Adding or removing nodes to or from the cluster is infrequent. New nodes need to be added manually and this takes some
   time.
 * Changes to the configuration files are relatively infrequent and some downtime in ability to propagate the changes can
@@ -265,7 +265,6 @@ In order to properly set up the data replication, the slave nodes must be able t
       Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Disable support for client-side pooled connections (HTTP connection persistence) in `/etc/xroad/conf.d/local.ini`
     * Because the load balancing works at TCP level, disabling persistent HTTP connections is recommended so that the load balancer can evenly distribute the traffic.
-
       ```
       [proxy]
       server-support-clients-pooled-connections=false
@@ -451,7 +450,8 @@ For further details on the certificate authentication, see the
    ```
    The subject name does not really matter here. Remember to keep the `ca.key` file in a safe place.
 
-   Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the database cluster root-of-trust and use that for issuing the slave and master certificates.
+   Alternatively, an existing internal CA can be used for managing the certificates. A sub-CA should be created as the database cluster
+   root-of-trust and used for issuing the slave and master certificates.
 
 2. Generate keys and certificates signed by the CA for each postgresql instance, including the master. Do not use the CA
    certificate and key as the database certificate and key.
