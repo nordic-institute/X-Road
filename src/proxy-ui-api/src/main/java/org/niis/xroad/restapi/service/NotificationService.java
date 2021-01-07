@@ -29,10 +29,10 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.AlertStatus;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -47,19 +47,11 @@ import java.util.Optional;
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class NotificationService {
     private OffsetDateTime backupRestoreRunningSince;
     private final GlobalConfFacade globalConfFacade;
     private final TokenService tokenService;
-
-    /**
-     * constructor
-     */
-    @Autowired
-    public NotificationService(GlobalConfFacade globalConfFacade, TokenService tokenService) {
-        this.globalConfFacade = globalConfFacade;
-        this.tokenService = tokenService;
-    }
 
     /**
      * Checks the status of system alerts that may affect whether the system

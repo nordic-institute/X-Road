@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import java.util.Optional;
  * Mapping between {@link TokenStatus} in api (enum) and model {@link TokenStatusInfo}
  */
 @Getter
+@RequiredArgsConstructor
 public enum TokenStatusMapping {
     OK(TokenStatusInfo.OK, TokenStatus.OK),
     USER_PIN_LOCKED(TokenStatusInfo.USER_PIN_LOCKED, TokenStatus.USER_PIN_LOCKED),
@@ -48,11 +50,6 @@ public enum TokenStatusMapping {
 
     private final TokenStatusInfo tokenStatusInfo;
     private final TokenStatus tokenStatus;
-
-    TokenStatusMapping(TokenStatusInfo tokenStatusInfo, TokenStatus tokenStatus) {
-        this.tokenStatusInfo = tokenStatusInfo;
-        this.tokenStatus = tokenStatus;
-    }
 
     /**
      * Return matching {@link TokenStatusInfo}, if any

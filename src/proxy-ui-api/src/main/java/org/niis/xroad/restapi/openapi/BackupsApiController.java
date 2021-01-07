@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.BackupConverter;
@@ -40,7 +41,6 @@ import org.niis.xroad.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.restapi.service.RestoreService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,21 +66,12 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BA
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class BackupsApiController implements BackupsApi {
     private final BackupService backupService;
     private final RestoreService restoreService;
     private final BackupConverter backupConverter;
     private final TokenService tokenService;
-
-    @Autowired
-    public BackupsApiController(BackupService backupService,
-            RestoreService restoreService, BackupConverter backupConverter,
-            TokenService tokenService) {
-        this.backupService = backupService;
-        this.restoreService = restoreService;
-        this.backupConverter = backupConverter;
-        this.tokenService = tokenService;
-    }
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
