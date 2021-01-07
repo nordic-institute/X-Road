@@ -27,6 +27,7 @@
 require "common-ui/identifiers_as_json"
 
 java_import Java::ee.ria.xroad.common.AuditLogger
+java_import Java::ee.ria.xroad.common.validation.XroadLogbackCharacterConverter
 
 module Base
   module AuditLog
@@ -43,7 +44,7 @@ module Base
 
         logger.debug("AUDIT SUCCESS: #{message}")
 
-        AuditLogger::log(message)
+        AuditLogger::log(XroadLogbackCharacterConverter::replaceLogForgingCharacters(message))
       end
 
       after_rollback do |exception|
@@ -56,7 +57,7 @@ module Base
 
         logger.debug("AUDIT FAIL: #{message}")
 
-        AuditLogger::log(message)
+        AuditLogger::log(XroadLogbackCharacterConverter::replaceLogForgingCharacters(message))
       end
     end
 
