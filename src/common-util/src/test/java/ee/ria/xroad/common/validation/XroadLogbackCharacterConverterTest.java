@@ -26,8 +26,6 @@
  */
 package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.XroadLogbackCharacterConverter;
-
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
