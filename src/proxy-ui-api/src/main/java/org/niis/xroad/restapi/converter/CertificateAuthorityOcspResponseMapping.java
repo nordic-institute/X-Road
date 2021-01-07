@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthorityOcspResponse;
 import org.niis.xroad.restapi.service.CertificateAuthorityService;
 
@@ -39,6 +40,7 @@ import java.util.Optional;
  * ocsp response string or CertificateAuthorityService.OCSP_RESPONSE_NOT_AVAILABLE string
  */
 @Getter
+@RequiredArgsConstructor
 public enum CertificateAuthorityOcspResponseMapping {
     NOT_AVAILABLE(
             CertificateAuthorityService.OCSP_RESPONSE_NOT_AVAILABLE, CertificateAuthorityOcspResponse.NOT_AVAILABLE),
@@ -53,12 +55,6 @@ public enum CertificateAuthorityOcspResponseMapping {
 
     private final String ocspResponse;
     private final CertificateAuthorityOcspResponse certificateAuthorityOcspResponse;
-
-    CertificateAuthorityOcspResponseMapping(String ocspResponse,
-            CertificateAuthorityOcspResponse certificateAuthorityOcspResponse) {
-        this.ocspResponse = ocspResponse;
-        this.certificateAuthorityOcspResponse = certificateAuthorityOcspResponse;
-    }
 
     /**
      * Return matching ocspResponse string, if any
