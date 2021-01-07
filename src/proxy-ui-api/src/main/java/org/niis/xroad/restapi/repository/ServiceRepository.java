@@ -29,8 +29,8 @@ import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ServiceId;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,10 +39,14 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Repository
 @Transactional
-@RequiredArgsConstructor
 public class ServiceRepository {
 
     private final PersistenceUtils persistenceUtils;
+
+    @Autowired
+    public ServiceRepository(PersistenceUtils persistenceUtils) {
+        this.persistenceUtils = persistenceUtils;
+    }
 
     /**
      * Get ServiceType by ServiceId

@@ -25,10 +25,10 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.service.GlobalConfService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -45,11 +45,21 @@ import java.util.List;
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class MemberClassesApiController implements MemberClassesApi {
 
     private final GlobalConfFacade globalConfFacade;
     private final GlobalConfService globalConfService;
+
+    /**
+     * Constructor
+     * @param globalConfFacade
+     */
+    @Autowired
+    public MemberClassesApiController(GlobalConfFacade globalConfFacade,
+            GlobalConfService globalConfService) {
+        this.globalConfFacade = globalConfFacade;
+        this.globalConfService = globalConfService;
+    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")

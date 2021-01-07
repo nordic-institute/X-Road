@@ -26,14 +26,12 @@
 package org.niis.xroad.restapi.converter.comparator;
 
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
-import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 
 /**
  * Comparator for comparing ServiceClients for sorting purposes.
  */
-@Component
 public class ServiceClientSortingComparator implements Comparator<ServiceClient> {
 
     /**

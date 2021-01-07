@@ -76,6 +76,7 @@ public class DummyTransactionRollingbackService {
         }
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
+        localGroupRepository.saveOrUpdate(localGroupType);
         switch (exceptionType) {
             case EXCEPTION:
                 throw new Exception("failing on purpose");

@@ -313,8 +313,9 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 return Collections.singletonList(TOKEN_INFO);
             }
         };
-        keyService = new KeyService(signerProxyFacade, tokenService, possibleActionsRuleEngineParam,
-                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper);
+        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngineParam,
+                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
+                auditEventLoggingFacade);
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {

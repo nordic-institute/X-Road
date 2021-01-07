@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Mapping between DiagnosticStatusClass in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
-@RequiredArgsConstructor
 public enum DiagnosticStatusClassMapping {
     RETURN_SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS, DiagnosticStatusClass.OK),
     ERROR_CODE_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_UNINITIALIZED,
@@ -52,6 +50,11 @@ public enum DiagnosticStatusClassMapping {
     private static final int DIAGNOSTICS_ERROR_CODE_FAIL = -1;
     private final Integer diagnosticsErrorCode;
     private final DiagnosticStatusClass diagnosticStatusClass;
+
+    DiagnosticStatusClassMapping(Integer diagnosticsErrorCode, DiagnosticStatusClass diagnosticStatusClass) {
+        this.diagnosticsErrorCode = diagnosticsErrorCode;
+        this.diagnosticStatusClass = diagnosticStatusClass;
+    }
 
     /**
      * Return matching DiagnosticStatusClass, if any

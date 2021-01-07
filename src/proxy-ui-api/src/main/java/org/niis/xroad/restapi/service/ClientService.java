@@ -35,12 +35,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
@@ -48,6 +48,7 @@ import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
 import org.niis.xroad.restapi.util.ClientUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,7 +90,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_UNREGISTE
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class ClientService {
     private static final String INVALID_INSTANCE_IDENTIFIER = "instance identifier is invalid: ";
     private static final String INVALID_MEMBER_CLASS = "member class is invalid: ";
@@ -101,10 +101,34 @@ public class ClientService {
     private final IdentifierRepository identifierRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
     private final CurrentSecurityServerId currentSecurityServerId;
+    private final AuditEventLoggingFacade auditEventLoggingFacade;
     private final AuditDataHelper auditDataHelper;
 
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+
+    /**
+     * ClientService constructor
+     */
+    @Autowired
+    public ClientService(ClientRepository clientRepository, GlobalConfFacade globalConfFacade,
+            ServerConfService serverConfService, GlobalConfService globalConfService,
+            IdentifierRepository identifierRepository, ManagementRequestSenderService managementRequestSenderService,
+            CurrentSecurityServerId currentSecurityServerId,
+            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates,
+            AuditEventLoggingFacade auditEventLoggingFacade,
+            AuditDataHelper auditDataHelper) {
+        this.clientRepository = clientRepository;
+        this.globalConfFacade = globalConfFacade;
+        this.serverConfService = serverConfService;
+        this.globalConfService = globalConfService;
+        this.identifierRepository = identifierRepository;
+        this.managementRequestSenderService = managementRequestSenderService;
+        this.currentSecurityServerId = currentSecurityServerId;
+        this.currentSecurityServerSignCertificates = currentSecurityServerSignCertificates;
+        this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.auditDataHelper = auditDataHelper;
+    }
 
     /**
      * return all clients that exist on this security server
@@ -247,6 +271,7 @@ public class ClientService {
         IsAuthentication enumValue = IsAuthentication.valueOf(connectionType);
         auditDataHelper.put(enumValue);
         clientType.setIsAuthentication(connectionType);
+        clientRepository.saveOrUpdate(clientType);
         return clientType;
     }
 
@@ -299,6 +324,7 @@ public class ClientService {
         }
 
         clientType.getIsCert().add(certificateType);
+        clientRepository.saveOrUpdateAndFlush(clientType);
         return certificateType;
     }
 
@@ -350,6 +376,7 @@ public class ClientService {
         auditDataHelper.put(certificateType.get());
 
         clientType.getIsCert().remove(certificateType.get());
+        clientRepository.saveOrUpdate(clientType);
         return clientType;
     }
 
@@ -524,6 +551,7 @@ public class ClientService {
             client.setClientStatus(ClientType.STATUS_REGINPROG);
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
+            clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -557,6 +585,7 @@ public class ClientService {
             auditDataHelper.putClientStatus(client);
             auditDataHelper.putManagementRequestId(requestId);
             client.setClientStatus(STATUS_DELINPROG);
+            clientRepository.saveOrUpdate(client);
         } catch (ManagementRequestSendingFailedException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -800,7 +829,7 @@ public class ClientService {
             throw new CannotDeleteOwnerException();
         }
         // cant delete with statuses STATUS_REGINPROG and STATUS_REGISTERED
-        List<String> allowedStatuses = Arrays.asList(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
+        List allowedStatuses = Arrays.asList(STATUS_SAVED, STATUS_DELINPROG, STATUS_GLOBALERR);
         if (!allowedStatuses.contains(clientType.getClientStatus())) {
             throw new ActionNotPossibleException("cannot delete client with status " + clientType.getClientStatus());
         }

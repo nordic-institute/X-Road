@@ -35,7 +35,6 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -96,6 +95,7 @@ import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -141,7 +141,6 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class ClientsApiController implements ClientsApi {
     private final ClientConverter clientConverter;
     private final ClientService clientService;
@@ -161,6 +160,42 @@ public class ClientsApiController implements ClientsApi {
     private final AuditDataHelper auditDataHelper;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
     private final ClientSortingComparator clientSortingComparator;
+
+    /**
+     * ClientsApiController constructor
+     */
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    @Autowired
+    public ClientsApiController(ClientService clientService, TokenService tokenService,
+            ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
+            LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
+            ServiceDescriptionConverter serviceDescriptionConverter,
+            ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
+            TokenCertificateConverter tokenCertificateConverter,
+            OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
+            AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
+            ServiceClientHelper serviceClientHelper,
+            ServiceClientIdentifierConverter serviceClientIdentifierConverter,
+            AuditDataHelper auditDataHelper) {
+        this.clientService = clientService;
+        this.tokenService = tokenService;
+        this.clientConverter = clientConverter;
+        this.localGroupConverter = localGroupConverter;
+        this.localGroupService = localGroupService;
+        this.certificateDetailsConverter = certificateDetailsConverter;
+        this.serviceDescriptionConverter = serviceDescriptionConverter;
+        this.serviceDescriptionService = serviceDescriptionService;
+        this.accessRightService = accessRightService;
+        this.tokenCertificateConverter = tokenCertificateConverter;
+        this.orphanRemovalService = orphanRemovalService;
+        this.serviceClientConverter = serviceClientConverter;
+        this.accessRightConverter = accessRightConverter;
+        this.serviceClientService = serviceClientService;
+        this.serviceClientHelper = serviceClientHelper;
+        this.auditDataHelper = auditDataHelper;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
+        this.clientSortingComparator = new ClientSortingComparator();
+    }
 
     /**
      * Finds clients matching search terms
@@ -512,8 +547,10 @@ public class ClientsApiController implements ClientsApi {
             orphanRemovalService.deleteOrphans(clientId);
         } catch (OrphanRemovalService.OrphansNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -538,12 +575,12 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.registerClient(clientId);
-        } catch (ClientService.CannotRegisterOwnerException
+        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException
                 | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -556,10 +593,11 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.unregisterClient(clientId);
+        } catch (GlobalConfOutdatedException e) {
+            throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException | ActionNotPossibleException
-                | ClientService.CannotUnregisterOwnerException e) {
+        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -573,11 +611,11 @@ public class ClientsApiController implements ClientsApi {
         try {
             clientService.changeOwner(clientId.getMemberClass(), clientId.getMemberCode(),
                     clientId.getSubsystemCode());
-        } catch (ClientService.MemberAlreadyOwnerException e) {
+        } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
+        } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

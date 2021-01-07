@@ -33,10 +33,10 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +55,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ORPHANS_NOT
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class OrphanRemovalService {
 
     private final TokenService tokenService;
@@ -63,6 +62,19 @@ public class OrphanRemovalService {
     private final ClientService clientService;
     private final KeyService keyService;
     private final AuditDataHelper auditDataHelper;
+
+    @Autowired
+    public OrphanRemovalService(TokenService tokenService,
+            TokenCertificateService tokenCertificateService,
+            ClientService clientService,
+            KeyService keyService,
+            AuditDataHelper auditDataHelper) {
+        this.tokenService = tokenService;
+        this.tokenCertificateService = tokenCertificateService;
+        this.clientService = clientService;
+        this.keyService = keyService;
+        this.auditDataHelper = auditDataHelper;
+    }
 
     /**
      * Returns true, if orphaned keys, certs or csrs exist for given clientId.

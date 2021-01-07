@@ -28,9 +28,9 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 
 import com.google.common.collect.Streams;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -40,11 +40,17 @@ import java.util.stream.Collectors;
  * Convert ServiceDescription related data between openapi and service domain classes
  */
 @Component
-@RequiredArgsConstructor
 public class ServiceDescriptionConverter {
 
     private final ClientConverter clientConverter;
     private final ServiceConverter serviceConverter;
+
+    @Autowired
+    public ServiceDescriptionConverter(ClientConverter clientConverter,
+            ServiceConverter serviceConverter) {
+        this.clientConverter = clientConverter;
+        this.serviceConverter = serviceConverter;
+    }
 
     /**
      * Converts a group of ServiceDescriptionTypes to a list of ServiceDescriptions

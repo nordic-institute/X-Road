@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.config;
 
 import brave.Tracer;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
@@ -45,12 +45,12 @@ import java.io.IOException;
  */
 @Component
 @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER)
-@RequiredArgsConstructor
 public class AddCorrelationIdFilter implements Filter {
     public static final int CORRELATION_ID_FILTER_ORDER = TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 1;
     public static final String CORRELATION_ID_HEADER_NAME = "x-road-ui-correlation-id";
 
-    private final Tracer tracer;
+    @Autowired
+    private Tracer tracer;
 
     public String getCorrelationId() {
         if (tracer != null && tracer.currentSpan() != null

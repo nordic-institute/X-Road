@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.controller;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -36,17 +35,17 @@ import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.ApiKeyService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
@@ -64,7 +63,6 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 @RequestMapping(ApiKeysController.API_KEYS_V1_PATH)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class ApiKeysController {
 
     public static final String API_KEYS_V1_PATH = API_V1_PREFIX + "/api-keys";
@@ -72,10 +70,16 @@ public class ApiKeysController {
     private final ApiKeyService apiKeyService;
     private final PublicApiKeyDataConverter publicApiKeyDataConverter;
 
+    @Autowired
+    public ApiKeysController(ApiKeyService apiKeyService, PublicApiKeyDataConverter publicApiKeyDataConverter) {
+        this.apiKeyService = apiKeyService;
+        this.publicApiKeyDataConverter = publicApiKeyDataConverter;
+    }
+
     /**
      * create a new api key
      */
-    @PostMapping(produces = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @AuditEventMethod(event = API_KEY_CREATE)
     @PreAuthorize("hasAuthority('CREATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> createKey(@RequestBody List<String> roles) {
@@ -90,7 +94,7 @@ public class ApiKeysController {
     /**
      * update an existing api key
      */
-    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @PutMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     @AuditEventMethod(event = API_KEY_UPDATE)
     @PreAuthorize("hasAuthority('UPDATE_API_KEY')")
     public ResponseEntity<PublicApiKeyData> updateKey(@PathVariable("id") long id,
@@ -122,7 +126,7 @@ public class ApiKeysController {
     /**
      * list api keys from db
      */
-    @GetMapping
+    @RequestMapping(method = RequestMethod.GET)
     @PreAuthorize("hasAuthority('VIEW_API_KEYS')")
     public ResponseEntity<Collection<PublicApiKeyData>> list() {
         Collection<PersistentApiKeyType> keys = apiKeyService.listAll();
@@ -134,16 +138,16 @@ public class ApiKeysController {
      * @param id
      * @return
      */
-    @DeleteMapping(value = "/{id}")
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     @AuditEventMethod(event = API_KEY_REMOVE)
     @PreAuthorize("hasAuthority('REVOKE_API_KEY')")
-    public ResponseEntity<Void> revoke(@PathVariable("id") long id) {
+    public ResponseEntity revoke(@PathVariable("id") long id) {
         try {
             apiKeyService.removeForId(id);
         } catch (ApiKeyService.ApiKeyNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity(HttpStatus.OK);
     }
 
 }

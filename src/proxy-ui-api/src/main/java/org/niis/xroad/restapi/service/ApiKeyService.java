@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
@@ -35,6 +34,7 @@ import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,13 +57,21 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_API_KEY_NOT
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class ApiKeyService {
 
     private final PasswordEncoder passwordEncoder;
     private final ApiKeyRepository apiKeyRepository;
     private final CacheManager cacheManager;
     private final AuditDataHelper auditDataHelper;
+
+    @Autowired
+    public ApiKeyService(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository,
+            CacheManager cacheManager, AuditDataHelper auditDataHelper) {
+        this.passwordEncoder = passwordEncoder;
+        this.apiKeyRepository = apiKeyRepository;
+        this.cacheManager = cacheManager;
+        this.auditDataHelper = auditDataHelper;
+    }
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,

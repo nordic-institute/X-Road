@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.controller;
 
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -36,6 +35,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
@@ -46,11 +46,17 @@ import java.util.Set;
  * translating them into XRoadId objects
  */
 @Component
-@RequiredArgsConstructor
 public class ServiceClientHelper {
 
     private final ServiceClientIdentifierConverter serviceClientIdentifierConverter;
     private final ServiceClientService serviceClientService;
+
+    @Autowired
+    public ServiceClientHelper(ServiceClientIdentifierConverter serviceClientIdentifierConverter,
+            ServiceClientService serviceClientService) {
+        this.serviceClientIdentifierConverter = serviceClientIdentifierConverter;
+        this.serviceClientService = serviceClientService;
+    }
 
     /**
      * Transform ServiceClients object into a set of XRoadIds.

@@ -33,13 +33,13 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.LocalGroupRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,13 +66,29 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class LocalGroupService {
 
     private final LocalGroupRepository localGroupRepository;
     private final ClientRepository clientRepository;
     private final ClientService clientService;
     private final AuditDataHelper auditDataHelper;
+
+    /**
+     * LocalGroupService constructor
+     * @param localGroupRepository
+     * @param clientRepository
+     * @param clientService
+     */
+    @Autowired
+    public LocalGroupService(LocalGroupRepository localGroupRepository,
+            ClientRepository clientRepository,
+            ClientService clientService,
+            AuditDataHelper auditDataHelper) {
+        this.localGroupRepository = localGroupRepository;
+        this.clientRepository = clientRepository;
+        this.clientService = clientService;
+        this.auditDataHelper = auditDataHelper;
+    }
 
     /**
      * Return local group.
@@ -103,6 +119,7 @@ public class LocalGroupService {
 
         localGroupType.setDescription(description);
         localGroupType.setUpdated(new Date());
+        localGroupRepository.saveOrUpdate(localGroupType);
         return localGroupType;
     }
 
@@ -154,8 +171,9 @@ public class LocalGroupService {
             throw new DuplicateLocalGroupCodeException(
                     "local group with code " + localGroupTypeToAdd.getGroupCode() + " already added");
         }
-        localGroupRepository.persist(localGroupTypeToAdd); // explicit persist to get the id to the return value
+        localGroupRepository.persist(localGroupTypeToAdd);
         clientType.getLocalGroup().add(localGroupTypeToAdd);
+        clientRepository.saveOrUpdate(clientType);
         return localGroupTypeToAdd;
     }
 
@@ -194,7 +212,9 @@ public class LocalGroupService {
             groupMemberType.setGroupMemberId(clientIdToBeAdded);
             membersToBeAdded.add(groupMemberType);
         }
+        localGroupRepository.saveOrUpdateAll(membersToBeAdded);
         localGroupType.getGroupMember().addAll(membersToBeAdded);
+        localGroupRepository.saveOrUpdate(localGroupType);
     }
 
     /**
@@ -254,6 +274,7 @@ public class LocalGroupService {
             throw new LocalGroupMemberNotFoundException("the requested group member was not found in local group");
         }
         managedLocalGroup.getGroupMember().removeAll(membersToBeRemoved);
+        localGroupRepository.saveOrUpdate(managedLocalGroup);
     }
 
     /**

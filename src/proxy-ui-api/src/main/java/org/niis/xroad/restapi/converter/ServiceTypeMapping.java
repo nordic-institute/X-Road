@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Mapping between ServiceType in api (enum) and model (DescriptionType)
  */
 @Getter
-@RequiredArgsConstructor
 public enum ServiceTypeMapping {
     WSDL(DescriptionType.WSDL, ServiceType.WSDL),
     OPENAPI3(DescriptionType.OPENAPI3, ServiceType.OPENAPI3),
@@ -46,6 +44,11 @@ public enum ServiceTypeMapping {
 
     private final DescriptionType descriptionType;
     private final ServiceType serviceType;
+
+    ServiceTypeMapping(DescriptionType descriptionType, ServiceType serviceType) {
+        this.descriptionType = descriptionType;
+        this.serviceType = serviceType;
+    }
 
     /**
      * Return matching ServiceType, if any

@@ -33,7 +33,6 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -46,6 +45,7 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -78,7 +78,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_A
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class SystemService {
 
     private final GlobalConfService globalConfService;
@@ -97,6 +96,22 @@ public class SystemService {
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
     private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
+
+    /**
+     * constructor
+     */
+    @Autowired
+    public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
+            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier,
+            CurrentSecurityServerId currentSecurityServerId,
+            AuditDataHelper auditDataHelper) {
+        this.globalConfService = globalConfService;
+        this.serverConfService = serverConfService;
+        this.anchorRepository = anchorRepository;
+        this.configurationVerifier = configurationVerifier;
+        this.currentSecurityServerId = currentSecurityServerId;
+        this.auditDataHelper = auditDataHelper;
+    }
 
     /**
      * Return a list of configured timestamping services

@@ -30,11 +30,11 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.util.EndpointHelper;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -50,7 +50,6 @@ import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
  * Convert Service related data between openapi and service domain classes
  */
 @Component
-@RequiredArgsConstructor
 public class ServiceConverter {
 
     /**
@@ -59,9 +58,17 @@ public class ServiceConverter {
      */
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
-    private final ClientConverter clientConverter;
-    private final EndpointConverter endpointConverter;
-    private final EndpointHelper endpointHelper;
+    private ClientConverter clientConverter;
+    private EndpointConverter endpointConverter;
+    private EndpointHelper endpointHelper;
+
+    @Autowired
+    public ServiceConverter(ClientConverter clientConverter, EndpointConverter endpointConverter,
+            EndpointHelper endpointHelper) {
+        this.clientConverter = clientConverter;
+        this.endpointConverter = endpointConverter;
+        this.endpointHelper = endpointHelper;
+    }
 
     /**
      * Converts a group of ServiceTypes to a list of Services and sorts the list alphabetically by fullServiceCode.

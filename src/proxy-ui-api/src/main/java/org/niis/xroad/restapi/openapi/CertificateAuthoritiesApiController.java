@@ -30,7 +30,6 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.converter.CertificateAuthorityConverter;
@@ -65,7 +64,6 @@ import java.util.List;
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class CertificateAuthoritiesApiController implements CertificateAuthoritiesApi {
 
     private final CertificateAuthorityService certificateAuthorityService;
@@ -73,6 +71,21 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     private final KeyService keyService;
     private final ClientConverter clientConverter;
     private final CsrSubjectFieldDescriptionConverter subjectConverter;
+
+    /**
+     * Constructor
+     */
+    public CertificateAuthoritiesApiController(CertificateAuthorityService certificateAuthorityService,
+            CertificateAuthorityConverter certificateAuthorityConverter,
+            KeyService keyService,
+            ClientConverter clientConverter,
+            CsrSubjectFieldDescriptionConverter subjectConverter) {
+        this.certificateAuthorityService = certificateAuthorityService;
+        this.certificateAuthorityConverter = certificateAuthorityConverter;
+        this.keyService = keyService;
+        this.clientConverter = clientConverter;
+        this.subjectConverter = subjectConverter;
+    }
 
     /**
      * Currently returns partial CertificateAuthority objects that have only

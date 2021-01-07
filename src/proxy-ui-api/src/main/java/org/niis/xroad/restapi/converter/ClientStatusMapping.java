@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Mapping between client status in api (enum) and model (string)
  */
 @Getter
-@RequiredArgsConstructor
 public enum ClientStatusMapping {
     SAVED(ClientType.STATUS_SAVED, ClientStatus.SAVED),
     REGISTRATION_IN_PROGRESS(ClientType.STATUS_REGINPROG, ClientStatus.REGISTRATION_IN_PROGRESS),
@@ -48,6 +46,11 @@ public enum ClientStatusMapping {
 
     private final String clientTypeStatus; // ClientType statuses
     private final ClientStatus statusEnum;
+
+    ClientStatusMapping(String clientTypeStatus, ClientStatus statusEnum) {
+        this.clientTypeStatus = clientTypeStatus;
+        this.statusEnum = statusEnum;
+    }
 
     /**
      * Return matching StatusEnum, if any

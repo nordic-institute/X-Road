@@ -29,10 +29,10 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.request.ManagementRequestSender;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -42,7 +42,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class ManagementRequestSenderService {
 
     private final GlobalConfFacade globalConfFacade;
@@ -50,6 +49,14 @@ public class ManagementRequestSenderService {
     private final CurrentSecurityServerId currentSecurityServerId;
 
     private static final String MANAGEMENT_REQUEST_SENDING_FAILED_ERROR = "Sending management request failed";
+
+    @Autowired
+    public ManagementRequestSenderService(GlobalConfFacade globalConfFacade, GlobalConfService globalConfService,
+            CurrentSecurityServerId currentSecurityServerId) {
+        this.globalConfFacade = globalConfFacade;
+        this.globalConfService = globalConfService;
+        this.currentSecurityServerId = currentSecurityServerId;
+    }
 
     /**
      * Sends the authentication certificate registration request directly

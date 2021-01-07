@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.User;
 import org.niis.xroad.restapi.util.UsernameHelper;
@@ -52,12 +51,15 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class UserApiController implements UserApi {
 
     public static final String USER_API_V1_PATH = API_V1_PREFIX + "/user";
 
     private final UsernameHelper usernameHelper;
+
+    public UserApiController(UsernameHelper usernameHelper) {
+        this.usernameHelper = usernameHelper;
+    }
 
     /**
      * Return user object

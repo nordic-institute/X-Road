@@ -32,7 +32,6 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.restapi.dto.ServiceClientDto;
@@ -53,7 +52,6 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class ServiceClientService {
 
     private final ClientRepository clientRepository;
@@ -61,7 +59,21 @@ public class ServiceClientService {
     private final EndpointService endpointService;
     private final AccessRightService accessRightService;
     private final LocalGroupService localGroupService;
+    private final IdentifierService identifierService;
     private final ServiceDescriptionService serviceDescriptionService;
+
+    public ServiceClientService(ClientRepository clientRepository, ServiceService serviceService,
+            EndpointService endpointService, AccessRightService accessRightService,
+            LocalGroupService localGroupService, IdentifierService identifierService,
+            ServiceDescriptionService serviceDescriptionService) {
+        this.clientRepository = clientRepository;
+        this.serviceService = serviceService;
+        this.endpointService = endpointService;
+        this.accessRightService = accessRightService;
+        this.localGroupService = localGroupService;
+        this.identifierService = identifierService;
+        this.serviceDescriptionService = serviceDescriptionService;
+    }
 
     /**
      * Get access right holders (serviceClients) by Client (service owner)
@@ -107,7 +119,7 @@ public class ServiceClientService {
                 }
             }
         }
-        return new ArrayList<>(uniqueServiceClientMap.values());
+        return new ArrayList(uniqueServiceClientMap.values());
     }
 
     /**

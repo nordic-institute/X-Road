@@ -30,12 +30,12 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import com.google.common.collect.Streams;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.GroupMember;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
@@ -48,11 +48,16 @@ import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
  * Helper to convert LocalGroups
  */
 @Component
-@RequiredArgsConstructor
 public class LocalGroupConverter {
 
     private final ClientConverter clientConverter;
     private final GlobalConfFacade globalConfFacade;
+
+    @Autowired
+    public LocalGroupConverter(ClientConverter clientConverter, GlobalConfFacade globalConfFacade) {
+        this.clientConverter = clientConverter;
+        this.globalConfFacade = globalConfFacade;
+    }
 
     /**
      * Converts LocalGroupType to Group

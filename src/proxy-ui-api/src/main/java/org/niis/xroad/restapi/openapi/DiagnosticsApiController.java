@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.DiagnosticsStatus;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.restapi.converter.OcspResponderDiagnosticConverter;
@@ -37,6 +36,7 @@ import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.service.DiagnosticService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -52,13 +52,26 @@ import java.util.List;
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class DiagnosticsApiController implements DiagnosticsApi {
 
-    private final DiagnosticService diagnosticService;
-    private final GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
-    private final TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
-    private final OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
+    private DiagnosticService diagnosticService;
+    private GlobalConfDiagnosticConverter globalConfDiagnosticConverter;
+    private TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter;
+    private OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter;
+
+    /**
+     * DiagnosticsApiController constructor
+     */
+    @Autowired
+    public DiagnosticsApiController(DiagnosticService diagnosticService,
+            GlobalConfDiagnosticConverter globalConfDiagnosticConverter,
+            TimestampingServiceDiagnosticConverter timestampingServiceDiagnosticConverter,
+            OcspResponderDiagnosticConverter ocspResponderDiagnosticConverter) {
+        this.diagnosticService = diagnosticService;
+        this.globalConfDiagnosticConverter = globalConfDiagnosticConverter;
+        this.timestampingServiceDiagnosticConverter = timestampingServiceDiagnosticConverter;
+        this.ocspResponderDiagnosticConverter = ocspResponderDiagnosticConverter;
+    }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")

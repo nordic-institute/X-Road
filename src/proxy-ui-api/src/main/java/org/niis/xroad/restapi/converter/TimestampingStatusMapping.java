@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Mapping between TimestampingStatus in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
-@RequiredArgsConstructor
 public enum TimestampingStatusMapping {
     SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS,
             TimestampingStatus.SUCCESS),
@@ -55,6 +53,11 @@ public enum TimestampingStatusMapping {
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
     private final TimestampingStatus timestampingStatus;
+
+    TimestampingStatusMapping(Integer diagnosticsErrorCode, TimestampingStatus timestampingStatus) {
+        this.diagnosticsErrorCode = diagnosticsErrorCode;
+        this.timestampingStatus = timestampingStatus;
+    }
 
     /**
      * Return matching TimestampingStatus, if any

@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.CertificateStatus;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Mapping between {@link CertificateStatus} in api (enum) and model {@link CertificateInfo} status string
  */
 @Getter
-@RequiredArgsConstructor
 public enum CertificateStatusMapping {
     SAVED(CertificateInfo.STATUS_SAVED, CertificateStatus.SAVED),
     REGISTRATION_IN_PROGRESS(CertificateInfo.STATUS_REGINPROG, CertificateStatus.REGISTRATION_IN_PROGRESS),
@@ -48,6 +46,11 @@ public enum CertificateStatusMapping {
 
     private final String status;
     private final CertificateStatus certificateStatus;
+
+    CertificateStatusMapping(String status, CertificateStatus certificateStatus) {
+        this.status = status;
+        this.certificateStatus = certificateStatus;
+    }
 
     /**
      * Return matching status, if any

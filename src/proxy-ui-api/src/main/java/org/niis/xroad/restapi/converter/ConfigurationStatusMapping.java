@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
 
 import java.util.Arrays;
@@ -38,7 +37,6 @@ import java.util.Optional;
  * Mapping between ConfigurationStatus in api (enum) and model (DiagnosticsErrorCode)
  */
 @Getter
-@RequiredArgsConstructor
 public enum ConfigurationStatusMapping {
     SUCCESS(DiagnosticsErrorCodes.RETURN_SUCCESS,
             ConfigurationStatus.SUCCESS),
@@ -60,6 +58,11 @@ public enum ConfigurationStatusMapping {
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
     private final ConfigurationStatus configurationStatus;
+
+    ConfigurationStatusMapping(Integer diagnosticsErrorCode, ConfigurationStatus configurationStatus) {
+        this.diagnosticsErrorCode = diagnosticsErrorCode;
+        this.configurationStatus = configurationStatus;
+    }
 
     /**
      * Return matching ConfigurationStatus, if any

@@ -30,9 +30,9 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.repository.IdentifierRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -54,12 +54,20 @@ import static java.util.stream.Collectors.groupingBy;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class IdentifierService {
 
     private final IdentifierRepository identifierRepository;
     private final LocalGroupService localGroupService;
     private final GlobalConfService globalConfService;
+
+    @Autowired
+    public IdentifierService(IdentifierRepository identifierRepository,
+            LocalGroupService localGroupService,
+            GlobalConfService globalConfService) {
+        this.identifierRepository = identifierRepository;
+        this.localGroupService = localGroupService;
+        this.globalConfService = globalConfService;
+    }
 
     /**
      * Get the existing {@link XRoadId xRoadIds} from the local db and persist the not-existing ones

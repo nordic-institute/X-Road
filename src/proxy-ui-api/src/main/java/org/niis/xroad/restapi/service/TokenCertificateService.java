@@ -41,7 +41,6 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
@@ -54,6 +53,7 @@ import org.niis.xroad.restapi.openapi.InternalServerErrorException;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.SecurityHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -96,7 +96,6 @@ import static org.niis.xroad.restapi.service.KeyService.isCausedByKeyNotFound;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class TokenCertificateService {
 
     private static final String DUMMY_MEMBER = "dummy";
@@ -109,6 +108,7 @@ public class TokenCertificateService {
     private final SignerProxyFacade signerProxyFacade;
     private final ClientRepository clientRepository;
     private final ManagementRequestSenderService managementRequestSenderService;
+    private final ServerConfService serverConfService;
     private final ClientService clientService;
     private final CertificateAuthorityService certificateAuthorityService;
     private final KeyService keyService;
@@ -118,6 +118,32 @@ public class TokenCertificateService {
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
+
+    @Autowired
+    @SuppressWarnings("checkstyle:ParameterNumber")
+    public TokenCertificateService(SignerProxyFacade signerProxyFacade, ClientService clientService,
+            CertificateAuthorityService certificateAuthorityService, KeyService keyService, DnFieldHelper dnFieldHelper,
+            GlobalConfService globalConfService, GlobalConfFacade globalConfFacade, ClientRepository clientRepository,
+            ManagementRequestSenderService managementRequestSenderService, ServerConfService serverConfService,
+            PossibleActionsRuleEngine possibleActionsRuleEngine, TokenService tokenService,
+            SecurityHelper securityHelper, AuditDataHelper auditDataHelper,
+            AuditEventHelper auditEventHelper) {
+        this.signerProxyFacade = signerProxyFacade;
+        this.clientService = clientService;
+        this.certificateAuthorityService = certificateAuthorityService;
+        this.keyService = keyService;
+        this.dnFieldHelper = dnFieldHelper;
+        this.globalConfService = globalConfService;
+        this.globalConfFacade = globalConfFacade;
+        this.clientRepository = clientRepository;
+        this.managementRequestSenderService = managementRequestSenderService;
+        this.serverConfService = serverConfService;
+        this.tokenService = tokenService;
+        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
+        this.securityHelper = securityHelper;
+        this.auditDataHelper = auditDataHelper;
+        this.auditEventHelper = auditEventHelper;
+    }
 
     /**
      * Create a CSR

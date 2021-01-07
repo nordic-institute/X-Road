@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.controller.ServiceClientHelper;
@@ -47,6 +46,7 @@ import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.EndpointService;
 import org.niis.xroad.restapi.service.ServiceClientNotFoundException;
 import org.niis.xroad.restapi.service.ServiceClientService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -69,7 +69,6 @@ import static org.niis.xroad.restapi.util.FormatUtils.parseLongIdOrThrowNotFound
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class EndpointsApiController implements EndpointsApi {
 
     private final EndpointService endpointService;
@@ -81,6 +80,23 @@ public class EndpointsApiController implements EndpointsApi {
     private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
+
+    @Autowired
+    public EndpointsApiController(
+            EndpointService endpointService,
+            EndpointConverter endpointConverter,
+            AccessRightService accessRightService,
+            ServiceClientConverter serviceClientConverter,
+            ServiceClientHelper serviceClientHelper,
+            ServiceClientService serviceClientService) {
+        this.endpointService = endpointService;
+        this.endpointConverter = endpointConverter;
+        this.accessRightService = accessRightService;
+        this.serviceClientConverter = serviceClientConverter;
+        this.serviceClientHelper = serviceClientHelper;
+        this.serviceClientService = serviceClientService;
+        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
+    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT')")

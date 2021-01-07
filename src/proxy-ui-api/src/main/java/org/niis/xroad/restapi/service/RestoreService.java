@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
@@ -35,6 +34,7 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.repository.BackupRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,13 +48,10 @@ import java.io.File;
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
-@RequiredArgsConstructor
 public class RestoreService {
     @Setter
-    @Value("${script.restore-configuration.path}")
     private String configurationRestoreScriptPath;
     @Setter
-    @Value("${script.restore-configuration.args}")
     private String configurationRestoreScriptArgs;
 
     private final ExternalProcessRunner externalProcessRunner;
@@ -64,6 +61,24 @@ public class RestoreService {
     private final AuditDataHelper auditDataHelper;
     private final PersistenceUtils persistenceUtils;
     private final ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    public RestoreService(ExternalProcessRunner externalProcessRunner,
+            @Value("${script.restore-configuration.path}") String configurationRestoreScriptPath,
+            @Value("${script.restore-configuration.args}") String configurationRestoreScriptArgs,
+            CurrentSecurityServerId currentSecurityServerId, BackupRepository backupRepository,
+            ApiKeyService apiKeyService, AuditDataHelper auditDataHelper, PersistenceUtils persistenceUtils,
+            ApplicationEventPublisher publisher) {
+        this.externalProcessRunner = externalProcessRunner;
+        this.configurationRestoreScriptPath = configurationRestoreScriptPath;
+        this.configurationRestoreScriptArgs = configurationRestoreScriptArgs;
+        this.currentSecurityServerId = currentSecurityServerId;
+        this.backupRepository = backupRepository;
+        this.apiKeyService = apiKeyService;
+        this.auditDataHelper = auditDataHelper;
+        this.persistenceUtils = persistenceUtils;
+        this.eventPublisher = publisher;
+    }
 
     /**
      * Restores the security server configuration from a backup. Any tokens that are not software tokens are logged

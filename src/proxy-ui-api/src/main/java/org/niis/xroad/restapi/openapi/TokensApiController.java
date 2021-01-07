@@ -31,7 +31,6 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientConverter;
@@ -55,6 +54,7 @@ import org.niis.xroad.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -76,7 +76,6 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPDATE_TOKEN
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class TokensApiController implements TokensApi {
 
     private final KeyConverter keyConverter;
@@ -85,6 +84,23 @@ public class TokensApiController implements TokensApi {
     private final TokenConverter tokenConverter;
     private final ClientConverter clientConverter;
     private final KeyAndCertificateRequestService keyAndCertificateRequestService;
+
+    /**
+     * constructor
+     */
+    @Autowired
+    public TokensApiController(KeyConverter keyConverter, KeyService keyService,
+            TokenService tokenService,
+            TokenConverter tokenConverter,
+            ClientConverter clientConverter,
+            KeyAndCertificateRequestService keyAndCertificateRequestService) {
+        this.keyConverter = keyConverter;
+        this.keyService = keyService;
+        this.tokenService = tokenService;
+        this.tokenConverter = tokenConverter;
+        this.clientConverter = clientConverter;
+        this.keyAndCertificateRequestService = keyAndCertificateRequestService;
+    }
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override

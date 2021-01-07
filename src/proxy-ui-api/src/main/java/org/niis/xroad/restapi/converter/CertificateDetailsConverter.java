@@ -31,9 +31,9 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
-import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.util.FormatUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
@@ -45,11 +45,11 @@ import java.util.ArrayList;
  * Converter for CertificateDetails related data between openapi and service domain classes
  */
 @Component
-@RequiredArgsConstructor
 public class CertificateDetailsConverter {
 
     public static final int RADIX_FOR_HEX = 16;
-    private final KeyUsageConverter keyUsageConverter;
+    @Autowired
+    private KeyUsageConverter keyUsageConverter;
 
     /**
      * convert CertificateType into openapi Certificate class

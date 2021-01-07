@@ -27,7 +27,6 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -52,6 +51,7 @@ import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.VersionService;
 import org.niis.xroad.restapi.util.ResourceUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,7 +80,6 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KE
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
-@RequiredArgsConstructor
 public class SystemApiController implements SystemApi {
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
@@ -91,6 +90,26 @@ public class SystemApiController implements SystemApi {
     private final VersionConverter versionConverter;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
+
+    /**
+     * Constructor
+     */
+    @Autowired
+    public SystemApiController(InternalTlsCertificateService internalTlsCertificateService,
+            CertificateDetailsConverter certificateDetailsConverter, SystemService systemService,
+            TimestampingServiceConverter timestampingServiceConverter, AnchorConverter anchorConverter,
+            VersionService versionService, VersionConverter versionConverter, CsrFilenameCreator csrFilenameCreator,
+            AuditDataHelper auditDataHelper) {
+        this.internalTlsCertificateService = internalTlsCertificateService;
+        this.certificateDetailsConverter = certificateDetailsConverter;
+        this.systemService = systemService;
+        this.timestampingServiceConverter = timestampingServiceConverter;
+        this.anchorConverter = anchorConverter;
+        this.versionService = versionService;
+        this.versionConverter = versionConverter;
+        this.csrFilenameCreator = csrFilenameCreator;
+        this.auditDataHelper = auditDataHelper;
+    }
 
     @Override
     @PreAuthorize("hasAuthority('EXPORT_INTERNAL_TLS_CERT')")
