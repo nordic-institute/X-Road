@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
@@ -40,7 +41,6 @@ import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,14 +52,10 @@ import java.util.List;
 @Slf4j
 @Repository
 @Transactional
+@RequiredArgsConstructor
 public class ClientRepository {
 
-    private PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ClientRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
-    }
+    private final PersistenceUtils persistenceUtils;
 
     /**
      * Executes a Hibernate saveOrUpdate(client)

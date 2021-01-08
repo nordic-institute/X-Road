@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import java.util.Optional;
  * Mapping between ConnectionType in api (enum) and model (IsAuthentication enum)
  */
 @Getter
+@RequiredArgsConstructor
 public enum ConnectionTypeMapping {
     NOSSL(IsAuthentication.NOSSL, ConnectionType.HTTP),
     SSLNOAUTH(IsAuthentication.SSLNOAUTH, ConnectionType.HTTPS_NO_AUTH),
@@ -44,11 +46,6 @@ public enum ConnectionTypeMapping {
 
     private final IsAuthentication isAuthentication; // ClientType isAuthentication values (from DB)
     private final ConnectionType connectionTypeEnum;
-
-    ConnectionTypeMapping(IsAuthentication isAuthentication, ConnectionType connectionTypeEnum) {
-        this.isAuthentication = isAuthentication;
-        this.connectionTypeEnum = connectionTypeEnum;
-    }
 
     /**
      * Return matching ConnectionTypeEnum, if any. Convenience method for mapping isAuthentication

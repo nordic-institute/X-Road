@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.converter;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 
@@ -37,6 +38,7 @@ import java.util.Optional;
  * model {@link PossibleActionEnum} status string
  */
 @Getter
+@RequiredArgsConstructor
 public enum PossibleActionMapping {
 
     DELETE(PossibleActionEnum.DELETE, PossibleAction.DELETE),
@@ -54,11 +56,6 @@ public enum PossibleActionMapping {
 
     private final PossibleActionEnum possibleActionEnum;
     private final PossibleAction possibleAction;
-
-    PossibleActionMapping(PossibleActionEnum possibleActionEnum, PossibleAction possibleAction) {
-        this.possibleActionEnum = possibleActionEnum;
-        this.possibleAction = possibleAction;
-    }
 
     /**
      * Return matching {@link PossibleActionEnum}, if any
