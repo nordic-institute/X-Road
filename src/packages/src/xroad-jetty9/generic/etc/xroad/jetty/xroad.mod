@@ -45,3 +45,5 @@ lib/jetty-annotations-${jetty.version}.jar
 lib/jetty-jndi-${jetty.version}.jar
 lib/annotations/*.jar
 lib/jetty-jaas-${jetty.version}.jar
+lib/common-util-1.0.jar
+lib/guava-29.0-jre.jar

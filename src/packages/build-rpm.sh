@@ -43,6 +43,8 @@ rpmbuild \
 # build jetty rpms
 ROOT="${DIR}/build/xroad-jetty9/redhat"
 ./download_jetty.sh
+cp -vf ../center-ui/build/libs/guava-29.0-jre.jar build/jetty9/lib/
+cp -vf ../center-ui/build/libs/common-util-1.0.jar build/jetty9/lib/
 rpmbuild \
     --define "xroad_version $VERSION" \
     --define "jetty $DIR/build/jetty9" \

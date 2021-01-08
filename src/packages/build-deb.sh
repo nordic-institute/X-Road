@@ -41,6 +41,8 @@ mkdir -p build/xroad-jetty9
 cp -a src/xroad/ubuntu build/xroad/
 cp -a src/xroad-jetty9/ubuntu build/xroad-jetty9/
 ./download_jetty.sh
+cp -vf ../center-ui/build/libs/guava-29.0-jre.jar build/jetty9/lib/
+cp -vf ../center-ui/build/libs/common-util-1.0.jar build/jetty9/lib/
 
 case "$1" in
     bionic)
