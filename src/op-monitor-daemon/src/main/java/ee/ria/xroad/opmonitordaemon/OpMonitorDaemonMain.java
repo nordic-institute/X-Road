@@ -88,13 +88,6 @@ public final class OpMonitorDaemonMain {
     private static void startup() {
         log.info("Starting the operational monitoring daemon");
 
-        log.info("hello world");
-        log.info("hello world");
-        log.info("hello " + '\u0085' + " world");
-        log.info("hello world");
-        log.info("hello world");
-
-
         actorSystem = ActorSystem.create(OP_MONITOR_DAEMON_NAME,
                 ConfigFactory.load().getConfig("opmonitordaemon")
                         .withFallback(ConfigFactory.load()));

@@ -106,7 +106,7 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             throw e;
         } finally {
             if (success) {
-                auditEventLoggingFacade.auditLogSuccess(loginEvent, username + '\u0085' + '\u0085');
+                auditEventLoggingFacade.auditLogSuccess(loginEvent, username);
             } else {
                 auditEventLoggingFacade.auditLogFail(loginEvent, caughException, username);
             }
