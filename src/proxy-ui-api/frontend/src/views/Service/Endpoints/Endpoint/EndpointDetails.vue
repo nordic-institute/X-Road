@@ -58,7 +58,7 @@
           {{ $t('endpoints.path') }}
         </div>
         <ValidationProvider
-          rules="required"
+          rules="required|xrdEndpoint"
           ref="path"
           name="path"
           class="validation-provider dlg-row-input"
