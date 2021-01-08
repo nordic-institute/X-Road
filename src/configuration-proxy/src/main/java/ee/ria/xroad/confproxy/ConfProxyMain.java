@@ -108,6 +108,13 @@ public final class ConfProxyMain {
             try {
                 ConfProxy proxy = new ConfProxy(instance);
                 log.info("ConfProxy executing for instance {}", instance);
+
+                log.info("hello world");
+                log.info("hello world");
+                log.info("hello " + '\u0085' + " world");
+                log.info("hello world");
+                log.info("hello world");
+
                 proxy.execute();
             } catch (Exception ex) {
                 log.error("Error when executing configuration-proxy '{}'",
