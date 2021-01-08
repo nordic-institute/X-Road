@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.restapi.openapi;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,14 +41,10 @@ import java.util.List;
 @Controller
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class XroadInstancesApiController implements XroadInstancesApi {
 
     private final GlobalConfFacade globalConfFacade;
-
-    @Autowired
-    public XroadInstancesApiController(GlobalConfFacade globalConfFacade) {
-        this.globalConfFacade = globalConfFacade;
-    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")

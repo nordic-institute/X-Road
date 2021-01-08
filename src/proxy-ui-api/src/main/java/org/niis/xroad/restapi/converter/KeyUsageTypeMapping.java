@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 
 import java.util.Arrays;
@@ -37,17 +38,13 @@ import java.util.Optional;
  * Mapping between KeyUsageType in api (enum) and model (KeyUsageInfo)
  */
 @Getter
+@RequiredArgsConstructor
 public enum KeyUsageTypeMapping {
     SIGNING(KeyUsageType.SIGNING, KeyUsageInfo.SIGNING),
     AUTHENTICATION(KeyUsageType.AUTHENTICATION, KeyUsageInfo.AUTHENTICATION);
 
     private final KeyUsageType keyUsageType;
     private final KeyUsageInfo keyUsageInfo;
-
-    KeyUsageTypeMapping(KeyUsageType keyUsageType, KeyUsageInfo keyUsageInfo) {
-        this.keyUsageType = keyUsageType;
-        this.keyUsageInfo = keyUsageInfo;
-    }
 
     /**
      * Return matching KeyUsageInfo, if any

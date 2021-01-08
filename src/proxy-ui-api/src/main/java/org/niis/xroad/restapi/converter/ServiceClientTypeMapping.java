@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import java.util.Optional;
  * Mapping between ServiceClientType in api (enum) and model (XRoadObjectType)
  */
 @Getter
+@RequiredArgsConstructor
 public enum ServiceClientTypeMapping {
     SUBSYSTEM(XRoadObjectType.SUBSYSTEM, ServiceClientType.SUBSYSTEM),
     LOCALGROUP(XRoadObjectType.LOCALGROUP, ServiceClientType.LOCALGROUP),
@@ -44,11 +46,6 @@ public enum ServiceClientTypeMapping {
 
     private final XRoadObjectType xRoadObjectType;
     private final ServiceClientType serviceClientType;
-
-    ServiceClientTypeMapping(XRoadObjectType xRoadObjectType, ServiceClientType serviceClientType) {
-        this.xRoadObjectType = xRoadObjectType;
-        this.serviceClientType = serviceClientType;
-    }
 
     /**
      * Return matching ServiceClientType, if any
