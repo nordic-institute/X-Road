@@ -38,13 +38,18 @@ import static ee.ria.xroad.common.validation.SpringFirewallValidationRules.FORBI
  */
 public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
-    private static final char REPLACEMENT_CHARACTER = '_';
+    private static final char REPLACEMENT_CHARACTER = '\uFFFD';
+    private static final char WHITESPACE_REPLACEMENT = '\u0020';
 
     public static String replaceLogForgingCharacters(String in) {
+
+        String result = CharMatcher.whitespace().or(CharMatcher.breakingWhitespace())
+                .replaceFrom(in, WHITESPACE_REPLACEMENT);
+
         return CharMatcher.javaIsoControl()
                 .or(CharMatcher.is(FORBIDDEN_BOM))
                 .or(CharMatcher.is(FORBIDDEN_ZWSP))
-                .replaceFrom(in, REPLACEMENT_CHARACTER);
+                .replaceFrom(result, REPLACEMENT_CHARACTER);
     }
 
     @Override

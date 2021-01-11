@@ -37,14 +37,14 @@ public class XroadLogbackCharacterConverterTest {
 
     @Test
     public void testIllegalCharReplacement() {
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld"));
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld"));
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld"));
-        assertEquals("hello__world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld"));
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\uFEFFworld"));
-        assertEquals("hello_world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u200Bworld"));
+        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld"));
+        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld"));
+        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld"));
+        assertEquals("hello  world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
+        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
+        assertEquals("hello\uFFFDworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld"));
+        assertEquals("hello\uFFFDworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\uFEFFworld"));
+        assertEquals("hello\uFFFDworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u200Bworld"));
         assertEquals("hello world A", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello world A"));
     }
 }
