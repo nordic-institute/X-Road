@@ -99,21 +99,21 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-secondary        | Image for 
 This is an extension of the Security Server Sidecar [Reference Data](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#23-reference-data)
 
 **Ref** | **Value**                                | **Explanation**
------- | ----------------------------------------- | ----------------------------------------------------------
-
+------- | ----------------------------------------- | ----------------------------------------------------------
 3.1    | &lt;namespace name&gt;                    | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects. inside the cluster
-3.2    | &lt;pod name&gt;                    | Unique name of a Pod, if the Pods belongs to a deployment object, a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.
+3.2    | &lt;pod name&gt;                          | Unique that identifies a Pod inside a Cluster namespace, if the Pods belongs to a deployment object, a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.
 3.3    | &lt;pod label&gt;                         | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.
-3.4    | &lt;pvc name&gt;                         | Unique name that identifies the PersistentVolumeClaim.
-3.5    | &lt;volume storage class name&gt;        | String name that matches the PVC with the PV for dynamic provisioning.
-3.6    | &lt;<volume access mode>&gt;             | Define de access mode to the volume, typically "ReadWriteOnce" wich allows Read/Writte access to a single Pod at a time. r dynamic provisioning. "ReadWritteMany" could be used for EFS volumes wich allows multiple Pods access at same time.
+3.4    | &lt;pvc name&gt;                         | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.
+3.5    | &lt;volume storage class name&gt;        | Name that matches the PVC with the PV for dynamic provisioning.
+3.6    | &lt;volume access mode&gt;             | Define de access mode to the volume, typically "ReadWriteOnce" wich allows Read/Writte access to a single Pod at a time.  "ReadWritteMany" could be used for EFS volumes wich allows multiple Pods access at same time.
 3.7    | &lt;volume size&gt;                       | Requested volume size, for example: 5Gi
 3.8    | &lt;pv name&gt;                           | Unique name that identifies the PersistentVolume.
 3.9    | &lt;pv host path&gt;                      | Path to the file or directory to mount in the PersistentVolume.
 3.10    | &lt;awsElasticBlockStore volume id&gt;   | Volume ID of a AWS Elastic Block Store volume.
 3.11    | &lt;efs volume id&gt;                    | Volume ID of a AWS Elastic File System volume.
-3.12    | &lt;container name&gt;                    | Identify name of the image container deployed in a Kubernetes pod
+3.12    | &lt;container name&gt;                    | Name of the image container deployed in a Kubernetes pod
 3.13    | &lt;template volume name&gt;            | Name that identifies a volume inside a kubernetes template
+3.14    | &lt;secret name&gt;            | Unique name that identifies a secret inside a Cluster namespace
 
 ## 4.2 Installation Instructions
 ### 4.2.1 Namespaces
@@ -188,7 +188,7 @@ Delete the Pod by running:
 kubectl delete -f /path/to/<file-name>.yaml
 ```
 
-### 4.2.3 Kubernetes Persistent Volumes
+### 4.2.3 Kubernetes Volumes
 Kubernetes volumes can be used to store different things such as the configuration of the Security Server Sidecar, the storage of message logs ... ensuring that this storage could be shared between Pods and it's not lost when the Pods are deleted.
 
 #### 4.2.3.1 Persistent Volume Claim
@@ -217,7 +217,7 @@ kubectl apply -f /path/to/pvc_file.yaml
 Kubernetes have multiple types of **PV(Persistent Volumes)** that can be found [here](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types).
 The described scenario is focus on 3 types of volume that we can use in AWS: hostPath, awsElasticBlockStore and a AWS EFS (Elastic File System)  (using csi, a Container Storage Interface that defines standard interface for container orchestration systems).
 
-#### 4.2.3.2 hostPath
+#### 4.2.3.2 Persistent Volume hostPath
 A hostPath PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the Node could access to it, also it does not offer any backup solution and the information could be lost if the Node is deleted.
 Create the PV template and save it in a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9)**:
 ``` yaml
@@ -238,7 +238,7 @@ spec:
     path: "<pv host path>"
 ```
 
-#### 4.2.3.3 awsElasticBlockStore
+#### 4.2.3.3 Persistent Volume awsElasticBlockStore
 An awsElasticBlockStore PV mounts an AWS EBS volume into our pod. It offers and easy way of backup and keep the informaton even if the Node is deleted. This volume is only recommended for production environment in a single Node scenario, since the awsElasticBlockStore could be attached only to one single instance at a time.
 First, we need to create an  Elastic Block Store Volume from the AWS console, then attach it to the Cluster Node instance, setting "/dev/xvdf" on the device property. Once the volume is created, copy the id and create a PV template and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
@@ -260,7 +260,7 @@ spec:
     volumeID: "<awsElasticBlockStore volume id>"
 ```
 
-#### 4.2.3.4 AWS Elastic File System
+#### 4.2.3.4 Persistent Volume AWS Elastic File System
 Using the Container Storage Interface provided by Kubernetes it is possible to mount an AWS EFS volume into our pod. This volume it is recommended for production environments in a multiple node scenario since it could be accessed for multiple nodes at same time.
 First we need to create an Elastic File System from the AWS console, configuring the security groups and allowing access from the Cluster Nodes. Once the volume is created, copy the id and create a PV template abd save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
@@ -332,4 +332,89 @@ spec:
   - name: <template volume name>
     mountPath: /etc/xroad/
 ...
+```
+
+### 4.2.4 Kubernetes Secrets
+Kubernetes Secrets allows us to store and manage sensitive information.
+For the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) scenario you need to create a Kubernetes secret that will store the ssh keys used by the Secondary Pods to synchronize the configuration with the Primary Pod.
+If you don't have an ssh key you can create one by running:
+```
+ssh-keygen -f /path/to/.ssh/
+```
+Then create a Kubernetes secret for storing the ssh keys by running (**reference Data: 3.1, 3.14**);
+```
+kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
+```
+
+### 4.2.5 Multiple Pods using a Load Balancer deployment
+#### 4.2.5.1 Prerequisites
+- A Persitent Volume Claim bounded to a Persitent Volume for store the Primary Pod configuration [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes).
+- A Kubernetes Secret with a ssh key pair stored [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets).
+
+#### 4.2.5.2 Primary Pod installation
+An example of how to install the Primary Pod is shown in the template below:
+``` yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: <headless service name>
+  labels:
+    run: <headless service name>
+  namespace: <namespace name>
+spec:
+  clusterIP: None
+  selector:
+    run: <pod label>
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: <pod name>
+  namespace: <namespace name>
+  labels:
+    run: <pod label>
+spec:
+   volumes:
+   - name: <template volume name>
+     persistentVolumeClaim:
+       claimName: <pvc name>
+   - name: <template volume name_2>
+     secret:
+       secretName: <secret name>
+       items:
+       - key: public-key
+         path: id_rsa.pub
+         mode: 0644
+   containers:
+   - name: <container name>
+     image: niis/xroad-security-server-sidecar:<image tag>
+     imagePullPolicy: "Always"
+     volumeMounts:
+     - name: <template volume name>
+       mountPath: /etc/xroad/
+     - name: <template volume name_2>
+       mountPath: "/etc/.ssh/"
+     env:
+     - name: XROAD_TOKEN_PIN
+       value: "1234"
+     - name: XROAD_ADMIN_USER
+       value: "xrd"
+     - name: XROAD_ADMIN_PASSWORD
+       value: "secret"
+     - name: XROAD_LOG_LEVEL
+      value: "<xroad log level>"
+     - name: XROAD_DB_HOST
+       value: "<database host>"
+     - name: XROAD_DB_PORT
+       value: "<database port>"
+     - name: XROAD_DB_PWD
+       value: "<xroad db password>"
+     - name: XROAD_DATABASE_NAME
+       value: "<database-name>"
+     ports:
+     - containerPort: 4000
+     - containerPort: 5500
+     - containerPort: 5577
+     - containerPort: 5588
+     - containerPort: 22
 ```
