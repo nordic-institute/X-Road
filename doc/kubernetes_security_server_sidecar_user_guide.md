@@ -13,7 +13,7 @@
    * [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database)
    * [2.2 Single Pod Deployment with external database](#22-single-pod-deployment-with-external-database)
    * [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer)
-* [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes)
+* [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes)
 * [4 Installation](#4-installation)
    * [4.1 Minimum system requirements](#41-minimum-system-requirements)
    * [4.2 Prerequisites to Installation](#42-prerequisites-to-installation)
@@ -22,7 +22,7 @@
    * [4.2 Installation Instructions](#42-installation-instructions)
       * [4.2.1 Namespaces](#421-namespaces)
       * [4.2.2 Single Pod deployment](#422-single-pod-deployment)
-      * [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes)
+      * [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes)
          * [4.2.3.1 Persistent Volume Claim](#4231-persistent-volume-claim)
          * [4.2.3.2 Persistent Volumes](#4232-persistent-volumes)
             * [4.2.3.2.1 Persistent Volume hostPath](#42321-persistent-volume-hostpath)
@@ -31,11 +31,11 @@
             * [4.2.3.2.4 AWS EBS vs AWS EFS](#42324-aws-ebs-vs-aws-efs)
          * [4.2.3.6 Manage Volumes](#4236-manage-volumes)
          * [4.2.3.7 Mount the Volume to a Pod](#4237-mount-the-volume-to-a-pod)
-      * [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets)
+      * [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets)
       * [4.2.4.1 Store keys in secrets](#4241-store-keys-in-secrets)
          * [4.2.4.2 Secrets for environmental variables](#4242-secrets-for-environmental-variables)
          * [4.2.4.3 Consume secret for environmental variables](#4243-consume-secret-for-environmental-variables)
-      * [4.2.5 Kubernetes jobs readiness, liveness and startup probes](#425-kubernetes-jobs-readiness-liveness-and-startup-probes)
+      * [4.2.5 Kubernetes jobs readiness, liveness and startup probes](#425-Kubernetes-jobs-readiness-liveness-and-startup-probes)
          * [4.2.5.1 Readiness probes](#4251-readiness-probes)
          * [4.2.5.2 Liveness probes](#4252-liveness-probes)
          * [4.2.5.3 Startup probes](#4253-startup-probes)
@@ -81,7 +81,7 @@ More information about using a external database on the Security Server Sidecar 
 This deployment will allow us to scale the number of Nodes and Pods that we have on our cluster. All of the Pods will point to the same external database.
 Within this deployment we will have 4 types of objects.
 - Primary Pod: This Pod will be in charge of handling the configuration of the Security Server Sidecar Database, the storage and backups of the message logs and the configuration backups. This Pod will be unique per deployment.
-- "n" number of Secondary Pods: These pods will be in charge of processing the messages. These Pods will not change the configuration, instead they will synchronize the configuration of the Primary Pod via SSH, during the initialization and in a CRON job running each minute.
+- "n" number of Secondary Pods: These pods will be in charge of processing the messages. These Pods will not change the configuration, instead they will synchronize the configuration of the Primary Pod via ssh, during the initialization and in a CRON job running each minute.
 - Headless service: It will refer to the Primary Pod and will be used so that the secondary pods can connect to the primary one through a fixed DNS.
 - Network Load Balancer: It will redirect the traffic between the Secondary Pods. The users will sends the messages through this Load Balancer public IP (We can use the private IP in case we are on the same VPC).
 
@@ -92,7 +92,7 @@ Within this deployment we will have 4 types of objects.
 This deployment is the recommended for production environment.
 
 # 3 X-Road Security Server Sidecar images for Kubernetes
-All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) are available to use in a Kubernetes deployment. Apart for this images, there are new images to be use in the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployment. These images include the necessary configuration so that the Pods can act as Primary or Secondary and connect through SSH.
+All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) are available to use in a Kubernetes deployment. Apart for this images, there are new images to be use in the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployment. These images include the necessary configuration so that the Pods can act as Primary or Secondary and connect through ssh.
 
 **Image**                                                | **Description**                               
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
@@ -109,7 +109,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-secondary        | Image for 
 ## 4.2 Prerequisites to Installation
 - The latest AWS CLI and eksctl command line utility must be installed to go through the steps described in this [page](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html).
 - We must be authenticated to access to the AWS resources through the AWS CLI. Instructions for authenticated can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
-- A SSH key must be uploaded to "Key Pairs" section in Amazon EC2, Instruction for uploading a key can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair).
+- A ssh key must be uploaded to "Key Pairs" section in Amazon EC2, Instruction for uploading a key can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair).
 
 ## 4.3 Network configuration
 
@@ -123,13 +123,13 @@ Out | Security Server | OCSP Service | 80 / 443 | tcp | |
 Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
 Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
 Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
-Out  | SSH synchronization | Security Server | 22 | tcp | |
+Out  | ssh synchronization | Security Server | 22 | tcp | |
 In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
 In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 In  | Healthcheck | Security Server | 5588 | tcp | |
-In  | SSH synchronization | Security Server | 22 | tcp | |
+In  | ssh synchronization | Security Server | 22 | tcp | |
 
 
 ## 4.4 Reference Data
@@ -150,11 +150,11 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 3.10    | &lt;awsElasticBlockStore volume id&gt;   | Volume ID of a AWS Elastic Block Store volume.
 3.11    | &lt;efs volume id&gt;                    | Volume ID of a AWS Elastic File System volume.
 3.12    | &lt;container name&gt;                    | Name of the image container deployed in a Kubernetes pod.
-3.13    | &lt;<manifest volume name&gt;  | Unique name that identifies a volume inside a manifest.
+3.13    | &lt;manifest volume name&gt;  | Unique name that identifies a volume inside a manifest.
 3.14    | &lt;secret name&gt;            | Unique name that identifies a secret inside a Cluster namespace.
 3.15    | &lt;service name&gt;           | Unique name that identifies a Kubernetes Service object
-3.16    | &lt;pod private ip&gt;           | Private IP of a single Pod.
-3.17    | &lt;load balancer private ip&gt;  | Fixed private IP of a Load Balancer, defined on a kubernetes manifest.
+3.16    | &lt;pod private ip&gt;           | private IP of a single Pod.
+3.17    | &lt;load balancer private ip&gt;  | Fixed private IP of a Load Balancer, defined on a Kubernetes manifest.
 3.18    | &lt;number replicas&gt;           | Number of Pod replicas to be deployed.
 3.19    | &lt;service selector&gt;           | Name that identifies a Load Balancer with the Pods.
 3.20    | &lt;primary DNS&gt;           | DNS of the service that identifies the Primary Pod composed by <service name>.<namespace name>.svc.cluster.local .
@@ -274,7 +274,7 @@ kubectl apply -f /path/to/pvc_file.yaml
 
 #### 4.2.3.2 Persistent Volumes
 
-Kubernetes has multiple types of **PV(Persistent Volumes)** that can be found [here](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types).
+Kubernetes has multiple types of **PV(Persistent Volumes)** that can be found [here](https://Kubernetes.io/docs/concepts/storage/volumes/#volume-types).
 The described scenario is focus on 3 types of volume that we can use in AWS: hostPath, awsElasticBlockStore and a AWS EFS (Elastic File System)  (using csi, a Container Storage Interface that defines standard interface for container orchestration systems).
 
 ##### 4.2.3.2.1 Persistent Volume hostPath
@@ -338,7 +338,7 @@ Using the Container Storage Interface provided by Kubernetes it is possible to m
 
 - Deploy on the Cluster the AWS EFS CSI driver. The Amazon EFS Container Storage Interface (CSI) driver provides a CSI interface that allows Kubernetes clusters running on AWS to manage the lifecycle of Amazon EFS file systems.
 ```
-kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.0"
+kubectl apply -k "github.com/Kubernetes-sigs/aws-efs-csi-driver/deploy/Kubernetes/overlays/stable/ecr/?ref=release-1.0"
 ```
 
 - Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
@@ -385,7 +385,7 @@ The table below shows us a comparison with the main differences and when it is r
 
 
 #### 4.2.3.6 Manage Volumes
-Once the volume is chosen, we can deploy it by running:
+Once the volume manifest is created, we can deploy it by running:
 ```
 kubectl apply -f /path/to/pv_file.yaml
 ```
@@ -423,14 +423,15 @@ spec:
 ```
 
 ### 4.2.4 Kubernetes Secrets
-### 4.2.4.1 Store keys in secrets
+### 4.2.4.1 Store keys in Secrets
 Kubernetes Secrets allows us to store and manage sensitive information.
-For the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) scenario you need to create a Kubernetes secret that will store the ssh keys used by the Secondary Pods to synchronize the configuration with the Primary Pod.
+
+For the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) scenario you need to create a Kubernetes secret, this secret will store the ssh keys used by the Secondary Pods to synchronize the configuration with the Primary Pod.
 If you don't have an ssh key you can create one by running:
 ```
 ssh-keygen -f /path/to/.ssh/
 ```
-Then create a Kubernetes secret for storing the ssh keys by running (**reference Data: 3.1, 3.14**);
+Then create a Kubernetes Secret for storing the ssh keys by running (**reference Data: 3.1, 3.14**);
 ```
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
 ```
@@ -459,9 +460,29 @@ stringData:
 $ kubectl apply -f secret-env-variables.yaml
 ```
 
-#### 4.2.4.3 Consume secret for environmental variables
-Modify the deployment pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
-```bash
+#### 4.2.4.3 Consume secrets
+
+The Secrets that store keys can be consumed in a similar way to volumes, for this you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign it permissions, then mount the volume in a folder on the container (**reference Data: 3.13, 3.14**):
+``` yaml
+[...]
+volumes:
+- name: <manifest volume name>
+  secret:
+    secretName: <secret name>
+    items:
+    - key: public-key
+      path: id_rsa.pub
+      mode: 0644
+[...]
+   volumeMounts:
+   - name: <manifest volume name>
+     mountPath: "/etc/.ssh/"
+[...]
+```
+
+
+For consuming the Secrets for environmental variables, modify the deployment pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
+``` yaml
 [...]
 containers:
  - name: security-server-sidecar
@@ -543,8 +564,8 @@ livenessProbe:
 
 ### 4.2.6 Multiple Pods using a Load Balancer deployment
 #### 4.2.6.1 Prerequisites
-- A Persitent Volume Claim bounded to a Persitent Volume for store the Primary Pod configuration [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes).
-- A Kubernetes Secret with a ssh key pair stored [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets).
+- A Persitent Volume Claim bounded to a Persitent Volume for store the Primary Pod configuration [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes).
+- A Kubernetes Secret with a ssh key pair stored [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets).
 
 #### 4.2.6.2 Primary Pod installation
 An example of how to install the Primary Pod is shown in the manifest below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
@@ -614,13 +635,14 @@ spec:
      - containerPort: 22
 ```
 
-The manifest has two kubernetes objects:
-- A headless Service, this service is used so that the Secondary Pods can connect to the primary one via SSH through a fixed DNS, this DNS will be "<service name>.<namespace name>.svc.cluster.local"  because the private IP of the primary Pod can change each time it is recreated.
+The manifest has two Kubernetes objects:
+- A Headless Service, this service is used so that the Secondary Pods can connect to the primary one via ssh through a fixed DNS, this DNS will be "&lt;service nam&gt; .&lt;namespace name&gt; .svc.cluster.local"  because the private IP of the primary Pod can change each time it is recreated.
 This service has no open port since is not required any communication from outside.
-- A Pod with the primary image of the Security Server Sidecar, as image tag we can choose between the "primary" or "primary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes). The Pod defines two volumes, on for store the secret public key described in [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets) and a volume to store the `etc/xroad` configuration, it is possible to choose between the volumes described in [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes).
-Once the Primary Pod is deployed we need to configure it (register in the Central Server, create the certificates...) following the [the user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#43-configuration).
+- A Pod with the primary image of the Security Server Sidecar, as image tag we can choose between the "primary" or "primary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
+The Pod defines two volumes, one for store the secret public key described in [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets) and a volume to store the `etc/xroad` configuration. It is possible to choose between the volumes described in [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes).
+Once the Primary Pod is deployed we need to configure it (register in the Central Server, create the certificates...) following the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#43-configuration).
 
-Once the configuration is ready, we can verify it by connection via SSH to a instance inside the internal network a run the Healthcheck from the commnad line and verifying that the result is OK:
+Once the configuration is ready, it is possible to verify by running a Healthcheck from inside the internal network, checking that the result is OK:
 ```
 curl -i <private pod ip>:5588
 ```
@@ -633,7 +655,7 @@ kind: Service
 metadata:
   name: <service name>
   annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    service.beta.Kubernetes.io/aws-load-balancer-type: nlb
   labels:
     run: <service name>
   namespace: <namespace name>
@@ -712,12 +734,16 @@ spec:
         - containerPort: 22
 ```
 
-The manifest has two kubernetes objects:
-- An NLB (Network Load Balancer) which will be in charge of redirecting the traffic between the different Secondary pods. The ClusterIP property is optional and is used to assign a fixed private IP to the Load Balancer, this can help us in the configuration of the Security Server Sidecar in the central server, if not assigned, a new private IP will be assigned to the Load Balancer in each deployment.
+The manifest has two Kubernetes objects:
+- An NLB (Network Load Balancer) which will be in charge of redirecting the traffic between the different Secondary pods. The ClusterIP property is optional and is used to assign a fixed private IP to the Load Balancer, this can help you in the configuration of the Security Server Sidecar at the central server, if not assigned, a new private IP will be assigned to the Load Balancer in each deployment.
 It has the required ports "5500" "5577" for the messages communication between Security Servers open.
 
-- A DeploymentControll for deploy the "n" numbers of Pods with the image for the Secondary Pods, as image tag we can choose between the "secondary" or "secondary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes).
-The Pods have one volume for store the public and private SSH keys defined on [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets) require for the synchronization with the Primary Pod via SSH. It is not required to add a new volume for store the configuration since all the secondary Pods synchronize the configuration with the Primary, but could be use to make sure that all the Secondary Pods have the same configuration in case any fail to synchronize.
+- A DeploymentControll for deploy the "n" numbers of Pods with the image for the Secondary Pods, as image tag we can choose between the "secondary" or "secondary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
+
+The Pods have one volume for store the public and private ssh keys defined on [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets) require for the synchronization with the Primary Pod via ssh.
+
+It is not required to add a new volume for store the configuration since all the secondary Pods synchronize the configuration with the Primary, but could be use to make sure that all the Secondary Pods have the same configuration in case any fail to synchronize.
+
 The Secondary Pods also have a "ReadinessProbe", this test will run a healthcheck every 10 seconds, starting 200 seconds after deployment, as long as the healthcheck result is not positive, the Pod status will remain in "NotReady" and will not be included in the redirection of the Load Balancer.
 
 After the manifest is deployed we can scale the Secondary Pods by running:
@@ -731,7 +757,7 @@ The Secondary Pods will synchronize the configuration at initialization and thro
 The backup system of the Security Servers described [here](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore)  is still valid for the installation using Kubernetes.
 
 If your Kubernetes deployment uses volumes to store the configuration, you can back up each volume.
-As described in the [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes) section we will have 3 types of volume, each one with a way of create a backup:
+As described in the [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes) section we will have 3 types of volume, each one with a way of create a backup:
 
 - AWS Elastic Block Store: Backups can be stored by creating a snapshot of the volume from the AWS admin UI, these snapshots can be configured automatically also it is possible to restore the snapshots into the volume.
 - AWS Elastic File System: It is possible to create and restore backups of this volume using [AWS Backup](https://docs.aws.amazon.com/efs/latest/ug/awsbackup.html).
@@ -815,7 +841,7 @@ Note(2): It is possible that a major version update will require extra changes, 
 
 
 # 8 Message logs and disk space
-As described in the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#8-message-log) the recommend was to store the local storage of message log in a docker container. In kubernetes we can create any of the Kubernetes volumes described in [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes).
+As described in the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#8-message-log) the recommend was to store the local storage of message log in a docker container. In Kubernetes we can create any of the Kubernetes volumes described in [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes).
 
 It is also recommend to send the logs inside the volume to a AWS S3 Bucket. For doing that it is required to:
 - Create an AWS S3 Bucket from the AWS admin console.
