@@ -120,13 +120,13 @@ Out | Security Server | OCSP Service | 80 / 443 | tcp | |
 Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
 Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
 Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
-Out  | SSh synchronization | Security Server | 22 | tcp | |
+Out  | SSH synchronization | Security Server | 22 | tcp | |
 In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
 In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 In  | Healthcheck | Security Server | 5588 | tcp | |
-In  | SSh synchronization | Security Server | 22 | tcp | |
+In  | SSH synchronization | Security Server | 22 | tcp | |
 
 
 ## 4.4 Reference Data
