@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.openapi.validator.LocalGroupDescriptionValidator;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
@@ -43,6 +44,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -73,6 +76,12 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
+    }
+
+    @InitBinder("localGroupDescription")
+    @PreAuthorize("permitAll()")
+    protected void initLocalGroupDescriptionBinder(WebDataBinder binder) {
+        binder.addValidators(new LocalGroupDescriptionValidator());
     }
 
     @Override
