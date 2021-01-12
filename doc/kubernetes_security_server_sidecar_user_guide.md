@@ -31,8 +31,9 @@
          * [4.2.3.6 Manage Volumes](#4236-manage-volumes)
          * [4.2.3.7 Mount the Volume to a Pod](#4237-mount-the-volume-to-a-pod)
       * [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets)
-         * [4.2.4.1 Secrets for environmental variables](#4241-secrets-for-environmental-variables)
-         * [4.2.4.2 Consume secret for environmental variables](#4242-consume-secret-for-environmental-variables)
+      * [4.2.4.1 Store keys in secrets](#4241-store-keys-in-secrets)
+         * [4.2.4.2 Secrets for environmental variables](#4242-secrets-for-environmental-variables)
+         * [4.2.4.3 Consume secret for environmental variables](#4243-consume-secret-for-environmental-variables)
       * [4.2.5 Kubernetes jobs readiness, liveness and startup probes](#425-kubernetes-jobs-readiness-liveness-and-startup-probes)
          * [4.2.5.1 Readiness probes](#4251-readiness-probes)
          * [4.2.5.2 Liveness probes](#4252-liveness-probes)
@@ -45,7 +46,8 @@
 * [6 Monitoring](#6-monitoring)
    * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
 * [7 Version update](#7-version-update)
-* [8 Message logs &amp; disk space](#8-message-logs--disk-space)
+* [8 Message logs and disk space](#8-message-logs-and-disk-space)
+
 
 
 # 1 Introduction
@@ -417,6 +419,7 @@ spec:
 ```
 
 ### 4.2.4 Kubernetes Secrets
+### 4.2.4.1 Store keys in secrets
 Kubernetes Secrets allows us to store and manage sensitive information.
 For the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) scenario you need to create a Kubernetes secret that will store the ssh keys used by the Secondary Pods to synchronize the configuration with the Primary Pod.
 If you don't have an ssh key you can create one by running:
@@ -428,7 +431,7 @@ Then create a Kubernetes secret for storing the ssh keys by running (**reference
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
 ```
 
-#### 4.2.4.1 Secrets for environmental variables
+#### 4.2.4.2 Secrets for environmental variables
 This example shows how to create a secret for the Security Server Sidecar environment variables with sensitive data.
 - Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
 ```bash
@@ -452,7 +455,7 @@ stringData:
 $ kubectl apply -f secret-env-variables.yaml
 ```
 
-#### 4.2.4.2 Consume secret for environmental variables
+#### 4.2.4.3 Consume secret for environmental variables
 Modify the deployment pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 ```bash
 [...]
