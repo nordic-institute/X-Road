@@ -3,7 +3,7 @@
     <property file="/etc/xroad/conf.d/variables-logback.properties" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d %level [xroad-signer] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} %level [xroad-signer] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
         </encoder>
     </appender>
 
@@ -13,7 +13,7 @@
     <!--TokenManager is very verbose /-->
     <logger name="ee.ria.xroad.signer.tokenmanager.TokenManager" level="OFF" />
 
-    <root level="${XROAD_LOG_LEVEL}">
+    <root level="${XROAD_ROOT_LOG_LEVEL}">
         <appender-ref ref="STDOUT" />
     </root>
 

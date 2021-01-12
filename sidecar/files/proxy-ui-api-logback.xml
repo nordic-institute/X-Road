@@ -3,13 +3,12 @@
     <property file="/etc/xroad/conf.d/variables-logback.properties" />
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} %level [xroad-confclient] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} %level [xroad-proxy-ui-api] [%thread] %logger{36} - %msg%n%rEx{3}</pattern>
         </encoder>
     </appender>
 
     <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL}" />
     <logger name="akka" level="WARN" />
-    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
 
     <root level="${XROAD_ROOT_LOG_LEVEL}">
         <appender-ref ref="STDOUT" />

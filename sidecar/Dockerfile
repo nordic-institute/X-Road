@@ -1,4 +1,5 @@
-FROM niis/xroad-security-server-sidecar:6.24.0-slim
+ARG VERSION=6.25.0
+FROM niis/xroad-security-server-sidecar:$VERSION-slim
 RUN mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled /usr/share/xroad/jlib/addon/proxy/messagelog.conf  \
 && mv /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf.disabled /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf
 
