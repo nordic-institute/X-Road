@@ -149,11 +149,11 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 3.10    | &lt;awsElasticBlockStore volume id&gt;   | Volume ID of a AWS Elastic Block Store volume.
 3.11    | &lt;efs volume id&gt;                    | Volume ID of a AWS Elastic File System volume.
 3.12    | &lt;container name&gt;                    | Name of the image container deployed in a Kubernetes pod.
-3.13    | &lt;<template volume name&gt;  | Unique name that identifies a volume inside a template.
+3.13    | &lt;<manifest volume name&gt;  | Unique name that identifies a volume inside a manifest.
 3.14    | &lt;secret name&gt;            | Unique name that identifies a secret inside a Cluster namespace.
 3.15    | &lt;service name&gt;           | Unique name that identifies a Kubernetes Service object
 3.16    | &lt;pod private ip&gt;           | Private IP of a single Pod.
-3.17    | &lt;load balancer private ip&gt;  | Fixed private IP of a Load Balancer, defined on a kubernetes template.
+3.17    | &lt;load balancer private ip&gt;  | Fixed private IP of a Load Balancer, defined on a kubernetes manifest.
 3.18    | &lt;number replicas&gt;           | Number of Pod replicas to be deployed.
 3.19    | &lt;service selector&gt;           | Name that identifies a Load Balancer with the Pods.
 3.20    | &lt;primary DNS&gt;           | DNS of the service that identifies the Primary Pod composed by <service name>.<namespace name>.svc.cluster.local .
@@ -176,7 +176,7 @@ kubectl create namespace <namespace name>
 ```
 
 ### 4.2.2 Single Pod deployment
-For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following "yaml" template (**reference data: 3.1, 3.2, 3.3, 1.4, 1.5, 1.6, 1.10**):
+For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following "yaml" manifest (**reference data: 3.1, 3.2, 3.3, 1.4, 1.5, 1.6, 1.10**):
 ``` yaml
 apiVersion: v1
 kind: Pod
@@ -223,7 +223,7 @@ It is possible using an external database by add/modify the environment variable
 
 Once the deployment is ready save it on a file and run on a terminal:
 ```
-kubectl apply -f /path/to/<template-file-name>.yaml
+kubectl apply -f /path/to/<manifest-file-name>.yaml
 ```
 Check that the Pod is deployed by running (**reference Data: 3.1**):
 ```
@@ -241,7 +241,7 @@ kubectl exec -it -n <namespace name> <pod-name> bash
 
 Delete the Pod by running:
 ```
-kubectl delete -f /path/to/<template-file-name>.yaml
+kubectl delete -f /path/to/<manifest-file-name>.yaml
 ```
 
 ### 4.2.3 Kubernetes Volumes
@@ -249,7 +249,7 @@ Kubernetes volumes can be used to store different things such as the configurati
 
 #### 4.2.3.1 Persistent Volume Claim
 First, it is required to create an **PVC(Persistent Volume Claim)** to request physical storage. PVCs are a way for developers to "claim" durable storage without knowing the details of the particular Volume implementation type.
-Create the PVC template and save it in a "yaml" file **(reference Data: 3.1, 3.4, 3.5, 3.6, 3.7)**:
+Create the PVC manifest and save it in a "yaml" file **(reference Data: 3.1, 3.4, 3.5, 3.6, 3.7)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -265,7 +265,7 @@ spec:
     requests:
       storage: <volume size>
 ```
-Deploy the PVC template:
+Deploy the PVC manifest:
 ```
 kubectl apply -f /path/to/pvc_file.yaml
 ```
@@ -275,7 +275,7 @@ The described scenario is focus on 3 types of volume that we can use in AWS: hos
 
 #### 4.2.3.2 Persistent Volume hostPath
 A hostPath PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the Node could access to it, also it does not offer any backup solution and the information could be lost if the Node is deleted.
-Create the PV template and save it in a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9)**:
+Create the PV manifest and save it in a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
