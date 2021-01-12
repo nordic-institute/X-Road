@@ -24,10 +24,11 @@
       * [4.2.2 Single Pod deployment](#422-single-pod-deployment)
       * [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes)
          * [4.2.3.1 Persistent Volume Claim](#4231-persistent-volume-claim)
-         * [4.2.3.2 Persistent Volume hostPath](#4232-persistent-volume-hostpath)
-         * [4.2.3.3 Persistent Volume awsElasticBlockStore](#4233-persistent-volume-awselasticblockstore)
-         * [4.2.3.4 Persistent Volume AWS Elastic File System](#4234-persistent-volume-aws-elastic-file-system)
-         * [4.2.3.5 AWS EBS vs AWS EFS](#4235-aws-ebs-vs-aws-efs)
+         * [4.2.3.2 Persistent Volumes](#4232-persistent-volumes)
+            * [4.2.3.2.1 Persistent Volume hostPath](#42321-persistent-volume-hostpath)
+            * [4.2.3.2.2 Persistent Volume awsElasticBlockStore](#42322-persistent-volume-awselasticblockstore)
+            * [4.2.3.2.3 Persistent Volume AWS Elastic File System](#42323-persistent-volume-aws-elastic-file-system)
+            * [4.2.3.2.4 AWS EBS vs AWS EFS](#42324-aws-ebs-vs-aws-efs)
          * [4.2.3.6 Manage Volumes](#4236-manage-volumes)
          * [4.2.3.7 Mount the Volume to a Pod](#4237-mount-the-volume-to-a-pod)
       * [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets)
@@ -68,7 +69,7 @@ With this deployment, the Pod will be assigned a private IP and will only be acc
 This deployment is only recommended for testing or developing environment since it does not allow scaling of nodes or pods.
 
 ## 2.2 Single Pod Deployment with external database
-This deployment is equal to the [2.1](# 2.1-Single-Pod-Deployment-with-internal-database) but using an external database. The database could be outside the VPC with allowed access from the Pod, could be in the same VPC or even in the same cluster deployed on another pod.
+This deployment is equal to the previous but using an external database. The database could be outside the VPC with allowed access from the Pod, could be in the same VPC or even in the same cluster deployed on another pod.
 
 <p align="center">
   <img src="img/ig-single_pod_external_database.svg" />
@@ -77,10 +78,10 @@ This deployment is equal to the [2.1](# 2.1-Single-Pod-Deployment-with-internal-
 More information about using a external database on the Security Server Sidecar can be found [here](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#27-external-database)
 
 ## 2.3 Multiple Pods using a Load Balancer
-This deployment will allow us to scale the number of Nodes and Pods that we have on our deployment. All of the Pods will point to the same external database.
+This deployment will allow us to scale the number of Nodes and Pods that we have on our cluster. All of the Pods will point to the same external database.
 Within this deployment we will have 4 types of objects.
 - Primary Pod: This Pod will be in charge of handling the configuration of the Security Server Sidecar Database, the storage and backups of the message logs and the configuration backups. This Pod will be unique per deployment.
-- "n" number of Secondary Pods: These pods will be in charge of processing the messages. These Pods will not change the configuration, instead they will synchronize the configuration of the Primary Pod via SSH at initialization and in a CRON job running each minute.
+- "n" number of Secondary Pods: These pods will be in charge of processing the messages. These Pods will not change the configuration, instead they will synchronize the configuration of the Primary Pod via SSH, during the initialization and in a CRON job running each minute.
 - Headless service: It will refer to the Primary Pod and will be used so that the secondary pods can connect to the primary one through a fixed DNS.
 - Network Load Balancer: It will redirect the traffic between the Secondary Pods. The users will sends the messages through this Load Balancer public IP (We can use the private IP in case we are on the same VPC).
 
@@ -91,7 +92,7 @@ Within this deployment we will have 4 types of objects.
 This deployment is the recommended for production environment.
 
 # 3 X-Road Security Server Sidecar images for Kubernetes
-All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) are available to use in a Kubernetes deployment. Apart for this images we include the following images to be use in the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployment. These images include the necessary configuration so that the pods can act as primary or secondary and connect via ssh.
+All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) are available to use in a Kubernetes deployment. Apart for this images, there are new images to be use in the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployment. These images include the necessary configuration so that the Pods can act as Primary or Secondary and connect through SSH.
 
 **Image**                                                | **Description**                               
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
@@ -108,7 +109,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-secondary        | Image for 
 ## 4.2 Prerequisites to Installation
 - The latest AWS CLI and eksctl command line utility must be installed to go through the steps described in this [page](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html).
 - We must be authenticated to access to the AWS resources through the AWS CLI. Instructions for authenticated can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
-- A ssh key must be uploaded to "Key Pairs" section in Amazon EC2, Instruction for uploading a key can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair).
+- A SSH key must be uploaded to "Key Pairs" section in Amazon EC2, Instruction for uploading a key can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair).
 
 ## 4.3 Network configuration
 
@@ -170,6 +171,7 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 
 It is recommended to use namespaces in a deployment, namespaces allow us to organize the resources of a cluster when it is shared by several projects or teams.
 The use of namespaces is optional, if the namespace is not used in the different resources they will be included in the "default" namespace.
+
 Create a new namespace by running (**reference data: 3.1**):
 ```
 kubectl create namespace <namespace name>
@@ -208,7 +210,7 @@ spec:
      - containerPort: 5577
 ```
 As image tag any of the Security Server Sidecar images described [here](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) could be used.
-It is possible using an external database by add/modify the environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
+It is possible to use an external database by add/modify the environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
 
 ``` yaml
      - name: XROAD_DB_HOST
@@ -221,9 +223,9 @@ It is possible using an external database by add/modify the environment variable
        value: "<database-name>"
 ```
 
-Once the deployment is ready save it on a file and run on a terminal:
+Once the deployment is ready save it on a file and run:
 ```
-kubectl apply -f /path/to/<manifest-file-name>.yaml
+kubectl apply -f /path/to/manifest-file-name.yaml
 ```
 Check that the Pod is deployed by running (**reference Data: 3.1**):
 ```
@@ -234,7 +236,7 @@ And get the pod information by running (**reference Data: 3.1, 3.2**):
 kubectl describe pod -n <namespace name> <pod-name>
 ```
 
-Get a Shell to a running Pod (**reference Data: 3.1, 3.2**):
+Get a Shell to the container running in the Pod (**reference Data: 3.1, 3.2**):
 ```
 kubectl exec -it -n <namespace name> <pod-name> bash
 ```
@@ -245,10 +247,10 @@ kubectl delete -f /path/to/<manifest-file-name>.yaml
 ```
 
 ### 4.2.3 Kubernetes Volumes
-Kubernetes volumes can be used to store different things such as the configuration of the Security Server Sidecar, the storage of message logs ... ensuring that this storage could be shared between Pods and it's not lost when the Pods are deleted.
+Kubernetes volumes can be used to store different things such as the configuration of the Security Server Sidecar, the storage of message logs ... Kubernetes volumes ensure that this storage could be shared between different Pods and it's not lost when the Pods are deleted.
 
 #### 4.2.3.1 Persistent Volume Claim
-First, it is required to create an **PVC(Persistent Volume Claim)** to request physical storage. PVCs are a way for developers to "claim" durable storage without knowing the details of the particular Volume implementation type.
+First, it is required to create an PVC(Persistent Volume Claim) to request physical storage. PVCs are a way for developers to "claim" durable storage without knowing the details of the particular volume implementation type.
 Create the PVC manifest and save it in a "yaml" file **(reference Data: 3.1, 3.4, 3.5, 3.6, 3.7)**:
 ``` yaml
 apiVersion: v1
@@ -270,11 +272,13 @@ Deploy the PVC manifest:
 kubectl apply -f /path/to/pvc_file.yaml
 ```
 
-Kubernetes have multiple types of **PV(Persistent Volumes)** that can be found [here](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types).
+#### 4.2.3.2 Persistent Volumes
+
+Kubernetes has multiple types of **PV(Persistent Volumes)** that can be found [here](https://kubernetes.io/docs/concepts/storage/volumes/#volume-types).
 The described scenario is focus on 3 types of volume that we can use in AWS: hostPath, awsElasticBlockStore and a AWS EFS (Elastic File System)  (using csi, a Container Storage Interface that defines standard interface for container orchestration systems).
 
-#### 4.2.3.2 Persistent Volume hostPath
-A hostPath PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the Node could access to it, also it does not offer any backup solution and the information could be lost if the Node is deleted.
+##### 4.2.3.2.1 Persistent Volume hostPath
+A "hostPath" PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the same Node instance could access to it, also it does not offer any backup solution and the information could be lost if the Node instance is terminated.
 Create the PV manifest and save it in a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9)**:
 ``` yaml
 apiVersion: v1
@@ -294,10 +298,10 @@ spec:
     path: "<pv host path>"
 ```
 
-#### 4.2.3.3 Persistent Volume awsElasticBlockStore
-An awsElasticBlockStore PV mounts an AWS EBS volume into our pod. It offers and easy way of backup and keep the informaton even if the Node is deleted. This volume is only recommended for production environment in a single Node scenario, since the awsElasticBlockStore could be attached only to one single instance at a time.
-- First, we need to create an  Elastic Block Store Volume from the AWS console, then attach it to the Cluster Node instance, setting "/dev/xvdf" on the device property.
-- Once the volume is created, copy the id and create a PV template and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+##### 4.2.3.2.2 Persistent Volume awsElasticBlockStore
+An "awsElasticBlockStore" PV mounts an AWS EBS volume into our pod. It offers and easy way of backup and keep the informaton even if the Node is deleted. This volume is only recommended for production environment in a single Node instance scenario, since the "awsElasticBlockStore" could be attached only to one single instance at a time.
+- First, we need to create an  Elastic Block Store Volume from the AWS console, then attach it to the Cluster Node instance, filling "/dev/xvdf" on the device property.
+- Once the volume is created, copy the ID, then create a PV manifest and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -316,11 +320,11 @@ spec:
     fsType: "ext4"
     volumeID: "<awsElasticBlockStore volume id>"
 ```
-- It is possible to verify the information and get the volume info by running (Authentication through the AWS CLI it's required):
+- It is possible to verify the creation and get the volume info by running (Authentication through the AWS CLI it's required):
 ```
 aws --region <cluster region> ec2 describe-volumes --volume-id <awsElasticBlockStore volume id>
 ```
-- Copying the property "Device" of the previous command, we can run, from the cluster instance where the volume was mounted, the next command to get more information about the free disk space, the mountpoint... :
+- Copying the property "Device" from the output of previous command, it is possible to run from the cluster instance where the volume was mounted, the next commands to get more information about the free disk space, the mountpoint... :
 ```
 df -hT <device>
 ```
@@ -328,16 +332,16 @@ df -hT <device>
 lsblk <device>
 ```
 
-#### 4.2.3.4 Persistent Volume AWS Elastic File System
-Using the Container Storage Interface provided by Kubernetes it is possible to mount an AWS EFS volume into our pod. This volume it is recommended for production environments in a multiple node scenario since it could be accessed for multiple nodes at same time.
-- First, we need to create an Elastic File System from the AWS console, configuring the security groups and allowing access from the Cluster Nodes.
+##### 4.2.3.2.3 Persistent Volume AWS Elastic File System
+Using the Container Storage Interface provided by Kubernetes it is possible to mount an AWS EFS volume into our pod. This volume is recommended for production environments in a multiple node scenario since it could be mounted on multiple Node instances.
+- First, it is necessary to create an Elastic File System from the AWS admin console, configuring the security groups and allowing access from the Cluster Node instances.
 
-- Deploy the Amazon EFS CSI driver. The Amazon EFS Container Storage Interface (CSI) driver provides a CSI interface that allows Kubernetes clusters running on AWS to manage the lifecycle of Amazon EFS file systems.
+- Deploy on the Cluster the AWS EFS CSI driver. The Amazon EFS Container Storage Interface (CSI) driver provides a CSI interface that allows Kubernetes clusters running on AWS to manage the lifecycle of Amazon EFS file systems.
 ```
 kubectl apply -k "github.com/kubernetes-sigs/aws-efs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.0"
 ```
 
-- Once the volume is created, copy the id and create a PV template and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -356,16 +360,16 @@ spec:
     volumeHandle: <efs volume id>
 ```
 
-- It is possible to verify the information and get the volume info by running (Authentication through the AWS CLI it's required) (**reference Data: 3.11**):
+- It is possible to verify the creation and get the volume info by running (Authentication through the AWS CLI it's required) (**reference Data: 3.11**):
 ```
 aws efs describe-mount-targets --file-system-id <efs volume id>
 ```
 
-- It is possible to mount the volume in a cluster ec2-instance by running from the cluster instance where the volume is going to be mounted (**reference Data: 3.11, 3.22**):
+- It is possible to mount the volume in any Cluster Node instance by running from the Cluster Node Instance where the volume is going to be mounted (**reference Data: 3.11, 3.22**):
 ```
 sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport <efs volume id>.efs.<cluster region>.amazonaws.com:/ <local folder>
 ```
-#### 4.2.3.5 AWS EBS vs AWS EFS
+##### 4.2.3.2.4 AWS EBS vs AWS EFS
 The table below shows us a comparison with the main differences and when it is recommended to use each one to choose the best alternative between AWS EBS and EFS volumes.
 
 |     | **AWS EBS**                                          | AWS EFS                                   |
@@ -399,13 +403,13 @@ kubectl delete -f /path/to/file.yaml.
 ```
 
 #### 4.2.3.7 Mount the Volume to a Pod
-To mount the volume on a Pod, it is required to have a PVC bounded to a PV, then modify the Pod template, in this case the template defined in the step [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) will be modified by mapping the volume to the xroad configuration `etc/xroad` (**reference Data: 3.4, 3.12, 3.13**):
+To mount the volume on a Pod, it is required to have a PVC bounded to a PV, then modify the Pod manifest, in this case the manifest defined in the step [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) will be modified by mapping the volume to the xroad configuration `etc/xroad` (**reference Data: 3.4, 3.12, 3.13**):
 
 ``` yaml
 ...
 spec:
   volumes:
-  - name: <template volume-name>
+  - name: <manifest volume-name>
     persistentVolumeClaim:
       claimName: <pvc name>
    containers:
@@ -413,7 +417,7 @@ spec:
      image: niis/xroad-security-server-sidecar:<image tag>
      imagePullPolicy: "Always"
   volumeMounts:
-  - name: <template volume name>
+  - name: <manifest volume name>
     mountPath: /etc/xroad/
 ...
 ```
@@ -543,7 +547,7 @@ livenessProbe:
 - A Kubernetes Secret with a ssh key pair stored [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets).
 
 #### 4.2.6.2 Primary Pod installation
-An example of how to install the Primary Pod is shown in the template below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
+An example of how to install the Primary Pod is shown in the manifest below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
 ``` yaml
 apiVersion: v1
 kind: Service
@@ -566,10 +570,10 @@ metadata:
     run: <service selector>
 spec:
    volumes:
-   - name: <template volume name>
+   - name: <manifest volume name>
      persistentVolumeClaim:
        claimName: <pvc name>
-   - name: <template volume name_2>
+   - name: <manifest volume name_2>
      secret:
        secretName: <secret name>
        items:
@@ -581,9 +585,9 @@ spec:
      image: niis/xroad-security-server-sidecar:<image tag>
      imagePullPolicy: "Always"
      volumeMounts:
-     - name: <template volume name>
+     - name: <manifest volume name>
        mountPath: /etc/xroad/
-     - name: <template volume name_2>
+     - name: <manifest volume name_2>
        mountPath: "/etc/.ssh/"
      env:
      - name: XROAD_TOKEN_PIN
@@ -610,7 +614,7 @@ spec:
      - containerPort: 22
 ```
 
-The template has two kubernetes objects:
+The manifest has two kubernetes objects:
 - A headless Service, this service is used so that the Secondary Pods can connect to the primary one via SSH through a fixed DNS, this DNS will be "<service name>.<namespace name>.svc.cluster.local"  because the private IP of the primary Pod can change each time it is recreated.
 This service has no open port since is not required any communication from outside.
 - A Pod with the primary image of the Security Server Sidecar, as image tag we can choose between the "primary" or "primary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes). The Pod defines two volumes, on for store the secret public key described in [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets) and a volume to store the `etc/xroad` configuration, it is possible to choose between the volumes described in [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes).
@@ -622,7 +626,7 @@ curl -i <private pod ip>:5588
 ```
 
 #### 4.2.6.3 Secondary Pods installation
-An example of how to install the Secondary Pod is shown in the template below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14,3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**):
+An example of how to install the Secondary Pod is shown in the manifest below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14,3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**):
 ``` yaml
 apiVersion: v1
 kind: Service
@@ -658,14 +662,14 @@ spec:
     matchLabels:
       run: <service selector>
   replicas: <number replicas>
-  template:
+  manifest:
     metadata:
       labels:
         run: <pod name>
         role: secondary
     spec:
       volumes:
-      - name: <template volume name>
+      - name: <manifest volume name>
         secret:
           secretName: <secret name>
           items:
@@ -680,7 +684,7 @@ spec:
         image: niis/xroad-security-server-sidecar:<image tag>
         imagePullPolicy: "Always"
         volumeMounts:
-        - name: <template volume name>
+        - name: <manifest volume name>
           mountPath: "/root/.ssh/"
         env:
         - name: XROAD_TOKEN_PIN
@@ -708,7 +712,7 @@ spec:
         - containerPort: 22
 ```
 
-The template has two kubernetes objects:
+The manifest has two kubernetes objects:
 - An NLB (Network Load Balancer) which will be in charge of redirecting the traffic between the different Secondary pods. The ClusterIP property is optional and is used to assign a fixed private IP to the Load Balancer, this can help us in the configuration of the Security Server Sidecar in the central server, if not assigned, a new private IP will be assigned to the Load Balancer in each deployment.
 It has the required ports "5500" "5577" for the messages communication between Security Servers open.
 
@@ -716,7 +720,7 @@ It has the required ports "5500" "5577" for the messages communication between S
 The Pods have one volume for store the public and private SSH keys defined on [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets) require for the synchronization with the Primary Pod via SSH. It is not required to add a new volume for store the configuration since all the secondary Pods synchronize the configuration with the Primary, but could be use to make sure that all the Secondary Pods have the same configuration in case any fail to synchronize.
 The Secondary Pods also have a "ReadinessProbe", this test will run a healthcheck every 10 seconds, starting 200 seconds after deployment, as long as the healthcheck result is not positive, the Pod status will remain in "NotReady" and will not be included in the redirection of the Load Balancer.
 
-After the template is deployed we can scale the Secondary Pods by running:
+After the manifest is deployed we can scale the Secondary Pods by running:
 ```
 scale -n <namespace name> --replicas=<number replicas> deployment/<pod name>
 ```
@@ -750,7 +754,7 @@ Container Insights uses a containerized version of the CloudWatch agent to disco
 - Verify that cluster logging is enabled on the cluster (At least Controller manager logging).
 - Deploy container insights by running (**reference Data: 3.21, 3.22**):
 ```
-curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/<cluster name>/;s/{{region_name}}/<cluster region>/" | kubectl apply -f -
+curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-manifests/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/<cluster name>/;s/{{region_name}}/<cluster region>/" | kubectl apply -f -
 ```
 - Verify the installation by running:
 ```
@@ -762,7 +766,7 @@ kubectl logs <cloudwatch agent name> -n amazon-cloudwatch
 ```
 - It is possible to delete the deployment by running:
 ```
-curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/<cluster-name>/;s/{{region_name}}/<cluster-region>/" | kubectl delete -f -
+curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-manifests/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/<cluster-name>/;s/{{region_name}}/<cluster-region>/" | kubectl delete -f -
 ```
 
 Once the agent is installed, you can see the cluster metrics, create alerts ... from the AWS admin console on the CloudWatch => Container Insights screen.
