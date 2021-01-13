@@ -41,10 +41,10 @@ module.exports = {
       mainPage.section.keysTab.elements.generateKeyButton;
     const globalConfiguration =
       mainPage.section.diagnosticsTab.elements.globalConfiguration;
-    const anchorDownloadButton =
-      mainPage.section.settingsTab.elements.anchorDownloadButton;
     const backupAndRestoreTab =
-      mainPage.section.settingsTab.elements.backupAndRestoreTab;
+      settingsTab.sections.backupAndRestoreTab;
+    const anchorDownloadButton =
+      backupAndRestoreTab.elements.anchorDownloadButton;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();

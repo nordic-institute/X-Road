@@ -24,6 +24,8 @@
  * THE SOFTWARE.
  */
 
+const path = require('path');
+
 var settingsTabCommands = {
   openSystemParameters: function () {
     this.click('@systemParametersTab');
@@ -35,6 +37,68 @@ var settingsTabCommands = {
   },
   openSecurityServerTLSKey: function () {
     this.click('@securityServerTLSKeyTab');
+    return this;
+  },
+};
+
+var systemParametersCommands = {};
+
+var backupAndRestoreCommands = {
+  enterFilterInput: function (input) {
+    this.clearValue2('@searchField');
+    this.setValue('@searchField', input);
+    return this;
+  },
+  clearFilterInput: function () {
+    this.clearValue2('@searchField');
+    return this;
+  },
+  clickCreateBackup: function () {
+    this.click('@backupButton');
+    return this;
+  },
+  addBackupToInput: function (filepath) {
+    this.api.setValue('//input[@type="file"]', path.resolve(filepath));
+    return this;
+  },
+  clickDownloadForBackup: function (backupFilename) {
+    this.click(
+      'xpath',
+      `//table[contains(@class, "xrd-table")]/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-download")]`,
+    );
+    this.api.pause(5000);
+    return this;
+  },
+  clickRestoreForBackup: function (backupFilename) {
+    this.click(
+      'xpath',
+      `//table[contains(@class, "xrd-table")]/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-restore")]`,
+    );
+    return this;
+  },
+  clickDeleteForBackup: function (backupFilename) {
+    this.click(
+      'xpath',
+      `//table[contains(@class, "xrd-table")]/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-delete")]`,
+    );
+    return this;
+  },
+};
+
+const confirmationDialog = {
+  confirm: function () {
+    this.click(
+      'xpath',
+      '//div[contains(@class, "xrd-card")]//button[contains(@data-test, "dialog-save-button")]',
+    );
+    this.pause(10000);
+    return this;
+  },
+  cancel: function () {
+    this.click(
+      'xpath',
+      '//div[contains(@class, "xrd-card")]//button[contains(@data-test, "dialog-cancel-button")]',
+    );
     return this;
   },
 };
@@ -56,14 +120,84 @@ const settingsTab = {
         '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
       locateStrategy: 'xpath',
     },
-    anchorDownloadButton: {
+  },
+  sections: {
+    systemParametersTab: {
       selector:
-        '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
       locateStrategy: 'xpath',
+      commands: systemParametersCommands,
     },
-    backupButton: {
-      selector: '//*[contains(@data-test, "backup-create-configuration")]',
+    backupAndRestoreTab: {
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
       locateStrategy: 'xpath',
+      commands: backupAndRestoreCommands,
+      elements: {
+        anchorDownloadButton: {
+          selector:
+            '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
+          locateStrategy: 'xpath',
+        },
+        backupButton: {
+          selector: '//*[contains(@data-test, "backup-create-configuration")]',
+          locateStrategy: 'xpath',
+        },
+        searchField: {
+          selector: '//*[contains(@data-test, "backup-search")]',
+          locateStrategy: 'xpath',
+        },
+      },
+      sections: {
+        deleteBackupConfirmationDialog: {
+          selector:
+            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Are you sure?")]]',
+          locateStrategy: 'xpath',
+          commands: confirmationDialog,
+          elements: {
+            yesButton: {
+              selector: '//button[@data-test="dialog-save-button"]',
+              locateStrategy: 'xpath',
+            },
+            cancelButton: {
+              selector: '//button[@data-test="dialog-cancel-button"]',
+              locateStrategy: 'xpath',
+            },
+          },
+        },
+        backupFileAlreadyExistsDialog: {
+          selector:
+            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"File already exists")]]',
+          locateStrategy: 'xpath',
+          commands: confirmationDialog,
+          elements: {
+            yesButton: {
+              selector: '//button[@data-test="dialog-save-button"]',
+              locateStrategy: 'xpath',
+            },
+            cancelButton: {
+              selector: '//button[@data-test="dialog-cancel-button"]',
+              locateStrategy: 'xpath',
+            },
+          },
+        },
+        restoreConfirmationDialog: {
+          selector:
+            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Are you sure?")]]',
+          locateStrategy: 'xpath',
+          commands: confirmationDialog,
+          elements: {
+            confirmation: {
+              selector: '//button[@data-test="dialog-save-button"]',
+              locateStrategy: 'xpath',
+            },
+            cancel: {
+              selector: '//button[@data-test="dialog-cancel-button"]',
+              locateStrategy: 'xpath',
+            },
+          },
+        },
+      },
     },
   },
 };
