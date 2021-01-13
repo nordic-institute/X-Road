@@ -427,9 +427,13 @@ spec:
 
 #### 4.2.3.5 Persistent Volume permissions
 When you mount a volume to a pod, by default it always gets mounted with the permission of root:root.
+
 This could be a problem when mapping the volume to local folders like the configuration folder `etc/xroad` or the message-log backup `var/lib/xroad` that requires xroad:xroad (UID: 999, GID:999) permission.
+
 Kubernetes allow us to deploy the container as another user using Security Context, but this doesn't work because Security Server Sidecar requires to be run by the root user.
+
 It is possible to change manually the permission setting the UID and GID in the folder of the Cluster node instance where the volume is mounted.
+
 Another possible is use Kubernetes Init Containers for setting the permissions to the volume folder, wich launches before the main container. An example for change the permissions to the `etc/xroad` volume folder could be (**reference Data: 3.4, 3.13**):
 
 ``` yaml
