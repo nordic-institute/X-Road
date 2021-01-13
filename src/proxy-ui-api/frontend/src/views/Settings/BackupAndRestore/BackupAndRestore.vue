@@ -50,7 +50,9 @@
           :loading="creatingBackup"
           data-test="backup-create-configuration"
           @click="createBackup"
-          ><Icon-database-backup />{{ $t('backup.backupConfiguration.button') }}
+        >
+          <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
+          >{{ $t('backup.backupConfiguration.button') }}
         </large-button>
         <file-upload
           accepts=".tar"
@@ -64,7 +66,10 @@
             class="button-spacing"
             @click="upload"
             data-test="backup-upload"
-            ><v-icon>mdi-arrow-up</v-icon>{{ $t('backup.uploadBackup.button') }}
+          >
+            <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+
+            {{ $t('backup.uploadBackup.button') }}
           </large-button>
         </file-upload>
         <confirm-dialog
@@ -99,7 +104,6 @@ import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
 import { FileUploadResult } from '@niis/shared-ui';
-import IconDatabaseBackup from '@/components/ui/icons/IconDatabaseBackup.vue';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
@@ -118,7 +122,6 @@ const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
 export default Vue.extend({
   components: {
     BackupsDataTable,
-    IconDatabaseBackup,
   },
   data() {
     return {

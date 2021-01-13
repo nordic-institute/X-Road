@@ -54,8 +54,7 @@
           </div>
         </div>
 
-        <div class="edit-row">
-          <div>{{ $t('fields.keys.friendlyName') }}</div>
+        <div>
           <ValidationProvider
             rules="required"
             name="keys.friendlyName"
@@ -64,10 +63,10 @@
           >
             <v-text-field
               v-model="key.name"
-              single-line
               class="code-input key-name"
               name="keys.friendlyName"
               type="text"
+              :label="$t('fields.keys.friendlyName')"
               outlined
               :maxlength="255"
               :error-messages="errors"

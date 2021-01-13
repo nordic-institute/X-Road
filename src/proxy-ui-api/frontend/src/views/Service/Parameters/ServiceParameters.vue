@@ -559,13 +559,4 @@ export default Vue.extend({
   display: flex;
   justify-content: flex-end;
 }
-
-.footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
 </style>

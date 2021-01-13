@@ -59,9 +59,9 @@
           @click="showConfirmDelete()"
           data-test="delete-button"
         >
-          <icon-base icon-name="delete" class="icon mr-1"
-            ><icon-declined /></icon-base
-          >{{ $t('action.delete') }}</large-button
+          <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
+
+          {{ $t('action.delete') }}</large-button
         >
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -117,16 +117,12 @@ import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconDeclined from '@/components/ui/icons/IconDeclined.vue';
 
 export default Vue.extend({
   components: {
     CertificateInfo,
     CertificateHash,
     UnregisterErrorDialog,
-    IconBase,
-    IconDeclined,
   },
   props: {
     hash: {

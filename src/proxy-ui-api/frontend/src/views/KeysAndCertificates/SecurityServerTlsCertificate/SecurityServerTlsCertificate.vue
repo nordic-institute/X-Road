@@ -83,16 +83,15 @@
       <div class="content-wrap">
         <div>
           <div class="key-wrap">
-            <icon-base icon-name="key" class="icon"><icon-key /></icon-base>
+            <i class="icon-Key icon" />
+
             {{ $t('ssTlsCertificate.keyText') }}
           </div>
           <div class="cert-wrap">
-            <icon-base
-              icon-name="certificate"
-              class="icon clickable-link"
+            <i
+              class="icon-Certificate icon clickable-link"
               @click="certificateClick()"
-              ><icon-certificate
-            /></icon-base>
+            />
 
             <div
               class="clickable-link"
@@ -132,17 +131,10 @@ import { saveResponseAsFile } from '@/util/helpers';
 import { FileUploadResult } from '@niis/shared-ui';
 import HelpButton from '../HelpButton.vue';
 
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconKey from '@/components/ui/icons/IconKey.vue';
-import IconCertificate from '@/components/ui/icons/IconCertificate.vue';
-
 export default Vue.extend({
   components: {
     GenerateTlsAndCertificateDialog,
     HelpButton,
-    IconKey,
-    IconBase,
-    IconCertificate,
   },
   data() {
     return {

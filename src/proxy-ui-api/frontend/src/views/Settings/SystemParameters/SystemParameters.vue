@@ -47,7 +47,7 @@
               outlined
               :requires-permission="permissions.DOWNLOAD_ANCHOR"
             >
-              <v-icon>mdi-arrow-down</v-icon>
+              <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
               {{ $t('systemParameters.configurationAnchor.action.download') }}
             </large-button>
             <upload-configuration-anchor-dialog

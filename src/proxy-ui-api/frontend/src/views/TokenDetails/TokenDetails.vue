@@ -29,8 +29,7 @@
       <div class="detail-view-content">
         <subViewTitle :title="$t('keys.tokenDetails')" @close="close" />
 
-        <div class="edit-row">
-          <div>{{ $t('keys.friendlyName') }}</div>
+        <div class="mt-8 pt-8">
           <ValidationProvider
             rules="required"
             name="keys.friendlyName"
@@ -39,11 +38,11 @@
           >
             <v-text-field
               v-model="token.name"
-              single-line
               class="code-input"
               name="keys.friendlyName"
               type="text"
               outlined
+              :label="$t('keys.friendlyName')"
               :maxlength="255"
               :error-messages="errors"
               :loading="loading"

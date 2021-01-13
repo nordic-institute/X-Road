@@ -27,8 +27,7 @@
   <tr>
     <td>
       <div class="name-wrap-top">
-        <icon-base icon-name="key" class="key-icon"><icon-key /></icon-base>
-
+        <i class="icon-Key key-icon" />
         <div class="clickable-link identifier-wrap" @click="keyClick">
           <span v-if="!tokenKey.name || tokenKey.name === ''">{{
             tokenKey.id
@@ -60,8 +59,6 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions } from '@/global';
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconKey from '@/components/ui/icons/IconKey.vue';
 export default Vue.extend({
   props: {
     tokenKey: {
@@ -71,10 +68,6 @@ export default Vue.extend({
     tokenLoggedIn: {
       type: Boolean,
     },
-  },
-  components: {
-    IconKey,
-    IconBase,
   },
   computed: {
     showGenerateCsr(): boolean {
@@ -121,7 +114,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
 .icon {
   margin-left: 18px;
   margin-right: 20px;

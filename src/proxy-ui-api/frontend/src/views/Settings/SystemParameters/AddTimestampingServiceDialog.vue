@@ -37,7 +37,8 @@
         @click="click"
         :disabled="selectableTimestampingServices.length === 0"
         :requires-permission="permissions.ADD_TSP"
-        ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+      >
+        <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}
       </large-button>
     </template>
@@ -93,7 +94,7 @@
           :disabled="selectedTimestampingService === undefined"
           @click="add"
         >
-          <v-icon class="mr-1">mdi-plus-circle</v-icon
+          <v-icon class="xrd-large-button-icon">icon-Add</v-icon
           >{{ $t('action.add') }}</large-button
         >
       </v-card-actions>

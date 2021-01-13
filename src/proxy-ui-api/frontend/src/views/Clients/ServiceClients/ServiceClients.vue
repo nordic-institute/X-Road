@@ -42,8 +42,8 @@
         color="primary"
         @click="addServiceClient"
         data-test="add-service-client"
-        class="ma-0 rounded-button elevation-0"
-        ><v-icon class="mr-1">mdi-plus-circle</v-icon
+        class="ma-0 elevation-0"
+        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
         >{{ $t('serviceClients.addServiceClient') }}
       </large-button>
     </div>
@@ -157,14 +157,5 @@ export default Vue.extend({
 .clickable-link {
   color: $XRoad-Link;
   cursor: pointer;
-}
-
-.footer-button-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
 }
 </style>

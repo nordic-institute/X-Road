@@ -41,6 +41,8 @@ import SubViewTitle from './components/SubViewTitle.vue';
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
 import './i18n';
+import "./assets/icons.css";
+
 
 const SharedComponents = {
   install(Vue: VueConstructor): void {

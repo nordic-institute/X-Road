@@ -117,9 +117,7 @@
           >
             <td class="td-name">
               <div class="name-wrap">
-                <icon-base icon-name="certificate" class="icon"
-                  ><icon-certificate
-                /></icon-base>
+                <i class="icon-Certificate icon" />
                 <div>{{ $t('keys.request') }}</div>
               </div>
             </td>
@@ -174,16 +172,12 @@ import {
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import IconBase from '@/components/ui/icons/IconBase.vue';
-import IconCertificate from '@/components/ui/icons/IconCertificate.vue';
 
 export default Vue.extend({
   components: {
     RegisterCertificateDialog,
     KeyRow,
     CertificateRow,
-    IconCertificate,
-    IconBase,
   },
 
   props: {
@@ -328,7 +322,6 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-
   margin-left: 2rem;
 
   i.v-icon.mdi-file-document-outline {

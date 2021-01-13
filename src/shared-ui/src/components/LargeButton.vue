@@ -33,6 +33,7 @@
     :block="block"
     :large="large"
     :text="text"
+    height="40"
     rounded
     color="primary elevation-0"
     class="large-button"

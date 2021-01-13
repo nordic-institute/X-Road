@@ -6,6 +6,7 @@
     "**/*.ttf",
     "**/*.xml",
     "**/*.woff",
+    "**/*.woff2",
     "**/*.DS_Store",
     "**/*.config.js",
     "**/*.cer",

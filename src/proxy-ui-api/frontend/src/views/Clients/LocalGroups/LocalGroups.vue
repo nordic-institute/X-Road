@@ -41,7 +41,7 @@
         v-if="showAddGroup"
         @click="addGroup"
         data-test="add-group-button"
-        ><v-icon class="mr-1">mdi-plus-circle</v-icon>
+        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('localGroups.addGroup') }}</LargeButton
       >
     </div>

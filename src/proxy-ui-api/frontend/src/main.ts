@@ -34,8 +34,7 @@ import './filters';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import 'fontsource-open-sans';
-import './assets/icons.css';
+import '@fontsource/open-sans';
 import i18n from './i18n';
 
 Vue.config.productionTip = false;

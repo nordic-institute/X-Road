@@ -357,13 +357,4 @@ export default Vue.extend({
 .service-client-margin {
   margin-top: 40px;
 }
-
-.footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  padding: 20px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
 </style>

@@ -92,7 +92,6 @@
             <large-button
               id="submit-button"
               color="primary"
-              class="rounded-button"
               gradient
               block
               large

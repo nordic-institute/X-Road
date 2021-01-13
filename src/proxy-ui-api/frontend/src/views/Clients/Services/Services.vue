@@ -47,7 +47,7 @@
           outlined
           data-test="add-rest-button"
           class="rest-button"
-          ><v-icon class="mr-1">mdi-plus-circle</v-icon
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
           >{{ $t('services.addRest') }}</large-button
         >
 
@@ -57,7 +57,7 @@
           @click="showAddWsdlDialog"
           data-test="add-wsdl-button"
           class="ma-0"
-          ><v-icon class="mr-1">mdi-plus-circle</v-icon
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
           >{{ $t('services.addWsdl') }}</large-button
         >
       </div>
@@ -702,7 +702,7 @@ export default Vue.extend({
 .refresh-row {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-end;
   width: 100%;
   margin-top: 24px;
