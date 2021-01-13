@@ -24,10 +24,10 @@
     "build-all": "npm run install-build-ui-lib && npm run build"
   },
   "dependencies": {
+    "@fontsource/open-sans": "~4.0.0",
     "@niis/shared-ui": "file:../../shared-ui",
     "axios": "^0.21.1",
     "core-js": "~3.6.5",
-    "@fontsource/open-sans": "~4.0.0",
     "vee-validate": "3.4.1",
     "vue": "~2.6.12",
     "vue-i18n": "~8.22.0",

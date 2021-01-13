@@ -59,7 +59,7 @@
           @click="showConfirmDelete()"
           data-test="delete-button"
         >
-          <i class="icon-Delete key-icon mr-1" />
+          <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
 
           {{ $t('action.delete') }}</large-button
         >

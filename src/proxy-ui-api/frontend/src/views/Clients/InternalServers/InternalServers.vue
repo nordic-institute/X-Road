@@ -67,7 +67,7 @@
             v-for="certificate in tlsCertificates"
             v-bind:key="certificate.hash"
           >
-            <td class="cert-icon">
+            <td class="pl-4 pt-2">
               <i class="icon-Certificate icon" />
             </td>
             <td>
@@ -94,7 +94,7 @@
       <table class="certificate-table server-certificates">
         <template v-if="ssCertificate">
           <tr>
-            <td class="cert-icon pl-4 pt-2">
+            <td class="pl-4 pt-2">
               <i class="icon-Certificate icon" />
             </td>
             <td>
