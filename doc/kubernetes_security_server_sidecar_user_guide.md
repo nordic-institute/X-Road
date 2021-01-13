@@ -257,8 +257,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: <pvc name>
-  labels:
-    usage: <namespace name>
+  namespace: <namespace name>
 spec:
   storageClassName: <volume storage class name>
   accessModes:
@@ -279,14 +278,14 @@ The described scenario is focus on 3 types of volume that we can use in AWS: hos
 
 ##### 4.2.3.2.1 Persistent Volume hostPath
 A "hostPath" PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the same Node instance could access to it, also it does not offer any backup solution and the information could be lost if the Node instance is terminated.
-Create the PV manifest and save it in a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9)**:
+Create the PV manifest and save it in a "yaml" file **(reference Data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: <pv name>
   labels:
-    type: local
+    usage: <namespace name>
 spec:
   storageClassName: <volume storage class name>
   capacity:
@@ -301,14 +300,14 @@ spec:
 ##### 4.2.3.2.2 Persistent Volume awsElasticBlockStore
 An "awsElasticBlockStore" PV mounts an AWS EBS volume into our pod. It offers and easy way of backup and keep the informaton even if the Node is deleted. This volume is only recommended for production environment in a single Node instance scenario, since the "awsElasticBlockStore" could be attached only to one single instance at a time.
 - First, we need to create an  Elastic Block Store Volume from the AWS console, then attach it to the Cluster Node instance, filling "/dev/xvdf" on the device property.
-- Once the volume is created, copy the ID, then create a PV manifest and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+- Once the volume is created, copy the ID, then create a PV manifest and save it to a "yaml" file **(reference Data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: <pv name>
   labels:
-    type: local
+    usage: <namespace name>
 spec:
   storageClassName: <volume storage class name>
   capacity:
@@ -341,12 +340,14 @@ Using the Container Storage Interface provided by Kubernetes it is possible to m
 kubectl apply -k "github.com/Kubernetes-sigs/aws-efs-csi-driver/deploy/Kubernetes/overlays/stable/ecr/?ref=release-1.0"
 ```
 
-- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference Data: 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference Data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: <pv name>
+  labels:
+    usage: <namespace name>
 spec:
   capacity:
     storage: <volume size>
