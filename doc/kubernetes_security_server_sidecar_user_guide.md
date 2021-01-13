@@ -143,7 +143,7 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 3.3    | &lt;pod label&gt;                         | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.
 3.4    | &lt;pvc name&gt;                         | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.
 3.5    | &lt;volume storage class name&gt;        | Name that matches the PVC with the PV for dynamic provisioning.
-3.6    | &lt;volume access mode&gt;             | Define de access mode to the volume, typically "ReadWriteOnce" wich allows Read/Writte access to a single Pod at a time.  "ReadWritteMany" could be used for EFS volumes wich allows multiple Pods access at same time.
+3.6    | &lt;volume access mode&gt;             | Define de access mode to the volume, typically "ReadWriteOnce" wich allows Read/Write access to a single Pod at a time.  "ReadWriteMany" could be used for EFS volumes wich allows multiple Pods access at same time.
 3.7    | &lt;volume size&gt;                       | Requested volume size, for example: 5Gi
 3.8    | &lt;pv name&gt;                           | Unique name that identifies the PersistentVolume.
 3.9    | &lt;pv host path&gt;                      | Path to the file or directory to mount in the PersistentVolume.
