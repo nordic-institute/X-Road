@@ -1,7 +1,7 @@
 ARG VERSION=6.25.0
 FROM niis/xroad-security-server-sidecar:$VERSION
 RUN apt-get -qq update \
-  && apt-get -qq install openssh-server rsync cron
+  && apt-get -qq install rsync openssh-client cron
 
 #Configure node pod for balanacer
 RUN crudini --set /etc/xroad/conf.d/node.ini node type 'slave' \
