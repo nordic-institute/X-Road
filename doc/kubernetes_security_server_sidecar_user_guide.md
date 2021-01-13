@@ -384,7 +384,7 @@ The table below shows us a comparison with the main differences and when it is r
 | When to use | Single node scenario.Reduce costs.We want a faster option.We don't need to worry about scalability.The amount of data is not that big.Create and recover backups in an easy way | Multiple node scenario.We need concurrent access.We want automatically scalability.The amount of data is big. |
 
 
-#### 4.2.3.6 Manage Volumes
+#### 4.2.3.3 Manage Volumes
 Once the volume manifest is created, we can deploy it by running:
 ```
 kubectl apply -f /path/to/pv_file.yaml
@@ -402,7 +402,7 @@ Delete the PV or PVC by running:
 kubectl delete -f /path/to/file.yaml.
 ```
 
-#### 4.2.3.7 Mount the Volume to a Pod
+#### 4.2.3.4 Mount the Volume to a Pod
 To mount the volume on a Pod, it is required to have a PVC bounded to a PV, then modify the Pod manifest, in this case the manifest defined in the step [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) will be modified by mapping the volume to the xroad configuration `etc/xroad` (**reference Data: 3.4, 3.12, 3.13**):
 
 ``` yaml
