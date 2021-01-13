@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ClientConverter;
@@ -34,15 +35,17 @@ import org.niis.xroad.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.openapi.validator.LocalGroupDescriptionValidator;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.restapi.service.LocalGroupService;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
@@ -61,31 +64,24 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class LocalGroupsApiController implements LocalGroupsApi {
 
     private final ClientConverter clientConverter;
     private final LocalGroupConverter localGroupConverter;
     private final LocalGroupService localGroupService;
 
-    /**
-     * GroupsApiController constructor
-     * @param clientConverter
-     * @param localGroupConverter
-     * @param localGroupService
-     */
-    @Autowired
-    public LocalGroupsApiController(ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
-            LocalGroupService localGroupService) {
-        this.clientConverter = clientConverter;
-        this.localGroupConverter = localGroupConverter;
-        this.localGroupService = localGroupService;
-    }
-
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
+    }
+
+    @InitBinder("localGroupDescription")
+    @PreAuthorize("permitAll()")
+    protected void initLocalGroupDescriptionBinder(WebDataBinder binder) {
+        binder.addValidators(new LocalGroupDescriptionValidator());
     }
 
     @Override

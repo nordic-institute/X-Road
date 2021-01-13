@@ -27,13 +27,13 @@ package org.niis.xroad.restapi.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.SessionTimeoutFilter;
 import org.niis.xroad.restapi.converter.AlertDataConverter;
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
 import org.niis.xroad.restapi.service.NotificationService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,18 +57,12 @@ import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
 @RequestMapping(NotificationsApiController.NOTIFICATIONS_API_V1_PATH)
 @Slf4j
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class NotificationsApiController {
     public static final String NOTIFICATIONS_API_V1_PATH = API_V1_PREFIX + "/notifications";
 
     private final NotificationService notificationService;
     private final AlertDataConverter alertDataConverter;
-
-    @Autowired
-    public NotificationsApiController(
-            NotificationService notificationService, AlertDataConverter alertDataConverter) {
-        this.notificationService = notificationService;
-        this.alertDataConverter = alertDataConverter;
-    }
 
     /**
      * check if a HttpSession is currently alive

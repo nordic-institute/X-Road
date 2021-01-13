@@ -30,12 +30,12 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.util.OcspUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.OffsetDateTime;
@@ -46,23 +46,13 @@ import java.util.stream.Collectors;
  * Convert token certificate related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class TokenCertificateConverter {
 
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final ClientConverter clientConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
-
-    @Autowired
-    public TokenCertificateConverter(CertificateDetailsConverter certificateDetailsConverter,
-            ClientConverter clientConverter,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            PossibleActionConverter possibleActionConverter) {
-        this.certificateDetailsConverter = certificateDetailsConverter;
-        this.clientConverter = clientConverter;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.possibleActionConverter = possibleActionConverter;
-    }
 
     /**
      * Convert {@link CertificateInfo} to {@link TokenCertificate}

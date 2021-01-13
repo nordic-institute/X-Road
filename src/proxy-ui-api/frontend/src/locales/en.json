@@ -704,7 +704,8 @@
   },
   "customValidation": {
     "invalidUrl": "URL is not valid",
-    "invalidXrdIdentifier": "Identifier value contains illegal characters"
+    "invalidXrdIdentifier": "Identifier value contains illegal characters",
+    "invalidEndpoint": "Endpoint contains illegal characters"
   },
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
