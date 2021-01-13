@@ -123,13 +123,13 @@ var confirmationDialogCommands = {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
-    //this.click('@yesButton');
+    //this.click('@yesButton'); // Above is a workaround for occasionally failing click()
     return this;
   },
   cancel: function () {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
-    //this.click('@cancelButton');
+    //this.click('@cancelButton'); // Above is a workaround for occasionally failing click()
     return this;
   },
 };
@@ -139,13 +139,13 @@ var loginDialogCommands = {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
-    //this.click('@yesButton');
+    //this.click('@yesButton'); // Aboce is a workaround for occasionally failing click()
     return this;
   },
   cancel: function () {
     this.api.keys(this.api.Keys.TAB);
     this.api.keys(this.api.Keys.SPACE);
-    //this.click('@cancelButton');
+    //this.click('@cancelButton'); // Above is a workaround for occasionally failing click()
     return this;
   },
   enterPin: function (pinCode) {

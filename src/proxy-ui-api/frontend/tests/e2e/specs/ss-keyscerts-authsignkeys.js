@@ -54,7 +54,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -128,7 +127,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -203,7 +201,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -300,7 +297,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -392,7 +388,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -489,7 +484,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -565,7 +559,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
@@ -673,7 +666,6 @@ module.exports = {
 
     // Navigate to target page
     mainPage.openKeysTab();
-    browser.maximizeWindow();
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(signAuthTab);
 
