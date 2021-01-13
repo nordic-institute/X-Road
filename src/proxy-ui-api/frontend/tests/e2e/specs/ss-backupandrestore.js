@@ -32,17 +32,15 @@ const fs = require('fs');
  * @param browser
  * @param backupFilename
  */
-const deleteBackup = async function (browser, backupFilename) {
+const deleteBackup = async function(browser, backupFilename) {
   const mainPage = browser.page.ssMainPage();
-  const backupAndRestoreTab =
-    mainPage.section.settingsTab.section.backupAndRestoreTab;
-  const deleteBackupConfirmationDialog =
-    backupAndRestoreTab.section.deleteBackupConfirmationDialog;
+  const backupAndRestoreTab = mainPage.section.settingsTab.section.backupAndRestoreTab;
+  const deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
   backupAndRestoreTab.clickDeleteForBackup(backupFilename);
   browser.waitForElementVisible(deleteBackupConfirmationDialog);
   deleteBackupConfirmationDialog.confirm();
-  browser.waitForElementVisible(mainPage.elements.snackBarMessage);
+  browser.waitForElementVisible(mainPage.elements.snackBarMessage)
 
   // Make sure backup was successfully deleted
   browser.assert.containsText(
@@ -52,18 +50,36 @@ const deleteBackup = async function (browser, backupFilename) {
   mainPage.closeSnackbar();
 };
 
+const navigateToBackupAndRestorePage = async function(browser) {
+  const frontPage = browser.page.ssFrontPage();
+  const mainPage = browser.page.ssMainPage();
+  const settingsTab = mainPage.section.settingsTab;
+  const backupButton = settingsTab.section.backupAndRestoreTab.elements.backupButton;
+
+  // Open SUT and check that page is loaded
+  frontPage.navigate();
+  browser.waitForElementVisible('//*[@id="app"]');
+
+  // Enter valid credentials
+  frontPage.signinDefaultUser();
+
+  // Navigate to settings tab
+  mainPage.openSettingsTab();
+  browser.waitForElementVisible(settingsTab);
+  settingsTab.openBackupAndRestore();
+  browser.waitForElementVisible(backupButton);
+}
+
 module.exports = {
   tags: ['ss', 'backupandrestore'],
-  'Security server backups can be created, listed, filtered and removed': async (
-    browser,
-  ) => {
+
+  'Security server backups can be created, listed, filtered and removed': async (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const settingsTab = mainPage.section.settingsTab;
     const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
     const backupButton = backupAndRestoreTab.elements.backupButton;
-    const deleteBackupConfirmationDialog =
-      backupAndRestoreTab.section.deleteBackupConfirmationDialog;
+    const deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -89,13 +105,8 @@ module.exports = {
     );
 
     // Get the backend-generated name of the backup and close snackbar
-    const createdBackupFileNameTextObject = await browser.getText(
-      'xpath',
-      mainPage.elements.snackBarMessage,
-    );
-    const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-      ' ',
-    )[1];
+    const createdBackupFileNameTextObject = await browser.getText('xpath', mainPage.elements.snackBarMessage);
+    const createdBackupFileName = createdBackupFileNameTextObject.value.split(" ")[1]
     console.log('Created backup: ', createdBackupFileName);
     mainPage.closeSnackbar();
 
@@ -107,37 +118,22 @@ module.exports = {
       .count.to.equal(1);
     backupAndRestoreTab.clearFilterInput();
 
-    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
-    browser.waitForElementVisible(deleteBackupConfirmationDialog);
-    deleteBackupConfirmationDialog.cancel();
-    browser.waitForElementVisible(
-      `//table[contains(@class, "xrd-table")]/tr/td[text() = "${createdBackupFileName}"]`,
-    );
-    browser.expect.element(deleteBackupConfirmationDialog).to.not.be.visible;
+    // backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
+    // browser.waitForElementVisible(deleteBackupConfirmationDialog);
+    // deleteBackupConfirmationDialog.cancel();
+    // browser.expect.element(deleteBackupConfirmationDialog).to.not.be.visible;
 
-    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
-    browser.waitForElementVisible(deleteBackupConfirmationDialog);
-    deleteBackupConfirmationDialog.confirm();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage);
-
-    // Make sure backup was successfully deleted
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      `Backup ${createdBackupFileName} deleted`,
-    );
-    mainPage.closeSnackbar();
-
+    await deleteBackup(browser, createdBackupFileName);
     browser.end();
+
   },
   'Download and import backup': async (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const settingsTab = mainPage.section.settingsTab;
     const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
-    const backupButton =
-      settingsTab.section.backupAndRestoreTab.elements.backupButton;
-    const backupFileAlreadyExistsDialog =
-      backupAndRestoreTab.section.backupFileAlreadyExistsDialog;
+    const backupButton = settingsTab.section.backupAndRestoreTab.elements.backupButton;
+    const backupFileAlreadyExistsDialog = backupAndRestoreTab.section.backupFileAlreadyExistsDialog;
 
     // delete existing backups from test dir
     const testDataDir = __dirname + browser.globals.e2etest_testdata + '/';
@@ -172,26 +168,21 @@ module.exports = {
     );
 
     // Get the backend-generated name of the backup and close snackbar
-    const createdBackupFileNameTextObject = await browser.getText(
-      'xpath',
-      mainPage.elements.snackBarMessage,
-    );
-    const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-      ' ',
-    )[1];
+    const createdBackupFileNameTextObject = await browser.getText('xpath', mainPage.elements.snackBarMessage);
+    const createdBackupFileName = createdBackupFileNameTextObject.value.split(" ")[1];
     console.log('Created backup: ', createdBackupFileName);
     mainPage.closeSnackbar();
 
     // Download backupfile and make sure it's in the filesystem
     await backupAndRestoreTab.clickDownloadForBackup(createdBackupFileName);
+    browser.pause(5000);
 
-    browser.perform(async () =>
+    browser.perform( async () =>
       browser.assert.equal(
         fs.existsSync(`${testDataDir}${createdBackupFileName}`),
         true,
         `Backup file should exist in: ${testDataDir}${createdBackupFileName}`,
-      ),
-    );
+    ));
 
     // Import the created backup from local filesystem (first cancel the operation)
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
@@ -211,12 +202,7 @@ module.exports = {
     browser.waitForElementNotVisible(backupFileAlreadyExistsDialog);
 
     // Remove created backup from local filesystem
-    browser.perform(() =>
-      fs.unlinkSync(`${testDataDir}/${createdBackupFileName}`),
-    );
-    browser.pause(5000);
-
-    await deleteBackup(browser, createdBackupFileName);
+    browser.perform( () => fs.unlinkSync(`${testDataDir}/${createdBackupFileName}`));
 
     browser.end();
   },
@@ -225,9 +211,9 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const settingsTab = mainPage.section.settingsTab;
     const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
+    const restoreConfirmationDialog = backupAndRestoreTab.section.restoreConfirmationDialog;
     const backupButton = backupAndRestoreTab.elements.backupButton;
-    const restoreConfirmationDialog =
-      backupAndRestoreTab.section.restoreConfirmationDialog;
+    const deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -252,29 +238,36 @@ module.exports = {
     );
 
     // Get the backend-generated name of the backup and close snackbar
-    const createdBackupFileNameTextObject = await browser.getText(
-      'xpath',
-      mainPage.elements.snackBarMessage,
-    );
-    const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-      ' ',
-    )[1];
-    console.log('Created backup: ', createdBackupFileName);
-    mainPage.closeSnackbar();
+    const createdBackupFileNameTextObject = await browser.getText('xpath', mainPage.elements.snackBarMessage);
+    const createdBackupFileName = createdBackupFileNameTextObject.value.split(" ")[1]
 
+    mainPage.closeSnackbar();
     backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
     browser.waitForElementVisible(restoreConfirmationDialog);
     restoreConfirmationDialog.cancel();
     browser.waitForElementNotVisible(restoreConfirmationDialog);
 
-    // Not running the actual restore in test
-    // backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
-    // browser.waitForElementVisible(restoreConfirmationDialog);
-    // restoreConfirmationDialog.confirm();
-    // browser.waitForElementNotVisible(restoreConfirmationDialog);
+    /*
+    backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
+    browser.waitForElementVisible(restoreConfirmationDialog);
+    restoreConfirmationDialog.confirm();
+    browser.waitForElementNotVisible(restoreConfirmationDialog);
+    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
 
-    await deleteBackup(browser, createdBackupFileName);
+    browser.waitForElementVisible(deleteBackupConfirmationDialog);
+    deleteBackupConfirmationDialog.confirm();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage)
 
+    // Make sure backup was successfully deleted
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      `Backup ${createdBackupFileName} deleted`,
+    );
+    mainPage.closeSnackbar();
+
+     */
+    console.log('after delete backup');
     browser.end();
+    console.log('END');
   },
-};
+}

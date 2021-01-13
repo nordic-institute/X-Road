@@ -66,7 +66,7 @@ var backupAndRestoreCommands = {
       'xpath',
       `//table[contains(@class, "xrd-table")]/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-download")]`,
     );
-    this.api.pause(5000);
+
     return this;
   },
   clickRestoreForBackup: function (backupFilename) {
@@ -81,27 +81,21 @@ var backupAndRestoreCommands = {
       'xpath',
       `//table[contains(@class, "xrd-table")]/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-delete")]`,
     );
+     return this;
+  },
+};
+
+var confirmationDialog = {
+  confirm: function () {
+    this.click('@confirmation');
+    return this;
+  },
+  cancel: function () {
+    this.click('@cancel');
     return this;
   },
 };
 
-const confirmationDialog = {
-  confirm: function () {
-    this.click(
-      'xpath',
-      '//div[contains(@class, "xrd-card")]//button[contains(@data-test, "dialog-save-button")]',
-    );
-    this.pause(10000);
-    return this;
-  },
-  cancel: function () {
-    this.click(
-      'xpath',
-      '//div[contains(@class, "xrd-card")]//button[contains(@data-test, "dialog-cancel-button")]',
-    );
-    return this;
-  },
-};
 
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
@@ -151,15 +145,15 @@ const settingsTab = {
       sections: {
         deleteBackupConfirmationDialog: {
           selector:
-            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Are you sure?")]]',
+            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Are you sure?")] and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete backup")]]',
           locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
-            yesButton: {
+            confirmation: {
               selector: '//button[@data-test="dialog-save-button"]',
               locateStrategy: 'xpath',
             },
-            cancelButton: {
+            cancel: {
               selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
@@ -171,11 +165,11 @@ const settingsTab = {
           locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
-            yesButton: {
+            confirmation: {
               selector: '//button[@data-test="dialog-save-button"]',
               locateStrategy: 'xpath',
             },
-            cancelButton: {
+            cancel: {
               selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
@@ -183,7 +177,7 @@ const settingsTab = {
         },
         restoreConfirmationDialog: {
           selector:
-            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Are you sure?")]]',
+            '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Are you sure?")] and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to restore")]]',
           locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
