@@ -109,5 +109,9 @@ if [ ! -f ${DB_PROPERTIES} ]; then
 fi
 
 if [ -n "${XROAD_LOG_LEVEL}" ]; then
-    echo "XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}" > /etc/xroad/conf.d/variables-logback.properties
+    sed -i -e "s/XROAD_LOG_LEVEL=.*/XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
+fi
+
+if [ -n "${XROAD_ROOT_LOG_LEVEL}" ]; then
+    sed -i -e "s/XROAD_ROOT_LOG_LEVEL=.*/XROAD_ROOT_LOG_LEVEL=${XROAD_ROOT_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
 fi

@@ -7,10 +7,10 @@
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL}" />
+    <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL:-INFO}" />
     <logger name="akka" level="WARN" />
 
-    <root level="${XROAD_ROOT_LOG_LEVEL}">
+    <root level="${XROAD_ROOT_LOG_LEVEL:-WARN}">
         <appender-ref ref="STDOUT" />
     </root>
 
