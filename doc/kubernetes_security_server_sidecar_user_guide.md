@@ -13,7 +13,7 @@
    * [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database)
    * [2.2 Single Pod Deployment with external database](#22-single-pod-deployment-with-external-database)
    * [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer)
-* [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes)
+* [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes)
 * [4 Installation](#4-installation)
    * [4.1 Minimum system requirements](#41-minimum-system-requirements)
    * [4.2 Prerequisites to Installation](#42-prerequisites-to-installation)
@@ -22,7 +22,7 @@
    * [4.2 Installation Instructions](#42-installation-instructions)
       * [4.2.1 Namespaces](#421-namespaces)
       * [4.2.2 Single Pod deployment](#422-single-pod-deployment)
-      * [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes)
+      * [4.2.3 Kubernetes Volumes](#423-kubernetes-volumes)
          * [4.2.3.1 Persistent Volume Claim](#4231-persistent-volume-claim)
          * [4.2.3.2 Persistent Volumes](#4232-persistent-volumes)
             * [4.2.3.2.1 Persistent Volume hostPath](#42321-persistent-volume-hostpath)
@@ -31,11 +31,12 @@
             * [4.2.3.2.4 AWS EBS vs AWS EFS](#42324-aws-ebs-vs-aws-efs)
          * [4.2.3.3 Manage Volumes](#4233-manage-volumes)
          * [4.2.3.4 Mount the Volume to a Pod](#4234-mount-the-volume-to-a-pod)
-      * [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets)
-      * [4.2.4.1 Store keys in secrets](#4241-store-keys-in-secrets)
+         * [4.2.3.5 Persistent Volume permissions](#4235-persistent-volume-permissions)
+      * [4.2.4 Kubernetes Secrets](#424-kubernetes-secrets)
+      * [4.2.4.1 Store keys in Secrets](#4241-store-keys-in-secrets)
          * [4.2.4.2 Secrets for environmental variables](#4242-secrets-for-environmental-variables)
-         * [4.2.4.3 Consume secret for environmental variables](#4243-consume-secret-for-environmental-variables)
-      * [4.2.5 Kubernetes jobs readiness, liveness and startup probes](#425-Kubernetes-jobs-readiness-liveness-and-startup-probes)
+         * [4.2.4.3 Consume secrets](#4243-consume-secrets)
+      * [4.2.5 Kubernetes jobs readiness, liveness and startup probes](#425-kubernetes-jobs-readiness-liveness-and-startup-probes)
          * [4.2.5.1 Readiness probes](#4251-readiness-probes)
          * [4.2.5.2 Liveness probes](#4252-liveness-probes)
          * [4.2.5.3 Startup probes](#4253-startup-probes)
@@ -48,6 +49,7 @@
    * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
 * [7 Version update](#7-version-update)
 * [8 Message logs and disk space](#8-message-logs-and-disk-space)
+
 
 
 
@@ -423,6 +425,34 @@ spec:
 [...]
 ```
 
+#### 4.2.3.5 Persistent Volume permissions
+When you mount a volume to a pod, by default it always gets mounted with the permission of root:root.
+This could be a problem when mapping the volume to local folders like the configuration folder `etc/xroad` or the message-log backup `var/lib/xroad` that requires xroad:xroad (UID: 999, GID:999) permission.
+Kubernetes allow us to deploy the container as another user using Security Context, but this doesn't work because Security Server Sidecar requires to be run by the root user.
+It is possible to change manually the permission setting the UID and GID in the folder of the Cluster node instance where the volume is mounted.
+Another possible is use Kubernetes Init Containers for setting the permissions to the volume folder, wich launches before the main container. An example for change the permissions to the `etc/xroad` volume folder could be (**reference Data: 3.4, 3.13**):
+
+``` yaml
+[...]
+spec:
+  volumes:
+  - name: <manifest volume name>
+    persistentVolumeClaim:
+      claimName: <pvc name>
+  initContainers:
+  - name: volume-hack
+    image: busybox:latest
+    command: ["sh","-c","chown  999:999 /etc/xroad"]
+    volumeMounts:
+    - name: <manifest volume name>
+      mountPath: /etc/xroad
+
+[...]
+```
+
+Note (1) References: https://stackoverflow.com/questions/43544370/kubernetes-how-to-set-volumemount-user-group-and-file-permissions
+                     https://serverfault.com/questions/906083/how-to-mount-volume-with-specific-uid-in-kubernetes-pod
+
 ### 4.2.4 Kubernetes Secrets
 ### 4.2.4.1 Store keys in Secrets
 Kubernetes Secrets allows us to store and manage sensitive information.
@@ -602,6 +632,13 @@ spec:
        - key: public-key
          path: id_rsa.pub
          mode: 0644
+   initContainers:
+   - name: volume-hack
+     image: busybox:latest
+     command: ["sh","-c","chown  999:999 /etc/xroad"]
+     volumeMounts:
+     - name: <manifest volume name>
+       mountPath: /etc/xroad
    containers:
    - name: <container name>
      image: niis/xroad-security-server-sidecar:<image tag>
