@@ -29,8 +29,8 @@
             * [4.2.3.2.2 Persistent Volume awsElasticBlockStore](#42322-persistent-volume-awselasticblockstore)
             * [4.2.3.2.3 Persistent Volume AWS Elastic File System](#42323-persistent-volume-aws-elastic-file-system)
             * [4.2.3.2.4 AWS EBS vs AWS EFS](#42324-aws-ebs-vs-aws-efs)
-         * [4.2.3.6 Manage Volumes](#4236-manage-volumes)
-         * [4.2.3.7 Mount the Volume to a Pod](#4237-mount-the-volume-to-a-pod)
+         * [4.2.3.3 Manage Volumes](#4233-manage-volumes)
+         * [4.2.3.4 Mount the Volume to a Pod](#4234-mount-the-volume-to-a-pod)
       * [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets)
       * [4.2.4.1 Store keys in secrets](#4241-store-keys-in-secrets)
          * [4.2.4.2 Secrets for environmental variables](#4242-secrets-for-environmental-variables)
@@ -406,20 +406,20 @@ kubectl delete -f /path/to/file.yaml.
 To mount the volume on a Pod, it is required to have a PVC bounded to a PV, then modify the Pod manifest, in this case the manifest defined in the step [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) will be modified by mapping the volume to the xroad configuration `etc/xroad` (**reference Data: 3.4, 3.12, 3.13**):
 
 ``` yaml
-...
+[...]
 spec:
   volumes:
-  - name: <manifest volume-name>
+  - name: <manifest volume name>
     persistentVolumeClaim:
       claimName: <pvc name>
    containers:
    - name: <container name>
      image: niis/xroad-security-server-sidecar:<image tag>
      imagePullPolicy: "Always"
-  volumeMounts:
-  - name: <manifest volume name>
-    mountPath: /etc/xroad/
-...
+     volumeMounts:
+     - name: <manifest volume name>
+       mountPath: /etc/xroad/
+[...]
 ```
 
 ### 4.2.4 Kubernetes Secrets
