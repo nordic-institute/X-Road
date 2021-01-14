@@ -19,6 +19,13 @@ if ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
     done
 fi
 
+chown -R xroad:xroad /etc/xroad
+
+mkdir -p -m 0500 ~xroad/.ssh
+cp /etc/.ssh/* ~xroad/.ssh/
+chown -R xroad:xroad ~xroad/.ssh
+chmod 0400 ~xroad/.ssh/*
+
 #Try rsync until success
 RC=1
 while [[ $RC -ne 0 ]]
