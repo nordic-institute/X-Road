@@ -37,6 +37,7 @@ const deleteBackup = async function(browser, backupFilename) {
   const backupAndRestoreTab = mainPage.section.settingsTab.section.backupAndRestoreTab;
   const deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
+  browser.waitForElementVisible(`//table[contains(@class, "xrd-table")]//tr//td[text() = "${backupFilename}"]`)
   backupAndRestoreTab.clickDeleteForBackup(backupFilename);
   browser.waitForElementVisible(deleteBackupConfirmationDialog);
   deleteBackupConfirmationDialog.confirm();
@@ -50,29 +51,8 @@ const deleteBackup = async function(browser, backupFilename) {
   mainPage.closeSnackbar();
 };
 
-const navigateToBackupAndRestorePage = async function(browser) {
-  const frontPage = browser.page.ssFrontPage();
-  const mainPage = browser.page.ssMainPage();
-  const settingsTab = mainPage.section.settingsTab;
-  const backupButton = settingsTab.section.backupAndRestoreTab.elements.backupButton;
-
-  // Open SUT and check that page is loaded
-  frontPage.navigate();
-  browser.waitForElementVisible('//*[@id="app"]');
-
-  // Enter valid credentials
-  frontPage.signinDefaultUser();
-
-  // Navigate to settings tab
-  mainPage.openSettingsTab();
-  browser.waitForElementVisible(settingsTab);
-  settingsTab.openBackupAndRestore();
-  browser.waitForElementVisible(backupButton);
-}
-
 module.exports = {
   tags: ['ss', 'backupandrestore'],
-
   'Security server backups can be created, listed, filtered and removed': async (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -118,15 +98,18 @@ module.exports = {
       .count.to.equal(1);
     backupAndRestoreTab.clearFilterInput();
 
-    // backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
-    // browser.waitForElementVisible(deleteBackupConfirmationDialog);
-    // deleteBackupConfirmationDialog.cancel();
-    // browser.expect.element(deleteBackupConfirmationDialog).to.not.be.visible;
+    // Delete created backup (click cancel first time)
+    browser.waitForElementVisible(`//table[contains(@class, "xrd-table")]//tr//td[text() = "${createdBackupFileName}"]`)
+    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
+    browser.waitForElementVisible(deleteBackupConfirmationDialog);
+    deleteBackupConfirmationDialog.cancel();
+    browser.expect.element(deleteBackupConfirmationDialog).to.not.be.visible;
 
     await deleteBackup(browser, createdBackupFileName);
     browser.end();
 
   },
+
   'Download and import backup': async (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -134,6 +117,7 @@ module.exports = {
     const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
     const backupButton = settingsTab.section.backupAndRestoreTab.elements.backupButton;
     const backupFileAlreadyExistsDialog = backupAndRestoreTab.section.backupFileAlreadyExistsDialog;
+    const deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
     // delete existing backups from test dir
     const testDataDir = __dirname + browser.globals.e2etest_testdata + '/';
@@ -174,10 +158,10 @@ module.exports = {
     mainPage.closeSnackbar();
 
     // Download backupfile and make sure it's in the filesystem
-    await backupAndRestoreTab.clickDownloadForBackup(createdBackupFileName);
+    backupAndRestoreTab.clickDownloadForBackup(createdBackupFileName);
     browser.pause(5000);
 
-    browser.perform( async () =>
+    browser.perform( () =>
       browser.assert.equal(
         fs.existsSync(`${testDataDir}${createdBackupFileName}`),
         true,
@@ -194,6 +178,7 @@ module.exports = {
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
     backupFileAlreadyExistsDialog.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage);
+
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
       `Backup ${createdBackupFileName} uploaded successfully`,
@@ -204,6 +189,7 @@ module.exports = {
     // Remove created backup from local filesystem
     browser.perform( () => fs.unlinkSync(`${testDataDir}/${createdBackupFileName}`));
 
+    await deleteBackup(browser, createdBackupFileName);
     browser.end();
   },
   'Restore backup': async (browser) => {
@@ -213,7 +199,6 @@ module.exports = {
     const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
     const restoreConfirmationDialog = backupAndRestoreTab.section.restoreConfirmationDialog;
     const backupButton = backupAndRestoreTab.elements.backupButton;
-    const deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -247,27 +232,13 @@ module.exports = {
     restoreConfirmationDialog.cancel();
     browser.waitForElementNotVisible(restoreConfirmationDialog);
 
-    /*
-    backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
-    browser.waitForElementVisible(restoreConfirmationDialog);
-    restoreConfirmationDialog.confirm();
-    browser.waitForElementNotVisible(restoreConfirmationDialog);
-    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
+    // Not doing actual restore
+    // backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
+    // browser.waitForElementVisible(restoreConfirmationDialog);
+    // restoreConfirmationDialog.confirm();
+    // browser.waitForElementNotVisible(restoreConfirmationDialog);
 
-    browser.waitForElementVisible(deleteBackupConfirmationDialog);
-    deleteBackupConfirmationDialog.confirm();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage)
-
-    // Make sure backup was successfully deleted
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      `Backup ${createdBackupFileName} deleted`,
-    );
-    mainPage.closeSnackbar();
-
-     */
-    console.log('after delete backup');
+    await deleteBackup(browser, createdBackupFileName);
     browser.end();
-    console.log('END');
   },
 }
