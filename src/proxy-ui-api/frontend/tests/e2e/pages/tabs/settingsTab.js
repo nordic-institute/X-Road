@@ -81,7 +81,7 @@ var backupAndRestoreCommands = {
       'xpath',
       `//table[contains(@class, "xrd-table")]/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-delete")]`,
     );
-     return this;
+    return this;
   },
 };
 
@@ -95,7 +95,6 @@ var confirmationDialog = {
     return this;
   },
 };
-
 
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
@@ -150,11 +149,13 @@ const settingsTab = {
           commands: confirmationDialog,
           elements: {
             confirmation: {
-              selector: '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-save-button")]',
+              selector:
+                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-save-button")]',
               locateStrategy: 'xpath',
             },
             cancel: {
-              selector: '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-cancel-button")]',
+              selector:
+                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-cancel-button")]',
               locateStrategy: 'xpath',
             },
           },
@@ -182,11 +183,13 @@ const settingsTab = {
           commands: confirmationDialog,
           elements: {
             confirmation: {
-              selector: '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to restore")]]//button[contains(@data-test, "dialog-save-button")]',
+              selector:
+                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to restore")]]//button[contains(@data-test, "dialog-save-button")]',
               locateStrategy: 'xpath',
             },
             cancel: {
-              selector: '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to restore")]]//button[contains(@data-test, "dialog-cancel-button")]',
+              selector:
+                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to restore")]]//button[contains(@data-test, "dialog-cancel-button")]',
               locateStrategy: 'xpath',
             },
           },

@@ -41,8 +41,7 @@ module.exports = {
       mainPage.section.keysTab.elements.generateKeyButton;
     const globalConfiguration =
       mainPage.section.diagnosticsTab.elements.globalConfiguration;
-    const backupAndRestoreTab =
-      settingsTab.sections.backupAndRestoreTab;
+    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
     const anchorDownloadButton =
       backupAndRestoreTab.elements.anchorDownloadButton;
 

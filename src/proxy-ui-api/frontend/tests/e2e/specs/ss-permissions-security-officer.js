@@ -38,8 +38,7 @@ module.exports = {
     const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
     const generateKeyButton =
       mainPage.section.keysTab.elements.generateKeyButton;
-    const backupAndRestoreTab =
-      settingsTab.sections.backupAndRestoreTab;
+    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
     const anchorDownloadButton =
       backupAndRestoreTab.elements.anchorDownloadButton;
 
