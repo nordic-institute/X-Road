@@ -726,7 +726,7 @@ spec:
     matchLabels:
       run: <service selector>
   replicas: <number replicas>
-  manifest:
+  template:
     metadata:
       labels:
         run: <pod name>
