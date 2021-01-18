@@ -125,24 +125,31 @@ fi
 crudini --set /etc/xroad/conf.d/node.ini node type 'slave' &&
 chown xroad:xroad /etc/xroad/conf.d/node.ini  &&
 /etc/init.d/ssh restart &&
-crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' &&
 groupdel xroad-security-officer  &&
 groupdel xroad-registration-officer  &&
 groupdel xroad-service-administrator  &&
 groupdel xroad-system-administrator
-#Try rsync until success
+
+#Try rsync with primary until success
 RC=1
 while [[ $RC -ne 0 ]]
 do
  sleep 5
+ #Add to the cron job the synchronization with primary pod and updates archive-interval and clean-interval properties in the file /etc/xroad/conf.d/local.ini setting a long time interval for disable the archive of messagelogs in the secondary pods
  rsync -e "ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 " -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log  xroad-slave@${XROAD_PRIMARY_DNS}:/etc/xroad/ /etc/xroad/
  RC=$?
 done
+
+crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' &&
+crudini --set /etc/xroad/conf.d/local.ini message-log clean-interval '0 * * ? * * 2099'
 #Create cron job for rsync every minute
 rm -f /etc/cron.d/xroad-state-sync &&
 rm -f /etc/cron.d/xroad-proxy &&
 rm -f /etc/cron.d/sysstat &&
-echo "* * * * * root rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_PRIMARY_DNS:/etc/xroad/ /etc/xroad/ 2>&1" > /etc/cron.d/xroad-state-sync &&
+
+#Add to the cron job the synchronization with primary pod and updates archive-interval and clean-interval properties in the file /etc/xroad/conf.d/local.ini setting a long time interval for disable the archive of messagelogs in the secondary pods
+echo "* * * * * root rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude "/conf.d/node.ini" --exclude "*.tmp"  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_PRIMARY_DNS:/etc/xroad/ /etc/xroad/ 2>&1 && crudini --set /etc/xroad/conf.d/local.ini message-log archive-interval '0 * * ? * * 2099' && crudini --set /etc/xroad/conf.d/local.ini message-log clean-interval '0 * * ? * * 2099'" > /etc/cron.d/xroad-state-sync &&
+
 chown root:root /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync &&
 echo "
 /var/log/xroad/slave-sync.log {
