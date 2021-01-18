@@ -55,9 +55,7 @@
             "download": {
             }
           },
-          "args": [
-            "window-size=1280,800"
-          ]
+          "args" : ["--window-size=1280,900"]
         }
       }
     }
