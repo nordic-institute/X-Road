@@ -27,12 +27,16 @@
 const commands = [
   {
     openAddServiceClient: function () {
-      this.click('@addServiceClient');
+      this.click('@addServiceClientButton');
       return this;
     },
     enterServiceClientSearchWord: function (searchWord) {
       this.clearValue2('@searchField');
       this.setValue('@searchField', searchWord);
+      return this;
+    },
+    cancel: function () {
+      this.click('@cancelButton');
       return this;
     },
   },
@@ -53,11 +57,15 @@ module.exports = {
     },
     addSubjectWizardHeader: {
       selector:
-        '//div[@data-test="add-subject-title"]//span[contains(@class, "cert-headline") and contains(text(), "Add a subject")]',
+        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
       locateStrategy: 'xpath',
     },
     searchField: {
       selector: '//input[contains(@data-test, "search-service-client")]',
+      locateStrategy: 'xpath',
+    },
+    cancelButton: {
+      selector: '//button[@data-test="cancel-button"]',
       locateStrategy: 'xpath',
     },
   },
