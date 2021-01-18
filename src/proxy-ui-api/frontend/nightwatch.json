@@ -26,7 +26,7 @@
         "login_registration_officer" : "xrd-reg",
         "login_service_administrator" : "xrd-ser",
         "login_system_administrator" : "xrd-sys",
-        "login_securityserver_observer" : "xrd-obs",q
+        "login_securityserver_observer" : "xrd-obs",
         "logout_timeout_ms" : 60000,
         "test_cert" : "cert.cer",
         "export_cert" : "certs.tar.gz",
@@ -48,7 +48,6 @@
         "javascriptEnabled" : true,
         "acceptSslCerts" : true,
         "acceptInsecureCerts": true,
-
         "chromeOptions" : {
           "w3c": false,
           "prefs" : {
