@@ -72,36 +72,8 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/colors';
-
-$x-margin: 20px;
-
 .alerts-container {
   width: 1000px;
   padding: 0;
-
-  & > * {
-    margin-top: 0;
-    margin-bottom: 4px;
-    border-radius: 0;
-  }
-  & > :first-child {
-    margin-top: 4px;
-  }
-}
-
-.alert {
-  margin-top: 16px;
-}
-
-.alert-text {
-  color: $XRoad-Black100;
-
-  display: block;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
 }
 </style>

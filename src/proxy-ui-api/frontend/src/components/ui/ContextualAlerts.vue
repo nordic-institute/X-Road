@@ -146,7 +146,7 @@ type ValidationError = {
 };
 
 export default Vue.extend({
-  // Component for snackbar notifications
+  // Component for contextual notifications
   computed: {
     ...mapGetters(['errorNotifications']),
   },
@@ -213,8 +213,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/colors';
 
-$x-margin: 20px;
-
 .alerts-container {
   width: 1000px;
   padding: 0;
@@ -222,25 +220,12 @@ $x-margin: 20px;
   & > * {
     margin-top: 0;
     margin-bottom: 4px;
-    border-radius: 0;
-  }
-  & > :first-child {
-    margin-top: 4px;
   }
 }
 
 .alert {
-  margin-top: 16px;
-}
-
-.alert-text {
-  color: $XRoad-Black100;
-  display: block;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
+  margin-top: 8px;
+  border-radius: 4px;
 }
 
 .row-wrapper-top {

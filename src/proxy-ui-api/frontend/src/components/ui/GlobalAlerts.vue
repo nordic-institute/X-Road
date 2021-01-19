@@ -136,12 +136,12 @@ $x-margin: 20px;
 }
 
 .alert {
-  margin-top: 16px;
+  margin-top: 8px;
+  border-radius: 4px;
 }
 
 .alert-text {
   color: $XRoad-Black100;
-
   display: block;
 }
 
