@@ -30,7 +30,7 @@
         <syslogHost>127.0.0.1</syslogHost>
         <port>514</port>
         <facility>LOCAL0</facility>
-        <suffixPattern>correlation-id:[%X{X-B3-TraceId:-}] %-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %xrdcheck(%msg)</suffixPattern>
+        <suffixPattern>correlation-id:[%X{X-B3-TraceId:-}] %-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %msg</suffixPattern>
     </appender>
 
     <logger name="akka" level="WARN" />

@@ -26,11 +26,13 @@
 package ee.ria.xroad.common;
 
 import ee.ria.xroad.common.util.JsonUtils;
+import ee.ria.xroad.common.validation.EscapedWriter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+import java.io.StringWriter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -145,8 +147,11 @@ public final class AuditLogger {
     private static String serializeJson(Map<String, Object> message) {
         String result;
         try {
+            // escape problematic characters in audit log
+            EscapedWriter escapedWriter = new EscapedWriter(new StringWriter());
             // serialize nulls, like old Ruby implementation
-            result = JsonUtils.getSerializer(true).toJson(message);
+            JsonUtils.getSerializer(true).toJson(message, escapedWriter);
+            result = escapedWriter.toString();
         } catch (Throwable t) {
             log.error("could not json serialize audit json message map: " + message, t);
             throw t;
