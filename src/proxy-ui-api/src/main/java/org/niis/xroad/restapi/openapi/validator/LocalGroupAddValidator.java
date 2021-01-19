@@ -23,52 +23,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.util;
+package org.niis.xroad.restapi.openapi.validator;
 
-import java.time.Instant;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
+import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 
 /**
- * This class contains various time related utility methods.
+ * Validator to check localgroup (when adding new localgroup) for control characters such as zero-width-space
  */
-public final class TimeUtils {
+@Slf4j
+public class LocalGroupAddValidator implements Validator {
 
-    private TimeUtils() {
+    private static final String CODE_FIELD_NAME = "code";
+    private static final String DESCRIPTION_FIELD_NAME = "description";
+
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return LocalGroupAdd.class.equals(clazz);
     }
 
-    /**
-     * Gets the number of seconds from the Java epoch of 1970-01-01T00:00:00Z.
-     * @return the seconds from the epoch of 1970-01-01T00:00:00Z
-     */
-    public static long getEpochSecond() {
-        return Instant.now().getEpochSecond();
-    }
-
-    /**
-     * Gets the number of milliseconds from the Java epoch of
-     * 1970-01-01T00:00:00Z.
-     * @return the milliseconds from the epoch of 1970-01-01T00:00:00Z
-     */
-    public static long getEpochMillisecond() {
-        return Instant.now().toEpochMilli();
-    }
-
-    /**
-     * Converts given seconds to milliseconds.
-     * @param seconds given seconds
-     * @return the converted milliseconds
-     */
-    public static int secondsToMillis(int seconds) {
-        return (int) TimeUnit.SECONDS.toMillis(seconds);
-    }
-
-    /**
-     * Converts given date to offsetdatetime using the system default timezone
-     */
-    public static OffsetDateTime toOffsetDateTime(Date date) {
-        return date == null ? null : date.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime();
+    @Override
+    public void validate(Object target, Errors errors) {
+        LocalGroupAdd localGroupAdd = (LocalGroupAdd) target;
+        if (SpringFirewallValidationRules.containsControlChars(localGroupAdd.getCode())) {
+            errors.rejectValue(CODE_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
+                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
+        }
+        if (SpringFirewallValidationRules.containsControlChars(localGroupAdd.getDescription())) {
+            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
+                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
+        }
     }
 }
