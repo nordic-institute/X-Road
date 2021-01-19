@@ -30,13 +30,16 @@
       data-test="success-snackbar"
       v-for="notification in successNotifications"
       :key="notification.timeAdded"
-      :timeout="notification.timeout"
+      :timeout="0"
       v-model="notification.show"
-      color="success"
+      color="#E6F8F1"
       multi-line
+      class="error-snackbar"
+      :min-width="760"
       @input="closeSuccess(notification.timeAdded)"
     >
       <div class="row-wrapper-top scrollable identifier-wrap">
+        <v-icon color="#0CC177">icon-Checker</v-icon>
         <div class="row-wrapper">
           <div v-if="notification.successMessageCode">
             {{ $t(notification.successMessageCode) }}
@@ -47,11 +50,11 @@
         </div>
         <v-btn
           icon
-          color="white"
+          color="#211e1e"
           data-test="close-snackbar"
           @click="closeSuccess(notification.timeAdded)"
         >
-          <v-icon dark>mdi-close-circle</v-icon>
+          <v-icon dark>icon-Close</v-icon>
         </v-btn>
       </div>
     </v-snackbar>
@@ -241,20 +244,39 @@ export default Vue.extend({
 });
 </script>
 
+<style lang="scss">
+.error-snackbar > .v-snack__wrapper {
+  // Customised size for snackbar
+  min-height: 88px;
+  min-width: 760px;
+}
+</style>
+
 <style lang="scss" scoped>
+.snackbar {
+  min-width: 760px;
+}
 .row-wrapper-top {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  padding-left: 14px;
 }
 .row-wrapper {
   display: flex;
   flex-direction: column;
   overflow: auto;
+  width: 100%;
   overflow-wrap: break-word;
-  justify-content: center;
+  justify-content: flex-start;
   margin-right: 30px;
+  margin-left: 26px;
+  color: #211e1e;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 24px;
 }
 
 .id-button {
