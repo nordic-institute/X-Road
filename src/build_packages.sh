@@ -12,7 +12,7 @@ errorExit() {
 usage () {
     echo "Usage: $0 [option for $0...] [other options]"
     echo "Options for $0:"
-    echo " -p, --package-only    Skip compilation, just build packages'"
+    echo " -p, --package-only    Skip compilation, just build packages"
     echo " -d, --docker-compile  Compile in docker container instead of native gradle build"
     echo " -h, --help            This help text."
     echo "The option for $0, if present, must come fist, before other options."
