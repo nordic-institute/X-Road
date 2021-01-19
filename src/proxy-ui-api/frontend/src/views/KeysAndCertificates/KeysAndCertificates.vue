@@ -25,22 +25,6 @@
  -->
 <template>
   <div class="xrd-view-common xrd-sub-view-wrapper">
-    <v-tabs
-      v-model="tab"
-      background-color="#F4F3F6"
-      class="xrd-tabs"
-      color="primary"
-      slider-size="2"
-    >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>
-        {{ $t(tab.name) }}
-      </v-tab>
-    </v-tabs>
-    <alerts-container />
     <div class="content">
       <router-view />
     </div>
@@ -49,58 +33,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-
-export default Vue.extend({
-  components: {
-    AlertsContainer,
-  },
-  data: () => ({
-    tab: null,
-    showHelp: false,
-    helpTab: null as Tab | null,
-  }),
-
-  computed: {
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'signAndAuthKeys',
-          name: 'tab.keys.signAndAuthKeys',
-          to: {
-            name: RouteName.SignAndAuthKeys,
-          },
-          permissions: [Permissions.VIEW_KEYS],
-        },
-        {
-          key: 'apiKey',
-          name: 'tab.keys.apiKey',
-          to: {
-            name: RouteName.ApiKey,
-          },
-          permissions: [
-            Permissions.CREATE_API_KEY,
-            Permissions.VIEW_API_KEYS,
-            Permissions.UPDATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
-        },
-        {
-          key: 'ssTlsCertificate',
-          name: 'tab.keys.ssTlsCertificate',
-          to: {
-            name: RouteName.SSTlsCertificate,
-          },
-          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-        },
-      ];
-
-      return this.$store.getters.getAllowedTabs(allTabs);
-    },
-  },
-});
+export default Vue.extend({});
 </script>
 
 <style lang="scss" scoped>

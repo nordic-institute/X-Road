@@ -30,11 +30,14 @@ import AppLogin from '@/views/AppLogin.vue';
 import AppBase from '@/views/AppBase.vue';
 import Clients from '@/views/Clients/Clients.vue';
 import Client from '@/views/Clients/Client.vue';
+import ClientTabs from '@/views/Clients/ClientTabs.vue';
 import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
+import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
 import Settings from '@/views/Settings/Settings.vue';
+import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
@@ -42,6 +45,7 @@ import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AddClient from '@/views/AddClient/AddClient.vue';
 import AddMember from '@/views/AddMember/AddMember.vue';
 import Subsystem from '@/views/Clients/Subsystem.vue';
+import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
 import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
 import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
 import Services from '@/views/Clients/Services/Services.vue';
@@ -69,6 +73,7 @@ import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKey
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 import AddServiceClientAccessRights from '@/views/Clients/ServiceClients/AddServiceClientAccessRightsWizard.vue';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 // At the moment the vue router does not have a type for Next.
 // Using this solution was recommended in a github comment:
@@ -87,6 +92,12 @@ const router = new Router({
           components: {
             default: KeysAndCertificates,
             top: TabsBase,
+            subTabs: KeysAndCertificatesTabs,
+            alerts: AlertsContainer,
+          },
+          props: {
+            default: true,
+            subTabs: true,
           },
           meta: { permissions: [Permissions.VIEW_KEYS] },
           children: [
@@ -123,16 +134,26 @@ const router = new Router({
         {
           name: RouteName.CreateApiKey,
           path: '/keys/apikey/create',
-          component: CreateApiKeyStepper,
-          props: true,
+          components: {
+            default: CreateApiKeyStepper,
+            alerts: AlertsContainer,
+          },
+          props: {
+            default: true,
+          },
           meta: { permissions: [Permissions.CREATE_API_KEY] },
         },
         {
           name: RouteName.GenerateInternalCSR,
           path: '/keys/tsl-cert/generate-csr',
-          component: GenerateInternalCsr,
+          components: {
+            default: GenerateInternalCsr,
+            alerts: AlertsContainer,
+          },
           meta: { permissions: [Permissions.GENERATE_INTERNAL_TLS_CSR] },
-          props: true,
+          props: {
+            default: true,
+          },
         },
         {
           name: RouteName.Diagnostics,
@@ -140,6 +161,7 @@ const router = new Router({
           components: {
             default: Diagnostics,
             top: TabsBase,
+            alerts: AlertsContainer,
           },
           meta: { permissions: [Permissions.DIAGNOSTICS] },
         },
@@ -154,6 +176,11 @@ const router = new Router({
           components: {
             default: Settings,
             top: TabsBase,
+            subTabs: SettingsTabs,
+            alerts: AlertsContainer,
+          },
+          props: {
+            subTabs: true,
           },
           children: [
             {
@@ -178,6 +205,7 @@ const router = new Router({
             '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
           components: {
             default: AddSubsystem,
+            alerts: AlertsContainer,
           },
           props: {
             default: true,
@@ -189,6 +217,7 @@ const router = new Router({
           path: '/add-client',
           components: {
             default: AddClient,
+            alerts: AlertsContainer,
           },
           meta: { permissions: [Permissions.ADD_CLIENT] },
         },
@@ -197,6 +226,7 @@ const router = new Router({
           path: '/add-member/:instanceId/:memberClass/:memberCode',
           components: {
             default: AddMember,
+            alerts: AlertsContainer,
           },
           props: {
             default: true,
@@ -211,9 +241,12 @@ const router = new Router({
           components: {
             default: Subsystem,
             top: TabsBase,
+            subTabs: SubsystemTabs,
+            alerts: AlertsContainer,
           },
           props: {
             default: true,
+            subTabs: true,
           },
           children: [
             {
@@ -261,8 +294,10 @@ const router = new Router({
           components: {
             default: Client,
             top: TabsBase,
+            subTabs: ClientTabs,
+            alerts: AlertsContainer,
           },
-          props: { default: true },
+          props: { default: true, subTabs: true },
           children: [
             {
               name: RouteName.MemberDetails,
@@ -286,6 +321,7 @@ const router = new Router({
           components: {
             default: Clients,
             top: TabsBase,
+            alerts: AlertsContainer,
           },
           meta: { permissions: [Permissions.VIEW_CLIENTS] },
         },
@@ -294,6 +330,7 @@ const router = new Router({
           path: '/certificate/:hash',
           components: {
             default: CertificateDetails,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -302,6 +339,7 @@ const router = new Router({
           path: '/token/:id',
           components: {
             default: TokenDetails,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -310,6 +348,7 @@ const router = new Router({
           path: '/key/:id',
           components: {
             default: KeyDetails,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -318,6 +357,8 @@ const router = new Router({
           path: '/client-tls-certificate/:id/:hash',
           components: {
             default: ClientTlsCertificate,
+
+            alerts: AlertsContainer,
           },
           props: { default: true },
           meta: {
@@ -330,6 +371,7 @@ const router = new Router({
           props: { default: true },
           components: {
             default: ServiceClientAccessRights,
+            alerts: AlertsContainer,
           },
         },
         {
@@ -338,6 +380,7 @@ const router = new Router({
           props: { default: true },
           components: {
             default: AddServiceClientAccessRights,
+            alerts: AlertsContainer,
           },
         },
         {
@@ -345,6 +388,7 @@ const router = new Router({
           path: '/localgroup/:clientId/:groupId',
           components: {
             default: LocalGroup,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -353,6 +397,7 @@ const router = new Router({
           path: '/service-description/:id',
           components: {
             default: ServiceDescriptionDetails,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -361,6 +406,7 @@ const router = new Router({
           path: '/service',
           components: {
             default: Service,
+            alerts: AlertsContainer,
           },
           redirect: '/service/:clientId/:serviceId/parameters',
           props: { default: true },
@@ -387,6 +433,7 @@ const router = new Router({
           path: '/service/:clientId/:serviceId/endpoints/:id',
           components: {
             default: EndpointDetails,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -395,6 +442,7 @@ const router = new Router({
           path: '/service/:clientId/:serviceId/endpoints/:id/accessrights',
           components: {
             default: EndpointAccessRights,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -403,6 +451,7 @@ const router = new Router({
           path: '/generate-csr/:keyId/:tokenType',
           components: {
             default: GenerateCertificateSignRequest,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -411,6 +460,7 @@ const router = new Router({
           path: '/add-key/:tokenId/:tokenType',
           components: {
             default: AddKey,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -419,6 +469,7 @@ const router = new Router({
           path: '/internal-tls-certificate',
           components: {
             default: InternalCertificateDetails,
+            alerts: AlertsContainer,
           },
           props: { default: true },
         },
@@ -485,6 +536,7 @@ router.beforeEach((to: Route, from: Route, next: Next) => {
         return;
       }
     }
+    store.dispatch('resetNotificationsState');
 
     if (!to.meta.permissions) {
       next();

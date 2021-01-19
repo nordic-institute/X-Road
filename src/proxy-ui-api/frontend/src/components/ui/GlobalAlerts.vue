@@ -24,9 +24,59 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="alerts-container">
-    <GlobalAlerts />
-    <ContextualAlerts />
+  <v-container
+    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    fluid
+    class="alerts-container"
+  >
+    <v-alert
+      data-test="global-alert-global-configuration"
+      :value="showGlobalConfAlert"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.globalConfigurationInvalid')
+      }}</span>
+    </v-alert>
+    <v-alert
+      data-test="global-alert-soft-token-pin"
+      :value="showSoftTokenPinEnteredAlert"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span
+        v-if="showLoginLink"
+        class="alert-text clickable-link"
+        @click="tokenLogin()"
+      >
+        {{ $t('globalAlert.softTokenPinNotEntered') }}
+      </span>
+      <span v-else class="alert-text">
+        {{ $t('globalAlert.softTokenPinNotEntered') }}
+      </span>
+    </v-alert>
+    <v-alert
+      data-test="global-alert-soft-token-pin"
+      :value="showRestoreInProgress"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.backupRestoreInProgress', {
+          startTime: formatDateTime(restoreStartTime),
+        })
+      }}</span>
+    </v-alert>
   </v-container>
 </template>
 
@@ -35,13 +85,8 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { formatDateTime } from '@/filters';
 import { RouteName } from '@/global';
-import ContextualAlerts from './ContextualAlerts.vue';
-import GlobalAlerts from './GlobalAlerts.vue';
 export default Vue.extend({
-  components: {
-    ContextualAlerts,
-    GlobalAlerts,
-  },
+  name: 'AlertsContainer',
   computed: {
     hasAlerts(): boolean {
       return (

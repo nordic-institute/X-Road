@@ -24,84 +24,82 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="alerts-container">
-    <GlobalAlerts />
-    <ContextualAlerts />
-  </v-container>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { formatDateTime } from '@/filters';
-import { RouteName } from '@/global';
-import ContextualAlerts from './ContextualAlerts.vue';
-import GlobalAlerts from './GlobalAlerts.vue';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
+
 export default Vue.extend({
   components: {
-    ContextualAlerts,
-    GlobalAlerts,
+    SubTabs,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
   },
   computed: {
-    hasAlerts(): boolean {
-      return (
-        this.showGlobalConfAlert ||
-        this.showSoftTokenPinEnteredAlert ||
-        this.showRestoreInProgress
-      );
-    },
-    showLoginLink(): boolean {
-      return this.$route.name !== RouteName.SignAndAuthKeys;
-    },
-    ...mapGetters([
-      'showGlobalConfAlert',
-      'showSoftTokenPinEnteredAlert',
-      'showRestoreInProgress',
-      'restoreStartTime',
-      'isAuthenticated',
-      'needsInitialization',
-    ]),
-  },
-  methods: {
-    formatDateTime,
-    tokenLogin(): void {
-      this.$router.replace({ name: RouteName.SignAndAuthKeys });
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'details',
+          name: 'tab.client.details',
+          to: {
+            name: RouteName.MemberDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'internalServers',
+          name: 'tab.client.internalServers',
+          to: {
+            name: RouteName.MemberServers,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
 
-<style scoped lang="scss">
-@import '~styles/colors';
+<style lang="scss" scoped>
+.title-action {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 
-$x-margin: 20px;
+.action-block {
+  display: flex;
+  flex-direction: row;
+}
 
-.alerts-container {
+.first-button {
+  margin-right: 20px;
+}
+
+.content {
   width: 1000px;
-  padding: 0;
-
-  & > * {
-    margin-top: 0;
-    margin-bottom: 4px;
-    border-radius: 0;
-  }
-  & > :first-child {
-    margin-top: 4px;
-  }
-}
-
-.alert {
-  margin-top: 16px;
-}
-
-.alert-text {
-  color: $XRoad-Black100;
-
-  display: block;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
+  margin-top: 30px;
 }
 </style>

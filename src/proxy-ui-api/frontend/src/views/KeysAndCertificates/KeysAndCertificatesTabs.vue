@@ -24,84 +24,72 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="alerts-container">
-    <GlobalAlerts />
-    <ContextualAlerts />
-  </v-container>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { formatDateTime } from '@/filters';
-import { RouteName } from '@/global';
-import ContextualAlerts from './ContextualAlerts.vue';
-import GlobalAlerts from './GlobalAlerts.vue';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
+
 export default Vue.extend({
   components: {
-    ContextualAlerts,
-    GlobalAlerts,
+    SubTabs,
   },
+  data: () => ({
+    tab: null,
+    showHelp: false,
+  }),
+
   computed: {
-    hasAlerts(): boolean {
-      return (
-        this.showGlobalConfAlert ||
-        this.showSoftTokenPinEnteredAlert ||
-        this.showRestoreInProgress
-      );
-    },
-    showLoginLink(): boolean {
-      return this.$route.name !== RouteName.SignAndAuthKeys;
-    },
-    ...mapGetters([
-      'showGlobalConfAlert',
-      'showSoftTokenPinEnteredAlert',
-      'showRestoreInProgress',
-      'restoreStartTime',
-      'isAuthenticated',
-      'needsInitialization',
-    ]),
-  },
-  methods: {
-    formatDateTime,
-    tokenLogin(): void {
-      this.$router.replace({ name: RouteName.SignAndAuthKeys });
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'signAndAuthKeys',
+          name: 'tab.keys.signAndAuthKeys',
+          to: {
+            name: RouteName.SignAndAuthKeys,
+          },
+          permissions: [Permissions.VIEW_KEYS],
+        },
+        {
+          key: 'apiKey',
+          name: 'tab.keys.apiKey',
+          to: {
+            name: RouteName.ApiKey,
+          },
+          permissions: [
+            Permissions.CREATE_API_KEY,
+            Permissions.VIEW_API_KEYS,
+            Permissions.UPDATE_API_KEY,
+            Permissions.REVOKE_API_KEY,
+          ],
+        },
+        {
+          key: 'ssTlsCertificate',
+          name: 'tab.keys.ssTlsCertificate',
+          to: {
+            name: RouteName.SSTlsCertificate,
+          },
+          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
 
-<style scoped lang="scss">
-@import '~styles/colors';
-
-$x-margin: 20px;
-
-.alerts-container {
+<style lang="scss" scoped>
+.content {
   width: 1000px;
-  padding: 0;
-
-  & > * {
-    margin-top: 0;
-    margin-bottom: 4px;
-    border-radius: 0;
-  }
-  & > :first-child {
-    margin-top: 4px;
-  }
-}
-
-.alert {
-  margin-top: 16px;
-}
-
-.alert-text {
-  color: $XRoad-Black100;
-
-  display: block;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
 }
 </style>
