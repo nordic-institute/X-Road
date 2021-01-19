@@ -187,8 +187,6 @@ kind: Pod
 metadata:
   name: <pod-name>
   namespace: <namespace name>
-  labels:
-    run: <pod label>
 spec:
    containers:
    - name: <container name>
@@ -610,7 +608,7 @@ kind: Service
 metadata:
   name: <service name>
   labels:
-    run: <service name>
+    run: <service selector>
   namespace: <namespace name>
 spec:
   clusterIP: None
@@ -699,7 +697,7 @@ metadata:
   annotations:
     service.beta.Kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    run: <service name>
+    run: <service selector>
   namespace: <namespace name>
 spec:
   clusterIP: <load balancer private ip>
@@ -790,7 +788,7 @@ The Secondary Pods also have a "ReadinessProbe", this test will run a healthchec
 
 After the manifest is deployed we can scale the Secondary Pods by running:
 ```
-scale -n <namespace name> --replicas=<number replicas> deployment/<pod name>
+kubectl scale -n <namespace name> --replicas=<number replicas> deployment/<pod name>
 ```
 
 The Secondary Pods will synchronize the configuration at initialization and through a cron job that runs every minute. Once the configuration is sync, the secondary Pods can process the messages independently of the primary one, this means that if the primary Pods crashes, the cron that synchronizes the configuration will fail but the Secondary Pods can continue to process the messages.
