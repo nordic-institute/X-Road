@@ -35,10 +35,23 @@ const commands = [
       this.click('@cancelButton');
       return this;
     },
-    verifySubjectListRow: function(row, subject) {
+    verifySubjectListRow: function (row, subject) {
       this.api.waitForElementVisible(
         `(//table[contains(@class, "service-clients-table")]/tbody/tr)[${row}]//td[contains(text(), "${subject}")]`,
       );
+      return this;
+    },
+    verifyVisibleId: function(subject) {
+      this.api.waitForElementVisible(
+        `//table[contains(@class, "service-clients-table")]/tbody/tr/td[contains(text(), "${subject}")]`,
+      );
+      return this;
+    },
+    verifyNotPresentId: function(subject) {
+      this.api.waitForElementNotPresent(
+        `//table[contains(@class, "service-clients-table")]/tbody/tr/td[contains(text(), "${subject}")]`,
+      );
+      return this;
     },
   },
 ];

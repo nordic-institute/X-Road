@@ -164,17 +164,42 @@ module.exports = {
     navigateToAddSubjectDialog(pages);
 
     // Check that all subjects exist
-    /*addSubjectMemberStepPage.verifySubjectListRow(1, '1122');
-    addSubjectMemberStepPage.verifySubjectListRow(2, 'bac');
-    addSubjectMemberStepPage.verifySubjectListRow(3, '2233');
-    addSubjectMemberStepPage.verifySubjectListRow(4, 'abb');
-    addSubjectMemberStepPage.verifySubjectListRow(5, 'cbb');
-    addSubjectMemberStepPage.verifySubjectListRow(6, '1212');
-    addSubjectMemberStepPage.verifySubjectListRow(7, 'security-server-owners');
-    addSubjectMemberStepPage.verifySubjectListRow(8, 'TestClient');
-    addSubjectMemberStepPage.verifySubjectListRow(9, 'TestService');
-    addSubjectMemberStepPage.verifySubjectListRow(10, 'Management');*/
+    addSubjectMemberStepPage
+      .verifySubjectListRow(1, '1122')
+      .verifySubjectListRow(2, 'bac')
+      .verifySubjectListRow(3, '2233')
+      .verifySubjectListRow(4, 'abb')
+      .verifySubjectListRow(5, 'cbb')
+      .verifySubjectListRow(6, '1212')
+      .verifySubjectListRow(7, 'security-server-owners')
+      .verifySubjectListRow(8, 'TestClient')
+      .verifySubjectListRow(9, 'TestService')
+      .verifySubjectListRow(10, 'Management');
     // Filter subjects in Add Subjects dialog
+    addSubjectMemberStepPage
+      .setFilter('TestSe')
+      .verifyVisibleId('TestService')
+      .verifyNotPresentId('1122')
+      .verifyNotPresentId('bac')
+      .verifyNotPresentId('2233')
+      .verifyNotPresentId('abb')
+      .verifyNotPresentId('cbb')
+      .verifyNotPresentId('1212')
+      .verifyNotPresentId('security-server-owners')
+      .verifyNotPresentId('TestClient')
+      .verifyNotPresentId('Management');
+    addSubjectMemberStepPage
+      .setFilter('')
+      .verifySubjectListRow(1, '1122')
+      .verifySubjectListRow(2, 'bac')
+      .verifySubjectListRow(3, '2233')
+      .verifySubjectListRow(4, 'abb')
+      .verifySubjectListRow(5, 'cbb')
+      .verifySubjectListRow(6, '1212')
+      .verifySubjectListRow(7, 'security-server-owners')
+      .verifySubjectListRow(8, 'TestClient')
+      .verifySubjectListRow(9, 'TestService')
+      .verifySubjectListRow(10, 'Management');
     browser.end();
   },
   'Security server service clients Add Subject dialog only allows to select one ID from the list': (
