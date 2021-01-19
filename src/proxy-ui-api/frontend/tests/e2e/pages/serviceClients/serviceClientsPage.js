@@ -35,10 +35,6 @@ const commands = [
       this.setValue('@searchField', searchWord);
       return this;
     },
-    cancel: function () {
-      this.click('@cancelButton');
-      return this;
-    },
   },
 ];
 
@@ -62,10 +58,6 @@ module.exports = {
     },
     searchField: {
       selector: '//input[contains(@data-test, "search-service-client")]',
-      locateStrategy: 'xpath',
-    },
-    cancelButton: {
-      selector: '//button[@data-test="cancel-button"]',
       locateStrategy: 'xpath',
     },
   },

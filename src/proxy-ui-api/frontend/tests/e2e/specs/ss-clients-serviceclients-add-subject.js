@@ -24,74 +24,170 @@
  * THE SOFTWARE.
  */
 
+const getPages = (browser) => {
+  const frontPage = browser.page.ssFrontPage();
+  const mainPage = browser.page.ssMainPage();
+  const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
+  const addSubjectMemberStepPage = browser.page.serviceClients.addSubjectMemberStepPage();
+  const clientInfo = mainPage.section.clientInfo;
+  return {
+    browser,
+    frontPage,
+    mainPage,
+    serviceClientsPage,
+    addSubjectMemberStepPage,
+    clientInfo,
+    clientsTab: mainPage.section.clientsTab,
+    clientServices: clientInfo.section.services,
+    serviceDetails: mainPage.section.serviceDetails,
+  };
+};
+
+const signinToClientsTab = (pages) => {
+  const { browser, frontPage, mainPage, clientsTab } = pages;
+  // Open SUT and check that page is loaded
+  frontPage.navigate();
+  browser.waitForElementVisible('//*[@id="app"]');
+  // Enter valid credentials
+  frontPage.signinDefaultUser();
+  mainPage.openClientsTab();
+  browser.waitForElementVisible(clientsTab);
+};
+
+const setupServices = (pages) => {
+  const {
+    browser,
+    frontPage,
+    mainPage,
+    clientInfo,
+    clientsTab,
+    clientServices,
+  } = pages;
+
+  // Add wsdl
+  frontPage.navigate();
+  browser.waitForElementVisible('//*[@id="app"]');
+  clientsTab.openTestService();
+  browser.waitForElementVisible(clientInfo);
+  clientInfo.openServicesTab();
+  browser.waitForElementVisible(clientServices);
+  clientServices.openAddWSDL();
+  clientServices.enterServiceUrl(
+    browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+  );
+  clientServices.confirmAddDialog();
+  browser.assert.containsText(
+    clientServices.elements.serviceDescription,
+    browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+  );
+  mainPage.closeSnackbar();
+};
+
+const clearServices = (pages) => {
+  const {
+    browser,
+    frontPage,
+    clientInfo,
+    clientServices,
+    clientsTab,
+    serviceDetails,
+    mainPage,
+  } = pages;
+  // Remove WSDL service description
+  frontPage.navigate();
+  browser.waitForElementVisible('//*[@id="app"]');
+  clientsTab.openTestService();
+  browser.waitForElementVisible(clientInfo);
+  clientInfo.openServicesTab();
+  browser.waitForElementVisible(clientServices);
+  clientServices.openServiceDetails();
+  browser.waitForElementVisible(serviceDetails);
+  serviceDetails.deleteService();
+  serviceDetails.confirmDelete();
+  browser.assert.containsText(
+    mainPage.elements.snackBarMessage,
+    'Service description deleted',
+  );
+  mainPage.closeSnackbar();
+};
+
+const navigateToAddSubjectDialog = (pages) => {
+  const {
+    browser,
+    frontPage,
+    clientInfo,
+    clientsTab,
+    serviceClientsPage,
+    addSubjectMemberStepPage,
+  } = pages;
+  frontPage.navigate();
+  browser.waitForElementVisible('//*[@id="app"]');
+  clientsTab.openTestService();
+  browser.waitForElementVisible(clientInfo);
+  // Navigate to service clients -tab
+  clientInfo.openServiceClientsTab();
+  browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+
+  // Verify buttons are visible
+  browser.expect.element(serviceClientsPage.elements.addServiceClientButton).to
+    .be.visible;
+  browser.expect.element(serviceClientsPage.elements.unregisterButton).to.be
+    .visible;
+  // Navigate to Add Subjects dialog
+  serviceClientsPage.openAddServiceClient();
+  browser.waitForElementVisible(
+    addSubjectMemberStepPage.elements.addSubjectWizardHeader,
+  );
+};
+
 module.exports = {
   tags: ['addServiceClientSubject'],
+  'Security server service clients Add Subject dialog cancel button works': (
+    browser,
+  ) => {
+    const pages = getPages(browser);
+    const { addSubjectMemberStepPage } = pages;
+    signinToClientsTab(pages);
+    navigateToAddSubjectDialog(pages);
+    addSubjectMemberStepPage.cancel();
+    browser.expect.element(
+      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+    ).to.be.visible;
+    browser.end();
+  },
   'Security server service clients Add Subject dialog filters subjects': (
     browser,
   ) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
+    const pages = getPages(browser);
+    const { addSubjectMemberStepPage } = pages;
+    signinToClientsTab(pages);
+    navigateToAddSubjectDialog(pages);
 
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const operationDetails = mainPage.section.wsdlOperationDetails;
-    const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-    const serviceDetails = mainPage.section.serviceDetails;
-    const clientServices = clientInfo.section.services;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Add wsdl
-    clientsTab.openTestService();
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(
-      browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
-    );
-    clientServices.confirmAddDialog();
-    browser.assert.containsText(
-      clientServices.elements.serviceDescription,
-      browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
-    );
-    mainPage.closeSnackbar();
-
-    // Navigate to service clients -tab
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-
-    // Verify buttons are visible
-    browser.expect.element(serviceClientsPage.elements.addServiceClientButton)
-      .to.be.visible;
-    browser.expect.element(serviceClientsPage.elements.unregisterButton).to.be
-      .visible;
-
+    // Check that all subjects exist
+    /*addSubjectMemberStepPage.verifySubjectListRow(1, '1122');
+    addSubjectMemberStepPage.verifySubjectListRow(2, 'bac');
+    addSubjectMemberStepPage.verifySubjectListRow(3, '2233');
+    addSubjectMemberStepPage.verifySubjectListRow(4, 'abb');
+    addSubjectMemberStepPage.verifySubjectListRow(5, 'cbb');
+    addSubjectMemberStepPage.verifySubjectListRow(6, '1212');
+    addSubjectMemberStepPage.verifySubjectListRow(7, 'security-server-owners');
+    addSubjectMemberStepPage.verifySubjectListRow(8, 'TestClient');
+    addSubjectMemberStepPage.verifySubjectListRow(9, 'TestService');
+    addSubjectMemberStepPage.verifySubjectListRow(10, 'Management');*/
     // Filter subjects in Add Subjects dialog
-    serviceClientsPage.openAddServiceClient();
-    browser.waitForElementVisible(
-      serviceClientsPage.elements.addSubjectWizardHeader,
-    );
-    serviceClientsPage.cancel();
-
-    // Remove WSDL service description
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openServiceDetails();
-    browser.waitForElementVisible(serviceDetails);
-    serviceDetails.deleteService();
-    serviceDetails.confirmDelete();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
-    mainPage.closeSnackbar();
+    browser.end();
+  },
+  'Security server service clients Add Subject dialog only allows to select one ID from the list': (
+    browser,
+  ) => {
+    const pages = getPages(browser);
+    const { serviceClientsPage } = pages;
+    signinToClientsTab(pages);
+    navigateToAddSubjectDialog(pages);
+    // Setup services to proceed in the dialog
+    setupServices(pages);
+    // Clear services
+    clearServices(pages);
     browser.end();
   },
 };
