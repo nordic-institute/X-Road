@@ -35,7 +35,7 @@
         v-for="notification in errorNotifications"
         :key="notification.timeAdded"
         v-model="notification.show"
-        data-test="global-alert-global-configuration"
+        data-test="contextual-alert"
         color="red"
         border="left"
         colored-border

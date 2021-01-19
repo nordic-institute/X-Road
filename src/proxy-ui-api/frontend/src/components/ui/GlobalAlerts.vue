@@ -119,8 +119,6 @@ export default Vue.extend({
 <style scoped lang="scss">
 @import '~styles/colors';
 
-$x-margin: 20px;
-
 .alerts-container {
   width: 1000px;
   padding: 0;
