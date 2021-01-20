@@ -5968,7 +5968,6 @@ components:
         - label
         - certificates
         - certificate_signing_requests
-        - usage
       properties:
         id:
           type: string
