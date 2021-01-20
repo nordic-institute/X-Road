@@ -34,11 +34,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Logback converter that encodes unwanted/exploitable characters in log files
+ * Logback converter that encodes unwanted/exploitable characters in log file exceptions
  */
-public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
+public class XroadLogbackExceptionCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
-    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
+    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\n'));
 
     @Override
     protected String transform(ILoggingEvent event, String in) {

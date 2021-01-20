@@ -47,7 +47,7 @@ public class EscapedWriter extends Writer {
     @Override
     public void write(final char[] buffer, final int offset, final int len)
             throws IOException {
-        writer.write(XroadLogbackCharacterConverter.replaceLogForgingCharacters(new String(buffer, offset, len),
+        writer.write(XroadLogbackUtils.replaceLogForgingCharacters(new String(buffer, offset, len),
                 WHITELIST));
     }
 

@@ -35,9 +35,9 @@ import java.util.Set;
 import static org.junit.Assert.assertEquals;
 
 /**
- * Tests for {@link XroadLogbackCharacterConverter}
+ * Tests for {@link XroadLogbackUtils}
  */
-public class XroadLogbackCharacterConverterTest {
+public class XroadLogbackUtilsTest {
 
     private static final Set DEFAULT_WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
     private static final Set EXTENDED_WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\n'));
@@ -45,7 +45,7 @@ public class XroadLogbackCharacterConverterTest {
     @Test
     public void testLoremIpsum() {
         final String testMsg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
-        assertEquals(testMsg, XroadLogbackCharacterConverter.replaceLogForgingCharacters(testMsg,
+        assertEquals(testMsg, XroadLogbackUtils.replaceLogForgingCharacters(testMsg,
                 DEFAULT_WHITELIST));
     }
 
@@ -53,33 +53,33 @@ public class XroadLogbackCharacterConverterTest {
     public void testNonAscii() {
         final String testMsg = "Jukolan talo, eteläisessä Hämeessä, seisoo erään mäen "
                 + "pohjoisella rinteellä, liki Toukolan kylää.";
-        assertEquals(testMsg, XroadLogbackCharacterConverter.replaceLogForgingCharacters(testMsg,
+        assertEquals(testMsg, XroadLogbackUtils.replaceLogForgingCharacters(testMsg,
                 DEFAULT_WHITELIST));
     }
 
     @Test
     public void testIllegalCharReplacement() {
-        assertEquals("hello\\u0009world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld",
+        assertEquals("hello\\u0009world", XroadLogbackUtils.replaceLogForgingCharacters("hello\tworld",
                 DEFAULT_WHITELIST));
-        assertEquals("hello\\u000Aworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld",
+        assertEquals("hello\\u000Aworld", XroadLogbackUtils.replaceLogForgingCharacters("hello\nworld",
                 DEFAULT_WHITELIST));
-        assertEquals("hello\\u000Dworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld",
+        assertEquals("hello\\u000Dworld", XroadLogbackUtils.replaceLogForgingCharacters("hello\rworld",
                 DEFAULT_WHITELIST));
         assertEquals("hello\\u000D\\u000Aworld",
-                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld", DEFAULT_WHITELIST));
+                XroadLogbackUtils.replaceLogForgingCharacters("hello\r\nworld", DEFAULT_WHITELIST));
         assertEquals("hello\\u0085world",
-                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world", DEFAULT_WHITELIST));
+                XroadLogbackUtils.replaceLogForgingCharacters("hello\u0085world", DEFAULT_WHITELIST));
         assertEquals("hello\\u008Dworld",
-                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld", DEFAULT_WHITELIST));
+                XroadLogbackUtils.replaceLogForgingCharacters("hello\u008Dworld", DEFAULT_WHITELIST));
         assertEquals("hello\\uFEFFworld",
-                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\uFEFFworld", DEFAULT_WHITELIST));
+                XroadLogbackUtils.replaceLogForgingCharacters("hello\uFEFFworld", DEFAULT_WHITELIST));
         assertEquals("hello\\u200Bworld",
-                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u200Bworld", DEFAULT_WHITELIST));
+                XroadLogbackUtils.replaceLogForgingCharacters("hello\u200Bworld", DEFAULT_WHITELIST));
     }
 
     @Test
     public void testWhitelistOption() {
         assertEquals("hello world\\u000D\n",
-                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello world\r\n", EXTENDED_WHITELIST));
+                XroadLogbackUtils.replaceLogForgingCharacters("hello world\r\n", EXTENDED_WHITELIST));
     }
 }

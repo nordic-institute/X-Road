@@ -26,22 +26,40 @@
  */
 package ee.ria.xroad.common.validation;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.pattern.CompositeConverter;
+import com.google.common.base.CharMatcher;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
+import static ee.ria.xroad.common.validation.SpringFirewallValidationRules.FORBIDDEN_BOM;
+import static ee.ria.xroad.common.validation.SpringFirewallValidationRules.FORBIDDEN_ZWSP;
+
 /**
- * Logback converter that encodes unwanted/exploitable characters in log files
+ * Utilities for log parsing
  */
-public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
+public final class XroadLogbackUtils {
 
-    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
+    private XroadLogbackUtils() { }
 
-    @Override
-    protected String transform(ILoggingEvent event, String in) {
-        return XroadLogbackUtils.replaceLogForgingCharacters(in, WHITELIST);
+    /**
+     * Utility method for encoding unwanted/exploitable characters in string
+     * @param in input string
+     * @param whitelist characters to skip in test
+     * @return encoded string
+     */
+    public static String replaceLogForgingCharacters(String in, Set<Character> whitelist) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (char ch: in.toCharArray()) {
+            if (!whitelist.contains(ch) && CharMatcher.whitespace()
+                    .or(CharMatcher.breakingWhitespace())
+                    .or(CharMatcher.javaIsoControl())
+                    .or(CharMatcher.is(FORBIDDEN_BOM))
+                    .or(CharMatcher.is(FORBIDDEN_ZWSP))
+                    .matchesAnyOf(String.valueOf(ch))) {
+                stringBuilder.append(String.format("\\u%04X", (int) ch));
+            } else {
+                stringBuilder.append(ch);
+            }
+        }
+        return stringBuilder.toString();
     }
 }
