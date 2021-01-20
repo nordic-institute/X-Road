@@ -28,12 +28,16 @@ package ee.ria.xroad.common.validation;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Custom writer used to escape problematic characters
  */
 public class EscapedWriter extends Writer {
 
+    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
     private final Writer writer;
 
     public EscapedWriter(final Writer writer) {
@@ -43,7 +47,8 @@ public class EscapedWriter extends Writer {
     @Override
     public void write(final char[] buffer, final int offset, final int len)
             throws IOException {
-        writer.write(XroadLogbackCharacterConverter.replaceLogForgingCharacters(new String(buffer, offset, len)));
+        writer.write(XroadLogbackCharacterConverter.replaceLogForgingCharacters(new String(buffer, offset, len),
+                WHITELIST));
     }
 
     @Override
