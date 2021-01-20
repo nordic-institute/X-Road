@@ -53,8 +53,10 @@ public class XroadLogbackCharacterConverterTest {
         assertEquals("hello\\u0009world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld"));
         assertEquals("hello\\u000Aworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld"));
         assertEquals("hello\\u000Dworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld"));
-        assertEquals("hello\\u000D\\u000Aworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
-        assertEquals("hello\\u0085world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
+        assertEquals("hello\\u000D\\u000Aworld",
+                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
+        assertEquals("hello\\u0085world",
+                XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
         assertEquals("hello\\u008Dworld",
                 XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld"));
         assertEquals("hello\\uFEFFworld",
