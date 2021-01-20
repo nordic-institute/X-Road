@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.29  
+Version: 2.30  
 Doc. ID: IG-SS
 
 ---
@@ -54,6 +54,7 @@ Doc. ID: IG-SS
  08.09.2020 | 2.27    | Fix minimum RAM requirement. | Ilkka Seppälä
  16.09.2020 | 2.28    | Describe deployment options and database customization options. | Ilkka Seppälä
  29.09.2020 | 2.29    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
+ 19.01.2021 | 2.30    | Add instructions for using an alternative Java distribution. | Jarkko Hyöty
 
 
 ## License
@@ -66,46 +67,45 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  - [1.1 Target Audience](#11-target-audience)
-  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  - [1.3 References](#13-references)
-- [2 Installation](#2-installation)
-  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  - [2.2 Reference Data](#22-reference-data)
-    - [2.2.1 Network Diagram](#221-network-diagram)
-  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Prepare for Installation](#25-prepare-for-installation)
-    - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.6 Remote Database Installation](#26-remote-database-installation)
-  - [2.7 Setup Package Repository](#27-setup-package-repository)
-  - [2.8 Package Installation](#28-package-installation)
-  - [2.9 Post-Installation Checks](#29-post-installation-checks)
-  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
-  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
-  - [2.12 Remote Database Post-Installation Tasks](#212-remote-database-post-installation-tasks)
-- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  - [3.1 Prerequisites](#31-prerequisites)
-  - [3.2 Reference Data](#32-reference-data)
-  - [3.3 Configuration](#33-configuration)
-- [4 Installation Error handling](#4-installation-error-handling)
-  - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
-  - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
-  - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
-  - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
-- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-- [Annex B Database Users](#annex-b-database-users)
-- [Annex C Deployment Options](#annex-c-deployment-options)
-  - [C.1 General](#c1-general)
-  - [C.2 Local Database](#c2-local-database)
-  - [C.3 Remote Database](#c3-remote-database)
-  - [C.4 High Availability Setup](#c4-high-availability-setup)
-  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
-  - [C.6 Summary](#c6-summary)
-- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+* [1 Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+* [2 Installation](#2-installation)
+  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  * [2.2 Reference Data](#22-reference-data)
+    * [2.2.1 Network Diagram](#221-network-diagram)
+  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Prepare for Installation](#25-prepare-for-installation)
+    * [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
+  * [2.6 Remote Database Installation](#26-remote-database-installation)
+  * [2.7 Setup Package Repository](#27-setup-package-repository)
+  * [2.8 Package Installation](#28-package-installation)
+  * [2.9 Post-Installation Checks](#29-post-installation-checks)
+  * [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  * [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+  * [2.12 Remote Database Post-Installation Tasks](#212-remote-database-post-installation-tasks)
+* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  * [3.1 Prerequisites](#31-prerequisites)
+  * [3.2 Reference Data](#32-reference-data)
+  * [3.3 Configuration](#33-configuration)
+* [4 Installation Error handling](#4-installation-error-handling)
+  * [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  * [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
+  * [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+* [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+* [Annex B Database Users](#annex-b-database-users)
+* [Annex C Deployment Options](#annex-c-deployment-options)
+  * [C.1 General](#c1-general)
+  * [C.2 Local Database](#c2-local-database)
+  * [C.3 Remote Database](#c3-remote-database)
+  * [C.4 High Availability Setup](#c4-high-availability-setup)
+  * [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  * [C.6 Summary](#c6-summary)
+* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -230,11 +230,11 @@ Requirements to software and settings:
 
 ### 2.4 Preparing OS
 
-* Add system user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
+* Add an X-Road system administrator user (**reference data: 1.3**) whom all roles in the user interface are granted to. Add a new user with the command
 
         sudo adduser <username>
 
-    User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
+    User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\]. Do not use the user name `xroad`, it is reserved for the X-Road system user.
 
 * Set the operating system locale. Add following line to the `/etc/environment` file.
 
@@ -317,30 +317,41 @@ Then edit `/etc/xroad/db.properties` contents. See the template below. Replace t
   messagelog.database.admin_password = <messagelog-admin-password>
   ```
 
-
 ### 2.7 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-
-  ```
-  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-  ```
+```
+curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+```
 
 Add X-Road package repository (**reference data: 1.1**)
+```
+sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+```
 
-  ```
-  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-  ```
-
+Optionally, add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
+```
+curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
+sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
+```
 
 ### 2.8 Package Installation
 
-Issue the following commands to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+Update package repository metadata:
+```
+sudo apt update
+```
 
-  ```
-  sudo apt-get update
-  sudo apt-get install xroad-securityserver
-  ```
+If using the AdoptOpenJDK Java distribution, install the Java runtime environment and set it as the default java:
+```
+sudo apt install adoptopenjdk-8-hotspot-jre
+sudo update-java-alternatives -s adoptopenjdk-8-hotspot-jre-amd64
+```
+
+Issue the following commands to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+```
+sudo apt install xroad-securityserver
+```
 
 Upon the first installation of the packages, the system asks for the following information.
 
