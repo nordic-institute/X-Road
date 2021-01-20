@@ -76,6 +76,7 @@ import asg.cliche.Param;
 import asg.cliche.Shell;
 import asg.cliche.ShellFactory;
 import com.typesafe.config.ConfigFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -136,6 +137,7 @@ import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
 /**
  * Signer command line interface.
  */
+@Slf4j
 public class SignerCLI {
 
     private static final int BENCHMARK_ITERATIONS = 10;
@@ -829,6 +831,12 @@ public class SignerCLI {
 
             return;
         }
+
+        log.info("hello world");
+        log.info("hello world");
+        log.info("hello " + '\u0085' + '\u008D' + " world \r\n");
+        log.info("hello world");
+        log.info("hello world");
 
         ActorSystem actorSystem = ActorSystem.create("SignerConsole", ConfigFactory.load().getConfig("signer-console")
                 .withFallback(ConfigFactory.load()));

@@ -96,6 +96,12 @@ public final class SignerMain {
 
         log.info("Starting Signer on port {}...", signerPort);
 
+        log.info("hello world");
+        log.info("hello world");
+        log.info("hello " + '\u0085' + '\u008D' + " world \r\n");
+        log.info("hello world");
+        log.info("hello world");
+
         actorSystem = ActorSystem.create(SIGNER, getConf(signerPort));
         signer = new Signer(actorSystem);
         adminPort = createAdminPort(SystemProperties.getSignerAdminPort());

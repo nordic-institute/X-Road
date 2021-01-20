@@ -74,6 +74,12 @@ public final class MonitorMain {
     public static void main(String args[]) throws Exception {
         log.info("Starting X-Road Environmental Monitoring");
 
+        log.info("hello world");
+        log.info("hello world");
+        log.info("hello " + '\u0085' + '\u008D' + " world \r\n");
+        log.info("hello world");
+        log.info("hello world");
+
         registerShutdownHook();
         initAkka();
         startReporters();

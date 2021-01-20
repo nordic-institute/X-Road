@@ -31,7 +31,6 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.BasicParser;
@@ -113,6 +112,13 @@ public final class ConfigurationClientMain {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
         } else {
+
+            log.info("hello world");
+            log.info("hello world");
+            log.info("hello " + '\u0085' + '\u008D' + " world \r\n");
+            log.info("hello world");
+            log.info("hello world");
+
             // Run configuration client in daemon mode.
             startDaemon();
         }
@@ -279,9 +285,7 @@ public final class ConfigurationClientMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 try {
                     log.info("handler /status");
-
-                    response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(ConfigurationClientJobListener.getStatus(), response.getWriter());
+                    throw new Exception("hello \u0085\u008D world\r\n");
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }

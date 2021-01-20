@@ -61,6 +61,12 @@ class ConfGeneratorController < ApplicationController
         end
       end
 
+      logger.info("hello world")
+      logger.info("hello world")
+      logger.info("hello " + '\u0085' + '\u008D' + " world \r\n")
+      logger.info("hello world")
+      logger.info("hello world")
+
       logger.info("Finished global conf generation transaction "\
           "for thread #{get_current_thread_name()}")
     end
