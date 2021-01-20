@@ -29,6 +29,7 @@ const getPages = (browser) => {
   const mainPage = browser.page.ssMainPage();
   const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
   const addSubjectMemberStepPage = browser.page.serviceClients.addSubjectMemberStepPage();
+  const addSubjectServiceStepPage = browser.page.serviceClients.addSubjectServiceStepPage();
   const clientInfo = mainPage.section.clientInfo;
   return {
     browser,
@@ -36,6 +37,7 @@ const getPages = (browser) => {
     mainPage,
     serviceClientsPage,
     addSubjectMemberStepPage,
+    addSubjectServiceStepPage,
     clientInfo,
     clientsTab: mainPage.section.clientsTab,
     clientServices: clientInfo.section.services,
@@ -140,29 +142,38 @@ const navigateToAddSubjectDialog = (pages) => {
   );
 };
 
+const navigateToAddSubjectDialogServicePage = (pages) => {
+  const { addSubjectMemberStepPage } = pages;
+  navigateToAddSubjectDialog(pages);
+  addSubjectMemberStepPage.selectSubject('TestClient');
+  addSubjectMemberStepPage.clickNext();
+};
+
 module.exports = {
   tags: ['addServiceClientSubject'],
-  'Security server service clients Add Subject dialog cancel button works': (
+  'Security server service clients Add Subject dialog filter and select subjects': (
     browser,
   ) => {
     const pages = getPages(browser);
-    const { addSubjectMemberStepPage } = pages;
+    const {
+      serviceClientsPage,
+      addSubjectMemberStepPage,
+      addSubjectServiceStepPage,
+    } = pages;
     signinToClientsTab(pages);
+    // Setup services to proceed in the dialog
+    setupServices(pages);
     navigateToAddSubjectDialog(pages);
+    // Check that we land on the first step (selecting the subject)
+    addSubjectMemberStepPage.assertWizardFirstPage();
     addSubjectMemberStepPage.cancel();
     browser.expect.element(
       '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
     ).to.be.visible;
-    browser.end();
-  },
-  'Security server service clients Add Subject dialog filters subjects': (
-    browser,
-  ) => {
-    const pages = getPages(browser);
-    const { addSubjectMemberStepPage } = pages;
-    signinToClientsTab(pages);
-    navigateToAddSubjectDialog(pages);
-
+    serviceClientsPage.openAddServiceClient();
+    browser.waitForElementVisible(
+      addSubjectMemberStepPage.elements.addSubjectWizardHeader,
+    );
     // Check that all subjects exist
     addSubjectMemberStepPage
       .verifySubjectListRow(1, '1122')
@@ -188,6 +199,7 @@ module.exports = {
       .verifyNotPresentId('security-server-owners')
       .verifyNotPresentId('TestClient')
       .verifyNotPresentId('Management');
+    // Clear filtering
     addSubjectMemberStepPage
       .setFilter('')
       .verifySubjectListRow(1, '1122')
@@ -200,18 +212,50 @@ module.exports = {
       .verifySubjectListRow(8, 'TestClient')
       .verifySubjectListRow(9, 'TestService')
       .verifySubjectListRow(10, 'Management');
+    addSubjectMemberStepPage.assertNextButtonDisabled();
+    addSubjectMemberStepPage.assertSelectedSubjectsCount(0);
+    addSubjectMemberStepPage.selectSubject('TestService');
+    addSubjectMemberStepPage.assertNextButtonEnabled();
+    addSubjectMemberStepPage.assertSelectedSubjectsCount(1);
+    addSubjectMemberStepPage.selectSubject('TestClient');
+    addSubjectMemberStepPage.assertNextButtonEnabled();
+    addSubjectMemberStepPage.assertSelectedSubjectsCount(1);
+    addSubjectMemberStepPage.clickNext();
+    // Check that we land on the second step (selecting the services)
+    addSubjectServiceStepPage.assertWizardSecondPage();
+    // Test cancel on second page
+    addSubjectServiceStepPage.cancel();
+    browser.expect.element(
+      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+    ).to.be.visible;
     browser.end();
   },
-  'Security server service clients Add Subject dialog only allows to select one ID from the list': (
+  'Security server service clients Add Subject service page filter': (
     browser,
   ) => {
     const pages = getPages(browser);
-    const { serviceClientsPage } = pages;
+    const { addSubjectMemberStepPage, addSubjectServiceStepPage } = pages;
     signinToClientsTab(pages);
-    navigateToAddSubjectDialog(pages);
-    // Setup services to proceed in the dialog
-    setupServices(pages);
-    // Clear services
+    navigateToAddSubjectDialogServicePage(pages);
+    addSubjectServiceStepPage.assertWizardSecondPage().clickPreviousButton();
+    addSubjectMemberStepPage
+      .assertWizardFirstPage()
+      .selectSubject('TestServer')
+      .clickNext();
+    addSubjectServiceStepPage
+      .assertWizardSecondPage()
+      .verifyServiceListRow(1, 'testOp1')
+      .verifyServiceListRow(2, 'testOpA');
+    addSubjectServiceStepPage
+      .setFilter('1')
+      .verifyVisibleService('testOp1')
+      .verifyNotPresentService('testOpA');
+    addSubjectServiceStepPage
+      .setFilter('')
+      .verifyServiceListRow(1, 'testOp1')
+      .verifyServiceListRow(2, 'testOpA');
+    addSubjectServiceStepPage.assertAddSelectedButtonDisabled();
+    // Remove the added service description
     clearServices(pages);
     browser.end();
   },
