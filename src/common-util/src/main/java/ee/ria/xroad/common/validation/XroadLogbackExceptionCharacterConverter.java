@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class XroadLogbackExceptionCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
-    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\n'));
+    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\u0009', '\n'));
 
     @Override
     protected String transform(ILoggingEvent event, String in) {

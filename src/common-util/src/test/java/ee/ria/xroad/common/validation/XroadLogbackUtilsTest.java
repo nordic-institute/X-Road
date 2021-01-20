@@ -40,7 +40,7 @@ import static org.junit.Assert.assertEquals;
 public class XroadLogbackUtilsTest {
 
     private static final Set DEFAULT_WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
-    private static final Set EXTENDED_WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\n'));
+    private static final Set EXTENDED_WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\u0009', '\n'));
 
     @Test
     public void testLoremIpsum() {
@@ -79,7 +79,7 @@ public class XroadLogbackUtilsTest {
 
     @Test
     public void testWhitelistOption() {
-        assertEquals("hello world\\u000D\n",
-                XroadLogbackUtils.replaceLogForgingCharacters("hello world\r\n", EXTENDED_WHITELIST));
+        assertEquals("\\u0009hello world\\u000D\n",
+                XroadLogbackUtils.replaceLogForgingCharacters("\\u0009hello world\r\n", EXTENDED_WHITELIST));
     }
 }
