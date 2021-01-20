@@ -36,18 +36,30 @@ import static org.junit.Assert.assertEquals;
 public class XroadLogbackCharacterConverterTest {
 
     @Test
+    public void testLoremIpsum() {
+        final String testMsg = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.";
+        assertEquals(testMsg, XroadLogbackCharacterConverter.replaceLogForgingCharacters(testMsg));
+    }
+
+    @Test
+    public void testNonAscii() {
+        final String testMsg = "Jukolan talo, eteläisessä Hämeessä, seisoo erään mäen "
+                + "pohjoisella rinteellä, liki Toukolan kylää.";
+        assertEquals(testMsg, XroadLogbackCharacterConverter.replaceLogForgingCharacters(testMsg));
+    }
+
+    @Test
     public void testIllegalCharReplacement() {
-        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld"));
-        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld"));
-        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld"));
-        assertEquals("hello  world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
-        assertEquals("hello world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
-        assertEquals("hello\uFFFDworld",
+        assertEquals("hello\\u0009world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\tworld"));
+        assertEquals("hello\\u000Aworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\nworld"));
+        assertEquals("hello\\u000Dworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\rworld"));
+        assertEquals("hello\\u000D\\u000Aworld", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\r\nworld"));
+        assertEquals("hello\\u0085world", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u0085world"));
+        assertEquals("hello\\u008Dworld",
                 XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u008Dworld"));
-        assertEquals("hello\uFFFDworld",
+        assertEquals("hello\\uFEFFworld",
                 XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\uFEFFworld"));
-        assertEquals("hello\uFFFDworld",
+        assertEquals("hello\\u200Bworld",
                 XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello\u200Bworld"));
-        assertEquals("hello world A", XroadLogbackCharacterConverter.replaceLogForgingCharacters("hello world A"));
     }
 }

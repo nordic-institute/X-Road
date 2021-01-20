@@ -67,7 +67,7 @@ public class EscapedWriterTest {
     }
 
     @Test
-    public void testNewline() {
+    public void testReservedSymbols() {
         final String testMsg = "Hello World\r\n, and others\b\t\f";
         serializer.toJson(testMsg, escapedWriter);
         assertEquals("\"Hello World\\r\\n, and others\\b\\t\\f\"", escapedWriter.toString());

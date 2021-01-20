@@ -38,18 +38,31 @@ import static ee.ria.xroad.common.validation.SpringFirewallValidationRules.FORBI
  */
 public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
-    private static final char REPLACEMENT_CHARACTER = '\uFFFD';
-    private static final char WHITESPACE_REPLACEMENT = '\u0020';
-
     public static String replaceLogForgingCharacters(String in) {
 
-        String result = CharMatcher.whitespace().or(CharMatcher.breakingWhitespace())
-                .replaceFrom(in, WHITESPACE_REPLACEMENT);
-
-        return CharMatcher.javaIsoControl()
+        if (CharMatcher.whitespace()
+                .or(CharMatcher.breakingWhitespace())
+                .or(CharMatcher.javaIsoControl())
                 .or(CharMatcher.is(FORBIDDEN_BOM))
                 .or(CharMatcher.is(FORBIDDEN_ZWSP))
-                .replaceFrom(result, REPLACEMENT_CHARACTER);
+                .matchesAnyOf(in)) {
+            StringBuilder stringBuilder = new StringBuilder();
+            for (char ch: in.toCharArray()) {
+                if (ch != '\u0020' && CharMatcher.whitespace()
+                        .or(CharMatcher.breakingWhitespace())
+                        .or(CharMatcher.javaIsoControl())
+                        .or(CharMatcher.is(FORBIDDEN_BOM))
+                        .or(CharMatcher.is(FORBIDDEN_ZWSP))
+                        .matchesAnyOf(String.valueOf(ch))) {
+                    stringBuilder.append(String.format("\\u%04X", (int) ch));
+                } else {
+                    stringBuilder.append(ch);
+                }
+            }
+            return stringBuilder.toString();
+        } else {
+            return in;
+        }
     }
 
     @Override
