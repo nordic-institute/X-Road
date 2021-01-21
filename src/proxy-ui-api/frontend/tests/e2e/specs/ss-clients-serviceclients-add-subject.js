@@ -145,7 +145,7 @@ const navigateToAddSubjectDialog = (pages) => {
 const navigateToAddSubjectDialogServicePage = (pages) => {
   const { addSubjectMemberStepPage } = pages;
   navigateToAddSubjectDialog(pages);
-  addSubjectMemberStepPage.selectSubject('TestClient');
+  addSubjectMemberStepPage.selectSubject('TestService');
   addSubjectMemberStepPage.clickNext();
 };
 
@@ -174,6 +174,7 @@ module.exports = {
     browser.waitForElementVisible(
       addSubjectMemberStepPage.elements.addSubjectWizardHeader,
     );
+
     // Check that all subjects exist
     addSubjectMemberStepPage
       .verifySubjectListRow(1, '1122')
@@ -225,22 +226,27 @@ module.exports = {
     addSubjectServiceStepPage.assertWizardSecondPage();
     // Test cancel on second page
     addSubjectServiceStepPage.cancel();
-    browser.expect.element(
+    browser.waitForElementVisible(
       '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
-    ).to.be.visible;
+    );
     browser.end();
   },
-  'Security server service clients Add Subject service page filter': (
+  'Security server service clients Add Subject service page filter and select services': (
     browser,
   ) => {
     const pages = getPages(browser);
-    const { addSubjectMemberStepPage, addSubjectServiceStepPage } = pages;
+    const {
+      addSubjectMemberStepPage,
+      addSubjectServiceStepPage,
+      mainPage,
+      serviceClientsPage,
+    } = pages;
     signinToClientsTab(pages);
     navigateToAddSubjectDialogServicePage(pages);
     addSubjectServiceStepPage.assertWizardSecondPage().clickPreviousButton();
     addSubjectMemberStepPage
       .assertWizardFirstPage()
-      .selectSubject('TestServer')
+      .selectSubject('TestClient')
       .clickNext();
     addSubjectServiceStepPage
       .assertWizardSecondPage()
@@ -255,6 +261,25 @@ module.exports = {
       .verifyServiceListRow(1, 'testOp1')
       .verifyServiceListRow(2, 'testOpA');
     addSubjectServiceStepPage.assertAddSelectedButtonDisabled();
+    addSubjectServiceStepPage.selectService('testOp1');
+    addSubjectServiceStepPage.assertSelectedServicesCount(1);
+    addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
+    addSubjectServiceStepPage.selectService('testOpA');
+    addSubjectServiceStepPage.assertSelectedServicesCount(2);
+    addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
+    addSubjectServiceStepPage.clickAddSelectedButton();
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Access rights successfully added',
+    );
+    browser.waitForElementVisible(
+      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+    );
+    browser.waitForElementVisible(
+      '//table[contains(@class, "service-clients-table")]//td[contains(text(), "TestClient")]',
+    );
+    serviceClientsPage.openAddServiceClient();
+    addSubjectMemberStepPage.verifyDisabledId('TestClient');
     // Remove the added service description
     clearServices(pages);
     browser.end();

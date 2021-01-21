@@ -78,6 +78,12 @@ const commands = [
       this.waitForElementVisible('@wizardStepIndicator');
       return this;
     },
+    verifyDisabledId(subject) {
+      this.waitForElementVisible(
+        `//table[contains(@class, "service-clients-table")]//td[contains(text(), "${subject}")]/..//div[contains(@class, "v-radio--is-disabled")]`,
+      );
+      return this;
+    },
     clickNext() {
       this.waitForElementVisible('@nextButton');
       this.click('@nextButton');

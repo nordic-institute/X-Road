@@ -78,6 +78,16 @@ const commands = [
       );
       return this;
     },
+    selectService(service) {
+      const serviceNode = `//table[@class="xrd-table"]//td[contains(text(), "${service}")]/../td[@class="selection-checkbox"]//div[contains(@class, "v-input--selection-controls__ripple")]`;
+      this.waitForElementVisible(serviceNode);
+      this.click(serviceNode);
+      return this;
+    },
+    assertSelectedServicesCount(count) {
+      this.expect.elements('@selectedServices').count.to.equal(count);
+      return this;
+    },
   },
 ];
 
@@ -108,6 +118,11 @@ module.exports = {
     },
     previousButton: {
       selector: '//button[@data-test="previous-button"]',
+      locateStrategy: 'xpath',
+    },
+    selectedServices: {
+      selector:
+        '//td[@class="selection-checkbox"]//div[contains(@class, "v-input--is-label-active")]',
       locateStrategy: 'xpath',
     },
   },
