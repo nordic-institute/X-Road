@@ -26,7 +26,6 @@
  -->
 <template>
   <div>
-    <!-- <div :class="status"></div> -->
     <v-icon v-if="status === 'ok'" :small="true" color="#0CC177"
       >icon-Checked</v-icon
     >
