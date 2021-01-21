@@ -25,111 +25,131 @@
  * THE SOFTWARE.
  */
 export type IconsId =
-  | "Add"
-  | "Certificate"
-  | "Checker"
-  | "Close"
-  | "Copy"
-  | "Database-backup"
-  | "Database"
-  | "Datepicker"
-  | "Declined"
-  | "Download"
-  | "Dropdown-open"
-  | "Error-notification"
-  | "Folder-outline"
-  | "Folder"
-  | "Import"
-  | "Key"
-  | "Menu"
-  | "Plus"
-  | "Search"
-  | "Security-Server"
-  | "Sorting-arrow"
-  | "Table-backup"
-  | "Tooltip"
-  | "Upload"
-  | "Warning";
+  | 'Add'
+  | 'Cancel'
+  | 'Certificate'
+  | 'Checked'
+  | 'Checker'
+  | 'Checkmark'
+  | 'Close'
+  | 'Copy'
+  | 'Database-backup'
+  | 'Database'
+  | 'Datepicker'
+  | 'Declined'
+  | 'Download'
+  | 'Dropdown-open'
+  | 'Error-notification'
+  | 'Error'
+  | 'Folder-outline'
+  | 'Folder'
+  | 'Import'
+  | 'In-progress'
+  | 'Key'
+  | 'Menu'
+  | 'Plus'
+  | 'Search'
+  | 'Security-Server'
+  | 'Sorting-arrow'
+  | 'Table-backup'
+  | 'Tooltip'
+  | 'Upload'
+  | 'Warning';
 
 export type IconsKey =
-  | "Add"
-  | "Certificate"
-  | "Checker"
-  | "Close"
-  | "Copy"
-  | "DatabaseBackup"
-  | "Database"
-  | "Datepicker"
-  | "Declined"
-  | "Download"
-  | "DropdownOpen"
-  | "ErrorNotification"
-  | "FolderOutline"
-  | "Folder"
-  | "Import"
-  | "Key"
-  | "Menu"
-  | "Plus"
-  | "Search"
-  | "SecurityServer"
-  | "SortingArrow"
-  | "TableBackup"
-  | "Tooltip"
-  | "Upload"
-  | "Warning";
+  | 'Add'
+  | 'Cancel'
+  | 'Certificate'
+  | 'Checked'
+  | 'Checker'
+  | 'Checkmark'
+  | 'Close'
+  | 'Copy'
+  | 'DatabaseBackup'
+  | 'Database'
+  | 'Datepicker'
+  | 'Declined'
+  | 'Download'
+  | 'DropdownOpen'
+  | 'ErrorNotification'
+  | 'Error'
+  | 'FolderOutline'
+  | 'Folder'
+  | 'Import'
+  | 'InProgress'
+  | 'Key'
+  | 'Menu'
+  | 'Plus'
+  | 'Search'
+  | 'SecurityServer'
+  | 'SortingArrow'
+  | 'TableBackup'
+  | 'Tooltip'
+  | 'Upload'
+  | 'Warning';
 
 export enum Icons {
-  Add = "Add",
-  Certificate = "Certificate",
-  Checker = "Checker",
-  Close = "Close",
-  Copy = "Copy",
-  DatabaseBackup = "Database-backup",
-  Database = "Database",
-  Datepicker = "Datepicker",
-  Declined = "Declined",
-  Download = "Download",
-  DropdownOpen = "Dropdown-open",
-  ErrorNotification = "Error-notification",
-  FolderOutline = "Folder-outline",
-  Folder = "Folder",
-  Import = "Import",
-  Key = "Key",
-  Menu = "Menu",
-  Plus = "Plus",
-  Search = "Search",
-  SecurityServer = "Security-Server",
-  SortingArrow = "Sorting-arrow",
-  TableBackup = "Table-backup",
-  Tooltip = "Tooltip",
-  Upload = "Upload",
-  Warning = "Warning",
+  Add = 'Add',
+  Cancel = 'Cancel',
+  Certificate = 'Certificate',
+  Checked = 'Checked',
+  Checker = 'Checker',
+  Checkmark = 'Checkmark',
+  Close = 'Close',
+  Copy = 'Copy',
+  DatabaseBackup = 'Database-backup',
+  Database = 'Database',
+  Datepicker = 'Datepicker',
+  Declined = 'Declined',
+  Download = 'Download',
+  DropdownOpen = 'Dropdown-open',
+  ErrorNotification = 'Error-notification',
+  Error = 'Error',
+  FolderOutline = 'Folder-outline',
+  Folder = 'Folder',
+  Import = 'Import',
+  InProgress = 'In-progress',
+  Key = 'Key',
+  Menu = 'Menu',
+  Plus = 'Plus',
+  Search = 'Search',
+  SecurityServer = 'Security-Server',
+  SortingArrow = 'Sorting-arrow',
+  TableBackup = 'Table-backup',
+  Tooltip = 'Tooltip',
+  Upload = 'Upload',
+  Warning = 'Warning',
 }
 
 export const ICONS_CODEPOINTS: { [key in Icons]: string } = {
-  [Icons.Add]: "61697",
-  [Icons.Certificate]: "61698",
-  [Icons.Checker]: "61699",
-  [Icons.Close]: "61700",
-  [Icons.Copy]: "61701",
-  [Icons.DatabaseBackup]: "61702",
-  [Icons.Database]: "61703",
-  [Icons.Datepicker]: "61704",
-  [Icons.Declined]: "61705",
-  [Icons.Download]: "61706",
-  [Icons.DropdownOpen]: "61707",
-  [Icons.ErrorNotification]: "61708",
-  [Icons.FolderOutline]: "61709",
-  [Icons.Folder]: "61710",
-  [Icons.Import]: "61711",
-  [Icons.Key]: "61712",
-  [Icons.Menu]: "61713",
-  [Icons.Plus]: "61714",
-  [Icons.Search]: "61715",
-  [Icons.SecurityServer]: "61716",
-  [Icons.SortingArrow]: "61717",
-  [Icons.TableBackup]: "61718",
-  [Icons.Tooltip]: "61719",
-  [Icons.Upload]: "61720",
-  [Icons.Warning]: "61721",
+  [Icons.Add]: '61697',
+  [Icons.Cancel]: '61698',
+  [Icons.Certificate]: '61699',
+  [Icons.Checked]: '61700',
+  [Icons.Checker]: '61701',
+  [Icons.Checkmark]: '61702',
+  [Icons.Close]: '61703',
+  [Icons.Copy]: '61704',
+  [Icons.DatabaseBackup]: '61705',
+  [Icons.Database]: '61706',
+  [Icons.Datepicker]: '61707',
+  [Icons.Declined]: '61708',
+  [Icons.Download]: '61709',
+  [Icons.DropdownOpen]: '61710',
+  [Icons.ErrorNotification]: '61711',
+  [Icons.Error]: '61712',
+  [Icons.FolderOutline]: '61713',
+  [Icons.Folder]: '61714',
+  [Icons.Import]: '61715',
+  [Icons.InProgress]: '61716',
+  [Icons.Key]: '61717',
+  [Icons.Menu]: '61718',
+  [Icons.Plus]: '61719',
+  [Icons.Search]: '61720',
+  [Icons.SecurityServer]: '61721',
+  [Icons.SortingArrow]: '61722',
+  [Icons.TableBackup]: '61723',
+  [Icons.Tooltip]: '61724',
+  [Icons.Upload]: '61725',
+  [Icons.Warning]: '61726',
 };

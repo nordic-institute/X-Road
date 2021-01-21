@@ -34,12 +34,11 @@ export default {
       control: {
         type: 'select',
         options: [
-          'green',
-          'green-ring',
-          'orange',
-          'orange-ring',
-          'red',
-          'red-ring',
+          'ok',
+          'saved',
+          'progress-register',
+          'progress-delete',
+          'error',
         ],
       },
     },
@@ -52,16 +51,15 @@ const Template = (args, { argTypes }) => ({
   template: `
     <div>
     <status-icon v-bind="$props" /><br>
-    <status-icon status="green" /><br>
-    <status-icon status="green-ring" /><br>
-    <status-icon status="orange" /><br>
-    <status-icon status="orange-ring" /><br>
-    <status-icon status="red" /><br>
-    <status-icon status="red-ring" /><br>
+    <status-icon status="ok" /> ok<br>
+    <status-icon status="saved" /> saved<br>
+    <status-icon status="progress-register" /> progress-register<br>
+    <status-icon status="progress-delete" /> progress-delete<br>
+    <status-icon status="error" /> error<br>
     </div>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-  status: 'red',
+  status: 'error',
 };
