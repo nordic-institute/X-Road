@@ -150,7 +150,7 @@ const navigateToAddSubjectDialogServicePage = (pages) => {
 };
 
 module.exports = {
-  tags: ['addServiceClientSubject'],
+  tags: ['ss', 'clients', 'serviceclients', 'addserviceclient'],
   'Security server service clients Add Subject dialog filter and select subjects': (
     browser,
   ) => {
