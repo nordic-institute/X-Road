@@ -39,7 +39,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import SubTabs from '@/components/layout/SubTabs.vue';
@@ -63,7 +63,6 @@ export default Vue.extend({
           to: {
             name: RouteName.SystemParameters,
           },
-          permissions: [Permissions.VIEW_SYS_PARAMS],
         },
         {
           key: 'backup',
@@ -71,7 +70,6 @@ export default Vue.extend({
           to: {
             name: RouteName.BackupAndRestore,
           },
-          permissions: [Permissions.BACKUP_CONFIGURATION],
         },
       ];
       return this.$store.getters.getAllowedTabs(allTabs);

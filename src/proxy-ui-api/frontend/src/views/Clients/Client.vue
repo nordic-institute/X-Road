@@ -140,7 +140,6 @@ export default Vue.extend({
             name: RouteName.MemberServers,
             params: { id: this.id },
           },
-          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
         },
       ];
 
