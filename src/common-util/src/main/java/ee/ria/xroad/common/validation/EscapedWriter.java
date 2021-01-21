@@ -28,7 +28,7 @@ package ee.ria.xroad.common.validation;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class EscapedWriter extends Writer {
 
-    private static final Set<Character> WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
+    private static final Set<Character> WHITELIST = new HashSet<>(Collections.singletonList('\u0020'));
     private final Writer writer;
 
     public EscapedWriter(final Writer writer) {

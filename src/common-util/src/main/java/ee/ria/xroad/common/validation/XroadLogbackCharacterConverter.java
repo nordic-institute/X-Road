@@ -29,7 +29,7 @@ package ee.ria.xroad.common.validation;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.pattern.CompositeConverter;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -38,7 +38,7 @@ import java.util.Set;
  */
 public class XroadLogbackCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
-    private static final Set<Character> WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
+    private static final Set<Character> WHITELIST = new HashSet<>(Collections.singletonList('\u0020'));
 
     @Override
     protected String transform(ILoggingEvent event, String in) {
