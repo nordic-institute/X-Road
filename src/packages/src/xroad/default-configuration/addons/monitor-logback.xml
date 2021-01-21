@@ -4,7 +4,7 @@
     <property name="logOutputPath" value="/var/log/xroad" />
 
     <conversionRule conversionWord="xrdcheck" converterClass="ee.ria.xroad.common.validation.XroadLogbackCharacterConverter" />
-    <conversionRule conversionWord="xrdcheckex" converterClass="ee.ria.xroad.common.validation.XroadLogbackExceptionCharacterConverter" />
+    <conversionRule conversionWord="xrdcheckex" converterClass="ee.ria.xroad.common.validation.XroadLogbackLinefeedAllowingCharacterConverter" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${logOutputPath}/monitor.log</file>

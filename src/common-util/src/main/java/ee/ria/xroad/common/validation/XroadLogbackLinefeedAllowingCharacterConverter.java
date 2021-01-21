@@ -36,7 +36,7 @@ import java.util.Set;
 /**
  * Logback converter that encodes unwanted/exploitable characters in log file exceptions
  */
-public class XroadLogbackExceptionCharacterConverter extends CompositeConverter<ILoggingEvent> {
+public class XroadLogbackLinefeedAllowingCharacterConverter extends CompositeConverter<ILoggingEvent> {
 
     private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020', '\u0009', '\n'));
 
