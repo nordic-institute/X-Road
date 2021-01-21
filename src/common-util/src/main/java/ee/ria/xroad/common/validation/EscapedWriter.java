@@ -37,7 +37,7 @@ import java.util.Set;
  */
 public class EscapedWriter extends Writer {
 
-    private static final Set WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
+    private static final Set<Character> WHITELIST = new HashSet<Character>(Arrays.asList('\u0020'));
     private final Writer writer;
 
     public EscapedWriter(final Writer writer) {
