@@ -72,8 +72,6 @@ class BaseBackupController < ApplicationController
   def backup
     audit_log("Back up configuration", audit_log_data = {})
 
-    audit_log("hello " + '\u0085' + '\u008D' + " world \r\n", audit_log_data = {})
-
     authorize!(:backup_configuration)
 
     exitcode, output, filename = CommonUi::BackupUtils.backup(
@@ -144,9 +142,6 @@ class BaseBackupController < ApplicationController
     audit_log_data[:backupFileName] = filename
 
     notice(t("backup.success.delete"))
-
-    raise "hello " + '\u0085' + '\u008D' + " world \r\n"
-
   rescue Exception => e
     logger.error(e)
     error(t("backup.error.delete", {:reason => e.message}))

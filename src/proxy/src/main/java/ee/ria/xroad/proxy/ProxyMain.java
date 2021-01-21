@@ -125,13 +125,6 @@ public final class ProxyMain {
             startup();
             loadConfigurations();
             startServices();
-
-            log.info("hello world");
-            log.info("hello world");
-            log.info("hello " + '\u0085' + '\u008D' + " world \r\n");
-            log.info("hello world");
-            log.info("hello world");
-
         } catch (Exception ex) {
             log.error("Proxy failed to start", ex);
             throw ex;
