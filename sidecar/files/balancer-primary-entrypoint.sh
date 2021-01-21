@@ -6,10 +6,10 @@ mkdir -p /run/sshd && chmod 0755 /run/sshd
 
 # ensure that rsync can read /etc/xroad
 chown -R xroad:xroad /etc/xroad
-chmod -R g+rX /etc/xroad
+chmod -R g+rX,o= /etc/xroad
 
 if [ -f /etc/.ssh/id_rsa.pub ]; then
-  cat /etc/.ssh/id_rsa.pub > /home/xroad-slave/.ssh/authorized_keys
+  ln -f -s /etc/.ssh/id_rsa.pub /home/xroad-slave/.ssh/authorized_keys
 fi
 
 # Start services

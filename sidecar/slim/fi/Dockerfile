@@ -1,5 +1,6 @@
 ARG VERSION=6.25.0
-FROM niis/xroad-security-server-sidecar:$VERSION-slim
+ARG TAG=niis/xroad-security-server-sidecar
+FROM $TAG:$VERSION-slim
 ARG VERSION
 # Clone the fi settings into the docker container
 ADD --chown=xroad:xroad https://raw.githubusercontent.com/nordic-institute/X-Road/$VERSION/src/packages/src/xroad/default-configuration/override-securityserver-fi.ini /etc/xroad/conf.d/override-securityserver-fi.ini

@@ -21,22 +21,17 @@ fi
 
 chown -R xroad:xroad /etc/xroad
 
-mkdir -p -m 0500 ~xroad/.ssh
-cp /etc/.ssh/* ~xroad/.ssh/
-chown -R xroad:xroad ~xroad/.ssh
-chmod 0400 ~xroad/.ssh/*
-
 #Try rsync until success
 RC=1
 while [[ $RC -ne 0 ]]
 do
- sleep 5
- su -c "rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 ' -avz --timeout=10 --delete-delay  --exclude '/conf.d/node.ini' --exclude '*.tmp'  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@${XROAD_PRIMARY_DNS}:/etc/xroad/ /etc/xroad/" xroad
+ sleep 5 || exit 1
+ su -c "rsync -q -e 'ssh -i /etc/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=5 ' -avz --timeout=10 --delete-delay  --exclude '/conf.d/node.ini' --exclude '*.tmp'  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@${XROAD_PRIMARY_DNS}:/etc/xroad/ /etc/xroad/" xroad
  RC=$?
 done
 
 #Create cron job for rsync every minute
-echo "* * * * * xroad rsync -e 'ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude '/conf.d/node.ini' --exclude '*.tmp'  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_PRIMARY_DNS:/etc/xroad/ /etc/xroad/ 2>&1" > /etc/cron.d/xroad-state-sync
+echo "* * * * * xroad rsync -e 'ssh -i /etc/.ssh/id_rsa -o StrictHostKeyChecking=no -o ConnectTimeout=5' -avz --timeout=10 --delete-delay  --exclude '/conf.d/node.ini' --exclude '*.tmp'  --delay-updates --log-file=/var/log/xroad/slave-sync.log xroad-slave@$XROAD_PRIMARY_DNS:/etc/xroad/ /etc/xroad/ 2>&1" > /etc/cron.d/xroad-state-sync
 chown root:root /etc/cron.d/xroad-state-sync && chmod 644 /etc/cron.d/xroad-state-sync
 
 # Start services
