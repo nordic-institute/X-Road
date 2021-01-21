@@ -14,7 +14,7 @@
             <maxFileSize>100MB</maxFileSize>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] %-5level %logger{36} - %xrdcheck(%msg) %xrdcheckex(%ex) %n</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] %-5level %logger{36} - %xrdcheckex(%msg) %n</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>
@@ -30,7 +30,7 @@
         <syslogHost>localhost</syslogHost>
         <port>514</port>
         <facility>LOCAL0</facility>
-        <suffixPattern>%-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %xrdcheck(%msg) %xrdcheckex(%ex)</suffixPattern>
+        <suffixPattern>%-5level [%contextName] %d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} - %msg</suffixPattern>
     </appender>
 
     <logger name="ee.ria.xroad" level="INFO"/>
