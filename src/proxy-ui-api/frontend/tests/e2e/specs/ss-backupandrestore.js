@@ -81,6 +81,41 @@ const navigateToBackupAndRestorePage = function (browser) {
   browser.waitForElementVisible(backupButton);
 };
 
+/**
+ * Create backup and verify it was created
+ *
+ * @param browser
+ * @return filename of the created backup
+ */
+const createBackup = async (browser) => {
+  const mainPage = browser.page.ssMainPage();
+  const settingsTab = mainPage.section.settingsTab;
+  const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
+
+  // Create backup
+  backupAndRestoreTab.clickCreateBackup();
+  browser.waitForElementVisible(mainPage.elements.snackBarMessage);
+
+  // Make sure backup was successfully created
+  browser.assert.containsText(
+    mainPage.elements.snackBarMessage,
+    'successfully created',
+  );
+
+  // Get the backend-generated name of the backup and close snackbar
+  const createdBackupFileNameTextObject = await browser.getText(
+    'xpath',
+    mainPage.elements.snackBarMessage,
+  );
+  const createdBackupFileName = createdBackupFileNameTextObject.value.split(
+    ' ',
+  )[1];
+  console.log('Created backup: ', createdBackupFileName);
+  mainPage.closeSnackbar();
+
+  return createdBackupFileName;
+}
+
 module.exports = {
   tags: ['ss', 'backupandrestore'],
   'Security server backups can be created, listed, filtered and removed': async (
@@ -94,26 +129,7 @@ module.exports = {
 
     navigateToBackupAndRestorePage(browser);
 
-    // Create backup
-    backupAndRestoreTab.clickCreateBackup();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage);
-
-    // Make sure backup was successfully created
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'successfully created',
-    );
-
-    // Get the backend-generated name of the backup and close snackbar
-    const createdBackupFileNameTextObject = await browser.getText(
-      'xpath',
-      mainPage.elements.snackBarMessage,
-    );
-    const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-      ' ',
-    )[1];
-    console.log('Created backup: ', createdBackupFileName);
-    mainPage.closeSnackbar();
+    const createdBackupFileName = await createBackup(browser);
 
     // Filtering backup list with the name of created backup there should be only one backup in the list
     backupAndRestoreTab.enterFilterInput(createdBackupFileName);
@@ -132,7 +148,7 @@ module.exports = {
     deleteBackupConfirmationDialog.cancel();
     browser.expect.element(deleteBackupConfirmationDialog).to.not.be.visible;
 
-    await deleteBackup(browser, createdBackupFileName);
+    deleteBackup(browser, createdBackupFileName);
     browser.end();
   },
 
@@ -156,25 +172,7 @@ module.exports = {
     // Navigate to backup and restore page
     navigateToBackupAndRestorePage(browser);
 
-    // Create backup
-    backupAndRestoreTab.clickCreateBackup();
-
-    // Make sure backup was successfully created
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'successfully created',
-    );
-
-    // Get the backend-generated name of the backup and close snackbar
-    const createdBackupFileNameTextObject = await browser.getText(
-      'xpath',
-      mainPage.elements.snackBarMessage,
-    );
-    const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-      ' ',
-    )[1];
-    console.log('Created backup: ', createdBackupFileName);
-    mainPage.closeSnackbar();
+    const createdBackupFileName = await createBackup(browser);
 
     // Download backupfile and make sure it's in the filesystem
     backupAndRestoreTab.clickDownloadForBackup(createdBackupFileName);
@@ -192,7 +190,7 @@ module.exports = {
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
     backupFileAlreadyExistsDialog.cancel();
-    browser.expect.element(backupFileAlreadyExistsDialog).to.not.be.visible;
+    browser.waitForElementNotVisible(backupFileAlreadyExistsDialog)
 
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
@@ -220,7 +218,7 @@ module.exports = {
     deleteBackupConfirmationDialog.cancel();
     browser.waitForElementNotVisible(deleteBackupConfirmationDialog);
 
-    await deleteBackup(browser, createdBackupFileName);
+    deleteBackup(browser, createdBackupFileName);
     browser.end();
   },
   'Restore backup': async (browser) => {
@@ -233,26 +231,9 @@ module.exports = {
     // Navigate to backup and restore page
     navigateToBackupAndRestorePage(browser);
 
-    // Create backup
-    backupAndRestoreTab.clickCreateBackup();
-
-    // Make sure backup was successfully created
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'successfully created',
-    );
-
-    // Get the backend-generated name of the backup and close snackbar
-    const createdBackupFileNameTextObject = await browser.getText(
-      'xpath',
-      mainPage.elements.snackBarMessage,
-    );
-    const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-      ' ',
-    )[1];
+    const createdBackupFileName = await createBackup(browser);
 
     // Click restore for created backup and close the dialog
-    mainPage.closeSnackbar();
     backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
     browser.waitForElementVisible(restoreConfirmationDialog);
     restoreConfirmationDialog.cancel();
@@ -264,7 +245,7 @@ module.exports = {
     // restoreConfirmationDialog.confirm();
     // browser.waitForElementNotVisible(restoreConfirmationDialog);
 
-    await deleteBackup(browser, createdBackupFileName);
+    deleteBackup(browser, createdBackupFileName);
     browser.end();
   },
 };

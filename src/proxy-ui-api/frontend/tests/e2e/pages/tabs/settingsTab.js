@@ -26,7 +26,7 @@
 
 const path = require('path');
 
-var settingsTabCommands = {
+const settingsTabCommands = {
   openSystemParameters: function () {
     this.click('@systemParametersTab');
     return this;
@@ -41,9 +41,9 @@ var settingsTabCommands = {
   },
 };
 
-var systemParametersCommands = {};
+const systemParametersCommands = {};
 
-var backupAndRestoreCommands = {
+const backupAndRestoreCommands = {
   enterFilterInput: function (input) {
     this.clearValue2('@searchField');
     this.setValue('@searchField', input);
@@ -85,7 +85,7 @@ var backupAndRestoreCommands = {
   },
 };
 
-var confirmationDialog = {
+const confirmationDialog = {
   confirm: function () {
     this.click('@confirmation');
     return this;
