@@ -41,7 +41,7 @@ module Base
           :data => data
         }.to_json)
 
-        logger.debug("AUDIT SUCCESS: #{message}")
+        logger.info("AUDIT SUCCESS: #{message}")
 
         AuditLogger::log(message)
       end
@@ -54,7 +54,7 @@ module Base
           :data => data,
         }.to_json)
 
-        logger.debug("AUDIT FAIL: #{message}")
+        logger.info("AUDIT FAIL: #{message}")
 
         AuditLogger::log(message)
       end
