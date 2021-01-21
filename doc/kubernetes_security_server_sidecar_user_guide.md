@@ -124,11 +124,11 @@ Out | Security Server | Management Security Server | 5500, 5577 | tcp | |
 Out | Security Server | OCSP Service | 80 / 443 | tcp | |
 Out | Security Server | Timestamping Service | 80 / 443 | tcp | |
 Out | Security Server | Data Exchange Partner Security Server (Service Producer) | 5500, 5577 | tcp | |
-Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
+Out | Security Server | Producer Information System | 80, 443, 8080 | tcp | Target in the internal network |
 Out  | ssh synchronization | Security Server | 22 | tcp | |
 In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
-In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
+In | Consumer Information System | Security Server | 80, 443, 8080  | tcp | Source in the internal network |
 In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source in the internal network |
 In  | Healthcheck | Security Server | 5588 | tcp | |
 In  | ssh synchronization | Security Server | 22 | tcp | |
@@ -713,6 +713,10 @@ spec:
     targetPort: 5577
     protocol: TCP
     name: ocsp
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: consumer
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -737,7 +741,7 @@ spec:
           items:
           - key: private-key
             path: id_rsa
-            mode: 0600
+            mode: 0644
           - key: public-key
             path: id_rsa.pub
             mode: 0644
