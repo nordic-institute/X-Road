@@ -57,6 +57,7 @@ RUN pg_ctlcluster 10 main start \
   && userdel -r xrd
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback.xml files/variables-logback.properties /etc/xroad/conf.d/
+COPY --chown=xroad:xroad files/addons/*-logback.xml /etc/xroad/conf.d/addons/
 COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
 RUN rm -f /etc/xroad/db.properties \

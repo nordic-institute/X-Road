@@ -7,9 +7,9 @@
         </encoder>
     </appender>
 
-    <logger name="ee.ria.xroad" level="${XROAD_LOG_LEVEL:-INFO}"/>
+    <logger name="ee.ria.xroad" level="WARN"/>
 
-    <root level="${XROAD_ROOT_LOG_LEVEL:-WARN}">
+    <root level="ERROR">
         <appender-ref ref="STDOUT" />
     </root>
 
