@@ -27,11 +27,11 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.service.GlobalConfService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -48,20 +48,11 @@ import java.util.List;
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class TimestampingServicesApiController implements TimestampingServicesApi {
 
     private final GlobalConfService globalConfService;
     private final TimestampingServiceConverter timestampingServiceConverter;
-
-    /**
-     * Constructor
-     */
-    @Autowired
-    public TimestampingServicesApiController(GlobalConfService globalConfService,
-            TimestampingServiceConverter timestampingServiceConverter) {
-        this.globalConfService = globalConfService;
-        this.timestampingServiceConverter = timestampingServiceConverter;
-    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")

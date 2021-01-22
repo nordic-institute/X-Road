@@ -28,12 +28,12 @@ package org.niis.xroad.restapi.converter;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.KeyValuePair;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.model.TokenType;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -45,20 +45,12 @@ import java.util.stream.Collectors;
  * Convert Token related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class TokenConverter {
 
     private final KeyConverter keyConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
-
-    @Autowired
-    public TokenConverter(KeyConverter keyConverter,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            PossibleActionConverter possibleActionConverter) {
-        this.keyConverter = keyConverter;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.possibleActionConverter = possibleActionConverter;
-    }
 
     /**
      * Convert {@link TokenInfo} to openapi {@link Token} object

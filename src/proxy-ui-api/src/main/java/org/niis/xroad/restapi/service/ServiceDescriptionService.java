@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
@@ -43,7 +44,6 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.EndpointHelper;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -51,7 +51,6 @@ import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,8 +91,9 @@ import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
  */
 @Slf4j
 @Service
-@Transactional(rollbackFor = ServiceException.class)
+@Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
@@ -105,41 +105,13 @@ public class ServiceDescriptionService {
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
-    private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
+    private final ServiceService serviceService;
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
     private final OpenApiParser openApiParser;
     private final AuditDataHelper auditDataHelper;
     private final EndpointHelper endpointHelper;
-
-    /**
-     * ServiceDescriptionService constructor
-     *
-     * @param serviceDescriptionRepository
-     * @param clientService
-     * @param clientRepository
-     * @param urlValidator
-     * @param endpointHelper
-     */
-    @Autowired
-    public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository,
-            ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator, UrlValidator urlValidator,
-            OpenApiParser openApiParser, AuditDataHelper auditDataHelper,
-            EndpointHelper endpointHelper) {
-
-        this.serviceDescriptionRepository = serviceDescriptionRepository;
-        this.clientService = clientService;
-        this.clientRepository = clientRepository;
-        this.serviceChangeChecker = serviceChangeChecker;
-        this.wsdlValidator = wsdlValidator;
-        this.urlValidator = urlValidator;
-        this.openApiParser = openApiParser;
-        this.auditDataHelper = auditDataHelper;
-        this.endpointHelper = endpointHelper;
-    }
 
     /**
      * Disable 1 services
@@ -185,7 +157,6 @@ public class ServiceDescriptionService {
         if (!toEnabled) {
             serviceDescriptionType.setDisabledNotice(disabledNotice);
         }
-        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
         auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
     }
@@ -212,7 +183,6 @@ public class ServiceDescriptionService {
         cleanAccessRights(client, serviceDescriptionType);
         cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);
-        clientRepository.saveOrUpdate(client);
     }
 
     private void cleanEndpoints(ClientType client, ServiceDescriptionType serviceDescriptionType) {
@@ -281,7 +251,6 @@ public class ServiceDescriptionService {
 
         client.getEndpoint().addAll(endpointsToAdd);
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
         return serviceDescriptionType;
     }
 
@@ -411,7 +380,6 @@ public class ServiceDescriptionService {
         // Populate client with new servicedescription and endpoints
         client.getEndpoint().addAll(endpoints);
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
     }
@@ -524,8 +492,6 @@ public class ServiceDescriptionService {
 
         checkDuplicateServiceCodes(serviceDescriptionType);
         checkDuplicateUrl(serviceDescriptionType);
-
-        clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
     }
@@ -678,8 +644,6 @@ public class ServiceDescriptionService {
                 ignoreWarnings,
                 serviceDescriptionType);
 
-        clientRepository.saveOrUpdateAndFlush(serviceDescriptionType.getClient());
-
         return serviceDescriptionType;
     }
 
@@ -733,7 +697,6 @@ public class ServiceDescriptionService {
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
 
-        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
         return serviceDescription;
     }
 
@@ -794,8 +757,6 @@ public class ServiceDescriptionService {
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
-
-        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
 
         return serviceDescription;
     }
@@ -1032,8 +993,6 @@ public class ServiceDescriptionService {
         // add new endpoints
         Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
         client.getEndpoint().addAll(endpointsToAdd);
-
-        clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
     }

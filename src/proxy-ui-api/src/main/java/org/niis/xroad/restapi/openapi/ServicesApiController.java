@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.controller.ServiceClientHelper;
@@ -55,7 +56,6 @@ import org.niis.xroad.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.restapi.service.ServiceService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -79,6 +79,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVI
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class ServicesApiController implements ServicesApi {
 
     private final ServiceConverter serviceConverter;
@@ -89,21 +90,6 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
-
-    @Autowired
-    public ServicesApiController(ServiceConverter serviceConverter, ServiceClientConverter serviceClientConverter,
-            ServiceService serviceService, AccessRightService accessRightService,
-            EndpointConverter endpointConverter, ServiceClientHelper serviceClientHelper,
-            ServiceClientService serviceClientService) {
-        this.serviceConverter = serviceConverter;
-        this.serviceClientConverter = serviceClientConverter;
-        this.serviceService = serviceService;
-        this.accessRightService = accessRightService;
-        this.endpointConverter = endpointConverter;
-        this.serviceClientHelper = serviceClientHelper;
-        this.serviceClientService = serviceClientService;
-        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
-    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")

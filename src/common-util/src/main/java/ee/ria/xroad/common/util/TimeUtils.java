@@ -26,6 +26,9 @@
 package ee.ria.xroad.common.util;
 
 import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -60,5 +63,12 @@ public final class TimeUtils {
      */
     public static int secondsToMillis(int seconds) {
         return (int) TimeUnit.SECONDS.toMillis(seconds);
+    }
+
+    /**
+     * Converts given date to offsetdatetime using the system default timezone
+     */
+    public static OffsetDateTime toOffsetDateTime(Date date) {
+        return date == null ? null : date.toInstant().atZone(ZoneId.systemDefault()).toOffsetDateTime();
     }
 }

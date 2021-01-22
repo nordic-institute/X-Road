@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.restapi.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +42,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PRI
  * Verify internal and external configurations
  */
 @Component
+@RequiredArgsConstructor
 public class ConfigurationVerifier {
     public static final int EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120;
     public static final int EXIT_STATUS_MISSING_PRIVATE_PARAMS = 121;
@@ -51,16 +52,10 @@ public class ConfigurationVerifier {
     public static final int EXIT_STATUS_OTHER = 125;
 
     @Setter
+    @Value("${script.internal-configuration-verifier.path}")
     private String internalConfVerificationScriptPath;
 
     private final ExternalProcessRunner externalProcessRunner;
-
-    @Autowired
-    public ConfigurationVerifier(ExternalProcessRunner externalProcessRunner,
-            @Value("${script.internal-configuration-verifier.path}") String internalConfVerificationScriptPath) {
-        this.externalProcessRunner = externalProcessRunner;
-        this.internalConfVerificationScriptPath = internalConfVerificationScriptPath;
-    }
 
     /**
      * Verify internal configuration anchor.

@@ -36,6 +36,9 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
+import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
+import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
@@ -44,6 +47,9 @@ import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -83,9 +89,13 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String HAS_PERCENT = "aa%bb";
     public static final String HAS_NON_NORMALIZED = "aa/../bb";
     public static final String HAS_BACKSLASH = "aa\\bb";
+    public static final String HAS_CONTROL_CHAR = "aa​bb"; // zero-width-space in the middle
 
     public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAdd.client.memberCode";
     public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAdd.client.subsystemCode";
+    public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAdd.code";
+    public static final String FIELD_LOCALGROUPADD_DESCRIPTION = "localGroupAdd.description";
+    public static final String FIELD_LOCALGROUPDESCRIPTION = "localGroupDescription.description";
 
     private static final List<String> MEMBER_CLASSES = Arrays.asList(TestUtils.MEMBER_CLASS_GOV,
             TestUtils.MEMBER_CLASS_PRO);
@@ -120,11 +130,13 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertAddClientValidationError(HAS_PERCENT, null);
         assertAddClientValidationError(HAS_NON_NORMALIZED, null);
         assertAddClientValidationError(HAS_BACKSLASH, null);
+        assertAddClientValidationError(HAS_CONTROL_CHAR, null);
         assertAddClientValidationError("aa", HAS_COLON);
         assertAddClientValidationError("aa", HAS_SEMICOLON);
         assertAddClientValidationError("aa", HAS_PERCENT);
         assertAddClientValidationError("aa", HAS_NON_NORMALIZED);
         assertAddClientValidationError("aa", HAS_BACKSLASH);
+        assertAddClientValidationError("aa", HAS_CONTROL_CHAR);
 
         // these ids should be fine by validation rules
         ResponseEntity<Object> response = createTestClient("aa.bb.列.ä", "aa.bb.列.ä");
@@ -154,6 +166,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertAddClientServiceDescriptionValidationError(HAS_PERCENT);
         assertAddClientServiceDescriptionValidationError(HAS_NON_NORMALIZED);
         assertAddClientServiceDescriptionValidationError(HAS_BACKSLASH);
+        assertAddClientServiceDescriptionValidationError(HAS_CONTROL_CHAR);
 
         ResponseEntity<Object> response = createClientServiceDescription("aa.bb.列.ä");
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
@@ -181,6 +194,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertUpdateServiceDescriptionValidationFailure(HAS_PERCENT);
         assertUpdateServiceDescriptionValidationFailure(HAS_NON_NORMALIZED);
         assertUpdateServiceDescriptionValidationFailure(HAS_BACKSLASH);
+        assertUpdateServiceDescriptionValidationFailure(HAS_CONTROL_CHAR);
     }
 
     /**
@@ -211,16 +225,19 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertInitialServerConfValidationError(HAS_PERCENT, "aa", "aa");
         assertInitialServerConfValidationError(HAS_NON_NORMALIZED, "aa", "aa");
         assertInitialServerConfValidationError(HAS_BACKSLASH, "aa", "aa");
+        assertInitialServerConfValidationError(HAS_CONTROL_CHAR, "aa", "aa");
         assertInitialServerConfValidationError("aa", HAS_COLON, "aa");
         assertInitialServerConfValidationError("aa", HAS_SEMICOLON, "aa");
         assertInitialServerConfValidationError("aa", HAS_PERCENT, "aa");
         assertInitialServerConfValidationError("aa", HAS_NON_NORMALIZED, "aa");
         assertInitialServerConfValidationError("aa", HAS_BACKSLASH, "aa");
+        assertInitialServerConfValidationError("aa", HAS_CONTROL_CHAR, "aa");
         assertInitialServerConfValidationError("aa", "aa", HAS_COLON);
         assertInitialServerConfValidationError("aa", "aa", HAS_SEMICOLON);
         assertInitialServerConfValidationError("aa", "aa", HAS_PERCENT);
         assertInitialServerConfValidationError("aa", "aa", HAS_NON_NORMALIZED);
         assertInitialServerConfValidationError("aa", "aa", HAS_BACKSLASH);
+        assertInitialServerConfValidationError("aa", "aa", HAS_CONTROL_CHAR);
 
         // these should pass validation but in the end initializing fails because of missing configuration anchor
         ResponseEntity<Object> response = createInitialServerConf("aa.bb.列.ä", "aa.bb.列.ä", "aa.bb.列.ä");
@@ -248,6 +265,11 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     @WithMockUser(authorities = "ADD_CLIENT")
     public void testAddClientFieldValidationErrors() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        // member code with control char
+        expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertAddClientFieldValidationErrorMessages(HAS_CONTROL_CHAR, "aa", expectedFieldValidationErrors);
+
         // member code with colon
         expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
                 Collections.singletonList(IdentifierValidationErrorInfo.COLON.getErrorCode()));
@@ -269,6 +291,69 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     private void assertAddClientFieldValidationErrorMessages(String memberCode, String subsystemCode,
             Map<String, List<String>> expectedFieldValidationErrors) {
         ResponseEntity<Object> response = createTestClient(memberCode, subsystemCode);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADD_LOCAL_GROUP")
+    public void addClientLocalGroupWithControlCharacter() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        // LocalGroupAdd code with control char
+        expectedFieldValidationErrors.put(FIELD_LOCALGROUPADD_CODE,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertAddLocalGroupValidationError(HAS_CONTROL_CHAR, "aa", expectedFieldValidationErrors);
+
+        // LocalGroupAdd desc with control char
+        expectedFieldValidationErrors.remove(FIELD_LOCALGROUPADD_CODE);
+        expectedFieldValidationErrors.put(FIELD_LOCALGROUPADD_DESCRIPTION,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertAddLocalGroupValidationError("aa", HAS_CONTROL_CHAR, expectedFieldValidationErrors);
+
+        // LocalGroupAdd code and desc with control char
+        expectedFieldValidationErrors.put(FIELD_LOCALGROUPADD_CODE,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertAddLocalGroupValidationError(HAS_CONTROL_CHAR, HAS_CONTROL_CHAR, expectedFieldValidationErrors);
+    }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_LOCAL_GROUP_DESC")
+    public void updateLocalGroupDescriptionWithControlCharacter() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        // Update LocalGroupDescription with control char
+        expectedFieldValidationErrors.put(FIELD_LOCALGROUPDESCRIPTION,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertUpdateLocalGroupDescValidationError(HAS_CONTROL_CHAR, expectedFieldValidationErrors);
+    }
+
+    private void assertAddLocalGroupValidationError(String localGroupCode, String localGroupDescription,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        ResponseEntity<Object> response = createTestLocalGroup(localGroupCode, localGroupDescription);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
+    private void assertUpdateLocalGroupDescValidationError(String localGroupDescription,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        ResponseEntity<Object> response = updateLocalGroupDesc(localGroupDescription);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
+    private ResponseEntity<Object> updateLocalGroupDesc(String newLocalGroupDescription) {
+        LocalGroupDescription localGroupDescription = new LocalGroupDescription()
+                .description(newLocalGroupDescription);
+        HttpEntity<LocalGroupDescription> localGroupDescriptionEntity = new HttpEntity<>(localGroupDescription);
+        ParameterizedTypeReference<LocalGroup> typeRef = new ParameterizedTypeReference<LocalGroup>() {
+        };
+        return restTemplate.exchange("/api/v1/local-groups/0", HttpMethod.PATCH, localGroupDescriptionEntity,
+                Object.class);
+    }
+
+    private ResponseEntity<Object> createTestLocalGroup(String localGroupCode, String localGroupDescription) {
+        LocalGroupAdd localGroupAdd = new LocalGroupAdd().code(localGroupCode).description(localGroupDescription);
+        return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/local-groups", localGroupAdd, Object.class);
+    }
+
+    private void assertValidationErrors(ResponseEntity<Object> response,
+            Map<String, List<String>> expectedFieldValidationErrors) {
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
         ErrorInfo errorResponse = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
         assertNotNull(errorResponse);

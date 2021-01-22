@@ -34,15 +34,13 @@ module.exports = {
     const diagnosticsTab = mainPage.section.diagnosticsTab;
     const settingsTab = mainPage.section.settingsTab;
     const tokenName = mainPage.section.keysTab.elements.tokenName;
-    const createAPIKeyButton =
-      mainPage.section.keysTab.elements.createAPIKeyButton;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
-    const globalConfiguration =
-      mainPage.section.diagnosticsTab.elements.globalConfiguration;
+    const createAPIKeyButton = keysTab.elements.createAPIKeyButton;
+    const generateKeyButton = keysTab.elements.generateKeyButton;
+    const globalConfiguration = diagnosticsTab.elements.globalConfiguration;
     const anchorDownloadButton =
-      mainPage.section.settingsTab.elements.anchorDownloadButton;
-    const backupButton = mainPage.section.settingsTab.elements.backupButton;
+      settingsTab.sections.backupAndRestoreTab.elements.anchorDownloadButton;
+    const backupButton =
+      settingsTab.sections.backupAndRestoreTab.elements.backupButton;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
