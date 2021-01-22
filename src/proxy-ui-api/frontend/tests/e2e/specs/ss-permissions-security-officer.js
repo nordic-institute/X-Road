@@ -38,10 +38,9 @@ module.exports = {
     const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
     const generateKeyButton =
       mainPage.section.keysTab.elements.generateKeyButton;
+    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
     const anchorDownloadButton =
-      mainPage.section.settingsTab.elements.anchorDownloadButton;
-    const backupAndRestoreTab =
-      mainPage.section.settingsTab.elements.backupAndRestoreTab;
+      backupAndRestoreTab.elements.anchorDownloadButton;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
