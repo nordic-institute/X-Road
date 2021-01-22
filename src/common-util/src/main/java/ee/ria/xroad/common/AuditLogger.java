@@ -76,7 +76,7 @@ public final class AuditLogger {
      *
      * @param jsonMessage message in JSON format
      */
-    static void log(String jsonMessage) {
+    private static void log(String jsonMessage) {
         log.info(AUDIT_MARKER, jsonMessage);
     }
 
