@@ -135,7 +135,7 @@ module.exports = {
     backupAndRestoreTab.enterFilterInput(createdBackupFileName);
     browser.expect
       // xrd-table has thead but no tbody so use '/tr' to get only the row elements that are direct children of table
-      .elements('//table[contains(@class, "xrd-table")]/tr')
+      .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
       .count.to.equal(1);
     backupAndRestoreTab.clearFilterInput();
 
