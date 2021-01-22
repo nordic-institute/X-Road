@@ -36,6 +36,7 @@ export default {
     block: { control: 'boolean' },
     large: { control: 'boolean' },
     click: { action: 'click' },
+    color: { control: 'text' },
   },
 };
 
