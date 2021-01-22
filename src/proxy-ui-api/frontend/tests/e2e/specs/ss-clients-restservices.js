@@ -554,7 +554,7 @@ module.exports = {
     addEndpointPopup.addSelected();
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
-      'Endpoint with equivalent service code, method and path already exists for this client',
+      'Endpoint already exists',
     );
     mainPage.closeSnackbar();
 
@@ -668,7 +668,7 @@ module.exports = {
     endpointPopup.addSelected();
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
-      'Endpoint with equivalent service code, method and path already exists for this client',
+      'Endpoint already exists',
     );
     mainPage.closeSnackbar();
 

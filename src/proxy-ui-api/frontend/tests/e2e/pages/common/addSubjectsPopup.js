@@ -36,9 +36,7 @@ const commands = {
     this.click('@serviceClientTypeDropdown');
     // The picker menu is attached to the main app dom tree, not the dialog
     this.api.click(
-      '//div[@role="listbox"]//div[contains(@class,"v-list-item__title") and contains(text(),"' +
-        type +
-        '")]',
+      `//div[@role="option" and .//div[contains(text(), "${type}")]]`,
     );
     return this;
   },
