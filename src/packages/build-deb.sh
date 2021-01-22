@@ -36,10 +36,6 @@ function prepare {
 DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
-# declare various dependency versions as environment variables
-# can be used in packaging scripts
-declare -x $(grep -e '^[^/#]*Version=' ../gradle.properties)
-
 mkdir -p build/xroad
 mkdir -p build/xroad-jetty9
 cp -a src/xroad/ubuntu build/xroad/
