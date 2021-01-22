@@ -13,7 +13,7 @@ jetty.request.header.size=8192
 # response header buffer size
 jetty.response.header.size=8192
 # should jetty send the server version header?
-jetty.send.server.version=true
+jetty.send.server.version=false
 # should jetty send the date header?
 jetty.send.date.header=false
 # What host to listen on (leave commented to listen on all interfaces)
@@ -45,3 +45,8 @@ lib/jetty-annotations-${jetty.version}.jar
 lib/jetty-jndi-${jetty.version}.jar
 lib/annotations/*.jar
 lib/jetty-jaas-${jetty.version}.jar
+# for custom log message converter
+/usr/share/xroad/jlib/webapps/common-util-1.0.jar
+/usr/share/xroad/jlib/webapps/jackson-core-*.jar
+/usr/share/xroad/jlib/webapps/jackson-databind-*.jar
+/usr/share/xroad/jlib/webapps/jackson-annotations-*.jar

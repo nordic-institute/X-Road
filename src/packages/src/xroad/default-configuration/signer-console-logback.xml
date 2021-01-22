@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+    <conversionRule conversionWord="escape" converterClass="ee.ria.xroad.common.logback.LogMsgConverter"/>
     <contextName>X-Road Signer Console</contextName>
-
     <property name="logOutputPath" value="/var/log/xroad" />
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
@@ -11,7 +11,7 @@
             <maxFileSize>100MB</maxFileSize>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} %-5level [%thread] %logger{36} - %msg%n</pattern>
+            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] %-5level %logger{36} - %escape(%msg%n%ex) %n%nopex</pattern>
             <charset>UTF-8</charset>
         </encoder>
     </appender>

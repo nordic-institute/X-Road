@@ -1,31 +1,22 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+  <conversionRule conversionWord="escape" converterClass="ee.ria.xroad.common.logback.LogMsgConverter"/>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} [%thread] %-5level %logger{36} - %msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX"} [%thread] %-5level %logger{36} - %escape(%msg%n%ex){false}%n%nopex</pattern>
+      <charset>UTF-8</charset>
+    </encoder>
+  </appender>
 
-    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-        <file>build/proxytest.log</file>
-        <append>false</append>
-        <encoder>
-            <pattern>%d{"yyyy-MM-dd'T'HH:mm:ss.SSSXXX", UTC} [%thread] %-5level %logger{36} - %msg%n</pattern>
-            <charset>UTF-8</charset>
-        </encoder>
-    </appender>
-
-    <logger name="ee.ria.xroad" level="TRACE" />
+  <logger name="ee.ria.xroad" level="TRACE" />
 
     <!-- Temporarily disable logger for proxy UI -->
-    <logger name="ee.ria.xroad.proxyui" level="OFF" />
+  <logger name="ee.ria.xroad.proxyui" level="OFF" />
     <!-- Suppress error messages due to missing configuration files -->
-    <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF"/>
+  <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF"/>
 
-    <root level="INFO">
-        <appender-ref ref="STDOUT" />
-        <appender-ref ref="FILE" />
-    </root>
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
 </configuration>
