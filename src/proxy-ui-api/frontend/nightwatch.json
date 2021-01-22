@@ -9,6 +9,12 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
+    "screenshots" : {
+      "enabled" : true,
+      "on_failure" : true,
+      "on_error" : true,
+      "path" : "./tests/e2e/screenshots"
+    },
     "default": {
       "use_xpath": true,
       "globals" : {
@@ -50,14 +56,6 @@
           },
           "args" : ["--window-size=1280,900"]
         }
-      }
-    },
-    "screenshot" : {
-      "screenshots" : {
-        "enabled" : true,
-        "on_failure" : true,
-        "on_error" : true,
-        "path" : "./error_screenshots"
       }
     }
   }
