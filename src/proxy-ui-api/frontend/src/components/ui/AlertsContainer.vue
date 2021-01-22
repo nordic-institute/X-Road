@@ -24,12 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="max-width">
-    <Notifications />
-    <div class="alerts-wrapper">
-      <GlobalAlerts />
-      <ContextualAlerts />
-    </div>
+  <v-container fluid class="alerts-wrapper">
+    <GlobalAlerts />
+    <ContextualAlerts />
   </v-container>
 </template>
 
@@ -40,12 +37,11 @@ import { formatDateTime } from '@/filters';
 import { RouteName } from '@/global';
 import ContextualAlerts from './ContextualAlerts.vue';
 import GlobalAlerts from './GlobalAlerts.vue';
-import Notifications from './Notifications.vue';
+
 export default Vue.extend({
   components: {
     ContextualAlerts,
     GlobalAlerts,
-    Notifications,
   },
   computed: {
     hasAlerts(): boolean {
@@ -77,13 +73,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-.max-width {
-  width: 100%;
-  padding: 0;
-}
 .alerts-wrapper {
-  margin-left: auto;
-  margin-right: auto;
   width: 1000px;
   padding: 0;
 }
