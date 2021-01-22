@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.converter;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.openapi.model.TokenInitStatus;
 
@@ -36,6 +37,7 @@ import java.util.Optional;
  * Mapping between {@link TokenInitStatus} in api (enum) and model {@link TokenInitStatusInfo}
  */
 @Getter
+@RequiredArgsConstructor
 public enum TokenInitStatusMapping {
     INITIALIZED(TokenInitStatusInfo.INITIALIZED, TokenInitStatus.INITIALIZED),
     NOT_INITIALIZED(TokenInitStatusInfo.NOT_INITIALIZED, TokenInitStatus.NOT_INITIALIZED),
@@ -43,12 +45,6 @@ public enum TokenInitStatusMapping {
 
     private final TokenInitStatusInfo tokenInitStatusInfo;
     private final TokenInitStatus tokenInitStatus;
-
-    TokenInitStatusMapping(TokenInitStatusInfo tokenInitStatusInfo,
-            TokenInitStatus tokenInitStatus) {
-        this.tokenInitStatusInfo = tokenInitStatusInfo;
-        this.tokenInitStatus = tokenInitStatus;
-    }
 
     /**
      * Return matching {@link TokenInitStatusInfo}, if any

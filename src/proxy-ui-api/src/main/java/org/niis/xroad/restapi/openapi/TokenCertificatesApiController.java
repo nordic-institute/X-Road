@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.openapi;
 
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -48,7 +49,6 @@ import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.service.TokenCertificateService;
 import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -77,6 +77,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class TokenCertificatesApiController implements TokenCertificatesApi {
 
     private final TokenCertificateService tokenCertificateService;
@@ -84,17 +85,6 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     private final PossibleActionConverter possibleActionConverter;
     private final AuditDataHelper auditDataHelper;
     private final SecurityHelper securityHelper;
-
-    @Autowired
-    public TokenCertificatesApiController(TokenCertificateService tokenCertificateService,
-            TokenCertificateConverter tokenCertificateConverter, PossibleActionConverter possibleActionConverter,
-            AuditDataHelper auditDataHelper, SecurityHelper securityHelper) {
-        this.tokenCertificateService = tokenCertificateService;
-        this.tokenCertificateConverter = tokenCertificateConverter;
-        this.possibleActionConverter = possibleActionConverter;
-        this.auditDataHelper = auditDataHelper;
-        this.securityHelper = securityHelper;
-    }
 
     @Override
     @PreAuthorize("hasAnyAuthority('ACTIVATE_DISABLE_AUTH_CERT','ACTIVATE_DISABLE_SIGN_CERT')")
@@ -137,12 +127,12 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificate(certificateBytes);
-        } catch (GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
+        } catch (ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
                 | InvalidCertificateException
                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAlreadyExistsException | CsrNotFoundException e) {
+        } catch (GlobalConfOutdatedException | CertificateAlreadyExistsException | CsrNotFoundException e) {
             throw new ConflictException(e);
         }
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
@@ -188,12 +178,12 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
         CertificateInfo certificate = null;
         try {
             certificate = tokenCertificateService.importCertificateFromToken(hash);
-        } catch (GlobalConfOutdatedException | ClientNotFoundException | KeyNotFoundException
+        } catch (ClientNotFoundException | KeyNotFoundException
                 | TokenCertificateService.WrongCertificateUsageException
                 | InvalidCertificateException
                 | TokenCertificateService.AuthCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (CertificateAlreadyExistsException | CsrNotFoundException
+        } catch (GlobalConfOutdatedException | CertificateAlreadyExistsException | CsrNotFoundException
                 | ActionNotPossibleException e) {
             throw new ConflictException(e);
         } catch (CertificateNotFoundException e) {
@@ -238,11 +228,10 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.registerAuthCert(hash, securityServerAddress.getAddress());
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException
-                | InvalidCertificateException
+        } catch (InvalidCertificateException
                 | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -256,10 +245,10 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.unregisterAuthCert(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException | InvalidCertificateException
+        } catch (InvalidCertificateException
                 | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
         } catch (ManagementRequestSendingFailedException e) {
             throw new InternalServerErrorException(e);
@@ -275,10 +264,10 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             tokenCertificateService.markAuthCertForDeletion(hash);
         } catch (CertificateNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (GlobalConfOutdatedException | InvalidCertificateException
+        } catch (InvalidCertificateException
                 | TokenCertificateService.SignCertificateNotSupportedException e) {
             throw new BadRequestException(e);
-        } catch (ActionNotPossibleException | KeyNotFoundException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException | KeyNotFoundException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
