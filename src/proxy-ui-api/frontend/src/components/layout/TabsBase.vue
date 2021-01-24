@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-left row>
+  <v-layout class="main-content" align-left>
     <v-img
       :src="require('../../assets/xroad7_logo.svg')"
       height="35"
