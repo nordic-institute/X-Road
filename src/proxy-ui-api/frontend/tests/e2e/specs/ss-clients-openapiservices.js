@@ -698,7 +698,7 @@ module.exports = {
 
     browser.end();
   },
-  'Security server client edit openapi service': (browser) => {
+  'Security server client edit openapi service': async (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -793,7 +793,7 @@ module.exports = {
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
-    browser.perform(function () {
+    await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
       if (passedTime < 30000) {
@@ -838,7 +838,7 @@ module.exports = {
     openApiServiceDetails.enterServiceCode('s3c2');
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
-    browser.perform(function () {
+    await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
       if (passedTime < 60000) {
