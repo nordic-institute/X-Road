@@ -24,16 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
-    :dialog="dialog"
-    :width="750"
-    title="endpoints.addEndpoint"
-    @save="save"
-    @cancel="cancel"
-    :disableSave="!isValid"
-  >
-    <div slot="content">
-      <ValidationObserver ref="form" v-slot="{}">
+  <ValidationObserver ref="form" v-slot="{ invalid }" v-if="dialog">
+    <simpleDialog
+      :dialog="dialog"
+      :width="750"
+      title="endpoints.addEndpoint"
+      @save="save"
+      @cancel="cancel"
+      :disableSave="invalid"
+    >
+      <div slot="content">
         <div class="dlg-edit-row">
           <v-select
             class="ml-2"
@@ -48,7 +48,7 @@
 
         <div class="dlg-edit-row">
           <ValidationProvider
-            rules="required"
+            rules="required|xrdEndpoint"
             ref="path"
             name="path"
             class="validation-provider"
@@ -74,9 +74,9 @@
             <div>{{ $t('endpoints.endpointHelp4') }}</div>
           </div>
         </div>
-      </ValidationObserver>
-    </div>
-  </simpleDialog>
+      </div>
+    </simpleDialog>
+  </ValidationObserver>
 </template>
 
 <script lang="ts">
@@ -110,11 +110,6 @@ export default Vue.extend({
       method: '*',
       path: '/',
     };
-  },
-  computed: {
-    isValid(): boolean {
-      return this.path.length >= 1;
-    },
   },
   methods: {
     save(): void {

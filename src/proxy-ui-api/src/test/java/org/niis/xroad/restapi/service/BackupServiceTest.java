@@ -276,7 +276,6 @@ public class BackupServiceTest extends AbstractServiceTestContext {
                 throw new ProcessFailedException("");
             }
         };
-        backupService = new BackupService(backupRepository, serverConfService, externalProcessRunner,
-                null, auditDataHelper);
+        backupService = new BackupService(backupRepository, serverConfService, externalProcessRunner, auditDataHelper);
     }
 }

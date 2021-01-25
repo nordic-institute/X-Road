@@ -28,9 +28,9 @@ package org.niis.xroad.restapi.repository;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,14 +42,10 @@ import java.util.List;
 @Slf4j
 @Repository
 @Transactional
+@RequiredArgsConstructor
 public class ServiceDescriptionRepository {
 
     private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ServiceDescriptionRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
-    }
 
     /**
      * Return multiple ServiceDescriptionTypes

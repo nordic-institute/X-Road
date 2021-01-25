@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,42 +24,52 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.LoggerFactory;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import java.nio.charset.StandardCharsets;
 
-/**
- * Repository to handle ServiceType
- */
-@Repository
-@Transactional
-@RequiredArgsConstructor
-public class ServiceRepository {
+import static org.junit.Assert.assertTrue;
 
-    private final PersistenceUtils persistenceUtils;
+@Slf4j
+public class AuditLoggerTest {
 
-    /**
-     * Get ServiceType by ServiceId
-     * @param id
-     * @return ServiceType
-     */
-    public ServiceType getService(ServiceId id) {
-        ServiceDAOImpl serviceDAO = new ServiceDAOImpl();
-        return serviceDAO.getService(persistenceUtils.getCurrentSession(), id);
+    private ListAppender<ILoggingEvent> appender;
+    private Logger auditLogger = (Logger) LoggerFactory.getLogger(AuditLogger.class);
+
+    @Before
+    public void setUp() {
+        appender = new ListAppender<>();
+        appender.start();
+        auditLogger.addAppender(appender);
     }
 
-    /**
-     * Executes a Hibernate saveOrUpdate({@link ServiceType})
-     * @param serviceType
-     */
-    public void saveOrUpdate(ServiceType serviceType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serviceType);
+    @After
+    public void tearDown() {
+        auditLogger.detachAppender(appender);
+        appender.stop();
+    }
+
+    @Test
+    public void log() throws JsonProcessingException {
+        byte[] tmp = new byte[32];
+        for (int i = 0; i < tmp.length; i++) {
+            tmp[i] = (byte)i;
+        }
+        AuditLogger.log(
+                "event\u008d",
+                "test趍\uD801\uDC00user\u008d\r\n\t <" + new String(tmp, StandardCharsets.UTF_8) + ">",
+                null
+        );
+        assertTrue(appender.list.get(0).getFormattedMessage().chars().allMatch(x -> x > 31 && x < 128));
     }
 }

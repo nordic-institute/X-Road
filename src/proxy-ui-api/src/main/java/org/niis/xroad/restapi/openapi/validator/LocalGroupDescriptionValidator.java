@@ -23,42 +23,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.repository;
+package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
+import org.springframework.validation.Errors;
+import org.springframework.validation.Validator;
 
 /**
- * Repository to handle ServiceType
+ * Validator to check localgroup description (when editing a localgroup) for control characters
+ * such as zero-width-space
  */
-@Repository
-@Transactional
-@RequiredArgsConstructor
-public class ServiceRepository {
+@Slf4j
+public class LocalGroupDescriptionValidator implements Validator {
 
-    private final PersistenceUtils persistenceUtils;
+    private static final String DESCRIPTION_FIELD_NAME = "description";
 
-    /**
-     * Get ServiceType by ServiceId
-     * @param id
-     * @return ServiceType
-     */
-    public ServiceType getService(ServiceId id) {
-        ServiceDAOImpl serviceDAO = new ServiceDAOImpl();
-        return serviceDAO.getService(persistenceUtils.getCurrentSession(), id);
+    @Override
+    public boolean supports(Class<?> clazz) {
+        return LocalGroupDescription.class.equals(clazz);
     }
 
-    /**
-     * Executes a Hibernate saveOrUpdate({@link ServiceType})
-     * @param serviceType
-     */
-    public void saveOrUpdate(ServiceType serviceType) {
-        persistenceUtils.getCurrentSession().saveOrUpdate(serviceType);
+    @Override
+    public void validate(Object target, Errors errors) {
+        LocalGroupDescription localGroupDescription = (LocalGroupDescription) target;
+        if (SpringFirewallValidationRules.containsControlChars(localGroupDescription.getDescription())) {
+            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
+                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
+        }
     }
 }

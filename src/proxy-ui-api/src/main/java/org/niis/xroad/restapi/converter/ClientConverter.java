@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
@@ -40,7 +41,6 @@ import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.util.ClientUtils;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
@@ -54,6 +54,7 @@ import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
  * Converter for Client related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class ClientConverter {
 
     private final GlobalConfFacade globalConfFacade;
@@ -65,15 +66,6 @@ public class ClientConverter {
     public static final int MEMBER_CLASS_INDEX = 1;
     public static final int MEMBER_CODE_INDEX = 2;
     public static final int SUBSYSTEM_CODE_INDEX = 3;
-
-    @Autowired
-    public ClientConverter(GlobalConfFacade globalConfFacade,
-            CurrentSecurityServerId securityServerOwner,
-            CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates) {
-        this.globalConfFacade = globalConfFacade;
-        this.securityServerOwner = securityServerOwner;
-        this.currentSecurityServerSignCertificates = currentSecurityServerSignCertificates;
-    }
 
     /**
      *

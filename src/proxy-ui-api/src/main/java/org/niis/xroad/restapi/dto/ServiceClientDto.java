@@ -49,6 +49,10 @@ public class ServiceClientDto {
      */
     private String localGroupDescription;
     /**
+     * globalGroupDescription - NULL if not a GLOBALGROUP
+     */
+    private String globalGroupDescription;
+    /**
      * Member's name in global conf - NULL if not a MEMBER/SUBSYSTEM
      */
     private String memberName;

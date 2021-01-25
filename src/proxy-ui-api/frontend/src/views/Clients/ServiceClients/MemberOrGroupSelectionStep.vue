@@ -39,7 +39,10 @@
       </v-text-field>
     </div>
 
-    <v-radio-group>
+    <v-radio-group
+      v-model="selection"
+      @change="$emit('candidate-selection', $event)"
+    >
       <table class="xrd-table service-clients-table">
         <thead>
           <tr>
@@ -56,7 +59,6 @@
             <td class="checkbox-column">
               <div class="checkbox-wrap">
                 <v-radio
-                  v-on:change="selectCandidate(candidate)"
                   :disabled="isDisabled(candidate)"
                   :key="candidate.id"
                   :value="candidate"
@@ -145,10 +147,6 @@ export default Vue.extend({
           );
         },
       );
-    },
-    selectCandidate(candidate: ServiceClient): void {
-      this.selection = candidate;
-      this.$emit('candidate-selection', candidate);
     },
     isDisabled(scCandidate: ServiceClient): boolean {
       return this.serviceClients.some(

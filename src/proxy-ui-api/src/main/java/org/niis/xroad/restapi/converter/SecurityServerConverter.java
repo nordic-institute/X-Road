@@ -29,11 +29,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -46,18 +46,13 @@ import static org.niis.xroad.restapi.converter.Converters.ENCODED_ID_SEPARATOR;
  * and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class SecurityServerConverter {
 
     public static final int SECURITY_SERVER_CODE_INDEX = 3;
 
     private final ClientConverter clientConverter;
     private final GlobalConfFacade globalConfFacade;
-
-    @Autowired
-    public SecurityServerConverter(ClientConverter clientConverter, GlobalConfFacade globalConfFacade) {
-        this.clientConverter = clientConverter;
-        this.globalConfFacade = globalConfFacade;
-    }
 
     /**
      * encoded security server id =
