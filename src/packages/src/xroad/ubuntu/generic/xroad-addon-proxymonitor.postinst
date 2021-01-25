@@ -1,5 +1,5 @@
 #!/bin/sh
 
-service xroad-proxy restart 
+invoke-rc.d --quiet xroad-proxy try-restart || true
 exit 0
 

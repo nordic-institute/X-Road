@@ -6,7 +6,7 @@ configure() {
   chmod 0440 /etc/xroad/backup.d/??_xroad-opmonitor
 
   RET=
-  db_get xroad-common/database-host || true
+  db_get xroad-common/database-host || RET=""
   db_stop
 
   /usr/share/xroad/scripts/setup_opmonitor_db.sh "$RET"
