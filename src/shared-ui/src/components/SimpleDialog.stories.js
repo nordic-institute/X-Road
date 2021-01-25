@@ -81,8 +81,6 @@ LongText.args = {
   aliquet quam et gravida iaculis. Duis quis gravida nibh, vel faucibus felis.`,
 };
 
-
-
 const Template2 = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { SimpleDialog, Alert },
