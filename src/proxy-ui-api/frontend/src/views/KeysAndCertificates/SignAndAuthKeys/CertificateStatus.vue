@@ -26,7 +26,7 @@
 <template>
   <div class="cert-row-wrap">
     <StatusIcon :status="statusIconType" />
-    <div>{{ $t(status) }}</div>
+    <div class="status-text">{{ $t(status) }}</div>
   </div>
 </template>
 
@@ -69,21 +69,21 @@ export default Vue.extend({
     statusIconType() {
       switch (this.certificate.status) {
         case CertificateStatus.SAVED:
-          return 'orange-ring';
+          return 'saved';
 
         case CertificateStatus.REGISTRATION_IN_PROGRESS:
-          return 'orange';
+          return 'progress-register';
 
         case CertificateStatus.REGISTERED:
-          return 'green';
+          return 'ok';
 
         case CertificateStatus.DELETION_IN_PROGRESS:
-          return 'red';
+          return 'progress-delete';
 
         case CertificateStatus.GLOBAL_ERROR:
-          return 'red-ring';
+          return 'error';
         default:
-          return 'red-ring';
+          return 'error';
       }
     },
   },
@@ -92,9 +92,21 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
 .cert-row-wrap {
   display: flex;
   flex-direction: row;
   align-items: baseline;
+}
+
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  color: $XRoad-WarmGrey100;
+  margin-left: 2px;
+  text-transform: uppercase;
 }
 </style>
