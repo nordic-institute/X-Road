@@ -196,8 +196,7 @@ export const routes: RouteConfig[] = [
       },
       {
         name: RouteName.AddSubsystem,
-        path:
-          '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
+        path: '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
         components: {
           default: AddSubsystem,
           alerts: AlertsContainer,
@@ -475,7 +474,11 @@ export const routes: RouteConfig[] = [
         components: {
           default: InitialConfiguration,
         },
-        beforeEnter: (to, from, next) => {
+        beforeEnter: (
+          to: Route,
+          from: Route,
+          next: NavigationGuardNext,
+        ): void => {
           // Coming from login is ok
           if (from.name === RouteName.Login) {
             next();
