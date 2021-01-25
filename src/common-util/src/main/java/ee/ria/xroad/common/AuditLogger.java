@@ -25,12 +25,16 @@
  */
 package ee.ria.xroad.common;
 
-import ee.ria.xroad.common.util.JsonUtils;
-
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonWriteFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 
+import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -58,18 +62,29 @@ public final class AuditLogger {
     private AuditLogger() {
     }
 
+    private static final ObjectWriter JSON_WRITER;
+
+    static {
+        final ObjectMapper mapper = new ObjectMapper();
+        JSON_WRITER = mapper.setSerializationInclusion(JsonInclude.Include.ALWAYS)
+                .writer()
+                .with(JsonWriteFeature.ESCAPE_NON_ASCII);
+    }
+
     /**
      * Log an event in JSON format.
+     *
      * @param jsonMessage message in JSON format
      */
-    public static void log(String jsonMessage) {
+    private static void log(String jsonMessage) {
         log.info(AUDIT_MARKER, jsonMessage);
     }
 
     /**
      * Log an event with data where the user is 'system'.
+     *
      * @param event logged event
-     * @param data relevant details of the event
+     * @param data  relevant details of the event
      */
     public static void log(String event, Map<String, Object> data) {
         log(event, SYSTEM_USER, data);
@@ -77,9 +92,10 @@ public final class AuditLogger {
 
     /**
      * Log an event with data for a user.
+     *
      * @param event logged event
-     * @param user the user who initiated the event
-     * @param data relevant details of the event
+     * @param user  the user who initiated the event
+     * @param data  relevant details of the event
      */
     public static void log(String event, String user, Map<String, Object> data) {
         Map<String, Object> message = createSuccessMessageMap(event, user, data, null, null);
@@ -88,10 +104,11 @@ public final class AuditLogger {
 
     /**
      * Log a (non-warning) failure event with data for a user.
-     * @param event logged event (suffix " failed" is added to the event)
-     * @param user the user who initiated the event
+     *
+     * @param event  logged event (suffix " failed" is added to the event)
+     * @param user   the user who initiated the event
      * @param reason the reason of the failure
-     * @param data relevant details of the event
+     * @param data   relevant details of the event
      */
     public static void log(String event, String user, String reason,
             Map<String, Object> data) {
@@ -101,6 +118,7 @@ public final class AuditLogger {
 
     /**
      * Audit log a success message, with authentication type information
+     *
      * @param event
      * @param user
      * @param data
@@ -114,6 +132,7 @@ public final class AuditLogger {
 
     /**
      * Audit log a failure message, with authentication type information
+     *
      * @param event
      * @param user
      * @param reason
@@ -129,6 +148,7 @@ public final class AuditLogger {
 
     /**
      * Audit log a failure message about unhandled warnings, with authentication type information
+     *
      * @param event
      * @param user
      * @param reason
@@ -145,11 +165,10 @@ public final class AuditLogger {
     private static String serializeJson(Map<String, Object> message) {
         String result;
         try {
-            // serialize nulls, like old Ruby implementation
-            result = JsonUtils.getSerializer(true).toJson(message);
-        } catch (Throwable t) {
-            log.error("could not json serialize audit json message map: " + message, t);
-            throw t;
+            result = JSON_WRITER.writeValueAsString(message);
+        } catch (JsonProcessingException e) {
+            log.error("Could not serialize audit message map", e);
+            throw new UncheckedIOException(e);
         }
         return result;
     }
@@ -161,12 +180,12 @@ public final class AuditLogger {
     }
 
     /**
-     * @param event raw event name. " failure" postfix will be added for failures
-     * @param user user, always included (even if null)
-     * @param reason possible reason, only included if not null
-     * @param data data, always included (even if null)
-     * @param auth possible authentication type, only included if not null
-     * @param url possible url, only included if not null
+     * @param event     raw event name. " failure" postfix will be added for failures
+     * @param user      user, always included (even if null)
+     * @param reason    possible reason, only included if not null
+     * @param data      data, always included (even if null)
+     * @param auth      possible authentication type, only included if not null
+     * @param url       possible url, only included if not null
      * @param isFailure if true, this is about a failed event
      * @param isWarning if true, include boolean that indicates this failure event is about unhandled warnings
      */
