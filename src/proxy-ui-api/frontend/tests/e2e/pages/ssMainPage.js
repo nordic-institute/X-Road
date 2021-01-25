@@ -61,6 +61,10 @@ var navigateCommands = {
     this.click('@snackBarCloseButton');
     return this;
   },
+  closeSessionExpiredPopup: function () {
+    this.click('@sessionExpiredPopupOkButton');
+    return this;
+  },
 };
 
 var clientInfoCommands = {
@@ -635,6 +639,16 @@ module.exports = {
     },
     snackBarMessage: {
       selector: '//div[contains(@class, "v-snack__content")]',
+      locateStrategy: 'xpath',
+    },
+    sessionExpiredPopupMessage: {
+      selector:
+        '//div[contains(@class, "v-dialog--active") and .//span[contains(text(), "Session expired")]]//div[contains(@class, "v-card__text")]',
+      locateStrategy: 'xpath',
+    },
+    sessionExpiredPopupOkButton: {
+      selector:
+        '//div[contains(@class, "v-dialog--active") and .//span[contains(text(), "Session expired")]]//button[./span[contains(text(), "Ok")]]',
       locateStrategy: 'xpath',
     },
   },
