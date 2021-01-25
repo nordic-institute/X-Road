@@ -265,13 +265,13 @@ export default Vue.extend({
       }
       switch (status) {
         case 'OK':
-          return 'green';
+          return 'ok';
         case 'WAITING':
-          return 'orange-ring';
+          return 'progress-register';
         case 'FAIL':
-          return 'red';
+          return 'error';
         default:
-          return 'red';
+          return 'error';
       }
     },
   },

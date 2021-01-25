@@ -26,13 +26,12 @@
  */
 @font-face {
     font-family: "icons";
-    src: url("./icons.eot?7a3c501d468300328bcdc0116ef0df4d#iefix") format("embedded-opentype"),
-        url("./icons.woff2?7a3c501d468300328bcdc0116ef0df4d") format("woff2"),
-        url("./icons.woff?7a3c501d468300328bcdc0116ef0df4d") format("woff");
+    src: url("./icons.eot?e8350fdc002ae3264b8141cb8386ac33#iefix") format("embedded-opentype"),
+url("./icons.woff2?e8350fdc002ae3264b8141cb8386ac33") format("woff2"),
+url("./icons.woff?e8350fdc002ae3264b8141cb8386ac33") format("woff");
 }
 
-i[class^="icon-"]:before,
-i[class*=" icon-"]:before {
+i[class^="icon-"]:before, i[class*=" icon-"]:before {
     font-family: icons !important;
     font-style: normal;
     font-weight: normal !important;
@@ -47,75 +46,90 @@ i[class*=" icon-"]:before {
 .icon-Add:before {
     content: "\f101";
 }
-.icon-Certificate:before {
+.icon-Cancel:before {
     content: "\f102";
 }
-.icon-Checker:before {
+.icon-Certificate:before {
     content: "\f103";
 }
-.icon-Close:before {
+.icon-Checked:before {
     content: "\f104";
 }
-.icon-Copy:before {
+.icon-Checker:before {
     content: "\f105";
 }
-.icon-Database-backup:before {
+.icon-Checkmark:before {
     content: "\f106";
 }
-.icon-Database:before {
+.icon-Close:before {
     content: "\f107";
 }
-.icon-Datepicker:before {
+.icon-Copy:before {
     content: "\f108";
 }
-.icon-Declined:before {
+.icon-Database-backup:before {
     content: "\f109";
 }
-.icon-Download:before {
+.icon-Database:before {
     content: "\f10a";
 }
-.icon-Dropdown-open:before {
+.icon-Datepicker:before {
     content: "\f10b";
 }
-.icon-Error-notification:before {
+.icon-Declined:before {
     content: "\f10c";
 }
-.icon-Folder-outline:before {
+.icon-Download:before {
     content: "\f10d";
 }
-.icon-Folder:before {
+.icon-Dropdown-open:before {
     content: "\f10e";
 }
-.icon-Import:before {
+.icon-Error-notification:before {
     content: "\f10f";
 }
-.icon-Key:before {
+.icon-Error:before {
     content: "\f110";
 }
-.icon-Menu:before {
+.icon-Folder-outline:before {
     content: "\f111";
 }
-.icon-Plus:before {
+.icon-Folder:before {
     content: "\f112";
 }
-.icon-Search:before {
+.icon-Import:before {
     content: "\f113";
 }
-.icon-Security-Server:before {
+.icon-In-progress:before {
     content: "\f114";
 }
-.icon-Sorting-arrow:before {
+.icon-Key:before {
     content: "\f115";
 }
-.icon-Table-backup:before {
+.icon-Menu:before {
     content: "\f116";
 }
-.icon-Tooltip:before {
+.icon-Plus:before {
     content: "\f117";
 }
-.icon-Upload:before {
+.icon-Search:before {
     content: "\f118";
 }
-.icon-Warning:before {
+.icon-Security-Server:before {
     content: "\f119";
+}
+.icon-Sorting-arrow:before {
+    content: "\f11a";
+}
+.icon-Table-backup:before {
+    content: "\f11b";
+}
+.icon-Tooltip:before {
+    content: "\f11c";
+}
+.icon-Upload:before {
+    content: "\f11d";
+}
+.icon-Warning:before {
+    content: "\f11e";
 }

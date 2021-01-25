@@ -25,7 +25,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <div :class="status"></div>
+  <div>
+    <v-icon v-if="status === 'ok'" :small="true" color="#0CC177"
+      >icon-Checked</v-icon
+    >
+    <v-icon v-else-if="status === 'saved'" x-large color="#211E1E"
+      >icon-Checkmark</v-icon
+    >
+    <v-icon v-else-if="status === 'progress-register'" small color="#0CC177"
+      >icon-In-progress</v-icon
+    >
+    <v-icon v-else-if="status === 'progress-delete'" small color="#211E1E"
+      >icon-Cancel</v-icon
+    >
+    <v-icon v-else-if="status === 'error'" small color="#EC4040"
+      >icon-Error</v-icon
+    >
+  </div>
 </template>
 
 <script lang="ts">
@@ -42,12 +58,11 @@ export default Vue.extend({
       validator: (val) =>
         [
           '',
-          'green',
-          'green-ring',
-          'orange',
-          'orange-ring',
-          'red-ring',
-          'red',
+          'ok',
+          'saved',
+          'progress-register',
+          'progress-delete',
+          'error',
         ].includes(val),
     },
   },
