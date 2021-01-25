@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,9 +27,8 @@
 <template>
   <div>
     <!-- Error -->
-    <v-container fluid class="alerts-container">
+    <v-container fluid class="alerts-container" v-if="show">
       <v-alert
-        v-model="show"
         data-test="contextual-modal-alert"
         color="red"
         border="left"
@@ -62,16 +62,11 @@ export default Vue.extend({
       required: false,
     },
   },
-  methods: {
-    closeError(id: number): void {},
-  },
 });
 </script>
 
 <style lang="scss" scoped>
 @import '../assets/colors';
-
-$x-margin: 20px;
 
 .alerts-container {
   width: 1000px;
@@ -107,17 +102,6 @@ $x-margin: 20px;
   justify-content: center;
   margin-right: 30px;
 }
-
-/* .id-button {
-  margin-left: 0;
-  margin-right: auto;
-} */
-
-/* .buttons {
-  height: 100%;
-  display: flex;
-  flex-direction: row;
-} */
 
 .scrollable {
   overflow-y: auto;

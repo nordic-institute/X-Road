@@ -27,22 +27,22 @@
 import Alert from './Alert.vue';
 
 export default {
-    title: 'X-Road/Alert component',
-    component: Alert,
-    argTypes: {
-        show: { control: 'boolean' },
-        message: { control: 'text' }
-    },
+  title: 'X-Road/Alert component',
+  component: Alert,
+  argTypes: {
+    show: { control: 'boolean' },
+    message: { control: 'text' },
+  },
 };
 
 const Template = (args, { argTypes }) => ({
-    props: Object.keys(argTypes),
-    components: { Alert },
-    template: `<alert v-bind="$props"> </alert>`,
+  props: Object.keys(argTypes),
+  components: { Alert },
+  template: `<alert v-bind="$props"> </alert>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-    show: true,
-    message: 'Error message!'
+  show: true,
+  message: 'Error message!',
 };
