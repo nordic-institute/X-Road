@@ -17,7 +17,7 @@
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },
   "dependencies": {
-    "fast-csv": "4.3.5",
+    "urijs": "1.19.3",
     "axios": "^0.21.1",
     "core-js": "~3.6.5",
     "roboto-fontface": "*",
