@@ -1,11 +1,14 @@
 {
   "decisions": {
+    "1595|urijs": {
+      "decision": "ignore",
+      "madeAt": 1611653060757
+    },
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1609848564030,
-      "expiresAt": 1612440484554
+      "madeAt": 1611653065570
     }
   },
   "rules": {},
   "version": 1
-}git d
+}
