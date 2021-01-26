@@ -1,11 +1,18 @@
 {
   "decisions": {
+    "1587|fast-csv": {
+      "decision": "ignore",
+      "madeAt": 1611652660399
+    },
+    "1588|fast-csv>@fast-csv/parse": {
+      "decision": "ignore",
+      "madeAt": 1611652660399
+    },
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1609848564030,
-      "expiresAt": 1612440484554
+      "madeAt": 1611652704502
     }
   },
   "rules": {},
   "version": 1
-}git d
+}
