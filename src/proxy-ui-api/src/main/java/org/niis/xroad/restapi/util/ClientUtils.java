@@ -42,13 +42,15 @@ public final class ClientUtils {
     }
 
     /**
-     *
      * @param clientId
      * @param certificateInfos
      * @return
      */
     public static boolean hasValidLocalSignCert(ClientId clientId, List<CertificateInfo> certificateInfos) {
         for (CertificateInfo certificateInfo : certificateInfos) {
+            if (!clientId.memberEquals(certificateInfo.getMemberId())) {
+                continue;
+            }
             String ocspResponseStatus = null;
             try {
                 ocspResponseStatus = OcspUtils.getOcspResponseStatus(certificateInfo.getOcspBytes());
@@ -56,8 +58,7 @@ public final class ClientUtils {
                 log.error(ERROR_OCSP_EXTRACT_MSG + " for client: " + clientId.toString(), e);
                 break;
             }
-            if (clientId.memberEquals(certificateInfo.getMemberId())
-                    && certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
+            if (certificateInfo.getStatus().equals(CertificateInfo.STATUS_REGISTERED)
                     && ocspResponseStatus.equals(CertificateInfo.OCSP_RESPONSE_GOOD)) {
                 return true;
             }

@@ -32,9 +32,11 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -78,12 +80,16 @@ public class ClientUtilsTest {
                 new CertificateTestUtils.CertificateInfoBuilder();
         certBuilder.ocspStatus(new UnknownStatus());
         CertificateInfo cert = certBuilder.build();
-        assertFalse(ClientUtils.hasValidLocalSignCert(clientId, Arrays.asList(cert)));
+        assertFalse(ClientUtils.hasValidLocalSignCert(clientId, Collections.singletonList(cert)));
+
+        // Null ocsp response status – should return false
+        CertificateInfo nullCert = certBuilder.clientId(clientId).build();
+        ReflectionTestUtils.setField(nullCert, "ocspBytes", null);
+        assertFalse(ClientUtils.hasValidLocalSignCert(clientId, Collections.singletonList(nullCert)));
 
         // No valid sign cert for the client
         clientId = ClientId.create("FI", "GOV", "M2");
         assertFalse(ClientUtils.hasValidLocalSignCert(clientId,
                 createCertificateInfoList()));
     }
-
 }
