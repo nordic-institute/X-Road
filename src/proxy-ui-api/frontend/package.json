@@ -17,7 +17,6 @@
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },
   "dependencies": {
-    "urijs": "1.19.3",
     "axios": "^0.21.1",
     "core-js": "~3.6.5",
     "roboto-fontface": "*",
@@ -31,6 +30,7 @@
     "vuex-router-sync": "5.0.0"
   },
   "devDependencies": {
+    "urijs": "1.19.3",
     "@mdi/font": "~5.6.55",
     "@types/jest": "~26.0.8",
     "@typescript-eslint/eslint-plugin": "~4.4.0",
