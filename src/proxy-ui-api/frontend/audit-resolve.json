@@ -1,9 +1,5 @@
 {
   "decisions": {
-    "1594|chromedriver>axios": {
-      "decision": "fix",
-      "madeAt": 1609848507707
-    },
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
       "madeAt": 1609848564030,
@@ -12,4 +8,4 @@
   },
   "rules": {},
   "version": 1
-}
+}git d
