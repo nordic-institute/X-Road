@@ -134,8 +134,7 @@ module.exports = {
     // Filtering backup list with the name of created backup there should be only one backup in the list
     backupAndRestoreTab.enterFilterInput(createdBackupFileName);
     browser.expect
-      // xrd-table has thead but no tbody so use '/tr' to get only the row elements that are direct children of table
-      .elements('//table[contains(@class, "xrd-table")]/tr')
+      .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
       .count.to.equal(1);
     backupAndRestoreTab.clearFilterInput();
 

@@ -81,7 +81,10 @@ module.exports = {
     browser.waitForElementVisible(addKeyWizardGenerate);
     addKeyWizardGenerate.enterOrganization('TestOrg');
 
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+      .enabled;
     addKeyWizardGenerate.generateCSR();
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
     addKeyWizardGenerate.close();
 
     browser.waitForElementVisible(
@@ -154,9 +157,12 @@ module.exports = {
     browser.waitForElementVisible(addKeyWizardGenerate.elements.serverDNS);
     addKeyWizardGenerate.enterServerDNS('foodns');
 
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+      .enabled;
     addKeyWizardGenerate.generateCSR();
-
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
     addKeyWizardGenerate.close();
+
     browser.waitForElementVisible(
       '//table[.//th[contains(@class, "title-col") and contains(text(), "AUTH Key and Certificate")]]//span[contains(text(), "testautlbl")]',
     );
@@ -243,7 +249,10 @@ module.exports = {
     browser.waitForElementVisible(addKeyWizardGenerate);
     addKeyWizardGenerate.enterOrganization('TestOrg');
 
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+      .enabled;
     addKeyWizardGenerate.generateCSR();
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
     addKeyWizardGenerate.close();
     browser.perform(function () {
       browser.click(
@@ -334,7 +343,10 @@ module.exports = {
     addKeyWizardGenerate.enterOrganization('TestOrg');
     addKeyWizardGenerate.enterServerDNS('foodns');
 
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+      .enabled;
     addKeyWizardGenerate.generateCSR();
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
     addKeyWizardGenerate.close();
 
     browser.perform(function () {
@@ -443,7 +455,10 @@ module.exports = {
     browser.waitForElementVisible(addKeyWizardGenerate);
     addKeyWizardGenerate.enterOrganization('TestOrg2');
 
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+      .enabled;
     addKeyWizardGenerate.generateCSR();
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
     addKeyWizardGenerate.close();
 
     // Verify that a request has been added
@@ -625,7 +640,10 @@ module.exports = {
     addKeyWizardGenerate.enterOrganization('TestOrg3');
     addKeyWizardGenerate.enterServerDNS('foodns');
 
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+      .enabled;
     addKeyWizardGenerate.generateCSR();
+    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
     addKeyWizardGenerate.close();
 
     // Verify that a request has been added
