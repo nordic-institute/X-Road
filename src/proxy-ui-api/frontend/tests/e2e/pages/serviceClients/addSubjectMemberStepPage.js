@@ -108,12 +108,12 @@ module.exports = {
     },
     cancelButton: {
       selector:
-        '//table[contains(@class, "service-clients-table")]/../../../../..//button[@data-test="cancel-button"]',
+        '//div[@class="v-stepper__wrapper" and .//table[contains(@class, "service-clients-table")]]//button[@data-test="cancel-button"]',
       locateStrategy: 'xpath',
     },
     nextButton: {
       selector:
-        '//table[contains(@class, "service-clients-table")]/../../../../..//button[@data-test="next-button"]',
+        '//div[@class="v-stepper__wrapper" and .//table[contains(@class, "service-clients-table")]]//button[@data-test="next-button"]',
       locateStrategy: 'xpath',
     },
     addSubjectWizardHeader: {
@@ -128,7 +128,7 @@ module.exports = {
     },
     selectedSubjectName: {
       selector:
-        '//div[contains(@class, "checkbox-wrap")]/div[contains(@class, "v-radio") and contains(@class, "v-item--active")]/../../../td[3]',
+        '//tr[.//div[contains(@class, "v-radio") and contains(@class, "v-item--active")]]/td[3]',
       locateStrategy: 'xpath',
     },
   },

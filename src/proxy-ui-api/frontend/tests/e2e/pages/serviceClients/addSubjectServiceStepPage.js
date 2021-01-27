@@ -108,12 +108,12 @@ module.exports = {
     },
     cancelButton: {
       selector:
-        '//button[@data-test="previous-button"]/../..//button[@data-test="cancel-button"]',
+        '//div[contains(@class, "button-footer") and .//button[@data-test="previous-button"]]//button[@data-test="cancel-button"]',
       locateStrategy: 'xpath',
     },
     addSelectedButton: {
       selector:
-        '//button[@data-test="previous-button"]/../..//button[@data-test="finish-button"]',
+        '//div[contains(@class, "button-footer") and .//button[@data-test="previous-button"]]//button[@data-test="finish-button"]',
       locateStrategy: 'xpath',
     },
     previousButton: {
