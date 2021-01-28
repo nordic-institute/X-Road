@@ -94,7 +94,7 @@ Within this deployment we will have 4 types of objects.
 This deployment is recommended for a production environment.
 
 # 3 X-Road Security Server Sidecar images for Kubernetes
-All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) are available to use in a Kubernetes deployment. Apart for this images, there are new images to be use in the [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployment. These images include the necessary configuration so that the Pods can act as Primary or Secondary and connect through ssh.
+All of the X-Road Security Server Sidecar images described in the [Security Server user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) are suitable to be used for a Kubernetes deployment. Additionally, there are images suitable to be used for a Load Balancer Kubernetes deployment as described in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). These images include the necessary configuration so that the Pods can act as Primary or Secondary and connect through ssh.
 
 **Image**                                                | **Description**                               
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
