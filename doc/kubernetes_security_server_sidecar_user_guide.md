@@ -243,7 +243,7 @@ kubectl exec -it -n <namespace name> <pod name> bash
 
 Delete the Pod by running:
 ```
-kubectl delete -f /path/to/<manifest-file-name>.yaml
+kubectl delete -f /path/to/manifest-file-name.yaml
 ```
 
 ### 4.2.3 Kubernetes Volumes
