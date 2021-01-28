@@ -163,7 +163,7 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 3.21    | &lt;cluster name&gt;           | Name of the AWS EKS cluster.
 3.22    | &lt;cluster region&gt;           | Region where the AWS EKS cluster is deployed.
 3.23    | &lt;cloudwatch agent name&gt;           | Name of the CloudWatch agent that collects the logs and metrics of the AWS EKS cluster. This name is automatically generated during the CloudWatch setup.
-3.24    | &lt;volume mount path&gt;           | Local path where the volume is mounted on the EC2 instance.
+3.24    | &lt;volume mount path&gt;           | Local path on the EC2 instance where the volume is mounted.
 3.25    | &lt;bucket name&gt;           | Name of a AWS S3 bucket.
 3.26    | &lt;arn encryption key&gt;           | ARor a encryption key using in an AWS S3 bucket, example: arn:aws:kms:eu-west-1:999999999:alias/aws/s3.
 
