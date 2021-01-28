@@ -847,7 +847,7 @@ It will be possible to update the version of the Security Server Sidecar by re-d
 
 In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) and it is required to no disrupt the connection while the version is updating, it is required to take several steps:
 
-- First, it is required to stop in the Secondary Pods, the cron job service that handles synchronization with the Primary Pod, it is possible to do that by running in a console for each Secondary Pod (**reference Data: 3.2**):
+- First, we should stop the cron job service running in the Secondary Pods that handles synchronization with the Primary Pod by running in a console for each Secondary Pod (**reference Data: 3.2**):
 ```
 kubectl exec <pod name> -n $1 supervisorctl stop cron
 ```
