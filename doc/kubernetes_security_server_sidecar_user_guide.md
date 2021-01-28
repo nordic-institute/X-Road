@@ -77,7 +77,7 @@ This deployment is equal to the previous but using an external database. The dat
   <img src="img/ig-single_pod_external_database.svg" />
 </p>
 
-More information about using a external database on the Security Server Sidecar can be found [here](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#27-external-database)
+More information about using an external database on the Security Server Sidecar can be found [here](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#27-external-database)
 
 ## 2.3 Multiple Pods using a Load Balancer
 This deployment will allow us to scale the number of Nodes and Pods that we have on our cluster. All of the Pods will point to the same external database.
