@@ -85,7 +85,7 @@ Within this deployment we will have 4 types of objects.
 - Primary Pod: This Pod will be in charge of handling the configuration of the Security Server Sidecar Database, the storage and backups of the message logs and the configuration backups. This Pod will be unique per deployment.
 - "n" number of Secondary Pods: These pods will be in charge of processing the messages. These Pods will not change the configuration, instead they will synchronize the configuration of the Primary Pod via ssh, during the initialization and in a CRON job running each minute.
 - Headless service: It will refer to the Primary Pod and will be used so that the secondary pods can connect to the primary one through a fixed DNS.
-- Network Load Balancer: It will redirect the traffic between the Secondary Pods. The users will sends the messages through this Load Balancer public IP (We can use the private IP in case we are on the same VPC).
+- Network Load Balancer: It will redirect the traffic between the Secondary Pods. The users will send the messages through this Load Balancer public IP (We can use the private IP in case we are on the same VPC).
 
 <p align="center">
   <img src="img/ig-load_balancer_deploy.svg" />
