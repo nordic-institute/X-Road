@@ -227,7 +227,7 @@ Once the deployment is ready save it on a file and run:
 ```
 kubectl apply -f /path/to/manifest-file-name.yaml
 ```
-Check that the Pod is deployed by running (**reference Data: 3.1**):
+Check that the Pod is deployed by running (**reference data: 3.1**):
 ```
 kubectl get pods -n <namespace name>
 ```
