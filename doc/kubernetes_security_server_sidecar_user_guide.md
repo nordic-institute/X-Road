@@ -273,7 +273,7 @@ kubectl apply -f /path/to/pvc_file_name.yaml
 
 #### 4.2.3.2 Persistent Volumes
 
-Kubernetes has multiple types of **PV(Persistent Volumes)** that can be found [here](https://Kubernetes.io/docs/concepts/storage/volumes/#volume-types).
+Kubernetes has multiple types of **PV(Persistent Volumes)** that can be found on the [Kubernetes official documentation](https://Kubernetes.io/docs/concepts/storage/volumes/#volume-types).
 The described scenario is focus on 3 types of volume that we can use in AWS: hostPath, awsElasticBlockStore and a AWS EFS (Elastic File System)  (using csi, a Container Storage Interface that defines standard interface for container orchestration systems).
 
 ##### 4.2.3.2.1 Persistent Volume hostPath
