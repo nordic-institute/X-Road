@@ -35,6 +35,10 @@ const commands = [
       this.setValue('@searchField', searchWord);
       return this;
     },
+    openServiceClient: function (clientName) {
+    this.api.click('//table[contains(@class, "service-clients-table")]//tr[@data-test="open-access-rights"]//td[contains(text(), "'+clientName+'")]');
+    return this;
+    },
   },
 ];
 
