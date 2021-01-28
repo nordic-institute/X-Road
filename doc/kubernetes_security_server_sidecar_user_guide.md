@@ -268,7 +268,7 @@ spec:
 ```
 Deploy the PVC manifest:
 ```
-kubectl apply -f /path/to/pvc_file.yaml
+kubectl apply -f /path/to/pvc_file_name.yaml
 ```
 
 #### 4.2.3.2 Persistent Volumes
