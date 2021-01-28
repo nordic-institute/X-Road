@@ -38,6 +38,7 @@ import java.util.Properties;
 public final class Version {
 
     private static final String RELEASE = "RELEASE";
+    private static final String JAVA_VERSION_PROPERTY = "java.version";
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;
 
@@ -75,6 +76,36 @@ public final class Version {
             XROAD_VERSION = version;
         } else {
             XROAD_VERSION = String.format("%s-%s", version, BUILD_IDENTIFIER);
+        }
+    }
+
+    /**
+     * Outputs a warning if JVM version is not in the given range
+     * @param minVersion the minimum supported version
+     * @param maxVersion the maximum supported version
+     */
+    public static void checkJavaVersion(int minVersion, int maxVersion) {
+        // java.version system property exists in every JVM
+        String versionString = System.getProperty("java.version");
+        if (versionString.startsWith("1.")) {
+            // Java 8 or lower has format: 1.6.0_23, 1.7.0, 1.7.0_80, 1.8.0_211
+            versionString = versionString.substring(2, 3);
+        } else {
+            // Java 9 or higher has format: 9.0.1, 11.0.4, 12, 12.0.1
+            int dot = versionString.indexOf(".");
+            if (dot != -1) {
+                versionString = versionString.substring(0, dot);
+            }
+        }
+        int result = Integer.parseInt(versionString);
+        if (result < minVersion || result > maxVersion) {
+            log.warn(String.format("Warning! Running on unsupported Java version %s",
+                    System.getProperty(JAVA_VERSION_PROPERTY)));
+            if (minVersion == maxVersion) {
+                log.warn(String.format("Java version %d is currently supported", minVersion));
+            } else {
+                log.warn(String.format("Java versions %d - %d are currently supported", minVersion, maxVersion));
+            }
         }
     }
 
