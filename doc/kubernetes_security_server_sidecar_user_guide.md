@@ -881,7 +881,7 @@ supervisorctl start all
 
 Note(2): It is possible that a major version update will require extra changes, for doing that check the specific documentation for the version update.
 
-- Once the Primary Pod is update, it is necessary to do the same previous step for all the Secondary Pods one by one, doing this, each Secondary Pod will remain in "NotReady" state and will exit the Load Balancer redirect while it is being updated, but the rest will continue to work with the old version without disrupting the connection.
+- Once the Primary Pod is updated, it is necessary to do the same previous step for all the Secondary Pods one by one. While doing this, each Secondary Pod will remain in "NotReady" state and will exit the Load Balancer redirect until it is updated, but the rest will continue to work without disrupting the connection.
 
 
 # 8 Message logs and disk space
