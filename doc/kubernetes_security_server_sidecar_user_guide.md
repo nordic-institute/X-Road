@@ -319,11 +319,11 @@ spec:
     fsType: "ext4"
     volumeID: "<awsElasticBlockStore volume id>"
 ```
-- It is possible to verify the creation and get the volume info by running (Authentication through the AWS CLI it's required):
+- Verify the volume is created by getting the volume info running the following AWS CLI command (Authentication through the AWS CLI is required):
 ```
 aws --region <cluster region> ec2 describe-volumes --volume-id <awsElasticBlockStore volume id>
 ```
-- Copying the property "Device" from the output of previous command, it is possible to run from the cluster instance where the volume was mounted, the next commands to get more information about the free disk space, the mountpoint... :
+- Copy the property "Device" from the output of the previous command. Run the following commands on the cluster instance where the volume was mounted to get more information about the free disk space and the mount point:
 ```
 df -hT <device>
 ```
@@ -332,7 +332,7 @@ lsblk <device>
 ```
 
 ##### 4.2.3.2.3 Persistent Volume AWS Elastic File System
-Using the Container Storage Interface provided by Kubernetes it is possible to mount an AWS EFS volume into our pod. This volume is recommended for production environments in a multiple node scenario since it could be mounted on multiple Node instances.
+It is possible to mount an AWS EFS volume into our Pod by using the Container Storage Interface (CSI) provided by Kubernetes. This type of volume is recommended for a production environment in a multiple Node scenario since it could be mounted on multiple Node instances.
 - First, it is necessary to create an Elastic File System from the AWS admin console, configuring the security groups and allowing access from the Cluster Node instances.
 
 - Deploy on the Cluster the AWS EFS CSI driver. The Amazon EFS Container Storage Interface (CSI) driver provides a CSI interface that allows Kubernetes clusters running on AWS to manage the lifecycle of Amazon EFS file systems.
@@ -340,7 +340,7 @@ Using the Container Storage Interface provided by Kubernetes it is possible to m
 kubectl apply -k "github.com/Kubernetes-sigs/aws-efs-csi-driver/deploy/Kubernetes/overlays/stable/ecr/?ref=release-1.0"
 ```
 
-- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.11)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -361,7 +361,7 @@ spec:
     volumeHandle: <efs volume id>
 ```
 
-- It is possible to verify the creation and get the volume info by running (Authentication through the AWS CLI it's required) (**reference data: 3.11**):
+- Verify the creation is created by getting the volume info running the following AWS CLI command (Authentication through the AWS CLI is required) (**reference data: 3.11**):
 ```
 aws efs describe-mount-targets --file-system-id <efs volume id>
 ```
