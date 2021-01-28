@@ -141,7 +141,7 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 **Ref** | **Value**                                | **Explanation**
 ------- | ----------------------------------------- | ----------------------------------------------------------
 3.1    | &lt;namespace name&gt;                    | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects. inside the cluster
-3.2    | &lt;pod name&gt;                          | Unique that identifies a Pod inside a Cluster namespace, if the Pods belongs to a deployment object, a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.
+3.2    | &lt;pod name&gt;                          | Unique name that identifies a Pod inside a Cluster namespace. If the Pod belongs to a deployment object a unique alphanumeric code will be concatenated to distinguish it from the other pods inside the deployment.
 3.3    | &lt;pod label&gt;                         | Label that identifies a set of objects. This is used, for example, so that a Load Balancer can know to which Pods it has to redirect.
 3.4    | &lt;pvc name&gt;                         | Unique name that identifies the PersistentVolumeClaim inside a Cluster namespace.
 3.5    | &lt;volume storage class name&gt;        | Name that matches the PVC with the PV for dynamic provisioning.
