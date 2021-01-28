@@ -845,7 +845,7 @@ Once the agent is installed, you can see the cluster metrics, create alerts ... 
 # 7 Version update
 It will be possible to update the version of the Security Server Sidecar by re-displaying the image with a higher version in the image tag.
 
-In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) and it is required to no disrupt the connection while the version is updating, it is required to take several steps:
+In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), if you do not want to disrupt the connection during the version update, it is required to take several steps:
 
 - First, we should stop the cron job service running in the Secondary Pods that handles synchronization with the Primary Pod by running in a console for each Secondary Pod (**reference Data: 3.2**):
 ```
