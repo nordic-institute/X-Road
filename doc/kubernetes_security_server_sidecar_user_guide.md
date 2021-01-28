@@ -231,12 +231,12 @@ Check that the Pod is deployed by running (**reference data: 3.1**):
 ```
 kubectl get pods -n <namespace name>
 ```
-Get the Pod information by running (**reference Data: 3.1, 3.2**):
+Get the Pod information by running (**reference data: 3.1, 3.2**):
 ```
 kubectl describe pod -n <namespace name> <pod name>
 ```
 
-Get a Shell to the container running in the Pod by running (**reference Data: 3.1, 3.2**):
+Get a Shell to the container running in the Pod by running (**reference data: 3.1, 3.2**):
 ```
 kubectl exec -it -n <namespace name> <pod name> bash
 ```
@@ -251,7 +251,7 @@ Kubernetes volumes can be used to store different things, such as the configurat
 
 #### 4.2.3.1 Persistent Volume Claim
 First, it is required to create a Persistent Volume Claim (PVC) to request physical storage. Persistent Volume Claim is a way for developers to "claim" durable storage without knowing the details of the particular volume implementation type.
-Create the PVC manifest and save it in a "yaml" file **(reference Data: 3.1, 3.4, 3.5, 3.6, 3.7)**:
+Create the PVC manifest and save it in a "yaml" file **(reference data: 3.1, 3.4, 3.5, 3.6, 3.7)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -278,7 +278,7 @@ The described scenario is focus on 3 types of volume that we can use in AWS: hos
 
 ##### 4.2.3.2.1 Persistent Volume hostPath
 A "hostPath" PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the same Node instance could access to it, also it does not offer any backup solution and the information could be lost if the Node instance is terminated.
-Create the PV manifest and save it in a "yaml" file **(reference Data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9)**:
+Create the PV manifest and save it in a "yaml" file **(reference data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -300,7 +300,7 @@ spec:
 ##### 4.2.3.2.2 Persistent Volume awsElasticBlockStore
 An "awsElasticBlockStore" PV mounts an AWS EBS volume into our pod. It offers and easy way of backup and keep the informaton even if the Node is deleted. This volume is only recommended for production environment in a single Node instance scenario, since the "awsElasticBlockStore" could be attached only to one single instance at a time.
 - First, we need to create an  Elastic Block Store Volume from the AWS console, then attach it to the Cluster Node instance, filling "/dev/xvdf" on the device property.
-- Once the volume is created, copy the ID, then create a PV manifest and save it to a "yaml" file **(reference Data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+- Once the volume is created, copy the ID, then create a PV manifest and save it to a "yaml" file **(reference data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -340,7 +340,7 @@ Using the Container Storage Interface provided by Kubernetes it is possible to m
 kubectl apply -k "github.com/Kubernetes-sigs/aws-efs-csi-driver/deploy/Kubernetes/overlays/stable/ecr/?ref=release-1.0"
 ```
 
-- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference Data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
+- Copy the volume ID and create a PV manifest and save it to a "yaml" file **(reference data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -361,12 +361,12 @@ spec:
     volumeHandle: <efs volume id>
 ```
 
-- It is possible to verify the creation and get the volume info by running (Authentication through the AWS CLI it's required) (**reference Data: 3.11**):
+- It is possible to verify the creation and get the volume info by running (Authentication through the AWS CLI it's required) (**reference data: 3.11**):
 ```
 aws efs describe-mount-targets --file-system-id <efs volume id>
 ```
 
-- It is possible to mount the volume in any Cluster Node instance by running from the Cluster Node Instance where the volume is going to be mounted (**reference Data: 3.11, 3.22**):
+- It is possible to mount the volume in any Cluster Node instance by running from the Cluster Node Instance where the volume is going to be mounted (**reference data: 3.11, 3.22**):
 ```
 sudo mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport <efs volume id>.efs.<cluster region>.amazonaws.com:/ <local folder>
 ```
@@ -390,7 +390,7 @@ Once the volume manifest is created, we can deploy it by running:
 ```
 kubectl apply -f /path/to/pv_file.yaml
 ```
-List the PV by running (**reference Data: 3.1**):
+List the PV by running (**reference data: 3.1**):
 ```
 kubectl get pv -n <namespace name>
 ```
@@ -404,7 +404,7 @@ kubectl delete -f /path/to/file.yaml.
 ```
 
 #### 4.2.3.4 Mount the Volume to a Pod
-To mount the volume on a Pod, it is required to have a PVC bounded to a PV, then modify the Pod manifest, in this case the manifest defined in the step [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) will be modified by mapping the volume to the xroad configuration `etc/xroad` (**reference Data: 3.4, 3.12, 3.13**):
+To mount the volume on a Pod, it is required to have a PVC bounded to a PV, then modify the Pod manifest, in this case the manifest defined in the step [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) will be modified by mapping the volume to the xroad configuration `etc/xroad` (**reference data: 3.4, 3.12, 3.13**):
 
 ``` yaml
 [...]
@@ -432,7 +432,7 @@ Kubernetes allow us to deploy the container as another user using Security Conte
 
 It is possible to change manually the permission setting the UID and GID in the folder of the Cluster node instance where the volume is mounted.
 
-Another possible is use Kubernetes Init Containers for setting the permissions to the volume folder, wich launches before the main container. An example for change the permissions to the `etc/xroad` volume folder could be (**reference Data: 3.4, 3.13**):
+Another possible is use Kubernetes Init Containers for setting the permissions to the volume folder, wich launches before the main container. An example for change the permissions to the `etc/xroad` volume folder could be (**reference data: 3.4, 3.13**):
 
 ``` yaml
 [...]
@@ -464,14 +464,14 @@ If you don't have an ssh key you can create one by running:
 ```
 ssh-keygen -f /path/to/.ssh/
 ```
-Then create a Kubernetes Secret for storing the ssh keys by running (**reference Data: 3.1, 3.14**);
+Then create a Kubernetes Secret for storing the ssh keys by running (**reference data: 3.1, 3.14**);
 ```
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
 ```
 
 #### 4.2.4.2 Secrets for environmental variables
 This example shows how to create a secret for the Security Server Sidecar environment variables with sensitive data.
-- Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
+- Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
 ```bash
 apiVersion: v1
 kind: Secret
@@ -495,7 +495,7 @@ $ kubectl apply -f secret-env-variables.yaml
 
 #### 4.2.4.3 Consume secrets
 
-The Secrets that store keys can be consumed in a similar way to volumes, for this you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign it permissions, then mount the volume in a folder on the container (**reference Data: 3.13, 3.14**):
+The Secrets that store keys can be consumed in a similar way to volumes, for this you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign it permissions, then mount the volume in a folder on the container (**reference data: 3.13, 3.14**):
 ``` yaml
 [...]
 volumes:
@@ -601,7 +601,7 @@ livenessProbe:
 - A Kubernetes Secret with a ssh key pair stored [4.2.4 Kubernetes Secrets](#424-Kubernetes-secrets).
 
 #### 4.2.6.2 Primary Pod installation
-An example of how to install the Primary Pod is shown in the manifest below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
+An example of how to install the Primary Pod is shown in the manifest below (**reference data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14, 3.15, 3.19 1.4, 1.5, 1.6, 1.10**):
 ``` yaml
 apiVersion: v1
 kind: Service
@@ -688,7 +688,7 @@ curl -i <private pod ip>:5588
 ```
 
 #### 4.2.6.3 Secondary Pods installation
-An example of how to install the Secondary Pod is shown in the manifest below (**reference Data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14,3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**):
+An example of how to install the Secondary Pod is shown in the manifest below (**reference data: 3.1, 3.3, 3.4, 3.12, 3.13, 3.14,3.15, 3.17, 3.18, 3.19, 3.20, 1.4, 1.5, 1.6, 1.10**):
 ``` yaml
 apiVersion: v1
 kind: Service
@@ -822,7 +822,7 @@ Container Insights uses a containerized version of the CloudWatch agent to disco
 ## 6.1 Setup Container Insights on AWS EKS
 
 - Verify that cluster logging is enabled on the cluster (At least Controller manager logging).
-- Deploy container insights by running (**reference Data: 3.21, 3.22**):
+- Deploy container insights by running (**reference data: 3.21, 3.22**):
 ```
 curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-manifests/deployment-mode/daemonset/container-insights-monitoring/quickstart/cwagent-fluentd-quickstart.yaml | sed "s/{{cluster_name}}/<cluster name>/;s/{{region_name}}/<cluster region>/" | kubectl apply -f -
 ```
@@ -830,7 +830,7 @@ curl https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-i
 ```
 kubectl get pods -n amazon-cloudwatch
 ```
-- View the logs of the cloudwatch agent by running (**reference Data: 3.23**):
+- View the logs of the cloudwatch agent by running (**reference data: 3.23**):
 ```
 kubectl logs <cloudwatch agent name> -n amazon-cloudwatch
 ```
@@ -847,11 +847,11 @@ It will be possible to update the version of the Security Server Sidecar by re-d
 
 In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), if you do not want to disrupt the connection during the version update, it is required to take several steps:
 
-- First, we should stop the cron job service running in the Secondary Pods that handles synchronization with the Primary Pod by running in a console for each Secondary Pod (**reference Data: 3.2**):
+- First, we should stop the cron job service running in the Secondary Pods that handles synchronization with the Primary Pod by running in a console for each Secondary Pod (**reference data: 3.2**):
 ```
 kubectl exec <pod name> -n $1 supervisorctl stop cron
 ```
-Note (1) It is possible to use some script like this to stop the service for all the Pods in a namespace (**reference Data: 3.1**):
+Note (1) It is possible to use some script like this to stop the service for all the Pods in a namespace (**reference data: 3.1**):
 ```
 for pod in $(kubectl get po -n <namespace name> -oname | awk -F "/" '{print $2}');
    do kubectl exec $pod -n $1 supervisorctl stop cron;
@@ -890,7 +890,7 @@ As described in the [User Guide](https://github.com/nordic-institute/X-Road-Secu
 It is also recommended to send the logs inside the volume to an AWS S3 Bucket. To do that we need to:
 - Create an AWS S3 Bucket from the AWS admin console.
 - Encrypt the AWS S3 Bucket at rest by selecting the default encryption "AWS-KMS" and "aws/s3" as encryption key.
-- From the instance where the volume is mounted run (**reference Data: 3.24, 3.25, 3.26**):
+- From the instance where the volume is mounted run (**reference data: 3.24, 3.25, 3.26**):
 ```
 aws s3 sync <volume mount path> s3://<bucket name>/path/to/bucket-folder --sse aws:kms --sse-kms-key-id <arn encryption key>
 ```
