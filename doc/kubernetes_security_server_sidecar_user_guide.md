@@ -172,7 +172,7 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 ### 4.2.1 Namespaces
 
 It is recommended to use namespaces in a Kubernetes deployment since namespaces will allow us to organize better the resources of a shared cluster.
-The use of namespaces is optional, if the namespace is not used in the different resources they will be included in the "default" namespace.
+The use of a namespace for the Security Server Sidecar resources is optional. If no namespace is created they will be included in the "default" namespace.
 
 Create a new namespace by running (**reference data: 3.1**):
 ```
