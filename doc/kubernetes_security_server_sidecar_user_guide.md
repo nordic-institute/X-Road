@@ -180,7 +180,7 @@ kubectl create namespace <namespace name>
 ```
 
 ### 4.2.2 Single Pod deployment
-For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following "yaml" manifest (**reference data: 3.1, 3.2, 3.3, 1.4, 1.5, 1.6, 1.10**):
+For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following "yaml" manifest (**reference data: 3.1, 3.2, 3.12, 1.4, 1.5, 1.6, 1.10**):
 ``` yaml
 apiVersion: v1
 kind: Pod
