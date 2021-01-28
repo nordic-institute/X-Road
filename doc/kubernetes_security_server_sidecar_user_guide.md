@@ -858,7 +858,7 @@ for pod in $(kubectl get po -n <namespace name> -oname | awk -F "/" '{print $2}'
 done;
 ```
 
-- Update the Primary Pod by open a shell for the Primary Pod container by running:
+- Update the Primary Pod by opening a Shell to the Primary Pod container by running:
 ```
 kubectl exec -it <pod name> -n <namespace name> bash
 ```
