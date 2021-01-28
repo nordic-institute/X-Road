@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
  24.12.2020 | 1.1     | Add description of features of different image versions         | Petteri Kivimäki
-
+ 21.01.2021 | 1.0     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
 # Table of Contents
 * [1 Introduction](#1-introduction)
    * [1.1 Target Audience](#11-target-audience)
