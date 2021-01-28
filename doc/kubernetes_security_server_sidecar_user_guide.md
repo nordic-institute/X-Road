@@ -274,7 +274,7 @@ kubectl apply -f /path/to/pvc_file_name.yaml
 #### 4.2.3.2 Persistent Volumes
 
 Kubernetes has multiple types of **PV(Persistent Volumes)** that can be found on the [Kubernetes official documentation](https://Kubernetes.io/docs/concepts/storage/volumes/#volume-types).
-The described scenario is focus on 3 types of volume that we can use in AWS: hostPath, awsElasticBlockStore and a AWS EFS (Elastic File System)  (using csi, a Container Storage Interface that defines standard interface for container orchestration systems).
+The described scenario is focused on 3 types of persistent volumes that we can use in AWS: hostPath, awsElasticBlockStore and AWS EFS (Elastic File System)  (using CSI, a Container Storage Interface that defines a standard interface for container orchestration systems).
 
 ##### 4.2.3.2.1 Persistent Volume hostPath
 A "hostPath" PV mounts a file or directory from the host node's filesystem into your Pod. This PV is the fastest way of creating a PV but it's only recommended for testing or developing purposes and in a single Node scenario, since only the Pods running on the same Node instance could access to it, also it does not offer any backup solution and the information could be lost if the Node instance is terminated.
