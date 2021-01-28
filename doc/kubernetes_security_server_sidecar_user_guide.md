@@ -110,7 +110,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-secondary        | Image for 
 - An AWS EKS cluster with at least one Linux EC2 instance. The instance type will depend on the number of resources required. For example, an instance of type "t3.medium" could support approximately 5 Security Server Sidecar Pods running simultaneously.
 ## 4.2 Prerequisites to Installation
 - The latest AWS CLI and eksctl command line utility must be installed to go through the steps described in this [page](https://docs.aws.amazon.com/eks/latest/userguide/getting-started-eksctl.html).
-- We must be authenticated to access to the AWS resources through the AWS CLI. Instructions for authenticated can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
+- We must be authenticated to access the AWS resources through the AWS CLI. Instructions on how to authenticate access through the AWS CLI can be found [here](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/).
 - A ssh key must be uploaded to "Key Pairs" section in Amazon EC2, Instruction for uploading a key can be found [here](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-key-pairs.html#prepare-key-pair).
 
 ## 4.3 Network configuration
