@@ -247,7 +247,7 @@ kubectl delete -f /path/to/manifest-file-name.yaml
 ```
 
 ### 4.2.3 Kubernetes Volumes
-Kubernetes volumes can be used to store different things such as the configuration of the Security Server Sidecar, the storage of message logs ... Kubernetes volumes ensure that this storage could be shared between different Pods and it's not lost when the Pods are deleted.
+Kubernetes volumes can be used to store different things, such as the configuration of the Security Server Sidecar or its message logs, and ensure that those can be shared across different Pods and persisted when the Pods are deleted or updated.
 
 #### 4.2.3.1 Persistent Volume Claim
 First, it is required to create an PVC(Persistent Volume Claim) to request physical storage. PVCs are a way for developers to "claim" durable storage without knowing the details of the particular volume implementation type.
