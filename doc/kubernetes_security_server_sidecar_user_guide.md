@@ -210,7 +210,7 @@ spec:
      - containerPort: 5577
 ```
 As image tag, any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) could be used.
-It is possible to use an external database by add/modify the environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
+Optionally, it is possible to use an external database by adding the following environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
 
 ``` yaml
      - name: XROAD_DB_HOST
