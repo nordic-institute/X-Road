@@ -220,7 +220,7 @@ Optionally, it is possible to use an external database by adding the following e
      - name: XROAD_DB_PWD
        value: "<xroad db password>"
      - name: XROAD_DATABASE_NAME
-       value: "<database-name>"
+       value: "<database name>"
 ```
 
 Once the deployment is ready save it on a file and run:
