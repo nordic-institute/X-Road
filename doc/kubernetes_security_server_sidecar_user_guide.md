@@ -298,7 +298,7 @@ spec:
 ```
 
 ##### 4.2.3.2.2 Persistent Volume awsElasticBlockStore
-An "awsElasticBlockStore" PV mounts an AWS EBS volume into our pod. It offers and easy way of backup and keep the informaton even if the Node is deleted. This volume is only recommended for production environment in a single Node instance scenario, since the "awsElasticBlockStore" could be attached only to one single instance at a time.
+An "awsElasticBlockStore" persistent volume mounts an AWS EBS volume into our Pod. It offers an easy way of backing up and keeping the information even if the Node is deleted. This persistent volume type is only recommended for production environment in a single Node instance scenario since the "awsElasticBlockStore" could be attached only to one single instance at a time.
 - First, we need to create an  Elastic Block Store Volume from the AWS console, then attach it to the Cluster Node instance, filling "/dev/xvdf" on the device property.
 - Once the volume is created, copy the ID, then create a PV manifest and save it to a "yaml" file **(reference data: 3.1, 3.5, 3.6, 3.7, 3.8, 3.9, 3.10)**:
 ``` yaml
