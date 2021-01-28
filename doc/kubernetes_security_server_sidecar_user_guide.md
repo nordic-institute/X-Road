@@ -887,7 +887,7 @@ Note(2): It is possible that a major version update will require extra changes, 
 # 8 Message logs and disk space
 As described in the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#8-message-log) the recommend was to store the local storage of message log in a docker container. In Kubernetes we can create any of the Kubernetes volumes described in [4.2.3 Kubernetes Volumes](#423-Kubernetes-volumes).
 
-It is also recommend to send the logs inside the volume to a AWS S3 Bucket. For doing that it is required to:
+It is also recommended to send the logs inside the volume to an AWS S3 Bucket. To do that we need to:
 - Create an AWS S3 Bucket from the AWS admin console.
 - Encrypt the AWS S3 Bucket at rest by selecting the default encryption "AWS-KMS" and "aws/s3" as encryption key.
 - From the instance where the volume is mounted run (**reference Data: 3.24, 3.25, 3.26**):
