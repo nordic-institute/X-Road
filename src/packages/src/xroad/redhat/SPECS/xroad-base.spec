@@ -30,8 +30,6 @@ X-Road base components and utilities
 rm -rf base
 cp -a %{srcdir}/common/base .
 cd base
-rm -rf etc/rcS.d
-sed -i 's/JAVA_HOME=.*/JAVA_HOME=\/etc\/alternatives\/jre_1.8.0_openjdk/' etc/xroad/services/global.conf
 
 %build
 
@@ -104,6 +102,17 @@ rm -rf %{buildroot}
 %pre
 if ! getent passwd xroad > /dev/null; then
 useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
+fi
+
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    if ! grep -q '\s*JAVA_HOME=' /etc/xroad/services/local.conf; then
+      #6.26.0 migrate "JAVA_HOME" to local.conf
+      java_home=$(grep '^JAVA_HOME=' /etc/xroad/services/global.conf);
+      if [ -n "$java_home" ]; then
+        echo "$java_home" >>/etc/xroad/services/local.conf
+      fi
+    fi
 fi
 
 %verifyscript

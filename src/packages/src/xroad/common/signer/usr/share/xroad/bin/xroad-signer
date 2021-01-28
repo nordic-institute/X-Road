@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ "$(id -nu)" != "xroad" ]
 then
@@ -8,5 +8,5 @@ fi
 
 . /etc/xroad/services/signer.conf
 
-exec ${JAVA_HOME}/bin/java ${SIGNER_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.signer.SignerMain
+exec java ${SIGNER_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.signer.SignerMain
 

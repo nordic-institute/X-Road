@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/bash
 
 if [ ! -n "${LIQUIBASE_HOME+x}" ]; then
   echo "Liquibase Home is not set."
