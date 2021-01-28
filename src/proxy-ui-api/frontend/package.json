@@ -31,7 +31,7 @@
     "vee-validate": "3.4.1",
     "vue": "~2.6.12",
     "vue-i18n": "~8.22.0",
-    "vue-router": "~3.4.3",
+    "vue-router": "~3.5.1",
     "vuetify": "~2.3.10",
     "vuex": "~3.5.1",
     "vuex-persist": "3.1.3",
