@@ -236,7 +236,7 @@ Get the Pod information by running (**reference Data: 3.1, 3.2**):
 kubectl describe pod -n <namespace name> <pod name>
 ```
 
-Get a Shell to the container running in the Pod (**reference Data: 3.1, 3.2**):
+Get a Shell to the container running in the Pod by running (**reference Data: 3.1, 3.2**):
 ```
 kubectl exec -it -n <namespace name> <pod name> bash
 ```
