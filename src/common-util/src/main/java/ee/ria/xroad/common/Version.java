@@ -39,6 +39,8 @@ public final class Version {
 
     private static final String RELEASE = "RELEASE";
     private static final String JAVA_VERSION_PROPERTY = "java.version";
+    private static final String JAVA_RUNTIME_PROPERTY = "java.runtime.version";
+    private static final String JAVA_VENDOR_PROPERTY = "java.vendor.version";
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;
 
@@ -80,13 +82,16 @@ public final class Version {
     }
 
     /**
-     * Outputs a warning if JVM version is not in the given range
-     * @param minVersion the minimum supported version
-     * @param maxVersion the maximum supported version
+     * Outputs version information and a warning if JVM version is not in the given range
+     * @param minJavaVersion the minimum supported version
+     * @param maxJavaVersion the maximum supported version
      */
-    public static void checkJavaVersion(int minVersion, int maxVersion) {
+    public static void outputVersionInfo(String appName, int minJavaVersion, int maxJavaVersion) {
+        // print app name + version and java vendor name + runtime version
+        log.info(String.format("%s %s (%s %s)", appName, XROAD_VERSION, System.getProperty(JAVA_VENDOR_PROPERTY),
+                System.getProperty(JAVA_RUNTIME_PROPERTY)));
         // java.version system property exists in every JVM
-        String versionString = System.getProperty("java.version");
+        String versionString = System.getProperty(JAVA_VERSION_PROPERTY);
         if (versionString.startsWith("1.")) {
             // Java 8 or lower has format: 1.6.0_23, 1.7.0, 1.7.0_80, 1.8.0_211
             versionString = versionString.substring(2, 3);
@@ -98,13 +103,15 @@ public final class Version {
             }
         }
         int result = Integer.parseInt(versionString);
-        if (result < minVersion || result > maxVersion) {
-            log.warn(String.format("Warning! Running on unsupported Java version %s",
-                    System.getProperty(JAVA_VERSION_PROPERTY)));
-            if (minVersion == maxVersion) {
-                log.warn(String.format("Java version %d is currently supported", minVersion));
+        if (result < minJavaVersion || result > maxJavaVersion) {
+            if (minJavaVersion == maxJavaVersion) {
+                log.warn(String.format(
+                        "Warning! Running on unsupported Java version. Java version %d is currently supported.",
+                        minJavaVersion));
             } else {
-                log.warn(String.format("Java versions %d - %d are currently supported", minVersion, maxVersion));
+                log.warn(String.format(
+                        "Warning! Running on unsupported Java version. Java versions %d - %d are currently supported.",
+                        minJavaVersion, maxJavaVersion));
             }
         }
     }
