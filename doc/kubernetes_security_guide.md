@@ -16,7 +16,8 @@
 * [4 User accounts](#4-user-accounts)
    * [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
    * [4.2 Grant Cluster access to users](#42-grant-cluster-access-to-users)
-   * [4.3 Kubernetes Dashboard](#43-kubernetes-dashboard)
+   * [4.3 Restrict namespace access to a cluster](#43-restrict-namespace-access-to-a-cluster)
+   * [4.4 Kubernetes Dashboard](#44-kubernetes-dashboard)
 * [5 Network policies](#5-network-policies)
    * [5.1 Create Network policies](#51-create-network-policies)
 * [6 Pod Security Policies](#6-pod-security-policies)
@@ -25,6 +26,7 @@
 * [8 Monitoring](#8-monitoring)
 * [9 Backups](#9-backups)
 * [10 Message logs](#10-message-logs)
+
 
 # 1 Introduction
 ## 1.1 Target Audience
@@ -189,7 +191,7 @@ kubectl describe configmap -n kube-system aws-auth
 ```
 curl -o aws-auth-cm.yaml https://s3.us-west-2.amazonaws.com/amazon-eks/cloudformation/2020-10-29/aws-auth-cm.yaml
 ```
-Edit it introducing the InstanceNodeARN and apply it with:
+- Edit it introducing the InstanceNodeARN and apply it with:
 ```
 kubectl apply -f aws-auth-cm.yaml
 ```
@@ -225,8 +227,10 @@ To add an IAM user: add the user details to the mapUsers section of the ConfigMa
 
 - Save the ConfigMap file and exit the text editor.
 
+## 4.3 Restrict namespace access to a cluster
+If the same Cluster is shared by different developers and teams, it is advisable to create isolated environments, for this we must create namespaces and restrict access within each namespace. Following the official [AWS Documentation](https://aws.amazon.com/premiumsupport/knowledge-center/eks-iam-permissions-namespaces/) we can see how to assign permissions to a namespace in an AWS EKS Cluster.
 
-## 4.3 Kubernetes Dashboard
+## 4.4 Kubernetes Dashboard
 Dashboard is a web-based Kubernetes user interface. You can use Dashboard to deploy containerized applications to a Kubernetes cluster, troubleshoot your containerized application, and manage the cluster resources.
 
 The Dashboard UI is not deployed by default. To deploy it, run the following command:
