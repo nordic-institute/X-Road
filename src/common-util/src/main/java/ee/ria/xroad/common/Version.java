@@ -90,7 +90,7 @@ public final class Version {
         // print app name + version and java vendor name + runtime version
         String vendorString = System.getProperty(JAVA_VENDOR_PROPERTY);
         String versionString = System.getProperty(JAVA_VERSION_PROPERTY);
-        String vendorVersion = vendorString != null ? vendorString + versionString : versionString;
+        String vendorVersion = vendorString != null ? vendorString + " " + versionString : versionString;
         log.info(String.format("%s %s (%s)", appName, XROAD_VERSION, vendorVersion));
         // java.version system property exists in every JVM
         if (versionString.startsWith("1.")) {
