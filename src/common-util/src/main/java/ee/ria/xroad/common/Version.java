@@ -40,6 +40,7 @@ public final class Version {
     private static final String RELEASE = "RELEASE";
     private static final String JAVA_VERSION_PROPERTY = "java.version";
     private static final String JAVA_VENDOR_PROPERTY = "java.vendor";
+    private static final String JAVA_RUNTIME_PROPERTY = "java.runtime.version";
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;
     public static final int VERSION_STRING_SUFFIX_LENGTH = 3;
@@ -90,8 +91,14 @@ public final class Version {
         // print app name + version and java vendor name + runtime version
         String vendorString = System.getProperty(JAVA_VENDOR_PROPERTY);
         String versionString = System.getProperty(JAVA_VERSION_PROPERTY);
-        String vendorVersion = vendorString != null ? vendorString + " " + versionString : versionString;
-        log.info(String.format("%s %s (%s)", appName, XROAD_VERSION, vendorVersion));
+        String runtimeString = System.getProperty(JAVA_RUNTIME_PROPERTY);
+        StringBuilder vendorVersionBuilder = new StringBuilder();
+        if (vendorString != null) {
+            vendorVersionBuilder.append(vendorString + " ");
+        }
+        vendorVersionBuilder.append(runtimeString);
+        System.out.println(
+                String.format("%s %s (Java %s)", appName, XROAD_VERSION, vendorVersionBuilder.toString()));
         // java.version system property exists in every JVM
         if (versionString.startsWith("1.")) {
             // Java 8 or lower has format: 1.6.0_23, 1.7.0, 1.7.0_80, 1.8.0_211
