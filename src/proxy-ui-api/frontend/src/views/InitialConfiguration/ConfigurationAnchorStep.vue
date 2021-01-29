@@ -24,35 +24,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="action-row">
-      <div>{{ $t('initialConfiguration.anchor.info') }}</div>
-      <upload-configuration-anchor-dialog
-        @uploaded="fetchConfigurationAnchor"
-        initMode
-      />
-    </div>
+  <div class="step-content-wrapper">
+    <div class="wizard-step-form-content">
+      <div class="action-row">
+        <div>{{ $t('initialConfiguration.anchor.info') }}</div>
+        <upload-configuration-anchor-dialog
+          @uploaded="fetchConfigurationAnchor"
+          initMode
+        />
+      </div>
 
-    <div style="height: 120px">
-      <template v-if="configuratonAnchor">
-        <div class="row-wrap">
-          <div class="label">{{ $t('initialConfiguration.anchor.hash') }}</div>
-          <template v-if="configuratonAnchor">{{
-            configuratonAnchor.hash | colonize
-          }}</template>
-        </div>
-
-        <div class="row-wrap">
-          <div class="label">
-            {{ $t('initialConfiguration.anchor.generated') }}
+      <div style="height: 120px">
+        <template v-if="configuratonAnchor">
+          <div class="row-wrap">
+            <div class="label">
+              {{ $t('initialConfiguration.anchor.hash') }}
+            </div>
+            <template v-if="configuratonAnchor">{{
+              configuratonAnchor.hash | colonize
+            }}</template>
           </div>
-          <template v-if="configuratonAnchor">{{
-            configuratonAnchor.created_at | formatDateTime
-          }}</template>
-        </div>
-      </template>
-    </div>
 
+          <div class="row-wrap">
+            <div class="label">
+              {{ $t('initialConfiguration.anchor.generated') }}
+            </div>
+            <template v-if="configuratonAnchor">{{
+              configuratonAnchor.created_at | formatDateTime
+            }}</template>
+          </div>
+        </template>
+      </div>
+    </div>
     <div class="button-footer">
       <v-spacer></v-spacer>
       <div>
@@ -121,7 +124,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 
 .label {
   width: 170px;
