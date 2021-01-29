@@ -30,7 +30,7 @@
       data-test="success-snackbar"
       v-for="notification in successNotifications"
       :key="notification.timeAdded"
-      :timeout="0"
+      :timeout="notification.timeout"
       v-model="notification.show"
       color="#E6F8F1"
       multi-line
