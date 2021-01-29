@@ -7,6 +7,24 @@
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
 
 #Table of contents
+* [1 Introduction](#1-introduction)
+   * [1.1 Target Audience](#11-target-audience)
+* [2 Reference Data](#2-reference-data)
+* [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
+   * [3.1 Secrets as volume](#31-secrets-as-volume)
+   * [3.2 Secrets as environmental variables](#32-secrets-as-environmental-variables)
+* [4 User accounts](#4-user-accounts)
+   * [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
+   * [4.2 Grant Cluster access to users](#42-grant-cluster-access-to-users)
+   * [4.3 Kubernetes Dashboard](#43-kubernetes-dashboard)
+* [5 Network policies](#5-network-policies)
+   * [5.1 Create Network policies](#51-create-network-policies)
+* [6 Pod Security Policies](#6-pod-security-policies)
+   * [6.1 Pod Security Policias in AWS EKS](#61-pod-security-policias-in-aws-eks)
+   * [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
+* [8 Monitoring](#8-monitoring)
+* [9 Backups](#9-backups)
+* [10 Message logs](#10-message-logs)
 
 # 1 Introduction
 ## 1.1 Target Audience
@@ -228,7 +246,10 @@ In the login view, you will be required to enter a token, as described in [4 Use
 aws eks get-token --cluster-name <cluster name>
 ```
 
-
+Installing the kubernetes dashboard could have potential security risks:
+- The installation recommended in the EKS docs tells users to authenticate when connecting to the dashboard by fetching the authentication token for the dashboard’s cluster service account, which, again, may have cluster-admin privileges. That means a service account token with full cluster privileges and whose use cannot be traced to a human is now floating around outside the cluster.
+- Everyone who can access the dashboard can make any queries or changes permitted by the service’s RBAC role.
+- The Kubernetes Dashboard has been the subject of a number of CVEs. Because of its access to the cluster’s Kubernetes API and its lack of internal controls, vulnerabilities can be extremely dangerous.
 # 5 Network policies
 Network policies are objects which allow to explicitly state which traffic is permitted between groups of pods and other network endpoints in a Kubernetes cluster so that all non-conforming traffic will be blocked. It is a Kubernetes equivalent of a cluster-level firewall.
 
@@ -476,4 +497,22 @@ kubectl --as=system:serviceaccount:sidecar-psp-restrictive:sidecar-eks-user -n s
 Now the user sidecar-eks-user should be able to create pods that match the conditions on the Pod Security Policy eks.restrictive.
 
 
-# 7 Kubernetes Dashboard
+# 8 Monitoring
+The following steps are recommended for monitoring using AWS CloudWatch so that we can detect potential security risks in your Cluster.
+
+- **Collect control panel logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
+AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWatch. At a minimum, you will want to collect the following logs:
+  · api - the Kubernetes API server log.
+  · audit - the Kubernetes audit log.
+  · authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
+
+- **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster.  Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting this metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster.
+
+- **Monitor Node (EC2 Instance) Health and Security**: EKS provides no automated detection of node issues. Changes in node CPU, memory, or network metrics that do not correlate with the cluster workload activity can be signs of security events or other issues.
+
+# 9 Backups
+The restoration of backups is a process that is executed with root permission, therefore it can lead to potential security risks, therefore we must only recreate Backups from reliable sources.
+
+# 10 Message logs
+
+The backup of the log messages may contain sensitive information, therefore, as described in as described [the Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#8-message-logs-and-disk-space), it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest.
