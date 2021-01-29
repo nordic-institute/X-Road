@@ -43,6 +43,7 @@ public final class Version {
     private static final String JAVA_VENDOR_PROPERTY = "java.vendor.version";
     public static final String XROAD_VERSION;
     public static final String BUILD_IDENTIFIER;
+    public static final int VERSION_STRING_SUFFIX_LENGTH = 3;
 
     static {
         Properties props = new Properties();
@@ -94,7 +95,7 @@ public final class Version {
         String versionString = System.getProperty(JAVA_VERSION_PROPERTY);
         if (versionString.startsWith("1.")) {
             // Java 8 or lower has format: 1.6.0_23, 1.7.0, 1.7.0_80, 1.8.0_211
-            versionString = versionString.substring(2, 3);
+            versionString = versionString.substring(2, VERSION_STRING_SUFFIX_LENGTH);
         } else {
             // Java 9 or higher has format: 9.0.1, 11.0.4, 12, 12.0.1
             int dot = versionString.indexOf(".");
