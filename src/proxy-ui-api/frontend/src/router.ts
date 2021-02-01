@@ -30,7 +30,7 @@ import { Permissions, RouteName } from '@/global';
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 import routes from '@/routes';
 
-// Route for initialisation view. This is created separeately because it's linked to vuex store.
+// Route for initialisation view. This is created separeately because it's linked to vuex store and this causes the unit tests to break.
 const initRoute: RouteConfig = {
   name: RouteName.InitialConfiguration,
   path: '/initial-configuration',
