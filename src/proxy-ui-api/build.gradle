@@ -69,28 +69,21 @@ task buildFront(type: NpmTask) {
     }
 }
 
-// run a loose front audit with npm in-built audit (default audit mode, unless task strictFrontAudit is called)
-task looseFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
-        !project.hasProperty('skip-frontend-build')
+        (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
     }
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
-    args = ['audit', '--production', '--audit-level=moderate']
-    execOverrides {
-        it.workingDir = 'frontend'
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
     }
-}
-
-// run a strict front audit with npm run check-audit
-// check-audit uses ignores from audit-resolve.json. To update those, do "npm run resolve-audit" from frontend dir
-task strictFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("frontend/dist")
-    args = ['run', 'check-audit']
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -171,29 +164,10 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
-// checkFrontLicense -> (looseFrontAudit && (strictFrontAudit?)) -> buildFront -> processResources
+// checkFrontLicense -> checkFrontAudit -> buildFront -> processResources
 processResources.dependsOn 'buildFront'
-buildFront.dependsOn 'looseFrontAudit'
-buildFront.configure {
-    mustRunAfter strictFrontAudit
-}
-looseFrontAudit.dependsOn 'checkFrontLicense'
-buildFront.configure {
-    mustRunAfter strictFrontAudit
-}
-
-// configure looseFrontAudit, strictFrontAudit and skip-front-audit behavior
-gradle.taskGraph.whenReady { graph ->
-    boolean looseFrontAuditParameter = project.gradle.startParameter.taskNames.contains("looseFrontAudit")
-    // if (strictFrontAudit && !looseFrontAuditParameter) -> disable looseFrontAudit, only doing the strict one
-    if (graph.hasTask(strictFrontAudit) && !looseFrontAuditParameter) {
-        looseFrontAudit.enabled = false
-    }
-    if (project.hasProperty('skip-front-audit')) {
-        strictFrontAudit.enabled = false
-        looseFrontAudit.enabled = false
-    }
-}
+buildFront.dependsOn 'checkFrontAudit'
+checkFrontAudit.dependsOn 'checkFrontLicense'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
