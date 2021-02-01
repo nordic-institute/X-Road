@@ -37,7 +37,7 @@
       <p>{{ $t('wizard.finish.note') }}</p>
       <p></p>
 
-      <div v-if="showRegisterOption">
+      <div v-if="showRegisterOption & canRegisterClient">
         <FormLabel :labelText="$t('wizard.client.register')" />
         <v-checkbox
           v-model="registerChecked"
@@ -92,6 +92,7 @@ import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { memberHasValidSignCert } from '@/util/ClientUtil';
 
 export default Vue.extend({
   components: {
@@ -104,14 +105,16 @@ export default Vue.extend({
       'memberCode',
       'subsystemCode',
       'currentSecurityServer',
+      'tokens',
     ]),
     showRegisterOption() {
-      if (
+      return (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      ) {
-        return true;
-      }
-      return false;
+      );
+    },
+    canRegisterClient() {
+      const memberName = `${this.currentSecurityServer.instance_id}:${this.memberClass}:${this.memberCode}`;
+      return memberHasValidSignCert(memberName, this.tokens);
     },
   },
   data() {
@@ -143,7 +146,8 @@ export default Vue.extend({
           if (
             this.addMemberWizardMode ===
               AddMemberWizardModes.CERTIFICATE_EXISTS &&
-            this.registerChecked
+            this.registerChecked &&
+            this.canRegisterClient
           ) {
             this.registerClient();
           } else if (
@@ -180,7 +184,6 @@ export default Vue.extend({
     acceptWarnings(): void {
       this.createClient(true);
     },
-
     generateKeyAndCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
