@@ -27,6 +27,7 @@ import { Tab } from '@/ui-types';
 
 // A "single source of truth" for route names
 export enum RouteName {
+  BaseRoute = 'base',
   Keys = 'keys',
   Diagnostics = 'diagnostics',
   AddSubsystem = 'add-subsystem',
