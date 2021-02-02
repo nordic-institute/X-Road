@@ -31,6 +31,64 @@ const commands = [
       this.setValue('@filterField', text);
       return this;
     },
+    cancel: function () {
+      this.waitForElementVisible('@cancelButton');
+      this.click('@cancelButton');
+      return this;
+    },
+    verifySubjectListRow: function (row, subject) {
+      this.api.waitForElementVisible(
+        `(//table[contains(@class, "service-clients-table")]/tbody/tr)[${row}]//td[contains(text(), "${subject}")]`,
+      );
+      return this;
+    },
+    verifyVisibleId: function (subject) {
+      this.api.waitForElementVisible(
+        `//table[contains(@class, "service-clients-table")]//td[contains(text(), "${subject}")]`,
+      );
+      return this;
+    },
+    verifyNotPresentId: function (subject) {
+      this.api.waitForElementNotPresent(
+        `//table[contains(@class, "service-clients-table")]//td[contains(text(), "${subject}")]`,
+      );
+      return this;
+    },
+    selectSubject(subject) {
+      const subjectNode = `//table[contains(@class, "service-clients-table")]//td[contains(text(), "${subject}")]/../td[contains(@class, "checkbox-column")]//div[contains(@class, "v-input--selection-controls__ripple")]`;
+      this.waitForElementVisible(subjectNode);
+      this.click(subjectNode);
+      return this;
+    },
+    assertSelectedSubjectsCount(count) {
+      this.expect.elements('@selectedSubjects').count.to.equal(count);
+      return this;
+    },
+    assertNextButtonDisabled() {
+      this.assert.cssClassPresent('@nextButton', 'v-btn--disabled');
+      this.assert.attributeEquals('@nextButton', 'disabled', 'true');
+      return this;
+    },
+    assertNextButtonEnabled() {
+      this.assert.not.cssClassPresent('@nextButton', 'v-btn--disabled');
+      this.assert.attributeEquals('@nextButton', 'disabled', null);
+      return this;
+    },
+    assertWizardFirstPage() {
+      this.waitForElementVisible('@wizardStepIndicator');
+      return this;
+    },
+    verifyDisabledId(subject) {
+      this.waitForElementVisible(
+        `//table[contains(@class, "service-clients-table")]//td[contains(text(), "${subject}")]/..//div[contains(@class, "v-radio--is-disabled")]`,
+      );
+      return this;
+    },
+    clickNext() {
+      this.waitForElementVisible('@nextButton');
+      this.click('@nextButton');
+      return this;
+    },
   },
 ];
 
@@ -40,11 +98,37 @@ module.exports = {
   commands: commands,
   elements: {
     wizardStepIndicator: {
-      selector: '//span[contains(@class, "primary") and contains(text(), "1")]',
+      selector:
+        '//div[contains(@class, "v-stepper__step--active")]/span[contains(@class, "primary") and contains(text(), "1")]',
       locateStrategy: 'xpath',
     },
     filterField: {
       selector: '//input[contains(@data-test, "search-service-client")]',
+      locateStrategy: 'xpath',
+    },
+    cancelButton: {
+      selector:
+        '//div[@class="v-stepper__wrapper" and .//table[contains(@class, "service-clients-table")]]//button[@data-test="cancel-button"]',
+      locateStrategy: 'xpath',
+    },
+    nextButton: {
+      selector:
+        '//div[@class="v-stepper__wrapper" and .//table[contains(@class, "service-clients-table")]]//button[@data-test="next-button"]',
+      locateStrategy: 'xpath',
+    },
+    addSubjectWizardHeader: {
+      selector:
+        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
+      locateStrategy: 'xpath',
+    },
+    selectedSubjects: {
+      selector:
+        '//div[contains(@class, "checkbox-wrap")]/div[contains(@class, "v-radio") and contains(@class, "v-item--active")]',
+      locateStrategy: 'xpath',
+    },
+    selectedSubjectName: {
+      selector:
+        '//tr[.//div[contains(@class, "v-radio") and contains(@class, "v-item--active")]]/td[3]',
       locateStrategy: 'xpath',
     },
   },

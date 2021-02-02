@@ -87,6 +87,10 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 @Slf4j
 public final class ProxyMain {
 
+    private static final String APP_NAME = "xroad-proxy";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+
     static {
         SystemPropertiesLoader.create()
                 .withCommonAndLocal()
@@ -165,6 +169,7 @@ public final class ProxyMain {
 
     private static void startup() throws Exception {
         log.trace("startup()");
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
                 .withFallback(ConfigFactory.load())
                 .withValue("akka.remote.artery.canonical.port",

@@ -69,15 +69,21 @@ task buildFront(type: NpmTask) {
     }
 }
 
-// check that npm run check-audit passes
-// check-audit uses ignores from audit-resolve.json
 task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
-        !project.hasProperty('skip-frontend-build')
+        (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
     }
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
-    args = ['run', 'check-audit']
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
+    }
     execOverrides {
         it.workingDir = 'frontend'
     }

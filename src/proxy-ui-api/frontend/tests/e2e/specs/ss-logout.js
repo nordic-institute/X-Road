@@ -71,15 +71,15 @@ module.exports = {
 
     // Wait for the timeout message to appear
     browser.waitForElementVisible(
-      mainPage.elements.snackBarMessage,
+      mainPage.elements.sessionExpiredPopupMessage,
       browser.globals.logout_timeout_ms + 60000,
       1000,
     );
     browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Error: Request failed with status code 401',
+      mainPage.elements.sessionExpiredPopupMessage,
+      'You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.',
     );
-    mainPage.closeSnackbar();
+    mainPage.closeSessionExpiredPopup();
 
     browser.waitForElementVisible('//*[@id="username"]');
     browser.end();

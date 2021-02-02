@@ -27,7 +27,7 @@
 const commands = [
   {
     openAddServiceClient: function () {
-      this.click('@addServiceClient');
+      this.click('@addServiceClientButton');
       return this;
     },
     enterServiceClientSearchWord: function (searchWord) {
@@ -53,7 +53,7 @@ module.exports = {
     },
     addSubjectWizardHeader: {
       selector:
-        '//div[@data-test="add-subject-title"]//span[contains(@class, "cert-headline") and contains(text(), "Add a subject")]',
+        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
       locateStrategy: 'xpath',
     },
     searchField: {

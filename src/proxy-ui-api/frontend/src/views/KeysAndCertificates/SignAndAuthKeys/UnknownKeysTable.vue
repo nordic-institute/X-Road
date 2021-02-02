@@ -160,7 +160,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: cert.certificate_details.hash,
-          usage: key.usage,
+          usage: key.usage ?? "",
         },
       });
     },

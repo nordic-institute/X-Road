@@ -562,7 +562,7 @@ const keysTab = {
         },
         csrUsage: {
           selector:
-            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]',
+            '//div[@role="button" and .//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]]',
           locateStrategy: 'xpath',
         },
         csrService: {

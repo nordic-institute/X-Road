@@ -12,5 +12,5 @@ VERIFY_IDMAP_PARAMS=" -Xmx50m -XX:MaxMetaspaceSize=70m \
 -Dxroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
 
 
-${JAVA_HOME}/bin/java ${XROAD_PARAMS} ${VERIFY_IDMAP_PARAMS} -cp ${CP}  ee.ria.xroad.centralmonitoragent.validator.ValidatorMain $@
+java ${XROAD_PARAMS} ${VERIFY_IDMAP_PARAMS} -cp ${CP}  ee.ria.xroad.centralmonitoragent.validator.ValidatorMain $@
 
