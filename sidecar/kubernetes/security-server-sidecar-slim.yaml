@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: security-server-sidecar
+  name: security-server-sidecar-slim
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
   labels:
-    run: security-server-sidecar
+    run: security-server-sidecar-slim
 spec:
   clusterIP: 10.100.144.90
   type: LoadBalancer
   selector:
-    run: security-server-sidecar
+    run: security-server-sidecar-slim
   ports:
   - port: 5500
     targetPort: 5500
@@ -24,16 +24,16 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: security-server-sidecar
+  name: security-server-sidecar-slim
 spec:
   selector:
     matchLabels:
-      run: security-server-sidecar
+      run: security-server-sidecar-slim
   replicas: 1
   template:
     metadata:
       labels:
-        run: security-server-sidecar
+        run: security-server-sidecar-slim
     spec:
       volumes:
       - name: sidecar-config-slim-volume
@@ -47,7 +47,7 @@ spec:
         - name: sidecar-config-slim-volume
           mountPath: /etc/xroad
       containers:
-      - name: security-server-sidecar
+      - name: security-server-sidecar-slim
         image: niis/xroad-security-server-sidecar:6.25.0-slim
         imagePullPolicy: "Always"
         volumeMounts:
