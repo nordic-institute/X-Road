@@ -37,7 +37,7 @@
       <p>{{ $t('wizard.finish.note') }}</p>
       <p></p>
 
-      <div v-if="showRegisterOption & canRegisterClient">
+      <div v-if="showRegisterOption && canRegisterClient">
         <FormLabel :labelText="$t('wizard.client.register')" />
         <v-checkbox
           v-model="registerChecked"
