@@ -107,12 +107,12 @@ export default Vue.extend({
       'currentSecurityServer',
       'tokens',
     ]),
-    showRegisterOption() {
+    showRegisterOption(): boolean {
       return (
         this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
       );
     },
-    canRegisterClient() {
+    canRegisterClient(): boolean {
       const memberName = `${this.currentSecurityServer.instance_id}:${this.memberClass}:${this.memberCode}`;
       return memberHasValidSignCert(memberName, this.tokens);
     },
