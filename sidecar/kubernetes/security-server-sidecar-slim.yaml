@@ -7,7 +7,7 @@ metadata:
   labels:
     run: security-server-sidecar
 spec:
-  clusterIP: 10.100.144.91
+  clusterIP: 10.100.144.90
   type: LoadBalancer
   selector:
     run: security-server-sidecar
@@ -41,7 +41,7 @@ spec:
           claimName: "{{VOLUME_CLAIM}}"
       containers:
       - name: security-server-sidecar
-        image: niis/xroad-security-server-sidecar:6.24.0
+        image: niis/xroad-security-server-sidecar:6.25.0-slim
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-volume
