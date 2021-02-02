@@ -26,6 +26,7 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
@@ -52,6 +53,9 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_OP_MONITOR;
 public final class OpMonitorDaemonMain {
 
     public static final String OP_MONITOR_DAEMON_NAME = "OpMonitorDaemon";
+    private static final String APP_NAME = "xroad-opmonitor";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -87,6 +91,7 @@ public final class OpMonitorDaemonMain {
 
     private static void startup() {
         log.info("Starting the operational monitoring daemon");
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
 
         actorSystem = ActorSystem.create(OP_MONITOR_DAEMON_NAME,
                 ConfigFactory.load().getConfig("opmonitordaemon")
