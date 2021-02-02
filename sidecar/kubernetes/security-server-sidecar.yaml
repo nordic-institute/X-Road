@@ -39,6 +39,13 @@ spec:
       - name: sidecar-config-volume
         persistentVolumeClaim:
           claimName: "{{VOLUME_CLAIM}}"
+      initContainers:
+      - name: volume-hack
+        image: busybox:latest
+        command: ["sh","-c","chown  999:999 /etc/xroad"]
+        volumeMounts:
+        - name: sidecar-config-volume
+          mountPath: /etc/xroad
       containers:
       - name: security-server-sidecar
         image: niis/xroad-security-server-sidecar:6.24.0
