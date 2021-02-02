@@ -28,6 +28,7 @@ package ee.ria.xroad.signer.console;
 import ee.ria.xroad.common.AuditLogger;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CryptoUtils;
@@ -138,6 +139,9 @@ import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
  */
 public class SignerCLI {
 
+    private static final String APP_NAME = "xroad-signer-console";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
     private static final int BENCHMARK_ITERATIONS = 10;
     static boolean verbose;
 
@@ -818,8 +822,9 @@ public class SignerCLI {
      * @throws Exception if an error occurs
      */
     public static void main(String[] args) throws Exception {
-        CommandLine cmd = getCommandLine(args);
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
 
+        CommandLine cmd = getCommandLine(args);
         if (cmd.hasOption("verbose")) {
             verbose = true;
         }

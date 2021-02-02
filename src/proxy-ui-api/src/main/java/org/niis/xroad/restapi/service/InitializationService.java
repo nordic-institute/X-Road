@@ -33,6 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -42,7 +43,6 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +81,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class InitializationService {
     private final SystemService systemService;
     private final ServerConfService serverConfService;
@@ -92,19 +93,6 @@ public class InitializationService {
 
     @Setter
     private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
-
-    @Autowired
-    public InitializationService(SystemService systemService, ServerConfService serverConfService,
-            TokenService tokenService, GlobalConfFacade globalConfFacade, ClientService clientService,
-            SignerProxyFacade signerProxyFacade, AuditDataHelper auditDataHelper) {
-        this.systemService = systemService;
-        this.serverConfService = serverConfService;
-        this.tokenService = tokenService;
-        this.globalConfFacade = globalConfFacade;
-        this.clientService = clientService;
-        this.signerProxyFacade = signerProxyFacade;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:

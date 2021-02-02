@@ -27,7 +27,7 @@
   <div class="xrd-tab-max-width xrd-view-common">
     <div class="wrap-right">
       <v-btn
-        v-if="canEdit"
+        v-if="canAddEndpoint"
         color="primary"
         @click="isAddEndpointDialogVisible = true"
         outlined
@@ -37,7 +37,6 @@
         >{{ $t('endpoints.addEndpoint') }}</v-btn
       >
     </div>
-
     <table class="xrd-table">
       <thead>
         <tr>
@@ -61,7 +60,7 @@
           <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
             <v-btn
-              v-if="!endpoint.generated && canEdit"
+              v-if="!endpoint.generated && canEditEndpoint"
               small
               outlined
               rounded
@@ -117,8 +116,16 @@ export default Vue.extend({
       });
     },
 
-    canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
+    canAddEndpoint(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ADD_OPENAPI3_ENDPOINT,
+      );
+    },
+
+    canEditEndpoint(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_OPENAPI3_ENDPOINT,
+      );
     },
 
     canViewAccessRights(): boolean {

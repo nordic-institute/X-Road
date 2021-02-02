@@ -67,6 +67,9 @@ public final class OcspUtils {
      * @return String representing the status
      */
     public static String getOcspResponseStatus(byte[] ocspResponse) throws OcspStatusExtractionException {
+        if (ocspResponse == null || ocspResponse.length == 0) {
+            return CertificateInfo.OCSP_RESPONSE_UNKNOWN;
+        }
         CertificateStatus certificateStatus = getCertificateStatus(ocspResponse);
         if (certificateStatus == null) {
             return CertificateInfo.OCSP_RESPONSE_GOOD;

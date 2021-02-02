@@ -30,8 +30,6 @@ X-Road base components and utilities
 rm -rf base
 cp -a %{srcdir}/common/base .
 cd base
-rm -rf etc/rcS.d
-sed -i 's/JAVA_HOME=.*/JAVA_HOME=\/etc\/alternatives\/jre_1.8.0_openjdk/' etc/xroad/services/global.conf
 
 %build
 
@@ -52,11 +50,11 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.2.16.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.2.18.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/postgresql-42.2.16.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/postgresql-42.2.18.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -104,6 +102,17 @@ rm -rf %{buildroot}
 %pre
 if ! getent passwd xroad > /dev/null; then
 useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
+fi
+
+if [ $1 -gt 1 ] ; then
+    # upgrade
+    if ! grep -q '\s*JAVA_HOME=' /etc/xroad/services/local.conf; then
+      #6.26.0 migrate "JAVA_HOME" to local.conf
+      java_home=$(grep '^JAVA_HOME=' /etc/xroad/services/global.conf);
+      if [ -n "$java_home" ]; then
+        echo "$java_home" >>/etc/xroad/services/local.conf
+      fi
+    fi
 fi
 
 %verifyscript

@@ -1,3 +1,7 @@
+
+| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
+
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
 Version: 2.19  

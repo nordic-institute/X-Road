@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.restapi.repository;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dao.PersistentApiKeyDAOImpl;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.util.PersistenceUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Repository;
@@ -44,15 +44,11 @@ import java.util.List;
 @Slf4j
 @Repository
 @Transactional
+@RequiredArgsConstructor
 public class ApiKeyRepository {
     public static final String LIST_ALL_KEYS_CACHE = "all-apikeys";
     public static final String GET_KEY_CACHE = "apikey-by-keys";
     private final PersistenceUtils persistenceUtils;
-
-    @Autowired
-    public ApiKeyRepository(PersistenceUtils persistenceUtils) {
-        this.persistenceUtils = persistenceUtils;
-    }
 
     @CacheEvict(allEntries = true, cacheNames = { LIST_ALL_KEYS_CACHE, GET_KEY_CACHE })
     public void saveOrUpdate(PersistentApiKeyType persistentApiKeyType) {

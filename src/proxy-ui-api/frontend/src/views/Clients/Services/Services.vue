@@ -40,7 +40,7 @@
 
       <div>
         <v-btn
-          v-if="showAddButton"
+          v-if="showAddRestButton"
           color="primary"
           :loading="addRestBusy"
           @click="showAddRestDialog"
@@ -52,7 +52,7 @@
         >
 
         <v-btn
-          v-if="showAddButton"
+          v-if="showAddWSDLButton"
           color="primary"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
@@ -93,7 +93,7 @@
         <template v-slot:link>
           <div
             class="clickable-link service-description-header"
-            v-if="canEditServiceDesc"
+            v-if="canEditServiceDesc(serviceDesc)"
             @click="descriptionClick(serviceDesc)"
             data-test="service-description-header"
           >
@@ -207,6 +207,7 @@
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
+import { encodePathParameter } from '@/util/api';
 import Expandable from '@/components/ui/Expandable.vue';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
@@ -214,12 +215,11 @@ import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
-import { Service, ServiceDescription } from '@/openapi-types';
+import { Service, ServiceDescription, ServiceType } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';
 import { deepClone } from '@/util/helpers';
-import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -266,11 +266,11 @@ export default Vue.extend({
     };
   },
   computed: {
-    showAddButton(): boolean {
+    showAddWSDLButton(): boolean {
       return this.$store.getters.hasPermission(Permissions.ADD_WSDL);
     },
-    canEditServiceDesc(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_WSDL);
+    showAddRestButton(): boolean {
+      return this.$store.getters.hasPermission(Permissions.ADD_OPENAPI3);
     },
     canDisable(): boolean {
       return this.$store.getters.hasPermission(Permissions.ENABLE_DISABLE_WSDL);
@@ -303,7 +303,7 @@ export default Vue.extend({
         return arr;
       }
 
-      // Filter out service deascriptions that don't include search term
+      // Filter out service descriptions that don't include search term
       const filtered = arr.filter((element) => {
         return element.services.find((service) => {
           return service.service_code
@@ -350,6 +350,20 @@ export default Vue.extend({
         params: { serviceId: service.id, clientId: this.id },
         query: { descriptionType: serviceDescription.type },
       });
+    },
+    canEditServiceDesc(servicedescription: ServiceDescription): boolean {
+      let permission: Permissions;
+      if (servicedescription.type === ServiceType.REST) {
+        permission = Permissions.EDIT_REST;
+      } else if (servicedescription.type === ServiceType.WSDL) {
+        permission = Permissions.EDIT_WSDL;
+      } else if (servicedescription.type === ServiceType.OPENAPI3) {
+        permission = Permissions.EDIT_OPENAPI3;
+      } else {
+        return false;
+      }
+
+      return this.$store.getters.hasPermission(permission);
     },
     switchChanged(
       event: unknown,

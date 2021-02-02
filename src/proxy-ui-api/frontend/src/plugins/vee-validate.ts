@@ -81,3 +81,10 @@ extend('xrdIdentifier', {
   validate: (value) => allowedIdentifierPattern.test(value),
   message: () => i18n.t('customValidation.invalidXrdIdentifier') as string,
 });
+
+const allowedEndpointPattern = new RegExp('^\\S*$'); // No spaces
+
+extend('xrdEndpoint', {
+  validate: (value) => allowedEndpointPattern.test(value),
+  message: () => i18n.t('customValidation.invalidEndpoint') as string,
+});
