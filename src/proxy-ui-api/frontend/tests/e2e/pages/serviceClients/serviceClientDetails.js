@@ -25,69 +25,74 @@
  */
 
 const commands = [
-{
-  setFilter: function (text) {
+  {
+    setFilter: function (text) {
       this.clearValue2('@filterField');
       this.setValue('@filterField', text);
       return this;
-  },
-  addService: function () {
+    },
+    addService: function () {
       this.click('@addServiceButton');
       return this;
-  },
-  removeAll: function () {
+    },
+    removeAll: function () {
       this.click('@removeAllButton');
       return this;
-  },
-  removeAccessRight: function (service) {
-    this.api.click(
+    },
+    removeAccessRight: function (service) {
+      this.api.click(
         '//table[.//th[contains(text(), "Access Rights Given")]]//tr[.//td[contains(text(), "' +
-        service +
-        '")]]//button[@data-test="access-right-remove"]',
-    );
-    return this;
-  },
-  verifyAccessRightVisible: function (service) {
-    this.api.waitForElementVisible(`//table[.//th[contains(text(), "Access Rights Given")]]//td[contains(text(),"${service}")]`);
-    return this;
-  },
-  verifyAccessRightNotPresent: function (service) {
-    this.api.waitForElementNotPresent(`//table[.//th[contains(text(), "Access Rights Given")]]//td[contains(text(),"${service}")]`);
-    return this;
-  },
-  close: function () {
-      this.click('@closeButton');
-      return this;
-  },
-}
-];
-
-
-var addServiceCommands = 
-  {
-    setSearch: function (text) {
-      this.clearValue2('@searchField');
-      this.setValue('@searchField', text);
+          service +
+          '")]]//button[@data-test="access-right-remove"]',
+      );
       return this;
     },
-    selectService: function (service) {
-      this.api.click('//tr[@data-test="access-right-toggle" and .//td[contains(text(), "'+service+'")]]//div[contains(@class, "v-input--selection-controls__ripple")]');
+    verifyAccessRightVisible: function (service) {
+      this.api.waitForElementVisible(
+        `//table[.//th[contains(text(), "Access Rights Given")]]//td[contains(text(),"${service}")]`,
+      );
       return this;
     },
-    addSelected: function () {
-      this.click('@addButton');
-      return this;
-    },
-    cancel: function () {
-      this.click('@cancelButton');
+    verifyAccessRightNotPresent: function (service) {
+      this.api.waitForElementNotPresent(
+        `//table[.//th[contains(text(), "Access Rights Given")]]//td[contains(text(),"${service}")]`,
+      );
       return this;
     },
     close: function () {
       this.click('@closeButton');
       return this;
     },
-};
+  },
+];
 
+var addServiceCommands = {
+  setSearch: function (text) {
+    this.clearValue2('@searchField');
+    this.setValue('@searchField', text);
+    return this;
+  },
+  selectService: function (service) {
+    this.api.click(
+      '//tr[@data-test="access-right-toggle" and .//td[contains(text(), "' +
+        service +
+        '")]]//div[contains(@class, "v-input--selection-controls__ripple")]',
+    );
+    return this;
+  },
+  addSelected: function () {
+    this.click('@addButton');
+    return this;
+  },
+  cancel: function () {
+    this.click('@cancelButton');
+    return this;
+  },
+  close: function () {
+    this.click('@closeButton');
+    return this;
+  },
+};
 
 module.exports = {
   url: (subsystemId) =>
@@ -113,23 +118,21 @@ module.exports = {
   },
   sections: {
     addServicesPopup: {
-      selector: '//div[contains(@class, "v-dialog--active") and .//span[@data-test="dialog-title" and contains(text(), "Add service")]]',
+      selector:
+        '//div[contains(@class, "v-dialog--active") and .//span[@data-test="dialog-title" and contains(text(), "Add service")]]',
       locateStrategy: 'xpath',
       commands: [addServiceCommands],
       elements: {
         searchField: {
-          selector:
-            '//input[@data-test="search-service-client"]',
+          selector: '//input[@data-test="search-service-client"]',
           locateStrategy: 'xpath',
         },
         addButton: {
-          selector:
-            '//button[@data-test="dialog-save-button"]',
+          selector: '//button[@data-test="dialog-save-button"]',
           locateStrategy: 'xpath',
         },
         cancelButton: {
-          selector:
-            '//button[@data-test="dialog-cancel-button"]',
+          selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath',
         },
         closeButton: {
@@ -137,7 +140,7 @@ module.exports = {
             '//div[contains(@class, "v-card__title")]//i[@id="dlg-close-x"]',
           locateStrategy: 'xpath',
         },
-      }
-    }
-  }
+      },
+    },
+  },
 };

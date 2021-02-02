@@ -25,10 +25,8 @@
  */
 
 module.exports = {
-  tags: ['ss', 'clients', 'serviceclients'],
-  'Security server service clients check services': (
-    browser,
-  ) => {
+  tags: ['ss', 'clients', 'serviceclient2'],
+  'Security server service clients check services': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -43,7 +41,7 @@ module.exports = {
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    // Navigate to service client 
+    // Navigate to service client
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestClient');
@@ -52,39 +50,32 @@ module.exports = {
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     serviceClientsPage.openServiceClient('TestCom');
-  
+
     // check displayed info
 
     browser.assert.containsText(
       '//table[contains(@class, "service-client-margin")]//td[contains(@class, "identifier-wrap")]',
       'TestCom',
     );
-    browser.assert.containsText(
-      '//table[contains(@class, "service-client-margin")]//td[contains(@class, "identifier-wrap")]',
-      'TestClient',
+    browser.waitForElementVisible(
+      '//table[contains(@class, "service-client-margin")]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',
     );
- 
-    browser.assert.containsText(
-      '//table[contains(@class, "service-client-margin")]//th[contains(@class, "identifier-wrap")]',
-      'Access Rights Given',
+
+    browser.waitForElementVisible(
+      '//table[contains(@class, "service-client-margin")]//th[contains(text(), "Access Rights Given")]',
     );
-    browser.assert.containsText(
-      '//table[contains(@class, "service-client-margin")]//th[contains(@class, "identifier-wrap")]',
-      'Service code',
+    browser.waitForElementVisible(
+      '//table[contains(@class, "service-client-margin")]//th[contains(text(), "Service code")]',
     );
-    browser.assert.containsText(
-      '//table[contains(@class, "service-client-margin")]//th[contains(@class, "identifier-wrap")]',
-      'Title',
+    browser.waitForElementVisible(
+      '//table[contains(@class, "service-client-margin")]//th[contains(text(), "Title")]',
     );
-     
-    serviceClientDetails.verifyAccessRightVisible('testOp1'); 
+
+    serviceClientDetails.verifyAccessRightVisible('testOp1');
 
     browser.end();
-
   },
-  'Security server service clients add access rights': (
-    browser,
-  ) => {
+  'Security server service clients add access rights': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -100,7 +91,7 @@ module.exports = {
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    // Navigate to service client 
+    // Navigate to service client
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestClient');
@@ -109,25 +100,36 @@ module.exports = {
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     serviceClientsPage.openServiceClient('TestCom');
-  
+
     serviceClientDetails.verifyAccessRightVisible('testOp1');
- 
+
     // add service, filter and cancel
 
     serviceClientDetails.addService();
     browser.waitForElementVisible(addServicesPopup);
-    browser.waitForElementVisible('//tr[contains(@class, "service-row")]//td[contains(text(), "testOp2")]');
-    browser.waitForElementVisible('//tr[contains(@class, "service-row")]//td[contains(text(), "testOpA")]');
-    browser.waitForElementVisible('//tr[contains(@class, "service-row")]//td[contains(text(), "testOpX")]');
+    browser.waitForElementVisible(
+      '//tr[contains(@class, "service-row")]//td[contains(text(), "testOp2")]',
+    );
+    browser.waitForElementVisible(
+      '//tr[contains(@class, "service-row")]//td[contains(text(), "testOpA")]',
+    );
+    browser.waitForElementVisible(
+      '//tr[contains(@class, "service-row")]//td[contains(text(), "testOpX")]',
+    );
     addServicesPopup.setSearch('testOpX');
-    browser.waitForElementVisible('//tr[contains(@class, "service-row")]//td[contains(text(), "testOpX")]');
-    browser.waitForElementNotPresent('//tr[contains(@class, "service-row")]//td[contains(text(), "testOp2")]');
-    browser.waitForElementNotPresent('//tr[contains(@class, "service-row")]//td[contains(text(), "testOpA")]');
+    browser.waitForElementVisible(
+      '//tr[contains(@class, "service-row")]//td[contains(text(), "testOpX")]',
+    );
+    browser.waitForElementNotPresent(
+      '//tr[contains(@class, "service-row")]//td[contains(text(), "testOp2")]',
+    );
+    browser.waitForElementNotPresent(
+      '//tr[contains(@class, "service-row")]//td[contains(text(), "testOpA")]',
+    );
     addServicesPopup.selectService('testOpX');
     addServicesPopup.cancel();
 
     serviceClientDetails.verifyAccessRightNotPresent('testOpX');
-
 
     // add service, success
 
@@ -143,7 +145,6 @@ module.exports = {
     mainPage.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightVisible('testOpX');
-
 
     // add multiple services
 
@@ -163,11 +164,8 @@ module.exports = {
     serviceClientDetails.verifyAccessRightVisible('testOpA');
 
     browser.end();
-
   },
-  'Security server service clients remove access rights': (
-    browser,
-  ) => {
+  'Security server service clients remove access rights': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -175,7 +173,8 @@ module.exports = {
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
     const serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
     const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
-    const removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
+    const removeAllAccessRightsPopup =
+      mainPage.section.removeAllAccessRightsPopup;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -184,7 +183,7 @@ module.exports = {
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    // Navigate to service client 
+    // Navigate to service client
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestClient');
@@ -193,14 +192,13 @@ module.exports = {
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     serviceClientsPage.openServiceClient('TestCom');
-  
-     // Remove access right, cancel
- 
+
+    // Remove access right, cancel
+
     serviceClientDetails.removeAccessRight('testOp2');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.cancel();
     serviceClientDetails.verifyAccessRightVisible('testOp2');
-
 
     // Remove access right, confirm
 
@@ -218,7 +216,6 @@ module.exports = {
     serviceClientDetails.verifyAccessRightVisible('testOp1');
     serviceClientDetails.verifyAccessRightVisible('testOpA');
     serviceClientDetails.verifyAccessRightVisible('testOpX');
-
 
     // Remove all, cancel
 
@@ -245,7 +242,6 @@ module.exports = {
     serviceClientDetails.verifyAccessRightNotPresent('testOpX');
 
     browser.end();
-
   },
   'Security server service clients list shows wsdl service with access rights': (
     browser,
