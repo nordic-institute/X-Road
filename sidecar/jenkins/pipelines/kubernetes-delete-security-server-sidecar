@@ -11,7 +11,7 @@ pipeline {
                     sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
                 }
             }
-        }
+        } 
         stage('Delete deployment') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {

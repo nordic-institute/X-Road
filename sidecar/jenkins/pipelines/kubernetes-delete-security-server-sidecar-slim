@@ -5,7 +5,7 @@ pipeline {
         string(description: "Volume claim name", name: "VOLUME_CLAIM", defaultValue: "${params?.VOLUME_CLAIM}")
     }
     stages {
-        stage('Check if consumer is deployed on kubernetes ') {
+      stage('Check if consumer is deployed on kubernetes ') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar-slim'
