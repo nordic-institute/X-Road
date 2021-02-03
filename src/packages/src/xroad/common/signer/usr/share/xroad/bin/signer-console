@@ -7,7 +7,7 @@ fi
 
 . /etc/xroad/services/signer-console.conf
 
-cmd="${JAVA_HOME}/bin/java"
+cmd="java"
 if [[ -t 0 && -x /usr/bin/rlwrap ]]; then
   cmd="/usr/bin/rlwrap $cmd"
 fi

@@ -28,6 +28,7 @@ package ee.ria.xroad.signer;
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.signer.certmanager.OcspClientWorker;
@@ -58,6 +59,10 @@ import static ee.ria.xroad.signer.protocol.ComponentNames.SIGNER;
  */
 @Slf4j
 public final class SignerMain {
+
+    private static final String APP_NAME = "xroad-signer";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create()
@@ -92,8 +97,8 @@ public final class SignerMain {
     }
 
     private static void startup() throws Exception {
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
         int signerPort = SystemProperties.getSignerPort();
-
         log.info("Starting Signer on port {}...", signerPort);
 
         actorSystem = ActorSystem.create(SIGNER, getConf(signerPort));

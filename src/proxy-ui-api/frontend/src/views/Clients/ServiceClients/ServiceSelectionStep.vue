@@ -31,7 +31,7 @@
         :label="$t('serviceClients.serviceSelectionStep')"
         single-line
         hide-details
-        data-test="search-service-client"
+        data-test="search-service-client-service"
         class="search-input"
         autofocus
       >
@@ -90,7 +90,7 @@
 
       <large-button
         @click="$emit('set-step')"
-        data-test="next-button"
+        data-test="previous-button"
         outlined
         class="previous-button"
         >{{ $t('action.previous') }}</large-button

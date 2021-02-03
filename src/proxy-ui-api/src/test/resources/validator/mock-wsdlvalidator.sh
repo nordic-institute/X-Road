@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 filename="$1"
 
 if [ "$filename" = "src/test/resources/wsdl/error.wsdl" -o "$filename" = "file:src/test/resources/wsdl/error.wsdl" ]; then

@@ -129,31 +129,26 @@ export default Vue.extend({
     done(): void {
       this.$emit('done');
     },
-    generateCsr(): void {
+    async generateCsr(): Promise<void> {
       const tokenId = this.$store.getters.csrTokenId;
-      this.disableDone = false;
       if (this.keyAndCsr) {
         // Create key and CSR
-        this.$store.dispatch('generateKeyAndCsr', tokenId).then(
-          () => {
-            // noop
-          },
-          (error) => {
-            this.disableDone = true;
-            this.$store.dispatch('showError', error);
-          },
-        );
+        try {
+          await this.$store.dispatch('generateKeyAndCsr', tokenId);
+          this.disableDone = false;
+        } catch (error) {
+          this.disableDone = true;
+          await this.$store.dispatch('showError', error);
+        }
       } else {
         // Create only CSR
-        this.$store.dispatch('generateCsr').then(
-          () => {
-            // noop
-          },
-          (error) => {
-            this.disableDone = true;
-            this.$store.dispatch('showError', error);
-          },
-        );
+        try {
+          await this.$store.dispatch('generateCsr');
+          this.disableDone = false;
+        } catch (error) {
+          this.disableDone = true;
+          await this.$store.dispatch('showError', error);
+        }
       }
     },
   },

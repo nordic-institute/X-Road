@@ -55,7 +55,7 @@
 
         <div class="dlg-edit-row">
           <ValidationProvider
-            rules="required"
+            rules="required|xrdEndpoint"
             ref="path"
             name="path"
             class="validation-provider dlg-row-input"

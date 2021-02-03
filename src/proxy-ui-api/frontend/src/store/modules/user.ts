@@ -37,7 +37,7 @@ import {
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
-import { routes } from '@/router';
+import routes from '@/routes';
 import i18n from '@/i18n';
 
 export interface UserState {

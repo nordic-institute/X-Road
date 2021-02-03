@@ -26,6 +26,7 @@
 package ee.ria.xroad.centerui;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.commonui.UIServices;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
@@ -40,6 +41,9 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
  */
 public final class CenterUIServices {
 
+    private static final String APP_NAME = "xroad-center";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
     private static final Logger LOG =
             LoggerFactory.getLogger(CenterUIServices.class);
 
@@ -67,6 +71,7 @@ public final class CenterUIServices {
      */
     public static void start() throws Exception {
         LOG.info("start()");
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
 
         init();
 
