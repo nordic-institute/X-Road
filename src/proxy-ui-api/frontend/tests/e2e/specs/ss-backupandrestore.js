@@ -114,7 +114,7 @@ const createBackup = async (browser) => {
   mainPage.closeSnackbar();
 
   return createdBackupFileName;
-}
+};
 
 module.exports = {
   tags: ['ss', 'backupandrestore'],
@@ -189,7 +189,7 @@ module.exports = {
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
     backupFileAlreadyExistsDialog.cancel();
-    browser.waitForElementNotVisible(backupFileAlreadyExistsDialog)
+    browser.waitForElementNotVisible(backupFileAlreadyExistsDialog);
 
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
