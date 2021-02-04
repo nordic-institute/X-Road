@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.19  
+Version: 2.20  
 Doc. ID: IG-CS
 
 ---
@@ -41,51 +41,53 @@ Doc. ID: IG-CS
 | 02.09.2020 | 2.17    | Improve database setup instructions. | Ilkka Seppälä
 | 23.09.2020 | 2.18    | List database users. | Ilkka Seppälä
 | 29.09.2020 | 2.19    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
+| 19.01.2021 | 2.20    | Add instructions for using an alternative Java distribution. | Jarkko Hyöty
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1. Introduction](#1-introduction)
-  - [1.1 Target Audience](#11-target-audience)
-  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  - [1.3 References](#13-references)
-- [2. Installation](#2-installation)
-  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  - [2.2 Reference Data](#22-reference-data)
-  - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
-  - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Prepare for Installation](#25-prepare-for-installation)
-  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.6 Remote Database Installation](#26-remote-database-installation)
-  - [2.7 Setup Package Repository](#27-setup-package-repository)
-  - [2.8 Package Installation](#28-package-installation)
-  - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
-  - [2.10 Installing the Support for Monitoring](#210-installing-the-support-for-monitoring)
-  - [2.11 Remote Database Post-Installation Tasks](#211-remote-database-post-installation-tasks)
-  - [2.12 Post-Installation Checks](#212-post-installation-checks)
-- [3 Initial Configuration](#3-initial-configuration)
-  - [3.1 Reference Data](#31-reference-data)
-  - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-  - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-- [4 Additional configuration](#4-additional-configuration)
-  - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
-- [5 Installation Error Handling](#5-installation-error-handling)
-  - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
-  - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-  - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-  - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
-- [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
-- [Annex B Database Users](#annex-b-database-users)
-- [Annex C Deployment Options](#annex-c-deployment-options)
-  - [C.1 General](#c1-general)
-  - [C.2 Local Database](#c2-local-database)
-  - [C.3 Remote Database](#c3-remote-database)
-  - [C.4 Remote Database Cluster](#c4-remote-database-cluster)
-  - [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
-  - [C.6 Summary](#c6-summary)
-- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+* [License](#license)
+* [1. Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+* [2. Installation](#2-installation)
+  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Prepare for Installation](#25-prepare-for-installation)
+  * [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
+  * [2.6 Remote Database Installation](#26-remote-database-installation)
+  * [2.7 Setup Package Repository](#27-setup-package-repository)
+  * [2.8 Package Installation](#28-package-installation)
+  * [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
+  * [2.10 Installing the Support for Monitoring](#210-installing-the-support-for-monitoring)
+  * [2.11 Remote Database Post-Installation Tasks](#211-remote-database-post-installation-tasks)
+  * [2.12 Post-Installation Checks](#212-post-installation-checks)
+* [3 Initial Configuration](#3-initial-configuration)
+  * [3.1 Reference Data](#31-reference-data)
+  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+* [4 Additional configuration](#4-additional-configuration)
+  * [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+* [5 Installation Error Handling](#5-installation-error-handling)
+  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
+  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+* [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
+* [Annex B Database Users](#annex-b-database-users)
+* [Annex C Deployment Options](#annex-c-deployment-options)
+  * [C.1 General](#c1-general)
+  * [C.2 Local Database](#c2-local-database)
+  * [C.3 Remote Database](#c3-remote-database)
+  * [C.4 Remote Database Cluster](#c4-remote-database-cluster)
+  * [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
+  * [C.6 Summary](#c6-summary)
+* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -162,10 +164,11 @@ Requirements for software and settings:
 
 ### 2.4 Preparing OS
 
-- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. 
+- Add an X-Road system administrator user (reference data: 1.3) whom all roles in the user interface are granted to. 
 
-  Add the new user with the command: `sudo adduser username`.  
-  User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS).
+  Add the new user with the command: `sudo adduser username`.
+
+  User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS). Do not use the user name `xroad`, it is reserved for the X-Road system user.
 
 - Set the operating system locale.
 
@@ -230,25 +233,39 @@ Edit `/etc/xroad.properties` contents. See the example below. Replace the parame
 ### 2.7 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-
-  ```
-  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-  ```
+```
+curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+```
 
 Add X-Road package repository (**reference data: 1.1**)
+```
+sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+```
 
-  ```
-  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-  ```
+Optionally, add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
+```
+curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
+sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
+```
 
 ### 2.8 Package Installation
 
-Issue the following commands to install the central server packages:
+Update package repository metadata:
+```
+sudo apt update
+```
 
-  ```
-  sudo apt-get update
-  sudo apt-get install xroad-centralserver
-  ```
+If using the AdoptOpenJDK Java distribution, install the Java runtime environment and set it as the default java:
+```
+sudo apt install adoptopenjdk-8-hotspot-jre
+sudo update-java-alternatives -s adoptopenjdk-8-hotspot-jre-amd64
+```
+
+Issue the following commands to install the central server packages:
+```
+sudo apt-get update
+sudo apt-get install xroad-centralserver
+```
 
 Upon the first installation of the central server software, the system asks for the following information.
 
