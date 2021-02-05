@@ -14,14 +14,14 @@
 * [2 Securing Sidecar container](#2-securing-sidecar-container)
   * [2.1 Securing Host Operating System](#21-securing-host-operating-system)
     * [2.1.1 Host configuration](#211-host-configuration)
-      * [2.1.1.1 Ensure auditing is configured for the Docker daemon](#2111-ensure-auditing-is-configured-for-the-docker-daemon)
-      * [2.1.1.2 Secure Docker socket file](#2112-secure-docker-socket-file)
-      * [2.1.1.3 Secure Docker daemon socket connection](#2113-secure-docker-daemon-socket-connection)
+      * [2.1.1.1 Ensure separate partition for Docker data](#2111-ensure-separate-partition-for-docker-data)
+      * [2.1.1.2 Ensure auditing is configured for the Docker daemon](#2112-ensure-auditing-is-configured-for-the-docker-daemon)
+      * [2.1.1.3 Secure Docker socket file](#2113-secure-docker-socket-file)
+      * [2.1.1.4 Secure Docker daemon socket connection](#2114-secure-docker-daemon-socket-connection)
     * [2.1.2 Docker Daemon configuration](#212-docker-daemon-configuration)
-      * [2.1.2.1 Ensure network traffic is restricted between containers](#2121-ensure-network-traffic-is-restricted-between-containers)
-      * [2.1.2.2 Enable user namespace support](#2122-enable-user-namespace-support)
-      * [2.1.2.3 Ensure live restore is enabled](#2123-ensure-live-restore-is-enabled)
-      * [2.1.2.4 Ensure Userland Proxy is disabled](#2124-ensure-userland-proxy-is-disabled)
+      * [2.1.2.1 Enable user namespace support](#2121-enable-user-namespace-support)
+      * [2.1.2.2 Ensure live restore is enabled](#2122-ensure-live-restore-is-enabled)
+      * [2.1.2.3 Ensure Userland Proxy is disabled](#2123-ensure-userland-proxy-is-disabled)
   * [2.2 Docker security best practices](#22-docker-security-best-practices)
     * [2.2.1 Restrict Runtime Capabilities](#221-restrict-runtime-capabilities)
     * [2.2.2 Restrict Resource Limits](#222-restrict-resource-limits)
@@ -79,7 +79,7 @@ Below are the most common security pitfalls by category along with security reco
 
 #### 2.1.1 Host configuration
 
-##### 2.1.1.1 Ensure a separate partition for containers
+##### 2.1.1.1 Ensure separate partition for Docker data
 
 Docker's data directory is located at `/var/lib/docker`. This directory could fill up quickly causing both Docker and the host to become unusable.
 
