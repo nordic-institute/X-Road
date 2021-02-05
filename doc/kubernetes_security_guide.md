@@ -21,7 +21,7 @@
 * [5 Network policies](#5-network-policies)
    * [5.1 Create Network policies](#51-create-network-policies)
 * [6 Pod Security Policies](#6-pod-security-policies)
-   * [6.1 Pod Security Policias in AWS EKS](#61-pod-security-policias-in-aws-eks)
+   * [6.1 Pod Security Polices in AWS EKS](#61-pod-security-policias-in-aws-eks)
    * [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
 * [7 Monitoring](#7-monitoring)
 * [8 Backups](#8-backups)
@@ -92,7 +92,7 @@ volumes:
 ## 3.2 Secrets as environment variables
 
 This example shows how to create a secret for the Security Server Sidecar as environment variables with sensitive data.
-- Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
+- Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
 ```bash
 apiVersion: v1
 kind: Secret
@@ -314,7 +314,7 @@ spec:
 ```
 - Apply the changes in the manifests.
 
-- Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**reference Data: 3.1, 4.5**):
+- Create a NetworkPolicy to deny all the ingress traffic for the Primary Pod (**Reference Data: 3.1, 4.5**):
 ``` yaml
 kind: NetworkPolicy
 apiVersion: networking.k8s.io/v1
@@ -385,7 +385,7 @@ The most relevant pod security policies to enforce are:
 - Enforce non-root users: Prevent privilege escalation: We can disable it by setting the flag `allowPrivilegeEscalation: false`. This flag is recommended to set even if the container is run as a non-root user.We can enforce to run the container as non-root user by setting the rule MustRunAsNonRoot under the flag runAsUser. However, running the sidecar requires the container to run as root so we cannot use MustRunAsNonRoot for now.
 - Prevent hostPath volumes: Mounting volumes using hostPath poses a serious risk of accessing the host file system by attackers. Nevertheless, if we need to use them, we can allow only with specified directories and permissions with the flag allowedHostPaths.
 
-## 6.1 Pod Security Policias in AWS EKS
+## 6.1 Pod Security Polices in AWS EKS
 Kubernetes does not enable pod security policies by default. To enforce them every time a new pod is created in the cluster, you need to enable the Pod Security Policy at the cluster level via an admission controller. AWS EKS from version 1.13 supports the Kubernetes admission controller with a default privileged policy named eks.privileged. We can verify that the default policy exist by running:
 ```
 kubectl describe psp eks.privileged
