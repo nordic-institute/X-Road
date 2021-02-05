@@ -12,7 +12,7 @@
 * [2 Reference Data](#2-reference-data)
 * [3 Handling passwords and secrets](#3-handling-passwords-and-secrets)
    * [3.1 Secrets as volume](#31-secrets-as-volume)
-   * [3.2 Secrets as environmental variables](#32-secrets-as-environmental-variables)
+   * [3.2 Secrets as environment variables](#32-secrets-as-environment-variables)
 * [4 User accounts](#4-user-accounts)
    * [4.1 Create a kubeconfig](#41-create-a-kubeconfig)
    * [4.2 Grant Cluster access to users](#42-grant-cluster-access-to-users)
