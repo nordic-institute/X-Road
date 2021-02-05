@@ -91,7 +91,7 @@ volumes:
 
 ## 3.2 Secrets as environment variables
 
-This example shows how to create a secret for the Security Server Sidecar environment variables with sensitive data.
+This example shows how to create a secret for the Security Server Sidecar as environment variables with sensitive data.
 - Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
 ```bash
 apiVersion: v1
