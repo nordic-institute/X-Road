@@ -370,7 +370,7 @@ The table below shows us a comparison with the main differences and when it is r
 
 |     | **AWS EBS**                                          | AWS EFS                                   |
 | --- | ---------------------------------------------------- | ----------------------------------------- |
-| Price | General Purpose SSD(gp2) Volumes:  $0.10 per GB-month of provisioned storage.EBS Snapchots: $0.05 per GB-month of data stored. | Standard Storage (GB-Month) : $0.30. |
+| Price | Cheaper | Expensier |
 | Storage  | 16 TB max.No limits in file size.Data stored stays in the same availability zone.Replicas are made within the availability zone for higher durability. | No Limits.47,9TB Maximun file size.Data stored in AWS EFS stays in the region.Replicas are made within the region. |
 | Performance | Manually scaled without stopping the instance.It's faster, baseline performance of 3 IOPS per GB for General Purpose volume | Automatically scaled.Supports up to 7000 file system operations per second. |
 | Data access | Can only be mounted in a single EC2 instance. EBS PV provides only ReadWriteOnce access mode. (this means it can only be used by a single pod at the same time).Multi attach it's a new feature but it's only available in us-east-1, us-west-2, eu-west-1, and ap-northeast-2 regions. | Can be mounted in multiple EC2 (from 1 to 1000) instances an accessed at the same time. EFS PV provides ReadWriteMany access mode. |
