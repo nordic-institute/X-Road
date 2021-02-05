@@ -31,7 +31,7 @@
 # 1 Introduction
 ## 1.1 Target Audience
 The intended audience of this Security User Guide are X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar.
-This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md).
+This document will discuss how to secure the installation of a Security Server Sidecar cluster explained in the [Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md).
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker, Kubernetes, AWS EKS and X-Road.
 
 # 2 Reference Data
