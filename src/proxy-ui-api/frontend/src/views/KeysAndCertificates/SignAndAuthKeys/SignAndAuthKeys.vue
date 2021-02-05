@@ -154,6 +154,9 @@ export default Vue.extend({
           if (key.name) {
             return key.name.toLowerCase().includes(mysearch);
           }
+          if (key.id) {
+            return key.id.toLowerCase().includes(mysearch);
+          }
           return false;
         });
         token.keys = keys;
