@@ -17,6 +17,7 @@
       * [2.1.1.1 Ensure a separate partition for containers](#2111-ensure-a-separate-partition-for-containers)
       * [2.1.1.2 Ensure auditing is configured for the Docker daemon](#2112-ensure-auditing-is-configured-for-the-docker-daemon)
       * [2.1.1.3 Secure Docker socket file](#2113-secure-docker-socket-file)
+      * [2.1.1.4 Secure Docker daemon socket connection](#2114-secure-docker-daemon-socket-connection)
     * [2.1.2 Docker Daemon configuration](#212-docker-daemon-configuration)
       * [2.1.2.1 Ensure network traffic is restricted between containers](#2121-ensure-network-traffic-is-restricted-between-containers)
       * [2.1.2.2 Enable user namespace support](#2122-enable-user-namespace-support)
@@ -164,6 +165,14 @@ docker ps --quiet --all | xargs docker inspect --format '{{ .Id }}: Volumes={{ .
 ```
 
 The command should return no results.
+
+##### 2.1.1.4 Secure Docker daemon socket connection
+
+We should make sure to avoid exposing the Docker socket to the Internet without additional security measures. The Docker daemon can be reached either through a local socket or HTTPS socket, so it is strongly recommended to protect the Docker daemon socket connection and only allow connections from authenticated clients.
+
+If external access to the Docker daemon is required, we should ensure that TLS authentication is configured to restrict access to the Docker daemon via IP address and port. More information can be found on the Docker documentation about how to set up [TLS authentication for the Docker daemon connection](https://docs.docker.com/engine/security/https/).
+
+We should also be wary of exposing SSH ports, and instead use VPN-only or private network access, high random port numbers or web proxy authentication.
 
 #### 2.1.2 Docker Daemon configuration
 
