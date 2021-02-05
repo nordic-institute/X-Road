@@ -255,6 +255,7 @@ Installing the kubernetes dashboard could have potential security risks:
 - The installation recommended in the EKS docs tells users to authenticate when connecting to the dashboard by fetching the authentication token for the dashboard’s cluster service account, which, again, may have cluster-admin privileges. That means a service account token with full cluster privileges and whose use cannot be traced to a human is now floating around outside the cluster.
 - Everyone who can access the dashboard can make any queries or changes permitted by the service’s RBAC role.
 - The Kubernetes Dashboard has been the subject of a number of CVEs. Because of its access to the cluster’s Kubernetes API and its lack of internal controls, vulnerabilities can be extremely dangerous.
+
 # 5 Network policies
 Network policies are objects which allow to explicitly state which traffic is permitted between groups of pods and other network endpoints in a Kubernetes cluster so that all non-conforming traffic will be blocked. It is a Kubernetes equivalent of a cluster-level firewall.
 
