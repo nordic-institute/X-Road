@@ -14,10 +14,9 @@
 * [2 Securing Sidecar container](#2-securing-sidecar-container)
   * [2.1 Securing Host Operating System](#21-securing-host-operating-system)
     * [2.1.1 Host configuration](#211-host-configuration)
-      * [2.1.1.1 Ensure a separate partition for containers](#2111-ensure-a-separate-partition-for-containers)
-      * [2.1.1.2 Ensure auditing is configured for the Docker daemon](#2112-ensure-auditing-is-configured-for-the-docker-daemon)
-      * [2.1.1.3 Secure Docker socket file](#2113-secure-docker-socket-file)
-      * [2.1.1.4 Secure Docker daemon socket connection](#2114-secure-docker-daemon-socket-connection)
+      * [2.1.1.1 Ensure auditing is configured for the Docker daemon](#2111-ensure-auditing-is-configured-for-the-docker-daemon)
+      * [2.1.1.2 Secure Docker socket file](#2112-secure-docker-socket-file)
+      * [2.1.1.3 Secure Docker daemon socket connection](#2113-secure-docker-daemon-socket-connection)
     * [2.1.2 Docker Daemon configuration](#212-docker-daemon-configuration)
       * [2.1.2.1 Ensure network traffic is restricted between containers](#2121-ensure-network-traffic-is-restricted-between-containers)
       * [2.1.2.2 Enable user namespace support](#2122-enable-user-namespace-support)
@@ -193,19 +192,15 @@ More information about the Docker daemon configuration can be found at the [Dock
 
 We will go through the most relevant Docker daemon configuration options to secure Security Server Sidecar container.
 
-##### 2.1.2.1 Ensure network traffic is restricted between containers
-
-By default, unrestricted network traffic is enabled between all containers on the same host, which means that each container has the potential of reading all packets across the container network on the same host. To avoid this, we can restrict all inter-container communication by adding `"icc": false` to the Docker daemon configuration file.
-
-##### 2.1.2.2 Enable user namespace support
+##### 2.1.2.1 Enable user namespace support
 
 Linux namespaces provide isolation for running processes. However, we should not share the host's user namespaces with containers running on it. For containers whose processes must run as the root user within the container, we can re-map this user to a non-root user on the Docker host. We can do that by adding `"userns-remap": "default"` to the Docker daemon configuration file, if we want Docker to create a non-root user for us, or using "user:group" notation to remap to an existing non-root host user.
 
-##### 2.1.2.3 Ensure live restore is enabled
+##### 2.1.2.2 Ensure live restore is enabled
 
 By default, when the Docker daemon terminates, it shuts down running containers. We should allow the Security Server Sidecar container to continue running even if the Docker daemon is not up to improve uptime during Docker daemon updates for example. We can do that by adding `"live-restore": true` to the Docker daemon configuration file.
 
-##### 2.1.2.4 Ensure Userland Proxy is disabled
+##### 2.1.2.3 Ensure Userland Proxy is disabled
 
 We should disable the use of userland proxy process in Linux if it's not necessary to allow a container to reach another container under the same host by forwarding host ports to containers and replace it with iptables rules to reduce the attack surface. We can do that by adding `"userland-proxy": false` to the Docker daemon configuration file.
 
@@ -318,7 +313,7 @@ We can check whether the default network bridge has been configured to restrict 
 docker network ls --quiet | xargs docker network inspect --format '{{ .Name }}: {{ .Options }}' 
 ```
 
-The command should return `com.docker.network.bridge.enable_icc:false` for the default network bridge.
+The command should return `com.docker.network.bridge.enable_icc:false` for the default network bridge. Otherwise, we can restrict all inter-container communication by adding `"icc": false` to the Docker daemon configuration file.
 
 Containers connected to the same user-defined bridge network effectively expose all ports to each other.
 
