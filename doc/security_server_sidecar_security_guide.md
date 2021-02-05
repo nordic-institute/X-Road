@@ -194,7 +194,7 @@ Linux namespaces provide isolation for running processes. However, we should not
 
 ##### 2.1.2.3 Ensure live restore is enabled
 
-We should allow containers to continue running even if the Docker daemon is not to improve uptime during updates of the host for example. We can do that by adding `"live-restore": true` to the Docker daemon configuration file.
+By default, when the Docker daemon terminates, it shuts down running containers. We should allow the Security Server Sidecar container to continue running even if the Docker daemon is not up to improve uptime during Docker daemon updates for example. We can do that by adding `"live-restore": true` to the Docker daemon configuration file.
 
 ##### 2.1.2.4 Ensure Userland Proxy is disabled
 
@@ -214,14 +214,6 @@ When running the Security Server Sidecar container, it is recommended to drop NE
 
 ```bash
 docker run ... --cap-drop NET_RAW ...
-```
-
-Ensure containers are restricted from acquiring new privileges.
-
-The SETUID and SETGID capabilities can be overridden in a Docker container when changing the permissions of a binary executable through the use of the setuid bit. To prevent this, we should use the `--security-opt="no-new-privileges"` flag when running the Security Server Sidecar container.
-
-```bash
-docker run ... --security-opt="no-new-privileges" ...
 ```
 
 Note (1): The Security Server Sidecar requires the container to run as root to be able to run X-Road functionalities. Therefore, dropping other capabilities than NET_RAW when running the Sidecar container may result in the container to fail or not run as expected.
