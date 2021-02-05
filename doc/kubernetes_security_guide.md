@@ -57,7 +57,7 @@ The Secrets can be used with a Pod in three ways:
 It is required to use the first option to store the SSH keys and the second option to store the database password. The third option is only required if the image is in a private repository (that is not the case).
 
 ## 3.1 Secrets as volume
-If you don't have an ssh key you can create one by running:
+If you don't have an existing SSH key, you can create one by running:
 ```
 ssh-keygen -f /path/to/.ssh/
 ```
