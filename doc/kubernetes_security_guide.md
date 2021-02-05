@@ -360,7 +360,7 @@ kubectl apply -f /path/to/file.yaml
 
 ```
 
-- List the NetworkPolicies by running:
+- List the NetworkPolicies by running (**Reference Data: 3.1):
 ```
 kubectl get networkpolicies -n <namespace name>
 
