@@ -61,7 +61,7 @@ If you don't have an existing SSH key, you can create one by running:
 ```
 ssh-keygen -f /path/to/.ssh/
 ```
-Then create a Kubernetes Secret for storing the ssh keys by running (**reference Data: 3.1, 3.14**);
+Then create a Kubernetes Secret to store the SSH key by running (**Reference Data: 3.1, 3.14**);
 ```
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
 ```
