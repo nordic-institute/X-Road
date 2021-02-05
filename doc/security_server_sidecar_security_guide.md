@@ -16,8 +16,12 @@
     * [2.1.1 Host configuration](#211-host-configuration)
       * [2.1.1.1 Ensure a separate partition for containers](#2111-ensure-a-separate-partition-for-containers)
       * [2.1.1.2 Ensure auditing is configured for the Docker daemon](#2112-ensure-auditing-is-configured-for-the-docker-daemon)
-      * [2.1.1.3 Secure Docker socket](#2113-secure-docker-socket)
+      * [2.1.1.3 Secure Docker socket file](#2113-secure-docker-socket-file)
     * [2.1.2 Docker Daemon configuration](#212-docker-daemon-configuration)
+      * [2.1.2.1 Ensure network traffic is restricted between containers](#2121-ensure-network-traffic-is-restricted-between-containers)
+      * [2.1.2.2 Enable user namespace support](#2122-enable-user-namespace-support)
+      * [2.1.2.3 Ensure live restore is enabled](#2123-ensure-live-restore-is-enabled)
+      * [2.1.2.4 Ensure Userland Proxy is disabled](#2124-ensure-userland-proxy-is-disabled)
   * [2.2 Docker security best practices](#22-docker-security-best-practices)
     * [2.2.1 Restrict Runtime Capabilities](#221-restrict-runtime-capabilities)
     * [2.2.2 Resource limits](#222-resource-limits)
@@ -37,7 +41,7 @@
 
 ## 1 Introduction
 
-In this document, we will go through the most relevant security recommendations to take into account to deploy Security Server Sidecar containers securely on a production environment.
+In this document, we will go through the most relevant security recommendations to take into account to deploy Security Server Sidecar containers securely on a Linux-based production environment.
 
 ### 1.1 Target Audience
 
@@ -119,9 +123,9 @@ service auditd restart
 
 Auditing can potentially generate large log files, so make sure those audit logs are rotated and archived periodically. It is recommended to have a separate partition created for audit logs to avoid filling up any other critical partition.
 
-##### 2.1.1.3 Secure Docker socket
+##### 2.1.1.3 Secure Docker socket file
 
-The Docker daemon runs as root so the Docker socket must be owned by root. Otherwise, a non-privileged user or process can interact with the Docker daemon and therefore with Docker containers running. Additionally, the Docker socket should only be group owned by docker group, whose users have root privileges for running containers and is created and managed by the Docker installer. For these reasons, the default Docker Unix socket file should be owned by root and group owned by docker to maintain the integrity of the socket file.
+The Docker daemon runs as root so the Docker socket file must be owned by root. Otherwise, a non-privileged user or process can interact with the Docker daemon and therefore with Docker containers running. Additionally, the Docker socket should only be group owned by docker group, whose users have root privileges for running containers and is created and managed by the Docker installer. For these reasons, the default Docker Unix socket file should be owned by root and group owned by docker to maintain the integrity of the socket file.
 
 We should make sure it is owned and group owned by root by running this command:
 
@@ -163,25 +167,38 @@ The command should return no results.
 
 #### 2.1.2 Docker Daemon configuration
 
-##### 2.1.2.1 Docker socket is not exposed or mounted inside any containers
+The Docker daemon is a background service running on Linux systems. On a typical Docker installation, the Docker daemon binary dockerd is started by a system utility such as systemctl. To start the Docker daemon service we can run:
 
-Docker socket `/var/run/docker.sock` is the UNIX socket that Docker is listening to. This is the primary entry point for the Docker API. The owner of this socket is root. Giving someone access to it is equivalent to giving unrestricted root access to the host.
+```bash
+sudo systemctl enable docker
+```
 
-##### 2.1.2.2 Ensure network traffic is restricted between containers on the default bridge
+We can also start the Docker daemon manually for example to test its configuration, by running `dockerd`. The service will run on the foreground so you will see its logs on the terminal.
 
-By default, unrestricted network traffic is enabled between all containers on the same host, which means that each container has the potential of reading all packets across the container network on the same host. To avoid this, we can restrict all inter-container communication by adding `"icc": false` to the Docker daemon configuration file located at `/etc/docker/daemon.json`.
+There are two ways to configure the Docker daemon:
 
-##### 2.1.2.3 Enable user namespace support
+* By editing its JSON configuration file, located at `/etc/docker/daemon.json`.
+* By using flags when starting dockerd service.
+
+More information about the Docker daemon configuration can be found at the [Docker documentation](https://docs.docker.com/config/daemon/).
+
+We will go through the most relevant Docker daemon configuration options to secure Security Server Sidecar container.
+
+##### 2.1.2.1 Ensure network traffic is restricted between containers
+
+By default, unrestricted network traffic is enabled between all containers on the same host, which means that each container has the potential of reading all packets across the container network on the same host. To avoid this, we can restrict all inter-container communication by adding `"icc": false` to the Docker daemon configuration file.
+
+##### 2.1.2.2 Enable user namespace support
 
 Linux namespaces provide isolation for running processes. However, we should not share the host's user namespaces with containers running on it. For containers whose processes must run as the root user within the container, we can re-map this user to a non-root user on the Docker host. We can do that by adding `"userns-remap": "default"` to the Docker daemon configuration file, if we want Docker to create a non-root user for us, or using "user:group" notation to remap to an existing non-root host user.
 
-##### 2.1.2.4 Ensure live restore is Enabled
+##### 2.1.2.3 Ensure live restore is enabled
 
 We should allow containers to continue running even if the Docker daemon is not to improve uptime during updates of the host for example. We can do that by adding `"live-restore": true` to the Docker daemon configuration file.
 
-##### 2.1.2.5 Ensure Userland Proxy is Disabled
+##### 2.1.2.4 Ensure Userland Proxy is disabled
 
-We should disable the use of userland proxy process in Linux if it's not necessary to allow a container to reach another container under the same host by forwarding host ports to containers and replace it with iptables rules to reduce the attack surface. We can do that by adding `"userland-proxy": false` to the Docker daemon configuration.
+We should disable the use of userland proxy process in Linux if it's not necessary to allow a container to reach another container under the same host by forwarding host ports to containers and replace it with iptables rules to reduce the attack surface. We can do that by adding `"userland-proxy": false` to the Docker daemon configuration file.
 
 ### 2.2 Docker security best practices
 
@@ -263,6 +280,14 @@ However, when deploying the Security Server Sidecar in a production environment,
 ### 3.2 User accounts
 
 The Docker installer creates a Unix group called docker. This group should be tightly controlled by the system administrator, since the users belonging to docker group are granted root capabilities. Users in this group can interact with the Docker daemon, as well as manipulate firewalls and other critical data, so users added to this group should be carefully scrutinized.
+
+We can check which users are currently members of the docker group by running the command:
+
+```bash
+getent group docker
+```
+
+It is important to remove any untrusted users from the docker group.
 
 ### 3.3 Network and firewalls
 
