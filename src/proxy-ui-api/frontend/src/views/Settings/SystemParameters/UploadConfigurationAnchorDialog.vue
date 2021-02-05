@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="showPreview" persistent max-width="850">
+  <v-dialog v-if="showPreview" :value="showPreview" persistent max-width="850">
     <template v-slot:activator="{}">
       <file-upload
         accepts=".xml"

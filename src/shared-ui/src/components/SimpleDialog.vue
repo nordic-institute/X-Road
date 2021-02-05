@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" :width="width" persistent>
+  <v-dialog v-if="dialog" :value="dialog" :width="width" persistent>
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
