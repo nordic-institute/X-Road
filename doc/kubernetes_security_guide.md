@@ -54,7 +54,7 @@ The Secrets can be used with a Pod in three ways:
 - As container environment variable.
 - By the kubectl when pulling images for the Pod.
 
-It is required to use the first option to store the SSH keys and the second option to store the database password. The third option is only required if the image is in a private repository (that is not the case).
+For the Security Server Sidecar container, the first option is used to store the SSH keys and the second option is used to store the database password. The third option is only required if the Sidecar image would be in a private repository, which is not the case.
 
 ## 3.1 Secrets as volume
 If you don't have an existing SSH key, you can create one by running:
