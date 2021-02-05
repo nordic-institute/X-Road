@@ -66,7 +66,9 @@ Then create a Kubernetes Secret to store the SSH key by running (**Reference Dat
 kubectl create secret generic <secret name> --from-file=private-key=/path/to/.ssh/id_rsa --from-file=public-key=/path/to/.ssh/id_rsa.pub --namespace=<namespace name>
 ```
 
-This secrets can be consumed in a similar way to volumes, for this you will have to include the Secret in the definition of volumes within the Pod deployment manifest, select the key and assign it permissions, then mount the volume in a folder on the container (**reference Data: 3.13, 3.14**):
+We can then consume these secrets as a volume in Kubernetes, i.e. by including the Secret under the definition of volumes in the Pod deployment manifest. We should define the key name, path and permissions, and then mount the volume on a path inside the container.
+
+Below is an example of using Secrets in a Pod deployment manifest file (**Reference Data: 3.13, 3.14**):
 ``` yaml
 [...]
 volumes:
