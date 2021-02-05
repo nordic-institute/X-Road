@@ -165,7 +165,7 @@ Amazon EKS uses IAM to provide authentication to your Kubernetes cluster (throug
 A kubeconfig file is a file used to configure access to Kubernetes when used in conjunction with the kubectl commandline tool.
 To create a kubeconfig file, first, it is required to be [authenticated](https://aws.amazon.com/premiumsupport/knowledge-center/authenticate-mfa-cli/) with the AWS CLI, then, open a terminal and run the following command (**reference Data: 3.21, 3.22**):
 ```
-aws eks --region <region-code> update-kubeconfig --name <cluster_name>
+aws eks --region <cluster region> update-kubeconfig --name <cluster name>
 ```
 
 Test the configuration, you should see one Kubernetes service:
