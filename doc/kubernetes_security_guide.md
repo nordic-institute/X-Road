@@ -36,7 +36,7 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 # 2 Reference Data
 
-Please check the reference data in [the kubernetes user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/XRDDEV-1419/doc/kubernetes_security_server_sidecar_user_guide.md#44-reference-data)
+Please check the Reference data in the [Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/XRDDEV-1419/doc/kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
 
 
 **Ref** | **Value**                                | **Explanation**
