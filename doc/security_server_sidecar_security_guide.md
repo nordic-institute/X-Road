@@ -24,7 +24,7 @@
       * [2.1.2.4 Ensure Userland Proxy is disabled](#2124-ensure-userland-proxy-is-disabled)
   * [2.2 Docker security best practices](#22-docker-security-best-practices)
     * [2.2.1 Restrict Runtime Capabilities](#221-restrict-runtime-capabilities)
-    * [2.2.2 Resource limits](#222-resource-limits)
+    * [2.2.2 Restrict Resource Limits](#222-restrict-resource-limits)
       * [2.2.2.1 Set Memory and CPU usage limits](#2221-set-memory-and-cpu-usage-limits)
       * [2.2.2.2 Set CPU priority threshold limits](#2222-set-cpu-priority-threshold-limits)
       * [2.2.2.3 Set PIDs limits](#2223-set-pids-limits)
@@ -222,7 +222,7 @@ docker run ... --cap-drop NET_RAW ...
 
 Note (1): The Security Server Sidecar requires the container to run as root to be able to run X-Road functionalities. Therefore, dropping other capabilities than NET_RAW when running the Sidecar container may result in the container to fail or not run as expected.
 
-#### 2.2.2 Resource Limits
+#### 2.2.2 Restrict Resource Limits
 
 ##### 2.2.2.1 Set Memory and CPU usage limits
 
