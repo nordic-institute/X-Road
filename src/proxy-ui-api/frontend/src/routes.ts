@@ -67,12 +67,16 @@ import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCe
 import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
 import AddServiceClientAccessRights from '@/views/Clients/ServiceClients/AddServiceClientAccessRightsWizard.vue';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
+import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
+import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import ClientTabs from '@/views/Clients/ClientTabs.vue';
 
 const routes: RouteConfig[] = [
   {
     path: '/',
     component: AppBase,
-    name: RouteName.BaseRoute,
     redirect: { name: RouteName.Clients },
     children: [
       {
@@ -80,6 +84,12 @@ const routes: RouteConfig[] = [
         components: {
           default: KeysAndCertificates,
           top: TabsBase,
+          subTabs: KeysAndCertificatesTabs,
+          alerts: AlertsContainer,
+        },
+        props: {
+          default: true,
+          subTabs: true,
         },
         meta: { permissions: [Permissions.VIEW_KEYS] },
         children: [
@@ -116,16 +126,26 @@ const routes: RouteConfig[] = [
       {
         name: RouteName.CreateApiKey,
         path: '/keys/apikey/create',
-        component: CreateApiKeyStepper,
-        props: true,
+        components: {
+          default: CreateApiKeyStepper,
+          alerts: AlertsContainer,
+        },
+        props: {
+          default: true,
+        },
         meta: { permissions: [Permissions.CREATE_API_KEY] },
       },
       {
         name: RouteName.GenerateInternalCSR,
         path: '/keys/tsl-cert/generate-csr',
-        component: GenerateInternalCsr,
+        components: {
+          default: GenerateInternalCsr,
+          alerts: AlertsContainer,
+        },
         meta: { permissions: [Permissions.GENERATE_INTERNAL_TLS_CSR] },
-        props: true,
+        props: {
+          default: true,
+        },
       },
       {
         name: RouteName.Diagnostics,
@@ -133,6 +153,7 @@ const routes: RouteConfig[] = [
         components: {
           default: Diagnostics,
           top: TabsBase,
+          alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.DIAGNOSTICS] },
       },
@@ -147,6 +168,11 @@ const routes: RouteConfig[] = [
         components: {
           default: Settings,
           top: TabsBase,
+          subTabs: SettingsTabs,
+          alerts: AlertsContainer,
+        },
+        props: {
+          subTabs: true,
         },
         children: [
           {
@@ -170,6 +196,7 @@ const routes: RouteConfig[] = [
         path: '/add-subsystem/:instanceId/:memberClass/:memberCode/:memberName',
         components: {
           default: AddSubsystem,
+          alerts: AlertsContainer,
         },
         props: {
           default: true,
@@ -181,6 +208,7 @@ const routes: RouteConfig[] = [
         path: '/add-client',
         components: {
           default: AddClient,
+          alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.ADD_CLIENT] },
       },
@@ -189,6 +217,7 @@ const routes: RouteConfig[] = [
         path: '/add-member/:instanceId/:memberClass/:memberCode',
         components: {
           default: AddMember,
+          alerts: AlertsContainer,
         },
         props: {
           default: true,
@@ -203,9 +232,12 @@ const routes: RouteConfig[] = [
         components: {
           default: Subsystem,
           top: TabsBase,
+          subTabs: SubsystemTabs,
+          alerts: AlertsContainer,
         },
         props: {
           default: true,
+          subTabs: true,
         },
         children: [
           {
@@ -253,8 +285,10 @@ const routes: RouteConfig[] = [
         components: {
           default: Client,
           top: TabsBase,
+          subTabs: ClientTabs,
+          alerts: AlertsContainer,
         },
-        props: { default: true },
+        props: { default: true, subTabs: true },
         children: [
           {
             name: RouteName.MemberDetails,
@@ -278,6 +312,7 @@ const routes: RouteConfig[] = [
         components: {
           default: Clients,
           top: TabsBase,
+          alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.VIEW_CLIENTS] },
       },
@@ -286,6 +321,7 @@ const routes: RouteConfig[] = [
         path: '/certificate/:hash',
         components: {
           default: CertificateDetails,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -294,6 +330,7 @@ const routes: RouteConfig[] = [
         path: '/token/:id',
         components: {
           default: TokenDetails,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -302,6 +339,7 @@ const routes: RouteConfig[] = [
         path: '/key/:id',
         components: {
           default: KeyDetails,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -310,6 +348,7 @@ const routes: RouteConfig[] = [
         path: '/client-tls-certificate/:id/:hash',
         components: {
           default: ClientTlsCertificate,
+          alerts: AlertsContainer,
         },
         props: { default: true },
         meta: {
@@ -322,6 +361,7 @@ const routes: RouteConfig[] = [
         props: { default: true },
         components: {
           default: ServiceClientAccessRights,
+          alerts: AlertsContainer,
         },
       },
       {
@@ -330,6 +370,7 @@ const routes: RouteConfig[] = [
         props: { default: true },
         components: {
           default: AddServiceClientAccessRights,
+          alerts: AlertsContainer,
         },
       },
       {
@@ -337,6 +378,7 @@ const routes: RouteConfig[] = [
         path: '/localgroup/:clientId/:groupId',
         components: {
           default: LocalGroup,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -345,6 +387,7 @@ const routes: RouteConfig[] = [
         path: '/service-description/:id',
         components: {
           default: ServiceDescriptionDetails,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -353,6 +396,7 @@ const routes: RouteConfig[] = [
         path: '/service',
         components: {
           default: Service,
+          alerts: AlertsContainer,
         },
         redirect: '/service/:clientId/:serviceId/parameters',
         props: { default: true },
@@ -379,6 +423,7 @@ const routes: RouteConfig[] = [
         path: '/service/:clientId/:serviceId/endpoints/:id',
         components: {
           default: EndpointDetails,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -387,6 +432,7 @@ const routes: RouteConfig[] = [
         path: '/service/:clientId/:serviceId/endpoints/:id/accessrights',
         components: {
           default: EndpointAccessRights,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -395,6 +441,7 @@ const routes: RouteConfig[] = [
         path: '/generate-csr/:keyId/:tokenType',
         components: {
           default: GenerateCertificateSignRequest,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -403,6 +450,7 @@ const routes: RouteConfig[] = [
         path: '/add-key/:tokenId/:tokenType',
         components: {
           default: AddKey,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },
@@ -411,6 +459,7 @@ const routes: RouteConfig[] = [
         path: '/internal-tls-certificate',
         components: {
           default: InternalCertificateDetails,
+          alerts: AlertsContainer,
         },
         props: { default: true },
       },

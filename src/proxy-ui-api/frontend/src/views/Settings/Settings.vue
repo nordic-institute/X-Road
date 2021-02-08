@@ -25,12 +25,6 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <sub-tabs :tab="tab">
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
-        $t(tab.name)
-      }}</v-tab>
-    </sub-tabs>
-    <alerts-container />
     <div class="content xrd-view-common">
       <router-view />
     </div>
@@ -39,43 +33,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import SubTabs from '@/components/layout/SubTabs.vue';
 
-export default Vue.extend({
-  components: {
-    AlertsContainer,
-    SubTabs,
-  },
-  data() {
-    return {
-      tab: null,
-    };
-  },
-  computed: {
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'system',
-          name: 'tab.settings.systemParameters',
-          to: {
-            name: RouteName.SystemParameters,
-          },
-        },
-        {
-          key: 'backup',
-          name: 'tab.settings.backupAndRestore',
-          to: {
-            name: RouteName.BackupAndRestore,
-          },
-        },
-      ];
-      return this.$store.getters.getAllowedTabs(allTabs);
-    },
-  },
-});
+export default Vue.extend({});
 </script>
 <style lang="scss" scoped>
 .content {

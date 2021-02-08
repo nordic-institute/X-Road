@@ -24,42 +24,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import LargeButton from './LargeButton.vue';
+import Alert from './Alert.vue';
 
 export default {
-  title: 'X-Road/Large button',
-  component: LargeButton,
+  title: 'X-Road/Alert component',
+  component: Alert,
   argTypes: {
-    outlined: { control: 'boolean' },
-    disabled: { control: 'boolean' },
-    loading: { control: 'boolean' },
-    block: { control: 'boolean' },
-    large: { control: 'boolean' },
-    click: { action: 'click' },
-    color: { control: 'text' },
+    show: { control: 'boolean' },
+    message: { control: 'text' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { LargeButton },
-  template:
-    '<large-button @click="click" v-bind="$props">{{label}}</large-button>',
+  components: { Alert },
+  template: `<alert v-bind="$props"> </alert>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-  primary: true,
-  label: 'Hello world!',
-};
-
-export const Secondary = Template.bind({});
-Secondary.args = {
-  label: 'This is a very very long label for a button',
-};
-
-export const Gradient = Template.bind({});
-Gradient.args = {
-  label: 'Gradient button',
-  gradient: true,
+  show: true,
+  message: 'Error message!',
 };

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="842" scrollable persistent>
+  <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
     <v-card class="xrd-card px-0 mx-0">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
