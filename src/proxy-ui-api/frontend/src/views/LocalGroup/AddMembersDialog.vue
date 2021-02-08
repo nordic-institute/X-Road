@@ -25,7 +25,7 @@
  -->
 <template>
   <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
-    <v-card class="xrd-card px-0 mx-0">
+    <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
@@ -56,6 +56,7 @@
                       :label="$t('name')"
                       outlined
                       autofocus
+                      clearable
                       hide-details
                       class="flex-input"
                     ></v-text-field>
@@ -83,6 +84,7 @@
                       v-model="memberCode"
                       :label="$t('member_code')"
                       outlined
+                      clearable
                       hide-details
                       class="flex-input"
                     ></v-text-field>
@@ -91,13 +93,14 @@
                     v-model="subsystemCode"
                     :label="$t('subsystem_code')"
                     outlined
+                    clearable
                     hide-details
                     class="flex-input"
                   ></v-text-field>
                 </div>
 
                 <div class="search-wrap">
-                  <large-button @click="search()">{{
+                  <large-button @click="search()" :loading="loading">{{
                     $t('action.search')
                   }}</large-button>
                 </div>
@@ -132,7 +135,14 @@
             </tr>
           </tbody>
         </table>
-        <div v-if="members.length < 1 && !noResults" class="empty-row"></div>
+
+        <div v-if="loading" class="empty-row">
+          <p>{{ $t('localGroup.searching') }}</p>
+        </div>
+        <div
+          v-else-if="members.length < 1 && !noResults"
+          class="empty-row"
+        ></div>
 
         <div v-if="noResults" class="empty-row">
           <p>{{ $t('localGroup.noResults') }}</p>
@@ -171,6 +181,7 @@ const initialState = () => {
     selectedIds: [] as string[],
     noResults: false,
     checkbox1: true,
+    loading: false,
   };
 };
 
@@ -223,6 +234,9 @@ export default Vue.extend({
         query = query + `&member_class=${this.memberClass}`;
       }
 
+      this.loading = true;
+      this.members = [];
+      this.selectedIds = [];
       api
         .get<Client[]>(query)
         .then((res) => {
@@ -244,6 +258,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
 

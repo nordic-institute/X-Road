@@ -216,7 +216,8 @@
     "localGroupAdded": "Local group added",
     "searchOptions": "Search options",
     "addSelected": "Add selected",
-    "noResults": "Your search found no results."
+    "noResults": "Your search found no results.",
+    "searching": "Searching..."
   },
   "services": {
     "addWsdl": "Add WSDL",
