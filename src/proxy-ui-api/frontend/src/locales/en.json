@@ -216,8 +216,7 @@
     "localGroupAdded": "Local group added",
     "searchOptions": "Search options",
     "addSelected": "Add selected",
-    "noResults": "Your search found no results.",
-    "searching": "Searching..."
+    "noResults": "Your search found no results."
   },
   "services": {
     "addWsdl": "Add WSDL",
@@ -336,7 +335,8 @@
     "done": "Done",
     "next": "Next",
     "submit": "Submit",
-    "finish": "Finish"
+    "finish": "Finish",
+    "searching": "Searching..."
   },
   "keys": {
     "token": "Token:",

@@ -137,7 +137,7 @@
         </table>
 
         <div v-if="loading" class="empty-row">
-          <p>{{ $t('localGroup.searching') }}</p>
+          <p>{{ $t('action.searching') }}</p>
         </div>
         <div
           v-else-if="members.length < 1 && !noResults"
