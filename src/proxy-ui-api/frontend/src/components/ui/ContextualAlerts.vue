@@ -152,31 +152,17 @@ export default Vue.extend({
   },
   methods: {
     errorCode(notification: Notification): string | undefined {
-      if (notification.errorObject?.response?.data?.error?.code) {
-        return notification.errorObject.response.data.error.code;
-      }
-
-      return undefined;
+      return notification.errorObject?.response?.data?.error?.code;
     },
 
     errorMetadata(notification: Notification): string[] {
-      if (notification.errorObject?.response?.data?.error?.metadata) {
-        return notification.errorObject.response.data.error.metadata;
-      }
-
-      return [];
+      return notification.errorObject?.response?.data?.error?.metadata ?? [];
     },
 
     errorId(notification: Notification): string | undefined {
-      if (
-        notification.errorObject?.response?.headers['x-road-ui-correlation-id']
-      ) {
-        return notification.errorObject.response.headers[
-          'x-road-ui-correlation-id'
-        ];
-      }
-
-      return undefined;
+      return notification.errorObject?.response?.headers[
+        'x-road-ui-correlation-id'
+      ];
     },
 
     hasValidationErrors(notification: Notification): boolean {

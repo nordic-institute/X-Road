@@ -32,7 +32,7 @@
       :key="notification.timeAdded"
       :timeout="notification.timeout"
       v-model="notification.show"
-      color="#E6F8F1"
+      :color="colors.Success10"
       multi-line
       class="success-snackbar"
       :min-width="760"
@@ -50,7 +50,7 @@
         </div>
         <v-btn
           icon
-          color="#211e1e"
+          :color="colors.Black100"
           data-test="close-snackbar"
           @click="closeSuccess(notification.timeAdded)"
         >
@@ -64,6 +64,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
+import { Colors } from '@/global';
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -73,6 +74,11 @@ export default Vue.extend({
       'successMessageRaw',
       'successNotifications',
     ]),
+  },
+  data() {
+    return {
+      colors: Colors,
+    };
   },
   methods: {
     closeSuccess(id: number): void {
