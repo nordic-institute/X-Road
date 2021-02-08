@@ -25,10 +25,11 @@
  * THE SOFTWARE.
  */
 import SimpleDialog from './SimpleDialog.vue';
+import Alert from './Alert.vue';
 
 export default {
   title: 'X-Road/Simple dialog',
-  component: SimpleDialog,
+  components: { SimpleDialog, Alert },
   argTypes: {
     dialog: { control: 'boolean' },
     loading: { control: 'boolean' },
@@ -41,6 +42,7 @@ export default {
     width: { control: 'number' },
     save: { action: 'save' },
     cancel: { action: 'cancel' },
+    message: { control: 'text' },
   },
 };
 
@@ -48,7 +50,8 @@ const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { SimpleDialog },
   template: `<simple-dialog @cancel="cancel" @save="save" v-bind="$props">
-    <template slot="content">{{content}}</template>"
+  <template slot="alert">{{alert}}</template>"
+    <template slot="content"><div>{{content}}</div></template>"
     </simple-dialog>`,
 });
 
@@ -70,6 +73,31 @@ LongText.args = {
   loading: false,
   title: 'Title text',
   showClose: true,
+  content: `This is a very, very long text: Lorem ipsum dolor sit amet, 
+  consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
+  Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit. 
+  Ut ac arcu at libero vestibulum condimentum ut sed mi. Nullam egestas 
+  eu risus at sollicitudin. Sed eleifend pretium eleifend. Vivamus 
+  aliquet quam et gravida iaculis. Duis quis gravida nibh, vel faucibus felis.`,
+};
+
+const Template2 = (args, { argTypes }) => ({
+  props: Object.keys(argTypes),
+  components: { SimpleDialog, Alert },
+  template: `<simple-dialog @cancel="cancel" @save="save" v-bind="$props">
+  <template slot="alert"><alert :show="true" v-bind="$props"/></template>"
+    <template slot="content"><div>{{content}}</div></template>"
+    </simple-dialog>`,
+});
+
+export const AlertTest = Template2.bind({});
+
+AlertTest.args = {
+  dialog: true,
+  loading: false,
+  title: 'Title text',
+  showClose: true,
+  message: 'Error message!',
   content: `This is a very, very long text: Lorem ipsum dolor sit amet, 
   consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
   Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit. 

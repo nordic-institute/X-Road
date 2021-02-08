@@ -33,9 +33,10 @@
     :block="block"
     :large="large"
     :text="text"
+    :color="color"
+    depressed
     height="40"
     rounded
-    color="primary elevation-0"
     class="large-button"
     v-bind:class="{ gradient: showGradient }"
     @click="click"
@@ -56,6 +57,11 @@ export default Vue.extend({
     outlined: {
       type: Boolean,
       default: false,
+    },
+    // Button color
+    color: {
+      type: String,
+      default: 'primary',
     },
     // Set button disabled state
     disabled: {

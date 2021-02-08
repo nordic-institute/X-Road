@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" :width="width" persistent>
+  <v-dialog v-if="dialog" :value="dialog" :width="width" persistent>
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
@@ -39,6 +39,9 @@
           @click="cancel()"
         />
       </v-card-title>
+      <div class="alert-slot">
+        <slot name="alert"></slot>
+      </div>
       <v-card-text class="content-wrapper">
         <slot name="content"></slot>
       </v-card-text>
@@ -157,5 +160,9 @@ export default Vue.extend({
 .close-button {
   margin-left: auto;
   margin-right: 0;
+}
+.alert-slot {
+  margin-left: 20px;
+  margin-right: 20px;
 }
 </style>
