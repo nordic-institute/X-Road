@@ -24,17 +24,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>
-    <clientsDataTable />
-  </v-layout>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import ClientsDataTable from './ClientsDataTable.vue';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
+
 export default Vue.extend({
   components: {
-    ClientsDataTable,
+    SubTabs,
+  },
+  data() {
+    return {
+      tab: null,
+    };
+  },
+  computed: {
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'system',
+          name: 'tab.settings.systemParameters',
+          to: {
+            name: RouteName.SystemParameters,
+          },
+          permissions: [Permissions.VIEW_SYS_PARAMS],
+        },
+        {
+          key: 'backup',
+          name: 'tab.settings.backupAndRestore',
+          to: {
+            name: RouteName.BackupAndRestore,
+          },
+          permissions: [Permissions.BACKUP_CONFIGURATION],
+        },
+      ];
+      return this.$store.getters.getAllowedTabs(allTabs);
+    },
   },
 });
 </script>

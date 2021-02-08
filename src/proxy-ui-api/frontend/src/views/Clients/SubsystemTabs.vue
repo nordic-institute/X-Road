@@ -24,50 +24,25 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <div class="content xrd-view-common">
-      <v-flex mb-4 class="title-action identifier-wrap">
-        <div v-if="client && client.owner" class="xrd-view-title mb-3">
-          {{ client.member_name }} ({{ $t('client.owner') }})
-        </div>
-        <div v-else-if="client" class="xrd-view-title mb-3">
-          {{ client.member_name }} ({{ $t('client.member') }})
-        </div>
-
-        <div class="action-block">
-          <MakeOwnerButton
-            v-if="showMakeOwner"
-            :id="id"
-            @done="fetchClient"
-            class="first-button"
-          />
-          <DeleteClientButton v-if="showDelete" :id="id" />
-          <UnregisterClientButton
-            v-if="showUnregister"
-            :id="id"
-            @done="fetchClient"
-          />
-        </div>
-      </v-flex>
-
-      <router-view />
-    </div>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Permissions } from '@/global';
-import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
-import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
-import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
   components: {
-    UnregisterClientButton,
-    DeleteClientButton,
-    MakeOwnerButton,
+    SubTabs,
   },
   props: {
     id: {
@@ -75,17 +50,16 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+      confirmUnregisterClient: false as boolean,
+      unregisterLoading: false as boolean,
+    };
+  },
   computed: {
     ...mapGetters(['client']),
 
-    showMakeOwner(): boolean {
-      return (
-        this.client &&
-        this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
-        this.client.status === 'REGISTERED' &&
-        !this.client.owner
-      );
-    },
     showUnregister(): boolean {
       return (
         this.client &&
@@ -94,6 +68,7 @@ export default Vue.extend({
           this.client.status === 'REGISTRATION_IN_PROGRESS')
       );
     },
+
     showDelete(): boolean {
       if (
         !this.client ||
@@ -104,6 +79,57 @@ export default Vue.extend({
       }
 
       return this.$store.getters.hasPermission(Permissions.DELETE_CLIENT);
+    },
+
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'details',
+          name: 'tab.client.details',
+          to: {
+            name: RouteName.SubsystemDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'serviceClients',
+          name: 'tab.client.serviceClients',
+          to: {
+            name: RouteName.SubsystemServiceClients,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS],
+        },
+        {
+          key: 'services',
+          name: 'tab.client.services',
+          to: {
+            name: RouteName.SubsystemServices,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_SERVICES],
+        },
+        {
+          key: 'internalServers',
+          name: 'tab.client.internalServers',
+          to: {
+            name: RouteName.SubsystemServers,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
+        },
+        {
+          key: 'localGroups',
+          name: 'tab.client.localGroups',
+          to: {
+            name: RouteName.SubsystemLocalGroups,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS],
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
   created() {
@@ -125,16 +151,6 @@ export default Vue.extend({
   flex-direction: row;
   justify-content: space-between;
 }
-
-.action-block {
-  display: flex;
-  flex-direction: row;
-}
-
-.first-button {
-  margin-right: 20px;
-}
-
 .content {
   width: 1000px;
   margin-top: 30px;

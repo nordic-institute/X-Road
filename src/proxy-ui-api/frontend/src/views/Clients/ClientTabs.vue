@@ -24,17 +24,82 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>
-    <clientsDataTable />
-  </v-layout>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import ClientsDataTable from './ClientsDataTable.vue';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
+
 export default Vue.extend({
   components: {
-    ClientsDataTable,
+    SubTabs,
+  },
+  props: {
+    id: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
+  },
+  computed: {
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'details',
+          name: 'tab.client.details',
+          to: {
+            name: RouteName.MemberDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'internalServers',
+          name: 'tab.client.internalServers',
+          to: {
+            name: RouteName.MemberServers,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
+    },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.title-action {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.action-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.first-button {
+  margin-right: 20px;
+}
+
+.content {
+  width: 1000px;
+  margin-top: 30px;
+}
+</style>

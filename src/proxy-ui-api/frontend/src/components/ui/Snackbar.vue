@@ -32,11 +32,14 @@
       :key="notification.timeAdded"
       :timeout="notification.timeout"
       v-model="notification.show"
-      color="success"
+      :color="colors.Success10"
       multi-line
+      class="success-snackbar"
+      :min-width="760"
       @input="closeSuccess(notification.timeAdded)"
     >
       <div class="row-wrapper-top scrollable identifier-wrap">
+        <v-icon color="#0CC177">icon-Checker</v-icon>
         <div class="row-wrapper">
           <div v-if="notification.successMessageCode">
             {{ $t(notification.successMessageCode) }}
@@ -47,110 +50,12 @@
         </div>
         <v-btn
           icon
-          color="white"
+          :color="colors.Black100"
           data-test="close-snackbar"
           @click="closeSuccess(notification.timeAdded)"
         >
-          <v-icon dark>mdi-close-circle</v-icon>
+          <v-icon dark>icon-Close</v-icon>
         </v-btn>
-      </div>
-    </v-snackbar>
-
-    <!-- Error -->
-    <v-snackbar
-      data-test="indefinite-snackbar"
-      v-for="notification in errorNotifications"
-      :key="notification.timeAdded"
-      :timeout="notification.timeout"
-      v-model="notification.show"
-      color="error"
-      multi-line
-      @input="closeError(notification.timeAdded)"
-    >
-      <div class="row-wrapper-top scrollable identifier-wrap">
-        <div class="row-wrapper">
-          <!-- Show localised text by id -->
-          <div v-if="notification.errorMessageCode">
-            {{ $t(notification.errorMessageCode) }}
-          </div>
-
-          <!-- Show raw text -->
-          <div v-else-if="notification.errorMessageRaw">
-            {{ notification.errorMessageRaw }}
-          </div>
-
-          <!-- Show localised text by id from error object -->
-          <div v-else-if="notification.errorObject && errorCode(notification)">
-            {{ $t('error_code.' + errorCode(notification)) }}
-          </div>
-
-          <!-- If error doesn't have a text or localisation key then just print the error object -->
-          <div v-else-if="notification.errorObject">
-            {{ notification.errorObject }}
-          </div>
-
-          <!-- Show the error metadata if it exists -->
-          <div v-for="meta in errorMetadata(notification)" :key="meta">
-            {{ meta }}
-          </div>
-
-          <!-- Show validation errors -->
-          <ul v-if="hasValidationErrors(notification)">
-            <li
-              v-for="validationError in validationErrors(notification)"
-              :key="validationError.field"
-            >
-              {{ $t(`fields.${validationError.field}`) }}:
-              <template v-if="validationError.errorCodes.length === 1">
-                {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-              </template>
-              <template v-else>
-                <ul>
-                  <li
-                    v-for="errorCode in validationError.errorCodes"
-                    :key="`${validationError.field}.${errorCode}`"
-                  >
-                    {{ $t(`validationError.${errorCode}`) }}
-                  </li>
-                </ul>
-              </template>
-            </li>
-          </ul>
-
-          <!-- Error ID -->
-          <div v-if="errorId(notification)">
-            {{ $t('id') }}:
-            {{ errorId(notification) }}
-          </div>
-
-          <!-- count -->
-          <div v-if="notification.count > 1">
-            {{ $t('count') }}
-            {{ notification.count }}
-          </div>
-        </div>
-
-        <div class="buttons">
-          <template v-if="errorId(notification)">
-            <v-btn
-              outlined
-              class="id-button"
-              color="white"
-              data-test="copy-id-button"
-              @click.prevent="copyId(notification)"
-              >{{ $t('action.copyId') }}
-            </v-btn>
-          </template>
-
-          <v-btn
-            icon
-            color="white"
-            data-test="close-snackbar"
-            @click="closeError(notification.timeAdded)"
-          >
-            <v-icon dark>mdi-close-circle</v-icon>
-          </v-btn>
-        </div>
       </div>
     </v-snackbar>
   </div>
@@ -159,13 +64,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { toClipboard } from '@/util/helpers';
-import { Notification } from '@/ui-types';
-
-type ValidationError = {
-  field: string;
-  errorCodes: string[];
-};
+import { Colors } from '@/global';
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -173,73 +72,29 @@ export default Vue.extend({
     ...mapGetters([
       'successMessageCode',
       'successMessageRaw',
-      'errorNotifications',
       'successNotifications',
     ]),
   },
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
   methods: {
-    errorCode(notification: Notification): string | undefined {
-      if (notification.errorObject?.response?.data?.error?.code) {
-        return notification.errorObject.response.data.error.code;
-      }
-
-      return undefined;
-    },
-
-    errorMetadata(notification: Notification): string[] {
-      if (notification.errorObject?.response?.data?.error?.metadata) {
-        return notification.errorObject.response.data.error.metadata;
-      }
-
-      return [];
-    },
-
-    errorId(notification: Notification): string | undefined {
-      if (
-        notification.errorObject?.response?.headers['x-road-ui-correlation-id']
-      ) {
-        return notification.errorObject.response.headers[
-          'x-road-ui-correlation-id'
-        ];
-      }
-
-      return undefined;
-    },
-
-    hasValidationErrors(notification: Notification): boolean {
-      return (
-        notification.errorObject?.response?.data?.error?.validation_errors !==
-        undefined
-      );
-    },
-
-    validationErrors(notification: Notification): ValidationError[] {
-      const validationErrors =
-        notification.errorObject?.response?.data?.error?.validation_errors;
-      return Object.keys(validationErrors).map(
-        (field) =>
-          ({
-            field,
-            errorCodes: validationErrors[field],
-          } as ValidationError),
-      );
-    },
-
     closeSuccess(id: number): void {
       this.$store.commit('deleteSuccessNotification', id);
-    },
-    closeError(id: number): void {
-      this.$store.commit('deleteNotification', id);
-    },
-    copyId(notification: Notification): void {
-      const id = this.errorId(notification);
-      if (id) {
-        toClipboard(id);
-      }
     },
   },
 });
 </script>
+
+<style lang="scss">
+.success-snackbar > .v-snack__wrapper {
+  // Customised size for snackbar
+  min-height: 88px;
+  min-width: 760px;
+}
+</style>
 
 <style lang="scss" scoped>
 .row-wrapper-top {
@@ -247,24 +102,22 @@ export default Vue.extend({
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
+  padding-left: 14px;
 }
 .row-wrapper {
   display: flex;
   flex-direction: column;
   overflow: auto;
+  width: 100%;
   overflow-wrap: break-word;
-  justify-content: center;
+  justify-content: flex-start;
   margin-right: 30px;
-}
-
-.id-button {
-  margin-right: 10px;
-}
-
-.buttons {
-  height: 100%;
-  display: flex;
-  flex-direction: row;
+  margin-left: 26px;
+  color: #211e1e;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 18px;
+  line-height: 24px;
 }
 
 .scrollable {

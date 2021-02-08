@@ -25,8 +25,6 @@
  -->
 <template>
   <div class="xrd-view-common">
-    <alerts-container />
-
     <div class="inner-wrap">
       <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
       <v-layout align-center justify-center column fill-height elevation-0>
@@ -206,12 +204,8 @@ import {
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
 } from '@/openapi-types';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 export default Vue.extend({
-  components: {
-    AlertsContainer,
-  },
   data: () => ({
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,

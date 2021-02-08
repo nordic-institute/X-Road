@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,17 +25,86 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout align-center justify-center column>
-    <clientsDataTable />
-  </v-layout>
+  <div>
+    <!-- Error -->
+    <v-container fluid class="alerts-container" v-if="show">
+      <v-alert
+        data-test="contextual-modal-alert"
+        color="red"
+        border="left"
+        colored-border
+        class="alert"
+        icon="icon-Error-notification"
+      >
+        <div class="row-wrapper-top scrollable identifier-wrap">
+          <div class="row-wrapper">
+            <!-- Show localised text by id -->
+            <div>{{ message }}</div>
+          </div>
+        </div>
+      </v-alert>
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import ClientsDataTable from './ClientsDataTable.vue';
+
 export default Vue.extend({
-  components: {
-    ClientsDataTable,
+  props: {
+    // Alert visible / hidden
+    show: {
+      type: Boolean,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: false,
+    },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '../assets/colors';
+
+.alerts-container {
+  width: 1000px;
+  padding: 0;
+
+  & > * {
+    margin-top: 0;
+    margin-bottom: 4px;
+    border-radius: 0;
+  }
+  & > :first-child {
+    margin-top: 4px;
+  }
+}
+
+.alert {
+  margin-top: 16px;
+  border: solid 1px #dedce4;
+  border-radius: 4px;
+}
+
+.row-wrapper-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.row-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overflow-wrap: break-word;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
+}
+</style>
