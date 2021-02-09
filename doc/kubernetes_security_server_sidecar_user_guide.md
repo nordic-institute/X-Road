@@ -371,8 +371,8 @@ The table below shows us a comparison with the main differences and when it is r
 |     | **AWS EBS**                                          | AWS EFS                                   |
 | --- | ---------------------------------------------------- | ----------------------------------------- |
 | Price | Cheaper | Expensier |
-| Storage  | 16 TB max.No limits in file size.Data stored stays in the same availability zone.Replicas are made within the availability zone for higher durability. | No Limits.47,9TB Maximun file size.Data stored in AWS EFS stays in the region.Replicas are made within the region. |
-| Performance | Manually scaled without stopping the instance.It's faster, baseline performance of 3 IOPS per GB for General Purpose volume | Automatically scaled.Supports up to 7000 file system operations per second. |
+| Storage  | 16 TB max. No limits in file size. Data stored stays in the same availability zone. Replicas are made within the availability zone for higher durability. | No Limits.47,9TB Maximum file size. Data stored in AWS EFS stays in the region. Replicas are made within the region. |
+| Performance | Manually scaled without stopping the instance. It's faster, baseline performance of 3 IOPS per GB for General Purpose volume | Automatically scaled. Supports up to 7000 file system operations per second. |
 | Data access | Can only be mounted in a single EC2 instance. EBS PV provides only ReadWriteOnce access mode. (this means it can only be used by a single pod at the same time).Multi attach it's a new feature but it's only available in us-east-1, us-west-2, eu-west-1, and ap-northeast-2 regions. | Can be mounted in multiple EC2 (from 1 to 1000) instances an accessed at the same time. EFS PV provides ReadWriteMany access mode. |
 | Durability | 20 times more reliable than normal hard disks | Highly durable (No public SLA) |
 | Availability | 99.99% available. Cannot withstand availability zone failure without snapshots. | Highly available service. No public SLA. Every file system object is redundantly stored across multiple Availability Zones so it can survive one AZ failure. |
@@ -791,7 +791,7 @@ kubectl scale -n <namespace name> --replicas=<number replicas> deployment/<pod n
 The Secondary Pods will synchronize the configuration at initialization and through a cron job that runs every minute. Once the configuration is sync, the secondary Pods can process the messages independently of the primary one, this means that if the primary Pods crashes, the cron that synchronizes the configuration will fail but the Secondary Pods can continue to process the messages.
 
 # 5 Backup and Restore
-The backup system of the Security Servers described [here](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore)  is still valid for the installation using Kubernetes.
+The backup system of the Security Servers described in the [User Guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore) is also valid for the installation using Kubernetes.
 
 If your Kubernetes deployment uses volumes to store the configuration, you can back up each volume.
 As described in the [4.5.3 Kubernetes Volumes](#453-Kubernetes-volumes) section we will have 3 types of volume, each one with a way of create a backup:
