@@ -24,8 +24,26 @@
  * THE SOFTWARE.
  */
 
+const navigateToServiceClientsTab = (pages) => {
+  const {
+    browser,
+    mainPage,
+    clientInfo,
+    clientsTab,
+    serviceClientsPage,
+  } = pages;
+
+  mainPage.openClientsTab();
+  browser.waitForElementVisible(clientsTab);
+  clientsTab.openClient('TestClient');
+  browser.waitForElementVisible(clientInfo);
+  browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
+  clientInfo.openServiceClientsTab();
+  browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+};
+
 module.exports = {
-  tags: ['ss', 'clients', 'serviceclient2'],
+  tags: ['ss', 'clients', 'serviceclients'],
   'Security server service clients check services': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -33,6 +51,15 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
     const serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
+    const pages = {
+      browser,
+      frontPage,
+      mainPage,
+      clientsTab,
+      clientInfo,
+      serviceClientsPage,
+      serviceClientDetails,
+    };
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -41,14 +68,7 @@ module.exports = {
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    // Navigate to service client
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestClient');
-    browser.waitForElementVisible(clientInfo);
-    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+    navigateToServiceClientsTab(pages);
     serviceClientsPage.openServiceClient('TestCom');
 
     // check displayed info
@@ -83,6 +103,15 @@ module.exports = {
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
     const serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
     const addServicesPopup = serviceClientDetails.section.addServicesPopup;
+    const pages = {
+      browser,
+      frontPage,
+      mainPage,
+      clientsTab,
+      clientInfo,
+      serviceClientsPage,
+      serviceClientDetails,
+    };
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -91,14 +120,7 @@ module.exports = {
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    // Navigate to service client
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestClient');
-    browser.waitForElementVisible(clientInfo);
-    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+    navigateToServiceClientsTab(pages);
     serviceClientsPage.openServiceClient('TestCom');
 
     serviceClientDetails.verifyAccessRightVisible('testOp1');
@@ -175,6 +197,15 @@ module.exports = {
     const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
     const removeAllAccessRightsPopup =
       mainPage.section.removeAllAccessRightsPopup;
+    const pages = {
+      browser,
+      frontPage,
+      mainPage,
+      clientsTab,
+      clientInfo,
+      serviceClientsPage,
+      serviceClientDetails,
+    };
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -183,14 +214,7 @@ module.exports = {
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    // Navigate to service client
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestClient');
-    browser.waitForElementVisible(clientInfo);
-    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+    navigateToServiceClientsTab(pages);
     serviceClientsPage.openServiceClient('TestCom');
 
     // Remove access right, cancel
