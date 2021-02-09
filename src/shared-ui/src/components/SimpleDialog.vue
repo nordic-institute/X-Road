@@ -25,7 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" :width="width" persistent>
+  <v-dialog
+    v-if="dialog"
+    :value="dialog"
+    :width="width"
+    persistent
+    :scrollable="scrollable"
+  >
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
@@ -88,6 +94,11 @@ export default Vue.extend({
     dialog: {
       type: Boolean,
       required: true,
+    },
+    // Is the content scrollable
+    scrollable: {
+      type: Boolean,
+      default: false,
     },
     // Disable save button
     disableSave: {
