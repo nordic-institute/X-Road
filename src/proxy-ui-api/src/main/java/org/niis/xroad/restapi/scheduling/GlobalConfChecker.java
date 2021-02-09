@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
@@ -145,6 +146,15 @@ public class GlobalConfChecker {
         List<ApprovedTSAType> approvedTspTypes = globalConfFacade
                 .getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
         approvedTspTypes.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
+
+        for (TspType serverConfTsp : tsp) {
+            Optional<ApprovedTSAType> match = approvedTspTypes.stream().filter(
+                    globalConfTsp -> globalConfTsp.getName().equals(serverConfTsp.getName())).findAny();
+            if (match.isPresent() && match.get().getUrl() != serverConfTsp.getUrl()) {
+                log.debug("Detected changed TSP URL, Name: {}, Old URL: {}, New URL: {}",
+                        serverConfTsp.getName(), serverConfTsp.getUrl(), match.get().getUrl());
+            }
+        }
     }
 
     private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
