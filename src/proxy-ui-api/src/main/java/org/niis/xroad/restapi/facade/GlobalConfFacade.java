@@ -32,6 +32,7 @@ import ee.ria.xroad.common.conf.globalconf.ApprovedCAInfo;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -179,10 +180,17 @@ public class GlobalConfFacade {
     }
 
     /**
-     * {@link GlobalConf#getApprovedTsps(String)}}
+     * {@link GlobalConf#getApprovedTsps(String)}
      */
     public List<String> getApprovedTsps(String instanceIdentifier) {
         return GlobalConf.getApprovedTsps(instanceIdentifier);
+    }
+
+    /**
+     * {@link GlobalConf#getApprovedTspTypes(String)}
+     */
+    public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
+        return GlobalConf.getApprovedTspTypes(instanceIdentifier);
     }
 
     /**

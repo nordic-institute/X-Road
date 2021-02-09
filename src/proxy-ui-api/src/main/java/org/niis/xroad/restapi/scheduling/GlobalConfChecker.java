@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.scheduling;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
@@ -141,8 +142,9 @@ public class GlobalConfChecker {
 
         log.debug("Global conf instance: {}", globalConfFacade.getInstanceIdentifier());
         log.debug("List timestamping services in global conf");
-        List<String> approvedTsps = globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
-        approvedTsps.stream().forEach(t -> log.debug("ApprovedTsp: {}", t));
+        List<ApprovedTSAType> approvedTspTypes = globalConfFacade
+                .getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
+        approvedTspTypes.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
     }
 
     private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
