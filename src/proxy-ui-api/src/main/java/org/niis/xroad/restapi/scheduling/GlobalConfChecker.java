@@ -137,7 +137,7 @@ public class GlobalConfChecker {
 
         List<TspType> tsp = serverConf.getTsp();
         log.debug("List timestamping services in serverconf");
-        tsp.stream().forEach(t -> log.debug("TspType: {}", t));
+        tsp.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
 
         log.debug("Global conf instance: {}", globalConfFacade.getInstanceIdentifier());
         log.debug("List timestamping services in global conf");
