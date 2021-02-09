@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.scheduling;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
@@ -47,6 +48,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
@@ -132,6 +134,15 @@ public class GlobalConfChecker {
         } catch (Exception e) {
             throw translateException(e);
         }
+
+        List<TspType> tsp = serverConf.getTsp();
+        log.debug("List timestamping services in serverconf");
+        tsp.stream().forEach(t -> log.debug("TspType: {}", t));
+
+        log.debug("Global conf instance: {}", globalConfFacade.getInstanceIdentifier());
+        log.debug("List timestamping services in global conf");
+        List<String> approvedTsps = globalConfFacade.getApprovedTsps(globalConfFacade.getInstanceIdentifier());
+        approvedTsps.stream().forEach(t -> log.debug("ApprovedTsp: {}", t));
     }
 
     private SecurityServerId buildSecurityServerId(ClientId ownerId, String serverCode) {
