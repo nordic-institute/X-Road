@@ -17,9 +17,9 @@
    * [2.4 Requirements for the X-Road Security Server Sidecar](#24-requirements-for-the-x-road-security-server-sidecar)
    * [2.5 Network](#25-network)
    * [2.6 Installation](#26-installation)
-      * [2.6.2 Installation using setup script](#262-installation-using-setup-script)
-         * [2.6.2.1 Security Server Sidecar Slim](#2621-security-server-sidecar-slim)
-         * [2.6.2.2 Finnish settings](#2622-finnish-settings)
+      * [2.6.1 Installation using setup script](#261-installation-using-setup-script)
+         * [2.6.1.1 Security Server Sidecar Slim](#2611-security-server-sidecar-slim)
+         * [2.6.1.2 Finnish settings](#2612-finnish-settings)
       * [2.6.2 Installation using Dockerhub image](#262-installation-using-dockerhub-image)
    * [2.7 External database](#27-external-database)
       * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
@@ -138,7 +138,7 @@ In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source
 ## 2.6 Installation
 To install X-Road Security Server Sidecar we can run the script `setup_security_server_sidecar.sh` which will build and run the image. Alternatively one of the images published on Dockerhub can be used. Both methods result in the same running container.
 
-### 2.6.2 Installation using setup script
+### 2.6.1 Installation using setup script
 
 To install the Security Server Sidecar in a local development environment, run the script `setup_security_server_sidecar.sh` providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
 
@@ -173,11 +173,11 @@ The script `setup_security_server_sidecar.sh` will:
 
 Note (1): The installation using the setup script will only be available for linux systems, in case of Windows or Mac we should install it using the [dockerhub image](#262-installation-using-dockerhub-image).
 
-#### 2.6.2.1 Security Server Sidecar Slim
+#### 2.6.1.1 Security Server Sidecar Slim
 To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`. The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
 To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`
 
-#### 2.6.2.2 Finnish settings
+#### 2.6.1.2 Finnish settings
   To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the `setup_security_server_sidecar.sh` changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
 
 ### 2.6.2 Installation using Dockerhub image
