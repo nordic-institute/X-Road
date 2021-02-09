@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  13.11.2020 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
  24.12.2020 | 1.1     | Add description of features of different image versions         | Petteri Kivimäki
- 
+ 21.01.2021 | 1.0     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
 # Table of Contents
 * [1 Introduction](#1-introduction)
    * [1.1 Target Audience](#11-target-audience)
@@ -17,9 +17,9 @@
    * [2.4 Requirements for the X-Road Security Server Sidecar](#24-requirements-for-the-x-road-security-server-sidecar)
    * [2.5 Network](#25-network)
    * [2.6 Installation](#26-installation)
-      * [2.6.2 Installation using setup script](#262-installation-using-setup-script)
-         * [2.6.2.1 Security Server Sidecar Slim](#2621-security-server-sidecar-slim)
-         * [2.6.2.2 Finnish settings](#2622-finnish-settings)
+      * [2.6.1 Installation using setup script](#261-installation-using-setup-script)
+         * [2.6.1.1 Security Server Sidecar Slim](#2611-security-server-sidecar-slim)
+         * [2.6.1.2 Finnish settings](#2612-finnish-settings)
       * [2.6.2 Installation using Dockerhub image](#262-installation-using-dockerhub-image)
    * [2.7 External database](#27-external-database)
       * [2.7.1 Reconfigure external database address after initialization](#271-reconfigure-external-database-address-after-initialization)
@@ -45,14 +45,6 @@
    * [9.2 Container local database](#92-container-local-database)
    * [9.3 Remote database](#93-remote-database)
    * [9.4 High Availability Setup](#94-high-availability-setup)
-* [10 Kubernetes](#10-kubernetes)
-   * [10.1 Kubernetes jobs readiness, liveness and startup probes](#101-kubernetes-jobs-readiness-liveness-and-startup-probes)
-      * [10.1.1 Readiness probes](#1011-readiness-probes)
-      * [10.1.2 Liveness probes](#1012-liveness-probes)
-      * [10.1.3 Startup probes](#1013-startup-probes)
-   * [10.2 Kubernetes secrets](#102-kubernetes-secrets)
-      * [10.2.1 Create secret](#1021-create-secret)
-      * [10.2.2 Consume secret](#1022-consume-secret)
 
 # 1 Introduction
 ## 1.1 Target Audience
@@ -83,7 +75,7 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 
 All of the images can act as a provider or consumer Security Servers, but some of the images have less features available. The images with a country code suffix (e.g., `-fi`) come with a country-specific configuration. The images without a country code suffix come with the X-Road default configuration.
 
-**Feature**                      | **Sidecar** | **Sidecar Slim** | 
+**Feature**                      | **Sidecar** | **Sidecar Slim** |
 ---------------------------------|-------------|------------------|
 Consume services                 | Yes         | Yes              |
 Provide services                 | Yes         | Yes              |       
@@ -146,7 +138,7 @@ In | Admin | Security Server | <ui port> (**reference data 1.2**) | tcp | Source
 ## 2.6 Installation
 To install X-Road Security Server Sidecar we can run the script `setup_security_server_sidecar.sh` which will build and run the image. Alternatively one of the images published on Dockerhub can be used. Both methods result in the same running container.
 
-### 2.6.2 Installation using setup script
+### 2.6.1 Installation using setup script
 
 To install the Security Server Sidecar in a local development environment, run the script `setup_security_server_sidecar.sh` providing the parameters in the order shown (reference data in user guide 1.1, 1.2, 1.3, 1.4):
 
@@ -181,11 +173,11 @@ The script `setup_security_server_sidecar.sh` will:
 
 Note (1): The installation using the setup script will only be available for linux systems, in case of Windows or Mac we should install it using the [dockerhub image](#262-installation-using-dockerhub-image).
 
-#### 2.6.2.1 Security Server Sidecar Slim
+#### 2.6.1.1 Security Server Sidecar Slim
 To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`. The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
 To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`
 
-#### 2.6.2.2 Finnish settings
+#### 2.6.1.2 Finnish settings
   To install the Security Server Sidecar in a local development environment with Finnish settings, modify the image build in the `setup_security_server_sidecar.sh` changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
 
 ### 2.6.2 Installation using Dockerhub image
@@ -597,113 +589,3 @@ X-Road Security Server Sidecar supports a variety of cloud databases including A
 In production systems, it's rarely acceptable to have a single point of failure. Security Server supports provider side high-availability setup via the so-called internal load balancing mechanism. The setup works so that the same combination of <member>/<member class>/<member code>/<subsystem>/<service code> is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
 ![Security Server high availability](img/ss_high_availability.svg)
-
-
-# 10 Kubernetes
-## 10.1 Kubernetes jobs readiness, liveness and startup probes
-### 10.1.1 Readiness probes
-The readiness probes will perform a health check periodically in a specific time. If the health check fails, the pod will remain in a not ready state until the health check succeeds. The pod in a not ready state will be accessible through his private IP but not from the balancer and the balancer will not redirect any message to this pod. We use readiness probes instead of liveliness probes because with readiness probes we still can connect to the pod for configuring it (adding certificates...) instead of the liveliness probes that will restart the pod until the health check succeeds.
-
-The readiness probes are useful when the pod it's not ready to serve traffic but we don't want to restart it maybe because the pod needs to be configured to be ready,  for example,  adding the certificates.
-
-We will use the following parameters in the Kubernetes configuration file to set up the readiness probe:
- - initialDelaySeconds:  Number of seconds after the container has started before readiness probes are initiated. For this example we will use 200 seconds to have enough time for the image be downloaded and the services are ready.
- - periodSeconds:  How often (in seconds) to perform the probe.
- - successThreshold: Minimum consecutive successes for the probe to be considered successful after having failed.
- - failureThreshold:  When a probe fails, Kubernetes will try failureThreshold times before giving up and mark the container as not ready.
- - port: Healthcheck port
- - path: Healthcheck path
-
-  ```bash
-  [...]
-containers:
-  readinessProbe:
-    httpGet:
-      path: /
-      port: 5588
-    initialDelaySeconds: 200
-    periodSeconds: 30
-    successThreshold: 1
-    failureThreshold: 1
-  [...]
-  ```
-
-### 10.1.2 Liveness probes
-The liveness probes are used to know when restart a container. The liveness probes will perform a health check each period of time and restart the container if it fails.
-
-The liveness probes are useful when the pod is not in a live state and can not be accessed through the UI, for example, due to the pod being caught in a deadlock or one of the services running in the container has stopped.
-
-The parameters for the liveness probes are the same than for the readiness probes, but using the port 80 to check if nginx is running and serving the application instead of using port 5588 to check if the Sidecar pod is ready to serve traffic. It is recommended also to increase the failureThreshold value.
-
-  ```bash
-  [...]
-containers:
-livenessProbe:
-  httpGet:
-   path: /
-   port: 80
-  initialDelaySeconds: 100
-  periodSeconds: 10
-  successThreshold: 1
-  failureThreshold: 5
-  [...]
-  ```
-
-### 10.1.3 Startup probes
-The startup probes indicate whether the application within the container is started. All other probes are disabled if a startup probe is provided until it succeeds.
-
-Startup probes are useful for Pods that have containers that take a long time to come into service. This is not really useful in the Sidecar pod because it takes to short to start.
-In a different scenario where the Sidecar container would take a long time to start, the startup probe can be used in combination with the liveness probe, so that it waits until the startup probe has succeeded before starting the liveness probe. The tricky part is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worse case startup time.
-
- ```bash
- [...]
-containers:
-livenessProbe:
- httpGet:
-  path: /
-  port: 80
- periodSeconds: 10
- successThreshold: 1
- failureThreshold: 50
- [...]
- ```
-
-## 10.2 Kubernetes secrets
-### 10.2.1 Create secret
-In this example, we are going to create a secret for the X-Road Security Server Sidecar environment variables with sensitive data.
-- Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables.
-- Replace <namespace_name> with the name of the namespace if it's different from `default`. If we want to use `default` namespace, we can delete the line.
-```bash
-apiVersion: v1
-kind: Secret
-metadata:
-  name: secret-sidecar-variables
-  namespace: <namespace_name>
-type: Opaque
-stringData:
-  XROAD_TOKEN_PIN: "1234"
-  XROAD_ADMIN_USER: "xrd"
-  XROAD_ADMIN_PASSWORD: "secret"
-  XROAD_DB_HOST: "<db_host>"
-  XROAD_DB_PWD: "<db_password>"
-  XROAD_DB_PORT: "5432"
-  XROAD_LOG_LEVEL: "INFO"
-```
-- Apply the manifest:
-```bash
-$ kubectl apply -f secret-env-variables.yaml
-```
-
-### 10.2.2 Consume secret
-Modify your deployment pod definition in each container that you wish to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
-```bash
-[...]
-containers:
- - name: security-server-sidecar
-   image: niis/xroad-security-server-sidecar:latest
-   imagePullPolicy: "Always"
-   envFrom:
-   - secretRef:
-     name: secret-sidecar-variables
-[...]
-```
