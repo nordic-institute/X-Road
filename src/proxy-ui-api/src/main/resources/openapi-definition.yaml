@@ -805,7 +805,7 @@ paths:
                 uniqueItems: true
                 description: array of client objects
                 items:
-                  $ref: '#/components/schemas/Client'
+                  $ref: '#/components/schemas/SecurityServerClient'
         '400':
           description: request was invalid
         '401':
@@ -844,7 +844,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/SecurityServerClient'
         '400':
           description: there are warnings or errors related to the service description
           content:
@@ -893,7 +893,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/SecurityServerClient'
         '400':
           description: request was invalid
         '401':
@@ -933,7 +933,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Client'
+                $ref: '#/components/schemas/SecurityServerClient'
         '400':
           description: request was invalid
         '401':
@@ -5097,26 +5097,7 @@ components:
           minLength: 24
           maxLength: 24
     Backup: # ok
-      type: object
-      description: security server backup
-      required:
-        - filename
-        - created_at
-      properties:
-        filename:
-          type: string
-          format: filename
-          description: backup filename
-          example: configuration_backup_20181224.tar
-          minLength: 1
-          maxLength: 255
-        created_at:
-          type: string
-          format: date-time
-          description: backup created at
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
+      $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/Backup'
     BackupArchive: # ok
       type: object
       description: security server backup archive file
@@ -5207,133 +5188,7 @@ components:
           items:
             $ref: '#/components/schemas/OcspResponder'
     CertificateDetails: # ok
-      type: object
-      description: certificate details for any kind of certificate (TLS, auth, sign)
-      required:
-        - issuer_distinguished_name
-        - issuer_common_name
-        - subject_distinguished_name
-        - subject_common_name
-        - not_before
-        - not_after
-        - serial
-        - version
-        - signature_algorithm
-        - signature
-        - public_key_algorithm
-        - rsa_public_key_modulus
-        - rsa_public_key_exponent
-        - hash
-        - key_usages
-        - subject_alternative_names
-      properties:
-        issuer_distinguished_name:
-          type: string
-          format: text
-          description: certificate issuer distinguished name
-          example: issuer123
-          minLength: 1
-          maxLength: 255
-        issuer_common_name:
-          type: string
-          format: text
-          description: certificate issuer common name
-          example: domain.com
-          minLength: 1
-          maxLength: 255
-        subject_distinguished_name:
-          type: string
-          format: text
-          description: certificate subject distinguished name
-          example: subject123
-          minLength: 1
-          maxLength: 255
-        subject_common_name:
-          type: string
-          format: text
-          description: certificate subject common name
-          example: domain.com
-          minLength: 1
-          maxLength: 255
-        not_before:
-          type: string
-          format: date-time
-          description: certificate validity not before
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        not_after:
-          type: string
-          format: date-time
-          description: certificate validity not after
-          example: '2018-12-15T00:00:00.001Z'
-          minLength: 24
-          maxLength: 24
-        serial:
-          type: string
-          format: text
-          description: serial number
-          example: '123456789'
-          minLength: 1
-          maxLength: 255
-        version:
-          type: integer
-          format: int32
-          example: 3
-          description: version
-        signature_algorithm:
-          type: string
-          format: sha-256
-          description: certificate signature algorithm
-          example: sha256WithRSAEncryption
-          minLength: 1
-          maxLength: 255
-        signature:
-          type: string
-          format: text
-          description: hex encoded certificate signature
-          example: '30af2fdc1780...'
-          minLength: 1
-          maxLength: 255
-        public_key_algorithm:
-          type: string
-          format: sha-256
-          description: certificate public key algorithm
-          example: 'sha256WithRSAEncryption'
-          minLength: 1
-          maxLength: 255
-        rsa_public_key_modulus:
-          type: string
-          format: hex
-          description: hex encoded RSA public key modulus (if RSA key)
-          example: c44421d601...
-          minLength: 1
-          maxLength: 1000
-        rsa_public_key_exponent:
-          type: integer
-          format: int32
-          description: RSA public key exponent (if RSA key) as an integer
-          example: 65537
-        hash:
-          type: string
-          format: text
-          description: certificate SHA-1 hash
-          example: 1234567890ABCDEF
-          minLength: 1
-          maxLength: 40
-        key_usages:
-          type: array
-          description: certificate key usage array
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/KeyUsage'
-        subject_alternative_names:
-          type: string
-          format: text
-          description: certificate subject alternative names
-          example: DNS:*.example.org
-          minLength: 1
-          maxLength: 1000
+      $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/CertificateDetails'
     CertificateAuthority: # ok
       type: object
       description: approved certificate authority information. Only for top CAs.
@@ -5459,73 +5314,27 @@ components:
         - EDIT_FRIENDLY_NAME
         - GENERATE_AUTH_CSR
         - GENERATE_SIGN_CSR
-    Client: # ok
-      type: object
-      description: x-road client
-      required:
-        - member_class
-        - member_code
-      properties:
-        id:
-          type: string
-          format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional).
-            Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI:GOV:123:ABC
-          minLength: 1
-          maxLength: 1023
-          readOnly: true
-        instance_id:
-          type: string
-          format: text
-          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
-          minLength: 1
-          maxLength: 255
-          readOnly: true
-        member_name:
-          type: string
-          format: text
-          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
-          readOnly: true
-          minLength: 1
-          maxLength: 255
-        member_class:
-          type: string
-          format: text
-          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: GOV
-          minLength: 1
-          maxLength: 255
-        member_code:
-          type: string
-          format: text
-          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: 123
-          minLength: 1
-          maxLength: 255
-        subsystem_code:
-          type: string
-          format: text
-          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: ABC
-          minLength: 1
-          maxLength: 255
-        owner:
-          type: boolean
-          description: if this client is the owner member of this security server
-          example: false
-          readOnly: true
-        has_valid_local_sign_cert:
-          type: boolean
-          description: if this client is local and has a valid sign cert
-          example: false
-          readOnly: true
-        connection_type:
-          $ref: '#/components/schemas/ConnectionType'
-        status:
-          $ref: '#/components/schemas/ClientStatus'
+    SecurityServerClient:
+      allOf:
+        - $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/Client'
+        - type: object
+          required:
+            - connection_type
+          properties:
+            owner:
+              type: boolean
+              description: if this client is the owner member of this security server
+              example: false
+              readOnly: true
+            has_valid_local_sign_cert:
+              type: boolean
+              description: if this client is local and has a valid sign cert
+              example: false
+              readOnly: true
+            connection_type:
+              $ref: '#/components/schemas/ConnectionType'
+            status:
+              $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/ClientStatus'
     ClientAdd: # ok
       type: object
       description: Request to add client. Carries a Client and ignore warnings parameter
@@ -5533,24 +5342,12 @@ components:
         - client
       properties:
         client:
-          $ref: '#/components/schemas/Client'
+          $ref: '#/components/schemas/SecurityServerClient'
         ignore_warnings:
           type: boolean
           default: false
           description: if true, any ignorable warnings are ignored. if false (or missing),
             any warnings cause request to fail
-    ClientStatus: # ok
-      type: string
-      format: enum
-      description: client status
-      example: REGISTERED
-      readOnly: true
-      enum:
-        - REGISTERED
-        - SAVED
-        - GLOBAL_ERROR
-        - REGISTRATION_IN_PROGRESS
-        - DELETION_IN_PROGRESS
     ConfigurationStatus: # ok
       type: string
       format: enum
@@ -6051,21 +5848,6 @@ components:
           example: My new key
         csr_generate_request:
           $ref: '#/components/schemas/CsrGenerate'
-    KeyUsage: # ok
-      type: string
-      format: enum
-      description: certificate key usage
-      example: NON_REPUDIATION
-      enum:
-        - DIGITAL_SIGNATURE
-        - NON_REPUDIATION
-        - KEY_ENCIPHERMENT
-        - DATA_ENCIPHERMENT
-        - KEY_AGREEMENT
-        - KEY_CERT_SIGN
-        - CRL_SIGN
-        - ENCIPHER_ONLY
-        - DECIPHER_ONLY
     KeyUsageType: # ok
       type: string
       format: enum

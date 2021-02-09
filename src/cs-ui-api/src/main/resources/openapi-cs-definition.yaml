@@ -1,0 +1,246 @@
+---
+openapi: 3.0.0
+info:
+  description: X-Road Central Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
+  version: "1.0.0"
+  title: X-Road Central Server Admin API
+  contact:
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: /api/v1
+    description: basepath for API v1
+tags:
+  - name: backups
+    description: backup endpoints
+  - name: management-requests
+    description: generic description
+  - name: clients
+    description: clients endpoints
+  - name: certificates
+    description: generic description
+paths:
+  /backups:
+    get: # ok
+      tags:
+        - backups
+      summary: get security server backups
+      operationId: getBackups
+      description: <h3>Administrator views the backups for the central server.</h3>
+      responses:
+        '200':
+          description: list of security server backups
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of backup objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Backup'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /clients:
+    get: # ok
+      tags:
+        - backups
+      summary: get clients
+      operationId: getClients
+      description: generic description
+      responses:
+        '200':
+          description: list of security server backups
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of client objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Client'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /management-requests:
+    get: # ok
+      tags:
+        - backups
+      summary: get management requests
+      operationId: getManagementRequests
+      description: generic description
+      responses:
+        '200':
+          description: list of security server backups
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of client objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Client'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /certificates/{hash}:
+    get: # ok
+      tags:
+        - certificates
+      summary: get one certificate info
+      operationId: getCertificate
+      description: generic description
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: certificate details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: X-Road-ApiKey token=<api key>
+      # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
+  schemas:
+    Backup:
+      $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/Backup'
+    CertificateDetails: # ok
+      $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/CertificateDetails'
+    Client:
+      $ref: '../../../../common-ui-api/src/main/resources/common-schemas.yaml#/Client'
+    ManagementRequest:
+      type: object
+      description: object representing a management request
+      required:
+        - id
+        - localized
+        - read_only
+        - required
+      properties:
+        id:
+          type: string
+          format: text
+          description: identifier
+          example: O
+          minLength: 1
+          readOnly: true
+        received:
+          type: string
+          format: date-time
+          description: when request was received
+          example: '2018-12-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        member_name:
+          type: string
+          format: text
+          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          readOnly: true
+          minLength: 1
+          maxLength: 255
+        member_class:
+          type: string
+          format: text
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          minLength: 1
+          maxLength: 255
+        member_code:
+          type: string
+          format: text
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          minLength: 1
+          maxLength: 255
+        server_code:
+          type: string
+          format: text
+          description: security server code
+          example: server123
+          minLength: 1
+          maxLength: 255
+        source:
+          $ref: '#/components/schemas/ManagementRequestSource'
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+    ManagementRequestSource: # ok
+      type: string
+      format: enum
+      description: request source
+      example: CENTER
+      readOnly: true
+      enum:
+        - CENTER
+        - SECURITY_SERVER
+    ManagementRequestType: # ok
+      type: string
+      format: enum
+      description: request type
+      example: CLIENT_DELETION
+      readOnly: true
+      enum:
+        - CLIENT_DELETION
+        - CLIENT_REGISTRATION
+        - CERTIFICATE_REGISTRATION
+        - CERTIFICATE_DELETION
+        - OWNER_CHANGE
+security:
+  - ApiKeyAuth: []

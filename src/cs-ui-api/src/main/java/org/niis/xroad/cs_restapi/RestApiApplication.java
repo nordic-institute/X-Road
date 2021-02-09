@@ -23,39 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter.comparator;
+package org.niis.xroad.cs_restapi;
 
-import org.niis.xroad.restapi.openapi.model.SecurityServerClient;
-import org.springframework.stereotype.Component;
+import ee.ria.xroad.common.Version;
 
-import java.util.Comparator;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * Comparator for comparing Clients for sorting purposes.
+ * main spring boot application.
  */
-@Component
-public class ClientSortingComparator implements Comparator<SecurityServerClient> {
+@ServletComponentScan
+@SpringBootApplication
+@EnableCaching
+@EnableScheduling
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
+public class RestApiApplication {
+
+    private static final String APP_NAME = "xroad-cs-ui-api";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     /**
-     * Compare Client objects using member name as the primary sort key, and client id
-     * as the secondary sort key.
-     * @param c1
-     * @param c2
-     * @return
+     * start application
      */
-    @Override
-    public int compare(SecurityServerClient c1, SecurityServerClient c2) {
-        if (c1.getMemberName() == null && c2.getMemberName() == null) {
-            return c1.getId().compareToIgnoreCase(c2.getId());
-        } else if (c1.getMemberName() == null) {
-            return 1;
-        } else if (c2.getMemberName() == null) {
-            return -1;
-        }
-        int compareTo = c1.getMemberName().compareToIgnoreCase(c2.getMemberName());
-        if (compareTo == 0) {
-            return c1.getId().compareToIgnoreCase(c2.getId());
-        }
-        return compareTo;
+    public static void main(String[] args) {
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
+        SpringApplication.run(RestApiApplication.class, args
+        );
     }
 }

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,39 +23,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter.comparator;
+import Vue from 'vue';
+import App from './App.vue';
 
-import org.niis.xroad.restapi.openapi.model.SecurityServerClient;
-import org.springframework.stereotype.Component;
-
-import java.util.Comparator;
-
-/**
- * Comparator for comparing Clients for sorting purposes.
- */
-@Component
-public class ClientSortingComparator implements Comparator<SecurityServerClient> {
-
-    /**
-     * Compare Client objects using member name as the primary sort key, and client id
-     * as the secondary sort key.
-     * @param c1
-     * @param c2
-     * @return
-     */
-    @Override
-    public int compare(SecurityServerClient c1, SecurityServerClient c2) {
-        if (c1.getMemberName() == null && c2.getMemberName() == null) {
-            return c1.getId().compareToIgnoreCase(c2.getId());
-        } else if (c1.getMemberName() == null) {
-            return 1;
-        } else if (c2.getMemberName() == null) {
-            return -1;
-        }
-        int compareTo = c1.getMemberName().compareToIgnoreCase(c2.getMemberName());
-        if (compareTo == 0) {
-            return c1.getId().compareToIgnoreCase(c2.getId());
-        }
-        return compareTo;
-    }
-}

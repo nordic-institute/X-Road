@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.model.SecurityServerClient;
 import org.niis.xroad.restapi.util.ClientUtils;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
@@ -72,8 +73,8 @@ public class ClientConverter {
      * @param clientType
      * @return
      */
-    public Client convert(ClientType clientType) {
-        Client client = new Client();
+    public SecurityServerClient convert(ClientType clientType) {
+        SecurityServerClient client = new SecurityServerClient();
         client.setId(convertId(clientType.getIdentifier()));
         client.setInstanceId(clientType.getIdentifier().getXRoadInstance());
         client.setMemberClass(clientType.getIdentifier().getMemberClass());
@@ -96,7 +97,7 @@ public class ClientConverter {
      * @param clientTypes
      * @return
      */
-    public List<Client> convert(Iterable<ClientType> clientTypes) {
+    public List<SecurityServerClient> convert(Iterable<ClientType> clientTypes) {
         return Streams.stream(clientTypes)
                 .map(this::convert)
                 .collect(Collectors.toList());

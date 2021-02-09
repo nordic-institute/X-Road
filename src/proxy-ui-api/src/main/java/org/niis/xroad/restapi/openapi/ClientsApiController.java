@@ -59,13 +59,13 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.AccessRight;
 import org.niis.xroad.restapi.openapi.model.AccessRights;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.OrphanInformation;
+import org.niis.xroad.restapi.openapi.model.SecurityServerClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
@@ -176,12 +176,12 @@ public class ClientsApiController implements ClientsApi {
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
+    public ResponseEntity<List<SecurityServerClient>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        List<Client> clients = clientConverter.convert(clientService.findClients(name,
+        List<SecurityServerClient> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 localValidSignCert, excludeLocal));
         Collections.sort(clients, clientSortingComparator);
@@ -190,9 +190,9 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public ResponseEntity<Client> getClient(String id) {
+    public ResponseEntity<SecurityServerClient> getClient(String id) {
         ClientType clientType = getClientType(id);
-        Client client = clientConverter.convert(clientType);
+        SecurityServerClient client = clientConverter.convert(clientType);
         return new ResponseEntity<>(client, HttpStatus.OK);
     }
 
@@ -231,7 +231,8 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
     @AuditEventMethod(event = SET_CONNECTION_TYPE)
-    public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
+    public ResponseEntity<SecurityServerClient> updateClient(String encodedId,
+            ConnectionTypeWrapper connectionTypeWrapper) {
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
             throw new BadRequestException();
         }
@@ -244,7 +245,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        Client result = clientConverter.convert(changed);
+        SecurityServerClient result = clientConverter.convert(changed);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
@@ -469,7 +470,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT')")
     @AuditEventMethod(event = ADD_CLIENT)
-    public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
+    public synchronized ResponseEntity<SecurityServerClient> addClient(ClientAdd clientAdd) {
         boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
         IsAuthentication isAuthentication = null;
 
@@ -490,7 +491,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (UnhandledWarningsException | ClientService.InvalidMemberClassException e) {
             throw new BadRequestException(e);
         }
-        Client result = clientConverter.convert(added);
+        SecurityServerClient result = clientConverter.convert(added);
 
         return createCreatedResponse("/api/clients/{id}", result, result.getId());
     }

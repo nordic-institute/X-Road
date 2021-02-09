@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service serve",
-    "build": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service build",
+    "serve": "rm -rf src/openapi-cs-types && npm run generate-types && vue-cli-service serve",
+    "build": "rm -rf src/openapi-cs-types && npm run generate-types && vue-cli-service build",
     "lint": "vue-cli-service lint",
     "build:report": "vue-cli-service build --report",
     "test:unit": "vue-cli-service test:unit",
@@ -12,10 +12,10 @@
     "test:coverage": "vue-cli-service test:unit --coverage",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit",
-    "generate-types": "npm run bundle-openapi && openapi --input ../build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-types --exportCore false --exportServices false",
+    "generate-types": "npm run bundle-openapi && openapi --input ../build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-cs-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
-    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-definition.yaml"
+    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-cs-definition.yaml"
   },
   "dependencies": {
     "axios": "^0.21.1",
