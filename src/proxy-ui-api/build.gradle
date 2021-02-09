@@ -3,8 +3,8 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 buildscript {
     ext {
         openapiGeneratorVersion = '4.2.1'
-        nodePluginVersion = '2.2.4'
-        nodeVersion = '12.16.3'
+        nodePluginVersion = '3.0.0'
+        nodeVersion = '12.20.1'
         swaggerParserVersion = '2.0.21'
     }
     repositories {
@@ -54,7 +54,8 @@ processResources {
 node {
     download = true
     version = nodeVersion
-    nodeModulesDir = file("frontend")
+    nodeProjectDir = file("frontend")
+    npmInstallCommand = (System.getenv("CI") != null) ? "ci" : "install"
 }
 
 task buildFront(type: NpmTask) {
