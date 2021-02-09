@@ -791,7 +791,7 @@ kubectl scale -n <namespace name> --replicas=<number replicas> deployment/<pod n
 The Secondary Pods will synchronize the configuration at initialization and through a cron job that runs every minute. Once the configuration is sync, the secondary Pods can process the messages independently of the primary one, this means that if the primary Pods crashes, the cron that synchronizes the configuration will fail but the Secondary Pods can continue to process the messages.
 
 # 5 Backup and Restore
-The backup system of the Security Servers described [here](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore)  is still valid for the installation using Kubernetes.
+The backup system of the Security Servers described in the [User Guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore) is also valid for the installation using Kubernetes.
 
 If your Kubernetes deployment uses volumes to store the configuration, you can back up each volume.
 As described in the [4.5.3 Kubernetes Volumes](#453-Kubernetes-volumes) section we will have 3 types of volume, each one with a way of create a backup:
