@@ -43,6 +43,7 @@
       }}</span>
     </v-alert>
     <v-alert
+      v-if="isAllowedToLoginToken"
       data-test="global-alert-soft-token-pin"
       :value="showSoftTokenPinEnteredAlert"
       color="red"
@@ -84,7 +85,8 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { formatDateTime } from '@/filters';
-import { RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
+
 export default Vue.extend({
   name: 'AlertsContainer',
   computed: {
@@ -106,6 +108,11 @@ export default Vue.extend({
       'isAuthenticated',
       'needsInitialization',
     ]),
+    isAllowedToLoginToken(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
+    },
   },
   methods: {
     formatDateTime,
@@ -128,6 +135,7 @@ export default Vue.extend({
     margin-bottom: 4px;
     border-radius: 0;
   }
+
   & > :first-child {
     margin-top: 4px;
   }
