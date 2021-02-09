@@ -29,6 +29,7 @@ import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.common.util.JsonUtils;
@@ -66,6 +67,10 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT
 @Slf4j
 public final class ConfigurationClientMain {
 
+    private static final String APP_NAME = "xroad-confclient";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+
     private static ConfigurationClientJobListener listener;
 
     private static final int NUM_ARGS_FROM_CONF_PROXY_FULL = 3;
@@ -99,8 +104,8 @@ public final class ConfigurationClientMain {
      * @throws Exception if an error occurs
      */
     public static void main(String[] args) throws Exception {
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
         CommandLine cmd = getCommandLine(args);
-
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
             // Run configuration client in one-shot mode downloading the specified global configuration version.

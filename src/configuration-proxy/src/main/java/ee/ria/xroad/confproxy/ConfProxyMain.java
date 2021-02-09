@@ -26,6 +26,7 @@
 package ee.ria.xroad.confproxy;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
+import ee.ria.xroad.common.Version;
 import ee.ria.xroad.confproxy.util.ConfProxyHelper;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
@@ -43,6 +44,10 @@ import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CONFPROXY;
  */
 @Slf4j
 public final class ConfProxyMain {
+
+    private static final String APP_NAME = "xroad-confproxy";
+    private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
 
     static {
         SystemPropertiesLoader.create().withCommonAndLocal()
@@ -80,6 +85,8 @@ public final class ConfProxyMain {
      */
     private static void setup() throws Exception {
         log.trace("startup()");
+
+        Version.outputVersionInfo(APP_NAME, MIN_SUPPORTED_JAVA_VERSION, MAX_SUPPORTED_JAVA_VERSION);
 
         actorSystem = ActorSystem.create("ConfigurationProxy",
                 ConfigFactory.load().getConfig("configuration-proxy")

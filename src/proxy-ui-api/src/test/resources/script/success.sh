@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 echo "SUCCESS"
 exit 0
