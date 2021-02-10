@@ -147,12 +147,15 @@ public class GlobalConfChecker {
                 .getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
         approvedTspTypes.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
 
-        for (TspType serverConfTsp : tsp) {
+        for (int i = 0; i < tsp.size(); i++) {
+            TspType serverConfTsp = tsp.get(i);
             Optional<ApprovedTSAType> match = approvedTspTypes.stream().filter(
                     globalConfTsp -> globalConfTsp.getName().equals(serverConfTsp.getName())).findAny();
             if (match.isPresent() && match.get().getUrl() != serverConfTsp.getUrl()) {
                 log.debug("Detected changed TSP URL, Name: {}, Old URL: {}, New URL: {}",
                         serverConfTsp.getName(), serverConfTsp.getUrl(), match.get().getUrl());
+                log.debug("Saving new TSP URL");
+                serverConf.getTsp().get(i).setUrl(match.get().getUrl());
             } else {
                 if (match.isPresent()) {
                     log.debug("isPresent: {}, Old URL: {}, New URL: {}", match.isPresent(),
