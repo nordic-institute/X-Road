@@ -151,7 +151,7 @@ public class GlobalConfChecker {
             TspType serverConfTsp = tsp.get(i);
             Optional<ApprovedTSAType> match = approvedTspTypes.stream().filter(
                     globalConfTsp -> globalConfTsp.getName().equals(serverConfTsp.getName())).findAny();
-            if (match.isPresent() && match.get().getUrl() != serverConfTsp.getUrl()) {
+            if (match.isPresent() && !match.get().getUrl().equals(serverConfTsp.getUrl())) {
                 log.debug("Detected changed TSP URL, Name: {}, Old URL: {}, New URL: {}",
                         serverConfTsp.getName(), serverConfTsp.getUrl(), match.get().getUrl());
                 log.debug("Saving new TSP URL");
