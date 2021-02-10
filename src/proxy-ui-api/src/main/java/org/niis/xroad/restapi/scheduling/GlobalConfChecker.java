@@ -153,6 +153,13 @@ public class GlobalConfChecker {
             if (match.isPresent() && match.get().getUrl() != serverConfTsp.getUrl()) {
                 log.debug("Detected changed TSP URL, Name: {}, Old URL: {}, New URL: {}",
                         serverConfTsp.getName(), serverConfTsp.getUrl(), match.get().getUrl());
+            } else {
+                if (match.isPresent()) {
+                    log.debug("isPresent: {}, Old URL: {}, New URL: {}", match.isPresent(),
+                            serverConfTsp.getUrl(), match.get().getUrl());
+                } else {
+                    log.debug("isPresent: {}", match.isPresent());
+                }
             }
         }
     }
