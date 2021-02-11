@@ -55,6 +55,7 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Job that checks whether globalconf has changed.
@@ -138,39 +139,33 @@ public class GlobalConfChecker {
         }
 
         if (SystemProperties.getAutoUpdateTimestampServiceUrl()) {
-            log.debug("proxy-ui-api.auto-update-timestamp-service-url setting is enabled");
             updateTimestampServiceUrls(serverConf);
-        } else {
-            log.debug("proxy-ui-api.auto-update-timestamp-service-url setting is disabled");
         }
     }
 
     private void updateTimestampServiceUrls(ServerConfType serverConf) {
-        List<TspType> tsp = serverConf.getTsp();
-        log.debug("List timestamping services in serverconf");
-        tsp.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
 
-        log.debug("Global conf instance: {}", globalConfFacade.getInstanceIdentifier());
-        log.debug("List timestamping services in global conf");
-        List<ApprovedTSAType> approvedTspTypes = globalConfFacade
-                .getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
-        approvedTspTypes.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
+        List<TspType> localTsps = serverConf.getTsp();
+        List<ApprovedTSAType> globalTsps =
+                globalConfFacade.getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
 
-        for (int i = 0; i < tsp.size(); i++) {
-            TspType serverConfTsp = tsp.get(i);
-            Optional<ApprovedTSAType> match = approvedTspTypes.stream().filter(
-                    globalConfTsp -> globalConfTsp.getName().equals(serverConfTsp.getName())).findAny();
-            if (match.isPresent() && !match.get().getUrl().equals(serverConfTsp.getUrl())) {
-                log.debug("Detected changed TSP URL, Name: {}, Old URL: {}, New URL: {}",
-                        serverConfTsp.getName(), serverConfTsp.getUrl(), match.get().getUrl());
-                log.debug("Saving new TSP URL");
-                serverConf.getTsp().get(i).setUrl(match.get().getUrl());
-            } else {
-                if (match.isPresent()) {
-                    log.debug("isPresent: {}, Old URL: {}, New URL: {}", match.isPresent(),
-                            serverConfTsp.getUrl(), match.get().getUrl());
-                } else {
-                    log.debug("isPresent: {}", match.isPresent());
+        for (int i = 0; i < localTsps.size(); i++) {
+            TspType localTsp = localTsps.get(i);
+            List<ApprovedTSAType> globalTspMatches = globalTsps.stream()
+                    .filter(g -> g.getName().equals(localTsp.getName()))
+                    .collect(toList());
+            if (globalTspMatches.size() > 1) {
+                Optional<ApprovedTSAType> urlChanges =
+                        globalTspMatches.stream().filter(t -> !t.getUrl().equals(localTsp.getUrl())).findAny();
+                if (urlChanges.isPresent()) {
+                    log.warn("Skipping timestamping service URL update due to multiple services with the same name.");
+                }
+            } else if (globalTspMatches.size() == 1) {
+                ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
+                if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
+                    log.debug("Updating changed timestamping service URL, Name: {}, Old URL: {}, New URL: {}",
+                            localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
+                    serverConf.getTsp().get(i).setUrl(globalTspMatch.getUrl());
                 }
             }
         }
