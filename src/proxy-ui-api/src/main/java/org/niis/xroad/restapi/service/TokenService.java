@@ -395,6 +395,10 @@ public class TokenService {
         return allTokens.stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
     }
 
+    public void updateSoftwareTokenPin(String tokenId, String oldPin, String newPin) throws Exception {
+        signerProxyFacade.updateSoftwareTokenPin(tokenId, oldPin.toCharArray(), newPin.toCharArray());
+    }
+
     public static class PinIncorrectException extends ServiceException {
         public PinIncorrectException(Throwable t) {
             super(t, createError());

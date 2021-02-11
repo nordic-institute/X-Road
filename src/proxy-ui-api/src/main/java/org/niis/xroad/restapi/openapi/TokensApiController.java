@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.openapi.model.KeyWithCertificateSigningRequestId;
 import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
+import org.niis.xroad.restapi.openapi.model.TokenPinUpdate;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -225,5 +226,18 @@ public class TokensApiController implements TokensApi {
 
         return new ResponseEntity<>(result, HttpStatus.OK);
 
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('UPDATE_TOKEN_PIN')")
+    // add audit logging
+    // add error for token_not_active
+    public ResponseEntity<Void> updateTokenPin(String id, TokenPinUpdate tokenPinUpdate) {
+        try {
+            tokenService.updateSoftwareTokenPin(id, tokenPinUpdate.getOldPin(), tokenPinUpdate.getNewPin());
+        } catch (Exception e) {
+            throw new InternalServerErrorException("No good", e);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

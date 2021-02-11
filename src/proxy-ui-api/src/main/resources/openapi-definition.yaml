@@ -4621,6 +4621,42 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /tokens/{id}/pin:
+    put: # ok
+      tags:
+        - tokens
+      summary: update security server token pin code
+      operationId: updateTokenPin
+      description: <h3>Administrator updates the token pin code.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPinUpdate'
+      responses:
+        '204':
+          description: token pin updated
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /tokens/{id}/keys-with-csrs:
     post: # ok
       tags:
@@ -6747,6 +6783,27 @@ components:
           maxLength: 255
       example:
         name: my-token-0
+    TokenPinUpdate: # ok
+      type: object
+      required:
+        - old_pin
+        - new_pin
+      properties:
+        old_pin:
+          type: string
+          description: the old pin code of the token
+          format: text
+          minLength: 1
+          maxLength: 255
+        new_pin:
+          type: string
+          description: the new pin code of the token
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        old_pin: 0000
+        new_pin: 1234
     TokensLoggedOut: # ok
       description: response that tells if hsm tokens were logged out during the restore process
       type: object
