@@ -130,6 +130,7 @@ export default Vue.extend({
 
 .v-tab {
   text-transform: none;
+  font-weight: 600;
 }
 
 .v-tabs-slider.xrd-sub-tabs-slider {
