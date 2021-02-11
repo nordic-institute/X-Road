@@ -137,6 +137,15 @@ public class GlobalConfChecker {
             throw translateException(e);
         }
 
+        if (SystemProperties.getAutoUpdateTimestampServiceUrl()) {
+            log.debug("proxy-ui-api.auto-update-timestamp-service-url setting is enabled");
+            updateTimestampServiceUrls(serverConf);
+        } else {
+            log.debug("proxy-ui-api.auto-update-timestamp-service-url setting is disabled");
+        }
+    }
+
+    private void updateTimestampServiceUrls(ServerConfType serverConf) {
         List<TspType> tsp = serverConf.getTsp();
         log.debug("List timestamping services in serverconf");
         tsp.stream().forEach(t -> log.debug("Name: {} URL: {}", t.getName(), t.getUrl()));
