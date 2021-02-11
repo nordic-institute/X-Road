@@ -163,7 +163,7 @@ public class GlobalConfChecker {
             } else if (globalTspMatches.size() == 1) {
                 ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
                 if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
-                    log.debug("Updating changed timestamping service URL, Name: {}, Old URL: {}, New URL: {}",
+                    log.info("Updating changed timestamping service URL, Name: {}, Old URL: {}, New URL: {}",
                             localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
                     serverConf.getTsp().get(i).setUrl(globalTspMatch.getUrl());
                 }
