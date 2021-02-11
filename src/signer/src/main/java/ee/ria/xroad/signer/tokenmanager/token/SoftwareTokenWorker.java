@@ -36,11 +36,13 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 import ee.ria.xroad.signer.protocol.message.ActivateToken;
 import ee.ria.xroad.signer.protocol.message.GenerateKey;
 import ee.ria.xroad.signer.protocol.message.InitSoftwareToken;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -58,6 +60,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
@@ -94,6 +97,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     /**
      * Creates new worker.
+     *
      * @param tokenInfo the token info
      * @param ignored token type (not used)
      */
@@ -122,6 +126,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     protected void onMessage(Object message) throws Exception {
         if (message instanceof InitSoftwareToken) {
             initializeToken(((InitSoftwareToken) message).getPin());
+            sendSuccessResponse();
+        } else if (message instanceof UpdateSoftwareTokenPin) {
+            UpdateSoftwareTokenPin updateTokenPinMessage = (UpdateSoftwareTokenPin) message;
+            handleUpdateTokenPin(updateTokenPinMessage.getOldPin(), updateTokenPinMessage.getNewPin());
             sendSuccessResponse();
         } else {
             super.onMessage(message);
@@ -319,6 +327,16 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         setTokenStatus(tokenId, TokenStatusInfo.OK);
     }
 
+    private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
+        activateToken(); // verifies pin and checks that token is initialized
+        String keyStoreFile = getKeyStoreFileName(PIN_FILE);
+        // get key store by key store file name
+        KeyStore keyStore = loadPkcs12KeyStore(new File(keyStoreFile), oldPin);
+        try (FileOutputStream fos = new FileOutputStream(keyStoreFile)) {
+            keyStore.store(fos, newPin);
+        }
+    }
+
     private void activateToken() throws Exception {
         try {
             verifyPin(PasswordStore.getPassword(tokenId));
@@ -332,7 +350,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
             throw tokenNotInitialized(tokenId);
         } catch (Exception e) {
-            log.error("Error verifiying token PIN", e);
+            log.error("Error verifying token PIN", e);
 
             setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
 

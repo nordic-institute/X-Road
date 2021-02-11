@@ -63,6 +63,7 @@ import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
 import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -125,6 +126,16 @@ public final class SignerProxy {
         log.trace("Activating token '{}'", tokenId);
 
         execute(new ActivateToken(tokenId, true));
+    }
+
+    public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
+        // WIP: store pw here? what if token already logged in?
+        // pin verified in SoftwareTokenWorker#activateToken by verifyPin(PasswordStore.getPassword(tokenId));
+        // PasswordStore.storePassword(tokenId, oldPin);
+
+        log.trace("Updating token pin '{}'", tokenId);
+
+        execute(new UpdateSoftwareTokenPin(tokenId, oldPin, newPin));
     }
 
     /**
