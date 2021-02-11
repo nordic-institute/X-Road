@@ -1,0 +1,87 @@
+buildscript {
+    ext {
+        nodePluginVersion = '2.2.4'
+        nodeVersion = '12.16.3'
+        swaggerParserVersion = '2.0.21'
+    }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+}
+
+plugins {
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+}
+
+apply plugin: 'com.github.hierynomus.license'
+
+node {
+    download = true
+    version = nodeVersion
+    nodeModulesDir = file("frontend")
+}
+
+// build frontend ui library
+task buildUILibrary(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.files("frontend/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'build-lib']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// check frontend ui library npm audit
+task auditCheckUILibrary(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.files("frontend/")
+    outputs.upToDateWhen { true }
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
+    }
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+// check frontend ui library licenses
+task licenseCheckUILibrary(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        !project.hasProperty('skip-frontend-build')
+    }
+    inputs.files("frontend/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
+
+processResources.dependsOn 'buildUILibrary'
+buildUILibrary.dependsOn 'licenseCheckUILibrary'
+licenseCheckUILibrary.dependsOn 'auditCheckUILibrary'
+
+clean.delete << file('frontend/node_modules')
+clean.delete << file('frontend/dist')
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+dependencies {
+    // no dependencies
+}
+

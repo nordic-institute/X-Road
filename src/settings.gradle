@@ -18,6 +18,7 @@ include "common-op-monitoring"
 
 // Main projects
 include "proxy"
+include "shared-ui"
 include "proxy-ui-api"
 include "proxy-ui-api-devtools"
 include "signer"
