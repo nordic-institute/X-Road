@@ -128,7 +128,7 @@
             >icon-Folder-outline</v-icon
           >
 
-          <span class="identifier-wrap name-member">{{
+          <span class="identifier-wrap member-name">{{
             item.visibleName
           }}</span>
         </template>
@@ -544,6 +544,7 @@ export default Vue.extend({
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
+  font-weight: 600;
 
   &.clickable {
     cursor: pointer;
@@ -585,6 +586,7 @@ export default Vue.extend({
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
+  font-weight: 600;
 }
 
 .button-wrap {

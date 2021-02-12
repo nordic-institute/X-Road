@@ -176,5 +176,6 @@ export default Vue.extend({
 
 .no-uppercase {
   text-transform: none;
+  font-weight: 600;
 }
 </style>
