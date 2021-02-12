@@ -27,7 +27,7 @@ server:
     enabled-protocols: TLSv1.2
   compression:
     enabled: true
-    mime-types: application/json,application/xml,text/h tml,text/xml,text/plain,application/javascript,text/css,image/jpeg
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
 
 logging:
   config: file:/etc/xroad/conf.d/proxy-ui-api-logback.xml
