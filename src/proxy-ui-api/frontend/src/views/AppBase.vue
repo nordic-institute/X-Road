@@ -43,7 +43,7 @@
       </transition>
     </v-layout>
 
-    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
+    <v-dialog v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>
