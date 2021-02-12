@@ -25,7 +25,6 @@
  -->
 <template>
   <v-dialog
-    v-if="show"
     v-model="show"
     max-width="550"
     persistent
