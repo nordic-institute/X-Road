@@ -581,14 +581,6 @@ export default Vue.extend({
   }
 }
 
-.name-member {
-  margin-left: 14px;
-  margin-top: auto;
-  margin-bottom: auto;
-  text-align: center;
-  font-weight: 600;
-}
-
 .button-wrap {
   width: 100%;
   display: flex;
