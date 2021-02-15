@@ -744,7 +744,7 @@ spec:
         imagePullPolicy: "Always"
         volumeMounts:
         - name: <manifest volume name>
-          mountPath: "/root/.ssh/"
+          mountPath: "/etc/.ssh/"
         env:
         - name: XROAD_TOKEN_PIN
           value: "<token pin>"
