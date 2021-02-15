@@ -37,21 +37,16 @@ DIR="$(cd "$(dirname $0)" && pwd)"
 cd "$DIR"
 
 mkdir -p build/xroad
-mkdir -p build/xroad-jetty9
 cp -a src/xroad/ubuntu build/xroad/
-cp -a src/xroad-jetty9/ubuntu build/xroad-jetty9/
-./download_jetty.sh
 
 case "$1" in
     bionic)
         prepare ubuntu18.04
         builddeb build/xroad/ubuntu bionic ubuntu18.04 "$2"
-        builddeb build/xroad-jetty9/ubuntu bionic ubuntu18.04 "$2"
         ;;
     focal)
         prepare ubuntu20.04
         builddeb build/xroad/ubuntu focal ubuntu20.04 "$2"
-        builddeb build/xroad-jetty9/ubuntu focal ubuntu20.04 "$2"
         ;;
     *)
         echo "Unsupported distribution $dist"

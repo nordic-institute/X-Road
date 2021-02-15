@@ -1,19 +1,5 @@
 #!/bin/bash
 # postinst script for xroad-center
-#
-# see: dh_installdeb(1)
-
-# summary of how this script can be called:
-#        * <postinst> `configure' <most-recently-configured-version>
-#        * <old-postinst> `abort-upgrade' <new version>
-#        * <conflictor's-postinst> `abort-remove' `in-favour' <package>
-#          <new-version>
-#        * <postinst> `abort-remove'
-#        * <deconfigured's-postinst> `abort-deconfigure' `in-favour'
-#          <failed-install-package> <version> `removing'
-#          <conflicting-package> <version>
-# for details, see http://www.debian.org/doc/debian-policy/ or
-# the debian-policy package
 
 . /usr/share/debconf/confmodule
 trap db_stop EXIT
@@ -109,29 +95,6 @@ EOF
         crudini --set "${db_properties}" '' schema "${db_schema}"
         crudini --set "${db_properties}" '' password "${db_password}"
     fi
-
-    if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
-        /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
-        if ! detect_bdr; then
-            psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
-ALTER SCHEMA public RENAME TO "${db_schema}";
-ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
-REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
-CREATE SCHEMA public;
-GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
-ALTER EXTENSION hstore SET SCHEMA public;
-EOF
-        crudini --set "${db_properties}" '' schema "${db_schema}"
-        else
-            log "PostgreSQL BDR 1.0 detected, not migrating the 'public' schema."
-            log "Manually migrate the 'public' schema to keep built-in database backup/restore functionality."
-            log "Note. BDR 1.0 is deprecated and support will be removed in a future X-Road release."
-            db_schema="public"
-            crudini --set "${db_properties}" '' schema "${db_schema}"
-        fi
-    fi
-
-    /usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
 }
 
 # check certificates and request necessary subject information from the user
@@ -258,8 +221,6 @@ esac
 #DEBHELPER#
 
 service rsyslog restart
-service xroad-jetty restart
 service xroad-signer restart
-service nginx restart
 
 exit 0

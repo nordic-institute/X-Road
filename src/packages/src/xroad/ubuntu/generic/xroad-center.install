@@ -4,10 +4,7 @@
 ../../../../src/xroad/default-configuration/override-signer.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/managementservices.wsdl var/lib/xroad/public
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
-../../../../src/xroad/default-configuration/center-ui-jetty-logback-context-name.xml etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/ocsp-nextupdate.ini /etc/xroad/configuration-parts/
 ../../../../src/xroad/default-configuration/ocsp-fetchinterval.ini /etc/xroad/configuration-parts/
-../../../../../center-service/build/libs/center-service.war usr/share/xroad/jlib/webapps/
-../../../../../center-ui/build/libs/center-ui.war usr/share/xroad/jlib/webapps/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-center
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-center

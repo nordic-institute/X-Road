@@ -21,8 +21,6 @@ cd "$DIR"
 
 mkdir -p build/xroad/redhat
 cp -a src/xroad/redhat build/xroad
-mkdir -p build/xroad-jetty9
-cp -a src/xroad-jetty9/redhat build/xroad-jetty9/
 
 if [[ -z "$SNAPSHOT" ]]; then
   macro_snapshot=()
@@ -43,16 +41,3 @@ rpmbuild \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
 
-# build jetty rpms
-ROOT="${DIR}/build/xroad-jetty9/redhat"
-./download_jetty.sh
-rpmbuild \
-    --define "xroad_version $VERSION" \
-    --define "jetty $DIR/build/jetty9" \
-    --define "rel $RELEASE" \
-    "${macro_snapshot[@]}" \
-    --define "_topdir $ROOT" \
-    --define "srcdir $DIR/src/xroad-jetty9" \
-    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
-    --define "_binary_payload $compress" \
-    -bb "$ROOT/SPECS/"${FILES}

@@ -1,3 +1,0 @@
-centralService_first:
-  service_code: "centralServiceCode"
-  target_service_id: <%= ActiveRecord::Fixtures.identify(:identifier_firstCentralService) %>
