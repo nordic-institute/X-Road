@@ -65,11 +65,9 @@ The X-Road Security Server Sidecar installation requires an existing installatio
 
 The Security Server Sidecar has been tested on the following operating systems:
 
-* MacOS
 * Linux
-* Windows
 
-The Security Server Sidecar is supported only on Linux platforms for production use. Support for Windows or MacOS is not provided.
+The Security Server Sidecar is supported only on Linux platforms for production use. Windows and MacOS are not officially supported, but they may be used for test and/or development purposes.
 
 Building with Docker BuildKit can slightly reduce the size of the resulting container image.
 See <https://docs.docker.com/develop/develop-images/build_enhancements/> for more information.
