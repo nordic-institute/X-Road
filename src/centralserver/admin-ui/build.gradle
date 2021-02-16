@@ -1,0 +1,80 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+}
+
+configurations {
+    nodeDist {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+node {
+    download = true
+    version = nodeVersion
+    npmInstallCommand = "ci"
+}
+
+task buildFront(type: NpmTask, dependsOn: "checkFrontAudit") {
+    inputs.files fileTree(".") {
+      exclude(
+        "build.gradle",
+        "build/",
+        "dist/",
+        "node_modules/.cache/"
+      )
+    }
+    outputs.dir("dist")
+    args = ['run', 'build']
+}
+
+task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files fileTree(".") {
+      exclude(
+        "build.gradle",
+        "build/",
+        "dist/",
+        "node_modules/.cache/"
+      )
+    }
+    outputs.dir("dist")
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
+    }
+}
+
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files("src/", "test/", "public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+clean {
+    delete file('node_modules')
+    delete file('dist')
+}
+
+assemble.dependsOn buildFront
+
+artifacts {
+    nodeDist(file("dist/")) {
+        builtBy(buildFront)
+    }
+}

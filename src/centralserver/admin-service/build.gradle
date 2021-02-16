@@ -1,0 +1,154 @@
+buildscript {
+    ext {
+        openapiGeneratorVersion = '5.0.1'
+        nodePluginVersion = '2.2.4'
+        nodeVersion = '12.16.3'
+        swaggerParserVersion = '2.0.21'
+    }
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'io.spring.dependency-management'
+    id 'org.springframework.boot'
+    id 'org.openapi.generator' version "$openapiGeneratorVersion"
+}
+
+apply plugin: 'com.github.hierynomus.license'
+
+archivesBaseName ='centralserver-admin-service'
+
+configurations {
+    nodeDist {
+        canBeConsumed = false
+        canBeResolved = true
+    }
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
+    }
+}
+
+/*
+tasks.withType(JavaCompile) {
+  options.encoding = "UTF-8"
+  sourceCompatibility = 11
+  targetCompatibility = 11
+}
+*/
+
+bootRun {
+    jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
+    if (project.hasProperty('args')) {
+        def params = project.args.tokenize(',')
+        args = params
+    }
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
+    outputDir = "$buildDir/generated-sources/openapi".toString()
+    apiPackage = "org.niis.xroad.centralserver.openapi"
+    modelPackage = "org.niis.xroad.centralserver.openapi.model"
+    globalProperties = [
+        modelDocs: "false",
+        apis     : "", // must use empty strings instead of "true":
+        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+        models   : ""
+    ]
+    configOptions = [
+        interfaceOnly: "true",
+        useTags      : "true",
+        generateSupportingFiles: "false",
+        skipDefaultInterface: "true"
+    ]
+}
+
+// Fix up to date check
+tasks.openApiGenerate {
+    inputs.files(openApiGenerate.inputSpec)
+    outputs.dir(openApiGenerate.outputDir)
+}
+
+processResources {
+    from(configurations.nodeDist) {
+        into 'public/'
+    }
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+// set license format to ignore generated java sources
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+jar {
+    enabled = true
+    archiveClassifier = 'plainDependency'
+    manifest {
+        attributes  'Implementation-Title'   : 'xroad-centralserver',
+                    'Implementation-Version' : xroadVersion
+    }
+}
+
+bootJar {
+    excludeDevtools = true
+    manifest {
+        attributes  'Implementation-Title'   : 'xroad-centralserver',
+                    'Implementation-Version' : xroadVersion
+    }
+}
+
+dependencies {
+    nodeDist(project(path: ':centralserver:admin-ui', configuration: 'nodeDist'))
+
+    implementation project(':common-util')
+    implementation project(':common-verifier')
+    implementation project(':signer-protocol')
+    implementation project(':common-ui')
+
+
+    implementation('org.springframework.boot:spring-boot-starter-security')
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation('org.springframework.data:spring-data-commons');
+    /*
+    implementation('org.springframework.boot:spring-boot-starter-data-jpa')
+    implementation("org.springframework.boot:spring-boot-starter-cache")
+     */
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation('org.kohsuke:libpam4j:1.11')
+    implementation('org.apache.commons:commons-compress:1.20')
+    implementation('wsdl4j:wsdl4j:1.6.3')
+    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
+    implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
+    implementation('io.swagger:swagger-annotations:1.6.2')
+    implementation('io.springfox:springfox-core:3.0.0')
+
+    testImplementation project(':common-test')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+    testImplementation('org.springframework.security:spring-security-test')
+    testImplementation('org.hsqldb:hsqldb')
+
+    implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
+    implementation('org.openapitools:jackson-databind-nullable:0.2.1')
+    implementation('javax.validation:validation-api')
+    // /openapi-generator related
+}
+

@@ -55,6 +55,7 @@ node {
     download = true
     version = nodeVersion
     nodeModulesDir = file("frontend")
+    npmInstallCommand = "ci"
 }
 
 task buildFront(type: NpmTask) {

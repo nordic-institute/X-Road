@@ -8,3 +8,5 @@
 ../../../../src/xroad/default-configuration/ocsp-fetchinterval.ini /etc/xroad/configuration-parts/
 ../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-center
 ../../../../../../CHANGELOG.md usr/share/doc/xroad-center
+../../../../../centralserver/admin-service/build/libs/centralserver-admin-service-1.0.jar /usr/xroad/xroad/jlib/
+

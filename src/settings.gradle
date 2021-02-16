@@ -29,6 +29,13 @@ include "monitor-common"
 include "monitor-test"
 include "op-monitor-daemon"
 
+include "centralserver"
+include "centralserver:admin-ui"
+include "centralserver:admin-service"
+include "centralserver:management-service"
+include "centralserver:registration-service"
+include "centralserver:globalconf-generator"
+
 // Utils
 include "signer-console"
 

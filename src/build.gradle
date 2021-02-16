@@ -14,8 +14,8 @@ plugins {
     id 'org.owasp.dependencycheck' version '6.0.3'
     id 'jacoco'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.10.RELEASE" apply false
-    id 'org.springframework.boot' version '2.3.6.RELEASE' apply false
+    id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
+    id 'org.springframework.boot' version '2.3.8.RELEASE' apply false
 }
 
 repositories {
@@ -60,6 +60,9 @@ dependencyCheck {
 
 
 allprojects {
+    group = 'org.niis.xroad'
+    version = '1.0'
+
     jacoco {
         toolVersion = "0.8.6"
     }
@@ -77,15 +80,13 @@ allprojects {
     }
 }
 
-subprojects {
+configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
-    group = 'ee.ria.xroad'
-    version = '1.0'
 
     repositories {
         mavenCentral()

@@ -1,0 +1,18 @@
+plugins {
+    id 'io.spring.dependency-management'
+    id 'org.springframework.boot'
+}
+
+bootJar {
+    excludeDevtools = true
+    manifest {
+        attributes  'Implementation-Title'   : 'xroad-centralserver',
+            'Implementation-Version' : xroadVersion
+    }
+}
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter')
+    testImplementation "junit:junit:4.13"
+}
+

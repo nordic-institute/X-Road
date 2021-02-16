@@ -1,0 +1,59 @@
+---
+openapi: 3.0.0
+info:
+  description: X-Road Central Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
+  version: "1.0.0"
+  title: X-Road Central Server Admin API
+  contact:
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+servers:
+  - url: /api/v1
+    description: basepath for API v1
+paths:
+  /system/version:
+    get:
+      tags:
+        - system
+      summary: get information for the system version
+      operationId: systemVersion
+      responses:
+        '200':
+          description: system version information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Version'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+components:
+  schemas:
+    Version:
+      type: object
+      description: version information
+      required:
+        - info
+      properties:
+        info:
+          type: string
+          format: text
+          description: information about the security server
+          example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
+          minLength: 1
+          maxLength: 255
+security:
+  - ApiKeyAuth: []
