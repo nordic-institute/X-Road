@@ -152,10 +152,12 @@ export default Vue.extend({
           return this.$store.getters.hasPermission(
             Permissions.DELETE_SIGN_CERT,
           );
-        } else {
+        } else if (this.usage === KeyUsageType.AUTHENTICATION) {
           return this.$store.getters.hasPermission(
             Permissions.DELETE_AUTH_CERT,
           );
+        } else {
+          return this.$store.getters.hasPermission(Permissions.DELETE_UNKNOWN_CERT)
         }
       } else {
         return false;
