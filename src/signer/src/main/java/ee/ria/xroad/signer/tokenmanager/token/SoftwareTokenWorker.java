@@ -42,6 +42,7 @@ import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -51,6 +52,7 @@ import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Signature;
+import java.security.cert.Certificate;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +61,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
+import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.addKey;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isKeyAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.isTokenActive;
@@ -70,9 +73,11 @@ import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createTempKeyDir;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getTempKeyStoreFileName;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
@@ -325,16 +330,38 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         setTokenStatus(tokenId, TokenStatusInfo.OK);
     }
 
-    private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
-        activateToken(); // verifies pin and checks that token is initialized
-        initializeToken(newPin);
-        /*
-        String keyStoreFile = getKeyStoreFileName(PIN_FILE);
+    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin) throws
+            Exception {
+        String keyStoreFile = getKeyStoreFileName(keyFile);
+        String tempKeyStoreFile = getTempKeyStoreFileName(keyFile);
+
         // get key store by key store file name
-        KeyStore keyStore = loadPkcs12KeyStore(new File(keyStoreFile), oldPin);
-        try (FileOutputStream fos = new FileOutputStream(keyStoreFile)) {
-            keyStore.store(fos, newPin);
-        }*/
+        KeyStore oldKeyStore = loadPkcs12KeyStore(new File(keyStoreFile), oldPin);
+        PrivateKey privateKey = SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyAlias, oldPin);
+
+        KeyStore newKeyStore = KeyStore.getInstance("pkcs12");
+        newKeyStore.load(null, null);
+        Certificate[] certChain = oldKeyStore.getCertificateChain(keyAlias);
+        KeyStore.PrivateKeyEntry pkEntry = new KeyStore.PrivateKeyEntry(privateKey, certChain);
+        newKeyStore.setEntry(keyAlias, pkEntry, new KeyStore.PasswordProtection(newPin));
+
+        try (FileOutputStream fos = new FileOutputStream(tempKeyStoreFile)) {
+            newKeyStore.store(fos, newPin);
+        }
+    }
+
+    private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
+        // TOBEDONE: Get the old pin from passwdstore instead of param
+        // deactivateToken();
+        // Create a temp folder
+        createTempKeyDir();
+        // Update the ".softtoken" keystore pin'
+        rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
+        // TOBEDONE: prevent token activation until pin change is done
+        // Rewrite all keystores with the new PIN
+        for (String keyId : listKeysOnDisk()) {
+            rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
+        }
     }
 
     private void activateToken() throws Exception {

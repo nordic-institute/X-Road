@@ -34,6 +34,9 @@ import org.bouncycastle.operator.ContentSigner;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -84,6 +87,29 @@ public final class SoftwareTokenUtil {
      */
     public static String getKeyStoreFileName(String keyId) {
         return getKeyDir() + "/" + keyId + P12;
+    }
+
+    /**
+     * Returns a temporary filepath for a key store. Used e.g. when changing pin codes for key stores.
+     * Usually the temp dir exists already when this method is called
+     * (to create the temp dir use {@link #createTempKeyDir()})
+     * @param keyId the key id
+     * @return the key store file name for a key id in a temporary folder
+     */
+    public static String getTempKeyStoreFileName(String keyId) {
+        return getTempKeyDir() + keyId + P12;
+    }
+
+    private static String getTempKeyDir() {
+        return getKeyDir() + "/tmp/";
+    }
+
+    /**
+     * Create a temp directory for key stores. Used e.g. when changing pin codes for key stores
+     * @throws IOException creating temp dir fails
+     */
+    public static void createTempKeyDir() throws IOException {
+        Files.createDirectory(Paths.get(getTempKeyDir()));
     }
 
     static List<String> listKeysOnDisk() {
