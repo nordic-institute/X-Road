@@ -5,9 +5,9 @@ plugins {
 dependencies {
     implementation project(':common-util')
     implementation project(':common-verifier')
-    implementation 'org.antlr:ST4:4.0.7'
+    implementation 'org.antlr:ST4:4.0.8'
     // JUnit is needed for ExpectedCodedException
-    implementation 'junit:junit:4.13'
+    implementation 'junit:junit:4.13.2'
     implementation 'com.google.code.gson:gson:2.8.6'
     api "org.mockito:mockito-core:$mockitoVersion"
 }
