@@ -641,14 +641,8 @@ module.exports = {
       selector: '//div[contains(@class, "v-snack__content")]',
       locateStrategy: 'xpath',
     },
-    sessionExpiredPopupMessage: {
-      selector:
-        '//div[contains(@class, "v-dialog--active") and .//span[contains(text(), "Session expired")]]//div[contains(@class, "v-card__text")]',
-      locateStrategy: 'xpath',
-    },
     sessionExpiredPopupOkButton: {
-      selector:
-        '//div[contains(@class, "v-dialog--active") and .//span[contains(text(), "Session expired")]]//button[./span[contains(text(), "Ok")]]',
+      selector: '//button[@data-test="session-expired-ok-button"]',
       locateStrategy: 'xpath',
     },
   },
