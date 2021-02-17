@@ -129,10 +129,6 @@ public final class SignerProxy {
     }
 
     public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
-        // WIP: store pw here? what if token already logged in?
-        // pin verified in SoftwareTokenWorker#activateToken by verifyPin(PasswordStore.getPassword(tokenId));
-        // PasswordStore.storePassword(tokenId, oldPin);
-
         log.trace("Updating token pin '{}'", tokenId);
 
         execute(new UpdateSoftwareTokenPin(tokenId, oldPin, newPin));

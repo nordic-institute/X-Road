@@ -53,8 +53,10 @@ import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.cert.Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
@@ -81,6 +83,7 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getTempKe
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.removeTempKeyDir;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
@@ -95,6 +98,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
     // Use no digesting algorithm, since the input data is already a digest
     private static final String SIGNATURE_ALGORITHM = "NONEwithRSA";
+
+    private final AtomicBoolean tokenLoginAllowed = new AtomicBoolean(true);
 
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
 
@@ -142,6 +147,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     @Override
     protected void activateToken(ActivateToken message) throws Exception {
         if (message.isActivate()) {
+            if (!tokenLoginAllowed.get()) {
+                // TOBEDONE throw pincode is being changed exception
+                log.error("sry pincode is being changed :(");
+            }
             activateToken();
         } else {
             deactivateToken();
@@ -351,16 +360,31 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
-        // TOBEDONE: Get the old pin from passwdstore instead of param
-        // deactivateToken();
-        // Create a temp folder
-        createTempKeyDir();
-        // Update the ".softtoken" keystore pin'
-        rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
-        // TOBEDONE: prevent token activation until pin change is done
-        // Rewrite all keystores with the new PIN
-        for (String keyId : listKeysOnDisk()) {
-            rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
+        tokenLoginAllowed.set(false); // Prevent token login for the time of pin update
+        try {
+            char[] oldPinFromStore = getPin(); // Verify that pin is provided and get the correct pin
+            if (!Arrays.equals(oldPinFromStore, oldPin)) {
+                throw CodedException.tr(X_PIN_INCORRECT, "pin_incorrect", "PIN incorrect");
+            }
+            // Verify new pin complexity
+            if (SystemProperties.shouldEnforceTokenPinPolicy() && !TokenPinPolicy.validate(newPin)) {
+                throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE,
+                        "Token PIN does not meet complexity requirements");
+            }
+            verifyPin(oldPin); // Verify that the provided old pin works
+            PasswordStore.storePassword(tokenId, null); // Clear pin from pwstore
+            deactivateToken();
+            // Create a temp folder
+            createTempKeyDir();
+            // Update the ".softtoken" keystore pin'
+            rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
+            // Rewrite all keystores with the new PIN
+            for (String keyId : listKeysOnDisk()) {
+                rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
+            }
+        } finally {
+            removeTempKeyDir();
+            tokenLoginAllowed.set(true); // Allow token login again
         }
     }
 

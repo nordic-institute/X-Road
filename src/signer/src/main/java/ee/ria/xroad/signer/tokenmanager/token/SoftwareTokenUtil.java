@@ -30,6 +30,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.ContentSigner;
 
 import java.io.File;
@@ -110,6 +111,14 @@ public final class SoftwareTokenUtil {
      */
     public static void createTempKeyDir() throws IOException {
         Files.createDirectory(Paths.get(getTempKeyDir()));
+    }
+
+    /**
+     * Recursively remove the temp directory for key stores. Used e.g. when changing pin codes for key stores
+     * @throws IOException removing temp dir fails
+     */
+    public static void removeTempKeyDir() throws IOException {
+        FileUtils.deleteDirectory(new File(getTempKeyDir()));
     }
 
     static List<String> listKeysOnDisk() {
