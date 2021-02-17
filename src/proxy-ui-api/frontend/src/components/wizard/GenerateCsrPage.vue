@@ -54,22 +54,22 @@
         </div>
       </div>
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-large-button outlined @click="cancel" data-test="cancel-button">{{
           $t('action.cancel')
-        }}</large-button>
+        }}</xrd-large-button>
 
-        <large-button
+        <xrd-large-button
           @click="previous"
           outlined
           class="previous-button"
           data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
+          >{{ $t('action.previous') }}</xrd-large-button
         >
-        <large-button
+        <xrd-large-button
           @click="done"
           :disabled="invalid"
           data-test="save-button"
-          >{{ $t(saveButtonText) }}</large-button
+          >{{ $t(saveButtonText) }}</xrd-large-button
         >
       </div>
     </ValidationObserver>

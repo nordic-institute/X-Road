@@ -25,15 +25,15 @@
  -->
 <template>
   <div>
-    <LargeButton
+    <xrd-large-button
       data-test="make-owner-button"
       outlined
       @click="confirmMakeOwner = true"
-      >{{ $t('client.action.makeOwner.button') }}</LargeButton
+      >{{ $t('client.action.makeOwner.button') }}</xrd-large-button
     >
 
     <!-- Confirm dialog for make owner -->
-    <simpleDialog
+    <xrd-simple-dialog
       :dialog="confirmMakeOwner"
       :loading="makeOwnerLoading"
       saveButtonText="client.action.makeOwner.button"
@@ -50,7 +50,7 @@
         <br />
         {{ $t('client.action.makeOwner.confirmText2') }}
       </div>
-    </simpleDialog>
+    </xrd-simple-dialog>
   </div>
 </template>
 

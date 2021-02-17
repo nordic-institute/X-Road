@@ -33,10 +33,8 @@ import FormLabel from './components/FormLabel.vue';
 import HelpDialog from './components/HelpDialog.vue';
 import HelpIcon from './components/HelpIcon.vue';
 import LargeButton from './components/LargeButton.vue';
-import ProgressLinear from './components/ProgressLinear.vue';
 import SimpleDialog from './components/SimpleDialog.vue';
 import StatusIcon from './components/StatusIcon.vue';
-import SubViewFooter from './components/SubViewFooter.vue';
 import SubViewTitle from './components/SubViewTitle.vue';
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
@@ -45,18 +43,16 @@ import './assets/icons.css';
 
 const SharedComponents = {
   install(Vue: VueConstructor): void {
-    Vue.component('ConfirmDialog', ConfirmDialog);
-    Vue.component('Expandable', Expandable);
-    Vue.component('FileUpload', FileUpload);
-    Vue.component('FormLabel', FormLabel);
-    Vue.component('HelpDialog', HelpDialog);
-    Vue.component('HelpIcon', HelpIcon);
-    Vue.component('LargeButton', LargeButton);
-    Vue.component('ProgressLinear', ProgressLinear);
-    Vue.component('SimpleDialog', SimpleDialog);
-    Vue.component('StatusIcon', StatusIcon);
-    Vue.component('SubViewFooter', SubViewFooter);
-    Vue.component('SubViewTitle', SubViewTitle);
+    Vue.component('XrdConfirmDialog', ConfirmDialog);
+    Vue.component('XrdExpandable', Expandable);
+    Vue.component('XrdFileUpload', FileUpload);
+    Vue.component('XrdFormLabel', FormLabel);
+    Vue.component('XrdHelpDialog', HelpDialog);
+    Vue.component('XrdHelpIcon', HelpIcon);
+    Vue.component('XrdLargeButton', LargeButton);
+    Vue.component('XrdSimpleDialog', SimpleDialog);
+    Vue.component('XrdStatusIcon', StatusIcon);
+    Vue.component('XrdSubViewTitle', SubViewTitle);
   },
 };
 

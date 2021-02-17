@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       class="view-title"
       :title="$t('wizard.addSubsystemTitle')"
       :showClose="false"
@@ -40,17 +40,17 @@
             {{ $t('wizard.subsystem.info2') }}
           </div>
           <div class="action-block">
-            <large-button
+            <xrd-large-button
               @click="showSelectClient = true"
               outlined
               data-test="select-subsystem-button"
-              >{{ $t('wizard.subsystem.selectSubsystem') }}</large-button
+              >{{ $t('wizard.subsystem.selectSubsystem') }}</xrd-large-button
             >
           </div>
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberName')"
             :helpText="$t('wizard.client.memberNameTooltip')"
           />
@@ -60,7 +60,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberClass')"
             :helpText="$t('wizard.client.memberClassTooltip')"
           />
@@ -69,7 +69,7 @@
           </div>
         </div>
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberCode')"
             :helpText="$t('wizard.client.memberCodeTooltip')"
           />
@@ -79,7 +79,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.subsystemCode')"
             :helpText="$t('wizard.client.subsystemCodeTooltip')"
           />
@@ -104,7 +104,9 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel :labelText="$t('wizard.subsystem.registerSubsystem')" />
+          <xrd-form-label
+            :labelText="$t('wizard.subsystem.registerSubsystem')"
+          />
           <v-checkbox
             v-model="registerChecked"
             color="primary"
@@ -116,16 +118,19 @@
 
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="exitView" data-test="cancel-button">{{
-            $t('action.cancel')
-          }}</large-button>
+          <xrd-large-button
+            outlined
+            @click="exitView"
+            data-test="cancel-button"
+            >{{ $t('action.cancel') }}</xrd-large-button
+          >
         </div>
-        <large-button
+        <xrd-large-button
           @click="done"
           :disabled="invalid || duplicateClient"
           data-test="submit-add-subsystem-button"
           :loading="submitLoading"
-          >{{ $t('action.addSubsystem') }}</large-button
+          >{{ $t('action.addSubsystem') }}</xrd-large-button
         >
       </div>
     </ValidationObserver>
@@ -139,7 +144,7 @@
       @save="saveSelectedClient"
     />
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"

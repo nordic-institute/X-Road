@@ -37,13 +37,13 @@
     </div>
 
     <div class="details-view-tools">
-      <large-button
+      <xrd-large-button
         v-if="canCreateApiKey"
         class="button-spacing"
         outlined
         data-test="api-key-create-key-button"
         @click="createApiKey"
-        >{{ $t('apiKey.createApiKey.button') }}</large-button
+        >{{ $t('apiKey.createApiKey.button') }}</xrd-large-button
       >
     </div>
 

@@ -27,7 +27,7 @@
   <div class="xrd-tab-max-width detail-view-outer">
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="detail-view-content">
-        <subViewTitle :title="$t('keys.tokenDetails')" @close="close" />
+        <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
 
         <div class="mt-8 pt-8">
           <ValidationProvider
@@ -66,14 +66,14 @@
         </div>
       </div>
       <div class="footer-button-wrap">
-        <large-button @click="close()" outlined>{{
+        <xrd-large-button @click="close()" outlined>{{
           $t('action.cancel')
-        }}</large-button>
-        <large-button
+        }}</xrd-large-button>
+        <xrd-large-button
           :loading="saveBusy"
           @click="save()"
           :disabled="!touched || invalid"
-          >{{ $t('action.save') }}</large-button
+          >{{ $t('action.save') }}</xrd-large-button
         >
       </div>
     </ValidationObserver>

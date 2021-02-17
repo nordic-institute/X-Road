@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <large-button
+  <xrd-large-button
     :min_width="50"
     text
     :outlined="false"
@@ -32,7 +32,7 @@
     data-test="backup-restore"
     @click="showConfirmation = true"
     >{{ $t('action.restore') }}
-    <confirm-dialog
+    <xrd-confirm-dialog
       :dialog="showConfirmation"
       :loading="restoring"
       title="backup.action.restore.dialog.title"
@@ -41,7 +41,7 @@
       @cancel="showConfirmation = false"
       @accept="restoreBackup"
     />
-  </large-button>
+  </xrd-large-button>
 </template>
 
 <script lang="ts">

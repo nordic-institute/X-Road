@@ -37,7 +37,7 @@
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
-      <large-button
+      <xrd-large-button
         v-if="showAddSubjects"
         color="primary"
         @click="addServiceClient"
@@ -45,7 +45,7 @@
         class="ma-0 elevation-0"
         ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
         >{{ $t('serviceClients.addServiceClient') }}
-      </large-button>
+      </xrd-large-button>
     </div>
 
     <div class="xrd-card">

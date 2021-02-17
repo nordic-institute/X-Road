@@ -26,14 +26,14 @@
 <template>
   <div class="xrd-tab-max-width main-wrap">
     <div class="pa-4">
-      <subViewTitle :title="groupCode" @close="close" />
+      <xrd-sub-view-title :title="groupCode" @close="close" />
 
       <template>
         <div class="cert-hash">
           {{ $t('localGroup.localGroup') }}
-          <large-button v-if="showDelete" @click="deleteGroup()" outlined>
+          <xrd-large-button v-if="showDelete" @click="deleteGroup()" outlined>
             {{ $t('action.delete') }}
-          </large-button>
+          </xrd-large-button>
         </div>
       </template>
     </div>
@@ -57,20 +57,20 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('localGroup.groupMembers') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-large-button
           :disabled="!hasMembers"
           v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
-          >{{ $t('action.removeAll') }}</large-button
+          >{{ $t('action.removeAll') }}</xrd-large-button
         >
 
-        <large-button
+        <xrd-large-button
           class="add-members-button"
           v-if="canEditMembers"
           @click="addMembers()"
           outlined
-          >{{ $t('localGroup.addMembers') }}</large-button
+          >{{ $t('localGroup.addMembers') }}</xrd-large-button
         >
       </div>
     </div>
@@ -91,12 +91,12 @@
 
             <td>
               <div class="button-wrap">
-                <large-button
+                <xrd-large-button
                   v-if="canEditMembers"
                   text
                   :outlined="false"
                   @click="removeMember(groupMember)"
-                  >{{ $t('action.remove') }}</large-button
+                  >{{ $t('action.remove') }}</xrd-large-button
                 >
               </div>
             </td>
@@ -105,12 +105,14 @@
       </table>
 
       <div class="close-button-wrap">
-        <large-button @click="close()">{{ $t('action.close') }}</large-button>
+        <xrd-large-button @click="close()">{{
+          $t('action.close')
+        }}</xrd-large-button>
       </div>
     </v-card>
 
     <!-- Confirm dialog delete group -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmGroup"
       title="localGroup.deleteTitle"
       text="localGroup.deleteText"
@@ -119,7 +121,7 @@
     />
 
     <!-- Confirm dialog remove member -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmMember"
       title="localGroup.removeTitle"
       text="localGroup.removeText"
@@ -128,7 +130,7 @@
     />
 
     <!-- Confirm dialog remove all members -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmAllMembers"
       title="localGroup.removeAllTitle"
       text="localGroup.removeAllText"

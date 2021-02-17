@@ -25,7 +25,7 @@
  -->
 <template>
   <ValidationObserver ref="form" v-slot="{ valid }">
-    <simpleDialog
+    <xrd-simple-dialog
       :dialog="dialog"
       :width="620"
       title="services.addRest"
@@ -102,7 +102,7 @@
           </ValidationProvider>
         </div>
       </div>
-    </simpleDialog>
+    </xrd-simple-dialog>
   </ValidationObserver>
 </template>
 

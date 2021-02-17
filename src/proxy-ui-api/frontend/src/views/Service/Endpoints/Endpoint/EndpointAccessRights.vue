@@ -26,7 +26,7 @@
 <template>
   <div class="xrd-tab-max-width main-wrap">
     <div class="pa-4">
-      <subViewTitle
+      <xrd-sub-view-title
         :title="`${endpoint.method}${endpoint.path}`"
         @close="close"
       />
@@ -35,20 +35,20 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-large-button
           v-if="canEdit"
           @click="removeAll()"
           outlined
           data-test="remove-all-access-rights"
           >{{ $t('action.removeAll') }}
-        </large-button>
-        <large-button
+        </xrd-large-button>
+        <xrd-large-button
           v-if="canEdit"
           @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
           >{{ $t('accessRights.addServiceClients') }}
-        </large-button>
+        </xrd-large-button>
       </div>
     </div>
 
@@ -68,14 +68,14 @@
             <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td>
-              <large-button
+              <xrd-large-button
                 v-if="canEdit"
                 text
                 :outlined="false"
                 @click="remove(sc)"
                 data-test="remove-access-right"
                 >{{ $t('action.remove') }}
-              </large-button>
+              </xrd-large-button>
             </td>
           </tr>
         </template>
@@ -83,7 +83,7 @@
     </table>
 
     <!-- Confirm dialog remove all Access Right subjects -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDeleteAll"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"
@@ -92,7 +92,7 @@
     />
 
     <!-- Confirm dialog remove Access Right subject -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDeleteOne"
       title="accessRights.removeTitle"
       text="accessRights.removeText"

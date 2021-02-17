@@ -43,7 +43,7 @@
         </v-text-field>
       </div>
       <div>
-        <large-button
+        <xrd-large-button
           v-if="canBackup"
           color="primary"
           outlined
@@ -53,13 +53,13 @@
         >
           <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
           >{{ $t('backup.backupConfiguration.button') }}
-        </large-button>
-        <file-upload
+        </xrd-large-button>
+        <xrd-file-upload
           accepts=".tar"
           @file-changed="onFileUploaded"
           v-slot="{ upload }"
         >
-          <large-button
+          <xrd-large-button
             v-if="canBackup"
             color="primary"
             :loading="uploadingBackup"
@@ -70,9 +70,9 @@
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
 
             {{ $t('backup.uploadBackup.button') }}
-          </large-button>
-        </file-upload>
-        <confirm-dialog
+          </xrd-large-button>
+        </xrd-file-upload>
+        <xrd-confirm-dialog
           v-if="uploadedFile !== null"
           :dialog="needsConfirmation"
           title="backup.uploadBackup.confirmationDialog.title"

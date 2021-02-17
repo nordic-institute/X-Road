@@ -72,19 +72,19 @@
       <div class="button-footer">
         <v-spacer></v-spacer>
         <div>
-          <large-button
+          <xrd-large-button
             @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
+            >{{ $t('action.previous') }}</xrd-large-button
           >
-          <large-button
+          <xrd-large-button
             :disabled="invalid"
             :loading="saveBusy"
             @click="done"
             data-test="save-button"
-            >{{ $t('action.submit') }}</large-button
+            >{{ $t('action.submit') }}</xrd-large-button
           >
         </div>
       </div>

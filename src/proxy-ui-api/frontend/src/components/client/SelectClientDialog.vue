@@ -77,19 +77,19 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button
+        <xrd-large-button
           class="button-margin"
           outlined
           @click="cancel()"
           data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-large-button
         >
 
-        <large-button
+        <xrd-large-button
           :disabled="!selectedMember"
           @click="save()"
           data-test="save-button"
-          >{{ $t('localGroup.addSelected') }}</large-button
+          >{{ $t('localGroup.addSelected') }}</xrd-large-button
         >
       </v-card-actions>
     </v-card>

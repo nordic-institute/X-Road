@@ -80,15 +80,15 @@
     </v-radio-group>
 
     <div class="button-footer full-width">
-      <large-button outlined @click="cancel" data-test="cancel-button">{{
+      <xrd-large-button outlined @click="cancel" data-test="cancel-button">{{
         $t('action.cancel')
-      }}</large-button>
+      }}</xrd-large-button>
 
-      <large-button
+      <xrd-large-button
         :disabled="!selection"
         @click="$emit('set-step')"
         data-test="next-button"
-        >{{ $t('action.next') }}</large-button
+        >{{ $t('action.next') }}</xrd-large-button
       >
     </div>
   </div>

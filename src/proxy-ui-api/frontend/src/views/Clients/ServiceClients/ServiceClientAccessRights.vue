@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-tab-max-width xrd-view-common main-wrap">
-    <subViewTitle :title="serviceClientId" @close="close" class="pa-4" />
+    <xrd-sub-view-title :title="serviceClientId" @close="close" class="pa-4" />
     <v-card flat>
       <table class="xrd-table service-client-margin">
         <thead>
@@ -44,20 +44,20 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-large-button
           @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
           v-if="canEdit && serviceClientAccessRights.length > 0"
           >{{ $t('serviceClients.removeAll') }}
-        </large-button>
-        <large-button
+        </xrd-large-button>
+        <xrd-large-button
           v-if="canEdit"
           @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
           >{{ $t('serviceClients.addService') }}
-        </large-button>
+        </xrd-large-button>
       </div>
     </div>
 
@@ -83,14 +83,14 @@
           <td>{{ accessRight.rights_given_at }}</td>
           <td>
             <div class="button-wrap">
-              <large-button
+              <xrd-large-button
                 v-if="canEdit"
                 text
                 :outlined="false"
                 class="mr-4"
                 data-test="access-right-remove"
                 @click="remove(accessRight)"
-                >{{ $t('action.remove') }}</large-button
+                >{{ $t('action.remove') }}</xrd-large-button
               >
             </div>
           </td>
@@ -103,9 +103,9 @@
     </p>
 
     <div class="footer-buttons-wrap">
-      <large-button @click="close()" data-test="close">{{
+      <xrd-large-button @click="close()" data-test="close">{{
         $t('action.close')
-      }}</large-button>
+      }}</xrd-large-button>
     </div>
 
     <AddServiceClientServiceDialog
@@ -118,7 +118,7 @@
     </AddServiceClientServiceDialog>
 
     <!-- Confirm dialog delete group -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="showConfirmDeleteAll"
       title="serviceClients.removeAllTitle"
       text="serviceClients.removeAllText"
@@ -126,7 +126,7 @@
       @accept="removeAll()"
     />
 
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="showConfirmDeleteOne"
       title="serviceClients.removeOneTitle"
       text="serviceClients.removeOneText"

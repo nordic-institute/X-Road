@@ -26,12 +26,12 @@
 <template>
   <v-container class="xrd-view-common justify-center wrapper">
     <v-stepper :alt-labels="true" v-model="step" class="stepper mt-2">
-      <sub-view-title
+      <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
         :show-close="true"
         @close="close"
         class="pa-4"
-      ></sub-view-title>
+      ></xrd-sub-view-title>
 
       <v-stepper-header class="stepper-header">
         <v-stepper-step :complete="step > 1" step="1">{{
@@ -62,20 +62,20 @@
             </v-row>
           </div>
           <v-row class="button-footer mt-12" no-gutters>
-            <large-button outlined @click="close">
+            <xrd-large-button outlined @click="close">
               {{ $t('action.cancel') }}
-            </large-button>
+            </xrd-large-button>
 
-            <large-button :disabled="nextButtonDisabled" @click="step++">
+            <xrd-large-button :disabled="nextButtonDisabled" @click="step++">
               {{ $t('action.next') }}
-            </large-button>
+            </xrd-large-button>
           </v-row>
         </v-stepper-content>
         <v-stepper-content step="2" class="pa-0">
           <div class="px-6">
             <v-row>
               <v-col class="text-right">
-                <large-button
+                <xrd-large-button
                   :disabled="keyGenerated"
                   :loading="generatingKey"
                   @click="generateKey"
@@ -83,7 +83,7 @@
                   {{
                     $t('apiKey.createApiKey.step.keyDetails.createKeyButton')
                   }}
-                </large-button>
+                </xrd-large-button>
               </v-col>
             </v-row>
             <v-row>
@@ -117,25 +117,25 @@
             </v-row>
           </div>
           <v-row class="button-footer mt-12" no-gutters>
-            <large-button
+            <xrd-large-button
               outlined
               @click="close"
               :disabled="keyGenerated || generatingKey"
             >
               {{ $t('action.cancel') }}
-            </large-button>
+            </xrd-large-button>
 
-            <large-button
+            <xrd-large-button
               outlined
               @click="step--"
               class="mr-5"
               :disabled="keyGenerated || generatingKey"
             >
               {{ $t('action.previous') }}
-            </large-button>
-            <large-button :disabled="!keyGenerated" @click="close">
+            </xrd-large-button>
+            <xrd-large-button :disabled="!keyGenerated" @click="close">
               {{ $t('action.finish') }}
-            </large-button>
+            </xrd-large-button>
           </v-row>
         </v-stepper-content>
       </v-stepper-items>

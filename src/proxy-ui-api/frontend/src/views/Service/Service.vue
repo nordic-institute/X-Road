@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-tab-max-width main-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       :title="service.full_service_code"
       @close="close"
       class="sub-view-title-spacing"

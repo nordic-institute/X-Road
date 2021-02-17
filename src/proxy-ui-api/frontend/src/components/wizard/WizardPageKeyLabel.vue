@@ -27,12 +27,12 @@
   <div>
     <div class="wizard-step-form-content pt-6">
       <div class="row-wrap">
-        <FormLabel
+        <xrd-form-label
           v-if="tokenType === 'HARDWARE'"
           :labelText="$t('wizard.signKey.keyLabel')"
           :helpText="$t('wizard.signKey.info')"
         />
-        <FormLabel
+        <xrd-form-label
           v-else
           :labelText="$t('wizard.signKey.keyLabel')"
           :helpText="$t('wizard.signKey.info')"
@@ -49,17 +49,17 @@
       </div>
     </div>
     <div class="button-footer">
-      <large-button
+      <xrd-large-button
         outlined
         @click="cancel"
         :disabled="!disableDone"
         data-test="cancel-button"
-        >{{ $t('action.cancel') }}</large-button
+        >{{ $t('action.cancel') }}</xrd-large-button
       >
 
-      <large-button @click="done" data-test="next-button">{{
+      <xrd-large-button @click="done" data-test="next-button">{{
         $t('action.next')
-      }}</large-button>
+      }}</xrd-large-button>
     </div>
   </div>
 </template>

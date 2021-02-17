@@ -54,7 +54,7 @@
             @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
-              <LargeButton
+              <xrd-large-button
                 class="table-button-fix test-register"
                 :outlined="false"
                 text
@@ -63,7 +63,7 @@
                   cert.possible_actions.includes('REGISTER')
                 "
                 @click="showRegisterCertDialog(cert)"
-                >{{ $t('action.register') }}</LargeButton
+                >{{ $t('action.register') }}</xrd-large-button
               >
             </div>
           </CertificateRow>
@@ -86,13 +86,13 @@
           >
             <div slot="certificateAction">
               <template v-if="canImportFromToken">
-                <LargeButton
+                <xrd-large-button
                   v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                   class="table-button-fix"
                   :outlined="false"
                   text
                   @click="importCert(cert.certificate_details.hash)"
-                  >{{ $t('keys.importCert') }}</LargeButton
+                  >{{ $t('keys.importCert') }}</xrd-large-button
                 >
 
                 <!-- Special case where HW cert has auth usage -->
@@ -123,7 +123,7 @@
             </td>
             <td colspan="4">{{ req.id }}</td>
             <td class="td-align-right">
-              <LargeButton
+              <xrd-large-button
                 class="table-button-fix"
                 :outlined="false"
                 text
@@ -131,7 +131,7 @@
                   req.possible_actions.includes('DELETE') && canDeleteCsr(key)
                 "
                 @click="showDeleteCsrDialog(req, key)"
-                >{{ $t('keys.deleteCsr') }}</LargeButton
+                >{{ $t('keys.deleteCsr') }}</xrd-large-button
               >
             </td>
           </tr>
@@ -145,7 +145,7 @@
       @cancel="registerDialog = false"
     />
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDeleteCsr"
       title="keys.deleteCsrTitle"
       text="keys.deleteCsrText"

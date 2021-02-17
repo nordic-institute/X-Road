@@ -26,14 +26,14 @@
 <template>
   <div class="xrd-tab-max-width main-wrap">
     <div class="px-4 pt-4">
-      <subViewTitle :title="$t('endpoints.details')" @close="close" />
+      <xrd-sub-view-title :title="$t('endpoints.details')" @close="close" />
       <div class="delete-wrap">
-        <large-button
+        <xrd-large-button
           v-if="showDelete"
           @click="showDeletePopup()"
           outlined
           data-test="delete-endpoint"
-          >{{ $t('action.delete') }}</large-button
+          >{{ $t('action.delete') }}</xrd-large-button
         >
       </div>
     </div>
@@ -83,21 +83,21 @@
         </div>
       </div>
       <div class="footer-buttons-wrap">
-        <large-button @click="close()" outlined>{{
+        <xrd-large-button @click="close()" outlined>{{
           $t('action.cancel')
-        }}</large-button>
-        <large-button
+        }}</xrd-large-button>
+        <xrd-large-button
           class="save-button"
           :loading="saveBusy"
           @click="saveEndpoint()"
           :disabled="!touched || invalid"
-          >{{ $t('action.save') }}</large-button
+          >{{ $t('action.save') }}</xrd-large-button
         >
       </div>
     </ValidationObserver>
 
     <!-- Confirm dialog delete REST -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDelete"
       title="endpoints.deleteTitle"
       text="endpoints.deleteEndpointText"

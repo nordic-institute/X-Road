@@ -25,34 +25,34 @@
  -->
 <template>
   <div class="certificate-details-wrapper xrd-default-shadow">
-    <subViewTitle :title="$t('cert.certificate')" @close="close" />
+    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <div class="details-view-tools" v-if="certificate">
-        <large-button
+        <xrd-large-button
           v-if="showActivate"
           class="button-spacing"
           outlined
           @click="activateCertificate(certificate.certificate_details.hash)"
           data-test="activate-button"
-          >{{ $t('action.activate') }}</large-button
+          >{{ $t('action.activate') }}</xrd-large-button
         >
-        <large-button
+        <xrd-large-button
           v-if="showDisable"
           class="button-spacing"
           outlined
           @click="deactivateCertificate(certificate.certificate_details.hash)"
           data-test="deactivate-button"
-          >{{ $t('action.deactivate') }}</large-button
+          >{{ $t('action.deactivate') }}</xrd-large-button
         >
-        <large-button
+        <xrd-large-button
           v-if="showUnregister"
           class="button-spacing"
           outlined
           @click="confirmUnregisterCertificate = true"
           data-test="unregister-button"
-          >{{ $t('action.unregister') }}</large-button
+          >{{ $t('action.unregister') }}</xrd-large-button
         >
-        <large-button
+        <xrd-large-button
           v-if="showDelete"
           class="button-spacing"
           outlined
@@ -61,7 +61,7 @@
         >
           <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
 
-          {{ $t('action.delete') }}</large-button
+          {{ $t('action.delete') }}</xrd-large-button
         >
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -73,7 +73,7 @@
     </div>
 
     <!-- Confirm dialog for delete -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
@@ -82,7 +82,7 @@
     />
 
     <!-- Confirm dialog for unregister certificate -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmUnregisterCertificate"
       :loading="unregisterLoading"
       title="keys.unregisterTitle"
