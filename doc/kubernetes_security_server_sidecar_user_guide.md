@@ -99,6 +99,10 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-slim-primary      | Image for
 niis/xroad-security-server-sidecar:&lt;version&gt;-slim-secondary    | Image for the Secondary Pod deployment using the slim version of the Security Server
 niis/xroad-security-server-sidecar:&lt;version&gt;-primary          | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server
 niis/xroad-security-server-sidecar:&lt;version&gt;-secondary        | Image for the Secondary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server.
+niis/xroad-security-server-sidecar:&lt;version&gt;-slim-primary-fi      | Image for the Primary Pod deployment using the slim version of the Security Server Sidecar with Finnish settings
+niis/xroad-security-server-sidecar:&lt;version&gt;-slim-secondary-fi    | Image for the Secondary Pod deployment using the slim version of the Security Server with Finnish settings
+niis/xroad-security-server-sidecar:&lt;version&gt;-primary-fi          | Image for the Primary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server with Finnish settings
+niis/xroad-security-server-sidecar:&lt;version&gt;-secondary-fi        | Image for the Secondary Pod deployment using the regular (with message logging and operational monitor) version of the Security Server with Finnish settings
 
 # 4 Installation
 ## 4.1 Minimum system requirements
