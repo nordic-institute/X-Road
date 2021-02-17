@@ -30,6 +30,7 @@
     title="serviceClients.addService"
     @save="save"
     @cancel="cancel"
+    scrollable
     :disableSave="filterSelections().length === 0"
   >
     <div slot="content" v-if="serviceCandidates.length > 0">
@@ -146,7 +147,6 @@ export default Vue.extend({
   min-width: 200px;
 }
 .service-row:hover {
-  cursor: pointer;
   background-color: $XRoad-Grey10;
 }
 </style>
