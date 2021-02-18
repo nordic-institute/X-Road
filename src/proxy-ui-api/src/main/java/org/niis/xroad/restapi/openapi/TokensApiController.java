@@ -64,6 +64,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.CHANGE_PIN_TOKEN;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_KEY;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.GENERATE_KEY_AND_CSR;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.LOGIN_TOKEN;
@@ -230,13 +231,16 @@ public class TokensApiController implements TokensApi {
 
     @Override
     @PreAuthorize("hasAuthority('UPDATE_TOKEN_PIN')")
-    // add audit logging
-    // add error for token_not_active
+    @AuditEventMethod(event = CHANGE_PIN_TOKEN)
     public ResponseEntity<Void> updateTokenPin(String id, TokenPinUpdate tokenPinUpdate) {
         try {
             tokenService.updateSoftwareTokenPin(id, tokenPinUpdate.getOldPin(), tokenPinUpdate.getNewPin());
-        } catch (Exception e) {
-            throw new InternalServerErrorException("No good", e);
+        } catch (TokenNotFoundException e) {
+            throw new ResourceNotFoundException(e);
+        } catch (TokenService.PinIncorrectException | TokenService.PinPolicyException e) {
+            throw new BadRequestException(e);
+        } catch (ActionNotPossibleException e) {
+            throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

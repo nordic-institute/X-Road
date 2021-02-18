@@ -128,6 +128,13 @@ public final class SignerProxy {
         execute(new ActivateToken(tokenId, true));
     }
 
+    /**
+     * Updates the token pin with the provided new one
+     * @param tokenId ID of the token
+     * @param oldPin the old (current) pin of the token
+     * @param newPin the new pin
+     * @throws Exception if any errors occur
+     */
     public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
         log.trace("Updating token pin '{}'", tokenId);
 

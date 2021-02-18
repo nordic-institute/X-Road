@@ -37,7 +37,7 @@ public class UpdateSoftwareTokenPinRequestHandler
     @Override
     protected Object handle(UpdateSoftwareTokenPin message) throws Exception {
         tellToken(message, message.getTokenId());
-        return success();
+        return nothing();
     }
 
 }

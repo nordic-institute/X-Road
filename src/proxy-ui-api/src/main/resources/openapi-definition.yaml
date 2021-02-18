@@ -5495,6 +5495,7 @@ components:
         - EDIT_FRIENDLY_NAME
         - GENERATE_AUTH_CSR
         - GENERATE_SIGN_CSR
+        - TOKEN_CHANGE_PIN
     Client: # ok
       type: object
       description: x-road client

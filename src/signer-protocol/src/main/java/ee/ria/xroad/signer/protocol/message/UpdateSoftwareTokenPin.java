@@ -30,7 +30,7 @@ import lombok.Value;
 import java.io.Serializable;
 
 /**
- * Signer API message.
+ * Signer API message for updating software token pin.
  */
 @Value
 public class UpdateSoftwareTokenPin implements Serializable {
