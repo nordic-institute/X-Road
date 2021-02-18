@@ -28,24 +28,37 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.Version;
 
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * service class for handling X-Road version information
  */
 @Slf4j
 @Service
-@Transactional
 @PreAuthorize("isAuthenticated()")
 public class VersionService {
+    public static final int MIN_SUPPORTED_JAVA_VERSION = 8;
+    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+
 
     /**
-     * Returns X-Road software version number
+     * Returns X-Road software version number and java version information
      * @return
      */
-    public String  getVersion() {
-        return Version.XROAD_VERSION;
+    public VersionInfo getVersionInfo() {
+        VersionInfo result = new VersionInfo();
+        result.setInfo(Version.XROAD_VERSION);
+        int javaVersion = Version.readJavaVersion();
+        result.setJavaVersion(javaVersion);
+        result.setMinJavaVersion(MIN_SUPPORTED_JAVA_VERSION);
+        result.setMaxJavaVersion(MAX_SUPPORTED_JAVA_VERSION);
+        result.setUsingSupportedJavaVersion(javaVersion >= MIN_SUPPORTED_JAVA_VERSION
+                && javaVersion <= MAX_SUPPORTED_JAVA_VERSION);
+        result.setJavaVendor(Version.JAVA_VENDOR);
+        result.setJavaRuntimeVersion(Version.JAVA_RUNTIME_VERSION);
+
+        return result;
     }
 }

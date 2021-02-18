@@ -34,14 +34,13 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AnchorConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
-import org.niis.xroad.restapi.converter.VersionConverter;
 import org.niis.xroad.restapi.dto.AnchorFile;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.ConfigurationDownloadException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
@@ -88,7 +87,6 @@ public class SystemApiController implements SystemApi {
     private final AnchorConverter anchorConverter;
     private final SystemService systemService;
     private final VersionService versionService;
-    private final VersionConverter versionConverter;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
 
@@ -110,10 +108,9 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<Version> systemVersion() {
-        String softwareVersion = versionService.getVersion();
-        Version version = versionConverter.convert(softwareVersion);
-        return new ResponseEntity<>(version, HttpStatus.OK);
+    public ResponseEntity<VersionInfo> systemVersion() {
+        VersionInfo result = versionService.getVersionInfo();
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @Override

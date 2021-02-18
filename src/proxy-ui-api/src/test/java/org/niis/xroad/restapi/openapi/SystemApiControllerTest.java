@@ -36,7 +36,7 @@ import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
@@ -130,13 +130,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void getVersion() throws Exception {
-        String versionNumber = "6.24.0";
-        given(versionService.getVersion()).willReturn(versionNumber);
-        ResponseEntity<Version> response = systemApiController.systemVersion();
+    public void getVersionInfo()  {
+        VersionInfo mockVersionInfo = new VersionInfo();
+
+        given(versionService.getVersionInfo()).willReturn(mockVersionInfo);
+        ResponseEntity<VersionInfo> response = systemApiController.systemVersion();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(versionNumber, response.getBody().getInfo());
+        assertEquals(mockVersionInfo, response.getBody());
     }
 
     private void getSystemCertificate() throws IOException {
