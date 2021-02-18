@@ -69,6 +69,7 @@
               class="form-input"
               v-model="memberClass"
               data-test="member-class-input"
+              :placeholder="$t('wizard.selectMemberClass')"
               outlined
             ></v-select>
           </ValidationProvider>
@@ -90,6 +91,7 @@
               :error-messages="errors"
               v-model="memberCode"
               autofocus
+              :placeholder="$t('wizard.memberCode')"
               outlined
               data-test="member-code-input"
             ></v-text-field>
@@ -111,6 +113,7 @@
               class="form-input"
               type="text"
               outlined
+              :placeholder="$t('wizard.subsystemCode')"
               :error-messages="errors"
               v-model="subsystemCode"
               data-test="subsystem-code-input"

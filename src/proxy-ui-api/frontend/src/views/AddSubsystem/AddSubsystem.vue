@@ -95,6 +95,8 @@
               :error-messages="errors"
               v-model="subsystemCode"
               autofocus
+              :placeholder="$t('wizard.subsystemCode')"
+              outlined
               data-test="subsystem-code-input"
             ></v-text-field>
           </ValidationProvider>
