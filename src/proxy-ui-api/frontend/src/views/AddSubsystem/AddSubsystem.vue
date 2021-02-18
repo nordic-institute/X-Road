@@ -317,6 +317,7 @@ export default Vue.extend({
   width: 100%;
   max-width: 1000px;
   margin: 10px;
+  margin-top: 30px;
 
   .view-title {
     width: 100%;
