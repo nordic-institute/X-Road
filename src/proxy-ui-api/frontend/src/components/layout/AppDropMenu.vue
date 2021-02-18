@@ -24,55 +24,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-left>
-    <app-icon />
-    <div class="tabs-wrap">
-      <v-tabs
-        v-model="tab"
-        class="main-tabs"
-        color="black"
-        height="56px"
-        slider-size="2"
-        slider-color="primary"
-        :show-arrows="true"
-      >
-        <v-tabs-slider
-          color="primary"
-          class="xrd-main-tabs-slider"
-        ></v-tabs-slider>
-        <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
-          $t(tab.name)
-        }}</v-tab>
-      </v-tabs>
-    </div>
-    <app-drop-menu />
-  </v-layout>
+  <div class="drop-menu">
+    <v-menu bottom right>
+      <template v-slot:activator="{ on }">
+        <v-btn text v-on="on" class="no-uppercase">
+          {{ username }}
+          <v-icon>mdi-chevron-down</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item id="logout-list-tile" @click="logout">
+          <v-list-item-title id="logout-title">{{
+            $t('login.logOut')
+          }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Tab } from '@/ui-types';
-import { mainTabs, RouteName } from '@/global';
-import AppIcon from './AppIcon.vue';
-import AppDropMenu from './AppDropMenu.vue';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
-  components: {
-    AppIcon,
-    AppDropMenu,
-  },
-  data() {
-    return {
-      tab: undefined as undefined | Tab,
-    };
-  },
   computed: {
     ...mapGetters(['username']),
-
-    allowedTabs(): Tab[] {
-      return this.$store.getters.getAllowedTabs(mainTabs);
-    },
   },
   methods: {
     logout(): void {
@@ -83,42 +62,16 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss">
-@import '../../assets/colors';
-
-.v-tabs-slider.xrd-main-tabs-slider {
-  width: 70px;
+<style lang="scss" scoped>
+.drop-menu {
   margin-left: auto;
-  margin-right: auto;
+  margin-right: 70px;
+  display: flex;
+  align-items: center;
 }
 
-.v-tab {
+.no-uppercase {
   text-transform: none;
   font-weight: 600;
-}
-
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
-<style lang="scss" scoped>
-.main-content {
-  background-color: #ffffff;
-  height: 56px;
-  padding-left: 92px;
-  @media only screen and (max-width: 920px) {
-    padding-left: 0px;
-  }
-}
-
-.tabs-wrap {
-  margin-left: 20px;
-}
-
-.main-tabs {
-  max-width: 1000px;
 }
 </style>

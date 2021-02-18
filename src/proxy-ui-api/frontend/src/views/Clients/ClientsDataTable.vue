@@ -35,17 +35,8 @@
     <div class="table-toolbar pb-3 pt-5">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
-        <v-text-field
-          v-model="search"
-          :label="$t('action.search')"
-          data-test="search-clients-input"
-          single-line
-          hide-details
-          class="search-input"
-          autofocus
-        >
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
+
+        <xrd-search v-model="search" />
       </div>
       <div>
         <LargeButton

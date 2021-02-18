@@ -26,6 +26,7 @@
 
 import { RouteConfig } from 'vue-router';
 import TabsBase from '@/components/layout/TabsBase.vue';
+import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import AppLogin from '@/views/AppLogin.vue';
 import AppBase from '@/views/AppBase.vue';
 import Clients from '@/views/Clients/Clients.vue';
@@ -197,6 +198,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddSubsystem,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: {
           default: true,
@@ -209,6 +211,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddClient,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         meta: { permissions: [Permissions.ADD_CLIENT] },
       },
@@ -218,6 +221,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddMember,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: {
           default: true,
@@ -322,6 +326,7 @@ const routes: RouteConfig[] = [
         components: {
           default: CertificateDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -331,6 +336,7 @@ const routes: RouteConfig[] = [
         components: {
           default: TokenDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -340,6 +346,7 @@ const routes: RouteConfig[] = [
         components: {
           default: KeyDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -349,6 +356,7 @@ const routes: RouteConfig[] = [
         components: {
           default: ClientTlsCertificate,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
         meta: {
@@ -362,6 +370,7 @@ const routes: RouteConfig[] = [
         components: {
           default: ServiceClientAccessRights,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
       },
       {
@@ -371,6 +380,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddServiceClientAccessRights,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
       },
       {
@@ -379,6 +389,7 @@ const routes: RouteConfig[] = [
         components: {
           default: LocalGroup,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -388,6 +399,7 @@ const routes: RouteConfig[] = [
         components: {
           default: ServiceDescriptionDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -397,6 +409,7 @@ const routes: RouteConfig[] = [
         components: {
           default: Service,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         redirect: '/service/:clientId/:serviceId/parameters',
         props: { default: true },
@@ -424,6 +437,7 @@ const routes: RouteConfig[] = [
         components: {
           default: EndpointDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -433,6 +447,7 @@ const routes: RouteConfig[] = [
         components: {
           default: EndpointAccessRights,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -442,6 +457,7 @@ const routes: RouteConfig[] = [
         components: {
           default: GenerateCertificateSignRequest,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -451,6 +467,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddKey,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -460,6 +477,7 @@ const routes: RouteConfig[] = [
         components: {
           default: InternalCertificateDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },

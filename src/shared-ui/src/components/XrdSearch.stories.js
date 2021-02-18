@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,18 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import XrdSearch from './XrdSearch.vue';
 
-// Variables
-$view-area-max-width: 1600px;
+export default {
+    title: 'X-Road/Search',
+    component: XrdSearch,
+    argTypes: {
+        showClose: { control: 'boolean' },
+        label: { control: 'text' },
+        close: { action: 'close' },
+        input: { action: 'input' },
+        value: { control: 'value' },
+    },
+};
 
-.tab-max-width {
-  max-width: 850px;
-  width: 100%;
-}
+const Template = (args, { argTypes }) => ({
+    props: Object.keys(argTypes),
+    components: { XrdSearch },
+    template: `<xrd-search @close="close" @input="input" v-bind="$props" style="width: 300px;"/>`,
+});
 
-.full-width-centered {
-  width: 100%;
-  max-width: $view-area-max-width;
-  display: flex;
-  justify-content: center;
-}
+export const Primary = Template.bind({});
+Primary.args = {
+    showClose: true,
+    label: 'Search label',
+    value: undefined
+};

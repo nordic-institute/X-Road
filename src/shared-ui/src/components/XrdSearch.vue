@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,23 +25,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common xrd-sub-view-wrapper">
-    <div class="content">
-      <router-view />
-    </div>
+  <div>
+    <v-icon @click="closed = false" v-if="closed" class="icon-closed"
+      >mdi-magnify</v-icon
+    >
+    <v-text-field
+      v-if="!closed"
+      :label="label"
+      data-test="search-clients-input"
+      single-line
+      hide-details
+      class="search-input"
+      prepend-inner-icon="mdi-magnify"
+      clearable
+      v-bind:value="value"
+      v-on:input="$emit('input', $event)"
+    >
+    </v-text-field>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-export default Vue.extend({});
+/**
+ * Wrapper for vuetify button with x-road look
+ * */
+
+export default Vue.extend({
+  name: 'xrd-search',
+  props: ['value', 'label'],
+  computed: {},
+  data() {
+    return {
+      closed: true,
+    };
+  },
+  methods: {
+    show(): void {
+      this.closed = false;
+    },
+  },
+});
 </script>
 
 <style lang="scss" scoped>
-.content {
-  padding-left: 10px;
-  padding-right: 10px;
-  width: 100%;
-  max-width: 1620px;
+@import '../assets/colors';
+
+.icon-closed {
+  margin-top: 20px; // adjusted so that icon tays in the same place open/closed
+  cursor: pointer;
+  color: $XRoad-Purple100;
 }
 </style>

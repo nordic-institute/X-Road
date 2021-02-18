@@ -24,23 +24,49 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common xrd-sub-view-wrapper">
-    <div class="content">
-      <router-view />
-    </div>
-  </div>
+  <v-img
+    :src="require('../../assets/xroad7_logo.svg')"
+    height="35"
+    width="132"
+    max-height="35"
+    max-width="132"
+    class="xrd-logo"
+    @click="home()"
+  ></v-img>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-export default Vue.extend({});
+
+export default Vue.extend({
+  methods: {
+    home(): void {
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
+        })
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.log('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
+        });
+    },
+  },
+});
 </script>
 
 <style lang="scss" scoped>
-.content {
-  padding-left: 10px;
-  padding-right: 10px;
-  width: 100%;
-  max-width: 1620px;
+.xrd-logo {
+  margin-top: auto;
+  margin-bottom: auto;
+  cursor: pointer;
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
 }
 </style>

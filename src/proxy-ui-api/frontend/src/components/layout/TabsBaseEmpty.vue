@@ -26,25 +26,7 @@
 <template>
   <v-layout class="main-content" align-left>
     <app-icon />
-    <div class="tabs-wrap">
-      <v-tabs
-        v-model="tab"
-        class="main-tabs"
-        color="black"
-        height="56px"
-        slider-size="2"
-        slider-color="primary"
-        :show-arrows="true"
-      >
-        <v-tabs-slider
-          color="primary"
-          class="xrd-main-tabs-slider"
-        ></v-tabs-slider>
-        <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
-          $t(tab.name)
-        }}</v-tab>
-      </v-tabs>
-    </div>
+    <div class="tabs-wrap"></div>
     <app-drop-menu />
   </v-layout>
 </template>

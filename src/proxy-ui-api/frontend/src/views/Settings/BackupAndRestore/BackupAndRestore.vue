@@ -30,17 +30,7 @@
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}
         </div>
-        <v-text-field
-          v-model="search"
-          :label="$t('action.search')"
-          single-line
-          hide-details
-          class="search-input"
-          data-test="backup-search"
-          autofocus
-        >
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
+        <xrd-search v-model="search" />
       </div>
       <div>
         <large-button

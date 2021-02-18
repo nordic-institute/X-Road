@@ -38,6 +38,7 @@ import SimpleDialog from './components/SimpleDialog.vue';
 import StatusIcon from './components/StatusIcon.vue';
 import SubViewFooter from './components/SubViewFooter.vue';
 import SubViewTitle from './components/SubViewTitle.vue';
+import XrdSearch from './components/XrdSearch.vue';
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
 import './i18n';
@@ -57,6 +58,7 @@ const SharedComponents = {
     Vue.component('StatusIcon', StatusIcon);
     Vue.component('SubViewFooter', SubViewFooter);
     Vue.component('SubViewTitle', SubViewTitle);
+    Vue.component('XrdSearch', XrdSearch);
   },
 };
 
