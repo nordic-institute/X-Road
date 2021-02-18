@@ -602,7 +602,7 @@ module.exports = {
   elements: {
     clientsTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Clients"]',
+        '//a[@data-test="clients"]',
       locateStrategy: 'xpath',
     },
     keysTab: {
