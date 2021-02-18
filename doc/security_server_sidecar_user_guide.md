@@ -173,6 +173,8 @@ To install the Security Server Sidecar in a local development or test environmen
 docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
 
+Note (1): This command persists all configuration inside the Sidecar container which means that all configuration is lost when the container is destroyed. In production use, the configuration must be persisted outside of the container using volumes and external database. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
+
 #### 2.6.2 Installation using setup script
 
 To install the Security Server Sidecar in a Linux-based local development or test environment run the script `setup_security_server_sidecar.sh` providing the parameters in the order shown (**reference data: 1.1, 1.2, 1.3, 1.4**):
@@ -208,6 +210,8 @@ The script `setup_security_server_sidecar.sh` will:
 
 Note (1): The installation using the setup script is only for Linux systems. To install Security Server Sidecar on Windows or MacOS operating systems, follow the [Installation using Dockerhub image](#261-installation-using-dockerhub-image).
 
+Note (2): It is strongly recommended to configure the Security Server Sidecar container to use volumes and external database to persist information outside the Security Server Sidecar container in a production environment. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
+
 ##### 2.6.2.1 Security Server Sidecar Slim
 
 To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`. The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
@@ -220,23 +224,19 @@ To install the Security Server Sidecar in a local development or test environmen
 
 ### 2.7 External database
 
-It is possible to configure the Security Server Sidecar to use a remote database, instead of the default locally installed one. To do that, you need to provide the remote database server hostname and port number as arguments when running the `setup_security_server_sidecar.sh` script in the order described below. Before running the script, you must also set the environment variable:
+The Security Server Sidecar provides the option to configure an external database instead of the default local one by providing the remote database server hostname, server port, and superuser credentials as parameters.
+
+If we are installing the Security Server Sidecar using the [Dockerhub image](#261-installation-using-dockerhub-image), we need to provide the optional parameters to the docker run command (**reference data: 1.7, 1.8, 1.9**):
 
 ```bash
-  XROAD_DB_PASSWORD
+docker run ... -e XROAD_DB_HOST=<remote database server hostname> -e XROAD_DB_PORT=<remote database server port> -e XROAD_DB_PWD=<remote database administrator master password> ...
 ```
 
-with the remote database administrator master password.
+If we are installing the Security Server Sidecar via the [setup script](#262-installation-using-setup-script), we need to provide the remote database server hostname and port as arguments for the script and the remote database administrator master password as environment variable as shown below:
 
 ```bash
 export XROAD_DB_PASSWORD=<remote database administrator master password>
 ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port>
-```
-
-If we are using the [Dockerhub image for the installation](#261-installation-using-dockerhub-image) we must fill the optional parameters in the run command (**reference data: 1.7, 1.8, 1.9**):
-
-```bash
-docker run ... -e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> ...
 ```
 
 The user for the connection will be the default database user `postgres`. The following configuration is needed on the remote database server to allow external access to the remote PostgreSQL database from the Security Server Sidecar:
@@ -262,7 +262,7 @@ host    all             all             0.0.0.0/0            md5
 [...]
 ```
 
-* If the database is in your local machine you have to use the interface ip that uses the host to connect to the Docker containers. You can get this IP by running the command below and checking the gateway property:
+* If the database is in your local machine you have to use the interface IP that uses the host to connect to the Docker containers. You can get this IP by running the command below and checking the gateway property:
 
 ```bash
 docker inspect <container_name>
