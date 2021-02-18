@@ -29,34 +29,24 @@ import com.google.common.collect.ImmutableList;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 /**
  * Tests to verify system properties loading.
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest(SystemPropertiesLoader.class)
 public class SystemPropertiesLoaderTest {
 
     @Rule
@@ -138,43 +128,20 @@ public class SystemPropertiesLoaderTest {
 
     /**
      * Test for loading files in a predetermined (alphabetical) order
-     * - file paths are mock-returned in non alphabetical order
-     * - expectation is for the loader to call load with paths in alphabetical order
-     *
      * @throws IOException if fileset not present
      */
     @Test
     public void loadTestFilesInAlphabeticalOrder() throws Exception {
-        final List<Path> expectedFilePaths = ImmutableList.of(
-                Paths.get("src/test/resources/loading_order_inis/override-1.ini"),
-                Paths.get("src/test/resources/loading_order_inis/override-a.ini"),
-                Paths.get("src/test/resources/loading_order_inis/override-x.ini")
-        );
-
-        final List<Path> actualFilePaths = new ArrayList<>();
-
-        SystemPropertiesLoader spy = PowerMockito.spy(SystemPropertiesLoader.create(""));
-        mockStatic(SystemPropertiesLoader.class);
-
-        //instead of listing files in a non-determined order, use the same three in a specifically selected order
-        //to eliminate false positives
-        PowerMockito.when(SystemPropertiesLoader.getFilePaths(Mockito.any(Path.class), Mockito.anyString()))
-                .thenReturn(testFiles);
-
-        //collect the actual Path order from the load calls
-        PowerMockito.doAnswer(invocation -> {
-            SystemPropertiesLoader.FileWithSections file =
-                    (SystemPropertiesLoader.FileWithSections) invocation.getArguments()[0];
-            actualFilePaths.add(Paths.get(file.getName()));
-            return null;
-        }).when(spy, "load", Mockito.any(SystemPropertiesLoader.FileWithSections.class));
-
-        spy.loadFilesInOrder(
-                Paths.get("dummy"),
-                "dummy",
+        System.setProperty("test.override", "");
+        System.setProperty("test.test_x", "");
+        final SystemPropertiesLoader loader = new SystemPropertiesLoader("");
+        loader.loadFilesInOrder(
+                Paths.get("src/test/resources/loading_order_inis/"),
+                "override-*.ini",
                 Comparator.comparing(Path::getFileName));
 
-        assertThat(actualFilePaths, is(expectedFilePaths));
+        assertEquals("x", System.getProperty("test.test_x"));
+        assertEquals("x", System.getProperty("test.override"));
     }
 
     /**
@@ -194,26 +161,12 @@ public class SystemPropertiesLoaderTest {
                 "src/test/resources/loading_order_inis/override-a.ini"
         );
 
-        final List<String> expectedFileNames = ImmutableList.of(
-                "src/test/resources/loading_order_inis/override-x.ini",
-                "src/test/resources/loading_order_inis/override-1.ini",
-                "src/test/resources/loading_order_inis/override-a.ini"
-        );
-
-        final List<String> actualFileNames = new ArrayList<>();
-
-        SystemPropertiesLoader spy = PowerMockito.spy(SystemPropertiesLoader.create(""));
-
-        PowerMockito.doAnswer(invocation -> {
-            SystemPropertiesLoader.FileWithSections file =
-                    (SystemPropertiesLoader.FileWithSections) invocation.getArguments()[0];
-            actualFileNames.add(file.getName());
-            return null;
-        }).when(spy, "load", Mockito.any(SystemPropertiesLoader.FileWithSections.class));
-
-        spy.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames);
-
-        assertThat(actualFileNames, is(expectedFileNames));
+        System.setProperty("test.override", "");
+        System.setProperty("test.test_a", "");
+        final SystemPropertiesLoader loader = new SystemPropertiesLoader("");
+        loader.loadMutuallyAlternativeFilesInEntryOrder(initialFileNames);
+        assertEquals("a", System.getProperty("test.test_a"));
+        assertEquals("a", System.getProperty("test.override"));
     }
 
     /**
@@ -240,8 +193,7 @@ public class SystemPropertiesLoaderTest {
 
     }
 
-    private static Map<String, String> load(String[] fileNames,
-            String... sectionNames) {
+    private static Map<String, String> load(String[] fileNames, String... sectionNames) {
         final Map<String, String> properties = new HashMap<>();
 
         SystemPropertiesLoader loader = SystemPropertiesLoader.create("");

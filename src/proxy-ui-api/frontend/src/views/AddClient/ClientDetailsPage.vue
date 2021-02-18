@@ -33,11 +33,11 @@
         {{ $t('wizard.clientInfo2') }}
       </div>
       <div class="action-block">
-        <large-button
+        <xrd-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-          >{{ $t('wizard.selectClient') }}</large-button
+          >{{ $t('wizard.selectClient') }}</xrd-button
         >
       </div>
     </div>
@@ -45,7 +45,7 @@
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberName')"
             :helpText="$t('wizard.client.memberNameTooltip')"
           />
@@ -53,7 +53,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberClass')"
             :helpText="$t('wizard.client.memberClassTooltip')"
           />
@@ -75,7 +75,7 @@
           </ValidationProvider>
         </div>
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberCode')"
             :helpText="$t('wizard.client.memberCodeTooltip')"
           />
@@ -99,7 +99,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.subsystemCode')"
             :helpText="$t('wizard.client.subsystemCodeTooltip')"
           />
@@ -125,14 +125,14 @@
         </div>
       </div>
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-button outlined @click="cancel" data-test="cancel-button">{{
           $t('action.cancel')
-        }}</large-button>
-        <large-button
+        }}</xrd-button>
+        <xrd-button
           @click="done"
           :disabled="invalid || duplicateClient"
           data-test="next-button"
-          >{{ $t('action.next') }}</large-button
+          >{{ $t('action.next') }}</xrd-button
         >
       </div>
     </ValidationObserver>

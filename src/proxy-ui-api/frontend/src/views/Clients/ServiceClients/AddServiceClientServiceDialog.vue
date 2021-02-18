@@ -24,12 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     :width="750"
     title="serviceClients.addService"
     @save="save"
     @cancel="cancel"
+    scrollable
     :disableSave="filterSelections().length === 0"
   >
     <div slot="content" v-if="serviceCandidates.length > 0">
@@ -77,7 +78,7 @@
     <div slot="content" v-else>
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 <script lang="ts">
 import Vue from 'vue';
@@ -147,6 +148,6 @@ export default Vue.extend({
 }
 .service-row:hover {
   cursor: pointer;
-  background: $XRoad-Purple10;
+  background-color: $XRoad-Purple10;
 }
 </style>

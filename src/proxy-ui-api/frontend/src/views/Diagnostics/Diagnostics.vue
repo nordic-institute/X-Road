@@ -51,7 +51,7 @@
               <tbody>
                 <tr v-if="globalConf">
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(globalConf.status_class)"
                     />
                   </td>
@@ -101,7 +101,7 @@
                   v-bind:key="timestampingService.url"
                 >
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(timestampingService.status_class)"
                     />
                   </td>
@@ -166,7 +166,9 @@
                     v-bind:key="ocsp.url"
                   >
                     <td>
-                      <StatusIcon :status="statusIconType(ocsp.status_class)" />
+                      <xrd-status-icon
+                        :status="statusIconType(ocsp.status_class)"
+                      />
                     </td>
                     <td class="url-column" data-test="service-url">
                       {{ ocsp.url }}

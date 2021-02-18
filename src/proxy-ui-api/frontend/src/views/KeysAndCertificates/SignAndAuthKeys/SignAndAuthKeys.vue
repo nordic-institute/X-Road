@@ -54,7 +54,7 @@
       />
     </template>
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="logoutDialog"
       title="keys.logOutTitle"
       text="keys.logOutText"

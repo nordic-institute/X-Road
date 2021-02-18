@@ -482,12 +482,13 @@ module.exports = {
     browser.assert.containsText(mainPage.elements.snackBarMessage, 'Refreshed');
     mainPage.closeSnackbar();
 
-    browser.getText(clientServices.elements.refreshTimestamp, function (
-      result,
-    ) {
-      startTimestamp = result.value;
-      startTime = new Date().getTime();
-    });
+    browser.getText(
+      clientServices.elements.refreshTimestamp,
+      function (result) {
+        startTimestamp = result.value;
+        startTime = new Date().getTime();
+      },
+    );
 
     // Verify enabling
     clientServices.toggleEnabled();

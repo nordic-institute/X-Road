@@ -26,7 +26,7 @@
 <template>
   <v-layout align-center justify-center class="mt-6">
     <div class="view-wrap">
-      <subViewTitle
+      <xrd-sub-view-title
         class="view-title"
         :title="$t('initialConfiguration.title')"
         :showClose="false"

@@ -39,21 +39,21 @@
         <xrd-search v-model="search" />
       </div>
       <div>
-        <LargeButton
+        <xrd-button
           v-if="showAddMember"
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
           outlined
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addMember') }}</LargeButton
+          {{ $t('action.addMember') }}</xrd-button
         >
-        <LargeButton
+        <xrd-button
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addClient') }}</LargeButton
+          {{ $t('action.addClient') }}</xrd-button
         >
       </div>
     </div>
@@ -145,7 +145,7 @@
 
       <template v-slot:[`item.button`]="{ item }">
         <div class="button-wrap">
-          <LargeButton
+          <xrd-button
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
@@ -157,10 +157,10 @@
             :outlined="false"
             @click="addSubsystem(item)"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.addSubsystem') }}</LargeButton
+            >{{ $t('action.addSubsystem') }}</xrd-button
           >
 
-          <LargeButton
+          <xrd-button
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
               item.type !== clientTypes.VIRTUAL_MEMBER &&
@@ -170,7 +170,7 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}</LargeButton
+            >{{ $t('action.register') }}</xrd-button
           >
         </div>
       </template>
@@ -181,7 +181,7 @@
       }}</v-alert>
     </v-data-table>
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"
