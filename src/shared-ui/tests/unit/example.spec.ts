@@ -28,12 +28,12 @@
 import Vuetify from 'vuetify';
 
 // Components
-import LargeButton from '@/components/LargeButton.vue';
+import LargeButton from '@/components/Button.vue';
 
 // Utilities
 import { createLocalVue, mount } from '@vue/test-utils';
 
-describe('LargeButton.vue', () => {
+describe('Button.vue', () => {
   const localVue = createLocalVue();
   let vuetify: Vuetify;
 

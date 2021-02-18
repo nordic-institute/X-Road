@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       :title="$t('serviceClients.addServiceClientTitle')"
       :showClose="false"
       data-test="add-subject-title"

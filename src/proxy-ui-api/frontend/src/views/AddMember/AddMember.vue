@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       class="view-title"
       :title="$t('wizard.addMemberTitle')"
       @close="cancel()"
