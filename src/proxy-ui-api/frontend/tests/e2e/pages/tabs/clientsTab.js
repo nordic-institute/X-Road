@@ -62,7 +62,7 @@ var clientsTabCommands = {
 const clientsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/clients`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and contains(@data-test, "clients")]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: clientsTabCommands,
   elements: {

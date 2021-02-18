@@ -658,34 +658,34 @@ module.exports = {
       elements: {
         detailsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "details")]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(@data-test, "details")]',
           locateStrategy: 'xpath',
         },
         serviceClientsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "service clients")]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(@data-test, "serviceClients")]',
           locateStrategy: 'xpath',
         },
         servicesTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "services")]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(@data-test, "services")]',
           locateStrategy: 'xpath',
         },
         internalServersTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "internal servers")]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(@data-test, "internalServers")]',
           locateStrategy: 'xpath',
         },
         localGroupsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "local groups")]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(@data-test, "localGroups")]',
           locateStrategy: 'xpath',
         },
       },
       sections: {
         details: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "details")]]',
+            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active")] and .//*[contains(@data-test, "details")]]',
           locateStrategy: 'xpath',
           commands: [clientDetailsCommands],
           elements: {
@@ -905,7 +905,7 @@ module.exports = {
     },
     certificatePopup: {
       selector:
-        '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "identifier-wrap") and contains(text(),"Certificate")]]',
+        '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "identifier-wrap")] and .//i[contains(@id, "close-x")]]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
