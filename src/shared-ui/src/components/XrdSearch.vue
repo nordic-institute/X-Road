@@ -72,8 +72,9 @@ export default Vue.extend({
 @import '../assets/colors';
 
 .icon-closed {
-  margin-top: 20px; // adjusted so that icon tays in the same place open/closed
+  margin-top: 20px; // adjusted so that icon stays in the same place open/closed
   cursor: pointer;
   color: $XRoad-Purple100;
+  padding-bottom: 4px; // adjusted so that icon takes same space than input
 }
 </style>
