@@ -488,6 +488,11 @@ export default Vue.extend({
   height: 56px;
   color: $XRoad-Black100;
 }
+
+// Override Vuetify table row hover color
+.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+  background: $XRoad-Purple10 !important;
+}
 </style>
 
 <style lang="scss" scoped>
@@ -523,7 +528,14 @@ export default Vue.extend({
 
 .data-table-wrapper {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1600px;
+  margin-left: 10px;
+  margin-right: 10px;
+
+  @media only screen and (max-width: 1620px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
 .data-table {
@@ -531,7 +543,7 @@ export default Vue.extend({
 }
 
 .name {
-  margin-left: 34px;
+  margin-left: 40px;
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;

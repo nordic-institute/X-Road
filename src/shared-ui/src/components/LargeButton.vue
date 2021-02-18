@@ -119,6 +119,7 @@ export default Vue.extend({
   border-radius: 20px;
   font-weight: 600;
   text-transform: none;
+  letter-spacing: normal;
 }
 
 .gradient {
