@@ -40,7 +40,7 @@
             </h3></v-col
           >
           <v-col class="text-right">
-            <xrd-large-button
+            <xrd-button
               data-test="system-parameters-configuration-anchor-download-button"
               @click="downloadAnchor"
               :loading="downloadingAnchor"
@@ -49,7 +49,7 @@
             >
               <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
               {{ $t('systemParameters.configurationAnchor.action.download') }}
-            </xrd-large-button>
+            </xrd-button>
             <upload-configuration-anchor-dialog
               @uploaded="fetchConfigurationAnchor"
             />

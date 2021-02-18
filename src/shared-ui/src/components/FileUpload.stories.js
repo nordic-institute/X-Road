@@ -25,7 +25,7 @@
  * THE SOFTWARE.
  */
 import FileUpload from './FileUpload.vue';
-import LargeButton from './LargeButton.vue';
+import Button from './Button.vue';
 
 export default {
   title: 'X-Road/File upload',
@@ -38,7 +38,7 @@ export default {
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { FileUpload, LargeButton },
+  components: { FileUpload, Button },
   template: `
     <file-upload
     v-bind="$props"
@@ -48,7 +48,7 @@ const Template = (args, { argTypes }) => ({
       <large-button @click="upload">
         Upload
       </large-button>
-    </file-upload>    
+    </file-upload>
     `,
 });
 

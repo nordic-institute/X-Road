@@ -33,11 +33,11 @@
         {{ $t('wizard.clientInfo2') }}
       </div>
       <div class="action-block">
-        <xrd-large-button
+        <xrd-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-          >{{ $t('wizard.selectClient') }}</xrd-large-button
+          >{{ $t('wizard.selectClient') }}</xrd-button
         >
       </div>
     </div>
@@ -122,14 +122,14 @@
         </div>
       </div>
       <div class="button-footer">
-        <xrd-large-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-button outlined @click="cancel" data-test="cancel-button">{{
           $t('action.cancel')
-        }}</xrd-large-button>
-        <xrd-large-button
+        }}</xrd-button>
+        <xrd-button
           @click="done"
           :disabled="invalid || duplicateClient"
           data-test="next-button"
-          >{{ $t('action.next') }}</xrd-large-button
+          >{{ $t('action.next') }}</xrd-button
         >
       </div>
     </ValidationObserver>

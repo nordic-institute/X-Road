@@ -71,12 +71,12 @@
 
 import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
-import LargeButton from '@/components/LargeButton.vue';
+import Button from '@/components/Button.vue';
 
 export default Vue.extend({
   components: {
     CloseButton,
-    LargeButton,
+    Button,
   },
   props: {
     // Title of the dialog

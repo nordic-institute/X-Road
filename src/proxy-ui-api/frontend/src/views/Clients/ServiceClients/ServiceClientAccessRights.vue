@@ -44,20 +44,20 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
       <div class="row-buttons">
-        <xrd-large-button
+        <xrd-button
           @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
           v-if="canEdit && serviceClientAccessRights.length > 0"
           >{{ $t('serviceClients.removeAll') }}
-        </xrd-large-button>
-        <xrd-large-button
+        </xrd-button>
+        <xrd-button
           v-if="canEdit"
           @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
           >{{ $t('serviceClients.addService') }}
-        </xrd-large-button>
+        </xrd-button>
       </div>
     </div>
 
@@ -83,14 +83,14 @@
           <td>{{ accessRight.rights_given_at }}</td>
           <td>
             <div class="button-wrap">
-              <xrd-large-button
+              <xrd-button
                 v-if="canEdit"
                 text
                 :outlined="false"
                 class="mr-4"
                 data-test="access-right-remove"
                 @click="remove(accessRight)"
-                >{{ $t('action.remove') }}</xrd-large-button
+                >{{ $t('action.remove') }}</xrd-button
               >
             </div>
           </td>
@@ -103,9 +103,9 @@
     </p>
 
     <div class="footer-buttons-wrap">
-      <xrd-large-button @click="close()" data-test="close">{{
+      <xrd-button @click="close()" data-test="close">{{
         $t('action.close')
-      }}</xrd-large-button>
+      }}</xrd-button>
     </div>
 
     <AddServiceClientServiceDialog

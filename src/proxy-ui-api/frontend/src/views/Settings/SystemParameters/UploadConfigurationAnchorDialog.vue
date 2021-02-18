@@ -31,7 +31,7 @@
         @file-changed="onUploadFileChanged"
         v-slot="{ upload }"
       >
-        <xrd-large-button
+        <xrd-button
           data-test="system-parameters-configuration-anchor-upload-button"
           outlined
           @click="upload"
@@ -42,7 +42,7 @@
           <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
           {{
             $t('systemParameters.configurationAnchor.action.upload.button')
-          }}</xrd-large-button
+          }}</xrd-button
         ></xrd-file-upload
       >
     </template>
@@ -102,17 +102,17 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <xrd-large-button
+        <xrd-button
           data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
           outlined
           @click="close"
-          >{{ $t('action.cancel') }}</xrd-large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
           @click="confirmUpload"
           :loading="uploading"
-          >{{ $t('action.confirm') }}</xrd-large-button
+          >{{ $t('action.confirm') }}</xrd-button
         >
       </v-card-actions>
     </v-card>

@@ -51,9 +51,9 @@
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <xrd-large-button @click="logout()">{{
+          <xrd-button @click="logout()">{{
             $t('action.ok')
-          }}</xrd-large-button>
+          }}</xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>

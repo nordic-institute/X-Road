@@ -28,31 +28,31 @@
     <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <div class="details-view-tools" v-if="certificate">
-        <xrd-large-button
+        <xrd-button
           v-if="showActivate"
           class="button-spacing"
           outlined
           @click="activateCertificate(certificate.certificate_details.hash)"
           data-test="activate-button"
-          >{{ $t('action.activate') }}</xrd-large-button
+          >{{ $t('action.activate') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           v-if="showDisable"
           class="button-spacing"
           outlined
           @click="deactivateCertificate(certificate.certificate_details.hash)"
           data-test="deactivate-button"
-          >{{ $t('action.deactivate') }}</xrd-large-button
+          >{{ $t('action.deactivate') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           v-if="showUnregister"
           class="button-spacing"
           outlined
           @click="confirmUnregisterCertificate = true"
           data-test="unregister-button"
-          >{{ $t('action.unregister') }}</xrd-large-button
+          >{{ $t('action.unregister') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           v-if="showDelete"
           class="button-spacing"
           outlined
@@ -61,7 +61,7 @@
         >
           <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
 
-          {{ $t('action.delete') }}</xrd-large-button
+          {{ $t('action.delete') }}</xrd-button
         >
       </div>
       <template v-if="certificate && certificate.certificate_details">

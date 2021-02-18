@@ -44,12 +44,12 @@
             @close="close"
           />
           <div class="details-view-tools">
-            <xrd-large-button
+            <xrd-button
               v-if="canDelete"
               @click="confirmDelete = true"
               :loading="deleting"
               outlined
-              >{{ $t('action.delete') }}</xrd-large-button
+              >{{ $t('action.delete') }}</xrd-button
             >
           </div>
         </div>
@@ -93,14 +93,14 @@
         </div>
       </div>
       <div class="footer-button-wrap">
-        <xrd-large-button @click="close()" outlined>{{
+        <xrd-button @click="close()" outlined>{{
           $t('action.cancel')
-        }}</xrd-large-button>
-        <xrd-large-button
+        }}</xrd-button>
+        <xrd-button
           :loading="saveBusy"
           @click="save()"
           :disabled="!touched || invalid"
-          >{{ $t('action.save') }}</xrd-large-button
+          >{{ $t('action.save') }}</xrd-button
         >
       </div>
     </ValidationObserver>

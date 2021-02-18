@@ -49,28 +49,28 @@
     </div>
 
     <div class="button-footer">
-      <xrd-large-button
+      <xrd-button
         outlined
         @click="cancel"
         :disabled="disableCancel"
         data-test="cancel-button"
-        >{{ $t('action.cancel') }}</xrd-large-button
+        >{{ $t('action.cancel') }}</xrd-button
       >
 
-      <xrd-large-button
+      <xrd-button
         @click="previous"
         outlined
         :disabled="disableCancel"
         class="previous-button"
         data-test="previous-button"
-        >{{ $t('action.previous') }}</xrd-large-button
+        >{{ $t('action.previous') }}</xrd-button
       >
 
-      <xrd-large-button
+      <xrd-button
         @click="done"
         :loading="submitLoading"
         data-test="submit-button"
-        >{{ $t('action.submit') }}</xrd-large-button
+        >{{ $t('action.submit') }}</xrd-button
       >
     </div>
     <!-- Accept warnings -->

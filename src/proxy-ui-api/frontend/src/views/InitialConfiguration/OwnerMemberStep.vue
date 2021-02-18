@@ -107,19 +107,19 @@
       <div class="button-footer">
         <v-spacer></v-spacer>
         <div>
-          <xrd-large-button
+          <xrd-button
             v-if="showPreviousButton"
             @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
-            >{{ $t('action.previous') }}</xrd-large-button
+            >{{ $t('action.previous') }}</xrd-button
           >
-          <xrd-large-button
+          <xrd-button
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-            >{{ $t(saveButtonText) }}</xrd-large-button
+            >{{ $t(saveButtonText) }}</xrd-button
           >
         </div>
       </div>

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-large-button
+  <xrd-button
     :min_width="50"
     text
     :outlined="false"
@@ -41,7 +41,7 @@
       @cancel="showConfirmation = false"
       @accept="restoreBackup"
     />
-  </xrd-large-button>
+  </xrd-button>
 </template>
 
 <script lang="ts">

@@ -33,11 +33,11 @@
         {{ $t('wizard.member.info2') }}
       </div>
       <div class="action-block">
-        <xrd-large-button
+        <xrd-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-          >{{ $t('wizard.member.select') }}</xrd-large-button
+          >{{ $t('wizard.member.select') }}</xrd-button
         >
       </div>
     </div>
@@ -101,18 +101,18 @@
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <xrd-large-button
+          <xrd-button
             outlined
             @click="cancel"
             data-test="cancel-button"
-            >{{ $t('action.cancel') }}</xrd-large-button
+            >{{ $t('action.cancel') }}</xrd-button
           >
         </div>
-        <xrd-large-button
+        <xrd-button
           @click="done"
           :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
-          >{{ $t('action.next') }}</xrd-large-button
+          >{{ $t('action.next') }}</xrd-button
         >
       </div>
     </ValidationObserver>

@@ -100,9 +100,9 @@
                 </div>
 
                 <div class="search-wrap">
-                  <xrd-large-button @click="search()" :loading="loading">{{
+                  <xrd-button @click="search()" :loading="loading">{{
                     $t('action.search')
-                  }}</xrd-large-button>
+                  }}</xrd-button>
                 </div>
               </div>
             </v-expansion-panel-content>
@@ -151,13 +151,13 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <xrd-large-button class="button-margin" outlined @click="cancel()">{{
+        <xrd-button class="button-margin" outlined @click="cancel()">{{
           $t('action.cancel')
-        }}</xrd-large-button>
+        }}</xrd-button>
 
-        <xrd-large-button :disabled="!canSave" @click="save()">{{
+        <xrd-button :disabled="!canSave" @click="save()">{{
           $t('localGroup.addSelected')
-        }}</xrd-large-button>
+        }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>

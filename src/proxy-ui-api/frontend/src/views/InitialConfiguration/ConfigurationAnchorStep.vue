@@ -59,11 +59,11 @@
     <div class="button-footer">
       <v-spacer></v-spacer>
       <div>
-        <xrd-large-button
+        <xrd-button
           :disabled="!configuratonAnchor"
           @click="done"
           data-test="save-button"
-          >{{ $t(saveButtonText) }}</xrd-large-button
+          >{{ $t(saveButtonText) }}</xrd-button
         >
       </div>
     </div>

@@ -31,7 +31,7 @@
     data-test="system-parameters-add-timestamping-service-dialog"
   >
     <template v-slot:activator="{ on: { click } }">
-      <xrd-large-button
+      <xrd-button
         data-test="system-parameters-timestamping-services-add-button"
         outlined
         @click="click"
@@ -40,7 +40,7 @@
       >
         <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}
-      </xrd-large-button>
+      </xrd-button>
     </template>
     <v-card class="xrd-card">
       <v-card-title>
@@ -81,21 +81,21 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <xrd-large-button
+        <xrd-button
           data-test="system-parameters-add-timestamping-service-dialog-cancel-button"
           outlined
           @click="close"
         >
-          {{ $t('action.cancel') }}</xrd-large-button
+          {{ $t('action.cancel') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           data-test="system-parameters-add-timestamping-service-dialog-add-button"
           :loading="loading"
           :disabled="selectedTimestampingService === undefined"
           @click="add"
         >
           <v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('action.add') }}</xrd-large-button
+          >{{ $t('action.add') }}</xrd-button
         >
       </v-card-actions>
     </v-card>

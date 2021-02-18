@@ -25,11 +25,11 @@
  -->
 <template>
   <div>
-    <xrd-large-button
+    <xrd-button
       data-test="unregister-client-button"
       @click="confirmUnregisterClient = true"
       outlined
-      >{{ $t('action.unregister') }}</xrd-large-button
+      >{{ $t('action.unregister') }}</xrd-button
     >
 
     <!-- Confirm dialog for unregister client -->

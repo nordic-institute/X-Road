@@ -136,13 +136,13 @@
         </div>
 
         <div class="button-wrap">
-          <xrd-large-button
+          <xrd-button
             v-if="canEdit"
             :disabled="invalid || disableSave"
             :loading="saving"
             @click="save(false)"
             data-test="save-service-parameters"
-            >{{ $t('action.save') }}</xrd-large-button
+            >{{ $t('action.save') }}</xrd-button
           >
         </div>
       </div>
@@ -151,21 +151,21 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
-        <xrd-large-button
+        <xrd-button
           :disabled="!hasServiceClients"
           v-if="canEdit"
           outlined
           @click="removeAllServiceClients()"
           data-test="remove-subjects"
-          >{{ $t('action.removeAll') }}</xrd-large-button
+          >{{ $t('action.removeAll') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           v-if="canEdit"
           outlined
           class="add-members-button"
           @click="showAddServiceClientDialog()"
           data-test="show-add-subjects"
-          >{{ $t('accessRights.addServiceClients') }}</xrd-large-button
+          >{{ $t('accessRights.addServiceClients') }}</xrd-button
         >
       </div>
     </div>
@@ -187,13 +187,13 @@
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td>
               <div class="button-wrap">
-                <xrd-large-button
+                <xrd-button
                   v-if="canEdit"
                   text
                   :outlined="false"
                   @click="removeServiceClient(sc)"
                   data-test="remove-subject"
-                  >{{ $t('action.remove') }}</xrd-large-button
+                  >{{ $t('action.remove') }}</xrd-button
                 >
               </div>
             </td>
@@ -202,9 +202,9 @@
       </table>
 
       <div class="footer-buttons-wrap">
-        <xrd-large-button @click="close()" data-test="close">{{
+        <xrd-button @click="close()" data-test="close">{{
           $t('action.close')
-        }}</xrd-large-button>
+        }}</xrd-button>
       </div>
     </v-card>
 

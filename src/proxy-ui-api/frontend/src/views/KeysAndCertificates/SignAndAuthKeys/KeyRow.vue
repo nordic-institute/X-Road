@@ -38,14 +38,14 @@
     </td>
     <td colspan="4"></td>
     <td class="td-align-right">
-      <xrd-large-button
+      <xrd-button
         v-if="showGenerateCsr"
         class="table-button-fix"
         :outlined="false"
         text
         :disabled="disableGenerateCsr"
         @click="generateCsr"
-        >{{ $t('keys.generateCsr') }}</xrd-large-button
+        >{{ $t('keys.generateCsr') }}</xrd-button
       >
     </td>
   </tr>

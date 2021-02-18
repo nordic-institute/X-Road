@@ -38,7 +38,7 @@
             <td>{{ backup.filename }}</td>
             <td>
               <div class="d-flex justify-end">
-                <xrd-large-button
+                <xrd-button
                   v-if="canBackup"
                   :min_width="50"
                   text
@@ -47,7 +47,7 @@
                   data-test="backup-download"
                   @click="downloadBackup(backup.filename)"
                   >{{ $t('action.download') }}
-                </xrd-large-button>
+                </xrd-button>
                 <restore-backup-button
                   v-if="canRestore"
                   :backup="backup"

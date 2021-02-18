@@ -26,7 +26,7 @@
 
 <template>
   <div>
-    <xrd-large-button
+    <xrd-button
       min-width="120px"
       v-if="!token.logged_in"
       :outlined="false"
@@ -36,9 +36,9 @@
       @click="confirmLogin()"
       data-test="token-login-button"
       >{{ $t('keys.logIn') }}
-    </xrd-large-button>
+    </xrd-button>
 
-    <xrd-large-button
+    <xrd-button
       active-class="'test'"
       min-width="120px"
       :outlined="false"
@@ -48,7 +48,7 @@
       @click="confirmLogout()"
       data-test="token-logout-button"
       >{{ $t('keys.logOut') }}
-    </xrd-large-button>
+    </xrd-button>
   </div>
 </template>
 

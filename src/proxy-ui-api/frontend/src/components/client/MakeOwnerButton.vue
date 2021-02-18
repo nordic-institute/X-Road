@@ -25,11 +25,11 @@
  -->
 <template>
   <div>
-    <xrd-large-button
+    <xrd-button
       data-test="make-owner-button"
       outlined
       @click="confirmMakeOwner = true"
-      >{{ $t('client.action.makeOwner.button') }}</xrd-large-button
+      >{{ $t('client.action.makeOwner.button') }}</xrd-button
     >
 
     <!-- Confirm dialog for make owner -->

@@ -28,12 +28,12 @@
     <div class="px-4 pt-4">
       <xrd-sub-view-title :title="$t('endpoints.details')" @close="close" />
       <div class="delete-wrap">
-        <xrd-large-button
+        <xrd-button
           v-if="showDelete"
           @click="showDeletePopup()"
           outlined
           data-test="delete-endpoint"
-          >{{ $t('action.delete') }}</xrd-large-button
+          >{{ $t('action.delete') }}</xrd-button
         >
       </div>
     </div>
@@ -83,15 +83,15 @@
         </div>
       </div>
       <div class="footer-buttons-wrap">
-        <xrd-large-button @click="close()" outlined>{{
+        <xrd-button @click="close()" outlined>{{
           $t('action.cancel')
-        }}</xrd-large-button>
-        <xrd-large-button
+        }}</xrd-button>
+        <xrd-button
           class="save-button"
           :loading="saveBusy"
           @click="saveEndpoint()"
           :disabled="!touched || invalid"
-          >{{ $t('action.save') }}</xrd-large-button
+          >{{ $t('action.save') }}</xrd-button
         >
       </div>
     </ValidationObserver>

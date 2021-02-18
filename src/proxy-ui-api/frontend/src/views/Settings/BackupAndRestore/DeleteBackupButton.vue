@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-large-button
+  <xrd-button
     v-if="canBackup"
     :min_width="50"
     :loading="deleting"
@@ -42,7 +42,7 @@
       @cancel="showConfirmation = false"
       @accept="deleteBackup"
     />
-  </xrd-large-button>
+  </xrd-button>
 </template>
 
 <script lang="ts">

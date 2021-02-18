@@ -52,9 +52,9 @@
           @file-changed="onFileChange"
           v-slot="{ upload }"
         >
-          <xrd-large-button outlined color="primary" @click="upload"
+          <xrd-button outlined color="primary" @click="upload"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.add') }}</xrd-large-button
+            >{{ $t('action.add') }}</xrd-button
           >
         </xrd-file-upload>
       </div>
@@ -102,14 +102,14 @@
             </td>
 
             <td class="column-button">
-              <xrd-large-button
+              <xrd-button
                 v-if="canExportSSCert"
                 small
                 :outlined="false"
                 text
                 color="primary"
                 @click="exportSSCertificate"
-                >{{ $t('action.export') }}</xrd-large-button
+                >{{ $t('action.export') }}</xrd-button
               >
             </td>
           </tr>

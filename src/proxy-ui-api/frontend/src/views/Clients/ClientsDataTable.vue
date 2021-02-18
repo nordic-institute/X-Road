@@ -48,21 +48,21 @@
         </v-text-field>
       </div>
       <div>
-        <xrd-large-button
+        <xrd-button
           v-if="showAddMember"
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
           outlined
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addMember') }}</xrd-large-button
+          {{ $t('action.addMember') }}</xrd-button
         >
-        <xrd-large-button
+        <xrd-button
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addClient') }}</xrd-large-button
+          {{ $t('action.addClient') }}</xrd-button
         >
       </div>
     </div>
@@ -154,7 +154,7 @@
 
       <template v-slot:[`item.button`]="{ item }">
         <div class="button-wrap">
-          <xrd-large-button
+          <xrd-button
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
@@ -166,10 +166,10 @@
             :outlined="false"
             @click="addSubsystem(item)"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.addSubsystem') }}</xrd-large-button
+            >{{ $t('action.addSubsystem') }}</xrd-button
           >
 
-          <xrd-large-button
+          <xrd-button
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
               item.type !== clientTypes.VIRTUAL_MEMBER &&
@@ -179,7 +179,7 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}</xrd-large-button
+            >{{ $t('action.register') }}</xrd-button
           >
         </div>
       </template>

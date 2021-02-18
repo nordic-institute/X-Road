@@ -39,7 +39,7 @@
       </v-text-field>
 
       <div>
-        <xrd-large-button
+        <xrd-button
           v-if="showAddRestButton"
           color="primary"
           :loading="addRestBusy"
@@ -48,17 +48,17 @@
           data-test="add-rest-button"
           class="rest-button"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('services.addRest') }}</xrd-large-button
+          >{{ $t('services.addRest') }}</xrd-button
         >
 
-        <xrd-large-button
+        <xrd-button
           v-if="showAddWSDLButton"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
           data-test="add-wsdl-button"
           class="ma-0"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('services.addWsdl') }}</xrd-large-button
+          >{{ $t('services.addWsdl') }}</xrd-button
         >
       </div>
     </div>
@@ -107,7 +107,7 @@
                 {{ $t('services.lastRefreshed') }}
                 {{ serviceDesc.refreshed_at | formatDateTime }}
               </div>
-              <xrd-large-button
+              <xrd-button
                 v-if="showRefreshButton(serviceDesc.type)"
                 :key="refreshButtonComponentKey"
                 :outlined="false"
@@ -117,7 +117,7 @@
                 class="xrd-table-button"
                 @click="refresh(serviceDesc)"
                 data-test="refresh-button"
-                >{{ $t('action.refresh') }}</xrd-large-button
+                >{{ $t('action.refresh') }}</xrd-button
               >
             </div>
 

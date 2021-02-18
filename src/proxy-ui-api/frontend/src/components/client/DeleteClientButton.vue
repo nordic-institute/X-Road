@@ -25,12 +25,12 @@
  -->
 <template>
   <div>
-    <xrd-large-button
+    <xrd-button
       data-test="delete-client-button"
       @click="confirmDelete = true"
       outlined
       ><v-icon class="xrd-large-button-icon">icon-Declined</v-icon
-      >{{ $t('action.delete') }}</xrd-large-button
+      >{{ $t('action.delete') }}</xrd-button
     >
 
     <!-- Confirm dialog for delete client -->

@@ -35,20 +35,20 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
-        <xrd-large-button
+        <xrd-button
           v-if="canEdit"
           @click="removeAll()"
           outlined
           data-test="remove-all-access-rights"
           >{{ $t('action.removeAll') }}
-        </xrd-large-button>
-        <xrd-large-button
+        </xrd-button>
+        <xrd-button
           v-if="canEdit"
           @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
           >{{ $t('accessRights.addServiceClients') }}
-        </xrd-large-button>
+        </xrd-button>
       </div>
     </div>
 
@@ -68,14 +68,14 @@
             <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td>
-              <xrd-large-button
+              <xrd-button
                 v-if="canEdit"
                 text
                 :outlined="false"
                 @click="remove(sc)"
                 data-test="remove-access-right"
                 >{{ $t('action.remove') }}
-              </xrd-large-button>
+              </xrd-button>
             </td>
           </tr>
         </template>

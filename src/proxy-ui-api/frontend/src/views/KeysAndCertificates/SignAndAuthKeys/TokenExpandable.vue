@@ -67,14 +67,14 @@
     <template v-slot:content>
       <div>
         <div class="button-wrap">
-          <xrd-large-button
+          <xrd-button
             v-if="canAddKey"
             outlined
             @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('keys.addKey') }}</xrd-large-button
+            >{{ $t('keys.addKey') }}</xrd-button
           >
           <xrd-file-upload
             v-if="canImportCertificate"
@@ -82,7 +82,7 @@
             @file-changed="importCert"
             v-slot="{ upload }"
           >
-            <xrd-large-button
+            <xrd-button
               outlined
               class="button-spacing"
               :disabled="!token.logged_in"
@@ -90,7 +90,7 @@
               data-test="token-import-cert-button"
             >
               <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
-              {{ $t('keys.importCert') }}</xrd-large-button
+              {{ $t('keys.importCert') }}</xrd-button
             >
           </xrd-file-upload>
         </div>

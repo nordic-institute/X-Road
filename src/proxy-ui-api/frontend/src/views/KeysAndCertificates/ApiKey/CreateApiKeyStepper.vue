@@ -62,20 +62,20 @@
             </v-row>
           </div>
           <v-row class="button-footer mt-12" no-gutters>
-            <xrd-large-button outlined @click="close">
+            <xrd-button outlined @click="close">
               {{ $t('action.cancel') }}
-            </xrd-large-button>
+            </xrd-button>
 
-            <xrd-large-button :disabled="nextButtonDisabled" @click="step++">
+            <xrd-button :disabled="nextButtonDisabled" @click="step++">
               {{ $t('action.next') }}
-            </xrd-large-button>
+            </xrd-button>
           </v-row>
         </v-stepper-content>
         <v-stepper-content step="2" class="pa-0">
           <div class="px-6">
             <v-row>
               <v-col class="text-right">
-                <xrd-large-button
+                <xrd-button
                   :disabled="keyGenerated"
                   :loading="generatingKey"
                   @click="generateKey"
@@ -83,7 +83,7 @@
                   {{
                     $t('apiKey.createApiKey.step.keyDetails.createKeyButton')
                   }}
-                </xrd-large-button>
+                </xrd-button>
               </v-col>
             </v-row>
             <v-row>
@@ -117,25 +117,25 @@
             </v-row>
           </div>
           <v-row class="button-footer mt-12" no-gutters>
-            <xrd-large-button
+            <xrd-button
               outlined
               @click="close"
               :disabled="keyGenerated || generatingKey"
             >
               {{ $t('action.cancel') }}
-            </xrd-large-button>
+            </xrd-button>
 
-            <xrd-large-button
+            <xrd-button
               outlined
               @click="step--"
               class="mr-5"
               :disabled="keyGenerated || generatingKey"
             >
               {{ $t('action.previous') }}
-            </xrd-large-button>
-            <xrd-large-button :disabled="!keyGenerated" @click="close">
+            </xrd-button>
+            <xrd-button :disabled="!keyGenerated" @click="close">
               {{ $t('action.finish') }}
-            </xrd-large-button>
+            </xrd-button>
           </v-row>
         </v-stepper-content>
       </v-stepper-items>

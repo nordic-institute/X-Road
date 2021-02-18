@@ -47,12 +47,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
+
 /**
  * Wrapper for vuetify button with x-road look
  * */
-
 export default Vue.extend({
-  name: 'large-button',
+  name: 'button',
   props: {
     outlined: {
       type: Boolean,

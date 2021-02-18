@@ -24,11 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import LargeButton from './LargeButton.vue';
+import Button from './Button.vue';
 
 export default {
-  title: 'X-Road/Large button',
-  component: LargeButton,
+  title: 'X-Road/Button',
+  component: Button,
   argTypes: {
     outlined: { control: 'boolean' },
     disabled: { control: 'boolean' },
@@ -42,9 +42,9 @@ export default {
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { LargeButton },
+  components: { Button },
   template:
-    '<large-button @click="click" v-bind="$props">{{label}}</large-button>',
+    '<button @click="click" v-bind="$props">{{label}}</button>',
 });
 
 export const Primary = Template.bind({});

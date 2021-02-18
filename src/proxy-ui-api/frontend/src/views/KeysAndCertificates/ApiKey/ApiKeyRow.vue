@@ -31,13 +31,13 @@
     <td>{{ apiKey.id }}</td>
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
     <td class="text-right">
-      <xrd-large-button
+      <xrd-button
         v-if="canEdit"
         @click="openEditDialog"
         text
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
-        >{{ $t('apiKey.table.action.edit.button') }}</xrd-large-button
+        >{{ $t('apiKey.table.action.edit.button') }}</xrd-button
       >
       <xrd-simple-dialog
         :dialog="showEditDialog"
@@ -74,14 +74,14 @@
           </v-row>
         </div>
       </xrd-simple-dialog>
-      <xrd-large-button
+      <xrd-button
         v-if="canRevoke"
         class="ml-5"
         text
         :data-test="`api-key-row-${apiKey.id}-revoke-button`"
         :loading="removingApiKey"
         @click="confirmRevoke = true"
-        >{{ $t('apiKey.table.action.revoke.button') }}</xrd-large-button
+        >{{ $t('apiKey.table.action.revoke.button') }}</xrd-button
       >
       <xrd-confirm-dialog
         :data-test="`api-key-row-${apiKey.id}-revoke-confirmation`"

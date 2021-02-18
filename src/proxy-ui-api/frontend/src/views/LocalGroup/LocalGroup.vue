@@ -31,9 +31,9 @@
       <template>
         <div class="cert-hash">
           {{ $t('localGroup.localGroup') }}
-          <xrd-large-button v-if="showDelete" @click="deleteGroup()" outlined>
+          <xrd-button v-if="showDelete" @click="deleteGroup()" outlined>
             {{ $t('action.delete') }}
-          </xrd-large-button>
+          </xrd-button>
         </div>
       </template>
     </div>
@@ -57,20 +57,20 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('localGroup.groupMembers') }}</div>
       <div class="row-buttons">
-        <xrd-large-button
+        <xrd-button
           :disabled="!hasMembers"
           v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
-          >{{ $t('action.removeAll') }}</xrd-large-button
+          >{{ $t('action.removeAll') }}</xrd-button
         >
 
-        <xrd-large-button
+        <xrd-button
           class="add-members-button"
           v-if="canEditMembers"
           @click="addMembers()"
           outlined
-          >{{ $t('localGroup.addMembers') }}</xrd-large-button
+          >{{ $t('localGroup.addMembers') }}</xrd-button
         >
       </div>
     </div>
@@ -91,12 +91,12 @@
 
             <td>
               <div class="button-wrap">
-                <xrd-large-button
+                <xrd-button
                   v-if="canEditMembers"
                   text
                   :outlined="false"
                   @click="removeMember(groupMember)"
-                  >{{ $t('action.remove') }}</xrd-large-button
+                  >{{ $t('action.remove') }}</xrd-button
                 >
               </div>
             </td>
@@ -105,9 +105,9 @@
       </table>
 
       <div class="close-button-wrap">
-        <xrd-large-button @click="close()">{{
+        <xrd-button @click="close()">{{
           $t('action.close')
-        }}</xrd-large-button>
+        }}</xrd-button>
       </div>
     </v-card>
 

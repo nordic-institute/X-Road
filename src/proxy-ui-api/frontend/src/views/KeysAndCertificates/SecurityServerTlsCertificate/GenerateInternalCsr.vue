@@ -59,7 +59,7 @@
           $t('ssTlsCertificate.generateInternalCsr.step2.description')
         }}</v-col>
         <v-col cols="4" class="text-right">
-          <xrd-large-button
+          <xrd-button
             outlined
             data-text="generate-internal-csr-generate-csr-button"
             :disabled="distinguishedName.length === 0 || csrGenerated"
@@ -67,27 +67,27 @@
             @click="generateCsr"
             >{{
               $t('ssTlsCertificate.generateInternalCsr.step2.generateCSR')
-            }}</xrd-large-button
+            }}</xrd-button
           >
         </v-col>
       </v-row>
     </v-container>
     <div class="button-footer">
-      <xrd-large-button
+      <xrd-button
         @click="back"
         :disabled="csrGenerated || generatingCsr"
         outlined
         data-test="generate-internal-csr-cancel-button"
         >{{
           $t('ssTlsCertificate.generateInternalCsr.cancel')
-        }}</xrd-large-button
+        }}</xrd-button
       >
 
-      <xrd-large-button
+      <xrd-button
         @click="back"
         :disabled="!csrGenerated"
         data-test="generate-internal-csr-done-button"
-        >{{ $t('ssTlsCertificate.generateInternalCsr.done') }}</xrd-large-button
+        >{{ $t('ssTlsCertificate.generateInternalCsr.done') }}</xrd-button
       >
     </div>
   </v-container>

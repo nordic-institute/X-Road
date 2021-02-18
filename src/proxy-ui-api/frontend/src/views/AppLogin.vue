@@ -89,7 +89,7 @@
             </v-form>
           </v-card-text>
           <v-card-actions class="px-4">
-            <xrd-large-button
+            <xrd-button
               id="submit-button"
               color="primary"
               gradient
@@ -100,7 +100,7 @@
               rounded
               :disabled="isDisabled"
               :loading="loading"
-              >{{ $t('login.logIn') }}</xrd-large-button
+              >{{ $t('login.logIn') }}</xrd-button
             >
           </v-card-actions>
         </v-card>

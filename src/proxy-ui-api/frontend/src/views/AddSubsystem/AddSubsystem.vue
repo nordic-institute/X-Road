@@ -40,11 +40,11 @@
             {{ $t('wizard.subsystem.info2') }}
           </div>
           <div class="action-block">
-            <xrd-large-button
+            <xrd-button
               @click="showSelectClient = true"
               outlined
               data-test="select-subsystem-button"
-              >{{ $t('wizard.subsystem.selectSubsystem') }}</xrd-large-button
+              >{{ $t('wizard.subsystem.selectSubsystem') }}</xrd-button
             >
           </div>
         </div>
@@ -118,19 +118,19 @@
 
       <div class="button-footer">
         <div class="button-group">
-          <xrd-large-button
+          <xrd-button
             outlined
             @click="exitView"
             data-test="cancel-button"
-            >{{ $t('action.cancel') }}</xrd-large-button
+            >{{ $t('action.cancel') }}</xrd-button
           >
         </div>
-        <xrd-large-button
+        <xrd-button
           @click="done"
           :disabled="invalid || duplicateClient"
           data-test="submit-add-subsystem-button"
           :loading="submitLoading"
-          >{{ $t('action.addSubsystem') }}</xrd-large-button
+          >{{ $t('action.addSubsystem') }}</xrd-button
         >
       </div>
     </ValidationObserver>

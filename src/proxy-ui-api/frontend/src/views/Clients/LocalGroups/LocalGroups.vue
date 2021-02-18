@@ -37,12 +37,12 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
 
-      <xrd-large-button
+      <xrd-button
         v-if="showAddGroup"
         @click="addGroup"
         data-test="add-group-button"
         ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-        {{ $t('localGroups.addGroup') }}</xrd-large-button
+        {{ $t('localGroups.addGroup') }}</xrd-button
       >
     </div>
 

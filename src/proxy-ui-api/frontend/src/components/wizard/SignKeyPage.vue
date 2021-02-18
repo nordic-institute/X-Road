@@ -42,24 +42,24 @@
       </div>
     </div>
     <div class="button-footer">
-      <xrd-large-button
+      <xrd-button
         outlined
         @click="cancel"
         :disabled="!disableDone"
         data-test="cancel-button"
-        >{{ $t('action.cancel') }}</xrd-large-button
+        >{{ $t('action.cancel') }}</xrd-button
       >
 
-      <xrd-large-button
+      <xrd-button
         @click="previous"
         outlined
         class="previous-button"
         data-test="previous-button"
-        >{{ $t('action.previous') }}</xrd-large-button
+        >{{ $t('action.previous') }}</xrd-button
       >
-      <xrd-large-button @click="done" data-test="next-button">{{
+      <xrd-button @click="done" data-test="next-button">{{
         $t('action.next')
-      }}</xrd-large-button>
+      }}</xrd-button>
     </div>
   </div>
 </template>

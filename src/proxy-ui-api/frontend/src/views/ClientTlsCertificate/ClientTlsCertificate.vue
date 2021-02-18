@@ -30,11 +30,11 @@
       <template v-if="certificate">
         <div class="cert-hash-wrapper">
           <certificateHash :hash="certificate.hash" />
-          <xrd-large-button
+          <xrd-button
             v-if="showDeleteButton"
             outlined
             @click="deleteCertificate()"
-            >{{ $t('action.delete') }}</xrd-large-button
+            >{{ $t('action.delete') }}</xrd-button
           >
         </div>
         <certificateInfo :certificate="certificate" />
