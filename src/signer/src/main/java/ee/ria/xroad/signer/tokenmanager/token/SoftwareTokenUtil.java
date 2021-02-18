@@ -44,6 +44,8 @@ import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -72,6 +74,8 @@ public final class SoftwareTokenUtil {
             return name != null && !name.startsWith(PIN_FILE) && name.endsWith(P12);
         }
     };
+
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
 
     private SoftwareTokenUtil() {
     }
@@ -106,8 +110,14 @@ public final class SoftwareTokenUtil {
         return getConfPath() + ".keys.tmp/";
     }
 
-    private static String getBackupKeyDir() {
+    public static String getBackupKeyDir() {
         return getConfPath() + ".keys.bak/";
+    }
+
+    public static String getBackupKeyDirForDateNow() {
+        Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
+        String nowString = TIMESTAMP_FORMAT.format(nowTimestamp);
+        return getConfPath() + ".keys-" + nowString + ".bak/";
     }
 
     /**

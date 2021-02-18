@@ -41,10 +41,12 @@ import ee.ria.xroad.signer.tokenmanager.TokenManager;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,7 +61,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
-import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static ee.ria.xroad.common.ErrorCodes.X_UNSUPPORTED_SIGN_ALGORITHM;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -77,6 +78,8 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createTempKeyDir;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.generateKeyPair;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDir;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDirForDateNow;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getTempKeyStoreFileName;
@@ -88,6 +91,7 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameKey
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameTempToKeyDir;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.pinIncorrect;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
 
@@ -346,7 +350,6 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         String keyStoreFile = getKeyStoreFileName(keyFile);
         String tempKeyStoreFile = getTempKeyStoreFileName(keyFile);
 
-        // get key store by key store file name
         KeyStore oldKeyStore = loadPkcs12KeyStore(new File(keyStoreFile), oldPin);
         PrivateKey privateKey = SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyAlias, oldPin);
 
@@ -361,35 +364,73 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         }
     }
 
+    private void verifyOldAndNewPin(char[] oldPin, char[] newPin) throws Exception {
+        // Verify that pin is provided and get the correct pin
+        char[] oldPinFromStore = getPin();
+        try {
+            verifyPin(oldPin);
+        } catch (Exception e) {
+            log.error("Error verifying token PIN", e);
+            setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+            throw pinIncorrect();
+        }
+        if (!Arrays.equals(oldPinFromStore, oldPin)) {
+            log.error("The PIN provided for updating the pin was incorrect");
+            setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
+            throw pinIncorrect();
+        }
+        // Verify new pin complexity
+        if (SystemProperties.shouldEnforceTokenPinPolicy() && !TokenPinPolicy.validate(newPin)) {
+            throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE,
+                    "Token PIN does not meet complexity requirements");
+        }
+    }
+
+    /**
+     * Rename the key folder to .keys.bak
+     * Extremely rare corner case: if that folder already exists, keep the existing folder but rename it with a
+     * timestamp e.g. .keys-20210218155510.bak. This way the pin change gets to proceed and possibly important
+     * backup folder does not get removed.
+     * @throws IOException problems with files
+     */
+    private void createKeyDirBackup() throws IOException {
+        File backupDir = new File(getBackupKeyDir());
+        // If an old .keys.backup folder exists, rename the folder with a timestamp
+        if (backupDir.exists()) {
+            File timestampedBackupDir = new File(getBackupKeyDirForDateNow());
+            log.warn("A backup folder already exists. Renaming the folder to {}", timestampedBackupDir.getName());
+            FileUtils.moveDirectory(backupDir, timestampedBackupDir);
+        }
+        // Change the key dir name to .keys.bak
+        renameKeyDirToBackup();
+    }
+
     private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
+        log.info("Updating the software token pin to a new one...");
+
         tokenLoginAllowed.set(false); // Prevent token login for the time of pin update
         try {
-            char[] oldPinFromStore = getPin(); // Verify that pin is provided and get the correct pin
-            if (!Arrays.equals(oldPinFromStore, oldPin)) {
-                throw CodedException.tr(X_PIN_INCORRECT, "pin_incorrect", "PIN incorrect");
-            }
-            // Verify new pin complexity
-            if (SystemProperties.shouldEnforceTokenPinPolicy() && !TokenPinPolicy.validate(newPin)) {
-                throw new CodedException(X_TOKEN_PIN_POLICY_FAILURE,
-                        "Token PIN does not meet complexity requirements");
-            }
-            verifyPin(oldPin); // Verify that the provided old pin works
-            PasswordStore.storePassword(tokenId, null); // Clear pin from pwstore
+            verifyOldAndNewPin(oldPin, newPin);
+            // Clear pin from pwstore and deactivate token
+            PasswordStore.storePassword(tokenId, null);
             deactivateToken();
             // Create a new temp folder for working - a copy of the signer folder to .keys.tmp
             createTempKeyDir();
-            // Rewrite the ".softtoken" keystore with a new pin to the temp (add temp as param?)
+            // Rewrite the ".softtoken" keystore with a new pin in the temp folder
             rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
             // Rewrite all other keystores with the new pin
             for (String keyId : listKeysOnDisk()) {
                 rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
             }
-            // Change the key dir name to .keys.backup
-            renameKeyDirToBackup();
+            createKeyDirBackup();
             // Change the temp dir name to <keydir name>
             renameTempToKeyDir();
             // All good: remove the backup folder
             removeBackupKeyDir();
+            log.info("Updating the software token pin was successful!");
+        } catch (Exception e) {
+            log.info("Updating the software token pin failed!");
+            throw e;
         } finally {
             tokenLoginAllowed.set(true); // Allow token login again
         }
@@ -412,7 +453,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
 
             setTokenStatus(tokenId, TokenStatusInfo.USER_PIN_INCORRECT);
 
-            throw CodedException.tr(X_PIN_INCORRECT, "pin_incorrect", "PIN incorrect");
+            throw pinIncorrect();
         }
     }
 
