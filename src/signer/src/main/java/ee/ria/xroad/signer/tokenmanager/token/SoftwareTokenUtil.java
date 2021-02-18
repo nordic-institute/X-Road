@@ -30,14 +30,13 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.signer.util.SignerUtil;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.ContentSigner;
 
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -49,11 +48,13 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
+import static ee.ria.xroad.common.SystemProperties.getConfPath;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 /**
  * Utility methods for software token.
  */
+@Slf4j
 public final class SoftwareTokenUtil {
 
     static final String PIN_ALIAS = "pin";
@@ -102,7 +103,11 @@ public final class SoftwareTokenUtil {
     }
 
     private static String getTempKeyDir() {
-        return getKeyDir() + "/tmp/";
+        return getConfPath() + ".keys.tmp/";
+    }
+
+    private static String getBackupKeyDir() {
+        return getConfPath() + ".keys.bak/";
     }
 
     /**
@@ -110,15 +115,31 @@ public final class SoftwareTokenUtil {
      * @throws IOException creating temp dir fails
      */
     public static void createTempKeyDir() throws IOException {
-        Files.createDirectory(Paths.get(getTempKeyDir()));
+        FileUtils.copyDirectory(getKeyDir(), new File(getTempKeyDir()));
     }
 
     /**
-     * Recursively remove the temp directory for key stores. Used e.g. when changing pin codes for key stores
-     * @throws IOException removing temp dir fails
+     * Rename the temp dir to the official key dir. Used e.g. when changing pin codes for key stores
+     * @throws IOException renaming fails
      */
-    public static void removeTempKeyDir() throws IOException {
-        FileUtils.deleteDirectory(new File(getTempKeyDir()));
+    public static void renameTempToKeyDir() throws IOException {
+        FileUtils.moveDirectory(new File(getTempKeyDir()), getKeyDir());
+    }
+
+    /**
+     * Rename the key dir to a backup dir. Used e.g. when changing pin codes for key stores
+     * @throws IOException renaming fails
+     */
+    public static void renameKeyDirToBackup() throws IOException {
+        FileUtils.moveDirectory(getKeyDir(), new File(getBackupKeyDir()));
+    }
+
+    /**
+     * Remove the backup key dir. Used e.g. when changing pin codes for key stores
+     * @throws IOException removing fails
+     */
+    public static void removeBackupKeyDir() throws IOException {
+        FileUtils.deleteDirectory(new File(getBackupKeyDir()));
     }
 
     static List<String> listKeysOnDisk() {

@@ -83,7 +83,9 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getTempKe
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.removeTempKeyDir;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.removeBackupKeyDir;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameKeyDirToBackup;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameTempToKeyDir;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
@@ -374,16 +376,21 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             verifyPin(oldPin); // Verify that the provided old pin works
             PasswordStore.storePassword(tokenId, null); // Clear pin from pwstore
             deactivateToken();
-            // Create a temp folder
+            // Create a new temp folder for working - a copy of the signer folder to .keys.tmp
             createTempKeyDir();
-            // Update the ".softtoken" keystore pin'
+            // Rewrite the ".softtoken" keystore with a new pin to the temp (add temp as param?)
             rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
-            // Rewrite all keystores with the new PIN
+            // Rewrite all other keystores with the new pin
             for (String keyId : listKeysOnDisk()) {
                 rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
             }
+            // Change the key dir name to .keys.backup
+            renameKeyDirToBackup();
+            // Change the temp dir name to <keydir name>
+            renameTempToKeyDir();
+            // All good: remove the backup folder
+            removeBackupKeyDir();
         } finally {
-            removeTempKeyDir();
             tokenLoginAllowed.set(true); // Allow token login again
         }
     }
