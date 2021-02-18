@@ -43,8 +43,7 @@ export default {
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: { Button },
-  template:
-    '<button @click="click" v-bind="$props">{{label}}</button>',
+  template: '<xrd-button @click="click" v-bind="$props">{{label}}</xrd-button>',
 });
 
 export const Primary = Template.bind({});

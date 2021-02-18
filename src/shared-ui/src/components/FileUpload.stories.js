@@ -45,9 +45,9 @@ const Template = (args, { argTypes }) => ({
     @file-changed="fileChanged"
     v-slot="{ upload }"
     >
-      <large-button @click="upload">
+      <button @click="upload">
         Upload
-      </large-button>
+      </button>
     </file-upload>
     `,
 });

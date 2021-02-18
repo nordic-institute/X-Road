@@ -52,7 +52,7 @@ import Vue from 'vue';
  * Wrapper for vuetify button with x-road look
  * */
 export default Vue.extend({
-  name: 'button',
+  name: 'xrd-button',
   props: {
     outlined: {
       type: Boolean,

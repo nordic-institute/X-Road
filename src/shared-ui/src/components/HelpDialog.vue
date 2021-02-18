@@ -38,7 +38,7 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button @click="cancel()">{{ $t('keys.gotIt') }}</large-button>
+        <xrd-button @click="cancel()">{{ $t('keys.gotIt') }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -49,13 +49,11 @@
 
 import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
-import Button from '@/components/Button.vue';
 
 export default Vue.extend({
   name: 'HelpDialog',
   components: {
     CloseButton,
-    Button,
   },
   props: {
     // Title of the dialog
