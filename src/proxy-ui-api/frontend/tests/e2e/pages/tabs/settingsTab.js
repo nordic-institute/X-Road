@@ -99,31 +99,31 @@ const confirmationDialog = {
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Settings")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and contains(@data-test, "settings")]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
       locateStrategy: 'xpath',
     },
     backupAndRestoreTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="backup"]',
       locateStrategy: 'xpath',
     },
   },
   sections: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" System Parameters "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
       locateStrategy: 'xpath',
       commands: systemParametersCommands,
     },
     backupAndRestoreTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Backup And Restore "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="backup"]',
       locateStrategy: 'xpath',
       commands: backupAndRestoreCommands,
       elements: {

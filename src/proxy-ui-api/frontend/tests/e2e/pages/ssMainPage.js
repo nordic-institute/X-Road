@@ -607,17 +607,17 @@ module.exports = {
     },
     keysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Keys and certificates"]',
+        '//a[@data-test="keys"]',
       locateStrategy: 'xpath',
     },
     diagnosticsTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Diagnostics"]',
+        '//a[@data-test="diagnostics"]',
       locateStrategy: 'xpath',
     },
     settingsTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()="Settings"]',
+        '//a[@data-test="settings"]',
       locateStrategy: 'xpath',
     },
     userMenuButton: {
