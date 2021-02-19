@@ -58,7 +58,6 @@ import java.security.cert.Certificate;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
@@ -91,6 +90,7 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameKey
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameTempToKeyDir;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
+import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
 import static ee.ria.xroad.signer.util.ExceptionHelper.pinIncorrect;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
@@ -105,9 +105,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     // Use no digesting algorithm, since the input data is already a digest
     private static final String SIGNATURE_ALGORITHM = "NONEwithRSA";
 
-    private final AtomicBoolean tokenLoginAllowed = new AtomicBoolean(true);
-
     private final Map<String, PrivateKey> privateKeys = new HashMap<>();
+
+    private boolean isTokenLoginAllowed = true;
 
     /**
      * Creates new worker.
@@ -153,9 +153,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     @Override
     protected void activateToken(ActivateToken message) throws Exception {
         if (message.isActivate()) {
-            if (!tokenLoginAllowed.get()) {
-                // TOBEDONE throw pincode is being changed exception
-                log.error("sry pincode is being changed :(");
+            if (!isTokenLoginAllowed) {
+                throw loginFailed("PIN change in progress – token login not allowed");
             }
             activateToken();
         } else {
@@ -345,8 +344,8 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         setTokenStatus(tokenId, TokenStatusInfo.OK);
     }
 
-    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin) throws
-            Exception {
+    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin)
+            throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyFile);
         String tempKeyStoreFile = getTempKeyStoreFileName(keyFile);
 
@@ -387,34 +386,34 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     }
 
     /**
-     * Rename the key folder to .keys.bak
+     * Rename the key folder (softtoken) to .softtoken.bak
      * Extremely rare corner case: if that folder already exists, keep the existing folder but rename it with a
-     * timestamp e.g. .keys-20210218155510.bak. This way the pin change gets to proceed and possibly important
+     * timestamp e.g. .softtoken.bak-20210218155510. This way the pin change gets to proceed and possibly important
      * backup folder does not get removed.
      * @throws IOException problems with files
      */
     private void createKeyDirBackup() throws IOException {
         File backupDir = new File(getBackupKeyDir());
-        // If an old .keys.backup folder exists, rename the folder with a timestamp
+        // If an old .softtoken.bak folder exists, rename the folder with a timestamp
         if (backupDir.exists()) {
             File timestampedBackupDir = new File(getBackupKeyDirForDateNow());
             log.warn("A backup folder already exists. Renaming the folder to {}", timestampedBackupDir.getName());
             FileUtils.moveDirectory(backupDir, timestampedBackupDir);
         }
-        // Change the key dir name to .keys.bak
+        // Change the key dir name to .softtoken.bak
         renameKeyDirToBackup();
     }
 
     private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
         log.info("Updating the software token pin to a new one...");
 
-        tokenLoginAllowed.set(false); // Prevent token login for the time of pin update
+        isTokenLoginAllowed = false; // Prevent token login for the time of pin update
         try {
             verifyOldAndNewPin(oldPin, newPin);
             // Clear pin from pwstore and deactivate token
             PasswordStore.storePassword(tokenId, null);
             deactivateToken();
-            // Create a new temp folder for working - a copy of the signer folder to .keys.tmp
+            // Create a new temp folder for working - a copy of the softtoken folder to .softtoken.tmp
             createTempKeyDir();
             // Rewrite the ".softtoken" keystore with a new pin in the temp folder
             rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
@@ -423,7 +422,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
                 rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
             }
             createKeyDirBackup();
-            // Change the temp dir name to <keydir name>
+            // Change the temp dir name to 'softtoken'
             renameTempToKeyDir();
             // All good: remove the backup folder
             removeBackupKeyDir();
@@ -432,7 +431,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             log.info("Updating the software token pin failed!");
             throw e;
         } finally {
-            tokenLoginAllowed.set(true); // Allow token login again
+            isTokenLoginAllowed = true; // Allow token login again
         }
     }
 

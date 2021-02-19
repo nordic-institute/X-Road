@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import static ee.ria.xroad.common.SystemProperties.getConfPath;
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
 
 /**
@@ -65,6 +64,10 @@ public final class SoftwareTokenUtil {
 
     static final String P12 = ".p12";
 
+    static final String SOFT_TOKEN_KEY_DIR_NAME = "softtoken";
+    static final String SOFT_TOKEN_KEY_BAK_DIR_NAME = ".softtoken.bak";
+    static final String SOFT_TOKEN_KEY_TMP_DIR_NAME = ".softtoken.tmp";
+
     // TODO make it configurable.
     private static final String SIGNATURE_ALGORITHM = CryptoUtils.SHA512WITHRSA_ID;
 
@@ -76,6 +79,8 @@ public final class SoftwareTokenUtil {
     };
 
     private static final SimpleDateFormat TIMESTAMP_FORMAT = new SimpleDateFormat("yyyyMMddHHmmss");
+
+    private static final String KEY_CONF_FILE = SystemProperties.getKeyConfFile();
 
     private SoftwareTokenUtil() {
     }
@@ -107,17 +112,20 @@ public final class SoftwareTokenUtil {
     }
 
     private static String getTempKeyDir() {
-        return getConfPath() + ".keys.tmp/";
+        return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
+                + SOFT_TOKEN_KEY_TMP_DIR_NAME + File.separator;
     }
 
     public static String getBackupKeyDir() {
-        return getConfPath() + ".keys.bak/";
+        return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
+                + SOFT_TOKEN_KEY_BAK_DIR_NAME + File.separator;
     }
 
     public static String getBackupKeyDirForDateNow() {
         Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         String nowString = TIMESTAMP_FORMAT.format(nowTimestamp);
-        return getConfPath() + ".keys-" + nowString + ".bak/";
+        return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
+                + SOFT_TOKEN_KEY_BAK_DIR_NAME + "-" + nowString + File.separator;
     }
 
     /**
@@ -163,7 +171,8 @@ public final class SoftwareTokenUtil {
     }
 
     static File getKeyDir() {
-        return new File(ResourceUtils.getFullPathFromFileName(SystemProperties.getKeyConfFile()));
+        return new File(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
+                + SOFT_TOKEN_KEY_DIR_NAME + File.separator);
     }
 
     static KeyStore createKeyStore(KeyPair kp, String alias, char[] password) throws Exception {
