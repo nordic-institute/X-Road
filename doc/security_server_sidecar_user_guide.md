@@ -442,15 +442,16 @@ If the configuration is successfully downloaded, the system asks for the followi
 If you enter the member class and member code correctly, the system displays the Security Server  owner’s name as registered in the X-Road Central Server.
 
 * Security Server code (**reference data: 2.4**), which is chosen by the Security Server  administrator and which has to be unique across all the Security Server s belonging to the same X-Road member.
-* Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
+* Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token.
+Note! Store the PIN in a secure place, because it will not be pssible to use or recover the private keys in the token if you lose the PIN.
 
 ### 4.4 Security Server registration
 
-After the Security Server Sidecar is configured, you need to register it in the Central Server, information about how to configure the Security Server Sidecar on the Central Server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
+After the Security Server Sidecar has been configured, you need to register it in the Central Server. You can find instructions on how to configure the Security Server Sidecar on the Central Server in the [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
 
 ## 5 Back up and Restore
 
-Information of how to backup and restore the Security Server Sidecar can be found on the [Security Server User guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore).
+You can find information on how to backup and restore the Security Server Sidecar in the [Security Server User guide](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#13-back-up-and-restore).
 
 The Security Server Sidecar stores its configuration in the local file system folder:
 
@@ -458,7 +459,7 @@ The Security Server Sidecar stores its configuration in the local file system fo
 /etc/xroad/
 ```
 
-It is recommended to store this configuration outside the Docker container using Docker volumes. Adding a Docker volume will allow keeping the configuration even if the container is removed or updated and makes it possible to use the same configuration in other Docker containers.
+It is recommended to store this configuration outside the Docker container using Docker volumes. Adding a Docker volume will allow the configuration to persist even if the container is removed and makes it possible to use the same configuration in other Docker containers.
 
 To add the Docker volume, add the Docker volume parameter mapping to the config folder:
 
@@ -466,7 +467,7 @@ To add the Docker volume, add the Docker volume parameter mapping to the config 
 docker run -v (custom-volume-name):/etc/xroad
 ```
 
-Once the Docker container is running we can see the volume information and where it is stored in our local machine by running the following command:
+Once the Docker container is running, you can see the volume information and where it is stored in your local machine by running the following command:
 
 ```bash
 docker volume inspect (custom-volume-name)
@@ -483,14 +484,14 @@ docker volume inspect (custom-volume-name)
 ]
 ```
 
-We can manually backup the data stored in the "Mountpoint" every period of time.
+You can manually backup the data stored in the "Mountpoint" every period of time.
 
 ### 5.1 Automatic Backups
 
-By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
+The Security Server backs up its configuration automatically once every day, by default. Backups older than 30 days are automatically removed from the server. If needed, you can adjust the automatic backup policies by editing the `/etc/cron.d/xroad-proxy` file.
 Automatic backups will be stored in the folder `/var/lib/xroad/backup/`.
 
-We can add the volume flag to the docker run command to create a volume to store the automatic backups:
+You can create a volume to store the automatic backups by adding the volume mapping parameter in the docker run command:
 
 ```bash
 docker run ... -v (backups-volume-name):/etc/xroad/var/lib/xroad/backup/ ...
@@ -498,41 +499,46 @@ docker run ... -v (backups-volume-name):/etc/xroad/var/lib/xroad/backup/ ...
 
 ## 6 Version update
 
-We can update the Security Server Sidecar by creating a backup, running the image with the new version, and restoring the backup or reusing the volume with the xroad config as explained in [Back up and Restore](#5-Back-up-and-Restore) section.
+When you update the Security Server Sidecar, you can:
 
-Alternatively, we can manually update the X-Road Sidecar packages while the Docker container is running. To do this we should:
+* Create a backup
+* run the image with the new version
+* restore the backup or reuse the volume with the X-Road config as explained in [Back up and Restore](#5-Back-up-and-Restore) section.
 
-* Open a bash terminal inside the container:
+Alternatively, you can manually update the X-Road Sidecar packages while the Docker container is running.
+To do this, you must:
+
+1. Open a bash terminal inside the container:
 
 ```bash
 docker exec -it <container-name> bash
 ```
 
-* Stop the Security Server services:
+2. Stop the Security Server services:
 
 ```bash
 supervisorctl stop all
 ```
 
-* Add the new version repository key:
+3. Add the new version repository key:
 
 ```bash
 echo "deb https://artifactory.niis.org/xroad-release-deb bionic-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
 ```
 
-* Update and upgrade the packages:
+4. Update and upgrade the packages:
 
 ```bash
 apt-get update && apt-get upgrade
 ```
 
-* Start the Security Server services:
+5. Start the Security Server services:
 
 ```bash
 supervisorctl start all
 ```
 
-Note: It is possible that a major version update will require extra changes. Before updating the Security Server Sidecar, please check the specific version release notes for the version update.
+Note: It is possible that a major version update will require extra changes. Remember to always check the specific documentation for the version update and follow the provided instructions.
 
 ## 7 Monitoring
 
@@ -540,10 +546,10 @@ Monitoring module is available for the regular version of the X-Road Security Se
 
 ### 7.1 Environmental monitoring
 
-Environmental monitoring for the Security Server Sidecar provider can be used to obtain information about the platform it's running on.
-For example, to get the system metrics we can follow the steps below:
+You can use Environmental monitoring for the Security Server Sidecar provider to obtain information about the platform it's running on
+For example, to get the system metrics:
 
-* Create a file called **system_metrics.xml** (**reference data: 2.2;2.3;2.4**):
+1. Create a file called **system_metrics.xml** (**reference data: 2.2;2.3;2.4**):
 
 ```xml
 <SOAP-ENV:Envelope
@@ -555,21 +561,21 @@ For example, to get the system metrics we can follow the steps below:
     <SOAP-ENV:Header>
 
         <xrd:client id:objectType="MEMBER">
-            <id:xRoadInstance><security server owner's member code></id:xRoadInstance>
-            <id:memberClass><security server owner's member class></id:memberClass>
+            <id:xRoadInstance><security server owner member code></id:xRoadInstance>
+            <id:memberClass><security server owner member class></id:memberClass>
             <id:memberCode><security server code></id:memberCode>
         </xrd:client>
 
         <xrd:service id:objectType="SERVICE">
-            <id:xRoadInstance><security server owner's member code></id:xRoadInstance>
-            <id:memberClass><security server owner's member class></id:memberClass>
+            <id:xRoadInstance><security server owner member code></id:xRoadInstance>
+            <id:memberClass><security server owner member class></id:memberClass>
             <id:memberCode><security server code></id:memberCode>
             <id:serviceCode>getSecurityServerMetrics</id:serviceCode>
         </xrd:service>
 
         <xrd:securityServer id:objectType="SERVER">
             <id:xRoadInstance>DEV</id:xRoadInstance>
-            <id:memberClass><security server owner's member class></id:memberClass>
+            <id:memberClass><security server owner member class></id:memberClass>
             <id:memberCode><security server code></id:memberCode>
             <id:serverCode><security server code></id:serverCode>
         </xrd:securityServer>
@@ -591,7 +597,7 @@ For example, to get the system metrics we can follow the steps below:
 </SOAP-ENV:Envelope>
 ```
 
-* Send a SOAP curl request from command line (**reference data 1.3**):
+2. Send a SOAP curl request from the command line (**reference data 1.3**):
 
 ```bash
 curl -d  @system_metrics.xml --header "Content-Type: text/xml" -X POST  http://localhost:<http port>
@@ -655,11 +661,11 @@ Note (1): The Security Server Sidecar must have available certificates and a sub
 
 ### 7.2 Operational Monitoring
 
-Operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the Security Servers. The operational monitoring will create a database named "op-monitor" for store the data, this database can be configured internally in the container or externally (check 1.6). More information about how to test it can be found on the [Operational Monitoring documentation](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols).
+You can use operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the Security Servers. The operational monitoring will create a database named "op-monitor" to store the data. You can configure this database internally in the container or externally (check 1.6). More information on how to test it can be found on the [Operational Monitoring documentation](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols).
 
 ## 8 Message log
 
-Message log will be available if we use the regular version of the X-Road Security Server Sidecar instead of the 'slim' version.
+Message log will be available if you use the regular version of the X-Road Security Server Sidecar instead of the 'slim' version.
 
 ### 8.1 Local storage of message log
 
@@ -671,7 +677,7 @@ The Security Server Sidecar periodically composes signed (and timestamped) docum
 
 Archive files are ZIP containers containing one or more signed documents and a special linking information file for additional integrity verification purpose.
 
-To make sure we are not running out of disk space, we can use a Docker volume to store the log records outside the container in our host.
+To make sure you are not running out of disk space, you can use a Docker volume to store the log records outside the container in our host.
 From the [docker run command](##2.6-Installation) add the Docker volume parameter mapping to the host local storage folder for the logs:
 
 ```bash
@@ -682,11 +688,13 @@ docker run ... -v (custom-volume-name):/var/lib/xroad/ ...
 
 ### 9.1 General
 
-X-Road Security Server Sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases. Nevertheless, there are other Security Server images available that can be used for tailoring the deployment to specific needs. These different images could be combined. Any of these Security Server Sidecar images can be used either as a consumer or provider role.
+X-Road Security Server Sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases.
+
+There are also other Security Server images available that can be used for tailoring the deployment to specific needs. These different images can be combined. Any of these Security Server Sidecar images can be used either as a consumer or provider role.
 
 ### 9.2 Container local database
 
-The simplest deployment option is to use a single Security Server Sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, for running the Security Server Sidecar on a production environment, the requirements may be stricter.
+The simplest deployment option is to use a single Security Server Sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, if you run the Security Server Sidecar on a production environment, the requirements may be stricter.
 
 ![Security Server with local database](img/ig-ss_local_db.svg)
 
