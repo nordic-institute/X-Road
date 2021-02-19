@@ -325,9 +325,9 @@ If you are using the regular version of the Security Server Sidecar with the adm
 
 It is possible to configure the Security Server Sidecar to adjust the logging level so that it is less verbose.
 
-To configure the logging level, we must set the environment variable XROAD_LOG_LEVEL, the value of this variable could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. By default, if the environment variable is not set, the logging level will be INFO.
+To do this, set the environment variable XROAD_LOG_LEVEL. The value of this variable can be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF. If the environment variable is not set, the logging level will be INFO by default.
 
-To set the environment variable we can either edit the /etc/environment file or run:
+To set the environment variable, you can either edit the `/etc/environment` file or run:
 
 ```bash
 export XROAD_LOG_LEVEL=<logging level value>
@@ -338,7 +338,7 @@ export XROAD_LOG_LEVEL=<logging level value>
 
 It is possible to configure the Security Server Sidecar to use volume support for storing its configuration files outside the running container.
 
-To add volume support, we can add the volume flag to the docker run command inside the `setup_security_server_sidecar.sh` script as shown below:
+To add volume support, you have to add the volume mapping parameters to the docker run command inside the `setup_security_server_sidecar.sh` script as shown below:
 
 ```bash
 docker run ... -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main ...
@@ -356,9 +356,9 @@ This will allow us to create the sidecar-config and sidecar-config-db directorie
 
 #### 2.9.1 Store sensitive information in volumes
 
-The file `/etc/xroad.properties` contains sensitive information to access the external database. For security reasons, it is strongly recommended to store this file outside the Security Server Sidecar container by configuring a volume.
+The file `/etc/xroad.properties` contains sensitive information to access the external database. For security reasons, we strongly recommend that you store this file outside the Security Server Sidecar container by configuring a volume.
 
-We can add the volume flag to the docker run command inside the `setup_security_server_sidecar.sh` script as shown below:
+You can add the volume mapping parameter to the docker run command inside the `setup_security_server_sidecar.sh` script as shown below:
 
 ```bash
 docker run ... -v sidecar-properties:/etc/xroad.properties ...
@@ -366,9 +366,11 @@ docker run ... -v sidecar-properties:/etc/xroad.properties ...
 
 ## 3 Verify installation
 
-The installation is successful if Docker image is running, the system services are started inside the container and the user interface is responding.
+If the installation was successful, the Docker image is running, the system services have started inside the container and the user interface is responding.
 
-* Ensure that the Security Server Sidecar container is running by running the command (**reference data: 1.1, 1.3**):
+To check that the installation was successful, do the following:
+
+1. Ensure from the command line that the container is running (**reference data: 1.1, 1.3**):
 
 ```bash
 docker ps --filter "name=<container name>"
@@ -376,7 +378,7 @@ CONTAINER ID        IMAGE                                                COMMAND
 b3031affa4b7        niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago      Up 10 minutes       443/tcp, 5500/tcp, 5577/tcp, 0.0.0.0:5588->5588/tcp, 0.0.0.0:<http port>->80/tcp, 0.0.0.0:4600->4000/tcp   <container name>
 ```
 
-* Ensure that the Security Server services are running by running the command (**reference data: 1.1**):
+2. Ensure that the services are running (**reference data: 1.1**) by running a command in the running container:
 
 ```bash
 docker exec -it <container name> supervisorctl
@@ -390,15 +392,15 @@ xroad-proxy-ui-api               RUNNING   pid 476, uptime 0:15:55
 xroad-signer                     RUNNING   pid 472, uptime 0:15:55
 ```
 
-* Ensure that the Security Server user interface URL <https://SECURITYSERVER>:&lt;ui port&gt; (**reference data: 1.3**) can be opened in a web browser. To log in, use the account name and password chosen during the installation (**reference data: 1.5, 1.6**). While the user interface is still starting up, the web browser may display a connection refused -error.
+3. Ensure that you can open the Security Server user interface URL <https://SECURITYSERVER>:&lt;ui port&gt; (**reference data: 1.3**) in a web browser. To log in, use the account name and password you set during the installation (**reference data: 1.5, 1.6**). While the user interface is still starting up, the web browser may display a connection refused -error.
 
 ## 4 X-Road Security Server Sidecar initial configuration
 
-During the Security Server initial configuration, the server’s X-Road membership information and the software token’s PIN are set
+The server’s X-Road membership information and the software token’s PIN are set during the Security Server initial configuration.
 
 ### 4.1 Prerequisites
 
-Configuring the Security Server assumes that the Security Server owner is a member of the X-Road.
+The Security Server owner has to be a member of the X-road to configure the Security Server.
 
 ### 4.2 Reference data
 
@@ -411,7 +413,7 @@ Configuring the Security Server assumes that the Security Server owner is a memb
 
 Note (1): The global configuration provider's download URL and TCP port 80 must be reachable from the Security Server Sidecar network.
 
-Note (2): Reference items 2.1 - 2.3 are provided to the Security Server owner by the X-Road Central Server's administrator.
+Note (2): The X-Road central’s administrator provides the reference items 2.1 - 2.3 in the reference data to the Security Server owner.
 
 Note (3): The Security Server member code usually refers to the organization's business code, although there can be other conventions depending on the X-Road governing authority's rules.
 
@@ -425,26 +427,26 @@ To perform the initial configuration, open the address below in a web browser (*
 https://SECURITYSERVER:<ui-port>/
 ```
 
-To log in, use the account name and password chosen during the installation (**reference data: 1.5; 1.6**).
-Upon first log-in, the system asks for the following information.
+To log in, use the account name and password you set during the installation (**reference data: 1.5; 1.6**).
+Upon first log-in, the system asks for the following information:
 
 * The global configuration anchor file (**reference data: 2.1**).
 
-**Please verify anchor hash value with the published value.**
+**Note! Please verify anchor hash value with the published value.**
 
-If the configuration is successfully downloaded, the system asks for the following information.
+If the configuration is successfully downloaded, the system asks for the following information:
 
-* The Security Server  owner’s member class (**reference data: 2.2**).
-* The Security Server  owner’s member code (**reference data: 2.3**).
+* The Security Server owner’s member class (**reference data: 2.2**).
+* The Security Server owner’s member code (**reference data: 2.3**).
 
-If the member class and member code are correctly entered, the system displays the Security Server  owner’s name as registered in the X-Road Central Server.
+If you enter the member class and member code correctly, the system displays the Security Server  owner’s name as registered in the X-Road Central Server.
 
 * Security Server code (**reference data: 2.4**), which is chosen by the Security Server  administrator and which has to be unique across all the Security Server s belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 1.4**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
 ### 4.4 Security Server registration
 
-After the Security Server Sidecar is configured, we need to register it in the Central Server, information about how to configure the Security Server Sidecar on the Central Server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
+After the Security Server Sidecar is configured, you need to register it in the Central Server, information about how to configure the Security Server Sidecar on the Central Server can be found on the  [Security Server user guide.](https://github.com/nordic-institute/X-Road/blob/develop/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner)
 
 ## 5 Back up and Restore
 
