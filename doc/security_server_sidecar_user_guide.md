@@ -92,15 +92,9 @@ Provide services                 | Yes         | Yes              |
 Message logging                  | Yes         | No               |
 Environmental monitoring         | Yes         | No               |
 Operational monitoring           | Yes         | No               |
-<<<<<<< HEAD
-
-## 2.3 Reference data
-
-=======
 
 ### 2.3 Reference data
 
->>>>>>> Added clarification about supported platforms. Swapped order of 2.6.1 and 2.6.2 sections. Minor rewordings. Other markdown linting fixes.
 **Ref** | **Value**                                | **Explanation**
 ------ | ----------------------------------------- | ----------------------------------------------------------
 1.1    | &lt;container name&gt;                    | Name of the Security Server Sidecar container
