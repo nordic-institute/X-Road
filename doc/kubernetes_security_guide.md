@@ -93,7 +93,7 @@ volumes:
 
 This example shows how to create a secret for the Security Server Sidecar as environment variables with sensitive data.
 - Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **Reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10**):
-```bash
+```yaml
 apiVersion: v1
 kind: Secret
 metadata:
