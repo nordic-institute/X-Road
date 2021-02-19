@@ -515,7 +515,7 @@ The following steps are recommended for monitoring using AWS CloudWatch so that 
 AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWatch. At a minimum, you will want to collect the following logs:
  * api - the Kubernetes API server log.
   · audit - the Kubernetes audit log.
-  · authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
+ * authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
 
 - **Monitor container and cluster performance for anomalies**:  Irregular spikes in application load or node usage can be a signal that an application may need programmatic troubleshooting, but they can also signal unauthorized activity in the cluster.  Monitoring key metrics provides critical visibility into your workload’s functional health and that it may need performance tuning or that it may require further investigation. For collecting these metrics, it is required to set up Amazon CloudWatch Container Insights for your cluster.
 
