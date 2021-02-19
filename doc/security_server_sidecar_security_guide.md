@@ -30,8 +30,9 @@
       * [2.2.2.3 Set PIDs limits](#2223-set-pids-limits)
 * [3 Securing Sidecar deployment](#3-securing-sidecar-deployment)
   * [3.1 Passwords and secrets](#31-passwords-and-secrets)
-    * [3.1.1 Store credentials outside the container](#311-store-credentials-outside-the-container)
-    * [3.1.2 Secure credentials on environment variables](#312-secure-credentials-on-environment-variables)
+    * [3.1.1 Reference data](#311-reference-data)
+    * [3.1.2 Store credentials outside the container](#312-store-credentials-outside-the-container)
+    * [3.1.3 Secure credentials on environment variables](#313-secure-credentials-on-environment-variables)
   * [3.2 User accounts](#32-user-accounts)
   * [3.3 Network and firewalls](#33-network-and-firewalls)
     * [3.3.1 Restrict network traffic between containers](#331-restrict-network-traffic-between-containers)
@@ -73,7 +74,7 @@ This section describes the most relevant security recommendations for securing t
 
 ### 2.1 Securing Host Operating System
 
-Before deploying the Security Server Sidecar, it is strongly recommended to use the [Docker Bench for Security tool](https://github.com/docker/docker-bench-security) for securing the Docker host Operating System where the Security Server Sidecar will run, which is based on the recommendations in the CIS Docker Benchmark to secure Docker configuration on the host when deploying Docker containers in production. The tool runs checks against the host configuration, Docker daemon configuration, container images and build files, and container runtime Docker security operations. This tool can also be automated as part of a CI/CD pipeline.
+Before deploying the Security Server Sidecar, it is strongly recommended to use the [Docker Bench for Security tool](https://github.com/docker/docker-bench-security) for securing the Docker host Operating System where the Security Server Sidecar will run, which is based on the recommendations in the [CIS Docker Benchmark](https://www.cisecurity.org/benchmark/docker/) to secure Docker configuration on the host when deploying Docker containers in production. The tool runs checks against the host configuration, Docker daemon configuration, container images and build files, and container runtime Docker security operations. This tool can also be automated as part of a CI/CD pipeline.
 
 Below are the most common security pitfalls by category along with security recommendations to fix them.
 
@@ -83,7 +84,7 @@ Below are the most common security pitfalls by category along with security reco
 
 Docker's data directory is located at `/var/lib/docker`. This directory could fill up quickly causing both Docker and the host to become unusable.
 
-By default, `/var/lib/docker` directory is mounted usually under the / or /var partitions on the host. To ensure proper isolation, it’s a good idea to create a separate partition for this directory.
+By default, `/var/lib/docker` directory is usually mounted under the `/` or `/var` partitions on the host. To ensure proper isolation, it’s a good idea to create a separate partition for this directory.
 
 For a Linux host new installation, you should create a separate partition for the `/var/lib/docker` mount point. For Linux hosts that have already been installed, you should use the Logical Volume Manager (LVM) within Linux to create a new partition.
 
@@ -93,9 +94,9 @@ In a cloud environment, we can move this directory to an external network-attach
 
 The Docker daemon runs with root privileges, so it is important to audit all Docker related files and directories in addition to Linux file system and system calls. The Docker Daemon depends on some key files and directories, including `/etc/docker` which holds TLS keys and certificates used to communicate with the Docker client, which should be audited.
 
-In Linux, we should install and configure `auditd` to enable logging system operations on some of Docker's files, directories, and sockets.
+In Linux, we should install and configure the auditing daemon `auditd` to enable logging system operations on some of Docker's files, directories, and sockets. More information about auditd can be found [here](https://linux.die.net/man/8/auditd).
 
-We can check whether there is an audit rule applied to the `/etc/docker` directory by running:
+We can check whether there is an auditing rule applied to the `/etc/docker` directory by running:
 
 ```bash
 auditctl -l | grep /etc/docker
@@ -121,7 +122,15 @@ After editing and saving the changes, restart the audit daemon:
 service auditd restart
 ```
 
-Auditing can potentially generate large log files, so make sure those audit logs are rotated and archived periodically. It is recommended to have a separate partition created for audit logs to avoid filling up any other critical partition.
+The auditing daemon stores its log data in `/var/log/audit/` by default. This log data is valuable for system administrators to monitor for suspicious activity. To prevent filling up the disk space, the log data should be rotated and archived periodically. The auditing daemon handles log rotation on log size. It is possible to configure the log file size and location by changing the attributes `log_file` and `max_log_file` attributes. More information can be found [here](https://linux.die.net/man/8/auditd.conf).
+
+It is also recommended to have a separate partition or logical volume created for `/var/log/audit/` directory to avoid filling up any other critical partition. For systems that were previously installed, create a new partition and configure `/etc/fstab` appropriately.
+
+We can check whether `/var/log/audit/` directory is on its own partition by running this command:
+
+```bash
+mount | grep "on /var/log/audit"
+```
 
 ##### 2.1.1.3 Secure Docker socket file
 
@@ -155,7 +164,7 @@ We can check that the Docker socket has the correct permissions by running:
 stat -c %a /var/run/docker.sock
 ```
 
-It is also important to make sure the Docker socket is not mounted inside a container, since it could allow processes running inside such container to effectively allow for full control of the host.
+It is also important to make sure the Docker socket is not mounted inside a container, since it could allow processes running inside such container to effectively gain full control of the Docker host.
 
 We can check that the Docker socket is not mounted in any container by running:
 
@@ -171,7 +180,7 @@ We should make sure to avoid exposing the Docker socket to the Internet without 
 
 If external access to the Docker daemon is required, we should ensure that TLS authentication is configured to restrict access to the Docker daemon via IP address and port. More information can be found on the Docker documentation about how to set up [TLS authentication for the Docker daemon connection](https://docs.docker.com/engine/security/https/).
 
-We should also be wary of exposing SSH ports, and instead use VPN-only or private network access, high random port numbers or web proxy authentication.
+We should also be wary of exposing SSH ports, instead, we could use VPN-only, private network access, high random port numbers, or web proxy authentication.
 
 #### 2.1.2 Docker Daemon configuration
 
@@ -235,15 +244,30 @@ docker run ... --memory="4g" --cpus="2" ...
 
 ##### 2.2.2.2 Set CPU priority threshold limits
 
-By default, the CPU time on the host is divided equally between the containers running. If there are no limits on the CPU cycles, making other containers to become unresponsive. By setting CPU shares, we can enforce thresholds for each container to have a proportion of the host machine’s CPU cycles.
+By default, the CPU time on the host is divided equally between the containers running. If there are no limits on the CPU cycles, it could cause other containers to become unresponsive. By setting CPU shares, we can enforce thresholds for each container to have a proportion of the host machine’s CPU cycles.
 
-We can set CPU shares by container using the `--cpu-shares` flag. Every new container will have 1024 shares of CPU by default that corresponds to 100% of the time. If we set one containers CPU shares to 512 it will receive half of the CPU time compared to the other containers. Setting the CPU shares limit is recommended when running several containers in parallel. However, if the CPU shares number is not set appropriately, the Sidecar container may run out of resources and become unresponsive.
+We can set CPU shares by container using the `--cpu-shares` flag. Every new container will have 1024 shares by default that corresponds to 100% of the time. If we set CPU shares to a number lower or higher than 1024 it will receive lower or higher priority respectively compared to the other containers. Setting the CPU shares limit is recommended when running several containers in parallel. However, if the CPU shares number is not set appropriately, the Sidecar container may run out of resources and become unresponsive.
+
+For example, we can set different CPU shares for different containers running in parallel:
+
+```bash
+docker run ... --cpu-shares="2048"  --cpus="2"
+docker run ... --cpu-shares="1024"  --cpus="2"
+```
+
+The first container is allowed to freely consume up to twice as much of the 2 CPUs allocated than the second container. If we wanted to distribute the CPU cycles evenly, we would set both containers CPU shares to 1024.
 
 ##### 2.2.2.3 Set PIDs limits
 
 A malicious process can exploit the container with a fork bomb attack, in which the fork system call is recursively used until all the system resources are exhausted, causing other containers to slow down or the host system to crash down, requiring a restart of the host to make the system functional again.
 
-We can limit the number of process forks by using the PIDs cgroup parameter `--pids-limit`. However, if the number of processes limit is not set appropriately, the Sidecar container may fail and become unresponsive.
+We can limit the number of process forks by using the PIDs cgroup parameter `--pids-limit`. As an example, we can set a PIDs limit of 500 to ensure there are no more than 500 processes running on the container at any given time:
+
+```bash
+docker run ... --pids-limit="500" ...
+```
+
+However, if the number of processes limit is not set appropriately and the limit is reached the Sidecar container may fail and become unresponsive.
 
 ## 3 Securing Sidecar deployment
 
@@ -251,7 +275,18 @@ We should make sure that the cluster where the Security Server Sidecar will be r
 
 ### 3.1 Passwords and secrets
 
-#### 3.1.1 Store credentials outside the container
+#### 3.1.1 Reference data
+
+**Ref** | **Value**                                | **Explanation**
+------ | ----------------------------------------- | ----------------------------------------------------------
+1.1    | &lt;token pin&gt;                         | Software token PIN code
+1.2    | &lt;admin user&gt;                        | Admin username
+1.3    | &lt;admin password&gt;                    | Admin password
+1.4    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database
+1.5    | &lt;database port&gt;                     | (Optional) remote database server port when using an external database
+1.6    | &lt;database password&gt;                 | (Optional) remote database admin password when using a external database
+
+#### 3.1.2 Store credentials outside the container
 
 The Security Server Sidecar makes use of credentials stored in configuration files to access the serverconf, messagelog and opmonitor databases, as well as to make use of the software token PIN code.
 
@@ -262,16 +297,16 @@ The software token PIN code set up during the initial configuration of the Secur
 
 The above mentioned files should not be stored inside the Security Server Sidecar container. More information can be found on the Security Server Sidecar User Guide for [configuring volumes to store sensitive files outside the container](./security_server_sidecar_user_guide.md#291-store-sensitive-information-in-volumes).
 
-#### 3.1.2 Secure credentials on environment variables
+#### 3.1.3 Secure credentials on environment variables
 
-During the Security Server Sidecar installation, the user should supply the different database and admin UI credentials as well as the software token PIN code, among other parameters, so that the configuration for the Sidecar container is unique. These user-supplied parameters are passed as environment variables to the docker run command (**reference data: 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9**):
+During the Security Server Sidecar installation, the user should supply the different database and admin UI credentials as well as the software token PIN code, among other parameters, so that the configuration for the Sidecar container is unique. These user-supplied parameters are passed as environment variables to the docker run command (**reference data: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6**):
 
 ```bash
 docker run ... -e -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> \
--e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> ...
+-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<database password> ...
 ```
 
-However, when deploying the Security Server Sidecar in a production environment, we can make use of Secrets to avoid passing this information as plain text on a command line interface. More information can be found on the Security Server Sidecar User Guide for [creating secrets](./security_server_sidecar_user_guide.md#1021-create-secret).
+When deploying the Security Server Sidecar in a production cloud environment, we can make use of Kubernetes Secrets to avoid passing this information as plain text. More information can be found on the Kubernetes Security Server Sidecar User Guide for [Kubernetes Secrets](./kubernetes_security_server_sidecar_user_guide.md#454-kubernetes-secrets).
 
 ### 3.2 User accounts
 
@@ -347,6 +382,6 @@ The above mentioned files should not be stored inside the Security Server Sideca
 
 ### 3.5 Backups
 
-The internal and admin UI and internal TLS certificates created during the installation process will be overwritten by the ones restored from the backup. The X-Road admin user is not included in the backup (must be created manually).
+The internal and admin UI and internal TLS certificates created during the installation process will be overwritten by the ones restored from the backup. The X-Road admin user created during the installation process is not included in the backup and must be re-created manually. More information on the Security Server User Guide for the [installation process](./security_server_sidecar_user_guide.md#26-installation).
 
 Note that the backup does not include X-Road admin user account(s) or `/etc/xroad.properties` (database admin credentials; needed when using a remote database). You need to take care of moving these manually.
