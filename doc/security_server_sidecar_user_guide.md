@@ -53,7 +53,7 @@
 
 ### 1.1 Target Audience
 
-The intended audience of this User Guide are X-Road Security Server system administrators responsible for installing and using X-Road Security Server Sidecar software.
+This User Guide is meant for X-Road Security Server system administrators who are responsible for installing and using X-Road Security Server Sidecar software.
 
 The document is intended for readers with a moderate knowledge of Linux server management, computer networks, Docker and X-Road.
 
@@ -80,10 +80,10 @@ The Security Server Sidecar has four different images with alternative configura
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
 niis/xroad-security-server-sidecar:&lt;version&gt;-slim      | This is the base image of the Security Server Sidecar with the minimum required packages and configuration to function.
 niis/xroad-security-server-sidecar:&lt;version&gt;           | This image uses the slim as the base image and includes the packages that support [environmental monitoring](https://github.com/nordic-institute/X-Road/blob/develop/doc/EnvironmentalMonitoring/Monitoring-architecture.md), [operational monitoring](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring) and [message logging](https://github.com/nordic-institute/X-Road/blob/develop/doc/DataModels/dm-ml_x-road_message_log_data_model.md).
-niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi   | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish settings configuration included.
-niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt; but with the Finnish settings configuration included.
+niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi   | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt;-slim but with the Finnish configuration settings included.
+niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt; but with the Finnish configuration settings included.
 
-All of the images can act as a provider or consumer Security Servers, but some of the images have less features available. The images with a country code suffix (e.g., `-fi`) come with a country-specific configuration. The images without a country code suffix come with the X-Road default configuration.
+All of the images can act as a provider or consumer Security Servers, but the slim images have less features available. The images with a country code suffix (e.g., `-fi`) come with a country-specific configuration. The images without a country code suffix come with the X-Road default configuration.
 
 **Feature**                      | **Sidecar** | **Sidecar Slim** |
 ---------------------------------|-------------|------------------|
@@ -119,7 +119,10 @@ Operational monitoring           | Yes         | No               |
 1.16   |                                           | Internal IP address and hostname(s) for Security Server Sidecar
 1.17   |                                           | Public IP address, NAT address for Security Server Sidecar
 
-To protect the Security Server from unwanted access it is strongly recommended to use a firewall (hardware- or software-based). The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed. It is recommended to allow incoming traffic to specific ports only from explicitly defined sources using IP filtering. **Special attention should be paid with the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks**.
+Note! We strongly recommend using a firewall (hardware- or software-based) to protect the Security Server from unwanted access.
+To protect the Security Server from unwanted access it is strongly recommended to use a firewall (hardware- or software-based).
+The firewall can be applied to both incoming and outgoing connections, depending on the security requirements of the environment where the Security Server will be deployed. We recommended allowing incoming traffic to specific ports only from explicitly defined sources using IP filtering.
+Note! **Pay special attention to the firewall configuration since incorrect configuration may leave the Security Server vulnerable to exploits and attacks**.
 
 ### 2.4 Requirements for the X-Road Security Server Sidecar
 
@@ -129,8 +132,8 @@ Minimum recommended Docker engine configuration to run the Security Server Sidec
 * Memory: 2 GiB
 * Swap: 1 GiB
 * Disk space: 2 GiB
-* If the Security Server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the Security Server need to be allowed (**reference data: 1.12, 1.13, 1.14, 1.15**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
-* If the Security Server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.18**).
+* If the Security Server is separated from other networks by a firewall and/or NAT, you need to allow the necessary connections to and from the Security Server (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
+* If the Security Server has a private IP address, you must create a corresponding NAT record in the firewall (**reference data: 1.18**).
 
 ### 2.5 Network
 
@@ -151,17 +154,17 @@ In | Admin | Security Server | &lt;ui port&gt; (**reference data 1.2**) | tcp | 
 
 ### 2.6 Installation
 
-To install X-Road Security Server Sidecar we can make use of one of the images published on Dockerhub. Alternatively, run the script `setup_security_server_sidecar.sh` which will build and run the image. Both methods result in the same running container.
+To install X-Road Security Server Sidecar, download one of the images published on Dockerhub. Alternatively, you can run the script `setup_security_server_sidecar.sh`. The script will build and run the image. Both methods result in the same running container.
 
 #### 2.6.1 Installation using Dockerhub image
 
-First, create a Docker network to allow communication between containers by running the command:
+Create a Docker network to allow communication between containers. To do this, run the Docker command:
 
 ```bash
 docker network create -d bridge xroad-network
 ```
 
-To install the Security Server Sidecar in a local development or test environment we can run the Docker command (**reference data: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11**):
+To install the Security Server Sidecar in a local development or test environment, run the Docker command (**reference data: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11**):
 
 ```bash
 docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
@@ -179,28 +182,31 @@ To install the Security Server Sidecar in a Linux-based local development or tes
 
 The script `setup_security_server_sidecar.sh` will:
 
-* Create a Docker bridge-type network called xroad-network to provide container-to-container communication.
-* Build xroad-sidecar-security-server-image performing the following configuration steps:
-  * Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.23.0 or later).
-  * Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
-  * Removes the default admin username (to be re-generated in the initial configuration script).
-  * Removes the generated internal and proxy-ui-api certificates (to be re-generated in the initial configuration script).
-  * Enables health check port and interfaces (by default all available interfaces).
-  * Backs up the read-only xroad packages' configuration to allow Security Server Sidecar configuration updates.
-  * Copies the Security Server Sidecar custom configuration files.
-  * Exposes the container ports 80 (HTTP), 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
-* Start a new Security Server Sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
-  * Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (**reference data 1.2**).
-  * Maps port 5588 (proxy health check) to the same host port.
-  * Updates Security Server Sidecar configuration on startup if the installed version of the image has been updated.
-  * Configures xroad-autologin custom software token PIN code with user-supplied PIN (**reference data 1.3**).
-  * Configures admin credentials with user-supplied username and password (**reference data 1.4**).
-  * Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
-  * Recreates serverconf database and properties file with serverconf username and random password.
-  * Optionally configures the Security Server Sidecar to use an external database server.
-  * Starts Security Server Sidecar services.
-  * Replace `initctl` for `supervisorctl` in `xroad_restore.sh` for starting and stopping the services.
-  * Create sidecar-config directory on the host and mount it into the /etc/xroad config directory on the container.
+1. Create a Docker bridge-type network called xroad-network to provide container-to-container communication.
+2. Build xroad-sidecar-security-server-image performing the following configuration steps:
+
+* Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.23.0 or later).
+* Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
+* Removes the default admin username (to be re-generated in the initial configuration script).
+* Removes the generated internal and proxy-ui-api certificates (to be re-generated in the initial configuration script).
+* Enables health check port and interfaces (by default all available interfaces).
+* Backs up the read-only xroad packages' configuration to allow Security Server Sidecar configuration updates.
+* Copies the Security Server Sidecar custom configuration files.
+* Exposes the container ports 80 (HTTP), 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
+
+3. Start a new Security Server Sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
+
+* Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (**reference data 1.2**).
+* Maps port 5588 (proxy health check) to the same host port.
+* Updates Security Server Sidecar configuration on startup if the installed version of the image has been updated.
+* Configures xroad-autologin custom software token PIN code with user-supplied PIN (**reference data 1.3**).
+* Configures admin credentials with user-supplied username and password (**reference data 1.4**).
+* Generates new internal and admin UI TLS keys and self-signed certificates to establish a secure connection with the client information system.
+* Recreates serverconf database and properties file with serverconf username and random password.
+* Optionally configures the Security Server Sidecar to use an external database server.
+* Starts Security Server Sidecar services.
+* Replace `initctl` for `supervisorctl` in `xroad_restore.sh` for starting and stopping the services.
+* Create sidecar-config directory on the host and mount it into the /etc/xroad config directory on the container.
 
 Note (1): The installation using the setup script is only for Linux systems. To install Security Server Sidecar on Windows or MacOS operating systems, follow the [Installation using Dockerhub image](#261-installation-using-dockerhub-image).
 
@@ -208,7 +214,7 @@ Note (2): It is strongly recommended to configure the Security Server Sidecar co
 
 ##### 2.6.2.1 Security Server Sidecar Slim
 
-To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`. The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring.
+The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring. To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`.
 
 To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`
 
@@ -218,22 +224,24 @@ To install the Security Server Sidecar in a local development or test environmen
 
 ### 2.7 External database
 
-The Security Server Sidecar provides the option to configure an external database instead of the default local one by providing the remote database server hostname, server port, and superuser credentials as parameters.
+The Security Server Sidecar provides the option to configure an external database instead of the default local one.
 
-If we are installing the Security Server Sidecar using the [Dockerhub image](#261-installation-using-dockerhub-image), we need to provide the optional parameters to the docker run command (**reference data: 1.7, 1.8, 1.9**):
+1. Provide the remote database server hostname, server port, and superuser credentials as parameters. Depending on how you install the Security Server Sidecar, you will have to provide them in different ways:
+
+* If you are installing the Security Server Sidecar using the [Dockerhub image](#261-installation-using-dockerhub-image), you need to provide the optional parameters to the docker run command (**reference data: 1.7, 1.8, 1.9**):
 
 ```bash
 docker run ... -e XROAD_DB_HOST=<remote database server hostname> -e XROAD_DB_PORT=<remote database server port> -e XROAD_DB_PWD=<remote database administrator master password> ...
 ```
 
-If we are installing the Security Server Sidecar via the [setup script](#262-installation-using-setup-script), we need to provide the remote database server hostname and port as arguments for the script and the remote database administrator master password as environment variable as shown below:
+* If you are installing the Security Server Sidecar via the [setup script](#262-installation-using-setup-script), you need to provide the remote database server hostname and port as arguments for the script and the remote database administrator master password as environment variable as shown below:
 
 ```bash
 export XROAD_DB_PASSWORD=<remote database administrator master password>
 ./setup_security_server_sidecar.sh <name of the sidecar container> <admin UI port> <software token PIN code> <admin username> <admin password> <remote database server hostname> <remote database server port>
 ```
 
-The user for the connection will be the default database user `postgres`. The following configuration is needed on the remote database server to allow external access to the remote PostgreSQL database from the Security Server Sidecar:
+2. Edit the PostgreSQL configuration file in `postgresql.conf` on the remote database server to allow external access to the remote PostgreSQL database from the Security Server Sidecar (the user for the connection will be the default database user `postgres`):
 
 ```bash
 [...]
@@ -247,7 +255,7 @@ The user for the connection will be the default database user `postgres`. The fo
 [...]
 ```
 
-* Edit the PostgreSQL client authentication configuration file in `pg_hba.conf` to enable connections from outside localhost. Replace the IP `127.0.0.1/32` with `0.0.0.0/0`.
+3. Edit the PostgreSQL client authentication configuration file in `pg_hba.conf` to enable connections from outside localhost. Replace the IP `127.0.0.1/32` with `0.0.0.0/0`.
 
 ```bash
 [...]
@@ -256,33 +264,33 @@ host    all             all             0.0.0.0/0            md5
 [...]
 ```
 
-* If the database is in your local machine you have to use the interface IP that uses the host to connect to the Docker containers. You can get this IP by running the command below and checking the gateway property:
+4. If the database is in your local machine you have to use the interface IP that uses the host to connect to the Docker containers. You can get this IP by running the command below and checking the gateway property:
 
 ```bash
 docker inspect <container_name>
 ```
 
-* The external database has been tested both for external PostgreSQL database running in our local machine, in a remote server or inside another Docker container. It also could be integrated with AWS RDS, it has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL version 10).
+5. The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL version 10).
 
 #### 2.7.1 Reconfigure external database address after initialization
 
-It is possible to change the external database after the initialization while the Sidecar container is running. This will not recreate the database, so we need to make sure that the `serverconf` database and a user with granted permissions to access it are already created.
+It is possible to change the external database after the initialization while the Sidecar container is running. This will not recreate the database, so make sure that you have already created the `serverconf` database and a user with granted permissions to access it.
 
-To change the database host we need to do the following steps:
+To change the database host, you need to:
 
-* Run a new command on the Sidecar container:
+1. Run a new command on the Sidecar container:
 
 ```bash
 docker exec -it <sidecar_container_name> bash
 ```
 
-* Inside the container open in a text editor (we can install any of the command line text editors such as nano, vi, etc) the `etc/xroad/db.properties` file:
+2. Inside the container, open the `etc/xroad/db.properties` file in a text editor (you can install any of the command line text editors such as nano, vi...) :
 
  ```bash
 nano etc/xroad/db.properties
   ```
 
-* Replace the connection host, the username and password with the properties of the new database:
+3. Replace the connection host, the username and password with the properties of the new database:
 
 ```bash
 [...]
@@ -293,9 +301,9 @@ serverconf.hibernate.connection.password = <new_password>
 [...]
 ```
 
-If other components like `message_log` or `op_monitor` are also configured in the `etc/xroad/db.properties` file to use an external database, we must change their properties in the same way as in the example above.
+If other components like `message_log` or `op_monitor` are also configured in the `etc/xroad/db.properties` file to use an external database, you must change their properties in the same way as in the example above.
 
-* In case we are using a version up to 6.24.0 we must update the admin users by editing `etc/xroad.properties` file and replace the admin users and passwords with the new ones.
+If you are using a version up to 6.24.0, you must update the admin users by editing `etc/xroad.properties` file and replace the admin users and passwords with the new ones.
 
 ```bash
 [...]
@@ -305,9 +313,9 @@ serverconf.database.admin_password = -<new_serverconf_password>
 [...]
 ```
 
-If we are using the regular version of the Security Server Sidecar with the admin users for the `messagelog` and `op-monitor` databases we must the the same for this admin users.
+If you are using the regular version of the Security Server Sidecar with the admin users for the `messagelog` and `op-monitor` databases, you must do the same for the admin users.
 
-* After the properties are changed, save and close the files  and restart the services by running:
+4. After you have changed the properties, save and close the files and restart the services by running:
 
 ```bash
  supervisorctl restart all
