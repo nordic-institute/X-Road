@@ -71,7 +71,7 @@ const clientsTab = {
       locateStrategy: 'xpath',
     },
     addClientButton: {
-      selector: '//button[.//*[contains(text(), "add client")]]',
+      selector: '//button[contains(@data-test, "add-client-button")]',
       locateStrategy: 'xpath',
     },
     listNameHeader: {

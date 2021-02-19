@@ -288,12 +288,12 @@ const keysTab = {
   elements: {
     signAndAuthKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="signAndAuthKeys"]',
       locateStrategy: 'xpath',
     },
     APIKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test=apiKey]',
       locateStrategy: 'xpath',
     },
     securityServerTLSKeyTab: {
