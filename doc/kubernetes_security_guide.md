@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
 
-#Table of contents
+# Table of contents
 * [1 Introduction](#1-introduction)
    * [1.1 Target Audience](#11-target-audience)
 * [2 Reference Data](#2-reference-data)
