@@ -522,7 +522,7 @@ AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWat
 - **Monitor Node (EC2 Instance) Health and Security**: EKS provides no automated detection of node issues. Changes in node CPU, memory, or network metrics that do not correlate with the cluster workload activity can be signs of security events or other issues.
 
 # 8 Backups
-The restoration of backups is a process that is executed with root permission, therefore it can lead to potential security risks, therefore we must only recreate Backups from reliable sources.
+The restoration of backups is a process that is executed with root permission and therefore it can lead to potential security risks. Please ensure the backup files are coming from trusted sources before restoring them.
 
 # 9 Message logs
 The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#8-message-logs-and-disk-space).
