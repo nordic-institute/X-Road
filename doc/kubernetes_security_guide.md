@@ -513,7 +513,7 @@ The following steps are recommended for monitoring using AWS CloudWatch so that 
 
 - **Collect control panel logs**: The control plane logs capture Kubernetes audit events and requests to the Kubernetes API server, among other components. Analysis of these logs will help detect some types of attacks against the cluster, and security auditors will want to know that you collect and retain this data.
 AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWatch. At a minimum, you will want to collect the following logs:
-  · api - the Kubernetes API server log.
+ * api - the Kubernetes API server log.
   · audit - the Kubernetes audit log.
   · authenticator - the EKS component used to authenticate AWS IAM entities to the Kubernetes API.
 
