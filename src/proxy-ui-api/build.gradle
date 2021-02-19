@@ -21,7 +21,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR9")
+    set('springCloudVersion', "Hoxton.SR10")
 }
 
 sourceSets {
