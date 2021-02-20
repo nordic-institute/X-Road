@@ -20,8 +20,11 @@ apply plugin: 'com.github.hierynomus.license'
 
 archivesBaseName ='centralserver-admin-service'
 
+sourceCompatibility = 11
+targetCompatibility = 11
+
 configurations {
-    nodeDist {
+    dist {
         canBeConsumed = false
         canBeResolved = true
     }
@@ -32,14 +35,6 @@ sourceSets {
         java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
     }
 }
-
-/*
-tasks.withType(JavaCompile) {
-  options.encoding = "UTF-8"
-  sourceCompatibility = 11
-  targetCompatibility = 11
-}
-*/
 
 bootRun {
     jvmArgs = ["-Dspring.output.ansi.enabled=ALWAYS"]
@@ -76,7 +71,7 @@ tasks.openApiGenerate {
 }
 
 processResources {
-    from(configurations.nodeDist) {
+    from(configurations.dist) {
         into 'public/'
     }
 }
@@ -99,25 +94,18 @@ licenseMain.enabled = false
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
-jar {
-    enabled = true
-    archiveClassifier = 'plainDependency'
-    manifest {
-        attributes  'Implementation-Title'   : 'xroad-centralserver',
-                    'Implementation-Version' : xroadVersion
-    }
-}
-
 bootJar {
     excludeDevtools = true
     manifest {
-        attributes  'Implementation-Title'   : 'xroad-centralserver',
-                    'Implementation-Version' : xroadVersion
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Admin Service' ,
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
     }
 }
 
 dependencies {
-    nodeDist(project(path: ':centralserver:admin-ui', configuration: 'nodeDist'))
+    dist(project(path: ':centralserver:admin-ui', configuration: 'dist'))
 
     implementation project(':common-util')
     implementation project(':common-verifier')
@@ -149,6 +137,5 @@ dependencies {
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
-    // /openapi-generator related
 }
 

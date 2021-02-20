@@ -3,6 +3,9 @@ plugins {
     id 'org.springframework.boot'
 }
 
+sourceCompatibility = 11
+targetCompatibility = 11
+
 bootJar {
     excludeDevtools = true
     manifest {

@@ -3,11 +3,16 @@ plugins {
     id 'org.springframework.boot'
 }
 
+sourceCompatibility = 11
+targetCompatibility = 11
+
 bootJar {
     excludeDevtools = true
     manifest {
-        attributes  'Implementation-Title'   : 'xroad-centralserver',
-            'Implementation-Version' : xroadVersion
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Management Service' ,
+            'Implementation-Version': xroadVersion
+        )
     }
 }
 

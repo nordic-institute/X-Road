@@ -88,6 +88,8 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
 
+    sourceCompatibility = 1.8
+
     repositories {
         mavenCentral()
         mavenLocal()
@@ -123,19 +125,13 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
         from sourceSets.test.output
     }
 
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
-    }
-
     tasks.withType(JavaExec) {
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
-    task buildall(dependsOn: [build, ':center-ui:warble', ':center-service:warble']) {
+    task buildall(dependsOn: [build]) {
         description = "Builds all that can be built (even the slow tasks)"
     }
 

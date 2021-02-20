@@ -10,12 +10,11 @@ plugins {
 }
 
 configurations {
-    npm
-    dist
+    npm { canBeConsumed(true); canBeResolved(false) }
 }
 
 dependencies {
-    npm project(path: ":shared-ui", configuration: "npm")
+    npm project(":shared-ui")
 }
 
 node {
@@ -24,38 +23,37 @@ node {
     npmInstallCommand = "ci"
 }
 
-task npmInstallDeps(type: NpmTask) {
-  inputs.files(configurations.npm)
-  args = ['install', '--quiet'] + inputs.files.collect { it.toString() }
-  outputs.files("package.json", "package-lock.json")
-}
-
-npmInstall {
-    dependsOn += 'npmInstallDeps'
-}
-
 task npmBuild(type: NpmTask, dependsOn: ["checkFrontAudit"]) {
     inputs.files(fileTree(".") {
         exclude(
+            ".gradle",
             "build.gradle",
             "build/",
             "dist/",
-            "node_modules/.cache/"
+            "node_modules/.cache/",
+            "*.tgz"
         )
     })
     outputs.dir("dist")
-    args = ['run', '--quiet', 'build']
+    args = ['run', '--quiet', 'build-lib']
+}
+
+task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
+    inputs.files(fileTree(".") {
+        exclude(
+            ".gradle",
+            "build.gradle",
+            "build/",
+            "node_modules/",
+            "*.tgz"
+        )
+    })
+    outputs.file("niis-shared-ui-0.1.0.tgz")
+    args = ['pack', '--quiet']
 }
 
 task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files fileTree(".") {
-        exclude(
-            "build.gradle",
-            "build/",
-            "dist/",
-            "node_modules/.cache/"
-        )
-    }
+    inputs.files("package.json", "package-lock.json")
     outputs.dir("dist")
     if (project.hasProperty('strict-frontend-audit')) {
         // do a strict front audit with npm run check-audit
@@ -73,9 +71,6 @@ task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.files("src/", "test/", "public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
 }
 
 clean {
@@ -86,7 +81,7 @@ clean {
 assemble.dependsOn npmBuild
 
 artifacts {
-    dist(file("dist/")) {
-        builtBy(npmBuild)
+    npm(file("niis-shared-ui-0.1.0.tgz")) {
+        builtBy(npmPack)
     }
 }
