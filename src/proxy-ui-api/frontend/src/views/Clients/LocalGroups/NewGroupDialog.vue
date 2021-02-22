@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="localGroup.addLocalGroup"
     @save="save"
@@ -51,7 +51,7 @@
         ></v-text-field>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">

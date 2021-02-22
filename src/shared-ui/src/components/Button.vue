@@ -26,16 +26,20 @@
  -->
 <template>
   <v-btn
-    small
     :outlined="outlined"
     :disabled="disabled"
     :min-width="min_width"
     :loading="loading"
+    :block="block"
+    :large="large"
     :text="text"
+    :color="color"
+    depressed
+    height="40"
     rounded
-    color="primary"
-    class="small-button"
-    @click="click()"
+    class="large-button"
+    v-bind:class="{ gradient: showGradient }"
+    @click="click"
   >
     <slot></slot>
   </v-btn>
@@ -43,16 +47,21 @@
 
 <script lang="ts">
 import Vue from 'vue';
+
 /**
  * Wrapper for vuetify button with x-road look
- */
-
+ * */
 export default Vue.extend({
-  name: 'small-button',
+  name: 'xrd-button',
   props: {
     outlined: {
       type: Boolean,
-      default: true,
+      default: false,
+    },
+    // Button color
+    color: {
+      type: String,
+      default: 'primary',
     },
     // Set button disabled state
     disabled: {
@@ -64,13 +73,37 @@ export default Vue.extend({
       type: Boolean,
       default: false,
     },
+    // Block buttons extend the full available width
+    block: {
+      type: Boolean,
+      default: false,
+    },
+    large: {
+      type: Boolean,
+      default: false,
+    },
     text: {
       type: Boolean,
       default: false,
     },
     min_width: {
-      type: Number,
-      default: 20,
+      type: [Number, String],
+      default: 80,
+    },
+    gradient: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  computed: {
+    showGradient(): boolean {
+      if (this.disabled === true) {
+        return false;
+      }
+      if (this.gradient === true) {
+        return true;
+      }
+      return false;
     },
   },
   methods: {
@@ -82,7 +115,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.small-button {
+.large-button {
+  border-radius: 20px;
   text-transform: none;
+}
+
+.gradient {
+  background: linear-gradient(270deg, #663cdc 0%, #cd9dc8 99.58%);
 }
 </style>

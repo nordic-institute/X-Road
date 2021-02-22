@@ -32,7 +32,7 @@
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="px-4 pt-4">
         <div class="edit-row">
-          <FormLabel
+          <xrd-form-label
             class="edit-title"
             :labelText="$t('services.serviceUrl')"
             :helpText="$t('services.urlTooltip')"
@@ -69,7 +69,7 @@
         </div>
 
         <div class="edit-row">
-          <FormLabel
+          <xrd-form-label
             class="edit-title"
             :labelText="$t('services.timeoutSec')"
             :helpText="$t('services.timeoutTooltip')"
@@ -108,7 +108,7 @@
         </div>
 
         <div class="edit-row">
-          <FormLabel
+          <xrd-form-label
             class="edit-title"
             :labelText="$t('services.verifyTls')"
             :helpText="$t('services.tlsTooltip')"
@@ -136,13 +136,13 @@
         </div>
 
         <div class="button-wrap">
-          <large-button
+          <xrd-button
             v-if="canEdit"
             :disabled="invalid || disableSave"
             :loading="saving"
             @click="save(false)"
             data-test="save-service-parameters"
-            >{{ $t('action.save') }}</large-button
+            >{{ $t('action.save') }}</xrd-button
           >
         </div>
       </div>
@@ -151,21 +151,21 @@
     <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-button
           :disabled="!hasServiceClients"
           v-if="canEdit"
           outlined
           @click="removeAllServiceClients()"
           data-test="remove-subjects"
-          >{{ $t('action.removeAll') }}</large-button
+          >{{ $t('action.removeAll') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           v-if="canEdit"
           outlined
           class="add-members-button"
           @click="showAddServiceClientDialog()"
           data-test="show-add-subjects"
-          >{{ $t('accessRights.addServiceClients') }}</large-button
+          >{{ $t('accessRights.addServiceClients') }}</xrd-button
         >
       </div>
     </div>
@@ -187,13 +187,13 @@
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
             <td>
               <div class="button-wrap">
-                <large-button
+                <xrd-button
                   v-if="canEdit"
                   text
                   :outlined="false"
                   @click="removeServiceClient(sc)"
                   data-test="remove-subject"
-                  >{{ $t('action.remove') }}</large-button
+                  >{{ $t('action.remove') }}</xrd-button
                 >
               </div>
             </td>
@@ -202,14 +202,14 @@
       </table>
 
       <div class="footer-buttons-wrap">
-        <large-button @click="close()" data-test="close">{{
+        <xrd-button @click="close()" data-test="close">{{
           $t('action.close')
-        }}</large-button>
+        }}</xrd-button>
       </div>
     </v-card>
 
     <!-- Confirm dialog remove Access Right service clients -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmMember"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
@@ -218,7 +218,7 @@
     />
 
     <!-- Confirm dialog remove all Access Right service clients -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmAllServiceClients"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"

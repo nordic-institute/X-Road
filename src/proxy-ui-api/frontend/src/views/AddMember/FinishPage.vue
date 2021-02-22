@@ -38,7 +38,7 @@
       <p></p>
 
       <div v-if="showRegisterOption">
-        <FormLabel :labelText="$t('wizard.member.register')" />
+        <xrd-form-label :labelText="$t('wizard.member.register')" />
         <v-checkbox
           v-model="registerChecked"
           color="primary"
@@ -48,28 +48,28 @@
       </div>
     </div>
     <div class="button-footer">
-      <large-button
+      <xrd-button
         outlined
         @click="cancel"
         :disabled="disableCancel"
         data-test="cancel-button"
-        >{{ $t('action.cancel') }}</large-button
+        >{{ $t('action.cancel') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         @click="previous"
         outlined
         :disabled="disableCancel"
         class="previous-button"
         data-test="previous-button"
-        >{{ $t('action.previous') }}</large-button
+        >{{ $t('action.previous') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         @click="done"
         data-test="submit-button"
         :loading="submitLoading"
-        >{{ $t('action.submit') }}</large-button
+        >{{ $t('action.submit') }}</xrd-button
       >
     </div>
     <!-- Accept warnings -->

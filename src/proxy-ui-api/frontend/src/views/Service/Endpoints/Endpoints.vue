@@ -26,12 +26,12 @@
 <template>
   <div>
     <div class="wrap-right px-4">
-      <large-button
+      <xrd-button
         v-if="canAddEndpoint"
         color="primary"
         @click="isAddEndpointDialogVisible = true"
         data-test="endpoint-add"
-        >{{ $t('endpoints.addEndpoint') }}</large-button
+        >{{ $t('endpoints.addEndpoint') }}</xrd-button
       >
     </div>
 
@@ -57,22 +57,22 @@
           </td>
           <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
-            <large-button
+            <xrd-button
               v-if="!endpoint.generated && canEditEndpoint"
               text
               class="xrd-table-button"
               data-test="endpoint-edit"
               @click="editEndpoint(endpoint)"
-              >{{ $t('action.edit') }}</large-button
+              >{{ $t('action.edit') }}</xrd-button
             >
-            <large-button
+            <xrd-button
               v-if="canViewAccessRights"
               text
               :outlined="false"
               class="xrd-table-button"
               data-test="endpoint-edit-accessrights"
               @click="editAccessRights(endpoint)"
-              >{{ $t('accessRights.title') }}</large-button
+              >{{ $t('accessRights.title') }}</xrd-button
             >
           </td>
         </tr>

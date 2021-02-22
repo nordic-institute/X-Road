@@ -54,36 +54,36 @@
         </div>
         <div class="generate-row">
           <div>{{ $t('csr.saveInfo') }}</div>
-          <large-button
+          <xrd-button
             @click="generateCsr"
             :disabled="invalid || !disableDone"
             data-test="generate-csr-button"
-            >{{ $t('csr.generateCsr') }}</large-button
+            >{{ $t('csr.generateCsr') }}</xrd-button
           >
         </div>
       </div>
       <div class="button-footer">
-        <large-button
+        <xrd-button
           outlined
           @click="cancel"
           :disabled="!disableDone"
           data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <large-button
+        <xrd-button
           @click="previous"
           outlined
           class="previous-button"
           data-test="previous-button"
           :disabled="!disableDone"
-          >{{ $t('action.previous') }}</large-button
+          >{{ $t('action.previous') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           @click="done"
           :disabled="disableDone"
           data-test="save-button"
-          >{{ $t(saveButtonText) }}</large-button
+          >{{ $t(saveButtonText) }}</xrd-button
         >
       </div>
     </ValidationObserver>

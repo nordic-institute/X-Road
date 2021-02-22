@@ -28,7 +28,7 @@
     <td>{{ timestampingService.name }}</td>
     <td>{{ timestampingService.url }}</td>
     <td class="pr-4">
-      <large-button
+      <xrd-button
         data-test="system-parameters-timestamping-service-delete-button"
         @click="confirmDeleteDialog = true"
         :requires-permission="permissions.DELETE_TSP"
@@ -38,8 +38,8 @@
         {{
           $t('systemParameters.timestampingServices.table.action.delete.button')
         }}
-      </large-button>
-      <confirm-dialog
+      </xrd-button>
+      <xrd-confirm-dialog
         data-test="system-parameters-timestamping-service-delete-confirm-dialog"
         :dialog="confirmDeleteDialog"
         @cancel="confirmDeleteDialog = false"

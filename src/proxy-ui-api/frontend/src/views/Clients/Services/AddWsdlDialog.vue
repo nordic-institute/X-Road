@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="services.addWsdl"
     @save="save"
@@ -53,7 +53,7 @@
         </ValidationProvider>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">

@@ -26,15 +26,15 @@
 <template>
   <div class="wrapper xrd-view-common">
     <div class="new-content">
-      <subViewTitle :title="$t('cert.certificate')" @close="close" />
+      <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
         <div class="cert-hash-wrapper">
           <certificateHash :hash="certificate.hash" />
-          <large-button
+          <xrd-button
             v-if="showDeleteButton"
             outlined
             @click="deleteCertificate()"
-            >{{ $t('action.delete') }}</large-button
+            >{{ $t('action.delete') }}</xrd-button
           >
         </div>
         <certificateInfo :certificate="certificate" />
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Confirm dialog for delete -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"

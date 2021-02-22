@@ -84,25 +84,25 @@
     </div>
 
     <div class="button-footer full-width">
-      <large-button outlined @click="cancel" data-test="cancel-button">{{
+      <xrd-button outlined @click="cancel" data-test="cancel-button">{{
         $t('action.cancel')
-      }}</large-button>
+      }}</xrd-button>
 
-      <large-button
+      <xrd-button
         @click="$emit('set-step')"
         data-test="previous-button"
         outlined
         class="previous-button"
-        >{{ $t('action.previous') }}</large-button
+        >{{ $t('action.previous') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         data-test="finish-button"
         @click="saveServices"
         :disabled="!selections || selections.length === 0"
       >
         {{ $t('serviceClients.addSelected') }}
-      </large-button>
+      </xrd-button>
     </div>
   </div>
 </template>
