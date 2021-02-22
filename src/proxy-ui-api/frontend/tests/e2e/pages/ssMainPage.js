@@ -697,7 +697,7 @@ module.exports = {
         },
         internalServers: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "internal servers")]]',
+            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(@data-test, "internalServers")]]',
           locateStrategy: 'xpath',
           commands: [clientInternalServersCommands],
           elements: {
@@ -723,7 +723,7 @@ module.exports = {
         },
         localGroups: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "local groups")]]',
+            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(@data-test, "localGroups")]]',
           locateStrategy: 'xpath',
           commands: [clientLocalGroupsCommands],
           elements: {
@@ -732,7 +732,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             addGroupButton: {
-              selector: '//button[.//*[contains(text(), "Add group")]]',
+              selector: '//button[.//*[contains(@data-test, "add-local-group-button")]]',
               locateStrategy: 'xpath',
             },
             confirmAddButton: {
@@ -921,7 +921,7 @@ module.exports = {
     },
     localGroupPopup: {
       selector:
-        '//div[contains(@class, "xrd-tab-max-width") and .//div[contains(@class, "cert-hash") and contains(text(),"Local group")]]',
+        '//div[contains(@class, "xrd-tab-max-width") and .//div[contains(@class, "cert-hash") and contains(@data-test,"local-group-title")]]',
       locateStrategy: 'xpath',
       commands: [localGroupPopupCommands],
       elements: {
@@ -930,15 +930,15 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         localGroupAddMembersButton: {
-          selector: '//button[.//*[contains(text(), "Add Members")]]',
+          selector: '//button[.//*[contains(@data-test, "add-members-button")]]',
           locateStrategy: 'xpath',
         },
         localGroupRemoveAllButton: {
-          selector: '//button[.//*[contains(text(), "Remove All")]]',
+          selector: '//button[.//*[contains(@data-test, "remove-all-members-button")]]',
           locateStrategy: 'xpath',
         },
         localGroupDeleteButton: {
-          selector: '//button[.//*[contains(text(), "Delete")]]',
+          selector: '//button[.//*[contains(@data-test, "delete-local-group-button")]]',
           locateStrategy: 'xpath',
         },
         localGroupAddSelectedButton: {
