@@ -2,7 +2,18 @@
   "decisions": {
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1604562819624
+      "madeAt": 1613997098751,
+      "expiresAt": 1616589090195
+    },
+    "1603|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>react-dev-utils>immer": {
+      "decision": "ignore",
+      "madeAt": 1613997103824,
+      "expiresAt": 1616589090195
+    },
+    "1603|@storybook/vue>@storybook/core>react-dev-utils>immer": {
+      "decision": "ignore",
+      "madeAt": 1613997103824,
+      "expiresAt": 1616589090195
     }
   },
   "rules": {},
