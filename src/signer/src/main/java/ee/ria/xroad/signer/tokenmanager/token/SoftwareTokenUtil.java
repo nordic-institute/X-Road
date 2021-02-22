@@ -111,16 +111,25 @@ public final class SoftwareTokenUtil {
         return getTempKeyDir() + keyId + P12;
     }
 
+    /**
+     * @return /path/to/.softtoken.tmp
+     */
     private static String getTempKeyDir() {
         return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
                 + SOFT_TOKEN_KEY_TMP_DIR_NAME + File.separator;
     }
 
+    /**
+     * @return /path/to/.softtoken.bak
+     */
     public static String getBackupKeyDir() {
         return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
                 + SOFT_TOKEN_KEY_BAK_DIR_NAME + File.separator;
     }
 
+    /**
+     * @return key backup dir with timestamp in the name e.g. /path/to/.softtoken.bak-20210218102059
+     */
     public static String getBackupKeyDirForDateNow() {
         Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         String nowString = TIMESTAMP_FORMAT.format(nowTimestamp);

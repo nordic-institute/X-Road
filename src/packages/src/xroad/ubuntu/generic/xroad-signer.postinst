@@ -41,6 +41,18 @@ if [ "$1" = configure ]; then
         crudini --del ${local_ini} common default-signature-algorithm
     fi
 
+    # migrate keys to a new directory
+    signer_keys=/etc/xroad/signer/softtoken
+    if [[ ! -d ${signer_keys} ]]
+    then
+        mkdir -p -m 0750 /etc/xroad/signer/softtoken.tmp
+        test -e /etc/xroad/signer/.softtoken.p12 && cp /etc/xroad/signer/.softtoken.p12 /etc/xroad/signer/softtoken.tmp/.softtoken.p12
+        compgen -G /etc/xroad/signer/*.p12 && cp /etc/xroad/signer/*.p12 /etc/xroad/signer/softtoken.tmp/
+        mv /etc/xroad/signer/softtoken.tmp /etc/xroad/signer/softtoken
+        test -e /etc/xroad/signer/.softtoken.p12 && rm /etc/xroad/signer/.softtoken.p12
+        compgen -G /etc/xroad/signer/*.p12 && rm /etc/xroad/signer/*.p12
+        chown -R xroad:xroad /etc/xroad/signer/softtoken
+    fi
 
 fi
 
