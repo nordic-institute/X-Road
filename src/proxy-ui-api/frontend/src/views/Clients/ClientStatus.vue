@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="status-wrapper">
-    <StatusIcon :status="statusIconType" />
+    <xrd-status-icon :status="statusIconType" />
     <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
 </template>

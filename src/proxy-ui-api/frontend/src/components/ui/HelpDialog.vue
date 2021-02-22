@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" :width="width" persistent>
+  <v-dialog v-if="dialog" :value="dialog" :width="width" persistent>
     <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
@@ -38,7 +38,9 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button @click="cancel()">{{ $t('keys.gotIt') }}</large-button>
+        <xrd-button @click="cancel()">{{
+          $t('keys.gotIt')
+        }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <large-button
+  <xrd-button
     v-if="canBackup"
     :min_width="50"
     :loading="deleting"
@@ -34,7 +34,7 @@
     data-test="backup-delete"
     @click="showConfirmation = true"
     >{{ $t('action.delete') }}
-    <confirm-dialog
+    <xrd-confirm-dialog
       :dialog="showConfirmation"
       title="backup.action.delete.dialog.title"
       text="backup.action.delete.dialog.confirmation"
@@ -42,7 +42,7 @@
       @cancel="showConfirmation = false"
       @accept="deleteBackup"
     />
-  </large-button>
+  </xrd-button>
 </template>
 
 <script lang="ts">

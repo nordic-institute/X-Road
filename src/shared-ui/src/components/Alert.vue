@@ -25,24 +25,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="footer-content">
-    <div>
-      <LargeButton @click="close()">{{ $t('action.close') }}</LargeButton>
-    </div>
+  <div>
+    <!-- Error -->
+    <v-container fluid class="alerts-container" v-if="show">
+      <v-alert
+        data-test="contextual-modal-alert"
+        color="red"
+        border="left"
+        colored-border
+        class="alert"
+        icon="icon-Error-notification"
+      >
+        <div class="row-wrapper-top scrollable identifier-wrap">
+          <div class="row-wrapper">
+            <!-- Show localised text by id -->
+            <div>{{ message }}</div>
+          </div>
+        </div>
+      </v-alert>
+    </v-container>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
-  methods: {
-    close() {
-      this.$emit('close');
+  props: {
+    // Alert visible / hidden
+    show: {
+      type: Boolean,
+      required: true,
+    },
+    message: {
+      type: String,
+      required: false,
     },
   },
 });
@@ -51,12 +68,43 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.footer-content {
-  width: 100%;
+.alerts-container {
+  width: 1000px;
+  padding: 0;
+
+  & > * {
+    margin-top: 0;
+    margin-bottom: 4px;
+    border-radius: 0;
+  }
+  & > :first-child {
+    margin-top: 4px;
+  }
+}
+
+.alert {
+  margin-top: 16px;
+  border: solid 1px #dedce4;
+  border-radius: 4px;
+}
+
+.row-wrapper-top {
   display: flex;
-  margin-top: 20px;
-  padding-top: 30px;
-  justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.row-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overflow-wrap: break-word;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
 }
 </style>

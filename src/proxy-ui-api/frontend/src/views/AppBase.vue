@@ -28,11 +28,19 @@
   <div>
     <router-view name="top" />
     <v-layout align-center justify-center>
-      <v-layout align-center justify-center class="base-full-width">
-        <transition name="fade" mode="out-in">
-          <router-view />
-        </transition>
-      </v-layout>
+      <transition name="fade" mode="out-in">
+        <div class="base-full-width">
+          <router-view name="subTabs" />
+          <router-view name="alerts" />
+          <v-layout
+            align-center
+            justify-center
+            class="base-full-width bottom-pad"
+          >
+            <router-view />
+          </v-layout>
+        </div>
+      </transition>
     </v-layout>
 
     <v-dialog v-model="showDialog" width="500" persistent>
@@ -43,7 +51,9 @@
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <large-button @click="logout()">{{ $t('action.ok') }}</large-button>
+          <xrd-button @click="logout()">{{
+            $t('action.ok')
+          }}</xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -105,6 +115,11 @@ export default Vue.extend({
   width: 100%;
   padding-bottom: 40px;
 }
+
+.bottom-pad {
+  padding-bottom: 40px;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition-duration: 0.2s;

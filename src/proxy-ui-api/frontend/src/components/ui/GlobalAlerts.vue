@@ -24,9 +24,60 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="alerts-wrapper">
-    <GlobalAlerts />
-    <ContextualAlerts />
+  <v-container
+    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    fluid
+    class="alerts-container"
+  >
+    <v-alert
+      data-test="global-alert-global-configuration"
+      :value="showGlobalConfAlert"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.globalConfigurationInvalid')
+      }}</span>
+    </v-alert>
+    <v-alert
+      v-if="isAllowedToLoginToken"
+      data-test="global-alert-soft-token-pin"
+      :value="showSoftTokenPinEnteredAlert"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span
+        v-if="showLoginLink"
+        class="alert-text clickable-link"
+        @click="tokenLogin()"
+      >
+        {{ $t('globalAlert.softTokenPinNotEntered') }}
+      </span>
+      <span v-else class="alert-text">
+        {{ $t('globalAlert.softTokenPinNotEntered') }}
+      </span>
+    </v-alert>
+    <v-alert
+      data-test="global-alert-soft-token-pin"
+      :value="showRestoreInProgress"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.backupRestoreInProgress', {
+          startTime: formatDateTime(restoreStartTime),
+        })
+      }}</span>
+    </v-alert>
   </v-container>
 </template>
 
@@ -34,15 +85,10 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { formatDateTime } from '@/filters';
-import { RouteName } from '@/global';
-import ContextualAlerts from './ContextualAlerts.vue';
-import GlobalAlerts from './GlobalAlerts.vue';
+import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  components: {
-    ContextualAlerts,
-    GlobalAlerts,
-  },
+  name: 'AlertsContainer',
   computed: {
     hasAlerts(): boolean {
       return (
@@ -62,6 +108,11 @@ export default Vue.extend({
       'isAuthenticated',
       'needsInitialization',
     ]),
+    isAllowedToLoginToken(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
+      );
+    },
   },
   methods: {
     formatDateTime,
@@ -73,8 +124,35 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-.alerts-wrapper {
+@import '~styles/colors';
+
+.alerts-container {
   width: 1000px;
   padding: 0;
+
+  & > * {
+    margin-top: 0;
+    margin-bottom: 4px;
+    border-radius: 0;
+  }
+
+  & > :first-child {
+    margin-top: 4px;
+  }
+}
+
+.alert {
+  margin-top: 8px;
+  border-radius: 4px;
+}
+
+.alert-text {
+  color: $XRoad-Black100;
+  display: block;
+}
+
+.clickable-link {
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>

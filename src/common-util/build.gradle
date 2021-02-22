@@ -48,8 +48,6 @@ dependencies {
 
     implementation 'ch.qos.logback:logback-classic:1.2.3'
 
-    testImplementation 'org.powermock:powermock-module-junit4:2.0.7'
-    testImplementation 'org.powermock:powermock-api-mockito2:2.0.7'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation project(':common-test')
 

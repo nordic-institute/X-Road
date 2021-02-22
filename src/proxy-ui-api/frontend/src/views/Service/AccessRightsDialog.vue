@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="842" scrollable persistent>
-    <v-card class="xrd-card px-0 mx-0">
+  <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
+    <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
         <span class="headline">{{
           $t('accessRights.addServiceClientsTitle')
@@ -59,6 +59,7 @@
                       hide-details
                       autofocus
                       outlined
+                      clearable
                       data-test="name"
                       class="flex-input"
                     ></v-text-field>
@@ -88,6 +89,7 @@
                       v-model="memberCode"
                       :label="$t('serviceClients.memberGroupCodeLabel')"
                       hide-details
+                      clearable
                       data-test="memberCode"
                       class="flex-input"
                       outlined
@@ -99,6 +101,7 @@
                       v-model="subsystemCode"
                       :label="$t('subsystem_code')"
                       hide-details
+                      clearable
                       data-test="subsystemCode"
                       class="flex-input"
                       outlined
@@ -117,9 +120,12 @@
                 </div>
 
                 <div class="search-wrap">
-                  <large-button @click="search()" data-test="search-button">{{
-                    $t('action.search')
-                  }}</large-button>
+                  <xrd-button
+                    :loading="loading"
+                    @click="search()"
+                    data-test="search-button"
+                    >{{ $t('action.search') }}</xrd-button
+                  >
                 </div>
               </div>
             </v-expansion-panel-content>
@@ -160,8 +166,12 @@
             </tr>
           </tbody>
         </table>
+
+        <div v-if="loading" class="empty-row">
+          <p>{{ $t('action.searching') }}</p>
+        </div>
         <div
-          v-if="serviceClientCandidates.length < 1 && !noResults"
+          v-else-if="serviceClientCandidates.length < 1 && !noResults"
           class="empty-row"
         ></div>
 
@@ -172,17 +182,20 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button
+        <xrd-button
           class="button-margin"
           data-test="cancel-button"
           outlined
           @click="cancel()"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <large-button :disabled="!canSave" data-test="save" @click="save()">{{
-          $t('localGroup.addSelected')
-        }}</large-button>
+        <xrd-button
+          :disabled="!canSave"
+          data-test="save"
+          @click="save()"
+          >{{ $t('localGroup.addSelected') }}</xrd-button
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -214,6 +227,7 @@ const initialState = () => {
     selectedIds: [] as ServiceClient[],
     noResults: false,
     checkbox1: true,
+    loading: false,
   };
 };
 
@@ -295,6 +309,10 @@ export default Vue.extend({
         );
       };
 
+      this.loading = true;
+      this.serviceClientCandidates = [];
+      this.selectedIds = [];
+
       api
         .get<ServiceClient[]>(query)
         .then((res) => {
@@ -314,6 +332,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
 

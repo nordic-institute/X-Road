@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,27 +24,72 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-progress-linear
-    indeterminate
-    :height="height"
-    :active="active"
-  ></v-progress-linear>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
-  name: 'ProgressLinear',
-  props: {
-    active: {
-      type: Boolean,
-      default: true,
-    },
-    height: {
-      type: String,
-      default: '2px',
+  components: {
+    SubTabs,
+  },
+  data: () => ({
+    tab: null,
+    showHelp: false,
+  }),
+
+  computed: {
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'signAndAuthKeys',
+          name: 'tab.keys.signAndAuthKeys',
+          to: {
+            name: RouteName.SignAndAuthKeys,
+          },
+          permissions: [Permissions.VIEW_KEYS],
+        },
+        {
+          key: 'apiKey',
+          name: 'tab.keys.apiKey',
+          to: {
+            name: RouteName.ApiKey,
+          },
+          permissions: [
+            Permissions.CREATE_API_KEY,
+            Permissions.VIEW_API_KEYS,
+            Permissions.UPDATE_API_KEY,
+            Permissions.REVOKE_API_KEY,
+          ],
+        },
+        {
+          key: 'ssTlsCertificate',
+          name: 'tab.keys.ssTlsCertificate',
+          to: {
+            name: RouteName.SSTlsCertificate,
+          },
+          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.content {
+  width: 1000px;
+}
+</style>

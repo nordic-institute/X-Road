@@ -26,28 +26,28 @@
 <template>
   <div class="xrd-tab-max-width main-wrap">
     <div class="pa-4">
-      <subViewTitle
+      <xrd-sub-view-title
         v-if="serviceDesc.type === serviceType.WSDL"
         :title="$t('services.wsdlDetails')"
         @close="close"
       />
-      <subViewTitle
+      <xrd-sub-view-title
         v-else-if="serviceDesc.type === serviceType.REST"
         :title="$t('services.restDetails')"
         @close="close"
       />
-      <subViewTitle
+      <xrd-sub-view-title
         v-else-if="serviceDesc.type === serviceType.OPENAPI3"
         :title="$t('services.openapiDetails')"
         @close="close"
       />
 
       <div class="delete-wrap">
-        <large-button
+        <xrd-button
           v-if="showDelete"
           @click="showDeletePopup(serviceDesc.type)"
           outlined
-          >{{ $t('action.delete') }}</large-button
+          >{{ $t('action.delete') }}</xrd-button
         >
       </div>
     </div>
@@ -123,21 +123,21 @@
       </div>
       <v-card flat>
         <div class="footer-button-wrap mt-12">
-          <large-button @click="close()" outlined>{{
+          <xrd-button @click="close()" outlined>{{
             $t('action.cancel')
-          }}</large-button>
-          <large-button
+          }}</xrd-button>
+          <xrd-button
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
-            >{{ $t('action.save') }}</large-button
+            >{{ $t('action.save') }}</xrd-button
           >
         </div>
       </v-card>
     </ValidationObserver>
 
     <!-- Confirm dialog delete WSDL -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmWSDLDelete"
       title="services.deleteTitle"
       text="services.deleteWsdlText"
@@ -146,7 +146,7 @@
     />
 
     <!-- Confirm dialog delete REST -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmRESTDelete"
       title="services.deleteTitle"
       text="services.deleteRestText"

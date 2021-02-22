@@ -25,16 +25,16 @@
  -->
 <template>
   <div>
-    <LargeButton
+    <xrd-button
       data-test="delete-client-button"
       @click="confirmDelete = true"
       outlined
       ><v-icon class="xrd-large-button-icon">icon-Declined</v-icon
-      >{{ $t('action.delete') }}</LargeButton
+      >{{ $t('action.delete') }}</xrd-button
     >
 
     <!-- Confirm dialog for delete client -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDelete"
       :loading="deleteLoading"
       title="client.action.delete.confirmTitle"
@@ -44,7 +44,7 @@
     />
 
     <!-- Confirm dialog for deleting orphans -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmOrphans"
       :loading="orphansLoading"
       title="client.action.removeOrphans.confirmTitle"

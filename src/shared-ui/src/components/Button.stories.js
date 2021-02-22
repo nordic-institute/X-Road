@@ -24,25 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import SubViewFooter from './SubViewFooter.vue';
+import Button from './Button.vue';
 
 export default {
-  title: 'X-Road/Sub view footer',
-  component: SubViewFooter,
+  title: 'X-Road/Button',
+  component: Button,
   argTypes: {
-    showClose: { control: 'boolean' },
-    title: { control: 'text' },
-    close: { action: 'close' },
+    outlined: { control: 'boolean' },
+    disabled: { control: 'boolean' },
+    loading: { control: 'boolean' },
+    block: { control: 'boolean' },
+    large: { control: 'boolean' },
+    click: { action: 'click' },
+    color: { control: 'text' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { SubViewFooter },
-  template: `<sub-view-footer @close="close" />`,
+  components: { Button },
+  template: '<xrd-button @click="click" v-bind="$props">{{label}}</xrd-button>',
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-  showClose: true,
+  primary: true,
+  label: 'Hello world!',
+};
+
+export const Secondary = Template.bind({});
+Secondary.args = {
+  label: 'This is a very very long label for a button',
+};
+
+export const Gradient = Template.bind({});
+Gradient.args = {
+  label: 'Gradient button',
+  gradient: true,
 };

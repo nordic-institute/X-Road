@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,64 +24,82 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    small
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="min_width"
-    :loading="loading"
-    :text="text"
-    rounded
-    color="primary"
-    class="small-button"
-    @click="click()"
-  >
-    <slot></slot>
-  </v-btn>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-/**
- * Wrapper for vuetify button with x-road look
- */
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
-  name: 'small-button',
+  components: {
+    SubTabs,
+  },
   props: {
-    outlined: {
-      type: Boolean,
-      default: true,
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    text: {
-      type: Boolean,
-      default: false,
-    },
-    min_width: {
-      type: Number,
-      default: 20,
+    id: {
+      type: String,
+      required: true,
     },
   },
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
+  },
+  computed: {
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'details',
+          name: 'tab.client.details',
+          to: {
+            name: RouteName.MemberDetails,
+            params: { id: this.id },
+          },
+        },
+        {
+          key: 'internalServers',
+          name: 'tab.client.internalServers',
+          to: {
+            name: RouteName.MemberServers,
+            params: { id: this.id },
+          },
+          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
+        },
+      ];
+
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.small-button {
-  text-transform: none;
+.title-action {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.action-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.first-button {
+  margin-right: 20px;
+}
+
+.content {
+  width: 1000px;
+  margin-top: 30px;
 }
 </style>

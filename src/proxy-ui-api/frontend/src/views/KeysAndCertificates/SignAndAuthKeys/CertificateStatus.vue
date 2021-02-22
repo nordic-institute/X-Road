@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="cert-row-wrap">
-    <StatusIcon :status="statusIconType" />
+    <xrd-status-icon :status="statusIconType" />
     <div class="status-text">{{ $t(status) }}</div>
   </div>
 </template>

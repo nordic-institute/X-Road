@@ -24,14 +24,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="showPreview" persistent max-width="850">
+  <v-dialog v-if="showPreview" :value="showPreview" persistent max-width="850">
     <template v-slot:activator="{}">
-      <file-upload
+      <xrd-file-upload
         accepts=".xml"
         @file-changed="onUploadFileChanged"
         v-slot="{ upload }"
       >
-        <large-button
+        <xrd-button
           data-test="system-parameters-configuration-anchor-upload-button"
           outlined
           @click="upload"
@@ -42,8 +42,8 @@
           <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
           {{
             $t('systemParameters.configurationAnchor.action.upload.button')
-          }}</large-button
-        ></file-upload
+          }}</xrd-button
+        ></xrd-file-upload
       >
     </template>
     <v-card class="xrd-card">
@@ -102,17 +102,17 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button
+        <xrd-button
           data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
           outlined
           @click="close"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
           @click="confirmUpload"
           :loading="uploading"
-          >{{ $t('action.confirm') }}</large-button
+          >{{ $t('action.confirm') }}</xrd-button
         >
       </v-card-actions>
     </v-card>

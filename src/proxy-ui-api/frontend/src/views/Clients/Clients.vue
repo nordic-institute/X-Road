@@ -25,7 +25,6 @@
  -->
 <template>
   <v-layout align-center justify-center column>
-    <alerts-container />
     <clientsDataTable />
   </v-layout>
 </template>
@@ -33,10 +32,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import ClientsDataTable from './ClientsDataTable.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 export default Vue.extend({
   components: {
-    AlertsContainer,
     ClientsDataTable,
   },
 });

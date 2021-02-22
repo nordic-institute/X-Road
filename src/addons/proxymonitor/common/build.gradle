@@ -11,6 +11,8 @@ sourceSets {
 }
 
 dependencies {
+    implementation "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
+
     xjc "org.glassfish.jaxb:jaxb-runtime:$jaxbVersion"
     xjc "org.glassfish.jaxb:jaxb-xjc:$jaxbVersion"
 }
