@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,96 +24,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="min_width"
-    :loading="loading"
-    :block="block"
-    :large="large"
-    :text="text"
-    height="40"
-    rounded
-    color="primary elevation-0"
-    class="large-button"
-    v-bind:class="{ gradient: showGradient }"
-    @click="click"
-  >
-    <slot></slot>
-  </v-btn>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-/**
- * Wrapper for vuetify button with x-road look
- * */
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
-  name: 'large-button',
-  props: {
-    outlined: {
-      type: Boolean,
-      default: false,
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Block buttons extend the full available width
-    block: {
-      type: Boolean,
-      default: false,
-    },
-    large: {
-      type: Boolean,
-      default: false,
-    },
-    text: {
-      type: Boolean,
-      default: false,
-    },
-    min_width: {
-      type: [Number, String],
-      default: 80,
-    },
-    gradient: {
-      type: Boolean,
-      default: false,
-    },
+  components: {
+    SubTabs,
+  },
+  data() {
+    return {
+      tab: null,
+    };
   },
   computed: {
-    showGradient(): boolean {
-      if (this.disabled === true) {
-        return false;
-      }
-      if (this.gradient === true) {
-        return true;
-      }
-      return false;
-    },
-  },
-  methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'system',
+          name: 'tab.settings.systemParameters',
+          to: {
+            name: RouteName.SystemParameters,
+          },
+          permissions: [Permissions.VIEW_SYS_PARAMS],
+        },
+        {
+          key: 'backup',
+          name: 'tab.settings.backupAndRestore',
+          to: {
+            name: RouteName.BackupAndRestore,
+          },
+          permissions: [Permissions.BACKUP_CONFIGURATION],
+        },
+      ];
+      return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.large-button {
-  border-radius: 20px;
-  text-transform: none;
-}
-
-.gradient {
-  background: linear-gradient(270deg, #663cdc 0%, #cd9dc8 99.58%);
-}
-</style>

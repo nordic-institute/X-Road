@@ -25,7 +25,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="dialog" :value="dialog" :width="width" persistent>
+  <v-dialog
+    v-if="dialog"
+    :value="dialog"
+    :width="width"
+    persistent
+    :scrollable="scrollable"
+  >
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
@@ -39,25 +45,30 @@
           @click="cancel()"
         />
       </v-card-title>
+      <div class="alert-slot">
+        <slot name="alert"></slot>
+      </div>
       <v-card-text class="content-wrapper">
         <slot name="content"></slot>
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button
+        <xrd-button
           data-test="dialog-cancel-button"
           class="mr-3"
           outlined
           @click="cancel()"
-          >{{ $t(cancelButtonText) }}</large-button
         >
-        <large-button
+          {{ $t(cancelButtonText) }}
+        </xrd-button>
+        <xrd-button
           data-test="dialog-save-button"
           :disabled="disableSaveButton"
           :loading="loading"
           @click="save()"
-          >{{ $t(saveButtonText) }}</large-button
         >
+          {{ $t(saveButtonText) }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -68,12 +79,10 @@
 
 import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
-import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
   components: {
     CloseButton,
-    LargeButton,
   },
   props: {
     // Title of the dialog
@@ -85,6 +94,11 @@ export default Vue.extend({
     dialog: {
       type: Boolean,
       required: true,
+    },
+    // Is the content scrollable
+    scrollable: {
+      type: Boolean,
+      default: false,
     },
     // Disable save button
     disableSave: {
@@ -157,5 +171,9 @@ export default Vue.extend({
 .close-button {
   margin-left: auto;
   margin-right: 0;
+}
+.alert-slot {
+  margin-left: 20px;
+  margin-right: 20px;
 }
 </style>

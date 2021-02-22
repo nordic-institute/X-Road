@@ -25,8 +25,6 @@
  -->
 <template>
   <div class="xrd-view-common">
-    <alerts-container />
-
     <div class="inner-wrap">
       <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
       <v-layout align-center justify-center column fill-height elevation-0>
@@ -53,7 +51,7 @@
               <tbody>
                 <tr v-if="globalConf">
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(globalConf.status_class)"
                     />
                   </td>
@@ -103,7 +101,7 @@
                   v-bind:key="timestampingService.url"
                 >
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(timestampingService.status_class)"
                     />
                   </td>
@@ -168,7 +166,9 @@
                     v-bind:key="ocsp.url"
                   >
                     <td>
-                      <StatusIcon :status="statusIconType(ocsp.status_class)" />
+                      <xrd-status-icon
+                        :status="statusIconType(ocsp.status_class)"
+                      />
                     </td>
                     <td class="url-column" data-test="service-url">
                       {{ ocsp.url }}
@@ -206,12 +206,8 @@ import {
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
 } from '@/openapi-types';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 export default Vue.extend({
-  components: {
-    AlertsContainer,
-  },
   data: () => ({
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,

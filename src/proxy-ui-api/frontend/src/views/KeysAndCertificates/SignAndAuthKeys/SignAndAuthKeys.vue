@@ -63,7 +63,7 @@
       />
     </template>
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="logoutDialog"
       title="keys.logOutTitle"
       text="keys.logOutText"
@@ -153,6 +153,9 @@ export default Vue.extend({
 
           if (key.name) {
             return key.name.toLowerCase().includes(mysearch);
+          }
+          if (key.id) {
+            return key.id.toLowerCase().includes(mysearch);
           }
           return false;
         });

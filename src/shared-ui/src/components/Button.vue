@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,75 +25,102 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    :min_width="50"
-    text
-    :outlined="false"
-    class="xrd-table-button"
-    data-test="backup-restore"
-    @click="showConfirmation = true"
-    >{{ $t('action.restore') }}
-    <xrd-confirm-dialog
-      :dialog="showConfirmation"
-      :loading="restoring"
-      title="backup.action.restore.dialog.title"
-      text="backup.action.restore.dialog.confirmation"
-      :data="{ file: backup.filename }"
-      @cancel="showConfirmation = false"
-      @accept="restoreBackup"
-    />
-  </xrd-button>
+  <v-btn
+    :outlined="outlined"
+    :disabled="disabled"
+    :min-width="min_width"
+    :loading="loading"
+    :block="block"
+    :large="large"
+    :text="text"
+    :color="color"
+    depressed
+    height="40"
+    rounded
+    class="large-button"
+    v-bind:class="{ gradient: showGradient }"
+    @click="click"
+  >
+    <slot></slot>
+  </v-btn>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Prop } from 'vue/types/options';
-import { Backup } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 
+/**
+ * Wrapper for vuetify button with x-road look
+ * */
 export default Vue.extend({
-  name: 'RestoreBackupButton',
+  name: 'xrd-button',
   props: {
-    backup: {
-      type: Object as Prop<Backup>,
-      required: true,
+    outlined: {
+      type: Boolean,
+      default: false,
+    },
+    // Button color
+    color: {
+      type: String,
+      default: 'primary',
+    },
+    // Set button disabled state
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    // Show loading spinner
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    // Block buttons extend the full available width
+    block: {
+      type: Boolean,
+      default: false,
+    },
+    large: {
+      type: Boolean,
+      default: false,
+    },
+    text: {
+      type: Boolean,
+      default: false,
+    },
+    min_width: {
+      type: [Number, String],
+      default: 80,
+    },
+    gradient: {
+      type: Boolean,
+      default: false,
     },
   },
-  data() {
-    return {
-      showConfirmation: false as boolean,
-      restoring: false as boolean,
-    };
+  computed: {
+    showGradient(): boolean {
+      if (this.disabled === true) {
+        return false;
+      }
+      if (this.gradient === true) {
+        return true;
+      }
+      return false;
+    },
   },
   methods: {
-    restoreBackup() {
-      this.restoring = true;
-      api
-        .put(
-          `/backups/${encodePathParameter(this.backup.filename)}/restore`,
-          {},
-        )
-        .then(() => {
-          this.$emit('restored');
-          this.$store.dispatch(
-            'showSuccessRaw',
-            this.$t('backup.action.restore.success', {
-              file: this.backup.filename,
-            }),
-          );
-        })
-        .catch((error) => this.$store.dispatch('showError', error))
-        .finally(() => {
-          this.showConfirmation = false;
-          this.restoring = false;
-          this.$store.dispatch('checkAlertStatus');
-        });
+    click(event: MouseEvent): void {
+      this.$emit('click', event);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+.large-button {
+  border-radius: 20px;
+  text-transform: none;
+}
+
+.gradient {
+  background: linear-gradient(270deg, #663cdc 0%, #cd9dc8 99.58%);
+}
 </style>

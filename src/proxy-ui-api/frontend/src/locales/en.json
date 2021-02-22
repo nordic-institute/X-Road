@@ -335,7 +335,8 @@
     "done": "Done",
     "next": "Next",
     "submit": "Submit",
-    "finish": "Finish"
+    "finish": "Finish",
+    "searching": "Searching..."
   },
   "keys": {
     "token": "Token:",
