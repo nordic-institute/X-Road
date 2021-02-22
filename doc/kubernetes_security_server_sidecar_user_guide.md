@@ -208,40 +208,40 @@ metadata:
   name: <pod-name>
   namespace: <namespace name>
 spec:
-   containers:
-   - name: <container name>
-     image: niis/xroad-security-server-sidecar:<image tag>
-     imagePullPolicy: "Always"
-     env:
-     - name: XROAD_TOKEN_PIN
-       value: "<token pin>"
-     - name: XROAD_ADMIN_USER
-       value: "<admin user>"
-     - name: XROAD_ADMIN_PASSWORD
-       value: "<admin password>"
-     - name: XROAD_DB_HOST
-       value: "127.0.0.1"
-     - name: XROAD_LOG_LEVEL
-       value: "<xroad log level>"
-     ports:
-     - containerPort: 443
-     - containerPort: 4000
-     - containerPort: 5500
-     - containerPort: 5577
+  containers:
+  - name: <container name>
+    image: niis/xroad-security-server-sidecar:<image tag>
+    imagePullPolicy: "Always"
+    env:
+    - name: XROAD_TOKEN_PIN
+      value: "<token pin>"
+    - name: XROAD_ADMIN_USER
+      value: "<admin user>"
+    - name: XROAD_ADMIN_PASSWORD
+      value: "<admin password>"
+    - name: XROAD_DB_HOST
+      value: "127.0.0.1"
+    - name: XROAD_LOG_LEVEL
+      value: "<xroad log level>"
+    ports:
+    - containerPort: 443
+    - containerPort: 4000
+    - containerPort: 5500
+    - containerPort: 5577
 ```
 
 Any of the Security Server Sidecar images described in the [Security Server Sidecar user guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#22-x-road-security-server-sidecar-images) can be used as image tag.
 Optionally, you can use an external database by adding the following environment variables of the deployment (**reference data: 1.7, 1.8, 1.9, 1.11**):
 
 ``` yaml
-     - name: XROAD_DB_HOST
-       value: "<database host>"
-     - name: XROAD_DB_PORT
-       value: "<database port>"
-     - name: XROAD_DB_PWD
-       value: "<xroad db password>"
-     - name: XROAD_DATABASE_NAME
-       value: "<database name>"
+    - name: XROAD_DB_HOST
+      value: "<database host>"
+    - name: XROAD_DB_PORT
+      value: "<database port>"
+    - name: XROAD_DB_PWD
+      value: "<xroad db password>"
+    - name: XROAD_DATABASE_NAME
+      value: "<database name>"
 ```
 
 Once the deployment is ready save it on a file and run:
@@ -346,17 +346,17 @@ An "awsElasticBlockStore" persistent volume mounts an AWS EBS volume into our Po
     metadata:
     name: <pv name>
     labels:
-        usage: <namespace name>
+      usage: <namespace name>
     spec:
     storageClassName: <volume storage class name>
     capacity:
-        storage: <volume size>
+      storage: <volume size>
     accessModes:
-        - <volume access mode>
+      - <volume access mode>
     persistentVolumeReclaimPolicy: Recycle
     awsElasticBlockStore:
-        fsType: "ext4"
-        volumeID: "<awsElasticBlockStore volume id>"
+      fsType: "ext4"
+      volumeID: "<awsElasticBlockStore volume id>"
     ```
 
 3. Verify that the volume has been created by getting the volume info by running the following AWS CLI command (Authentication through the AWS CLI is required):
@@ -392,18 +392,18 @@ It is possible to mount an AWS EFS volume into your Pod by using the Container S
     metadata:
     name: <pv name>
     labels:
-        usage: <namespace name>
+      usage: <namespace name>
     spec:
     capacity:
-        storage: <volume size>
+      storage: <volume size>
     storageClassName: <volume storage class name>  
     volumeMode: Filesystem
     accessModes:
     - <volume access mode>
     persistentVolumeReclaimPolicy: Retain
     csi:
-        driver: efs.csi.aws.com
-        volumeHandle: <efs volume id>
+      driver: efs.csi.aws.com
+      volumeHandle: <efs volume id>
     ```
 
 4. Verify the creation is created by getting the volume info running the following AWS CLI command (Authentication through the AWS CLI is required) (**reference data: 3.11**):
@@ -470,13 +470,13 @@ spec:
   - name: <manifest volume name>
     persistentVolumeClaim:
       claimName: <pvc name>
-   containers:
-   - name: <container name>
-     image: niis/xroad-security-server-sidecar:<image tag>
-     imagePullPolicy: "Always"
-     volumeMounts:
-     - name: <manifest volume name>
-       mountPath: /etc/xroad/
+  containers:
+  - name: <container name>
+    image: niis/xroad-security-server-sidecar:<image tag>
+    imagePullPolicy: "Always"
+    volumeMounts:
+    - name: <manifest volume name>
+      mountPath: /etc/xroad/
 [...]
 ```
 
@@ -506,7 +506,6 @@ spec:
     volumeMounts:
     - name: <manifest volume name>
       mountPath: /etc/xroad
-
 [...]
 ```
 
@@ -539,21 +538,21 @@ This example shows how to create a secret for the Security Server Sidecar enviro
 
 1. Create a manifest file called for example 'secret-env-variables.yaml' and fill it with the desired values of the environment variables ( **reference Data: 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 3.1**):
 
-    ```bash
+    ```yaml
     apiVersion: v1
     kind: Secret
     metadata:
-    name: secret-sidecar-variables
-    namespace: <namespace_name>
+      name: secret-sidecar-variables
+      namespace: <namespace_name>
     type: Opaque
     stringData:
-    XROAD_TOKEN_PIN: "<token pin>"
-    XROAD_ADMIN_USER: "<admin user>"
-    XROAD_ADMIN_PASSWORD: "<admin password>"
-    XROAD_DB_HOST: "<database host>"
-    XROAD_DB_PWD: "<database password>"
-    XROAD_DB_PORT: "database port"
-    XROAD_LOG_LEVEL: "<xroad log level>"
+      XROAD_TOKEN_PIN: "<token pin>"
+      XROAD_ADMIN_USER: "<admin user>"
+      XROAD_ADMIN_PASSWORD: "<admin password>"
+      XROAD_DB_HOST: "<database host>"
+      XROAD_DB_PWD: "<database password>"
+      XROAD_DB_PORT: "database port"
+      XROAD_LOG_LEVEL: "<xroad log level>"
     ```
 
 2. Apply the manifest:
@@ -577,9 +576,9 @@ volumes:
       path: id_rsa.pub
       mode: 0644
 [...]
-   volumeMounts:
-   - name: <manifest volume name>
-     mountPath: "/etc/.ssh/"
+  volumeMounts:
+  - name: <manifest volume name>
+    mountPath: "/etc/.ssh/"
 [...]
 ```
 
@@ -703,56 +702,56 @@ metadata:
   labels:
     run: <service selector>
 spec:
-   volumes:
-   - name: <manifest volume name>
-     persistentVolumeClaim:
-       claimName: <pvc name>
-   - name: <manifest volume name_2>
-     secret:
-       secretName: <secret name>
-       items:
-       - key: public-key
-         path: id_rsa.pub
-         mode: 0644
-   initContainers:
-   - name: volume-hack
-     image: busybox:latest
-     command: ["sh","-c","chown  999:999 /etc/xroad"]
-     volumeMounts:
-     - name: <manifest volume name>
-       mountPath: /etc/xroad
-   containers:
-   - name: <container name>
-     image: niis/xroad-security-server-sidecar:<image tag>
-     imagePullPolicy: "Always"
-     volumeMounts:
-     - name: <manifest volume name>
-       mountPath: /etc/xroad/
-     - name: <manifest volume name_2>
-       mountPath: "/etc/.ssh/"
-     env:
-     - name: XROAD_TOKEN_PIN
-       value: "<token pin>"
-     - name: XROAD_ADMIN_USER
-       value: "<admin user>"
-     - name: XROAD_ADMIN_PASSWORD
-       value: "<admin password>"
-     - name: XROAD_LOG_LEVEL
-       value: "<xroad log level>"
-     - name: XROAD_DB_HOST
-       value: "<database host>"
-     - name: XROAD_DB_PORT
-       value: "<database port>"
-     - name: XROAD_DB_PWD
-       value: "<xroad db password>"
-     - name: XROAD_DATABASE_NAME
-       value: "<database name>"
-     ports:
-     - containerPort: 4000
-     - containerPort: 5500
-     - containerPort: 5577
-     - containerPort: 5588
-     - containerPort: 22
+  volumes:
+  - name: <manifest volume name>
+    persistentVolumeClaim:
+      claimName: <pvc name>
+  - name: <manifest volume name_2>
+    secret:
+      secretName: <secret name>
+      items:
+      - key: public-key
+        path: id_rsa.pub
+        mode: 0644
+  initContainers:
+  - name: volume-hack
+    image: busybox:latest
+    command: ["sh","-c","chown  999:999 /etc/xroad"]
+    volumeMounts:
+    - name: <manifest volume name>
+      mountPath: /etc/xroad
+    containers:
+    - name: <container name>
+      image: niis/xroad-security-server-sidecar:<image tag>
+      imagePullPolicy: "Always"
+      volumeMounts:
+      - name: <manifest volume name>
+        mountPath: /etc/xroad/
+      - name: <manifest volume name_2>
+        mountPath: "/etc/.ssh/"
+      env:
+      - name: XROAD_TOKEN_PIN
+        value: "<token pin>"
+      - name: XROAD_ADMIN_USER
+        value: "<admin user>"
+      - name: XROAD_ADMIN_PASSWORD
+        value: "<admin password>"
+      - name: XROAD_LOG_LEVEL
+        value: "<xroad log level>"
+      - name: XROAD_DB_HOST
+        value: "<database host>"
+      - name: XROAD_DB_PORT
+        value: "<database port>"
+      - name: XROAD_DB_PWD
+        value: "<xroad db password>"
+      - name: XROAD_DATABASE_NAME
+        value: "<database name>"
+      ports:
+      - containerPort: 4000
+      - containerPort: 5500
+      - containerPort: 5577
+      - containerPort: 5588
+      - containerPort: 22
 ```
 
 The manifest has two Kubernetes objects:
@@ -987,7 +986,6 @@ In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-p
 Note(2): It is possible that a major version update will require extra changes. Remember to always check the specific documentation for the version update and follow the provided instructions.
 
 Once the Primary Pod is updated, you have to do the same steps for all the Secondary Pods one by one. While doing this, each Secondary Pod will remain in "NotReady" state and will exit the Load Balancer redirect until it is updated, but the rest will continue to work without disrupting the connection.
-
 
 ## 8 Message logs and disk space
 

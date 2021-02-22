@@ -108,17 +108,17 @@ This example shows how to create a secret for the Security Server Sidecar as env
     apiVersion: v1
     kind: Secret
     metadata:
-    name: secret-sidecar-variables
-    namespace: <namespace_name>
+      name: secret-sidecar-variables
+      namespace: <namespace_name>
     type: Opaque
     stringData:
-    XROAD_TOKEN_PIN: "<token pin>"
-    XROAD_ADMIN_USER: "<admin user>"
-    XROAD_ADMIN_PASSWORD: "<admin password>"
-    XROAD_DB_HOST: "<database host>"
-    XROAD_DB_PWD: "<database password>"
-    XROAD_DB_PORT: "<database port>"
-    XROAD_LOG_LEVEL: "<xroad log level>"
+      XROAD_TOKEN_PIN: "<token pin>"
+      XROAD_ADMIN_USER: "<admin user>"
+      XROAD_ADMIN_PASSWORD: "<admin password>"
+      XROAD_DB_HOST: "<database host>"
+      XROAD_DB_PWD: "<database password>"
+      XROAD_DB_PORT: "database port"
+      XROAD_LOG_LEVEL: "<xroad log level>"
     ```
 
 2. Apply the manifest:
@@ -132,12 +132,12 @@ Then we can consume the Secrets as environment variables by modifying the deploy
 ``` yaml
 [...]
 containers:
- - name: security-server-sidecar
-   image: niis/xroad-security-server-sidecar:latest
-   imagePullPolicy: "Always"
-   envFrom:
-   - secretRef:
-     name: secret-sidecar-variables
+  - name: security-server-sidecar
+    image: niis/xroad-security-server-sidecar:latest
+    imagePullPolicy: "Always"
+    envFrom:
+    - secretRef:
+      name: secret-sidecar-variables
 [...]
 ```
 
@@ -146,29 +146,29 @@ Alternatively, if we don't want to include all the environment variables in a si
 ``` yaml
 [...]
 containers:
- - name: security-server-sidecar
-   image: niis/xroad-security-server-sidecar:latest
-   imagePullPolicy: "Always"
-   env:
-   - name: XROAD_TOKEN_PIN
-     value: "<token pin>"
-   - name: XROAD_ADMIN_USER
-     value: "<admin user>"
-   - name: XROAD_ADMIN_PASSWORD
-     value: "<admin password>"
-   - name: XROAD_LOG_LEVEL
-     value: "<xroad log level>"
-   - name: XROAD_DB_HOST
-     value: "<database host>"
-   - name: XROAD_DB_PORT
-     value: "<database port>"
-   - name: XROAD_DB_PWD
-     valueFrom:
-       secretKeyRef:
-         name: secret-sidecar-variables
-         key: XROAD_DB_PWD
-   - name: XROAD_DATABASE_NAME
-     value: "<database name>"
+  - name: security-server-sidecar
+    image: niis/xroad-security-server-sidecar:latest
+    imagePullPolicy: "Always"
+    env:
+    - name: XROAD_TOKEN_PIN
+      value: "<token pin>"
+    - name: XROAD_ADMIN_USER
+      value: "<admin user>"
+    - name: XROAD_ADMIN_PASSWORD
+      value: "<admin password>"
+    - name: XROAD_LOG_LEVEL
+      value: "<xroad log level>"
+    - name: XROAD_DB_HOST
+      value: "<database host>"
+    - name: XROAD_DB_PORT
+      value: "<database port>"
+    - name: XROAD_DB_PWD
+      valueFrom:
+        secretKeyRef:
+          name: secret-sidecar-variables
+          key: XROAD_DB_PWD
+    - name: XROAD_DATABASE_NAME
+      value: "<database name>"
 [...]
 ```
 
@@ -238,21 +238,21 @@ Below are the steps to add IAM users or roles to your cluster:
     apiVersion: v1
     data:
     mapRoles: |
-        - rolearn: <role arn>
+      - rolearn: <role arn>
         username: <system:node:{{EC2PrivateDNSName}}>
         groups:
-            - <kubernetes group>
-            - <kubernetes group>
+          - <kubernetes group>
+          - <kubernetes group>
     mapUsers: |
-        - userarn: <user arn>
+      - userarn: <user arn>
         username: <user name>
         groups:
-            - <kubernetes group>
-            - <kubernetes group>
-        - userarn: <user arn>
+          - <kubernetes group>
+          - <kubernetes group>
+      - userarn: <user arn>
         username: <user name>
         groups:
-            - <kubernetes group>
+          - <kubernetes group>
     ```
 
     To add an IAM role: add the role details to the mapRoles section of the ConfigMap under data or add the whole section if it does not already exist in the file, as shown above.
@@ -330,8 +330,8 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     ``` yaml
     [...]
     metadata:
-    name: <service name>
-    labels:
+      name: <service name>
+      labels:
         run:  <service selector>
         role: primary
     [...]
@@ -342,13 +342,13 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     ``` yaml
     [...]
     spec:
-    selector:
+      selector:
         matchLabels:
-        run: <service selector>
-    replicas: <number replicas>
-    template:
+          run: <service selector>
+      replicas: <number replicas>
+      template:
         metadata:
-        labels:
+          labels:
             run: <pod name>
             role: secondary
     [...]
@@ -362,14 +362,14 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
-    namespace: <namespace name>
-    name: <network policy name>
+      namespace: <namespace name>
+      name: <network policy name>
     spec:
-    podSelector:
+      podSelector:
         matchLabels:
-        role: primary
-    policyTypes:
-    - Ingress
+          role: primary
+      policyTypes:
+      - Ingress
     ```
 
 5. Apply the manifest:
@@ -384,20 +384,20 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     kind: NetworkPolicy
     apiVersion: networking.k8s.io/v1
     metadata:
-    namespace: <namespace name>
-    name:  <network policy name>
+      namespace: <namespace name>
+      name:  <network policy name>
     spec:
-    podSelector:
+      podSelector:
         matchLabels:
-        role: primary
+          role: primary
     ingress:
-        - from:
-            - podSelector:
-                matchLabels:
-                role: secondary
-        ports:
-        - protocol: TCP
-            port: 22
+    - from:
+      - podSelector:
+          matchLabels:
+            role: secondary
+      ports:
+      - protocol: TCP
+        port: 22
     ```
 
 7. Apply the manifest:
