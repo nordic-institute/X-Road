@@ -74,7 +74,6 @@ import java.util.List;
 
 import static ee.ria.xroad.proxy.clientproxy.HandlerLoader.loadHandler;
 
-
 /**
  * Client proxy that handles requests of service clients.
  */
@@ -100,6 +99,7 @@ public class ClientProxy implements StartStop {
 
     /**
      * Constructs and configures a new client proxy.
+     *
      * @throws Exception in case of any errors
      */
     public ClientProxy() throws Exception {
@@ -161,7 +161,7 @@ public class ClientProxy implements StartStop {
             sfr.register("https", createSSLSocketFactory());
         }
 
-        SocketConfig.Builder sockBuilder =  SocketConfig.custom().setTcpNoDelay(true);
+        SocketConfig.Builder sockBuilder = SocketConfig.custom().setTcpNoDelay(true);
         sockBuilder.setSoLinger(SystemProperties.getClientProxyHttpClientSoLinger());
         sockBuilder.setSoTimeout(SystemProperties.getClientProxyHttpClientTimeout());
         SocketConfig socketConfig = sockBuilder.build();
@@ -251,7 +251,8 @@ public class ClientProxy implements StartStop {
 
         final Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
-        final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT);
+        final CustomRequestLog reqLog = new CustomRequestLog(writer,
+                CustomRequestLog.EXTENDED_NCSA_FORMAT + "\"%{X-Forwarded-For}i\"");
 
         RequestLogHandler logHandler = new RequestLogHandler();
         logHandler.setRequestLog(reqLog);
