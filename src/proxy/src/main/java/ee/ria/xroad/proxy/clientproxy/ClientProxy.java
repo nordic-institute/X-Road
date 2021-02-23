@@ -252,8 +252,8 @@ public class ClientProxy implements StartStop {
         final Slf4jRequestLogWriter writer = new Slf4jRequestLogWriter();
         writer.setLoggerName(getClass().getPackage().getName() + ".RequestLog");
 
-        final CustomRequestLog reqLog = new CustomRequestLog(writer, "%{X-Forwarded-For}i "
-                + CustomRequestLog.EXTENDED_NCSA_FORMAT);
+        final CustomRequestLog reqLog = new CustomRequestLog(writer, CustomRequestLog.EXTENDED_NCSA_FORMAT
+                + " \"%{X-Forwarded-For}i\"");
 
         RequestLogHandler logHandler = new RequestLogHandler();
         logHandler.setRequestLog(reqLog);
