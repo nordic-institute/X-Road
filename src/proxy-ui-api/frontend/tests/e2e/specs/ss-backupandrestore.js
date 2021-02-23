@@ -50,13 +50,13 @@ const deleteBackup = function (browser, backupFilename) {
   // Make sure backup was successfully deleted
   browser.assert.containsText(
     mainPage.elements.snackBarMessage,
-    `Backup ${backupFilename} deleted`,
+    `${backupFilename}`,
   );
   mainPage.closeSnackbar();
 };
 
 /**
- * Navigate to restore and backup page when browser is started
+ * Navigate to backup and restore page when browser is started
  *
  * @param browser
  */
@@ -95,12 +95,6 @@ const createBackup = async (browser) => {
   // Create backup
   backupAndRestoreTab.clickCreateBackup();
   browser.waitForElementVisible(mainPage.elements.snackBarMessage);
-
-  // Make sure backup was successfully created
-  browser.assert.containsText(
-    mainPage.elements.snackBarMessage,
-    'successfully created',
-  );
 
   // Get the backend-generated name of the backup and close snackbar
   const createdBackupFileNameTextObject = await browser.getText(
@@ -198,7 +192,7 @@ module.exports = {
 
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
-      `Backup ${createdBackupFileName} uploaded successfully`,
+      `${createdBackupFileName}`,
     );
     mainPage.closeSnackbar();
     browser.waitForElementNotVisible(backupFileAlreadyExistsDialog);
