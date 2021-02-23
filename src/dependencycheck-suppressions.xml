@@ -23,4 +23,12 @@
        <packageUrl regex="true">^pkg:maven/org\.springframework\.security/.*$</packageUrl>
        <cve>CVE-2018-1258</cve>
     </suppress>
+    <suppress>
+        <notes><![CDATA[
+         file name: bcprov-jdk15on-1.66.jar
+         ]]>
+        </notes>
+        <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcprov\-jdk15on@.*$</packageUrl>
+        <cve>CVE-2020-28052</cve>
+    </suppress>
 </suppressions>
