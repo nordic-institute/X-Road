@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width">
+  <div class="xrd-tab-max-width" data-test="service-description-details-dialog">
     <div>
       <subViewTitle
         v-if="serviceDesc.type === serviceType.WSDL"
@@ -45,6 +45,7 @@
       <div class="delete-wrap">
         <large-button
           v-if="showDelete"
+          data-test="service-description-details-delete-button"
           @click="showDeletePopup(serviceDesc.type)"
           outlined
           >{{ $t('action.delete') }}</large-button
@@ -120,11 +121,12 @@
 
       <v-card flat>
         <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{
+          <large-button @click="close()" data-test="service-description-details-cancel-button" outlined>{{
             $t('action.cancel')
           }}</large-button>
           <large-button
             class="save-button"
+            data-test="service-description-details-save-button"
             :loading="saveBusy"
             @click="save()"
             :disabled="!touched || invalid"
