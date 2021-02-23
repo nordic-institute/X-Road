@@ -3,6 +3,14 @@
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
       "madeAt": 1604562819624
+    },
+    "1603|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>react-dev-utils>immer": {
+      "decision": "ignore",
+      "madeAt": 1614058942584
+    },
+    "1603|@storybook/vue>@storybook/core>react-dev-utils>immer": {
+      "decision": "ignore",
+      "madeAt": 1614058942584
     }
   },
   "rules": {},

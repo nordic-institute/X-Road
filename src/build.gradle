@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'org.owasp.dependencycheck' version '6.0.3'
+    id 'org.owasp.dependencycheck' version '6.1.1'
     id 'jacoco'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
@@ -44,9 +44,11 @@ dependencyCheck {
         archiveEnabled = false
         jarEnabled = true
         centralEnabled = false
-        bundleAuditEnabled = true
+        bundleAuditEnabled = false
         nexusEnabled = false
         nuspecEnabled = false
+        opensslEnabled = false
+        msbuildEnabled = false
         assemblyEnabled = false
         pyDistributionEnabled = false
         pyPackageEnabled = false
@@ -54,7 +56,13 @@ dependencyCheck {
         cmakeEnabled = false
         autoconfEnabled = false
         composerEnabled = false
-        nodeEnabled = false
+        nodeEnabled = true
+        nodeAudit {
+            enabled = true
+        }
+        ossIndex {
+            enabled = false
+        }
     }
 }
 
@@ -142,7 +150,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     }
 
     checkstyle {
-        toolVersion = "8.29"
+        toolVersion = "8.40"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
@@ -170,10 +178,6 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     jar {
         from rootProject.file('LICENSE.txt')
     }
-
-    //compileJava {
-    //    options.compilerArgs << '-Xlint:deprecation'
-    //}
 
 }
 
