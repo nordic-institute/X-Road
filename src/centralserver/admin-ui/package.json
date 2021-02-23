@@ -3,11 +3,16 @@
   "version": "7.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "serve": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service serve",
+    "build": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service build",
+    "generate-types": "openapi --input ../admin-service/src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
-    "lint": "vue-cli-service lint"
+    "lint": "vue-cli-service lint",
+    "check-audit": "check-audit",
+    "resolve-audit": "resolve-audit",
+    "license-check": "license-check-and-add check -f license-check-and-add-config.json",
+    "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.1.0",
