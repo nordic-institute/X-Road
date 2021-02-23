@@ -135,6 +135,18 @@ fi
 # remove default-signature-algorithm
 crudini --del ${local_ini} common default-signature-algorithm 2>/dev/null || :
 
+# migrate keys to a new directory
+signer_folder=/etc/xroad/signer
+if [ ! -d ${signer_folder}/softtoken ]; then
+    mkdir -p -m 0750 ${signer_folder}/softtoken.tmp
+    test -f ${signer_folder}/.softtoken.p12 && cp ${signer_folder}/.softtoken.p12 ${signer_folder}/softtoken.tmp/.softtoken.p12
+    cp ${signer_folder}/*.p12 ${signer_folder}/softtoken.tmp/ || :
+    mv ${signer_folder}/softtoken.tmp ${signer_folder}/softtoken
+    chown -R xroad:xroad ${signer_folder}/softtoken
+    test -f ${signer_folder}/.softtoken.p12 && rm ${signer_folder}/.softtoken.p12
+    rm ${signer_folder}/*.p12 || :
+fi
+
 %systemd_post xroad-signer.service
 
 %preun
