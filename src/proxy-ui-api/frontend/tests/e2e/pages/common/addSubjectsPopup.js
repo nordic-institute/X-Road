@@ -77,7 +77,7 @@ const commands = {
 
 const addSubjectsPopup = {
   selector:
-    '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(text(),"Add Subjects")]]',
+    '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(@data-test,"access-rights-dialog-title")]]',
   locateStrategy: 'xpath',
   commands: [commands],
   elements: {

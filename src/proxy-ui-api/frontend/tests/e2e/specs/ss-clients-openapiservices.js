@@ -48,32 +48,32 @@ module.exports = {
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
-    // Vercify empty and malformed URL and service code error messages and Add button initial state
+    // Verify empty and malformed URL and service code error messages and Add button initial state
     clientServices.openAddREST();
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
     clientServices.enterServiceUrl('a');
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
+    );
     clientServices.enterServiceUrl('');
-    browser.assert.containsText(
-      clientServices.elements.serviceUrlMessage,
-      'The URL field is required',
+    // Verify there's an error message, something like 'The URL field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('foobar');
-    browser.assert.containsText(
-      clientServices.elements.serviceUrlMessage,
-      'URL is not valid',
-    );
+    clientServices.enterServiceUrl('http://example.com');
     clientServices.enterServiceCode('a');
     clientServices.enterServiceCode('');
-    browser.assert.containsText(
-      clientServices.elements.serviceCodeMessage,
-      'The Service Code field is required',
+    // Verify there's an error message, something like 'The Service Code field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.enterServiceCode('s3c1');
     clientServices.selectOpenApi();
     clientServices.cancelAddDialog();
 
-    // Verify that fields are empty after reopening
+    // Verify that the fields are empty after reopening
     clientServices.openAddREST();
     browser.assert.value(clientServices.elements.newServiceUrl, '');
     browser.assert.value(clientServices.elements.newServiceCode, '');
@@ -84,15 +84,17 @@ module.exports = {
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
 
-    // Verify opening nonexisting OpenApi URL
+    // Verify opening non-existing OpenApi URL
+    const urlToTest = 'https://www.niis.org/nosuchopenapi.yaml';
     clientServices.selectOpenApi();
-    clientServices.enterServiceUrl('https://www.niis.org/nosuchopenapi.yaml');
+    clientServices.enterServiceUrl(urlToTest);
     clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Parsing OpenApi3 description failed...'
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
-      'Parsing OpenApi3 description failed',
+      urlToTest,
     );
     mainPage.closeSnackbar();
 
@@ -105,13 +107,10 @@ module.exports = {
     clientServices.enterServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
-    browser.assert.containsText(
-      clientServices.elements.serviceCodeMessage,
-      'Identifier value contains illegal characters',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Identifier value contains illegal characters'
     clientServices.cancelAddDialog();
 
-    // Verify successfull URL open
+    // Verify successful URL open
     clientServices.openAddREST();
     clientServices.enterServiceUrl(
       browser.globals.testdata + '/' + browser.globals.openapi_url_1,
@@ -120,10 +119,7 @@ module.exports = {
     clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'OpenApi3 service added',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'OpenApi3 service added'
     mainPage.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -171,23 +167,17 @@ module.exports = {
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'The URL where requests targeted at the service are directed',
-      );
+      .to.be.visible(); // 'The URL where requests targeted at the service are directed'
 
     browser.moveToElement(operationDetails.elements.timeoutHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'The maximum duration of a request to the service, in seconds',
-      );
+      .to.be.visible(); // 'The maximum duration of a request to the service, in seconds'
 
     browser.moveToElement(operationDetails.elements.verifyCertHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'Verify TLS certificate when a secure connection is established',
-      );
+      .to.be.visible(); // 'Verify TLS certificate when a secure connection is established'
 
     // Verify cancel
     operationDetails.enterUrl('https://niis.org/nosuch.yaml');
@@ -226,10 +216,7 @@ module.exports = {
     );
     operationDetails.enterTimeout('40');
     operationDetails.saveParameters();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
 
@@ -329,10 +316,7 @@ module.exports = {
       .selectSubject('Security server owners')
       .selectSubject('Group1')
       .addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
 
     browser.waitForElementVisible(
@@ -394,10 +378,7 @@ module.exports = {
     operationDetails.removeAccessRight('TestOrg');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent(
@@ -426,10 +407,7 @@ module.exports = {
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
@@ -476,9 +454,9 @@ module.exports = {
     // Verify validation rules
     addEndpointPopup.selectRequestMethod('GET');
     addEndpointPopup.enterPath('');
-    browser.assert.containsText(
-      addEndpointPopup.elements.requestPathMessage,
-      'The path field is required',
+    // Verify there's an error message, something like 'The path field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
 
     // test cancel
@@ -503,10 +481,10 @@ module.exports = {
     addEndpointPopup.verifyMethodExists('GET');
     addEndpointPopup.verifyMethodExists('POST');
     addEndpointPopup.verifyMethodExists('PUT');
+    addEndpointPopup.verifyMethodExists('PATCH');
     addEndpointPopup.verifyMethodExists('DELETE');
     addEndpointPopup.verifyMethodExists('HEAD');
     addEndpointPopup.verifyMethodExists('OPTIONS');
-    addEndpointPopup.verifyMethodExists('PATCH');
     addEndpointPopup.verifyMethodExists('TRACE');
     browser.keys(browser.Keys.ESCAPE);
 
@@ -514,10 +492,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq2');
@@ -527,10 +502,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Endpoint already exists',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
     mainPage.closeSnackbar();
 
     // verify sorting of added
@@ -538,10 +510,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq1');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq1');
@@ -550,10 +519,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq3');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(3, 'POST', '/testreq3');
@@ -562,10 +528,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq1');
     addEndpointPopup.selectRequestMethod('DELETE');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'DELETE', '/testreq1');
@@ -574,10 +537,7 @@ module.exports = {
     addEndpointPopup.enterPath('/');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(2, 'POST', '/');
@@ -633,9 +593,9 @@ module.exports = {
 
     // Verify validation rules
     endpointPopup.enterPath('');
-    browser.assert.containsText(
-      endpointPopup.elements.requestPathMessage,
-      'The path field is required',
+    // Verify there's an error message, something like 'The path field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
 
     // test cancel
@@ -652,20 +612,14 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq2');
     endpointPopup.enterPath('/testreq3');
     endpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Endpoint already exists',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
     mainPage.closeSnackbar();
 
     // Verify edit
     endpointPopup.enterPath('/newreq1');
     endpointPopup.selectRequestMethod('PUT');
     endpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Changes to endpoint saved successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Changes to endpoint saved successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(5, 'PUT', '/newreq1');
@@ -674,7 +628,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete endpoint")]',
+      '//div[contains(@data-test, "dialog-simple")',
     );
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
@@ -684,13 +638,10 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete endpoint")]',
+      '//div[contains(@data-test, "dialog-simple")',
     );
     endpointPopup.confirmDelete();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Endpoint removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[.//thead[.//*[contains(text(),"HTTP Request Method")]]]//*[contains(text(),"/testreq3")]',
@@ -734,60 +685,57 @@ module.exports = {
 
     // Verify enabling
     clientServices.toggleEnabled();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description enabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
 
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(),"Disable?")]',
+      '//div[contains(@data-test, "dialog-simple")',
     );
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(),"Disable?")]',
+      '//div[contains(@data-test, "dialog-simple")',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
     clientServices.confirmDisable();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description disabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
     mainPage.closeSnackbar();
 
     // Verify editing, malformed URL and service code
     clientServices.openServiceDetails();
     browser.assert.containsText(
       openApiServiceDetails.elements.serviceType,
-      'OpenAPI 3 Description',
+      'OpenAPI 3',
     );
     openApiServiceDetails.enterServiceCode('/');
     browser.expect.element(openApiServiceDetails.elements.confirmDialogButton)
       .to.not.be.enabled;
-    browser.assert.containsText(
+
+    // Verify there's an error message, something like 'Identifier value contains illegal characters'
+    browser.waitForElementVisible(
       openApiServiceDetails.elements.codeMessage,
-      'Identifier value contains illegal characters',
     );
 
     openApiServiceDetails.enterServiceCode('');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'The fields.code_field field is required'
+    browser.waitForElementVisible(
       openApiServiceDetails.elements.codeMessage,
-      'The fields.code_field field is required',
     );
+
     openApiServiceDetails.enterServiceUrl('foobar');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
       openApiServiceDetails.elements.URLMessage,
-      'URL is not valid',
-    ); //!!! REST message
+    );
+
     openApiServiceDetails.enterServiceUrl('');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
       openApiServiceDetails.elements.URLMessage,
-      'The URL field is required',
     );
     openApiServiceDetails.cancelDialog();
 
@@ -806,10 +754,7 @@ module.exports = {
     clientServices.openServiceDetails();
     openApiServiceDetails.enterServiceUrl('https://www.niis.org/nosuch.yaml');
     openApiServiceDetails.confirmDialog();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Parsing OpenApi3 description failed',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Parsing OpenApi3 description failed'
     mainPage.closeSnackbar();
 
     // Verify cancel
@@ -849,10 +794,7 @@ module.exports = {
 
     openApiServiceDetails.confirmDialog();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Description saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Description saved'
     mainPage.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -922,10 +864,7 @@ module.exports = {
     openApiServiceDetails.deleteService();
     openApiServiceDetails.confirmDelete();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
 
     browser.waitForElementNotPresent(

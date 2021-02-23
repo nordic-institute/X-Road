@@ -784,7 +784,7 @@ module.exports = {
         },
         services: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(text(), "services")]]',
+            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and contains(@data-test, "services")]]',
           locateStrategy: 'xpath',
           commands: [clientServicesCommands],
           elements: {
@@ -892,7 +892,7 @@ module.exports = {
             },
             disableNotice: {
               selector:
-                '//div[contains(@class, "dlg-edit-row") and .//*[contains(@class, "dlg-row-title") and contains(text(), "Disable notice")]]//input',
+                '//div[contains(@class, "dlg-edit-row") and .//*[contains(@class, "dlg-row-title")]]//input',
               locateStrategy: 'xpath',
             },
             operationUrl: {
@@ -905,7 +905,7 @@ module.exports = {
     },
     certificatePopup: {
       selector:
-        '//div[contains(@class, "xrd-view-common") and .//span[contains(@class, "identifier-wrap")] and .//i[contains(@id, "close-x")]]',
+        '//div[contains(@data-test, "certificate-details-dialog")]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
@@ -1032,7 +1032,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         deleteServiceButton: {
-          selector: '//button[.//*[contains(text(), "Delete")]]',
+          selector: '//button[contains(@data-test, "service-description-details-delete-button")]',
           locateStrategy: 'xpath',
         },
         confirmDeleteButton: {
@@ -1053,11 +1053,11 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         confirmDialogButton: {
-          selector: '//button[.//*[contains(text(), "Save")]]',
+          selector: '//button[contains(@data-test, "service-description-details-save-button")]',
           locateStrategy: 'xpath',
         },
         cancelDialogButton: {
-          selector: '//button[.//*[contains(text(), "Cancel")]]',
+          selector: '//button[contains(@data-test, "service-description-details-cancel-button")]',
           locateStrategy: 'xpath',
         },
       },
@@ -1074,7 +1074,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         deleteServiceButton: {
-          selector: '//button[.//*[contains(text(), "Delete")]]',
+          selector: '//button[contains(@data-test, "service-description-details-delete-button")]',
           locateStrategy: 'xpath',
         },
         confirmDeleteButton: {
@@ -1109,18 +1109,18 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         confirmDialogButton: {
-          selector: '//button[.//*[contains(text(), "Save")]]',
+          selector: '//button[contains(@data-test, "service-description-details-save-button")]',
           locateStrategy: 'xpath',
         },
         cancelDialogButton: {
-          selector: '//button[.//*[contains(text(), "Cancel")]]',
+          selector: '//button[contains(@data-test, "service-description-details-cancel-button")]',
           locateStrategy: 'xpath',
         },
       },
     },
     openApiServiceDetails: {
       selector:
-        '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "identifier-wrap") and contains(text(),"OpenAPI 3 details")]]',
+        '//div[contains(@class, "xrd-tab-max-width") and //div[contains(@data-test, "service-description-details-dialog")]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1130,7 +1130,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         deleteServiceButton: {
-          selector: '//button[.//*[contains(text(), "Delete")]]',
+          selector: '//button[contains(@data-test, "service-description-details-delete-button")]',
           locateStrategy: 'xpath',
         },
         confirmDeleteButton: {
@@ -1166,11 +1166,11 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         confirmDialogButton: {
-          selector: '//button[.//*[contains(text(), "Save")]]',
+          selector: '//button[contains(@data-test, "service-description-details-save-button")]',
           locateStrategy: 'xpath',
         },
         cancelDialogButton: {
-          selector: '//button[.//*[contains(text(), "Cancel")]]',
+          selector: '//button[contains(@data-test, "service-description-details-cancel-button")]',
           locateStrategy: 'xpath',
         },
       },
@@ -1183,12 +1183,12 @@ module.exports = {
       elements: {
         parametersTab: {
           selector:
-            '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Service Parameters")]',
+            '//*[@data-test="parameters"]',
           locateStrategy: 'xpath',
         },
         endpointsTab: {
           selector:
-            '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Endpoints")]',
+            '//*[@data-test="endpoints"]',
           locateStrategy: 'xpath',
         },
         urlApplyToAllCheckbox: {
@@ -1268,18 +1268,18 @@ module.exports = {
     },
     restOperationDetails: {
       selector:
-        '//div[contains(@class, "base-full-width") and .//*[@data-test="service-tab" and contains(./descendant-or-self::*,"Endpoints")]]',
+        '//div[contains(@class, "base-full-width") and .//*[@data-test="parameters"]]',
       locateStrategy: 'xpath',
       commands: [wsdlOperationCommands],
       elements: {
         parametersTab: {
           selector:
-            '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Service Parameters")]',
+            '//*[@data-test="parameters"]',
           locateStrategy: 'xpath',
         },
         endpointsTab: {
           selector:
-            '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Endpoints")]',
+            '//*[@data-test="endpoints"]',
           locateStrategy: 'xpath',
         },
         serviceURL: {
@@ -1364,18 +1364,18 @@ module.exports = {
     },
     restServiceEndpoints: {
       selector:
-        '//div[contains(@class, "base-full-width") and .//*[@data-test="service-tab" and contains(./descendant-or-self::*,"Endpoints")]]',
+        '//div[contains(@class, "base-full-width") and .//*[@data-test="endpoints"]]',
       locateStrategy: 'xpath',
       commands: [restEndpointCommands],
       elements: {
         parametersTab: {
           selector:
-            '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Service Parameters")]',
+            '//*[@data-test="parameters"]',
           locateStrategy: 'xpath',
         },
         endpointsTab: {
           selector:
-            '//*[@data-test="service-tab" and contains(./descendant-or-self::*/text(), "Endpoints")]',
+            '//*[@data-test="endpoints"]',
           locateStrategy: 'xpath',
         },
         addButton: {
@@ -1401,7 +1401,7 @@ module.exports = {
     wsdlAddSubjectsPopup: addSubjectsPopup,
     addEndpointPopup: {
       selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Add Endpoint")]]',
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
       locateStrategy: 'xpath',
       commands: [addEndpointCommands],
       elements: {
@@ -1430,7 +1430,7 @@ module.exports = {
     },
     editEndpointPopup: {
       selector:
-        '//*[contains(@class, "xrd-tab-max-width") and .//*[contains(@class, "identifier-wrap") and contains(text(),"Endpoint details")]]',
+        '//div[contains(@class, "xrd-tab-max-width") and //div[contains(@data-test, "endpoint-details-dialog")]]',
       locateStrategy: 'xpath',
       commands: [addEndpointCommands],
       elements: {
@@ -1471,7 +1471,7 @@ module.exports = {
     },
     removeAccessRightPopup: {
       selector:
-        '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Remove access rights?")]]',
+        '//div[contains(@class, "xrd-card") and //div[contains(@data-test, "dialog-simple")] and .//*[@data-test="dialog-title"]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
@@ -1487,7 +1487,7 @@ module.exports = {
     },
     removeAllAccessRightsPopup: {
       selector:
-        '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Remove all access rights?")]]',
+        '//div[contains(@class, "xrd-card") and //div[contains(@data-test, "dialog-simple")] and .//*[@data-test="dialog-title"]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
@@ -1503,7 +1503,7 @@ module.exports = {
     },
     deleteCertPopup: {
       selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Delete certificate?")]]',
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and //*[@data-test="dialog-content-text"]]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
