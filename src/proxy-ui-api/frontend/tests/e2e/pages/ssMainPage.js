@@ -1348,7 +1348,7 @@ module.exports = {
     },
     sslCheckFailDialog: {
       selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Warning")]]',
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
       locateStrategy: 'xpath',
       commands: [sslCheckFailDialogCommands],
       elements: {
