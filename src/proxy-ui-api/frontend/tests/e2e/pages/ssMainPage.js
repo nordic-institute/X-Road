@@ -1177,7 +1177,7 @@ module.exports = {
     },
     wsdlOperationDetails: {
       selector:
-        '//div[contains(@class, "base-full-width") and .//div[contains(@class, "apply-to-all-text") and contains(text(),"Apply to all in WSDL")]]',
+        '//div[contains(@class, "base-full-width") and .//div[contains(@class, "apply-to-all-text")]]',
       locateStrategy: 'xpath',
       commands: [wsdlOperationCommands],
       elements: {

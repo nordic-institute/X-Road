@@ -49,13 +49,13 @@ const commands = [
     },
     verifyAccessRightVisible: function (service) {
       this.api.waitForElementVisible(
-        `//table[.//th[contains(text(), "Access Rights Given")]]//td[contains(text(),"${service}")]`,
+        `//table[contains(@data-test, "service-client-access-rights-table")]//td[contains(text(),"${service}")]`,
       );
       return this;
     },
     verifyAccessRightNotPresent: function (service) {
       this.api.waitForElementNotPresent(
-        `//table[.//th[contains(text(), "Access Rights Given")]]//td[contains(text(),"${service}")]`,
+        `//table[contains(@data-test, "service-client-access-rights-table")]//td[contains(text(),"${service}")]`,
       );
       return this;
     },
@@ -119,7 +119,7 @@ module.exports = {
   sections: {
     addServicesPopup: {
       selector:
-        '//div[contains(@class, "v-dialog--active") and .//span[@data-test="dialog-title" and contains(text(), "Add service")]]',
+        '//div[contains(@data-test, "dialog-simple")',
       locateStrategy: 'xpath',
       commands: [addServiceCommands],
       elements: {

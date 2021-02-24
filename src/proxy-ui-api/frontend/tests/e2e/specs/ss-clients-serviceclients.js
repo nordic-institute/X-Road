@@ -72,23 +72,19 @@ module.exports = {
     serviceClientsPage.openServiceClient('TestCom');
 
     // check displayed info
+    browser.waitForElementVisible(
+      '//table[contains(@data-test, "service-clients-table")]',
+    );
 
     browser.assert.containsText(
-      '//table[contains(@class, "service-client-margin")]//td[contains(@class, "identifier-wrap")]',
-      'TestCom',
+      '//table[contains(@data-test, "service-clients-table")]//td[contains(@class, "identifier-wrap")]', 'TestCom',
     );
     browser.waitForElementVisible(
-      '//table[contains(@class, "service-client-margin")]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',
+      '//table[contains(@data-test, "service-clients-table")]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',
     );
 
     browser.waitForElementVisible(
-      '//table[contains(@class, "service-client-margin")]//th[contains(text(), "Access Rights Given")]',
-    );
-    browser.waitForElementVisible(
-      '//table[contains(@class, "service-client-margin")]//th[contains(text(), "Service code")]',
-    );
-    browser.waitForElementVisible(
-      '//table[contains(@class, "service-client-margin")]//th[contains(text(), "Title")]',
+      '//table[contains(@data-test, "service-client-access-rights-table")]',
     );
 
     serviceClientDetails.verifyAccessRightVisible('testOp1');
@@ -160,10 +156,7 @@ module.exports = {
     addServicesPopup.selectService('testOpX');
     addServicesPopup.addSelected();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights successfully added',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
     mainPage.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightVisible('testOpX');
@@ -176,10 +169,7 @@ module.exports = {
     addServicesPopup.selectService('testOp2');
     addServicesPopup.addSelected();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights successfully added',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
     mainPage.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightVisible('testOp2');
@@ -230,10 +220,7 @@ module.exports = {
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access Rights successfully removed',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully removed'
     mainPage.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightNotPresent('testOp2');
@@ -255,10 +242,7 @@ module.exports = {
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access Rights successfully removed',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access Rights successfully removed'
     mainPage.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightNotPresent('testOp1');
@@ -326,10 +310,7 @@ module.exports = {
     addSubjectsPopup.startSearch();
     addSubjectsPopup.selectSubject('TestOrg');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
     operationDetails.close();
 
@@ -351,10 +332,7 @@ module.exports = {
     browser.waitForElementVisible(serviceDetails);
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
 
     browser.end();
@@ -413,10 +391,7 @@ module.exports = {
     addSubjectsPopup.startSearch();
     addSubjectsPopup.selectSubject('TestOrg');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
     restOperationDetails.close();
 
@@ -444,10 +419,7 @@ module.exports = {
     addEndpointPopup.enterPath('/test');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.close();
@@ -472,10 +444,7 @@ module.exports = {
     addEndpointAccessRightPopup.startSearch();
     addEndpointAccessRightPopup.selectSubject('TestOrg');
     addEndpointAccessRightPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
     endpointAccessRightsPage.close();
     browser.waitForElementVisible(restEndpoints);
@@ -494,10 +463,7 @@ module.exports = {
     restOperationDetails.removeAllAccessRights();
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.confirm();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
 
     // Verify service client doesn't exist when REST service has only endpoint level access rights
@@ -521,10 +487,7 @@ module.exports = {
     browser.waitForElementVisible(serviceDetails);
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
 
     browser.end();
@@ -577,10 +540,7 @@ module.exports = {
     addSubjectsPopup.selectSubject('Group1');
     addSubjectsPopup.selectSubject('Group3');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
     restOperationDetails.close();
 
@@ -622,10 +582,7 @@ module.exports = {
     browser.waitForElementVisible(serviceDetails);
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
 
     browser.end();
