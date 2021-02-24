@@ -1006,7 +1006,7 @@ module.exports = {
     },
     servicesWarningPopup: {
       selector:
-        '//div[contains(@class, "v-dialog") and .//*[contains(@class, "headline") and contains(text(),"Warning")]]',
+        '//div[contains(@class, "v-dialog") and .//*[contains(@class, "headline")]]',
       locateStrategy: 'xpath',
       commands: [servicesWarningPopupCommands],
       elements: {

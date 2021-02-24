@@ -51,15 +51,19 @@ module.exports = {
     // Verify empty and malformed URL error messages
     clientServices.openAddWSDL();
     clientServices.enterServiceUrl('a');
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
+    );
     clientServices.enterServiceUrl('');
-    browser.assert.containsText(
-      clientServices.elements.serviceUrlMessage,
-      'The URL field is required',
+    // Verify there's an error message, something like 'The URL field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.enterServiceUrl('foobar');
-    browser.assert.containsText(
-      clientServices.elements.serviceUrlMessage,
-      'URL is not valid',
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.cancelAddDialog();
 
@@ -70,13 +74,10 @@ module.exports = {
     // Verify opening nonexisting URL
     clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'WSDL download failed',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'WSDL download failed'
     mainPage.closeSnackbar();
 
-    // Verify successfull URL open
+    // Verify successful URL open
     clientServices.openAddWSDL();
     clientServices.enterServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
@@ -128,27 +129,21 @@ module.exports = {
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'The URL where requests targeted at the service are directed',
-      );
+      .to.be.visible(); // 'The URL where requests targeted at the service are directed'
     browser.moveToElement(operationDetails, 0, 0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.not.be
       .present;
     browser.moveToElement(operationDetails.elements.timeoutHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'The maximum duration of a request to the service, in seconds',
-      );
+      .to.be.visible(); // 'The maximum duration of a request to the service, in seconds'
     browser.moveToElement(operationDetails, 0, 0);
     browser.expect.element(operationDetails.elements.activeTooltip).to.not.be
       .present;
     browser.moveToElement(operationDetails.elements.verifyCertHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'Verify TLS certificate when a secure connection is established',
-      );
+      .to.be.visible(); // 'Verify TLS certificate when a secure connection is established'
 
     // Verify cancel
     operationDetails.toggleCertVerification();
@@ -189,10 +184,7 @@ module.exports = {
     browser.expect.element(operationDetails.elements.sslAuth).to.be.not
       .selected;
     operationDetails.saveParameters();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
 
@@ -249,10 +241,7 @@ module.exports = {
       .element(sslCheckFail.elements.continueButton)
       .to.be.visible.and.text.to.equal('CONTINUE');
     sslCheckFail.continue();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
 
@@ -342,10 +331,7 @@ module.exports = {
     addSubjectsPopup.selectSubject('Security server owners');
     addSubjectsPopup.selectSubject('Group1');
     addSubjectsPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
 
     browser.waitForElementVisible(
@@ -405,10 +391,7 @@ module.exports = {
     operationDetails.removeAccessRight('TestOrg');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent(
@@ -437,10 +420,7 @@ module.exports = {
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
@@ -479,7 +459,7 @@ module.exports = {
 
     clientServices.expandServiceDetails();
     clientServices.refreshServiceData();
-    browser.assert.containsText(mainPage.elements.snackBarMessage, 'Refreshed');
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Refreshed'
     mainPage.closeSnackbar();
 
     browser.getText(clientServices.elements.refreshTimestamp, function (
@@ -491,60 +471,48 @@ module.exports = {
 
     // Verify enabling
     clientServices.toggleEnabled();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description enabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
 
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(),"Disable?")]',
+      '//div[contains(@data-test, "dialog-simple") and .//span[contains(@data-test, "dialog-title")]]',
     );
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(),"Disable?")]',
+      '//div[contains(@data-test, "dialog-simple") and .//span[contains(@data-test, "dialog-title")]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
     clientServices.confirmDisable();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description disabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
     mainPage.closeSnackbar();
 
     clientServices.toggleEnabled();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description enabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
 
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
     serviceDetails.enterServiceUrl('');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'The URL field is required'
+    browser.waitForElementVisible(
       serviceDetails.elements.URLMessage,
-      'The URL field is required',
     );
     serviceDetails.enterServiceUrl('foobar');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
       serviceDetails.elements.URLMessage,
-      'URL is not valid',
     );
 
     // verify missing file
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'WSDL download failed',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'WSDL download failed'
     mainPage.closeSnackbar();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
@@ -572,7 +540,7 @@ module.exports = {
         ')',
     );
 
-    // Verify succesfull edit
+    // Verify succesful edit
     clientServices.openServiceDetails();
     serviceDetails.enterServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
@@ -592,10 +560,7 @@ module.exports = {
 
     servicesPopup.accept();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Description saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Description saved'
     mainPage.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -665,10 +630,7 @@ module.exports = {
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
 
     browser.waitForElementNotPresent(
