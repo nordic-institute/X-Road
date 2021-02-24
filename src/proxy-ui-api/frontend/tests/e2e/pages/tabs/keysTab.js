@@ -201,6 +201,7 @@ var addKeywizardCSRCommands = {
     return this;
   },
   selectUsageMethod: function (method) {
+    this.waitForElementVisible('//input[@data-test="csr-usage-select"]');
     this.click('@csrUsage');
 
     this.api.pause(1000);
