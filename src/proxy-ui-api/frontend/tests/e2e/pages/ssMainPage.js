@@ -497,7 +497,7 @@ var restEndpointCommands = {
     //this.api.waitForElementVisible('(//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr)['+row+']//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
     //TODO: Sorting is not currently functional, so check only that the row exists
     this.api.waitForElementVisible(
-      '//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr//td[contains(./descendant-or-self::*/text(),"' +
+      '//tbody/tr//td[contains(./descendant-or-self::*/text(),"' +
         method +
         '") and ..//td[contains(./descendant-or-self::*/text(),"' +
         path +
@@ -513,7 +513,7 @@ var restEndpointCommands = {
   },
   openEndpoint: function (method, path) {
     this.api.click(
-      '//table[.//*[contains(text(),"HTTP Request Method")]]//tr[.//*[contains(text(),"' +
+      '//tr[.//*[contains(text(),"' +
         method +
         '")] and .//*[contains(text(),"' +
         path +
@@ -710,8 +710,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             connectionTypeMenu: {
-              selector:
-                '//div[contains(@class, "v-input") and ./preceding-sibling::*[contains(text(), "Connection type")]]//div[contains(@class, "v-select__selection")]',
+              selector: '//div[contains(@class, "v-select__selection")]',
               locateStrategy: 'xpath',
             },
             tlsCertificate: {
@@ -745,12 +744,12 @@ module.exports = {
             },
             groupCode: {
               selector:
-                '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Code")]]//input',
+                '//input[contains(@data-test, "add-local-group-code-input")]',
               locateStrategy: 'xpath',
             },
             groupDescription: {
               selector:
-                '//div[contains(@class, "dlg-edit-row") and .//*[contains(text(), "Description")]]//input',
+                '//input[contains(@data-test, "add-local-group-description-input")]',
               locateStrategy: 'xpath',
             },
             groupCodeCellAbb: {
@@ -991,7 +990,7 @@ module.exports = {
         },
         localGroupDescriptionLabel: {
           selector:
-            '//div[contains(@class, "edit-row")]//div[contains(text(), "Edit description")]',
+            '//div[contains(@data-test, "local-group-edit-description-label")]',
           locateStrategy: 'xpath',
         },
         localGroupDescription: {
@@ -1022,7 +1021,7 @@ module.exports = {
     },
     serviceDetails: {
       selector:
-        '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "identifier-wrap") and contains(text(),"WSDL details")]]',
+        '//div[contains(@data-test, "service-description-details-dialog")]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1064,7 +1063,7 @@ module.exports = {
     },
     restServiceDetails: {
       selector:
-        '//div[contains(@class, "xrd-tab-max-width") and .//span[contains(@class, "identifier-wrap") and contains(text(),"REST details")]]',
+        '//div[contains(@data-test, "service-description-details-dialog")]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1094,8 +1093,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         serviceType: {
-          selector:
-            '//*[contains(@class, "edit-row") and .//*[contains(text(), "URL type")]]/*[contains(@class, "code-input")]',
+          selector: '//div[contains(@data-test, "service-description-details-url-type-value")]',
           locateStrategy: 'xpath',
         },
         URLMessage: {
@@ -1120,7 +1118,7 @@ module.exports = {
     },
     openApiServiceDetails: {
       selector:
-        '//div[contains(@class, "xrd-tab-max-width") and //div[contains(@data-test, "service-description-details-dialog")]]',
+        '//div[contains(@data-test, "service-description-details-dialog")]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1152,7 +1150,7 @@ module.exports = {
         },
         serviceType: {
           selector:
-            '//*[contains(@class, "edit-row") and .//*[contains(text(), "URL type")]]/*[contains(@class, "code-input")]',
+            '//div[contains(@data-test, "service-description-details-url-type-value")]',
           locateStrategy: 'xpath',
         },
         URLMessage: {
@@ -1238,17 +1236,17 @@ module.exports = {
         },
         urlHelp: {
           selector:
-            '//div[contains(@class, "edit-title") and contains(text(), "Service URL")]//i',
+            '//div[contains(@data-test, "service-parameters-service-url-label")]//i',
           locateStrategy: 'xpath',
         },
         timeoutHelp: {
           selector:
-            '//div[contains(@class, "edit-title") and contains(text(), "Timeout")]//i',
+            '//div[contains(@data-test, "service-parameters-timeout-label")]//i',
           locateStrategy: 'xpath',
         },
         verifyCertHelp: {
           selector:
-            '//div[contains(@class, "edit-title") and contains(text(), "Verify TLS certificate")]//i',
+            '//div[contains(@data-test, "service-parameters-verify-tls-label")]//i',
           locateStrategy: 'xpath',
         },
         activeTooltip: {
@@ -1318,17 +1316,17 @@ module.exports = {
         },
         urlHelp: {
           selector:
-            '//div[contains(@class, "edit-title") and contains(text(), "Service URL")]//i',
+            '//div[contains(@data-test, "service-parameters-service-url-label")]//i',
           locateStrategy: 'xpath',
         },
         timeoutHelp: {
           selector:
-            '//div[contains(@class, "edit-title") and contains(text(), "Timeout")]//i',
+            '//div[contains(@data-test, "service-parameters-timeout-label")]//i',
           locateStrategy: 'xpath',
         },
         verifyCertHelp: {
           selector:
-            '//div[contains(@class, "edit-title") and contains(text(), "Verify TLS certificate")]//i',
+            '//div[contains(@data-test, "service-parameters-verify-tls-label")]//i',
           locateStrategy: 'xpath',
         },
         activeTooltip: {
@@ -1519,7 +1517,7 @@ module.exports = {
     },
     deleteCSRPopup: {
       selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and contains(text(),"Delete CSR?")]]',
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
       locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {

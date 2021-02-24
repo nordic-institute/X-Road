@@ -61,7 +61,7 @@ module.exports = {
     },
     addSubjectWizardHeader: {
       selector:
-        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
+        '//div[contains(@data-test, "add-subject-title")]',
       locateStrategy: 'xpath',
     },
     searchField: {

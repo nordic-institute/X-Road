@@ -41,7 +41,7 @@ const commands = [
     },
     removeAccessRight: function (service) {
       this.api.click(
-        '//table[.//th[contains(text(), "Access Rights Given")]]//tr[.//td[contains(text(), "' +
+        '//tr[.//td[contains(text(), "' +
           service +
           '")]]//button[@data-test="access-right-remove"]',
       );
