@@ -40,7 +40,7 @@
 
     <div class="edit-row">
       <template v-if="canEditDescription">
-        <div>{{ $t('localGroup.editDesc') }}</div>
+        <div data-test="local-group-edit-description-label">{{ $t('localGroup.editDesc') }}</div>
         <v-text-field
           v-model="description"
           @change="saveDescription"

@@ -56,16 +56,17 @@
     <div class="edit-row">
       <div>{{ $t('services.serviceType') }}</div>
 
-      <div class="code-input" v-if="serviceDesc.type === serviceType.REST">
+      <div class="code-input" data-test="service-description-details-url-type-value" v-if="serviceDesc.type === serviceType.REST">
         {{ $t('services.restApiBasePath') }}
       </div>
       <div
         class="code-input"
+        data-test="service-description-details-url-type-value"
         v-else-if="serviceDesc.type === serviceType.OPENAPI3"
       >
         {{ $t('services.OpenApi3Description') }}
       </div>
-      <div class="code-input" v-else>{{ $t('services.wsdlDescription') }}</div>
+      <div class="code-input" data-test="service-description-details-url-type-value" v-else>{{ $t('services.wsdlDescription') }}</div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ invalid }">
