@@ -4625,13 +4625,15 @@ paths:
     put: # ok
       tags:
         - tokens
-      summary: update security server token pin code
+      summary: update security server software token pin code
       operationId: updateTokenPin
-      description: <h3>Administrator updates the token pin code.</h3>
+      description:
+        <h3>Administrator updates the software token pin code.</h3>
+        <p>This operation supports updating the pin code of a software token only.</p>
       parameters:
         - in: path
           name: id
-          description: id of the token
+          description: id of the software token
           required: true
           schema:
             type: string
@@ -4644,7 +4646,7 @@ paths:
               $ref: '#/components/schemas/TokenPinUpdate'
       responses:
         '204':
-          description: token pin updated
+          description: software token pin updated
         '400':
           description: request was invalid
         '401':
