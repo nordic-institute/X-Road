@@ -88,7 +88,7 @@ module.exports = {
     addKeyWizardGenerate.close();
 
     browser.waitForElementVisible(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "SIGN Key and Certificate")]]//span[text()="testsiglbl"]',
+      '//table[.//th[contains(@class, "title-col")]]//span[text()="testsiglbl"]',
     );
 
     // Verify that the csr file is found in the file system
@@ -164,7 +164,7 @@ module.exports = {
     addKeyWizardGenerate.close();
 
     browser.waitForElementVisible(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "AUTH Key and Certificate")]]//span[contains(text(), "testautlbl")]',
+      '//table[.//th[contains(@class, "title-col")]]//span[contains(text(), "testautlbl")]',
     );
 
     // Verify that the csr file is found in the file system
@@ -215,16 +215,16 @@ module.exports = {
     var initialKeys;
 
     browser.waitForElementNotPresent(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "SIGN Key and Certificate")]]//span[text()=""]',
+      '//table[.//th[contains(@class, "title-col")]]//span[text()=""]',
     );
 
     browser.waitForElementVisible(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
+      '//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")]',
     );
 
     browser.elements(
       'xpath',
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
+      '//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")]',
       function (result) {
         initialKeys = result.value.length;
       },
@@ -256,7 +256,7 @@ module.exports = {
     addKeyWizardGenerate.close();
     browser.perform(function () {
       browser.click(
-        '(//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")])[' +
+        '(//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")])[' +
           (initialKeys + 1) +
           ']',
       );
@@ -314,13 +314,13 @@ module.exports = {
     var initialKeys;
 
     browser.waitForElementNotPresent(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "AUTH Key and Certificate")]]//span[text()=""]',
+      '//table[.//th[contains(@class, "title-col"))]]//span[text()=""]',
     );
 
     // Get number of inital auth key are links
     browser.elements(
       'xpath',
-      '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//div[contains(@class, "clickable-link")]',
+      '//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")]',
       function (result) {
         initialKeys = result.value.length;
       },
@@ -336,7 +336,6 @@ module.exports = {
     addKeyWizardCSR.selectUsageMethod('AUTHENTICATION');
     addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('PEM');
-    //addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
 
     addKeyWizardCSR.next();
     browser.waitForElementVisible(addKeyWizardGenerate);
@@ -351,7 +350,7 @@ module.exports = {
 
     browser.perform(function () {
       browser.click(
-        '(//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//div[contains(@class, "clickable-link")])[' +
+        '(//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")])[' +
           (initialKeys + 1) +
           ']',
       );
@@ -533,10 +532,7 @@ module.exports = {
     browser.waitForElementVisible(deleteCSRPopup);
     deleteCSRPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'CSR deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'CSR deleted'
     mainPage.closeSnackbar();
 
     browser.perform(function () {
@@ -718,10 +714,7 @@ module.exports = {
     browser.waitForElementVisible(deleteCSRPopup);
     deleteCSRPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'CSR deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'CSR deleted'
     mainPage.closeSnackbar();
 
     browser.perform(function () {

@@ -66,7 +66,7 @@ var signAuthKeysTabCommands = {
   },
   generateAuthCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
+      '//table[./thead//th[@class="title-col"]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
         keyname +
         '")]]]//button[.//*[contains(text(), "Generate CSR")]]',
     );
@@ -94,7 +94,7 @@ var signAuthKeysTabCommands = {
   },
   generateSignCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
+      '//table[./thead//th[@class="title-col"]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
         keyname +
         '")]]]//button[.//*[contains(text(), "Generate CSR")]]',
     );
@@ -102,7 +102,7 @@ var signAuthKeysTabCommands = {
   },
   deleteSignCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//tbody[.//div[contains(@class, "clickable-link") and .//*[contains(text(), "' +
+      '//table[./thead//th[@class="title-col"]]//tbody[.//div[contains(@class, "clickable-link") and .//*[contains(text(), "' +
         keyname +
         '")]]]//tr[.//div[contains(@class, "name-wrap")]//div[text()="Request"]]//button[.//*[contains(text(), "Delete CSR")]]',
     );
@@ -524,7 +524,7 @@ const keysTab = {
     },
     addKeyWizardDetails: {
       selector:
-        '//div[contains(@class, "view-wrap") and .//*[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "Key details")]]]',
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardDetailCommands],
       elements: {
@@ -544,7 +544,7 @@ const keysTab = {
     },
     addKeyWizardCSR: {
       selector:
-        '//div[contains(@class, "view-wrap") and .//*[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "CSR details")]]]',
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardCSRCommands],
       elements: {
@@ -584,7 +584,7 @@ const keysTab = {
     },
     addKeyWizardGenerate: {
       selector:
-        '//div[contains(@class, "view-wrap") and .//*[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "Generate CSR")]]]',
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "3")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardGenerateCommands],
       elements: {
