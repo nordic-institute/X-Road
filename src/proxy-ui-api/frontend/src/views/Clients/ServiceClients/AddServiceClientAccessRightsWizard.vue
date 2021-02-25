@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
+  <div class="view-wrap" data-test="add-subject-view">
     <subViewTitle
       :title="$t('serviceClients.addServiceClientTitle')"
       :showClose="false"

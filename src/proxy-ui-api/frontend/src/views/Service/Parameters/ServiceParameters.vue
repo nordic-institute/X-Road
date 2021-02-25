@@ -31,7 +31,7 @@
 
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="edit-row">
-        <div class="edit-title">
+        <div class="edit-title" data-test="service-parameters-service-url-label">
           {{ $t('services.serviceUrl') }}
           <helpIcon :text="$t('services.urlTooltip')" />
         </div>
@@ -67,7 +67,7 @@
       </div>
 
       <div class="edit-row">
-        <div class="edit-title">
+        <div class="edit-title" data-test="service-parameters-timeout-label">
           {{ $t('services.timeoutSec') }}
           <helpIcon :text="$t('services.timeoutTooltip')" />
         </div>
@@ -104,7 +104,7 @@
       </div>
 
       <div class="edit-row">
-        <div class="edit-title">
+        <div class="edit-title" data-test="service-parameters-verify-tls-label">
           {{ $t('services.verifyTls') }}
           <helpIcon :text="$t('services.tlsTooltip')" />
         </div>
