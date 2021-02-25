@@ -155,7 +155,7 @@ const settingsTab = {
             },
             cancel: {
               selector:
-                '////button[@data-test, "dialog-cancel-button"]',
+                '//button[@data-test, "dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
           },
