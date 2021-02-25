@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.service;
 
 import ee.ria.xroad.common.PortNumbers;
-import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
