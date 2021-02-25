@@ -31,6 +31,68 @@
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
             <span class="headline">{{
+              $t('diagnostics.javaVersion.title')
+            }}</span>
+          </v-card-title>
+
+          <v-card-text class="xrd-card-text">
+            <table class="xrd-table">
+              <thead>
+                <tr>
+                  <th class="status-column">{{ $t('diagnostics.status') }}</th>
+                  <th>{{ $t('diagnostics.message') }}</th>
+                  <th>
+                    {{ $t('diagnostics.javaVersion.vendor') }}
+                  </th>
+                  <th>
+                    {{ $t('diagnostics.javaVersion.title') }}
+                  </th>
+                  <th>
+                    {{ $t('diagnostics.javaVersion.earliest') }}
+                  </th>
+                  <th>
+                    {{ $t('diagnostics.javaVersion.latest') }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <xrd-status-icon
+                      v-if="securityServerVersion.using_supported_java_version"
+                      status="ok"
+                    />
+                    <xrd-status-icon v-else status="error" />
+                  </td>
+                  <td
+                    v-if="securityServerVersion.using_supported_java_version"
+                    class="url-column"
+                    data-test="service-url"
+                  >
+                    {{ $t('diagnostics.javaVersion.ok') }}
+                  </td>
+                  <td v-else>
+                    {{ $t('diagnostics.javaVersion.notSupported') }}
+                  </td>
+                  <td>{{ securityServerVersion.java_vendor }}</td>
+                  <td>
+                    {{ securityServerVersion.java_version }}
+                  </td>
+                  <td>
+                    {{ securityServerVersion.min_java_version }}
+                  </td>
+                  <td>
+                    {{ securityServerVersion.max_java_version }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card">
+          <v-card-title>
+            <span class="headline">{{
               $t('diagnostics.globalCongiguration.title')
             }}</span>
           </v-card-title>
@@ -200,6 +262,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import {
   TimestampingServiceDiagnostics,
@@ -208,6 +271,9 @@ import {
 } from '@/openapi-types';
 
 export default Vue.extend({
+  computed: {
+    ...mapGetters(['securityServerVersion']),
+  },
   data: () => ({
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,
