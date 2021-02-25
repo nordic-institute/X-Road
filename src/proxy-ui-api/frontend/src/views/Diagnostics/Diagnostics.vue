@@ -57,7 +57,7 @@
               </thead>
               <tbody>
                 <tr>
-                  <td>
+                  <td data-test="java-icon">
                     <xrd-status-icon
                       v-if="securityServerVersion.using_supported_java_version"
                       status="ok"
@@ -66,22 +66,23 @@
                   </td>
                   <td
                     v-if="securityServerVersion.using_supported_java_version"
-                    class="url-column"
-                    data-test="service-url"
+                    data-test="java-message"
                   >
                     {{ $t('diagnostics.javaVersion.ok') }}
                   </td>
-                  <td v-else>
+                  <td v-else data-test="java-message">
                     {{ $t('diagnostics.javaVersion.notSupported') }}
                   </td>
-                  <td>{{ securityServerVersion.java_vendor }}</td>
-                  <td>
+                  <td data-test="java-vendor">
+                    {{ securityServerVersion.java_vendor }}
+                  </td>
+                  <td data-test="java-version">
                     {{ securityServerVersion.java_version }}
                   </td>
-                  <td>
+                  <td data-test="java-min">
                     {{ securityServerVersion.min_java_version }}
                   </td>
-                  <td>
+                  <td data-test="java-max">
                     {{ securityServerVersion.max_java_version }}
                   </td>
                 </tr>
