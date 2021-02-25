@@ -68,6 +68,7 @@ import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
@@ -126,6 +127,7 @@ import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SUBJECT_NAME_PARAM;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_FRIENDLY_NAME_PARAM;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.UPDATE_SOFTWARE_TOKEN_PIN;
 import static ee.ria.xroad.signer.console.Utils.base64ToFile;
 import static ee.ria.xroad.signer.console.Utils.bytesToFile;
 import static ee.ria.xroad.signer.console.Utils.createClientId;
@@ -571,6 +573,40 @@ public class SignerCLI {
             AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, null);
         } catch (Exception e) {
             AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, e.getMessage(), null);
+
+            throw e;
+        }
+    }
+
+    /**
+     * Update the pin of a software token.
+     *
+     * @param tokenId token id
+     * @throws Exception if an error occurs
+     */
+    @Command(description = "Update software token pin")
+    public void updateSoftwareTokenPin(@Param(name = "tokenId", description = "Token ID") String tokenId)
+            throws Exception {
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(TOKEN_ID_PARAM, tokenId);
+
+        try {
+            char[] oldPin = System.console().readPassword("PIN: ");
+            char[] newPin = System.console().readPassword("new PIN: ");
+            char[] newPin1 = System.console().readPassword("retype new PIN: ");
+
+            if (!Arrays.equals(newPin, newPin1)) {
+                throw new Exception("PINs do not match");
+            }
+
+            if (newPin.length < 1) {
+                throw new Exception("new PIN was empty");
+            }
+
+            SignerClient.execute(new UpdateSoftwareTokenPin(tokenId, oldPin, newPin));
+            AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, e.getMessage(), logData);
 
             throw e;
         }
