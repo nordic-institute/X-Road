@@ -186,4 +186,11 @@ public interface ServerConfProvider {
     default void logStatistics() {
         //NOP
     }
+
+    /**
+     * Clear configuration cache
+     */
+    default void clearCache() {
+        // by default there is no cache to clear
+    }
 }
