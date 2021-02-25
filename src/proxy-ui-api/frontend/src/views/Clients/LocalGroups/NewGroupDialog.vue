@@ -39,6 +39,7 @@
           single-line
           autofocus
           class="dlg-row-input"
+          data-test="add-local-group-code-input"
         ></v-text-field>
       </div>
 
@@ -49,6 +50,7 @@
           hint
           single-line
           class="dlg-row-input"
+          data-test="add-local-group-description-input"
         ></v-text-field>
       </div>
     </div>

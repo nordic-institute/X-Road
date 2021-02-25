@@ -29,9 +29,9 @@
       <subViewTitle :title="groupCode" @close="close" />
 
       <template>
-        <div class="cert-hash">
+        <div class="cert-hash" data-test="local-group-title">
           {{ $t('localGroup.localGroup') }}
-          <large-button v-if="showDelete" @click="deleteGroup()" outlined>
+          <large-button v-if="showDelete" @click="deleteGroup()" outlined data-test="delete-local-group-button">
             {{ $t('action.delete') }}
           </large-button>
         </div>
@@ -40,7 +40,7 @@
 
     <div class="edit-row">
       <template v-if="canEditDescription">
-        <div>{{ $t('localGroup.editDesc') }}</div>
+        <div data-test="local-group-edit-description-label">{{ $t('localGroup.editDesc') }}</div>
         <v-text-field
           v-model="description"
           @change="saveDescription"
@@ -62,6 +62,7 @@
           v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
+          data-test="remove-all-members-button"
           >{{ $t('action.removeAll') }}</large-button
         >
 
@@ -70,6 +71,7 @@
           v-if="canEditMembers"
           @click="addMembers()"
           outlined
+          data-test="add-members-button"
           >{{ $t('localGroup.addMembers') }}</large-button
         >
       </div>
@@ -108,7 +110,7 @@
       </table>
 
       <div class="close-button-wrap">
-        <large-button @click="close()">{{ $t('action.close') }}</large-button>
+        <large-button @click="close()" data-test="local-group-close-button">{{ $t('action.close') }}</large-button>
       </div>
     </v-card>
 

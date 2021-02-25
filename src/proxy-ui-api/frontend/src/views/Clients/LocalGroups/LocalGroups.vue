@@ -43,6 +43,7 @@
         outlined
         rounded
         class="ma-0 rounded-button elevation-0"
+        data-test="add-local-group-button"
         >{{ $t('localGroups.addGroup') }}</v-btn
       >
     </div>

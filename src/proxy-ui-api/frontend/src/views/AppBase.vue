@@ -47,6 +47,7 @@
             rounded
             dark
             class="mb-2 rounded-button elevation-0"
+            data-test="session-expired-ok-button"
             @click="logout()"
             >{{ $t('action.ok') }}</v-btn
           >
