@@ -139,7 +139,7 @@ module.exports = {
     backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
     browser.waitForElementVisible(deleteBackupConfirmationDialog);
     deleteBackupConfirmationDialog.cancel();
-    browser.expect.element(deleteBackupConfirmationDialog).to.not.be.visible;
+    browser.waitForElementNotVisible(deleteBackupConfirmationDialog);
 
     deleteBackup(browser, createdBackupFileName);
     browser.end();

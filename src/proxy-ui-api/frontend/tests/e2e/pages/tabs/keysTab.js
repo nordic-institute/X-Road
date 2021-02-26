@@ -282,18 +282,18 @@ var addKeywizardGenerateCommands = {
 const keysTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/keys`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and contains(@data-test, "keys")]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: keysTabCommands,
   elements: {
     signAndAuthKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="signAndAuthKeys"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@data-test, "signAndAuthKeys")]',
       locateStrategy: 'xpath',
     },
     APIKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test=apiKey]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@data-test, "apiKey")]',
       locateStrategy: 'xpath',
     },
     securityServerTLSKeyTab: {

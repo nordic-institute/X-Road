@@ -731,7 +731,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             addGroupButton: {
-              selector: '//button[.//*[contains(@data-test, "add-local-group-button")]]',
+              selector: '//button[contains(@data-test, "add-local-group-button")]',
               locateStrategy: 'xpath',
             },
             confirmAddButton: {

@@ -144,18 +144,18 @@ const settingsTab = {
       sections: {
         deleteBackupConfirmationDialog: {
           selector:
-            '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text"]]',
+            '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]',
           locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
             confirmation: {
               selector:
-                '//button[@data-test, "dialog-save-button"]',
+                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-save-button")]',
               locateStrategy: 'xpath',
             },
             cancel: {
               selector:
-                '//button[@data-test, "dialog-cancel-button"]',
+                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-cancel-button")]',
               locateStrategy: 'xpath',
             },
           },
