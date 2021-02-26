@@ -142,6 +142,7 @@ import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
 public class SignerCLI {
 
     private static final String APP_NAME = "xroad-signer-console";
+    private static final String PIN_PROMPT = "PIN: ";
     private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
     private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
     private static final int BENCHMARK_ITERATIONS = 10;
@@ -514,7 +515,7 @@ public class SignerCLI {
         try {
             char[] pin;
             if (System.console() != null) {
-                pin = System.console().readPassword("PIN: ");
+                pin = System.console().readPassword(PIN_PROMPT);
             } else {
                 pin = new Scanner(System.in).nextLine().toCharArray();
             }
@@ -558,7 +559,7 @@ public class SignerCLI {
      */
     @Command(description = "Initialize software token")
     public void initSoftwareToken() throws Exception {
-        char[] pin = System.console().readPassword("PIN: ");
+        char[] pin = System.console().readPassword(PIN_PROMPT);
         char[] pin2 = System.console().readPassword("retype PIN: ");
 
         if (!Arrays.equals(pin, pin2)) {
@@ -581,17 +582,16 @@ public class SignerCLI {
     /**
      * Update the pin of a software token.
      *
-     * @param tokenId token id
      * @throws Exception if an error occurs
      */
     @Command(description = "Update software token pin")
-    public void updateSoftwareTokenPin(@Param(name = "tokenId", description = "Token ID") String tokenId)
-            throws Exception {
+    public void updateSoftwareTokenPin() throws Exception {
+        String softwareTokenId = "0";
         Map<String, Object> logData = new LinkedHashMap<>();
-        logData.put(TOKEN_ID_PARAM, tokenId);
+        logData.put(TOKEN_ID_PARAM, softwareTokenId);
 
         try {
-            char[] oldPin = System.console().readPassword("PIN: ");
+            char[] oldPin = System.console().readPassword(PIN_PROMPT);
             char[] newPin = System.console().readPassword("new PIN: ");
             char[] newPin1 = System.console().readPassword("retype new PIN: ");
 
@@ -603,7 +603,7 @@ public class SignerCLI {
                 throw new Exception("new PIN was empty");
             }
 
-            SignerClient.execute(new UpdateSoftwareTokenPin(tokenId, oldPin, newPin));
+            SignerClient.execute(new UpdateSoftwareTokenPin(softwareTokenId, oldPin, newPin));
             AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, logData);
         } catch (Exception e) {
             AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, e.getMessage(), logData);
