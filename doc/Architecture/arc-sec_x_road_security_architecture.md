@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 0.3  
+Version: 0.4  
 29.06.2019
 
 Doc. ID: ARC-SEC
@@ -16,6 +16,7 @@ Doc. ID: ARC-SEC
  20.06.2019 | 0.1     | Initial version                                             | Niall O’Donoghue
  27.06.2019 | 0.2     | Converted to Github flavoured Markdown                      | Petteri Kivimäki
  29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-18 | Petteri Kivimäki
+ 28.02.2021 | 0.4     | Update X-Road security architecture diagram | Petteri Kivimäki
   
 ## Table of Contents
 
@@ -70,7 +71,7 @@ This document describes the X-Road security architecture and how it fulfills sec
 Figure 1 X-Road Security Architecture depicts the X-Road environment and its actors and the data exchanges between them. 
 
 <a id="_X_Road_security_architecture" class="anchor"></a>
-![](img/arc-sec_x-road_security_architecture_diagram.png)
+![](img/arc-sec_x-road_security_architecture_diagram.svg)
 
 Figure 1. X-Road security architecture.
 
