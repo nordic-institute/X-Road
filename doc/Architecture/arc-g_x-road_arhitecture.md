@@ -6,8 +6,8 @@
 
 **X-Road Architecture**
 
-Version: 1.9  
-16.04.2019
+Version: 1.10  
+28.02.2021
 <!-- 16 pages -->
 Doc. ID: ARC-G
 
@@ -33,6 +33,7 @@ Doc. ID: ARC-G
  02.03.2018 | 1.7     | Moved terms and abbreviations into the terms document, added terms reference and document links | Tatu Repo
  02.11.2018 | 1.8     | Described environmental monitoring daemon and its interfaces | Ilkka Seppälä
  16.04.2019 | 1.9     | Added REST support and X-Road Message Protocol for REST | Petteri Kivimäki
+ 28.02.2021 | 1.10     | Update Figure 1 and Figure 2 | Petteri Kivimäki
  
 ## Table of Contents
 
@@ -167,11 +168,11 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ## 2 System Components
 
-[Figure 1](#Logical_structure_of_X_Road) shows the main components and interfaces of the X-Road system. The components that are not part of the X-Road core are shown on grey background. The components and the interfaces are described in detail in the following sections.
+[Figure 1](#Logical_structure_of_X_Road) shows the main components and interfaces of the X-Road system. The components that are not part of the X-Road core are marked with grey color. The components and the interfaces are described in detail in the following sections.
 
 
 <a id="Logical_structure_of_X_Road" class="anchor"></a>
-![](img/arc-g_logical_structure_of_x_road.png)
+![](img/arc-g_logical_structure_of_x_road.svg)
 
 Figure 1. Logical structure of X-Road
 
@@ -389,6 +390,6 @@ The environmental monitoring query interface is used by the X-Road security serv
 The diagram also shows what components are installed and hosted by any given organization. The governing authority installs and maintains central server and central security server. The configuration proxy is an optional component that is typically used for distributing configuration to federated X-Road instances. The service client and service provider organizations host their information system and security server that connects the information system to the X-Road.
 
 <a id="Deployment_view_of_X_Road" class="anchor"></a>
-![](img/arc-g_deployment_view_of_x_road.png)
+![](img/arc-g_deployment_view_of_x_road.svg)
 
 Figure 2. Deployment view of X-Road
