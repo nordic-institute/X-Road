@@ -4630,6 +4630,15 @@ paths:
       description:
         <h3>Administrator updates the software token pin code.</h3>
         <p>This operation supports updating the pin code of a software token only.</p>
+        <p>
+          This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
+          If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
+          <ul>
+            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+            <li>x = the minimum length of the pin code</li>
+            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+          </ul>
+        </p>
       parameters:
         - in: path
           name: id
@@ -4649,6 +4658,17 @@ paths:
           description: software token pin updated
         '400':
           description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_weak_pin:
+                  $ref: '#/components/examples/ErrorWeakPinMetadataExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4938,7 +4958,7 @@ components:
             - "member_code_not_provided"
             - "pin_code_not_provided"
     ErrorWeakPinMetadataExample:
-      summary: Initialization error with metadata when the provided pin is too weak
+      summary: Initialization or pin change error with metadata when the provided pin is too weak
       value:
         status: 400
         error:
