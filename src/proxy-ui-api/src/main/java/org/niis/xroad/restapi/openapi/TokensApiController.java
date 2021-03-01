@@ -52,10 +52,12 @@ import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.DnFieldHelper;
+import org.niis.xroad.restapi.service.InvalidCharactersException;
 import org.niis.xroad.restapi.service.KeyAndCertificateRequestService;
 import org.niis.xroad.restapi.service.KeyService;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.service.TokenService;
+import org.niis.xroad.restapi.service.WeakPinException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -237,7 +239,7 @@ public class TokensApiController implements TokensApi {
             tokenService.updateSoftwareTokenPin(id, tokenPinUpdate.getOldPin(), tokenPinUpdate.getNewPin());
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (TokenService.PinIncorrectException | TokenService.PinPolicyException e) {
+        } catch (TokenService.PinIncorrectException | InvalidCharactersException | WeakPinException e) {
             throw new BadRequestException(e);
         } catch (ActionNotPossibleException e) {
             throw new ConflictException(e);
