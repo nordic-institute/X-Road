@@ -43,7 +43,7 @@ import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMeta
 public class TokenPinValidatorTest {
     private final TokenPinValidator tokenPinValidator = new TokenPinValidator();
 
-    private static final String SOFTWARE_TOKEN_PIN = "1234";
+    private static final String SOFTWARE_TOKEN_PIN = "ABCdef123456.";
     private static final String SOFTWARE_TOKEN_WEAK_PIN = "a";
     private static final String SOFTWARE_TOKEN_INVALID_PIN = "‘œ‘–ßçıı–ç˛®ç†é®ß";
 
