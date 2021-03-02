@@ -318,7 +318,7 @@ const routes: RouteConfig[] = [
       },
       {
         name: RouteName.Certificate,
-        path: '/certificate/:hash',
+        path: '/certificate/:hash/:usage',
         components: {
           default: CertificateDetails,
           alerts: AlertsContainer,
