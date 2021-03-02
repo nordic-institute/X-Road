@@ -134,7 +134,7 @@ export default Vue.extend({
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
-      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
+      return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
   },
   methods: {
