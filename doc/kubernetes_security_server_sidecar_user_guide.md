@@ -1015,7 +1015,7 @@ We are going to use the HPA to scale the secondary Pods described in the scenari
 ### 9.2 Requirements
 
 - A Kubernetes cluster with version 1.6 or later.
-- The scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployed in our clusters
+- The scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployed in our cluster.
 
 ### 9.3 Reference data
 
@@ -1040,12 +1040,12 @@ The Prometheus operator gets a metric from the pods via HTTP. The Prometheus ada
 We can easily install it with helm, Prometheus Operator is included as a module in the [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
 The kube-prometheus stack contains the following preconfigured modules:
-  - [Alert Manager](https://prometheus.io/docs/alerting/latest/alertmanager/).
-  - [Prometheus](https://prometheus.io/).
-  - [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
-  - [Prometheus Node Exporter](https://github.com/helm/charts/tree/master/stable/prometheus-node-exporter).
-  - [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
-  - [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
+  ·  [Alert Manager](https://prometheus.io/docs/alerting/latest/alertmanager/).
+  · [Prometheus](https://prometheus.io/).
+  · [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+  · [Prometheus Node Exporter](https://github.com/helm/charts/tree/master/stable/prometheus-node-exporter).
+  · [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
+  · [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
 
 - First, download the value files, that contains a set of configuration properties, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
 
