@@ -91,8 +91,9 @@
                   <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
                   <th class="time-column">
-                    {{ $t('diagnostics.nextUpdate') }}
+                    {{ $t('diagnostics.previousUpdate') }}
                   </th>
+                  <th class="time-column"></th>
                 </tr>
               </thead>
               <tbody>
@@ -119,6 +120,7 @@
                   <td class="time-column">
                     {{ timestampingService.prev_update_at | formatHoursMins }}
                   </td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
