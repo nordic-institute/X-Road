@@ -50,7 +50,15 @@
   * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
 * [7 Version update](#7-version-update)
 * [8 Message logs and disk space](#8-message-logs-and-disk-space)
-
+* [9 Horizontal Pod Autoescaler (HPA)](#9-horizontal-pod-autoescaler-hpa)
+  * [9.1 Prerequisites](#91-prerequisites)
+  * [9.2 Requirements](#92-requirements)
+  * [9.3 Reference data](#93-reference-data)
+  * [9.4 Installation](#94-installation)
+    * [9.4.1 Deploy Prometheus Operator](#941-deploy-prometheus-operator)
+    * [9.4.2 Deploy Prometheus Adapter](#942-deploy-prometheus-adapter)
+    * [9.4.3 Deploy HorizontalPodAutoescaler](#943-deploy-horizontalpodautoescaler)
+  * [9.5 Autoscale when Pods fails](#95-autoscale-when-pods-fails)
 ## 1 Introduction
 
 ### 1.1 Target Audience
@@ -1005,7 +1013,9 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
 
 The Horizontal Pod Autoscaler automatically scales the number of Pods in a replication controller, deployment, replica set based on observed CPU/Memory utilization or some other custom metrics.
 We are going to use the HPA to scale the secondary Pods described in the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The number of Pod replicas will go up when the load increase and down when the load decrease. The Horizontal Pod Autoscaler is implemented as a Kubernetes API resource and a controller. The controlled will adjust the number of replicas periodically (default value is 30 seconds).
+The algorithm for calculating the number of Pod replicas operates on the radio between desired metric value and current metric value:
 
+desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]
 ### 9.1 Prerequisites
 
 - [Helm](https://helm.sh/docs/intro/install/) installed.
@@ -1021,8 +1031,12 @@ We are going to use the HPA to scale the secondary Pods described in the scenari
 
 **Ref** | **Value**                                | **Explanation**
 ------- | ----------------------------------------- | ----------------------------------------------------------
-3.1    | &lt;namespace name&gt;                    | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.
-
+4.1    | &lt;hpa name&gt;                    | Unique name of the HorizontalPodAutescaler object.
+4.2    | &lt;hpa min replicas&gt;                    | Minumun of Pod replicas we can have in our deployment.
+4.3    | &lt;hpa max replicas&gt;                    | Maximun number of Pod replicas we can scale in our deployment.
+4.4    | &lt;hpa metric name&gt;                    | Name of the metric we want to monitor with the HorizontalPodAutoescaler, in our example will be "container_network_receive_packets_per_minute".
+4.5    | &lt;hpa deployment name&gt;                    | Name of the deployment we want to autoscale (In our scenario, the deployment will be the secondary pods deployment).
+4.6    | &lt;hpa target average value&gt;                    | Expected value of the metric expresed in "milli packets", the HPA will scale up if the current value is higher than the target average value and down if the current value lower than te target average value (Example value: 100000m).
 ### 9.4 Installation
 
 The [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) server give us the possibility to autoscale the Pods base on CPU/Memory utilization, although this could be enough in certain scenarios, in this guide we are going to show how Pods can be scaled with custom metrics, specifically we are going to autoscale Pods based on network load.
@@ -1035,17 +1049,17 @@ For autoscaling based on custom metrics, we are going to use the metrics collect
 
 The Prometheus operator gets a metric from the pods via HTTP. The Prometheus adaptor pulls metrics from Prometheus operator and makes them available to custom-metrics API. The HPA looks at the custom-metrics API and based on target value, it scales up/down the deployment.
 
-#### 9.4.1 Install Prometheus Operator
+#### 9.4.1 Deploy Prometheus Operator
 
 We can easily install it with helm, Prometheus Operator is included as a module in the [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
 
-The kube-prometheus stack contains the following preconfigured modules:
-  ·  [Alert Manager](https://prometheus.io/docs/alerting/latest/alertmanager/).
-  · [Prometheus](https://prometheus.io/).
-  · [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
-  · [Prometheus Node Exporter](https://github.com/helm/charts/tree/master/stable/prometheus-node-exporter).
-  · [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
-  · [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
+- The kube-prometheus stack contains the following preconfigured modules:
+  - [Alert Manager](https://prometheus.io/docs/alerting/latest/alertmanager/).
+  - [Prometheus](https://prometheus.io/).
+  - [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+  - [Prometheus Node Exporter](https://github.com/helm/charts/tree/master/stable/prometheus-node-exporter).
+  - [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
+  - [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
 
 - First, download the value files, that contains a set of configuration properties, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
 
@@ -1079,18 +1093,15 @@ helm install -f values.yaml  prometheus prometheus-community/kube-prometheus-sta
 - Verify if the Pods and Services are deployed and running (**reference data: 3.1**) :
 ``` bash
 kubectl get pods -n <namespace name>
-
 NAME                                                   READY   STATUS    RESTARTS   AGE
 prometheus-kube-prometheus-operator-5456c7b946-mbfhx   1/1     Running   0          4d5h
 prometheus-prometheus-kube-prometheus-prometheus-0     2/2     Running   0          4d5h
 ```
 ``` bash
 kubectl get svc -n <namespace name>
-
 NAME                                    TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
 prometheus-kube-prometheus-operator     ClusterIP   10.100.112.220   <none>        443/TCP    4d5h
 prometheus-kube-prometheus-prometheus   ClusterIP   10.100.81.220    <none>        9090/TCP   4d5h
-
 ```
 
 - Verify that Prometheus UI is accessible, we can expose the Prometheus 9090 port by running (**reference data: 3.1**):
@@ -1099,4 +1110,176 @@ kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 --names
 ```
 and then check if accessible through the browser in the URL http://localhost:9090.
 
-#### 9.4.2 Install Prometheus Adapter
+- It is possible uninstall the kube-prometheus-stack Helm chart by running (**reference data: 3.1**):
+``` bash
+helm uninstall prometheus -n <namespace name>
+```
+#### 9.4.2 Deploy Prometheus Adapter
+
+Prometheus metrics can not be directly accessed from the Kubernetes metrics API, to be accessed, we need to deploy in our cluster the Prometheus Adapter. This adapter will allow us to discover all Prometheus metrics from Kubernetes.
+- First download the value files, which contains a set of configuration properties, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-adapter/values.yaml.
+- Edit the `values.yaml` file, fill the `prometheus` properties `url` and `port` with the following values:
+``` yaml
+[...]
+# Url to access prometheus
+prometheus:
+ # Value is templated
+ url: http://prometheus-operated.monitoring.svc.cluster.local
+ port: 9090
+ path: ""
+[...]
+```
+The URL `prometheus-operated.monitoring.svc.cluster.local` is valid for AWS EKS clusters, for others scenarios the URL may be `prometheus-operated.monitoring.svc`
+
+- Next, to detect the network load, in this example, we are going to use the Prometheus metrics `container_network_receive_packets_total` (We can use any other metric provided by Prometheus, like `container_network_receive_bytes_total` ... ), this metrics will inform us about the total number of packages received in our deployment. In principle, this metric may not be very useful to us, because they return the total number of packets, and in our scenario, we will need to know the packets number in a certain time, for that reason, it is required to create a rule in the Prometheus Adapter configuration so that it returns this metrics based on the average of packets in a time interval.
+Edit the `values.yaml` file, creating a new custom rule:
+``` yaml
+[...]
+rules:
+  default: true
+  custom:
+  - seriesQuery: 'container_network_receive_packets_total{namespace="<namespace name>"}'
+    resources:
+      overrides:
+        namespace:
+          resource: namespace
+        pod:
+          resource: pod
+        node:
+          resource: node
+    name:
+      matches: "^(.*)_total"
+      as: "${1}_per_minute"
+    metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)'
+  # Mounts a configMap with pre-generated rules for use. Overrides the
+  # default, custom, external and resource entries
+  existing:
+  external: []
+[...]
+```
+  - The `seriesQuery` property defines the metric and the namespace in wich this metric apply (the namespace of our deployment). We can set `{namespace!=""}` if we want to make the metric available to all namespaces.
+  - The `resource` property defines wich type of Kubernetes resources could use this metric.
+  - The `name` property changes the metric name from `container_network_receive_packets_total` to `container_network_receive_packets_per_minute`.
+  - The `metricsQuery` property sum the average value of the metric in a time interval, in our example it's 1 minute, but it could be any custom time interval.
+
+More information about rules can be found [here.](https://github.com/kubernetes-sigs/prometheus-adapter/blob/master/docs/config-walkthrough.md).
+After
+
+- Once the `values.yaml` file is configured, we can install the Prometheus Adapter by running (**reference data: 3.1**):
+``` bash
+helm install -f values.yaml  prometheus-adapter prometheus-community/prometheus-adapter --namespace <namespace name>
+```
+
+- After a couple of minutes, we can list the metrics and verify that the metric `container_network_receive_packets_per_minute` we have just created is available for the pods resource by running:
+``` bash
+kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1 | jq
+```
+
+- To modify the adapter rules once is deployed we can:
+  - Edit `values.yaml` file and upgrade helm (**reference data: 3.1**):
+``` bash
+helm upgrade --install -f values.yaml  prometheus-adapter prometheus-community/prometheus --namespace <namespace name>
+```
+  - Search for the Prometheus adapter ConfigMap and edit it (**reference data: 3.1**):
+``` bash
+kubectl get cm -n <namespace name>
+NAME                                                           DATA   AGE
+prometheus-adapter                                             1      4d5h
+prometheus-prometheus-kube-prometheus-prometheus-rulefiles-0   26     4d5h
+```
+``` bash
+kubectl edit cm -n <namespace name> prometheus-adapter
+```
+- It is possible uninstall the prometheus-adapter Helm chart by running (**reference data: 3.1**):
+``` bash
+helm uninstall prometheus-adapter -n <namespace name>
+```
+
+#### 9.4.3 Deploy HorizontalPodAutoescaler
+
+- Create the following manifets file (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**) (The namespace should be the same than the deployment namespace):
+``` yaml
+kind: HorizontalPodAutoscaler
+apiVersion: autoscaling/v2beta1
+metadata:
+  name: <hpa name>
+  namespace: <namespace name>
+spec:
+  scaleTargetRef:
+    # point the HPA at the sample application
+    # you created above
+    apiVersion: apps/v1
+    kind: Deployment
+    name: <hpa deployment name>
+  # autoscale between 1 and 10 replicas
+  minReplicas: <hpa min replicas>
+  maxReplicas: <hpa max replicas
+  metrics:
+  - type: Pods
+    pods:
+      metricName: <hpa metric name>
+      # target 500 milli-requests per second,
+      # which is 1 request every two seconds
+      targetAverageValue: <target average value>
+```
+
+- Apply the HPA:
+```
+kubectl apply -f /path/to/hpa.yaml
+```
+ - If we inspect the HPA we should see something similar to this (**reference data 3.1, 4.1**):
+```
+kubectl describe hpa -n <namespace name> <hpa name>
+
+ Name:                                                  secondary-sidecar-balancer-pod
+Namespace:                                             test
+Labels:                                                <none>
+Annotations:                                           <none>
+CreationTimestamp:                                     Mon, 01 Mar 2021 17:23:45 +0100
+Reference:                                             Deployment/secondary-sidecar-balancer-pod
+Metrics:                                               ( current / target )
+  resource cpu on pods  (as a percentage of request):  17% (34m) / 30%
+Min replicas:                                          1
+Max replicas:                                          5
+Deployment pods:                                       2 current / 2 desired
+Conditions:
+  Type            Status  Reason              Message
+  ----            ------  ------              -------
+  AbleToScale     True    ReadyForNewScale    recommended size matches current size
+  ScalingActive   True    ValidMetricFound    the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)
+  ScalingLimited  False   DesiredWithinRange  the desired count is within the acceptable range
+Events:
+  Type    Reason             Age                From                       Message
+  ----    ------             ----               ----                       -------
+  Normal  SuccessfulRescale  38s (x4 over 23h)  horizontal-pod-autoscaler  New size: 1; reason: All metrics below target
+
+
+Name:                                                      sidecar-secondary-hpa
+Namespace:                                                 test
+Labels:                                                    <none>
+Annotations:                                               kubectl.kubernetes.io/last-applied-configuration:
+                                                             {"apiVersion":"autoscaling/v2beta1","kind":"HorizontalPodAutoscaler","metadata":{"annotations":{},"name":"sidecar-secondary-hpa","namespac...
+CreationTimestamp:                                         Tue, 02 Mar 2021 18:03:45 +0100
+Reference:                                                 Deployment/secondary-sidecar-balancer-pod
+Metrics:                                                   ( current / target )
+  "container_network_receive_packets_per_minute" on pods:  5093m / 100
+Min replicas:                                              1
+Max replicas:                                              5
+Deployment pods:                                           2 current / 2 desired
+Conditions:
+  Type            Status  Reason              Message
+  ----            ------  ------              -------
+  AbleToScale     True    ReadyForNewScale    recommended size matches current size
+  ScalingActive   True    ValidMetricFound    the HPA was able to successfully calculate a replica count from pods metric container_network_receive_packets_per_minute
+  ScalingLimited  False   DesiredWithinRange  the desired count is within the acceptable range
+Events:           <none>
+
+```
+
+In the Metrics properties we can check the current value of the metric expressed in "milli". In our example, it means that the pods have recived 5093 milli packets in the last minute, and the target value is 100 (100000 milli packets) so the Pods will not scale up.
+
+Now we can test to send request to our X-Road Security Server Sidecar cluster setup to see if the Pods are able to autoscale when the load increased.
+
+
+### 9.5 Autoscale when Pods fails
+The HPA doesn't allow us to scale the Pods when one of them fails. But if we neet to always have a minumin number of Pods in our deployment and create a new one if one of them fails, we can combine the HPA with a [Liveness probe](#4552-liveness-probes). Doing that we can set a minumin number of Pods in our HPA (**reference data: 4.2**) and configure a [Liveness probe](#4552-liveness-probes), that will attempt to create a new Pod if the healthcheck fails and the Pod is not able to receive messages.
