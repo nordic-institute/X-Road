@@ -32,7 +32,7 @@
     <v-text-field
       v-if="!closed"
       :label="label"
-      data-test="search-clients-input"
+      data-test="search-input"
       single-line
       hide-details
       class="search-input"
