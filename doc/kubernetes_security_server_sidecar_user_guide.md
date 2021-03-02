@@ -1026,8 +1026,77 @@ We are going to use the HPA to scale the secondary Pods described in the scenari
 ### 9.4 Installation
 
 The [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) server give us the possibility to autoscale the Pods base on CPU/Memory utilization, although this could be enough in certain scenarios, in this guide we are going to show how Pods can be scaled with custom metrics, specifically we are going to autoscale Pods based on network load.
-For autoscaling based on custom metrics, we are going to use the metrics collected by Prometheus, even though these metrics cannot be accessed directly from the Kubernetes metrics API, for this, we also need to install an Prometheus adapter to fetch the metrics in our deployment.
+
+For autoscaling based on custom metrics, we are going to use the metrics collected by Prometheus, even though these metrics cannot be accessed directly from the Kubernetes metrics API, for this, we also need to install an Prometheus Adapter to fetch the metrics in our deployment.
 
 <p align="center">
   <img src="img/hpa_graphic.jpeg" />
 </p>
+
+The Prometheus operator gets a metric from the pods via HTTP. The Prometheus adaptor pulls metrics from Prometheus operator and makes them available to custom-metrics API. The HPA looks at the custom-metrics API and based on target value, it scales up/down the deployment.
+
+#### 9.4.1 Install Prometheus Operator
+
+We can easily install it with helm, Prometheus Operator is included as a module in the [Kube-Prometheus-Stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack).
+
+The kube-prometheus stack contains the following preconfigured modules:
+  - [Alert Manager](https://prometheus.io/docs/alerting/latest/alertmanager/).
+  - [Prometheus](https://prometheus.io/).
+  - [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+  - [Prometheus Node Exporter](https://github.com/helm/charts/tree/master/stable/prometheus-node-exporter).
+  - [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
+  - [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
+
+- First, download the value files, that contains a set of configuration properties, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml
+
+- For autoscaling the Pods we are only going to need the Promethes and Prometheus operator modules, we can leave the remaining modules if we want any of the extra features if not, we can disable these modules by modifying the `values.yaml` file previously downloaded and search for the tags: "kubeStateMetrics", "prometheusOperator", "alertmanager",  "nodeExporter" changing the property `enabled` to false:
+
+``` yaml
+[...]
+## Configuration for alertmanager
+## ref: https://prometheus.io/docs/alerting/alertmanager/
+##
+alertmanager:
+
+  ## Deploy alertmanager
+  ##
+  enabled: false
+
+  ## Api that prometheus will use to communicate with alertmanager. Possible values are v1, v2
+  ##
+  apiVersion: v2
+
+[...]
+```
+
+- After editing the `values.yaml` file we can install the "kube-prometheus-stack" by running (**reference data: 3.1**) (It's recommended deploy the monitoring related objects in a new namespace):
+``` bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm install -f values.yaml  prometheus prometheus-community/kube-prometheus-stack --namespace <namespace name>
+```
+
+- Verify if the Pods and Services are deployed and running (**reference data: 3.1**) :
+``` bash
+kubectl get pods -n <namespace name>
+
+NAME                                                   READY   STATUS    RESTARTS   AGE
+prometheus-kube-prometheus-operator-5456c7b946-mbfhx   1/1     Running   0          4d5h
+prometheus-prometheus-kube-prometheus-prometheus-0     2/2     Running   0          4d5h
+```
+``` bash
+kubectl get svc -n <namespace name>
+
+NAME                                    TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+prometheus-kube-prometheus-operator     ClusterIP   10.100.112.220   <none>        443/TCP    4d5h
+prometheus-kube-prometheus-prometheus   ClusterIP   10.100.81.220    <none>        9090/TCP   4d5h
+
+```
+
+- Verify that Prometheus UI is accessible, we can expose the Prometheus 9090 port by running (**reference data: 3.1**):
+```
+kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 --namespace <namespace name>
+```
+and then check if accessible through the browser in the URL http://localhost:9090.
+
+#### 9.4.2 Install Prometheus Adapter
