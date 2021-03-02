@@ -1000,3 +1000,34 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
     ```bash
     aws s3 sync <volume mount path> s3://<bucket name>/path/to/bucket-folder --sse aws:kms --sse-kms-key-id <arn encryption key>
     ```
+
+## 9 Horizontal Pod Autoescaler (HPA)
+
+The Horizontal Pod Autoscaler automatically scales the number of Pods in a replication controller, deployment, replica set based on observed CPU/Memory utilization or some other custom metrics.
+We are going to use the HPA to scale the secondary Pods described in the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The number of Pod replicas will go up when the load increase and down when the load decrease. The Horizontal Pod Autoscaler is implemented as a Kubernetes API resource and a controller. The controlled will adjust the number of replicas periodically (default value is 30 seconds).
+
+### 9.1 Prerequisites
+
+- [Helm](https://helm.sh/docs/intro/install/) installed.
+- [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) deployed on our cluster.
+- The [API aggregation layer](https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/) is enabled. (If you are using an AWS EKS cluster this doesn't require any action).
+
+### 9.2 Requirements
+
+- A Kubernetes cluster with version 1.6 or later.
+- The scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployed in our clusters
+
+### 9.3 Reference data
+
+**Ref** | **Value**                                | **Explanation**
+------- | ----------------------------------------- | ----------------------------------------------------------
+3.1    | &lt;namespace name&gt;                    | Name of the Kubernetes namespace for provisioning the set of Kubernetes objects inside the cluster.
+
+### 9.4 Installation
+
+The [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) server give us the possibility to autoscale the Pods base on CPU/Memory utilization, although this could be enough in certain scenarios, in this guide we are going to show how Pods can be scaled with custom metrics, specifically we are going to autoscale Pods based on network load.
+For autoscaling based on custom metrics, we are going to use the metrics collected by Prometheus, even though these metrics cannot be accessed directly from the Kubernetes metrics API, for this, we also need to install an Prometheus adapter to fetch the metrics in our deployment.
+
+<p align="center">
+  <img src="img/hpa_graphic.jpeg" />
+</p>
