@@ -34,7 +34,11 @@
       </template>
 
       <v-list>
-        <v-list-item id="logout-list-tile" @click="logout">
+        <v-list-item
+          id="logout-list-tile"
+          data-test="logout-list-tile"
+          @click="logout"
+        >
           <v-list-item-title id="logout-title">{{
             $t('login.logOut')
           }}</v-list-item-title>
