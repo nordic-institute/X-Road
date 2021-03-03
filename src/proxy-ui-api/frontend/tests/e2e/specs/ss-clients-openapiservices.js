@@ -633,7 +633,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[contains(@data-test, "dialog-simple")]',
     );
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
@@ -643,7 +643,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[contains(@data-test, "dialog-simple")]',
     );
     endpointPopup.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
@@ -696,13 +696,13 @@ module.exports = {
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[contains(@data-test, "dialog-simple")]',
     );
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[contains(@data-test, "dialog-simple")]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
