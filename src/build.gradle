@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
@@ -11,19 +11,15 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'org.owasp.dependencycheck' version '6.0.3'
+    id 'org.owasp.dependencycheck' version '6.1.1'
     id 'jacoco'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.10.RELEASE" apply false
-    id 'org.springframework.boot' version '2.3.6.RELEASE' apply false
+    id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
+    id 'org.springframework.boot' version '2.3.8.RELEASE' apply false
 }
 
 repositories {
-    jcenter()
-}
-
-def getRubySourceCheckCommand(def projectPath) {
-    return ["$rootDir/check_ruby_source.sh", "$projectPath"]
+    mavenCentral()
 }
 
 sonarqube {
@@ -48,9 +44,11 @@ dependencyCheck {
         archiveEnabled = false
         jarEnabled = true
         centralEnabled = false
-        bundleAuditEnabled = true
+        bundleAuditEnabled = false
         nexusEnabled = false
         nuspecEnabled = false
+        opensslEnabled = false
+        msbuildEnabled = false
         assemblyEnabled = false
         pyDistributionEnabled = false
         pyPackageEnabled = false
@@ -59,11 +57,20 @@ dependencyCheck {
         autoconfEnabled = false
         composerEnabled = false
         nodeEnabled = false
+        nodeAudit {
+            enabled = false
+        }
+        ossIndex {
+            enabled = false
+        }
     }
 }
 
 
 allprojects {
+    group = 'org.niis.xroad'
+    version = '1.0'
+
     jacoco {
         toolVersion = "0.8.6"
     }
@@ -81,15 +88,19 @@ allprojects {
     }
 }
 
-subprojects {
+configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
-    group = 'ee.ria.xroad'
-    version = '1.0'
+
+    sourceCompatibility = 1.8
+
+    tasks.withType(JavaCompile) {
+      options.encoding = 'UTF-8'
+    }
 
     repositories {
         mavenCentral()
@@ -126,19 +137,13 @@ subprojects {
         from sourceSets.test.output
     }
 
-    tasks.withType(JavaCompile) {
-        options.encoding = "UTF-8"
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
-    }
-
     tasks.withType(JavaExec) {
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
-    task buildall(dependsOn: [build, ':center-ui:warble', ':center-service:warble']) {
+    task buildall(dependsOn: [build]) {
         description = "Builds all that can be built (even the slow tasks)"
     }
 
@@ -149,7 +154,7 @@ subprojects {
     }
 
     checkstyle {
-        toolVersion = "8.29"
+        toolVersion = "8.40"
         configDirectory = file("${project.rootDir}/config/checkstyle")
         configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
         ignoreFailures = false
@@ -171,53 +176,12 @@ subprojects {
     license {
         header rootProject.file('LICENSE.txt')
         include '**/*.java'
-        include '**/*.rb'
         skipExistingHeaders = true
     }
 
     jar {
         from rootProject.file('LICENSE.txt')
     }
-
-    //compileJava {
-    //    options.compilerArgs << '-Xlint:deprecation'
-    //}
-
-}
-
-configure(subprojects.findAll { it.name.contains('center-') or it.name.contains('common-ui') }) {
-
-    apply plugin: 'com.github.hierynomus.license'
-
-    def sources = (fileTree('app') + fileTree('etc') + fileTree('config') + fileTree('test'))
-
-    task licenseFormatUi(type: nl.javadude.gradle.plugins.license.License) {
-        source = sources
-    }
-
-    task licenseFormatUiCheck(type: nl.javadude.gradle.plugins.license.License) {
-        source = sources
-        check = true;
-    }
-
-    licenseFormat.dependsOn licenseFormatUi
-    licenseTest.dependsOn licenseFormatUiCheck
-}
-
-configure(subprojects.findAll({ it.name.contains('center-common') or it.name.contains('common-ui') })) {
-    def licenseSourceAdds = fileTree('lib')
-
-    task licenseFormatLib(type: nl.javadude.gradle.plugins.license.License) {
-        source += licenseSourceAdds
-    }
-
-    task licenseFormatLibCheck(type: nl.javadude.gradle.plugins.license.License) {
-        source += licenseSourceAdds
-        check = true
-    }
-
-    licenseFormat.dependsOn licenseFormatLib
-    licenseTest.dependsOn licenseFormatLibCheck
 
 }
 

@@ -127,12 +127,6 @@ Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${
 Description: X-Road AddOn: operations monitoring service
  AddOn for operations monitoring.
 
-Package: xroad-center-clusterhelper
-Architecture: all
-Depends: ${misc:Depends}, openssh-client, openssl, crudini, python3-requests
-Description: X-Road central cluster scripts
- Scripts for maintaining X-Road cluster
-
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all

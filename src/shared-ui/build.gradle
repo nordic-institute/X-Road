@@ -1,0 +1,87 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+}
+
+configurations {
+    npm { canBeConsumed(true); canBeResolved(false) }
+}
+
+dependencies {
+    npm project(":shared-ui")
+}
+
+node {
+    download = true
+    version = nodeVersion
+    npmInstallCommand = "ci"
+}
+
+task npmBuild(type: NpmTask, dependsOn: ["checkFrontAudit"]) {
+    inputs.files(fileTree(".") {
+        exclude(
+            ".gradle",
+            "build.gradle",
+            "build/",
+            "dist/",
+            "node_modules/.cache/",
+            "*.tgz"
+        )
+    })
+    outputs.dir("dist")
+    args = ['run', '--quiet', 'build-lib']
+}
+
+task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
+    inputs.files(fileTree(".") {
+        exclude(
+            ".gradle",
+            "build.gradle",
+            "build/",
+            "node_modules/",
+            "*.tgz"
+        )
+    })
+    outputs.file("niis-shared-ui-0.1.0.tgz")
+    args = ['pack', '--quiet']
+}
+
+task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files("package.json", "package-lock.json")
+    outputs.dir("dist")
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
+    }
+}
+
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files("src/", "test/", "public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check']
+}
+
+clean {
+    delete file('node_modules')
+    delete file('dist')
+}
+
+assemble.dependsOn npmBuild
+
+artifacts {
+    npm(file("niis-shared-ui-0.1.0.tgz")) {
+        builtBy(npmPack)
+    }
+}

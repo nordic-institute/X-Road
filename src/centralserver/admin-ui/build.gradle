@@ -1,0 +1,92 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+plugins {
+    id 'base'
+    id 'com.github.node-gradle.node' version "$nodePluginVersion"
+}
+
+configurations {
+    npm
+    dist
+}
+
+dependencies {
+    npm project(path: ":shared-ui", configuration: "npm")
+}
+
+node {
+    download = true
+    version = nodeVersion
+    npmInstallCommand = "ci"
+}
+
+task npmInstallDeps(type: NpmTask) {
+  inputs.files(configurations.npm)
+  args = ['install', '--quiet'] + inputs.files.collect { it.toString() }
+  outputs.files("package.json", "package-lock.json")
+}
+
+npmInstall {
+    dependsOn += 'npmInstallDeps'
+}
+
+task npmBuild(type: NpmTask, dependsOn: ["checkFrontAudit"]) {
+    inputs.files(fileTree(".") {
+        exclude(
+            "build.gradle",
+            "build/",
+            "dist/",
+            "node_modules/.cache/"
+        )
+    })
+    outputs.dir("dist")
+    args = ['run', '--quiet', 'build']
+}
+
+task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files fileTree(".") {
+        exclude(
+            "build.gradle",
+            "build/",
+            "dist/",
+            "node_modules/.cache/"
+        )
+    }
+    outputs.dir("dist")
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
+    }
+}
+
+// check that npm run license-check passes
+task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    inputs.files("src/", "test/", "public/")
+    outputs.upToDateWhen { true }
+    args = ['run', 'license-check']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+clean {
+    delete file('node_modules')
+    delete file('dist')
+}
+
+assemble.dependsOn npmBuild
+
+artifacts {
+    dist(file("dist/")) {
+        builtBy(npmBuild)
+    }
+}

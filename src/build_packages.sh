@@ -28,7 +28,7 @@ buildInDocker() {
     if [ -t 1 ]; then OPT="-it"; fi
 
     docker build -q -t xroad-build --build-arg uid=$(id -u) --build-arg gid=$(id -g) $XROAD/packages/docker-compile || errorExit "Error building build image."
-    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./update_ruby_dependencies.sh && ./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
+    docker run --rm -v $XROAD/..:/workspace -w /workspace/src -u builder ${OPT} xroad-build  bash -c "./compile_code.sh -nodaemon" || errorExit "Error running build of binaries."
 }
 
 buildLocally() {

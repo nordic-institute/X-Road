@@ -1,0 +1,34 @@
+plugins {
+    id 'io.spring.dependency-management'
+    id 'org.springframework.boot'
+}
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+bootJar {
+    excludeDevtools = true
+    manifest {
+        attributes(
+            'Implementation-Title'   : 'xroad-centralserver',
+            'Implementation-Version' : xroadVersion
+        )
+    }
+}
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        exclude module: 'spring-webmvc'
+        exclude module: 'spring-boot-starter-json'
+    }
+
+    implementation 'com.sun.activation:javax.activation:1.2.0'
+    implementation "com.sun.xml.ws:jaxws-rt:$jaxbVersion"
+
+    implementation "org.apache.cxf:cxf-rt-frontend-jaxws:$cxfVersion"
+    implementation "org.apache.cxf:cxf-rt-transports-http:$cxfVersion"
+    implementation "org.apache.cxf:cxf-core:$cxfVersion"
+
+    testImplementation "junit:junit:4.13"
+}
+

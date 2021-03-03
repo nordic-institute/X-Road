@@ -1,3 +1,0 @@
-anchorUrl_first:
-  trusted_anchor_id: <%= ActiveRecord::Fixtures.identify(:configurationAnchor_first) %>
-  url: "http://url.confanchor.com"

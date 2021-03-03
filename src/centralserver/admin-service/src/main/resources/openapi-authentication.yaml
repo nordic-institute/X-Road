@@ -1,0 +1,125 @@
+openapi: 3.0.0
+servers:
+# Added by API Auto Mocking Plugin
+  - description: SwaggerHub API Auto Mocking
+    url: https://virtserver.swaggerhub.com/Gofore/X-Road-Auth/1.0.0
+  - description: X-Road API Design
+    url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.0
+info:
+  description: X-Road UI Authentication
+  version: "1.0.2"
+  title: X-Road UI Based API
+  contact:
+    name: Nordic Institute for Interoperability Solutions (NIIS)
+    url: https://github.com/nordic-institute/X-Road-development/#enhancement-requests-and-error-reports
+    email: info@niis.org
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+tags:
+  - name: security server
+    description: Security Server operations and API calls
+  - name: central server
+    description: Central Server operations and API calls
+paths:
+  /login:
+    post: # ok
+      tags:
+        - security server
+      operationId: login
+      description: Login with cookie authentication
+      summary: Logs in and returns the authentication cookie
+      requestBody:
+        required: true
+        description: A JSON object containing the login and password.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: >
+            Successfully authenticated.
+            The session ID is returned in a cookie named `JSESSIONID`. You need to include this cookie in subsequent requests.
+          headers:
+            Set-Cookie:
+              description: session cookie
+              schema:
+                type: string
+                minLength: 1
+                maxLength: 255
+                example: JSESSIONID=abcde12345; Path=/;
+            "\0Set-Cookie":
+              description: XSRF token
+              schema:
+                type: string
+                example: XSRF-TOKEN=fghijk678910; Path=/; HttpOnly
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /logout:
+    delete: # ok
+      tags:
+        - security server
+      summary: logout from the UI
+      operationId: logout
+      description: SS administrator logs out from UI.
+      parameters:
+        - in: header
+          name: X-XSRF-TOKEN
+          schema:
+            type: string
+            format: text
+            example: fghijk678910
+          required: true
+      responses:
+        '204':
+          description: deletion was successful
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '500':
+          description: internal server error
+components:
+  securitySchemes:
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: JSESSIONID
+  schemas:
+    LoginRequest: # ok
+      type: object
+      required:
+        - username
+        - password
+      properties:
+        username:
+          type: string
+          format: text
+          example: username
+          minLength: 4
+          maxLength: 255
+        password:
+          type: string
+          format: password
+          example: Password123
+          minLength: 4
+          maxLength: 255
+security:
+  - CookieAuth: []

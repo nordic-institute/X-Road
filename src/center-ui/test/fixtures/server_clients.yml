@@ -1,7 +1,0 @@
-the_member_server_client:
-  security_server_id: <%= ActiveRecord::Fixtures.identify(:security_server) %>
-  security_server_client_id: <%= ActiveRecord::Fixtures.identify(:member_as_server_client) %>
-
-the_subsystem_server_client:
-  security_server_id: <%= ActiveRecord::Fixtures.identify(:security_server) %>
-  security_server_client_id: <%= ActiveRecord::Fixtures.identify(:subsystem_as_server_client) %>
