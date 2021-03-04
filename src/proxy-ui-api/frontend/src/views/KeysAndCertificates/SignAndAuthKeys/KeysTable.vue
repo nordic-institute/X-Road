@@ -296,7 +296,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 .icon {
-  color: $XRoad-Black100;
+  color: $XRoad-WarmGrey100;
   margin-right: 20px;
 }
 
@@ -322,7 +322,7 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-left: 2rem;
+  margin-left: 2.7rem;
 
   i.v-icon.mdi-file-document-outline {
     margin-left: 42px;

@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,93 +24,58 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
-      <div>
-        <v-btn
-          fab
-          icon
-          small
-          @click="clicked"
-          class="no-hover"
-          v-bind:style="{ color: color }"
-        >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
+  <div class="drop-menu">
+    <v-menu bottom right>
+      <template v-slot:activator="{ on }">
+        <v-btn text v-on="on" class="no-uppercase" data-test="username-button">
+          {{ username }}
+          <v-icon>mdi-chevron-down</v-icon>
         </v-btn>
-      </div>
-      <div>
-        <slot name="link"></slot>
-      </div>
+      </template>
 
-      <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action"></slot>
-      </div>
-    </div>
-    <div v-if="isOpen" class="exp-content-wrap">
-      <slot name="content"></slot>
-    </div>
+      <v-list>
+        <v-list-item
+          id="logout-list-tile"
+          data-test="logout-list-tile"
+          @click="logout"
+        >
+          <v-list-item-title id="logout-title">{{
+            $t('login.logOut')
+          }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
+import { RouteName } from '@/global';
 
-/**
- * Expandable can be clicked open and has slots for a link and ans action
- */
 export default Vue.extend({
-  name: 'expandable',
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: false,
-    },
+  computed: {
+    ...mapGetters(['username']),
   },
   methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: $XRoad-White100;
-}
-
-.exp-header {
+.drop-menu {
+  margin-left: auto;
+  margin-right: 70px;
   display: flex;
   align-items: center;
-  height: 48px;
-  padding: 10px;
 }
 
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
+.no-uppercase {
+  text-transform: none;
+  font-weight: 600;
 }
 </style>

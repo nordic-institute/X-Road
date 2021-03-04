@@ -41,7 +41,7 @@ export default Vue.extend({});
 @import '../assets/colors';
 
 .demo-wrapper {
-  background-color: $XRoad-White;
+  background-color: $XRoad-White100;
   border: 5px solid gray;
   height: 150px;
 }

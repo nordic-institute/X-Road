@@ -154,8 +154,9 @@
                   <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
                   <th class="time-column">
-                    {{ $t('diagnostics.nextUpdate') }}
+                    {{ $t('diagnostics.previousUpdate') }}
                   </th>
+                  <th class="time-column"></th>
                 </tr>
               </thead>
               <tbody>
@@ -182,6 +183,7 @@
                   <td class="time-column">
                     {{ timestampingService.prev_update_at | formatHoursMins }}
                   </td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
@@ -360,11 +362,11 @@ export default Vue.extend({
 }
 
 .inner-wrap {
-  max-width: 1000px;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
 
-  @media only screen and (max-width: 1030px) {
+  @media only screen and (max-width: 1630px) {
     margin-left: 10px;
     margin-right: 10px;
   }
