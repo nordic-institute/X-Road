@@ -95,6 +95,8 @@
               :error-messages="errors"
               v-model="subsystemCode"
               autofocus
+              :placeholder="$t('wizard.subsystemCode')"
+              outlined
               data-test="subsystem-code-input"
             ></v-text-field>
           </ValidationProvider>
@@ -322,6 +324,7 @@ export default Vue.extend({
   width: 100%;
   max-width: 1000px;
   margin: 10px;
+  margin-top: 30px;
 
   .view-title {
     width: 100%;

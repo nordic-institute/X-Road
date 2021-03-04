@@ -295,11 +295,11 @@ export default Vue.extend({
 }
 
 .inner-wrap {
-  max-width: 1000px;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
 
-  @media only screen and (max-width: 1030px) {
+  @media only screen and (max-width: 1630px) {
     margin-left: 10px;
     margin-right: 10px;
   }

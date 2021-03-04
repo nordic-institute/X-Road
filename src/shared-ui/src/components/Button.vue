@@ -88,7 +88,7 @@ export default Vue.extend({
     },
     min_width: {
       type: [Number, String],
-      default: 80,
+      default: 90,
     },
     gradient: {
       type: Boolean,
@@ -117,7 +117,9 @@ export default Vue.extend({
 <style lang="scss" scoped>
 .large-button {
   border-radius: 20px;
+  font-weight: 600;
   text-transform: none;
+  letter-spacing: normal;
 }
 
 .gradient {
