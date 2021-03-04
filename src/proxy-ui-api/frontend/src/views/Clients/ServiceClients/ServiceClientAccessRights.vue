@@ -123,6 +123,7 @@
     <!-- Confirm dialog delete group -->
     <confirmDialog
       :dialog="showConfirmDeleteAll"
+      v-if="showConfirmDeleteAll"
       title="serviceClients.removeAllTitle"
       text="serviceClients.removeAllText"
       @cancel="showConfirmDeleteAll = false"
@@ -131,6 +132,7 @@
 
     <confirmDialog
       :dialog="showConfirmDeleteOne"
+      v-if="showConfirmDeleteOne"
       title="serviceClients.removeOneTitle"
       text="serviceClients.removeOneText"
       @cancel="resetDeletionSettings()"
