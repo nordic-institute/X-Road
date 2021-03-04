@@ -478,7 +478,7 @@ export default Vue.extend({
 <style lang="scss">
 @import '~styles/colors';
 .xrd-table-header {
-  border-bottom: 1px solid #dedce4 !important;
+  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
 }
 
 // Override Vuetify default table cell height
