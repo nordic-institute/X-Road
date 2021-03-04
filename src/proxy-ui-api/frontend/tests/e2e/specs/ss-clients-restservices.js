@@ -157,19 +157,19 @@ module.exports = {
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible(); // 'The URL where requests targeted at the service are directed'
+      .to.be.visible; // 'The URL where requests targeted at the service are directed'
 
     browser.moveToElement(operationDetails.elements.timeoutHelp, 0, 0);
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible(); // 'The maximum duration of a request to the service, in seconds'
+      .to.be.visible; // 'The maximum duration of a request to the service, in seconds'
 
     browser.moveToElement(operationDetails.elements.verifyCertHelp, 0, 0);
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible(); // 'Verify TLS certificate when a secure connection is established'
+      .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
 
     // Verify cancel
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
@@ -477,7 +477,12 @@ module.exports = {
     // Verify validation rules
     addEndpointPopup.selectRequestMethod('GET');
     addEndpointPopup.enterPath('');
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'The path field is required'
+
+    // 'The path field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
+    );
+
 
     // test cancel
     addEndpointPopup.enterPath('/noreq1');

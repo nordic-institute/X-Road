@@ -119,7 +119,7 @@ module.exports = {
   sections: {
     addServicesPopup: {
       selector:
-        '//div[contains(@data-test, "dialog-simple")',
+        '//div[contains(@data-test, "dialog-simple")]',
       locateStrategy: 'xpath',
       commands: [addServiceCommands],
       elements: {
