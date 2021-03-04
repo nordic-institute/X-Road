@@ -47,9 +47,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.security.KeyPair;
 import java.security.KeyStore;
 import java.security.PrivateKey;
@@ -344,10 +346,10 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         setTokenStatus(tokenId, TokenStatusInfo.OK);
     }
 
-    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin)
-            throws Exception {
+    private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin,
+            Path tempKeyDir) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyFile);
-        String tempKeyStoreFile = getTempKeyStoreFileName(keyFile);
+        String tempKeyStoreFile = getTempKeyStoreFileName(tempKeyDir, keyFile);
 
         KeyStore oldKeyStore = loadPkcs12KeyStore(new File(keyStoreFile), oldPin);
         PrivateKey privateKey = SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyAlias, oldPin);
@@ -358,8 +360,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         KeyStore.PrivateKeyEntry pkEntry = new KeyStore.PrivateKeyEntry(privateKey, certChain);
         newKeyStore.setEntry(keyAlias, pkEntry, new KeyStore.PasswordProtection(newPin));
 
-        try (FileOutputStream fos = new FileOutputStream(tempKeyStoreFile)) {
-            newKeyStore.store(fos, newPin);
+        try (OutputStream os = Files.newOutputStream(Paths.get(tempKeyStoreFile), StandardOpenOption.CREATE,
+                StandardOpenOption.DSYNC)) {
+            newKeyStore.store(os, newPin);
         }
     }
 
@@ -390,6 +393,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      * Extremely rare corner case: if that folder already exists, keep the existing folder but rename it with a
      * timestamp e.g. .softtoken.bak-20210218155510. This way the pin change gets to proceed and possibly important
      * backup folder does not get removed.
+     *
      * @throws IOException problems with files
      */
     private void createKeyDirBackup() throws IOException {
@@ -413,17 +417,17 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             // Clear pin from pwstore and deactivate token
             PasswordStore.storePassword(tokenId, null);
             deactivateToken();
-            // Create a new temp folder for working - a copy of the softtoken folder to .softtoken.tmp
-            createTempKeyDir();
+            // Create a new temp folder for working
+            Path tempKeyDir = createTempKeyDir();
             // Rewrite the ".softtoken" keystore with a new pin in the temp folder
-            rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin);
+            rewriteKeyStoreWithNewPin(PIN_FILE, PIN_ALIAS, oldPin, newPin, tempKeyDir);
             // Rewrite all other keystores with the new pin
             for (String keyId : listKeysOnDisk()) {
-                rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin);
+                rewriteKeyStoreWithNewPin(keyId, keyId, oldPin, newPin, tempKeyDir);
             }
             createKeyDirBackup();
             // Change the temp dir name to 'softtoken'
-            renameTempToKeyDir();
+            renameTempToKeyDir(tempKeyDir);
             // All good: remove the backup folder
             removeBackupKeyDir();
             log.info("Updating the software token pin was successful!");

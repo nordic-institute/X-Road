@@ -37,6 +37,12 @@ import org.bouncycastle.operator.ContentSigner;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -47,10 +53,18 @@ import java.security.cert.X509Certificate;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_READ;
+import static java.nio.file.attribute.PosixFilePermission.OWNER_WRITE;
 
 /**
  * Utility methods for software token.
@@ -64,9 +78,11 @@ public final class SoftwareTokenUtil {
 
     static final String P12 = ".p12";
 
+    static final FileAttribute<Set<PosixFilePermission>> SOFT_TOKEN_KEY_DIR_PERMISSIONS =
+            PosixFilePermissions.asFileAttribute(EnumSet.of(OWNER_READ, OWNER_WRITE, OWNER_EXECUTE, GROUP_READ,
+                    GROUP_EXECUTE));
     static final String SOFT_TOKEN_KEY_DIR_NAME = "softtoken";
     static final String SOFT_TOKEN_KEY_BAK_DIR_NAME = ".softtoken.bak";
-    static final String SOFT_TOKEN_KEY_TMP_DIR_NAME = ".softtoken.tmp";
 
     // TODO make it configurable.
     private static final String SIGNATURE_ALGORITHM = CryptoUtils.SHA512WITHRSA_ID;
@@ -104,19 +120,21 @@ public final class SoftwareTokenUtil {
      * Returns a temporary filepath for a key store. Used e.g. when changing pin codes for key stores.
      * Usually the temp dir exists already when this method is called
      * (to create the temp dir use {@link #createTempKeyDir()})
+     * @param tempKeyDir the temporary key dir path
      * @param keyId the key id
      * @return the key store file name for a key id in a temporary folder
      */
-    public static String getTempKeyStoreFileName(String keyId) {
-        return getTempKeyDir() + keyId + P12;
+    public static String getTempKeyStoreFileName(Path tempKeyDir, String keyId) {
+        return tempKeyDir.toString() + File.separator + keyId + P12;
     }
 
     /**
-     * @return /path/to/.softtoken.tmp
+     * Rename the temp dir to the official key dir. Used e.g. when changing pin codes for key stores
+     * @param tempKeyDir the temporary key dir path
+     * @throws IOException renaming fails
      */
-    private static String getTempKeyDir() {
-        return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
-                + SOFT_TOKEN_KEY_TMP_DIR_NAME + File.separator;
+    public static void renameTempToKeyDir(Path tempKeyDir) throws IOException {
+        Files.move(tempKeyDir, getKeyDir().toPath(), ATOMIC_MOVE);
     }
 
     /**
@@ -141,16 +159,9 @@ public final class SoftwareTokenUtil {
      * Create a temp directory for key stores. Used e.g. when changing pin codes for key stores
      * @throws IOException creating temp dir fails
      */
-    public static void createTempKeyDir() throws IOException {
-        FileUtils.copyDirectory(getKeyDir(), new File(getTempKeyDir()));
-    }
-
-    /**
-     * Rename the temp dir to the official key dir. Used e.g. when changing pin codes for key stores
-     * @throws IOException renaming fails
-     */
-    public static void renameTempToKeyDir() throws IOException {
-        FileUtils.moveDirectory(new File(getTempKeyDir()), getKeyDir());
+    public static Path createTempKeyDir() throws IOException {
+        return Files.createTempDirectory(Paths.get(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)),
+                SOFT_TOKEN_KEY_DIR_NAME + "-", SOFT_TOKEN_KEY_DIR_PERMISSIONS);
     }
 
     /**
@@ -158,7 +169,7 @@ public final class SoftwareTokenUtil {
      * @throws IOException renaming fails
      */
     public static void renameKeyDirToBackup() throws IOException {
-        FileUtils.moveDirectory(getKeyDir(), new File(getBackupKeyDir()));
+        Files.move(getKeyDir().toPath(), Paths.get(getBackupKeyDir()), ATOMIC_MOVE);
     }
 
     /**
