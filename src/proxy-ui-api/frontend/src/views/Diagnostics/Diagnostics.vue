@@ -41,16 +41,16 @@
                 <tr>
                   <th class="status-column">{{ $t('diagnostics.status') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
-                  <th>
+                  <th class="level-column">
                     {{ $t('diagnostics.javaVersion.vendor') }}
                   </th>
-                  <th>
+                  <th class="level-column">
                     {{ $t('diagnostics.javaVersion.title') }}
                   </th>
-                  <th>
+                  <th class="level-column">
                     {{ $t('diagnostics.javaVersion.earliest') }}
                   </th>
-                  <th>
+                  <th class="level-column">
                     {{ $t('diagnostics.javaVersion.latest') }}
                   </th>
                 </tr>
@@ -397,6 +397,12 @@ export default Vue.extend({
 
 .status-column {
   width: 80px;
+}
+
+.level-column {
+  @media only screen and (min-width: 1500px) {
+    width: 20%;
+  }
 }
 
 .url-column {
