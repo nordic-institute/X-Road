@@ -50,6 +50,7 @@
   * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
 * [7 Version update](#7-version-update)
 * [8 Message logs and disk space](#8-message-logs-and-disk-space)
+* [9 Setup example](#8-setup-example)
 
 ## 1 Introduction
 
@@ -1000,3 +1001,67 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
     ```bash
     aws s3 sync <volume mount path> s3://<bucket name>/path/to/bucket-folder --sse aws:kms --sse-kms-key-id <arn encryption key>
     ```
+
+
+## 9 Setup example
+The [load_balancer_setup](/files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to setup the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is `sidecar`.
+- Download the file and search for following variables and replace it with our desired values:
+  - <public key base64> Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
+  - <private key base64> Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
+  - <token pin> (**reference data: 1.4**)
+  - <admin user> (**reference data: 1.5**)
+  - <admin password> (**reference data: 1.6**)
+  - <database host> (**reference data: 1.7**)
+  - <database password> (**reference data: 1.9**)
+  - <database port> (**reference data: 1.8**)
+  - <xroad log level> (**reference data: 1.10**)
+  - <xroad dabase name> (**reference data: 1.11**)
+  - <pv-efs-id> (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
+  - <version primary> At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-slim.
+  - <version secondary> At the time this document was written the supported version for the secondary are: 6.25.0-secondary, 6.25.0-secondary-slim. Make sure that the secondary version matches with the primary, this is, if we choose the slim version for the primary, we also must choose the slim version for the secondary.   
+
+- Once the values are replaced, apply the manifest file:
+```
+kubectl apply -f load_balancer_setup.yaml"
+```
+
+- Verify that the PersistentVolumeClaim is deployed and bounded:
+```
+kubectl get pvc -n sidecar
+
+NAME                 STATUS   VOLUME                  CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+pvc-config-sidecar   Bound    pv-efs-config-sidecar   2Gi        RWX            sidecarstorage   5m38s
+```
+
+- Verify that the secrets are deployed:
+```
+kubectl get secrets -n sidecar
+
+NAME                       TYPE                                  DATA   AGE
+default-token-zgl8g        kubernetes.io/service-account-token   3      6m28s
+secret-sidecar-variables   Opaque                                8      6m27s
+secret-ssh-keys            Opaque                                2      6m28s
+```
+- Verify that the services are created:
+```
+kubectl get services -n sidecar
+
+NAME                                      TYPE           CLUSTER-IP       EXTERNAL-IP                                                               PORT(S)                                        AGE
+balancer-security-server-sidecar          LoadBalancer   10.100.217.185   ab11157602fc14f6e9d217fefcb35f67-1793695323.eu-west-1.elb.amazonaws.com   5500:31086/TCP,5577:30502/TCP,8080:32052/TCP   7m37s
+service-security-server-sidecar-primary   ClusterIP      None             <none>                                                                    <none>                                         7m37s
+
+```
+
+- Verify that the Primary and Secondary Pods are deployed, the secondary pod should remain in "Not Ready" state until the Primary is configured,If we are using a volume that already has the Primary Pod configuration, the Secondary Pod should switch to Ready after approximately 3-4 minutes.
+```
+kubectl get pods -n sidecar
+
+NAME                                                 READY   STATUS    RESTARTS   AGE
+security-server-sidecar-primary                      1/1     Running   0          8m35s
+security-server-sidecar-secondary-7c844c6b5f-ntkx4   1/1     Running   0          8m34s
+```
+
+- Delete all the objects by running:
+```
+kubectl delete -f load_balancer_setup.yaml"
+```
