@@ -27,7 +27,7 @@
   <div class="drop-menu">
     <v-menu bottom right>
       <template v-slot:activator="{ on }">
-        <v-btn text v-on="on" class="no-uppercase">
+        <v-btn text v-on="on" class="no-uppercase" data-test="username-button">
           {{ username }}
           <v-icon>mdi-chevron-down</v-icon>
         </v-btn>
