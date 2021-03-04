@@ -379,9 +379,8 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
-    const addKeyWizardCSR = keysTab.section.addKeyWizardCSR;
-    const addKeyWizardGenerate = keysTab.section.addKeyWizardGenerate;
-
+    const generateKeyCsrWizardCsr = keysTab.section.generateKeyCsrWizardCsr;
+    const generateKeysCsrWizardGenerate = keysTab.section.generateKeyCsrWizardGenerate;
     // Delete any csr files from test dir
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^sign_csr_/;
@@ -418,18 +417,18 @@ module.exports = {
     // Test cancel
     signAuthTab.generateSignCSRForKey('sign');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
-    browser.assert.containsText(addKeyWizardCSR.elements.csrUsage, 'SIGNING');
-    browser.waitForElementVisible(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('PEM');
-    addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
-    addKeyWizardCSR.next();
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
+    browser.assert.containsText(generateKeyCsrWizardCsr.elements.csrUsage, 'SIGNING');
+    browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('PEM');
+    generateKeyCsrWizardCsr.selectClient('REST-UI-TEST:GOV:0245437-2');
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg2');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg2');
 
-    addKeyWizardGenerate.cancel();
+    generateKeysCsrWizardGenerate.cancel();
 
     // Verify that no request has been added
     browser.perform(function () {
@@ -443,22 +442,22 @@ module.exports = {
     // Test CSR generation
     signAuthTab.generateSignCSRForKey('sign');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
-    browser.assert.containsText(addKeyWizardCSR.elements.csrUsage, 'SIGNING');
-    browser.waitForElementVisible(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('PEM');
-    addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
-    addKeyWizardCSR.next();
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
+    browser.assert.containsText(generateKeyCsrWizardCsr.elements.csrUsage, 'SIGNING');
+    browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('PEM');
+    generateKeyCsrWizardCsr.selectClient('REST-UI-TEST:GOV:0245437-2');
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg2');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg2');
 
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to.not.be
       .enabled;
-    addKeyWizardGenerate.generateCSR();
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
-    addKeyWizardGenerate.close();
+    generateKeysCsrWizardGenerate.generateCSR();
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).enabled;
+    generateKeysCsrWizardGenerate.close();
 
     // Verify that a request has been added
     browser.perform(function () {
@@ -550,8 +549,9 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
-    const addKeyWizardCSR = keysTab.section.addKeyWizardCSR;
     const addKeyWizardGenerate = keysTab.section.addKeyWizardGenerate;
+    const generateKeyCsrWizardCsr = keysTab.section.generateKeyCsrWizardCsr;
+    const generateKeysCsrWizardGenerate = keysTab.section.generateKeyCsrWizardGenerate;
 
     // Delete any csr files from test dir
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
@@ -590,24 +590,24 @@ module.exports = {
 
     signAuthTab.generateAuthCSRForKey('auth');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
     browser.assert.containsText(
-      addKeyWizardCSR.elements.csrUsage,
+      generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
     browser.assert.containsText(
-      addKeyWizardCSR.elements.csrService,
+      generateKeyCsrWizardCsr.elements.csrService,
       'X-Road Test CA CN',
     );
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('DER');
-    addKeyWizardCSR.next();
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('DER');
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg3');
-    addKeyWizardGenerate.enterServerDNS('foodns');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg3');
+    generateKeysCsrWizardGenerate.enterServerDNS('foodns');
 
-    addKeyWizardGenerate.cancel();
+    generateKeysCsrWizardGenerate.cancel();
 
     // Verify that no request has been added
     browser.perform(function () {
@@ -621,26 +621,26 @@ module.exports = {
     // Test CSR generation
     signAuthTab.generateAuthCSRForKey('auth');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
     browser.assert.containsText(
-      addKeyWizardCSR.elements.csrUsage,
+      generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
-    browser.waitForElementNotPresent(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('DER');
+    browser.waitForElementNotPresent(generateKeyCsrWizardCsr.elements.csrClient);
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('DER');
 
-    addKeyWizardCSR.next();
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg3');
-    addKeyWizardGenerate.enterServerDNS('foodns');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg3');
+    generateKeysCsrWizardGenerate.enterServerDNS('foodns');
 
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to.not.be
       .enabled;
-    addKeyWizardGenerate.generateCSR();
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
-    addKeyWizardGenerate.close();
+    generateKeysCsrWizardGenerate.generateCSR();
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).enabled;
+    generateKeysCsrWizardGenerate.close();
 
     // Verify that a request has been added
     browser.perform(function () {

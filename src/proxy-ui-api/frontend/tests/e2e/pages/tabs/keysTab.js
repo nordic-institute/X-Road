@@ -614,6 +614,76 @@ const keysTab = {
         },
       },
     },
+    generateKeyCsrWizardCsr: { // Generate csr for existing sign key. Page 1, CSR details
+      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
+      locateStrategy: 'xpath',
+      commands: [addKeywizardCSRCommands],
+      elements: {
+        continueButton: {
+          selector: '//button[@data-test="save-button"]',
+          locateStrategy: 'xpath',
+        },
+        previousButton: {
+          selector: '//button[@data-test="previous-button"]',
+          locateStrategy: 'xpath',
+        },
+        cancelButton: {
+          selector: '//button[@data-test="cancel-button"]',
+          locateStrategy: 'xpath',
+        },
+        csrUsage: {
+          selector:
+            '//div[@role="button" and .//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]]',
+          locateStrategy: 'xpath',
+        },
+        csrService: {
+          selector:
+            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-certification-service-select"]]',
+          locateStrategy: 'xpath',
+        },
+        csrFormat: {
+          selector:
+            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-format-select"]]',
+          locateStrategy: 'xpath',
+        },
+        csrClient: {
+          selector:
+            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
+    generateKeyCsrWizardGenerate: { // Generate csr for existing sign key. Page 2, generate
+      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
+      locateStrategy: 'xpath',
+      commands: [addKeywizardGenerateCommands],
+      elements: {
+        doneButton: {
+          selector: '(//button[@data-test="save-button"])[2]',
+          locateStrategy: 'xpath',
+        },
+        previousButton: {
+          selector: '//button[@data-test="previous-button"]',
+          locateStrategy: 'xpath',
+        },
+        cancelButton: {
+          selector: '(//button[@data-test="cancel-button"])[2]',
+          locateStrategy: 'xpath',
+        },
+        generateButton: {
+          selector: '//button[@data-test="generate-csr-button"]',
+          locateStrategy: 'xpath',
+        },
+        organizationName: {
+          selector: '//input[@name="O" and @data-test="dynamic-csr-input"]',
+          locateStrategy: 'xpath',
+        },
+        serverDNS: {
+          selector: '//input[@name="CN" and @data-test="dynamic-csr-input"]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
   },
 };
 
