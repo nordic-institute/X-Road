@@ -35,16 +35,7 @@
         ></help-button>
       </div>
       <div class="search-row">
-        <v-text-field
-          v-model="search"
-          :label="$t('action.search')"
-          single-line
-          hide-details
-          class="search-input"
-          autofocus
-        >
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
+        <xrd-search v-model="search" />
       </div>
     </div>
     <div v-if="filtered && filtered.length < 1">

@@ -25,61 +25,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
-      <div>
-        <v-btn
-          fab
-          icon
-          small
-          @click="clicked"
-          class="no-hover"
-          v-bind:style="{ color: color }"
-        >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-      <div>
-        <slot name="link"></slot>
-      </div>
-
-      <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action"></slot>
-      </div>
-    </div>
-    <div v-if="isOpen" class="exp-content-wrap">
-      <slot name="content"></slot>
-    </div>
+  <div>
+    <v-icon @click="closed = false" v-if="closed" class="icon-closed"
+      >mdi-magnify</v-icon
+    >
+    <v-text-field
+      v-if="!closed"
+      :label="label"
+      data-test="search-input"
+      single-line
+      hide-details
+      class="search-input"
+      prepend-inner-icon="mdi-magnify"
+      clearable
+      v-bind:value="value"
+      v-on:input="$emit('input', $event)"
+    >
+    </v-text-field>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-
 /**
- * Expandable can be clicked open and has slots for a link and ans action
- */
+ * Wrapper for vuetify button with x-road look
+ * */
+
 export default Vue.extend({
-  name: 'expandable',
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: false,
-    },
+  name: 'xrd-search',
+  props: ['value', 'label'],
+  computed: {},
+  data() {
+    return {
+      closed: true,
+    };
   },
   methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
+    show(): void {
+      this.closed = false;
     },
   },
 });
@@ -88,30 +71,10 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: $XRoad-White100;
-}
-
-.exp-header {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 10px;
-}
-
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
+.icon-closed {
+  margin-top: 20px; // adjusted so that icon stays in the same place open/closed
+  cursor: pointer;
+  color: $XRoad-Purple100;
+  padding-bottom: 4px; // adjusted so that icon takes same space than input
 }
 </style>

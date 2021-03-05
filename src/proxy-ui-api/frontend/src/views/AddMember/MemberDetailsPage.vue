@@ -68,6 +68,7 @@
               class="form-input"
               v-model="memberClass"
               data-test="member-class-input"
+              :placeholder="$t('wizard.selectMemberClass')"
               outlined
             ></v-select>
           </ValidationProvider>
@@ -88,6 +89,7 @@
               type="text"
               :error-messages="errors"
               v-model="memberCode"
+              :placeholder="$t('wizard.memberCode')"
               autofocus
               outlined
               data-test="member-code-input"

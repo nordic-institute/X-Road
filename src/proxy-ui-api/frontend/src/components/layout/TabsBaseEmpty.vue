@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,93 +24,83 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
-      <div>
-        <v-btn
-          fab
-          icon
-          small
-          @click="clicked"
-          class="no-hover"
-          v-bind:style="{ color: color }"
-        >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-      <div>
-        <slot name="link"></slot>
-      </div>
-
-      <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action"></slot>
-      </div>
-    </div>
-    <div v-if="isOpen" class="exp-content-wrap">
-      <slot name="content"></slot>
-    </div>
-  </div>
+  <v-layout class="main-content" align-left>
+    <app-icon />
+    <div class="tabs-wrap"></div>
+    <app-drop-menu />
+  </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
+import { Tab } from '@/ui-types';
+import { mainTabs, RouteName } from '@/global';
+import AppIcon from './AppIcon.vue';
+import AppDropMenu from './AppDropMenu.vue';
 
-/**
- * Expandable can be clicked open and has slots for a link and ans action
- */
 export default Vue.extend({
-  name: 'expandable',
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: false,
+  components: {
+    AppIcon,
+    AppDropMenu,
+  },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
+  },
+  computed: {
+    ...mapGetters(['username']),
+
+    allowedTabs(): Tab[] {
+      return this.$store.getters.getAllowedTabs(mainTabs);
     },
   },
   methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
 </script>
 
+<style lang="scss">
+@import '../../assets/colors';
+
+.v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v-tab {
+  text-transform: none;
+  font-weight: 600;
+}
+
+.v-tabs-slider.xrd-sub-tabs-slider {
+  width: 40px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
 <style lang="scss" scoped>
-@import '../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
+.main-content {
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
 }
 
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
+.tabs-wrap {
+  margin-left: 20px;
 }
 
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: $XRoad-White100;
-}
-
-.exp-header {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 10px;
-}
-
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
+.main-tabs {
+  max-width: 1000px;
 }
 </style>
