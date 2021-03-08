@@ -5,7 +5,7 @@
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
 COMMON_BACKUP_SCRIPT=/usr/share/xroad/scripts/_backup_xroad.sh
-THIS_FILE=$(pwd)/$0 
+THIS_FILE=$(pwd)/$0
 
 usage () {
 cat << EOF
@@ -32,6 +32,9 @@ execute_backup () {
     if [[ $SKIP_DB_BACKUP = true ]] ; then
       args="${args} -S"
     fi
+    if [[ $ENCRYPT_BACKUP = true ]] ; then
+      args="${args} -E"
+    fi
     ${COMMON_BACKUP_SCRIPT} ${args}
     if [ $? -ne 0 ] ; then
       echo "Failed to back up the configuration of the X-Road security server"
@@ -43,7 +46,7 @@ execute_backup () {
   fi
 }
 
-while getopts ":s:f:Sbh" opt ; do
+while getopts ":s:f:SbhE" opt ; do
   case $opt in
     h)
       usage
@@ -60,6 +63,9 @@ while getopts ":s:f:Sbh" opt ; do
       ;;
     b)
       USE_BASE_64=true
+      ;;
+    E)
+      ENCRYPT_BACKUP=true
       ;;
     \?)
       echo "Invalid option $OPTARG"

@@ -39,6 +39,9 @@ execute_restore () {
     if [ -n ${SKIP_REMOVAL} ] && [[ ${SKIP_REMOVAL} = true ]] ; then
       args="${args} -R"
     fi
+    if [[ $ENCRYPT_BACKUP = true ]] ; then
+      args="${args} -E"
+    fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
     if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road security server"
@@ -50,7 +53,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":RFs:f:bh" opt ; do
+while getopts ":RFs:f:bhE" opt ; do
   case $opt in
     h)
       usage
@@ -70,6 +73,9 @@ while getopts ":RFs:f:bh" opt ; do
       ;;
     b)
       USE_BASE_64=true
+      ;;
+    E)
+      ENCRYPT_BACKUP=true
       ;;
     \?)
       echo "Invalid option $OPTARG"

@@ -125,7 +125,7 @@ public class BackupService {
         String filename = generateBackupFileName();
         auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
         String fullPath = backupRepository.getConfigurationBackupPath() + filename;
-        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath};
+        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath, "-E"};
 
         try {
             log.info("Run configuration backup with command '"
@@ -216,7 +216,7 @@ public class BackupService {
      */
     public String generateBackupFileName() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-        return "conf_backup_" + LocalDateTime.now().format(dtf) + ".tar";
+        return "conf_backup_" + LocalDateTime.now().format(dtf) + ".gpg";
     }
 
     private String getFileNotFoundExceptionMessage(String filename) {

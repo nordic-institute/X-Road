@@ -142,7 +142,13 @@ setup_tmp_restore_dir() {
 extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
   # etc/xroad is always included in the backup, etc/nginx only when backup is for CS
-  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
+  if [[ $ENCRYPT_BACKUP = true ]] ; then
+    gpg --homedir /etc/xroad/backupkeys/gpghome  --decrypt ${BACKUP_FILENAME} \
+    | tar xfv - -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
+  else
+    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
+  fi
+
   if tar -tf ${BACKUP_FILENAME} etc/nginx >/dev/null 2>&1; then
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/nginx || die "Extracting etc/nginx failed"
   else
@@ -237,6 +243,9 @@ while getopts ":RFSt:i:s:n:f:b" opt ; do
       ;;
     b)
       USE_BASE_64=true
+      ;;
+    E)
+      ENCRYPT_BACKUP=true
       ;;
     \?)
       echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
