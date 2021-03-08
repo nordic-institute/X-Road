@@ -307,4 +307,8 @@ public class ServerConf {
     public static void logStatistics() {
         getInstance().logStatistics();
     }
+
+    public static void clearCache() {
+        getInstance().clearCache();
+    }
 }

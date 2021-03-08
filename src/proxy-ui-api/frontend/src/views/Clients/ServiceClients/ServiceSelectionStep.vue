@@ -198,6 +198,7 @@ export default Vue.extend({
 }
 
 .empty {
-  margin-top: 20px;
+  margin: 30px;
+  text-align: center;
 }
 </style>

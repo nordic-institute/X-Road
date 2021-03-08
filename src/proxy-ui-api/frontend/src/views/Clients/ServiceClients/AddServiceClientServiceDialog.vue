@@ -147,6 +147,7 @@ export default Vue.extend({
   min-width: 200px;
 }
 .service-row:hover {
-  background-color: $XRoad-Grey10;
+  cursor: pointer;
+  background-color: $XRoad-Purple10;
 }
 </style>

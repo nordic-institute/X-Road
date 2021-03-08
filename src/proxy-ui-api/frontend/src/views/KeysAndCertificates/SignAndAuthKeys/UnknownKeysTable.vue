@@ -134,7 +134,7 @@ export default Vue.extend({
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
-      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
+      return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
   },
   methods: {
@@ -160,7 +160,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: cert.certificate_details.hash,
-          usage: key.usage ?? '',
+          usage: key.usage ?? 'undefined',
         },
       });
     },

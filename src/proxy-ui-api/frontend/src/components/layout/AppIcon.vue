@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,93 +24,49 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="exp-wrapper">
-    <div class="exp-header">
-      <div>
-        <v-btn
-          fab
-          icon
-          small
-          @click="clicked"
-          class="no-hover"
-          v-bind:style="{ color: color }"
-        >
-          <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
-          <v-icon v-else color="primary">mdi-chevron-right</v-icon>
-        </v-btn>
-      </div>
-      <div>
-        <slot name="link"></slot>
-      </div>
-
-      <v-spacer />
-      <div class="exp-action-wrap">
-        <slot name="action"></slot>
-      </div>
-    </div>
-    <div v-if="isOpen" class="exp-content-wrap">
-      <slot name="content"></slot>
-    </div>
-  </div>
+  <v-img
+    :src="require('../../assets/xroad7_logo.svg')"
+    height="35"
+    width="132"
+    max-height="35"
+    max-width="132"
+    class="xrd-logo"
+    @click="home()"
+  ></v-img>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
-/**
- * Expandable can be clicked open and has slots for a link and ans action
- */
 export default Vue.extend({
-  name: 'expandable',
-  props: {
-    isOpen: {
-      type: Boolean,
-      required: true,
-    },
-    color: {
-      type: String,
-      required: false,
-    },
-  },
   methods: {
-    clicked(): void {
-      if (this.isOpen) {
-        this.$emit('close');
-      } else {
-        this.$emit('open');
-      }
+    home(): void {
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
+        })
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.info('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
+        });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/colors';
-
-.no-hover:hover:before,
-.no-hover:focus:before {
-  background-color: transparent;
-}
-
-.no-hover {
-  margin-left: 3px;
-  margin-right: 3px;
-}
-
-.exp-wrapper {
-  border-radius: 4px;
-  background-color: $XRoad-White100;
-}
-
-.exp-header {
-  display: flex;
-  align-items: center;
-  height: 48px;
-  padding: 10px;
-}
-
-.exp-content-wrap {
-  padding-top: 16px;
-  padding-bottom: 16px;
+.xrd-logo {
+  margin-top: auto;
+  margin-bottom: auto;
+  cursor: pointer;
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
 }
 </style>

@@ -35,17 +35,8 @@
     <div class="table-toolbar pb-3 pt-5">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
-        <v-text-field
-          v-model="search"
-          :label="$t('action.search')"
-          data-test="search-clients-input"
-          single-line
-          hide-details
-          class="search-input"
-          autofocus
-        >
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
+
+        <xrd-search v-model="search" />
       </div>
       <div>
         <xrd-button
@@ -128,7 +119,7 @@
             >icon-Folder-outline</v-icon
           >
 
-          <span class="identifier-wrap name-member">{{
+          <span class="identifier-wrap member-name">{{
             item.visibleName
           }}</span>
         </template>
@@ -497,6 +488,11 @@ export default Vue.extend({
   height: 56px;
   color: $XRoad-Black100;
 }
+
+// Override Vuetify table row hover color
+.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+  background: $XRoad-Purple10 !important;
+}
 </style>
 
 <style lang="scss" scoped>
@@ -532,7 +528,14 @@ export default Vue.extend({
 
 .data-table-wrapper {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1600px;
+  margin-left: 10px;
+  margin-right: 10px;
+
+  @media only screen and (max-width: 1620px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
 .data-table {
@@ -540,10 +543,11 @@ export default Vue.extend({
 }
 
 .name {
-  margin-left: 34px;
+  margin-left: 40px;
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
+  font-weight: 600;
 
   &.clickable {
     cursor: pointer;
@@ -578,13 +582,6 @@ export default Vue.extend({
     color: $XRoad-Link;
     cursor: pointer;
   }
-}
-
-.name-member {
-  margin-left: 14px;
-  margin-top: auto;
-  margin-bottom: auto;
-  text-align: center;
 }
 
 .button-wrap {
