@@ -23,42 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.dto;
 
-import ee.ria.xroad.common.Version;
+import lombok.Data;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+@Data
+public class VersionInfoDto {
+    private String info;
 
-/**
- * service class for handling X-Road version information
- */
-@Slf4j
-@Service
-@PreAuthorize("isAuthenticated()")
-public class VersionService {
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+    private int javaVersion;
 
+    private int minJavaVersion;
 
-    /**
-     * Returns X-Road software version number and java version information
-     * @return
-     */
-    public VersionInfoDto getVersionInfo() {
-        VersionInfoDto result = new VersionInfoDto();
-        result.setInfo(Version.XROAD_VERSION);
-        int javaVersion = Version.readJavaVersion();
-        result.setJavaVersion(javaVersion);
-        result.setMinJavaVersion(MIN_SUPPORTED_JAVA_VERSION);
-        result.setMaxJavaVersion(MAX_SUPPORTED_JAVA_VERSION);
-        result.setUsingSupportedJavaVersion(javaVersion >= MIN_SUPPORTED_JAVA_VERSION
-                && javaVersion <= MAX_SUPPORTED_JAVA_VERSION);
-        result.setJavaVendor(Version.JAVA_VENDOR);
-        result.setJavaRuntimeVersion(Version.JAVA_RUNTIME_VERSION);
+    private int maxJavaVersion;
 
-        return result;
-    }
+    private boolean usingSupportedJavaVersion;
+
+    private String javaVendor;
+
+    private String javaRuntimeVersion;
 }

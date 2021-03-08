@@ -34,7 +34,9 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AnchorConverter;
 import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
+import org.niis.xroad.restapi.converter.VersionConverter;
 import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
@@ -85,6 +87,7 @@ public class SystemApiController implements SystemApi {
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
     private final AnchorConverter anchorConverter;
+    private final VersionConverter versionConverter;
     private final SystemService systemService;
     private final VersionService versionService;
     private final CsrFilenameCreator csrFilenameCreator;
@@ -109,7 +112,8 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<VersionInfo> systemVersion() {
-        VersionInfo result = versionService.getVersionInfo();
+        VersionInfoDto versionInfoDto = versionService.getVersionInfo();
+        VersionInfo result = versionConverter.convert(versionInfoDto);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

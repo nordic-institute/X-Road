@@ -29,7 +29,7 @@ import ee.ria.xroad.common.Version;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -50,10 +50,10 @@ public class VersionServiceTest {
 
     @Test
     public void readVersionInfo() {
-        VersionInfo versionInfo = versionService.getVersionInfo();
+        VersionInfoDto versionInfo = versionService.getVersionInfo();
 
         assertNotNull(versionInfo);
-        assertTrue(versionInfo.getUsingSupportedJavaVersion());
+        assertTrue(versionInfo.isUsingSupportedJavaVersion());
     }
 
     @Test
@@ -61,7 +61,7 @@ public class VersionServiceTest {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
         System.setProperty(Version.JAVA_VERSION_PROPERTY, "1.2");
         try {
-            VersionInfo versionInfo = versionService.getVersionInfo();
+            VersionInfoDto versionInfo = versionService.getVersionInfo();
             assertNotNull(versionInfo);
             long version = versionInfo.getJavaVersion();
             assertEquals(2L, version);
@@ -76,11 +76,11 @@ public class VersionServiceTest {
         String original = System.getProperty(Version.JAVA_VERSION_PROPERTY);
         System.setProperty(Version.JAVA_VERSION_PROPERTY, "20");
         try {
-            VersionInfo versionInfo = versionService.getVersionInfo();
+            VersionInfoDto versionInfo = versionService.getVersionInfo();
             assertNotNull(versionInfo);
             long version = versionInfo.getJavaVersion();
             assertEquals(20L, version);
-            assertFalse(versionInfo.getUsingSupportedJavaVersion());
+            assertFalse(versionInfo.isUsingSupportedJavaVersion());
         } finally {
             System.setProperty(Version.JAVA_VERSION_PROPERTY, original);
         }

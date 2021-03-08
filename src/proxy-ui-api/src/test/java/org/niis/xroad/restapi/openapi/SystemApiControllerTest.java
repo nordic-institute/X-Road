@@ -32,6 +32,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
 import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
@@ -131,13 +132,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
     public void getVersionInfo()  {
-        VersionInfo mockVersionInfo = new VersionInfo();
+        VersionInfoDto mockVersionInfo = new VersionInfoDto();
+        mockVersionInfo.setJavaVersion(33);
 
         given(versionService.getVersionInfo()).willReturn(mockVersionInfo);
         ResponseEntity<VersionInfo> response = systemApiController.systemVersion();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(mockVersionInfo, response.getBody());
+        assertEquals(33, (long) response.getBody().getJavaVersion());
     }
 
     private void getSystemCertificate() throws IOException {

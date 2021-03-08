@@ -23,42 +23,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.Version;
-
-import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import org.springframework.stereotype.Component;
 
 /**
- * service class for handling X-Road version information
+ * Helper to convert Versions
  */
-@Slf4j
-@Service
-@PreAuthorize("isAuthenticated()")
-public class VersionService {
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
-
+@Component
+public class VersionConverter {
 
     /**
-     * Returns X-Road software version number and java version information
-     * @return
+     * Copies VersionInfoDto object to VersionInfo object
+     * @param versionInfoDto - source object
+     * @return copied object
      */
-    public VersionInfoDto getVersionInfo() {
-        VersionInfoDto result = new VersionInfoDto();
-        result.setInfo(Version.XROAD_VERSION);
-        int javaVersion = Version.readJavaVersion();
-        result.setJavaVersion(javaVersion);
-        result.setMinJavaVersion(MIN_SUPPORTED_JAVA_VERSION);
-        result.setMaxJavaVersion(MAX_SUPPORTED_JAVA_VERSION);
-        result.setUsingSupportedJavaVersion(javaVersion >= MIN_SUPPORTED_JAVA_VERSION
-                && javaVersion <= MAX_SUPPORTED_JAVA_VERSION);
-        result.setJavaVendor(Version.JAVA_VENDOR);
-        result.setJavaRuntimeVersion(Version.JAVA_RUNTIME_VERSION);
-
+    public VersionInfo convert(VersionInfoDto versionInfoDto) {
+        VersionInfo result = new VersionInfo();
+        result.setInfo(versionInfoDto.getInfo());
+        result.setJavaVersion(versionInfoDto.getJavaVersion());
+        result.setMinJavaVersion(versionInfoDto.getMinJavaVersion());
+        result.setMaxJavaVersion(versionInfoDto.getMaxJavaVersion());
+        result.setUsingSupportedJavaVersion(versionInfoDto.isUsingSupportedJavaVersion());
+        result.setJavaVendor(versionInfoDto.getJavaVendor());
+        result.setJavaRuntimeVersion(versionInfoDto.getJavaRuntimeVersion());
         return result;
     }
 }

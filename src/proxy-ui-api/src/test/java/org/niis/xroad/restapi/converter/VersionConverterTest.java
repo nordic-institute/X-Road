@@ -23,42 +23,40 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package org.niis.xroad.restapi.converter;
 
-import ee.ria.xroad.common.Version;
-
-import lombok.extern.slf4j.Slf4j;
+import org.junit.Test;
 import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Service;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
+
+import static org.junit.Assert.assertEquals;
 
 /**
- * service class for handling X-Road version information
+ * Test VersionConverter
  */
-@Slf4j
-@Service
-@PreAuthorize("isAuthenticated()")
-public class VersionService {
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+public class VersionConverterTest extends AbstractConverterTestContext {
 
+    @Test
+    public void convertVersion() {
+        VersionConverter versionConverter = new VersionConverter();
 
-    /**
-     * Returns X-Road software version number and java version information
-     * @return
-     */
-    public VersionInfoDto getVersionInfo() {
-        VersionInfoDto result = new VersionInfoDto();
-        result.setInfo(Version.XROAD_VERSION);
-        int javaVersion = Version.readJavaVersion();
-        result.setJavaVersion(javaVersion);
-        result.setMinJavaVersion(MIN_SUPPORTED_JAVA_VERSION);
-        result.setMaxJavaVersion(MAX_SUPPORTED_JAVA_VERSION);
-        result.setUsingSupportedJavaVersion(javaVersion >= MIN_SUPPORTED_JAVA_VERSION
-                && javaVersion <= MAX_SUPPORTED_JAVA_VERSION);
-        result.setJavaVendor(Version.JAVA_VENDOR);
-        result.setJavaRuntimeVersion(Version.JAVA_RUNTIME_VERSION);
+        VersionInfoDto infoDto = new VersionInfoDto();
+        infoDto.setInfo("1.3.33");
+        infoDto.setJavaVersion(9);
+        infoDto.setMinJavaVersion(8);
+        infoDto.setMaxJavaVersion(11);
+        infoDto.setUsingSupportedJavaVersion(true);
+        infoDto.setJavaVendor("Xroad");
+        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
 
-        return result;
+        VersionInfo version = versionConverter.convert(infoDto);
+
+        assertEquals(infoDto.getInfo(), version.getInfo());
+        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
+        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
+        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
+        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
+        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
+        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
     }
 }
