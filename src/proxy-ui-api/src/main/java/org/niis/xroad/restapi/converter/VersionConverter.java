@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.restapi.converter;
 
-
-import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 import org.springframework.stereotype.Component;
 
 /**
@@ -36,13 +36,19 @@ import org.springframework.stereotype.Component;
 public class VersionConverter {
 
     /**
-     * Converts a version String to Version object
-     * @param softwareVersion
-     * @return
+     * Copies VersionInfoDto object to VersionInfo object
+     * @param versionInfoDto - source object
+     * @return copied object
      */
-    public Version convert(String softwareVersion) {
-        Version version = new Version();
-        version.setInfo(softwareVersion);
-        return version;
+    public VersionInfo convert(VersionInfoDto versionInfoDto) {
+        VersionInfo result = new VersionInfo();
+        result.setInfo(versionInfoDto.getInfo());
+        result.setJavaVersion(versionInfoDto.getJavaVersion());
+        result.setMinJavaVersion(versionInfoDto.getMinJavaVersion());
+        result.setMaxJavaVersion(versionInfoDto.getMaxJavaVersion());
+        result.setUsingSupportedJavaVersion(versionInfoDto.isUsingSupportedJavaVersion());
+        result.setJavaVendor(versionInfoDto.getJavaVendor());
+        result.setJavaRuntimeVersion(versionInfoDto.getJavaRuntimeVersion());
+        return result;
     }
 }
