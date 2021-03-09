@@ -1017,7 +1017,7 @@ The [load_balancer_setup](/files/load_balancer_setup.yaml) contains all the nece
   - &lt;xroad log level&gt; (**reference data: 1.10**)
   - &lt;xroad dabase name&gt; (**reference data: 1.11**)
   - &lt;pv-efs-id&gt; (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
-  - &lt;version primary&gt; At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-slim.
+  - &lt;version primary&gt; At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-fi, 6.25.0-slim-primary, 6.25.0-slim-primary-fi.
   - &lt;version secondary&gt; At the time this document was written the supported version for the secondary are: 6.25.0-secondary, 6.25.0-secondary-slim. Make sure that the secondary version matches with the primary, this is, if we choose the slim version for the primary, we also must choose the slim version for the secondary.   
 
 - Once the values are replaced, apply the manifest file:
