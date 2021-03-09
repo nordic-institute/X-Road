@@ -1018,14 +1018,14 @@ The algorithm for calculating the number of Pod replicas operates on the radio b
 desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]
 ### 9.1 Prerequisites
 
-- [Helm](https://helm.sh/docs/intro/install/) installed.
-- [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) deployed on our cluster.
-- The [API aggregation layer](https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/) is enabled. (If you are using an AWS EKS cluster this doesn't require any action).
+* [Helm](https://helm.sh/docs/intro/install/) installed.
+* [Metrics Server](https://github.com/kubernetes-sigs/metrics-server) deployed on our cluster.
+* The [API aggregation layer](https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/) is enabled. (If you are using an AWS EKS cluster this doesn't require any action).
 
 ### 9.2 Requirements
 
-- A Kubernetes cluster with version 1.6 or later.
-- The scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployed in our cluster.
+* A Kubernetes cluster with version 1.6 or later.
+* The scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployed in our cluster.
 
 ### 9.3 Reference data
 
@@ -1064,9 +1064,9 @@ We can easily install it with Helm, Prometheus Operator is included as a module 
   - [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
   - [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
 
-- First, download the values file, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml, which contains a set of configuration properties.
+First, download the values file, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml, which contains a set of configuration properties.
 
-- For autoscaling the Pods we are only going to need the Promethes and Prometheus Operator modules, we can leave the remaining modules if we want any of the extra features, if not, we can disable these modules by editing the `values.yaml` file previously downloaded, inside the file, search for the tags: "kubeStateMetrics", "prometheusOperator", "alertmanager",  "nodeExporter" setting the property `enabled` to false:
+For autoscaling the Pods we are only going to need the Promethes and Prometheus Operator modules, we can leave the remaining modules if we want any of the extra features, if not, we can disable these modules by editing the `values.yaml` file previously downloaded, inside the file, search for the tags: "kubeStateMetrics", "prometheusOperator", "alertmanager",  "nodeExporter" setting the property `enabled` to false:
 
 ``` yaml
 [...]
@@ -1086,14 +1086,14 @@ alertmanager:
 [...]
 ```
 
-- After editing the `values.yaml` file we can install the "kube-prometheus-stack" by running (**reference data: 3.1**) (It's recommended deploy the Prometheus related objects in a new namespace):
+After editing the `values.yaml` file we can install the "kube-prometheus-stack" by running (**reference data: 3.1**) (It's recommended deploy the Prometheus related objects in a new namespace):
 ``` bash
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
 helm install -f values.yaml  prometheus prometheus-community/kube-prometheus-stack --namespace <namespace name>
 ```
 
-- Verify if the Pods and Services are deployed and running (**reference data: 3.1**) :
+Verify if the Pods and Services are deployed and running (**reference data: 3.1**) :
 ``` bash
 kubectl get pods -n <namespace name>
 NAME                                                   READY   STATUS    RESTARTS   AGE
@@ -1107,21 +1107,21 @@ prometheus-kube-prometheus-operator     ClusterIP   10.100.112.220   <none>     
 prometheus-kube-prometheus-prometheus   ClusterIP   10.100.81.220    <none>        9090/TCP   4d5h
 ```
 
-- Verify that Prometheus UI is accessible, we can expose the Prometheus 9090 port by running (**reference data: 3.1**):
+Verify that Prometheus UI is accessible, we can expose the Prometheus 9090 port by running (**reference data: 3.1**):
 ```
 kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 --namespace <namespace name>
 ```
 and then check if it's accessible through the browser in the URL http://localhost:9090.
 
-- It is possible uninstall the kube-prometheus-stack Helm chart by running (**reference data: 3.1**):
+It is possible uninstall the kube-prometheus-stack Helm chart by running (**reference data: 3.1**):
 ``` bash
 helm uninstall prometheus -n <namespace name>
 ```
 #### 9.4.2 Deploy Prometheus Adapter
 
 Prometheus metrics can not be directly accessed from the Kubernetes metrics API, to be accessed, we need to deploy in our cluster the Prometheus Adapter. This adapter will allow us to discover all Prometheus metrics from Kubernetes.
-- First download the value files, which contains a set of configuration properties, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-adapter/values.yaml.
-- Edit the `values.yaml` file, set the `url` and `port` properties in the `prometheus` object with the following values:
+First download the value files, which contains a set of configuration properties, located at https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-adapter/values.yaml.
+Edit the `values.yaml` file, set the `url` and `port` properties in the `prometheus` object with the following values:
 ``` yaml
 [...]
 # Url to access prometheus
@@ -1134,7 +1134,7 @@ prometheus:
 ```
 The URL `prometheus-operated.monitoring.svc.cluster.local` is valid for AWS EKS clusters, for others scenarios the URL may be `prometheus-operated.monitoring.svc`
 
-- For detecting the network load, in this example, we are going to use the Prometheus metric `container_network_receive_packets_total` (We can use any other metric provided by Prometheus, like `container_network_receive_bytes_total` ... ). This metrics will inform us about the total number of packages received in our deployment. In principle, this metric may not be very useful to us, because it returns the total number of packets, but in our scenario, we will need to know the number packets in a certain time interval, for that reason, it is required to create a rule in the Prometheus Adapter configuration so that it returns the value of this metric based on the average of packets in a time interval.
+For detecting the network load, in this example, we are going to use the Prometheus metric `container_network_receive_packets_total` (We can use any other metric provided by Prometheus, like `container_network_receive_bytes_total` ... ). This metrics will inform us about the total number of packages received in our deployment. In principle, this metric may not be very useful to us, because it returns the total number of packets, but in our scenario, we will need to know the number packets in a certain time interval, for that reason, it is required to create a rule in the Prometheus Adapter configuration so that it returns the value of this metric based on the average of packets in a time interval.
 Edit the `values.yaml` file, creating a new custom rule:
 ``` yaml
 [...]
@@ -1160,29 +1160,29 @@ rules:
   external: []
 [...]
 ```
-    - The `seriesQuery` property defines the metric and the namespace in wich this metric apply (the namespace of our Deployment). We can set `{namespace!=""}` if we want to make the metric available to all namespaces.
-    - The `resource` property defines wich type of Kubernetes resources can use this metric.
-    - The `name` property changes the metric name from `container_network_receive_packets_total` to `container_network_receive_packets_per_minute`.
-    - The `metricsQuery` property sum the average value of the metric in a time interval, in our example, 1 minute, but it could be any custom time interval.
+    * The `seriesQuery` property defines the metric and the namespace in wich this metric apply (the namespace of our Deployment). We can set `{namespace!=""}` if we want to make the metric available to all namespaces.
+    * The `resource` property defines wich type of Kubernetes resources can use this metric.
+    * The `name` property changes the metric name from `container_network_receive_packets_total` to `container_network_receive_packets_per_minute`.
+    * The `metricsQuery` property sum the average value of the metric in a time interval, in our example, 1 minute, but it could be any custom time interval.
 
 More information about how to create rules can be found [here](https://github.com/kubernetes-sigs/prometheus-adapter/blob/master/docs/config-walkthrough.md).
 
-- Once the `values.yaml` file is configured, we can install the Prometheus Adapter by running (**reference data: 3.1**):
+Once the `values.yaml` file is configured, we can install the Prometheus Adapter by running (**reference data: 3.1**):
 ``` bash
 helm install -f values.yaml  prometheus-adapter prometheus-community/prometheus-adapter --namespace <namespace name>
 ```
 
-- After a couple of minutes, we can list the metrics, then verify that the metric `container_network_receive_packets_per_minute` we have just created is included in the list for pods resources by running:
+After a couple of minutes, we can list the metrics, then verify that the metric `container_network_receive_packets_per_minute` we have just created is included in the list for pods resources by running:
 ``` bash
 kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1 | jq
 ```
 
-- If we need to modify the Prometheus Adapter rules once is deployed we can:
-  - Edit the configuration file `values.yaml` and run a Helm upgrade (**reference data: 3.1**):
+If we need to modify the Prometheus Adapter rules once is deployed we can:
+  * Edit the configuration file `values.yaml` and run a Helm upgrade (**reference data: 3.1**):
   ``` bash
   helm upgrade --install -f values.yaml  prometheus-adapter prometheus-community/prometheus --namespace <namespace name>
   ```
-  - Search for the Prometheus adapter ConfigMap and edit it (**reference data: 3.1**):
+  * Search for the Prometheus adapter ConfigMap and edit it (**reference data: 3.1**):
   ``` bash
   kubectl get cm -n <namespace name>
   NAME                                                           DATA   AGE
@@ -1192,14 +1192,14 @@ kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1 | jq
   ``` bash
   kubectl edit cm -n <namespace name> prometheus-adapter
   ```
-- It is possible uninstall the prometheus-adapter Helm chart by running (**reference data: 3.1**):
+It is possible uninstall the prometheus-adapter Helm chart by running (**reference data: 3.1**):
 ``` bash
 helm uninstall prometheus-adapter -n <namespace name>
 ```
 
 #### 9.4.3 Deploy HorizontalPodAutoescaler
 
-- Create the following manifets file (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**) (The namespace should be the same than the Deployment namespace):
+Create the following manifets file (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**) (The namespace should be the same than the Deployment namespace):
 ``` yaml
 kind: HorizontalPodAutoscaler
 apiVersion: autoscaling/v2beta1
@@ -1225,11 +1225,11 @@ spec:
       targetAverageValue: <target average value>
 ```
 
-- Apply the HPA:
+Apply the HPA:
 ```
 kubectl apply -f /path/to/hpa.yaml
 ```
- - If we describe the HPA we should see something similar to this (**reference data 3.1, 4.1**):
+ If we describe the HPA we should see something similar to this (**reference data 3.1, 4.1**):
 ```
 kubectl describe hpa -n <namespace name> <hpa name>
 
@@ -1294,13 +1294,13 @@ Doing that we can set a minumin number of Pods in our HPA (**reference data: 4.2
 It is possible to skip the Prometheus and Prometheus Adapter steps and only use the default metrics provided by the [Metrics Server](https://github.com/kubernetes-sigs/metrics-server). With this metrics we can autoscale our Deployment base on CPU/Memory utilization.
 For example, if we define a target of 50% percent of CPU utilization, the HPA will scale the number of replicas if the CPU utilization of any of the Pods in the deployment goes higher than 50%.
 
-- It is possible to create and HPA for CPU utilization by running (**reference data: 3.1, 4.2, 4.3, 4.5, 4.7**):
+It is possible to create and HPA for CPU utilization by running (**reference data: 3.1, 4.2, 4.3, 4.5, 4.7**):
 ``` bash
 kubectl autoscale deployment <hpa deployment name> -n <namespace name> --cpu-percent=<target cpu percent> --min=<hpa min replicas> --max=<hpa max replicas>
 ```
 The name of the HPA will be the same name as the Deployment.
 
-- Another option for creating custom metrics is to create a manifest file, in this example we are going to show how to create an HPA based on Memory utilization (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.8**):
+Another option for creating custom metrics is to create a manifest file, in this example we are going to show how to create an HPA based on Memory utilization (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.8**):
 ``` yaml
 
 apiVersion: autoscaling/v2beta2
