@@ -1006,21 +1006,22 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
 ## 9 Setup example
 The [load_balancer_setup](/files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to setup the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is `sidecar`.
 - Download the file and search for following variables and replace it with our desired values:
-  - <public key base64> Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
-  - <private key base64> Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
-  - <token pin> (**reference data: 1.4**)
-  - <admin user> (**reference data: 1.5**)
-  - <admin password> (**reference data: 1.6**)
-  - <database host> (**reference data: 1.7**)
-  - <database password> (**reference data: 1.9**)
-  - <database port> (**reference data: 1.8**)
-  - <xroad log level> (**reference data: 1.10**)
-  - <xroad dabase name> (**reference data: 1.11**)
-  - <pv-efs-id> (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
-  - <version primary> At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-slim.
-  - <version secondary> At the time this document was written the supported version for the secondary are: 6.25.0-secondary, 6.25.0-secondary-slim. Make sure that the secondary version matches with the primary, this is, if we choose the slim version for the primary, we also must choose the slim version for the secondary.   
+  - &lt;public key base64> Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
+  - &lt;private key base64> Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
+  - &lt;token pin&gt; (**reference data: 1.4**)
+  - &lt;admin user&gt; (**reference data: 1.5**)
+  - &lt;admin password&gt; (**reference data: 1.6**)
+  - &lt;database host&gt; (**reference data: 1.7**)
+  - &lt;database password&gt; (**reference data: 1.9**)
+  - &lt;database port&gt; (**reference data: 1.8**)
+  - &lt;xroad log level&gt; (**reference data: 1.10**)
+  - &lt;xroad dabase name&gt; (**reference data: 1.11**)
+  - &lt;pv-efs-id&gt; (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
+  - &lt;version primary&gt; At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-slim.
+  - &lt;version secondary&gt; At the time this document was written the supported version for the secondary are: 6.25.0-secondary, 6.25.0-secondary-slim. Make sure that the secondary version matches with the primary, this is, if we choose the slim version for the primary, we also must choose the slim version for the secondary.   
 
 - Once the values are replaced, apply the manifest file:
+
 ```
 kubectl apply -f load_balancer_setup.yaml"
 ```
