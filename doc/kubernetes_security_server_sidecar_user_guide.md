@@ -1005,28 +1005,28 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
 
 ## 9 Setup example
 The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is `sidecar`.
-- Download the file and search for following variables and replace it with our desired values:
-  - &lt;public key base64> Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
-  - &lt;private key base64> Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
-  - &lt;token pin&gt; (**reference data: 1.4**)
-  - &lt;admin user&gt; (**reference data: 1.5**)
-  - &lt;admin password&gt; (**reference data: 1.6**)
-  - &lt;database host&gt; (**reference data: 1.7**)
-  - &lt;database password&gt; (**reference data: 1.9**)
-  - &lt;database port&gt; (**reference data: 1.8**)
-  - &lt;xroad log level&gt; (**reference data: 1.10**)
-  - &lt;xroad dabase name&gt; (**reference data: 1.11**)
-  - &lt;pv-efs-id&gt; (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
-  - &lt;version primary&gt; At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-fi, 6.25.0-slim-primary, 6.25.0-slim-primary-fi.
-  - &lt;version secondary&gt; At the time this document was written the supported version for the secondary are: 6.25.0-secondary, 6.25.0-secondary-slim. Make sure that the secondary version matches with the primary, this is, if we choose the slim version for the primary, we also must choose the slim version for the secondary.   
+* Download the file and search for following variables and replace it with our desired values:
+  + &lt;public key base64> Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
+  + &lt;private key base64> Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
+  + &lt;token pin&gt; (**reference data: 1.4**)
+  + &lt;admin user&gt; (**reference data: 1.5**)
+  + &lt;admin password&gt; (**reference data: 1.6**)
+  + &lt;database host&gt; (**reference data: 1.7**)
+  + &lt;database password&gt; (**reference data: 1.9**)
+  + &lt;database port&gt; (**reference data: 1.8**)
+  + &lt;xroad log level&gt; (**reference data: 1.10**)
+  + &lt;xroad dabase name&gt; (**reference data: 1.11**)
+  + &lt;pv-efs-id&gt; (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
+  + &lt;version primary&gt; At the time this document was written the supported version for the primary are: 6.25.0-primary, 6.25.0-primary-fi, 6.25.0-slim-primary, 6.25.0-slim-primary-fi.
+  + &lt;version secondary&gt; At the time this document was written the supported version for the secondary are: 6.25.0-secondary, 6.25.0-secondary-slim. Make sure that the secondary version matches with the primary, this is, if we choose the slim version for the primary, we also must choose the slim version for the secondary.   
 
-- Once the values are replaced, apply the manifest file:
+Once the values are replaced, apply the manifest file:
 
 ```
 kubectl apply -f load_balancer_setup.yaml"
 ```
 
-- Verify that the PersistentVolumeClaim is deployed and bounded:
+Verify that the PersistentVolumeClaim is deployed and bounded:
 ```
 kubectl get pvc -n sidecar
 
@@ -1034,7 +1034,7 @@ NAME                 STATUS   VOLUME                  CAPACITY   ACCESS MODES   
 pvc-config-sidecar   Bound    pv-efs-config-sidecar   2Gi        RWX            sidecarstorage   5m38s
 ```
 
-- Verify that the secrets are deployed:
+Verify that the secrets are deployed:
 ```
 kubectl get secrets -n sidecar
 
@@ -1053,7 +1053,7 @@ service-security-server-sidecar-primary   ClusterIP      None             <none>
 
 ```
 
-- Verify that the Primary and Secondary Pods are deployed. The Secondary Pod should remain in the "Not Ready" state until the Primary Pod is configured. If we are using a volume that already has the Primary Pod configuration, the Secondary Pod should switch to the "Ready" state after approximately 3-4 minutes.
+Verify that the Primary and Secondary Pods are deployed. The Secondary Pod should remain in the "Not Ready" state until the Primary Pod is configured. If we are using a volume that already has the Primary Pod configuration, the Secondary Pod should switch to the "Ready" state after approximately 3-4 minutes.
 ```
 kubectl get pods -n sidecar
 
