@@ -23,31 +23,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
 
-Vue.use(VueRouter);
+// Filters an array of objects excluding specified object key
+export function selectedFilter<T, K extends keyof T>(
+  arr: T[],
+  search: string,
+  excluded?: K,
+): T[] {
+  // Clean the search string
+  const mysearch = search.toString().toLowerCase();
+  if (mysearch.trim() === '') {
+    return arr;
+  }
 
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
-  },
-];
+  const filtered = arr.filter((g) => {
+    let filteredKeys = Object.keys(g) as K[];
 
-const router = new VueRouter({
-  routes,
-});
+    // If there is an excluded key remove it from the keys
+    if (excluded) {
+      filteredKeys = filteredKeys.filter((value) => {
+        return value !== excluded;
+      });
+    }
 
-export default router;
+    return filteredKeys.find((key: K) => {
+      return String(g[key]).toLowerCase().includes(mysearch);
+    });
+  });
+
+  return filtered;
+}
+
+// Checks if the given WSDL URL valid
+export function isValidWsdlURL(str: string): boolean {
+  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
+  return !!pattern.test(str);
+}
+
+// Checks if the given REST URL is valid
+export function isValidRestURL(str: string): boolean {
+  return isValidWsdlURL(str);
+}

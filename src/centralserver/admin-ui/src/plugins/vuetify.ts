@@ -23,31 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import '@mdi/font/css/materialdesignicons.css';
 import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
+import Vuetify from 'vuetify/lib';
 
-Vue.use(VueRouter);
+Vue.use(Vuetify);
 
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
+export default new Vuetify({
+  icons: {
+    iconfont: 'mdi',
   },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
+  theme: {
+    themes: {
+      light: {
+        primary: '#663cdc',
+        secondary: '#00C9E7',
+        accent: '#8c9eff',
+        grey: '#9c9c9c',
+      },
+    },
   },
-];
-
-const router = new VueRouter({
-  routes,
 });
-
-export default router;

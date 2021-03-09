@@ -23,31 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
+/* Overrides for Vuetify variables
+"Once installed, create a folder called sass, scss or styles in your src directory with 
+a file named variables.scss or variables.sass. The vuetify-loader will automatically 
+bootstrap your variables into Vue CLI’s compilation process, overwriting the framework defaults."
+https://vuetifyjs.com/en/features/sass-variables/#vue-cli-install
 
-Vue.use(VueRouter);
 
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
-  },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
-  },
-];
+List of Vuetify SASS variables: https://vuetifyjs.com/en/api/vuetify/#sass-variables
+*/
 
-const router = new VueRouter({
-  routes,
-});
-
-export default router;
+// Globals
+$body-font-family: "Open Sans", sans-serif;

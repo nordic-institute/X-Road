@@ -24,30 +24,21 @@
  * THE SOFTWARE.
  */
 import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
+import VueI18n from 'vue-i18n';
+import en from 'vee-validate/dist/locale/en.json';
 
-Vue.use(VueRouter);
+Vue.use(VueI18n);
 
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
+import locals from './locales/en.json';
+// Any is ok here, there is no definition for the locale format
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(locals as any).validation = en.messages;
+
+export default new VueI18n({
+  locale: process.env.VUE_APP_I18N_LOCALE || 'en',
+  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true,
+  messages: {
+    en: locals,
   },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
-  },
-];
-
-const router = new VueRouter({
-  routes,
 });
-
-export default router;

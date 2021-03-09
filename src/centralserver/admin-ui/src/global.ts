@@ -23,31 +23,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
-
-Vue.use(VueRouter);
-
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
+export const StoreTypes = {
+  getters: {
+    IS_AUTHENTICATED: 'IS_AUTHENTICATED',
+    IS_SESSION_ALIVE: 'IS_SESSION_ALIVE',
+    USERNAME: 'USERNAME',
   },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
+  mutations: {
+    SET_SESSION_ALIVE: 'SET_SESSION_ALIVE',
+    SET_USERNAME: 'SET_USERNAME',
+    CLEAR_AUTH_DATA: 'CLEAR_AUTH_DATA',
+    AUTH_USER: 'AUTH_USER',
   },
-];
+  actions: {
+    LOGIN: 'LOGIN',
+    LOGOUT: 'LOGOUT',
+    CLEAR_AUTH: 'CLEAR_AUTH',
+    FETCH_SESSION_STATUS: 'FETCH_SESSION_STATUS',
+    FETCH_USER_DATA: 'FETCH_USER_DATA',
+  },
+};
 
-const router = new VueRouter({
-  routes,
-});
-
-export default router;
+// Version 7.0 colors as enum.
+export enum Colors {
+  Purple10 = '#efebfb',
+  Purple20 = '#e0d8f8',
+  Purple30 = '#d1c4f4',
+  Purple70 = '#9376e6',
+  Purple100 = '#663cdc',
+  Black10 = '#e8e8e8',
+  Black30 = '#bcbbbb',
+  Black50 = '#908e8e',
+  Black70 = '#636161',
+  Black100 = '#211e1e',
+  White100 = '#ffffff',
+  WarmGrey10 = '#f4f3f6',
+  WarmGrey20 = '#eae8ee',
+  WarmGrey30 = '#dedce4',
+  WarmGrey50 = '#c9c6d3',
+  WarmGrey70 = '#b4afc2',
+  WarmGrey100 = '#575169',
+  Error = '#ec4040',
+  Success100 = '#0cc177',
+  Success10 = '#e6f8f1',
+  Background = '#e5e5e5',
+}

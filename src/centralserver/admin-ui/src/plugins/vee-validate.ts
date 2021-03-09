@@ -23,31 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
+import { extend, configure } from 'vee-validate';
+import { required, min, between } from 'vee-validate/dist/rules';
+import i18n from '../i18n';
 
-Vue.use(VueRouter);
+configure({
+  // This should be ok, as it is the vee-validate contract
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultMessage: (field, values: any): string => {
+    // override the field name.
+    values._field_ = i18n.t(`fields.${field}`);
 
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
+    return i18n.t(`validation.${values._rule_}`, values) as string;
   },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
-  },
-];
-
-const router = new VueRouter({
-  routes,
 });
 
-export default router;
+// Install required rule and message.
+extend('required', required);
+
+// Install min rule and message.
+extend('min', min);
+
+// Install between rule and message.
+extend('between', between);
