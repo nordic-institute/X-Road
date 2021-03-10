@@ -66,7 +66,7 @@ var signAuthKeysTabCommands = {
   },
   generateAuthCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
+      '//table[./thead//th[@class="title-col"]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
         keyname +
         '")]]]//button[.//*[contains(text(), "Generate CSR")]]',
     );
@@ -94,7 +94,7 @@ var signAuthKeysTabCommands = {
   },
   generateSignCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
+      '//table[./thead//th[@class="title-col"]]//tr[.//div[contains(@class, "clickable-link") and ./*[contains(text(), "' +
         keyname +
         '")]]]//button[.//*[contains(text(), "Generate CSR")]]',
     );
@@ -102,7 +102,7 @@ var signAuthKeysTabCommands = {
   },
   deleteSignCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//tbody[.//div[contains(@class, "clickable-link") and .//*[contains(text(), "' +
+      '//table[./thead//th[@class="title-col"]]//tbody[.//div[contains(@class, "clickable-link") and .//*[contains(text(), "' +
         keyname +
         '")]]]//tr[.//div[contains(@class, "name-wrap")]//div[text()="Request"]]//button[.//*[contains(text(), "Delete CSR")]]',
     );
@@ -282,41 +282,41 @@ var addKeywizardGenerateCommands = {
 const keysTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/keys`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Keys and certificates")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and @data-test="keys"]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: keysTabCommands,
   elements: {
     signAndAuthKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" SIGN and AUTH Keys "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="signAndAuthKeys"]',
       locateStrategy: 'xpath',
     },
     APIKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" API Keys "]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="apiKey"]',
       locateStrategy: 'xpath',
     },
     securityServerTLSKeyTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[text()=" Security Server TLS Key "]',
+        '//a[@data-test="ssTlsCertificate"]',
       locateStrategy: 'xpath',
     },
     tokenName: {
-      selector: '//*[contains(@data-test, "token-name")]',
+      selector: '//*[@data-test="token-name"]',
       locateStrategy: 'xpath',
     },
     createAPIKeyButton: {
-      selector: '//*[contains(@data-test, "api-key-create-key-button")]',
+      selector: '//*[@data-test="api-key-create-key-button"]',
       locateStrategy: 'xpath',
     },
     generateKeyButton: {
       selector:
-        '//*[contains(@data-test, "security-server-tls-certificate-generate-key-button")]',
+        '//*[@data-test="security-server-tls-certificate-generate-key-button"]',
       locateStrategy: 'xpath',
     },
     exportCertButton: {
       selector:
-        '//*[contains(@data-test, "security-server-tls-certificate-export-certificate-button")]',
+        '//*[@data-test="security-server-tls-certificate-export-certificate-button"]',
       locateStrategy: 'xpath',
     },
   },
@@ -524,7 +524,7 @@ const keysTab = {
     },
     addKeyWizardDetails: {
       selector:
-        '//div[contains(@class, "view-wrap") and .//*[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "Key details")]]]',
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardDetailCommands],
       elements: {
@@ -544,7 +544,7 @@ const keysTab = {
     },
     addKeyWizardCSR: {
       selector:
-        '//div[contains(@class, "view-wrap") and .//*[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "CSR details")]]]',
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardCSRCommands],
       elements: {
@@ -584,7 +584,77 @@ const keysTab = {
     },
     addKeyWizardGenerate: {
       selector:
-        '//div[contains(@class, "view-wrap") and .//*[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "Generate CSR")]]]',
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "3")]]',
+      locateStrategy: 'xpath',
+      commands: [addKeywizardGenerateCommands],
+      elements: {
+        doneButton: {
+          selector: '(//button[@data-test="save-button"])[2]',
+          locateStrategy: 'xpath',
+        },
+        previousButton: {
+          selector: '//button[@data-test="previous-button"]',
+          locateStrategy: 'xpath',
+        },
+        cancelButton: {
+          selector: '(//button[@data-test="cancel-button"])[2]',
+          locateStrategy: 'xpath',
+        },
+        generateButton: {
+          selector: '//button[@data-test="generate-csr-button"]',
+          locateStrategy: 'xpath',
+        },
+        organizationName: {
+          selector: '//input[@name="O" and @data-test="dynamic-csr-input"]',
+          locateStrategy: 'xpath',
+        },
+        serverDNS: {
+          selector: '//input[@name="CN" and @data-test="dynamic-csr-input"]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
+    generateKeyCsrWizardCsr: { // Generate csr for existing sign key. Page 1, CSR details
+      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
+      locateStrategy: 'xpath',
+      commands: [addKeywizardCSRCommands],
+      elements: {
+        continueButton: {
+          selector: '//button[@data-test="save-button"]',
+          locateStrategy: 'xpath',
+        },
+        previousButton: {
+          selector: '//button[@data-test="previous-button"]',
+          locateStrategy: 'xpath',
+        },
+        cancelButton: {
+          selector: '//button[@data-test="cancel-button"]',
+          locateStrategy: 'xpath',
+        },
+        csrUsage: {
+          selector:
+            '//div[@role="button" and .//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]]',
+          locateStrategy: 'xpath',
+        },
+        csrService: {
+          selector:
+            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-certification-service-select"]]',
+          locateStrategy: 'xpath',
+        },
+        csrFormat: {
+          selector:
+            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-format-select"]]',
+          locateStrategy: 'xpath',
+        },
+        csrClient: {
+          selector:
+            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
+    generateKeyCsrWizardGenerate: { // Generate csr for existing sign key. Page 2, generate
+      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardGenerateCommands],
       elements: {

@@ -129,7 +129,7 @@ module.exports = {
     // Verify that add is disabled if only Code is entered
     clientLocalGroups.enterCode('abc');
     browser.waitForElementVisible(
-      '//button[contains(@data-test, "dialog-save-button") and @disabled="disabled"]',
+      '//button[@data-test="dialog-save-button" and @disabled="disabled"]',
     );
     clientLocalGroups.cancelAddDialog();
 
@@ -137,7 +137,7 @@ module.exports = {
     clientLocalGroups.openAddDialog();
     clientLocalGroups.enterDescription('addDesc');
     browser.waitForElementVisible(
-      '//button[contains(@data-test, "dialog-save-button") and @disabled="disabled"]',
+      '//button[@data-test="dialog-save-button" and @disabled="disabled"]',
     );
 
     // Verify that trying to add a group with existing code results in an error message
@@ -201,8 +201,8 @@ module.exports = {
     localGroupPopup.selectMember('REST-UI-TEST:ORG:2908758-4:Management');
     localGroupPopup.cancelAddMembersDialog();
 
-    browser.waitForElementNotVisible(
-      '//span[contains(@class, "headline") and contains(text(), "Add Members")]',
+    browser.assert.not.elementPresent(
+      '//span[contains(@class, "headline") and @data-test="add-members-dialog-title"]',
     );
     browser.waitForElementVisible(localGroupPopup);
     browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]');
@@ -251,14 +251,14 @@ module.exports = {
     localGroupPopup.clickRemoveTestComMember();
     localGroupPopup.cancelMemberRemove();
     browser.waitForElementNotVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Remove member?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Remove member?")]',
     );
     browser.assert.elementPresent('//*[contains(text(),"TestCom")]');
 
     localGroupPopup.clickRemoveTestComMember();
     localGroupPopup.confirmMemberRemove();
     browser.waitForElementNotVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Remove member?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Remove member?")]',
     );
     browser.assert.not.elementPresent('//*[contains(text(),"TestCom")]');
     localGroupPopup.close();
@@ -272,18 +272,18 @@ module.exports = {
     localGroupPopup.clickRemoveAll();
     localGroupPopup.cancelMemberRemove();
     browser.waitForElementNotVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Remove all members?")]',
     );
     browser.assert.elementPresent('//*[contains(text(),"TestGov")]');
     browser.assert.elementPresent('//*[contains(text(),"TestOrg")]');
 
     localGroupPopup.clickRemoveAll();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Remove all members?")]',
     );
     localGroupPopup.confirmMemberRemove();
     browser.waitForElementNotVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Remove all members?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Remove all members?")]',
     );
     browser.assert.not.elementPresent('//*[contains(text(),"TestGov")]');
     browser.assert.not.elementPresent('//*[contains(text(),"TestOrg")]');
@@ -423,7 +423,7 @@ module.exports = {
     );
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Delete group?")]',
     );
     localGroupPopup.confirmDelete();
     browser.waitForElementVisible(clientLocalGroups);
@@ -436,11 +436,11 @@ module.exports = {
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.deleteThisGroup();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Delete group?")]',
     );
     localGroupPopup.cancelDelete();
     browser.waitForElementNotVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete group?")]',
+      '//*[@data-test="dialog-title" and contains(text(), "Delete group?")]',
     );
     localGroupPopup.close();
     browser.waitForElementVisible(

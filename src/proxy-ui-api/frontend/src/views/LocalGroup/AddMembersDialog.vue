@@ -27,7 +27,7 @@
   <v-dialog :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{ $t(title) }}</span>
+        <span class="headline" data-test="add-members-dialog-title">{{ $t(title) }}</span>
         <v-spacer />
         <i @click="cancel()" id="close-x"></i>
       </v-card-title>

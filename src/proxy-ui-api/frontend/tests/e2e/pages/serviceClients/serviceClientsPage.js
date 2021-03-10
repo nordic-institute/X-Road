@@ -61,18 +61,18 @@ module.exports = {
     },
     addSubjectWizardHeader: {
       selector:
-        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
+        '//div[@data-test="add-subject-title"]',
       locateStrategy: 'xpath',
     },
     searchField: {
-      selector: '//input[contains(@data-test, "search-service-client")]',
+      selector: '//input[@data-test="search-service-client"]',
       locateStrategy: 'xpath',
     },
   },
   sections: {
     serviceClientsTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab--active") and contains(text(), "service clients")]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="serviceClients"]',
       locateStrategy: 'xpath',
     },
     wizardSelectServices: {
