@@ -398,7 +398,7 @@ module.exports = {
 
     // Verify cancel remove all
     operationDetails.removeAllAccessRights();
-    // browser.waitForElementVisible(removeAllAccessRightsPopup);
+    browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.cancel();
     browser.waitForElementVisible(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
