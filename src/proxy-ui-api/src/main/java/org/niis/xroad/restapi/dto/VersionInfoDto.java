@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,25 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import SubViewFooter from './SubViewFooter.vue';
+package org.niis.xroad.restapi.dto;
 
-export default {
-  title: 'X-Road/Sub view footer',
-  component: SubViewFooter,
-  argTypes: {
-    showClose: { control: 'boolean' },
-    title: { control: 'text' },
-    close: { action: 'close' },
-  },
-};
+import lombok.Data;
 
-const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { SubViewFooter },
-  template: `<sub-view-footer @close="close" />`,
-});
+@Data
+public class VersionInfoDto {
+    private String info;
 
-export const Primary = Template.bind({});
-Primary.args = {
-  showClose: true,
-};
+    private int javaVersion;
+
+    private int minJavaVersion;
+
+    private int maxJavaVersion;
+
+    private boolean usingSupportedJavaVersion;
+
+    private String javaVendor;
+
+    private String javaRuntimeVersion;
+}

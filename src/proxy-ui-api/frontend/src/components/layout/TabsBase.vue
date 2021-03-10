@@ -25,15 +25,7 @@
  -->
 <template>
   <v-layout class="main-content" align-left>
-    <v-img
-      :src="require('../../assets/xroad7_logo.svg')"
-      height="35"
-      width="132"
-      max-height="35"
-      max-width="132"
-      class="xrd-logo"
-      @click="home()"
-    ></v-img>
+    <app-icon />
     <div class="tabs-wrap">
       <v-tabs
         v-model="tab"
@@ -53,25 +45,7 @@
         }}</v-tab>
       </v-tabs>
     </div>
-
-    <div class="drop-menu">
-      <v-menu bottom right>
-        <template v-slot:activator="{ on }">
-          <v-btn text v-on="on" class="no-uppercase">
-            {{ username }}
-            <v-icon>mdi-chevron-down</v-icon>
-          </v-btn>
-        </template>
-
-        <v-list>
-          <v-list-item id="logout-list-tile" @click="logout">
-            <v-list-item-title id="logout-title">{{
-              $t('login.logOut')
-            }}</v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-menu>
-    </div>
+    <app-drop-menu />
   </v-layout>
 </template>
 
@@ -80,8 +54,14 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
 import { mainTabs, RouteName } from '@/global';
+import AppIcon from './AppIcon.vue';
+import AppDropMenu from './AppDropMenu.vue';
 
 export default Vue.extend({
+  components: {
+    AppIcon,
+    AppDropMenu,
+  },
   data() {
     return {
       tab: undefined as undefined | Tab,
@@ -95,22 +75,6 @@ export default Vue.extend({
     },
   },
   methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.log('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
-    },
     logout(): void {
       this.$store.dispatch('logout');
       this.$router.replace({ name: RouteName.Login });
@@ -130,6 +94,7 @@ export default Vue.extend({
 
 .v-tab {
   text-transform: none;
+  font-weight: 600;
 }
 
 .v-tabs-slider.xrd-sub-tabs-slider {
@@ -149,31 +114,11 @@ export default Vue.extend({
   }
 }
 
-.xrd-logo {
-  margin-top: auto;
-  margin-bottom: auto;
-  cursor: pointer;
-  @media only screen and (max-width: 920px) {
-    display: none;
-  }
-}
-
 .tabs-wrap {
   margin-left: 20px;
 }
 
 .main-tabs {
   max-width: 1000px;
-}
-
-.drop-menu {
-  margin-left: auto;
-  margin-right: 70px;
-  display: flex;
-  align-items: center;
-}
-
-.no-uppercase {
-  text-transform: none;
 }
 </style>

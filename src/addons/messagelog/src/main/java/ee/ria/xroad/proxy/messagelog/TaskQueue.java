@@ -211,7 +211,7 @@ public class TaskQueue extends UntypedAbstractActor {
 
     static String getTaskQueueQuery() {
         return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
-                + "from MessageRecord m where m.signatureHash is not null";
+                + "from MessageRecord m where m.signatureHash is not null order by m.id";
     }
 
     private static String getTaskQueueSizeQuery() {

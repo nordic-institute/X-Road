@@ -24,69 +24,36 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-button
-    :min_width="50"
-    text
-    :outlined="false"
-    class="xrd-table-button"
-    data-test="backup-restore"
-    @click="showConfirmation = true"
-    >{{ $t('action.restore') }}
-    <xrd-confirm-dialog
-      :dialog="showConfirmation"
-      :loading="restoring"
-      title="backup.action.restore.dialog.title"
-      text="backup.action.restore.dialog.confirmation"
-      :data="{ file: backup.filename }"
-      @cancel="showConfirmation = false"
-      @accept="restoreBackup"
-    />
-  </xrd-button>
+  <v-img
+    :src="require('../../assets/xroad7_logo.svg')"
+    height="35"
+    width="132"
+    max-height="35"
+    max-width="132"
+    class="xrd-logo"
+    @click="home()"
+  ></v-img>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Prop } from 'vue/types/options';
-import { Backup } from '@/openapi-types';
-import * as api from '@/util/api';
-import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  name: 'RestoreBackupButton',
-  props: {
-    backup: {
-      type: Object as Prop<Backup>,
-      required: true,
-    },
-  },
-  data() {
-    return {
-      showConfirmation: false as boolean,
-      restoring: false as boolean,
-    };
-  },
   methods: {
-    restoreBackup() {
-      this.restoring = true;
-      api
-        .put(
-          `/backups/${encodePathParameter(this.backup.filename)}/restore`,
-          {},
-        )
-        .then(() => {
-          this.$emit('restored');
-          this.$store.dispatch(
-            'showSuccessRaw',
-            this.$t('backup.action.restore.success', {
-              file: this.backup.filename,
-            }),
-          );
+    home(): void {
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
         })
-        .catch((error) => this.$store.dispatch('showError', error))
-        .finally(() => {
-          this.showConfirmation = false;
-          this.restoring = false;
-          this.$store.dispatch('checkAlertStatus');
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.info('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
         });
     },
   },
@@ -94,5 +61,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+.xrd-logo {
+  margin-top: auto;
+  margin-bottom: auto;
+  cursor: pointer;
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
+}
 </style>

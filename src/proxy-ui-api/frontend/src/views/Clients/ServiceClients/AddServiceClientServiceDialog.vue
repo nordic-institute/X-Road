@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     :width="750"
     title="serviceClients.addService"
@@ -78,7 +78,7 @@
     <div slot="content" v-else>
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 <script lang="ts">
 import Vue from 'vue';
@@ -147,6 +147,7 @@ export default Vue.extend({
   min-width: 200px;
 }
 .service-row:hover {
-  background-color: $XRoad-Grey10;
+  cursor: pointer;
+  background-color: $XRoad-Purple10;
 }
 </style>

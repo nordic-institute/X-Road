@@ -107,7 +107,7 @@
             </div>
           </div>
 
-          <LargeButton
+          <xrd-button
             v-if="errorId(notification)"
             text
             :outlined="false"
@@ -115,7 +115,7 @@
             data-test="copy-id-button"
             @click.prevent="copyId(notification)"
             ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-            >{{ $t('action.copyId') }}</LargeButton
+            >{{ $t('action.copyId') }}</xrd-button
           >
 
           <div class="buttons">

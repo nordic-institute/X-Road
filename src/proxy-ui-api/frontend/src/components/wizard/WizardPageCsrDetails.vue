@@ -28,7 +28,7 @@
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('csr.usage')"
             :helpText="$t('csr.helpUsage')"
           />
@@ -46,7 +46,7 @@
         </div>
 
         <div class="row-wrap" v-if="usage === usageTypes.SIGNING">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('csr.client')"
             :helpText="$t('csr.helpClient')"
           />
@@ -65,7 +65,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('csr.certificationService')"
             :helpText="$t('csr.helpCertificationService')"
           />
@@ -88,7 +88,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('csr.csrFormat')"
             :helpText="$t('csr.helpCsrFormat')"
           />
@@ -105,23 +105,23 @@
         </div>
       </div>
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-button outlined @click="cancel" data-test="cancel-button">{{
           $t('action.cancel')
-        }}</large-button>
+        }}</xrd-button>
 
-        <large-button
+        <xrd-button
           v-if="showPreviousButton"
           @click="previous"
           outlined
           class="previous-button"
           data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
+          >{{ $t('action.previous') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           :disabled="invalid"
           @click="done"
           data-test="save-button"
-          >{{ $t(saveButtonText) }}</large-button
+          >{{ $t(saveButtonText) }}</xrd-button
         >
       </div>
     </ValidationObserver>

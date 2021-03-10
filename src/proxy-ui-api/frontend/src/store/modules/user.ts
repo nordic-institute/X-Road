@@ -33,7 +33,7 @@ import {
   SecurityServer,
   TokenInitStatus,
   User,
-  Version,
+  VersionInfo,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
@@ -46,7 +46,7 @@ export interface UserState {
   permissions: string[];
   username: string;
   currentSecurityServer: SecurityServer | Record<string, unknown>;
-  securityServerVersion: Version | Record<string, unknown>;
+  securityServerVersion: VersionInfo | Record<string, unknown>;
   initializationStatus: InitializationStatus | undefined;
   bannedRoutes: undefined | string[];
 }
@@ -194,7 +194,7 @@ export const mutations: MutationTree<UserState> = {
   setCurrentSecurityServer: (state, securityServer: SecurityServer) => {
     state.currentSecurityServer = securityServer;
   },
-  setSecurityServerVersion: (state, version: Version) => {
+  setSecurityServerVersion: (state, version: VersionInfo) => {
     state.securityServerVersion = version;
   },
   storeInitStatus(state, status: InitializationStatus) {
@@ -266,7 +266,7 @@ export const actions: ActionTree<UserState, RootState> = {
 
   async fetchSecurityServerVersion({ commit }) {
     return axios
-      .get<Version>('/system/version')
+      .get<VersionInfo>('/system/version')
       .then((resp) => commit('setSecurityServerVersion', resp.data))
       .catch((error) => {
         throw error;
