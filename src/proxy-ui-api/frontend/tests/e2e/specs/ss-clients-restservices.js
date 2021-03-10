@@ -120,7 +120,7 @@ module.exports = {
 
     clientServices.expandServiceDetails();
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
 
     browser.end();
@@ -637,7 +637,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple") and .//span[contains(@data-test, "dialog-title")]]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
@@ -647,7 +647,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple") and .//span[contains(@data-test, "dialog-title")]]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     endpointPopup.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
@@ -700,13 +700,13 @@ module.exports = {
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple") and .//span[contains(@data-test, "dialog-title")]]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple") and .//span[contains(@data-test, "dialog-title")]]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
@@ -770,7 +770,7 @@ module.exports = {
         ')',
     );
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
 
     // Verify successful edit
@@ -803,10 +803,10 @@ module.exports = {
         ')',
     );
     browser.waitForElementNotPresent(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c2")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c2")]',
     );
 
     // Verify that the refresh time has been updated

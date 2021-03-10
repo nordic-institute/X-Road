@@ -134,7 +134,7 @@ module.exports = {
 
     // Delete created backup (click cancel first time)
     browser.waitForElementVisible(
-      `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[contains(@data-test, "backup-delete")]`,
+      `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
     );
     backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
     browser.waitForElementVisible(deleteBackupConfirmationDialog);

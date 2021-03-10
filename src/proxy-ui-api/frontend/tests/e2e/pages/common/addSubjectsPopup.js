@@ -53,7 +53,7 @@ const commands = {
       this.selector +
         '//tr[.//td[contains(text(  ),"' +
         subject +
-        '")]]//input[contains(@data-test, "sc-checkbox")]/following-sibling::div',
+        '")]]//input[@data-test="sc-checkbox"]/following-sibling::div',
     );
     return this;
   },
@@ -77,7 +77,7 @@ const commands = {
 
 const addSubjectsPopup = {
   selector:
-    '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and contains(@data-test,"access-rights-dialog-title")]]',
+    '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and @data-test="access-rights-dialog-title"]]',
   locateStrategy: 'xpath',
   commands: [commands],
   elements: {

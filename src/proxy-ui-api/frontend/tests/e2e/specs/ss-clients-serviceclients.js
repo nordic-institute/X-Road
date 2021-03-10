@@ -73,18 +73,18 @@ module.exports = {
 
     // check displayed info
     browser.waitForElementVisible(
-      '//table[contains(@data-test, "service-clients-table")]',
+      '//table[@data-test="service-clients-table"]',
     );
 
     browser.assert.containsText(
-      '//table[contains(@data-test, "service-clients-table")]//td[contains(@class, "identifier-wrap")]', 'TestCom',
+      '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap")]', 'TestCom',
     );
     browser.waitForElementVisible(
-      '//table[contains(@data-test, "service-clients-table")]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',
+      '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',
     );
 
     browser.waitForElementVisible(
-      '//table[contains(@data-test, "service-client-access-rights-table")]',
+      '//table[@data-test="service-client-access-rights-table"]',
     );
 
     serviceClientDetails.verifyAccessRightVisible('testOp1');
@@ -477,7 +477,7 @@ module.exports = {
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
     browser.expect
-      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .elements('//tr[@data-test="open-access-rights"]')
       .count.to.equal(0);
 
     // Remove REST service description
@@ -560,19 +560,19 @@ module.exports = {
 
     // Verify filtering works
     browser.expect
-      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .elements('//tr[@data-test="open-access-rights"]')
       .count.to.equal(4);
     serviceClientsPage.enterServiceClientSearchWord('Test');
     browser.expect
-      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .elements('//tr[@data-test="open-access-rights"]')
       .count.to.equal(2);
     serviceClientsPage.enterServiceClientSearchWord('group');
     browser.expect
-      .elements('//tr[contains(@data-test, "open-access-rights")]')
+      .elements('//tr[@data-test="open-access-rights"]')
       .count.to.equal(2);
     serviceClientsPage.enterServiceClientSearchWord('management');
     browser.expect.element(
-      '//tr[contains(@data-test, "open-access-rights")]//td[contains(text(), "TestOrg")]',
+      '//tr[@data-test="open-access-rights"]//td[contains(text(), "TestOrg")]',
     ).to.be.visible;
 
     // Remove REST service description

@@ -62,16 +62,16 @@ var clientsTabCommands = {
 const clientsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/clients`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and contains(@data-test, "clients")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and @data-test="clients"]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: clientsTabCommands,
   elements: {
     searchField: {
-      selector: '//*[contains(@data-test, "search-clients-input")]',
+      selector: '//*[@data-test="search-clients-input"]',
       locateStrategy: 'xpath',
     },
     addClientButton: {
-      selector: '//button[contains(@data-test, "add-client-button")]',
+      selector: '//button[@data-test="add-client-button"]',
       locateStrategy: 'xpath',
     },
     listNameHeader: {

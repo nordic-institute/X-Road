@@ -132,7 +132,7 @@ module.exports = {
 
     clientServices.expandServiceDetails();
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s3c1")]',
     );
 
     browser.end();
@@ -628,7 +628,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[@data-test="dialog-simple"]',
     );
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
@@ -638,7 +638,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[@data-test="dialog-simple"]',
     );
     endpointPopup.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
@@ -691,13 +691,13 @@ module.exports = {
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[@data-test="dialog-simple"]',
     );
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//div[contains(@data-test, "dialog-simple")',
+      '//div[@data-test="dialog-simple"]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
@@ -772,7 +772,7 @@ module.exports = {
         ')',
     );
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s3c1")]',
     );
 
     // Verify succesfull edit
@@ -805,10 +805,10 @@ module.exports = {
         ')',
     );
     browser.waitForElementNotPresent(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s3c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s3c1")]',
     );
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s3c2")]',
+      '//td[@data-test="service-link" and contains(text(),"s3c2")]',
     );
 
     // Verify that the refresh time has been updated

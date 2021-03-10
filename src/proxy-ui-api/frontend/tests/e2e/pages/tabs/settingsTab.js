@@ -64,7 +64,7 @@ const backupAndRestoreCommands = {
   clickDownloadForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-download")]`,
+      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test, "backup-download"]`,
     );
 
     return this;
@@ -72,14 +72,14 @@ const backupAndRestoreCommands = {
   clickRestoreForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-restore")]`,
+      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-restore"]`,
     );
     return this;
   },
   clickDeleteForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[contains(@data-test, "backup-delete")]`,
+      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-delete"]`,
     );
     return this;
   },
@@ -99,7 +99,7 @@ const confirmationDialog = {
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and contains(@data-test, "settings")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and @data-test="settings"]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
@@ -129,15 +129,15 @@ const settingsTab = {
       elements: {
         anchorDownloadButton: {
           selector:
-            '//*[contains(@data-test, "system-parameters-configuration-anchor-download-button")]',
+            '//*[@data-test="system-parameters-configuration-anchor-download-button"]',
           locateStrategy: 'xpath',
         },
         backupButton: {
-          selector: '//*[contains(@data-test, "backup-create-configuration")]',
+          selector: '//*[@data-test="backup-create-configuration"]',
           locateStrategy: 'xpath',
         },
         searchField: {
-          selector: '//*[contains(@data-test, "backup-search")]',
+          selector: '//*[@data-test="backup-search"]',
           locateStrategy: 'xpath',
         },
       },
@@ -150,12 +150,12 @@ const settingsTab = {
           elements: {
             confirmation: {
               selector:
-                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-save-button")]',
+                '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[@data-test="dialog-save-button"]',
               locateStrategy: 'xpath',
             },
             cancel: {
               selector:
-                '//div[contains(@data-test, "dialog-simple") and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[contains(@data-test, "dialog-cancel-button")]',
+                '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
           },
