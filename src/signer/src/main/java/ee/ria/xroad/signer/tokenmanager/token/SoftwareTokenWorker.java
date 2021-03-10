@@ -74,6 +74,7 @@ import static ee.ria.xroad.signer.tokenmanager.TokenManager.setKeyAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenActive;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenAvailable;
 import static ee.ria.xroad.signer.tokenmanager.TokenManager.setTokenStatus;
+import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.P12;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_ALIAS;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.PIN_FILE;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.createKeyStore;
@@ -83,19 +84,16 @@ import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackup
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getBackupKeyDirForDateNow;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyDir;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getKeyStoreFileName;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.getTempKeyStoreFileName;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.isTokenInitialized;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.listKeysOnDisk;
 import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.loadCertificate;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.removeBackupKeyDir;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameKeyDirToBackup;
-import static ee.ria.xroad.signer.tokenmanager.token.SoftwareTokenUtil.renameTempToKeyDir;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotAvailable;
 import static ee.ria.xroad.signer.util.ExceptionHelper.keyNotFound;
 import static ee.ria.xroad.signer.util.ExceptionHelper.loginFailed;
 import static ee.ria.xroad.signer.util.ExceptionHelper.pinIncorrect;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotActive;
 import static ee.ria.xroad.signer.util.ExceptionHelper.tokenNotInitialized;
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 
 /**
  * Encapsulates the software token worker which handles software signing and key
@@ -349,7 +347,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
     private void rewriteKeyStoreWithNewPin(String keyFile, String keyAlias, char[] oldPin, char[] newPin,
             Path tempKeyDir) throws Exception {
         String keyStoreFile = getKeyStoreFileName(keyFile);
-        String tempKeyStoreFile = getTempKeyStoreFileName(tempKeyDir, keyFile);
+        Path tempKeyStoreFile = tempKeyDir.resolve(keyFile + P12);
 
         KeyStore oldKeyStore = loadPkcs12KeyStore(new File(keyStoreFile), oldPin);
         PrivateKey privateKey = SoftwareTokenUtil.loadPrivateKey(keyStoreFile, keyAlias, oldPin);
@@ -360,7 +358,7 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
         KeyStore.PrivateKeyEntry pkEntry = new KeyStore.PrivateKeyEntry(privateKey, certChain);
         newKeyStore.setEntry(keyAlias, pkEntry, new KeyStore.PasswordProtection(newPin));
 
-        try (OutputStream os = Files.newOutputStream(Paths.get(tempKeyStoreFile), StandardOpenOption.CREATE,
+        try (OutputStream os = Files.newOutputStream(tempKeyStoreFile, StandardOpenOption.CREATE,
                 StandardOpenOption.DSYNC)) {
             newKeyStore.store(os, newPin);
         }
@@ -397,15 +395,15 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
      * @throws IOException problems with files
      */
     private void createKeyDirBackup() throws IOException {
-        File backupDir = new File(getBackupKeyDir());
+        File backupDir = getBackupKeyDir().toFile();
         // If an old .softtoken.bak folder exists, rename the folder with a timestamp
         if (backupDir.exists()) {
-            File timestampedBackupDir = new File(getBackupKeyDirForDateNow());
+            File timestampedBackupDir = getBackupKeyDirForDateNow().toFile();
             log.warn("A backup folder already exists. Renaming the folder to {}", timestampedBackupDir.getName());
             FileUtils.moveDirectory(backupDir, timestampedBackupDir);
         }
         // Change the key dir name to .softtoken.bak
-        renameKeyDirToBackup();
+        Files.move(getKeyDir().toPath(), getBackupKeyDir(), ATOMIC_MOVE);
     }
 
     private void handleUpdateTokenPin(char[] oldPin, char[] newPin) throws Exception {
@@ -427,9 +425,9 @@ public class SoftwareTokenWorker extends AbstractTokenWorker {
             }
             createKeyDirBackup();
             // Change the temp dir name to 'softtoken'
-            renameTempToKeyDir(tempKeyDir);
+            Files.move(tempKeyDir, getKeyDir().toPath(), ATOMIC_MOVE);
             // All good: remove the backup folder
-            removeBackupKeyDir();
+            FileUtils.deleteDirectory(getBackupKeyDir().toFile());
             log.info("Updating the software token pin was successful!");
         } catch (Exception e) {
             log.info("Updating the software token pin failed!");

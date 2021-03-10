@@ -31,7 +31,6 @@ import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.signer.util.SignerUtil;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FileUtils;
 import org.bouncycastle.operator.ContentSigner;
 
 import java.io.File;
@@ -59,7 +58,6 @@ import java.util.List;
 import java.util.Set;
 
 import static ee.ria.xroad.common.util.CryptoUtils.loadPkcs12KeyStore;
-import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.attribute.PosixFilePermission.GROUP_EXECUTE;
 import static java.nio.file.attribute.PosixFilePermission.GROUP_READ;
 import static java.nio.file.attribute.PosixFilePermission.OWNER_EXECUTE;
@@ -113,46 +111,23 @@ public final class SoftwareTokenUtil {
      * @return the key store file name for a key id
      */
     public static String getKeyStoreFileName(String keyId) {
-        return getKeyDir() + "/" + keyId + P12;
+        return getKeyDir() + File.separator + keyId + P12;
     }
 
     /**
-     * Returns a temporary filepath for a key store. Used e.g. when changing pin codes for key stores.
-     * Usually the temp dir exists already when this method is called
-     * (to create the temp dir use {@link #createTempKeyDir()})
-     * @param tempKeyDir the temporary key dir path
-     * @param keyId the key id
-     * @return the key store file name for a key id in a temporary folder
+     * @return /path/to/signer/.softtoken.bak
      */
-    public static String getTempKeyStoreFileName(Path tempKeyDir, String keyId) {
-        return tempKeyDir.toString() + File.separator + keyId + P12;
+    public static Path getBackupKeyDir() {
+        return getKeyDir().toPath().getParent().resolve(SOFT_TOKEN_KEY_BAK_DIR_NAME);
     }
 
     /**
-     * Rename the temp dir to the official key dir. Used e.g. when changing pin codes for key stores
-     * @param tempKeyDir the temporary key dir path
-     * @throws IOException renaming fails
+     * @return key backup dir path with timestamp in the name e.g. /path/to/signer/.softtoken.bak-20210218102059
      */
-    public static void renameTempToKeyDir(Path tempKeyDir) throws IOException {
-        Files.move(tempKeyDir, getKeyDir().toPath(), ATOMIC_MOVE);
-    }
-
-    /**
-     * @return /path/to/.softtoken.bak
-     */
-    public static String getBackupKeyDir() {
-        return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
-                + SOFT_TOKEN_KEY_BAK_DIR_NAME + File.separator;
-    }
-
-    /**
-     * @return key backup dir with timestamp in the name e.g. /path/to/.softtoken.bak-20210218102059
-     */
-    public static String getBackupKeyDirForDateNow() {
+    public static Path getBackupKeyDirForDateNow() {
         Timestamp nowTimestamp = new Timestamp(System.currentTimeMillis());
         String nowString = TIMESTAMP_FORMAT.format(nowTimestamp);
-        return ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)
-                + SOFT_TOKEN_KEY_BAK_DIR_NAME + "-" + nowString + File.separator;
+        return getBackupKeyDir().resolve("-" + nowString);
     }
 
     /**
@@ -162,22 +137,6 @@ public final class SoftwareTokenUtil {
     public static Path createTempKeyDir() throws IOException {
         return Files.createTempDirectory(Paths.get(ResourceUtils.getFullPathFromFileName(KEY_CONF_FILE)),
                 SOFT_TOKEN_KEY_DIR_NAME + "-", SOFT_TOKEN_KEY_DIR_PERMISSIONS);
-    }
-
-    /**
-     * Rename the key dir to a backup dir. Used e.g. when changing pin codes for key stores
-     * @throws IOException renaming fails
-     */
-    public static void renameKeyDirToBackup() throws IOException {
-        Files.move(getKeyDir().toPath(), Paths.get(getBackupKeyDir()), ATOMIC_MOVE);
-    }
-
-    /**
-     * Remove the backup key dir. Used e.g. when changing pin codes for key stores
-     * @throws IOException removing fails
-     */
-    public static void removeBackupKeyDir() throws IOException {
-        FileUtils.deleteDirectory(new File(getBackupKeyDir()));
     }
 
     static List<String> listKeysOnDisk() {
