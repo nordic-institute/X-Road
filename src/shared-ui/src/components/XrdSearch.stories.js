@@ -27,26 +27,26 @@
 import XrdSearch from './XrdSearch.vue';
 
 export default {
-    title: 'X-Road/Search',
-    component: XrdSearch,
-    argTypes: {
-        showClose: { control: 'boolean' },
-        label: { control: 'text' },
-        close: { action: 'close' },
-        input: { action: 'input' },
-        value: { control: 'value' },
-    },
+  title: 'X-Road/Search',
+  component: XrdSearch,
+  argTypes: {
+    showClose: { control: 'boolean' },
+    label: { control: 'text' },
+    close: { action: 'close' },
+    input: { action: 'input' },
+    value: { control: 'value' },
+  },
 };
 
 const Template = (args, { argTypes }) => ({
-    props: Object.keys(argTypes),
-    components: { XrdSearch },
-    template: `<xrd-search @close="close" @input="input" v-bind="$props" style="width: 300px;"/>`,
+  props: Object.keys(argTypes),
+  components: { XrdSearch },
+  template: `<xrd-search @close="close" @input="input" v-bind="$props" style="width: 300px;"/>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-    showClose: true,
-    label: 'Search label',
-    value: undefined
+  showClose: true,
+  label: 'Search label',
+  value: undefined,
 };

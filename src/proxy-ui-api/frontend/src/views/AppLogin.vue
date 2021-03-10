@@ -25,6 +25,7 @@
  -->
 <template>
   <v-container fluid fill-height class="login-view-wrap">
+    <AlertsContainer class="alerts" />
     <div class="graphics">
       <v-img
         :src="require('../assets/xroad7_large.svg')"
@@ -113,6 +114,7 @@
 import Vue, { VueConstructor } from 'vue';
 import { RouteName, Permissions } from '@/global';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
 export default (Vue as VueConstructor<
   Vue & {
@@ -125,6 +127,7 @@ export default (Vue as VueConstructor<
   components: {
     ValidationProvider,
     ValidationObserver,
+    AlertsContainer,
   },
   data() {
     return {
@@ -147,8 +150,10 @@ export default (Vue as VueConstructor<
   },
   methods: {
     async submit() {
-      // Validate inputs
+      // Clear error notifications when route is changed
+      this.$store.commit('clearErrorNotifications');
 
+      // Validate inputs
       const isValid = await this.$refs.form.validate();
 
       if (!isValid) {
@@ -275,6 +280,15 @@ export default (Vue as VueConstructor<
 <style lang="scss" scoped>
 @import '~styles/colors';
 
+.alerts {
+  top: 40px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 100;
+  position: absolute;
+}
 .graphics {
   height: 100%;
   width: 40%;
