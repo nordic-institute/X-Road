@@ -642,7 +642,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
+      '//div[@data-test="dialog-simple"]',
     );
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
