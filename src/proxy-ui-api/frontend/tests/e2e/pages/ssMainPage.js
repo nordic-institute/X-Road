@@ -929,15 +929,15 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         localGroupAddMembersButton: {
-          selector: '//button[.//*[@data-test="add-members-button"]]',
+          selector: '//button[@data-test="add-members-button"]',
           locateStrategy: 'xpath',
         },
         localGroupRemoveAllButton: {
-          selector: '//button[.//*[@data-test="remove-all-members-button"]]',
+          selector: '//button[@data-test="remove-all-members-button"]',
           locateStrategy: 'xpath',
         },
         localGroupDeleteButton: {
-          selector: '//button[.//*[@data-test="delete-local-group-button"]]',
+          selector: '//button[@data-test="delete-local-group-button"]',
           locateStrategy: 'xpath',
         },
         localGroupAddSelectedButton: {
