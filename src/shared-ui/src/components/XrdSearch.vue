@@ -25,27 +25,56 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-progress-linear
-    indeterminate
-    :height="height"
-    :active="active"
-  ></v-progress-linear>
+  <div>
+    <v-icon @click="closed = false" v-if="closed" class="icon-closed"
+      >mdi-magnify</v-icon
+    >
+    <v-text-field
+      v-if="!closed"
+      :label="label"
+      data-test="search-input"
+      single-line
+      hide-details
+      class="search-input"
+      prepend-inner-icon="mdi-magnify"
+      clearable
+      v-bind:value="value"
+      v-on:input="$emit('input', $event)"
+    >
+    </v-text-field>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+/**
+ * Wrapper for vuetify button with x-road look
+ * */
 
 export default Vue.extend({
-  name: 'ProgressLinear',
-  props: {
-    active: {
-      type: Boolean,
-      default: true,
-    },
-    height: {
-      type: String,
-      default: '2px',
+  name: 'xrd-search',
+  props: ['value', 'label'],
+  computed: {},
+  data() {
+    return {
+      closed: true,
+    };
+  },
+  methods: {
+    show(): void {
+      this.closed = false;
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '../assets/colors';
+
+.icon-closed {
+  margin-top: 20px; // adjusted so that icon stays in the same place open/closed
+  cursor: pointer;
+  color: $XRoad-Purple100;
+  padding-bottom: 4px; // adjusted so that icon takes same space than input
+}
+</style>

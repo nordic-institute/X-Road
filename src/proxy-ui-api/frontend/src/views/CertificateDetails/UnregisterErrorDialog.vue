@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <SimpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="warning"
     @save="accept"
@@ -36,7 +36,7 @@
     <div slot="content" data-test="dialog-content-text">
       <template v-if="errorResponse">{{ $t('keys.unregisterError') }}</template>
     </div>
-  </SimpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">

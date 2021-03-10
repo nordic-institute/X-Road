@@ -24,42 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import LargeButton from './LargeButton.vue';
+import XrdSearch from './XrdSearch.vue';
 
 export default {
-  title: 'X-Road/Large button',
-  component: LargeButton,
-  argTypes: {
-    outlined: { control: 'boolean' },
-    disabled: { control: 'boolean' },
-    loading: { control: 'boolean' },
-    block: { control: 'boolean' },
-    large: { control: 'boolean' },
-    click: { action: 'click' },
-    color: { control: 'text' },
-  },
+    title: 'X-Road/Search',
+    component: XrdSearch,
+    argTypes: {
+        showClose: { control: 'boolean' },
+        label: { control: 'text' },
+        close: { action: 'close' },
+        input: { action: 'input' },
+        value: { control: 'value' },
+    },
 };
 
 const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { LargeButton },
-  template:
-    '<large-button @click="click" v-bind="$props">{{label}}</large-button>',
+    props: Object.keys(argTypes),
+    components: { XrdSearch },
+    template: `<xrd-search @close="close" @input="input" v-bind="$props" style="width: 300px;"/>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
-  primary: true,
-  label: 'Hello world!',
-};
-
-export const Secondary = Template.bind({});
-Secondary.args = {
-  label: 'This is a very very long label for a button',
-};
-
-export const Gradient = Template.bind({});
-Gradient.args = {
-  label: 'Gradient button',
-  gradient: true,
+    showClose: true,
+    label: 'Search label',
+    value: undefined
 };

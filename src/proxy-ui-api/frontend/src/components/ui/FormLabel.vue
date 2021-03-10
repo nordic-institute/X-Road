@@ -26,7 +26,7 @@
 <template>
   <div class="label">
     {{ $t(labelText) }}
-    <helpIcon v-if="helpText" :text="$t(helpText)" />
+    <xrd-help-iconcon v-if="helpText" :text="$t(helpText)" />
   </div>
 </template>
 

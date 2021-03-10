@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,102 +24,58 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-btn
-    :outlined="outlined"
-    :disabled="disabled"
-    :min-width="min_width"
-    :loading="loading"
-    :block="block"
-    :large="large"
-    :text="text"
-    :color="color"
-    depressed
-    height="40"
-    rounded
-    class="large-button"
-    v-bind:class="{ gradient: showGradient }"
-    @click="click"
-  >
-    <slot></slot>
-  </v-btn>
+  <div class="drop-menu">
+    <v-menu bottom right>
+      <template v-slot:activator="{ on }">
+        <v-btn text v-on="on" class="no-uppercase" data-test="username-button">
+          {{ username }}
+          <v-icon>mdi-chevron-down</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item
+          id="logout-list-tile"
+          data-test="logout-list-tile"
+          @click="logout"
+        >
+          <v-list-item-title id="logout-title">{{
+            $t('login.logOut')
+          }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-/**
- * Wrapper for vuetify button with x-road look
- * */
+import { mapGetters } from 'vuex';
+import { RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'large-button',
-  props: {
-    outlined: {
-      type: Boolean,
-      default: false,
-    },
-    // Button color
-    color: {
-      type: String,
-      default: 'primary',
-    },
-    // Set button disabled state
-    disabled: {
-      type: Boolean,
-      default: false,
-    },
-    // Show loading spinner
-    loading: {
-      type: Boolean,
-      default: false,
-    },
-    // Block buttons extend the full available width
-    block: {
-      type: Boolean,
-      default: false,
-    },
-    large: {
-      type: Boolean,
-      default: false,
-    },
-    text: {
-      type: Boolean,
-      default: false,
-    },
-    min_width: {
-      type: [Number, String],
-      default: 80,
-    },
-    gradient: {
-      type: Boolean,
-      default: false,
-    },
-  },
   computed: {
-    showGradient(): boolean {
-      if (this.disabled === true) {
-        return false;
-      }
-      if (this.gradient === true) {
-        return true;
-      }
-      return false;
-    },
+    ...mapGetters(['username']),
   },
   methods: {
-    click(event: MouseEvent): void {
-      this.$emit('click', event);
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.large-button {
-  border-radius: 20px;
-  text-transform: none;
+.drop-menu {
+  margin-left: auto;
+  margin-right: 70px;
+  display: flex;
+  align-items: center;
 }
 
-.gradient {
-  background: linear-gradient(270deg, #663cdc 0%, #cd9dc8 99.58%);
+.no-uppercase {
+  text-transform: none;
+  font-weight: 600;
 }
 </style>

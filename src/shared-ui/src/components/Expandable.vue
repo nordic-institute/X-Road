@@ -100,7 +100,7 @@ export default Vue.extend({
 
 .exp-wrapper {
   border-radius: 4px;
-  background-color: $XRoad-White;
+  background-color: $XRoad-White100;
 }
 
 .exp-header {

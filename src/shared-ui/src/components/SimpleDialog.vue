@@ -53,20 +53,22 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button
+        <xrd-button
           data-test="dialog-cancel-button"
           class="mr-3"
           outlined
           @click="cancel()"
-          >{{ $t(cancelButtonText) }}</large-button
         >
-        <large-button
+          {{ $t(cancelButtonText) }}
+        </xrd-button>
+        <xrd-button
           data-test="dialog-save-button"
           :disabled="disableSaveButton"
           :loading="loading"
           @click="save()"
-          >{{ $t(saveButtonText) }}</large-button
         >
+          {{ $t(saveButtonText) }}
+        </xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -77,12 +79,10 @@
 
 import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
-import LargeButton from '@/components/LargeButton.vue';
 
 export default Vue.extend({
   components: {
     CloseButton,
-    LargeButton,
   },
   props: {
     // Title of the dialog

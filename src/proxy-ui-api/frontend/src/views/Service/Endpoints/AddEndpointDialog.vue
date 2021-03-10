@@ -25,7 +25,7 @@
  -->
 <template>
   <ValidationObserver ref="form" v-slot="{ invalid }" v-if="dialog">
-    <simpleDialog
+    <xrd-simple-dialog
       :dialog="dialog"
       :width="750"
       title="endpoints.addEndpoint"
@@ -75,7 +75,7 @@
           </div>
         </div>
       </div>
-    </simpleDialog>
+    </xrd-simple-dialog>
   </ValidationObserver>
 </template>
 

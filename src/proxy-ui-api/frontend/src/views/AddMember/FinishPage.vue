@@ -26,50 +26,52 @@
 <template>
   <div data-test="finish-content">
     <div class="wizard-step-form-content px-12 pt-10">
-      <p>{{ $t('wizard.finish.infoLine1') }}</p>
-      <p>{{ $t('wizard.finish.infoLine2') }}</p>
-      <br />
-      <p>{{ $t('wizard.finish.todo1') }}</p>
-      <p>{{ $t('wizard.finish.todo2') }}</p>
-      <p>{{ $t('wizard.finish.todo3') }}</p>
-      <br />
-      <br />
-      <p>{{ $t('wizard.finish.note') }}</p>
-      <p></p>
+      <div class="finish-info">
+        <p>{{ $t('wizard.finish.infoLine1') }}</p>
+        <p>{{ $t('wizard.finish.infoLine2') }}</p>
+        <br />
+        <p>{{ $t('wizard.finish.todo1') }}</p>
+        <p>{{ $t('wizard.finish.todo2') }}</p>
+        <p>{{ $t('wizard.finish.todo3') }}</p>
+        <br />
+        <br />
+        <p>{{ $t('wizard.finish.note') }}</p>
+        <p></p>
 
-      <div v-if="showRegisterOption">
-        <FormLabel :labelText="$t('wizard.member.register')" />
-        <v-checkbox
-          v-model="registerChecked"
-          color="primary"
-          class="register-checkbox"
-          data-test="register-member-checkbox"
-        ></v-checkbox>
+        <div v-if="showRegisterOption">
+          <xrd-form-label :labelText="$t('wizard.member.register')" />
+          <v-checkbox
+            v-model="registerChecked"
+            color="primary"
+            class="register-checkbox"
+            data-test="register-member-checkbox"
+          ></v-checkbox>
+        </div>
       </div>
     </div>
     <div class="button-footer">
-      <large-button
+      <xrd-button
         outlined
         @click="cancel"
         :disabled="disableCancel"
         data-test="cancel-button"
-        >{{ $t('action.cancel') }}</large-button
+        >{{ $t('action.cancel') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         @click="previous"
         outlined
         :disabled="disableCancel"
         class="previous-button"
         data-test="previous-button"
-        >{{ $t('action.previous') }}</large-button
+        >{{ $t('action.previous') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         @click="done"
         data-test="submit-button"
         :loading="submitLoading"
-        >{{ $t('action.submit') }}</large-button
+        >{{ $t('action.submit') }}</xrd-button
       >
     </div>
     <!-- Accept warnings -->

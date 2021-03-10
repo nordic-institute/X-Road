@@ -48,22 +48,22 @@
             data-test="token-radio-button"
           ></v-radio>
           <div>
-            <large-button
+            <xrd-button
               @click="confirmLogin(token)"
               v-if="!token.logged_in"
               :disabled="!token.available"
               :outlined="false"
               text
               data-test="token-login-button"
-              >{{ $t('keys.logIn') }}</large-button
+              >{{ $t('keys.logIn') }}</xrd-button
             >
-            <large-button
+            <xrd-button
               v-if="token.logged_in"
               text
               :outlined="false"
               disabled
               data-test="token-logout-button"
-              >{{ $t('wizard.token.loggedIn') }}</large-button
+              >{{ $t('wizard.token.loggedIn') }}</xrd-button
             >
           </div>
         </div>
@@ -71,27 +71,27 @@
     </div>
 
     <div class="button-footer">
-      <large-button
+      <xrd-button
         outlined
         @click="cancel"
         :disabled="!disableDone"
         data-test="cancel-button"
-        >{{ $t('action.cancel') }}</large-button
+        >{{ $t('action.cancel') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         @click="previous"
         outlined
         class="previous-button"
         data-test="previous-button"
-        >{{ $t('action.previous') }}</large-button
+        >{{ $t('action.previous') }}</xrd-button
       >
 
-      <large-button
+      <xrd-button
         @click="done"
         :disabled="disableNext"
         data-test="next-button"
-        >{{ $t('action.next') }}</large-button
+        >{{ $t('action.next') }}</xrd-button
       >
     </div>
     <TokenLoginDialog

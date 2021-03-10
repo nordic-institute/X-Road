@@ -51,7 +51,7 @@
               <tbody>
                 <tr v-if="globalConf">
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(globalConf.status_class)"
                     />
                   </td>
@@ -91,8 +91,9 @@
                   <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
                   <th class="time-column">
-                    {{ $t('diagnostics.nextUpdate') }}
+                    {{ $t('diagnostics.previousUpdate') }}
                   </th>
+                  <th class="time-column"></th>
                 </tr>
               </thead>
               <tbody>
@@ -101,7 +102,7 @@
                   v-bind:key="timestampingService.url"
                 >
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(timestampingService.status_class)"
                     />
                   </td>
@@ -119,6 +120,7 @@
                   <td class="time-column">
                     {{ timestampingService.prev_update_at | formatHoursMins }}
                   </td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
@@ -166,7 +168,9 @@
                     v-bind:key="ocsp.url"
                   >
                     <td>
-                      <StatusIcon :status="statusIconType(ocsp.status_class)" />
+                      <xrd-status-icon
+                        :status="statusIconType(ocsp.status_class)"
+                      />
                     </td>
                     <td class="url-column" data-test="service-url">
                       {{ ocsp.url }}
@@ -291,11 +295,11 @@ export default Vue.extend({
 }
 
 .inner-wrap {
-  max-width: 1000px;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
 
-  @media only screen and (max-width: 1030px) {
+  @media only screen and (max-width: 1630px) {
     margin-left: 10px;
     margin-right: 10px;
   }
