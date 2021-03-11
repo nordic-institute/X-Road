@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.util;
 
 import ee.ria.xroad.common.conf.globalconf.GlobalGroupInfo;
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -284,6 +285,19 @@ public final class TestUtils {
         tsp.setUrl(url);
         tsp.setName(name);
         return tsp;
+    }
+
+    /**
+     * Creates a new ApprovedTSAType with the given url and name
+     * @param url
+     * @param name
+     * @return
+     */
+    public static ApprovedTSAType createApprovedTsaType(String url, String name) {
+        ApprovedTSAType approvedTSAType = new ApprovedTSAType();
+        approvedTSAType.setUrl(url);
+        approvedTSAType.setName(name);
+        return approvedTSAType;
     }
 
     /**

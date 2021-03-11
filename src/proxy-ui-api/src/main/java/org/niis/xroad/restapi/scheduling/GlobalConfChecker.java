@@ -139,16 +139,20 @@ public class GlobalConfChecker {
         }
 
         if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
-            updateTimestampServiceUrls(serverConf);
+            updateTimestampServiceUrls(globalConfFacade.getApprovedTspTypes(globalConfFacade.getInstanceIdentifier()),
+                    serverConf.getTsp());
         }
     }
 
-    private void updateTimestampServiceUrls(ServerConfType serverConf) {
+    /**
+     * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
+     * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
+     * @param globalTsps timestamping services from global configuration
+     * @param localTsps timestamping services from local database
+     */
+    void updateTimestampServiceUrls(List<ApprovedTSAType> globalTsps, List<TspType> localTsps) {
 
-        List<ApprovedTSAType> globalTsps =
-                globalConfFacade.getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
-
-        for (TspType localTsp : serverConf.getTsp()) {
+        for (TspType localTsp : localTsps) {
             List<ApprovedTSAType> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
                     .collect(toList());
@@ -162,7 +166,8 @@ public class GlobalConfChecker {
             } else if (globalTspMatches.size() == 1) {
                 ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
                 if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
-                    log.info("Updating changed timestamping service URL, Name: {}, Old URL: {}, New URL: {}",
+                    log.info("Timestamping service URL has changed in the global configuration. "
+                            + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
                             localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
                     localTsp.setUrl(globalTspMatch.getUrl());
                 }
