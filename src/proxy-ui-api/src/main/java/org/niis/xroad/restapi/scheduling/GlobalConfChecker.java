@@ -134,13 +134,14 @@ public class GlobalConfChecker {
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
+            if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
+                updateTimestampServiceUrls(globalConfFacade.getApprovedTspTypes(
+                        globalConfFacade.getInstanceIdentifier()),
+                        serverConf.getTsp()
+                );
+            }
         } catch (Exception e) {
             throw translateException(e);
-        }
-
-        if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
-            updateTimestampServiceUrls(globalConfFacade.getApprovedTspTypes(globalConfFacade.getInstanceIdentifier()),
-                    serverConf.getTsp());
         }
     }
 
