@@ -1,0 +1,522 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog" xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
+    <changeSet author="niis" id="000-baseline" objectQuotingStrategy="QUOTE_ALL_OBJECTS">
+        <createSequence sequenceName="anchor_url_certs_id_seq"/>
+        <createSequence sequenceName="anchor_urls_id_seq"/>
+        <createSequence sequenceName="approved_cas_id_seq"/>
+        <createSequence sequenceName="approved_tsas_id_seq"/>
+        <createSequence sequenceName="auth_certs_id_seq"/>
+        <createSequence sequenceName="ca_infos_id_seq"/>
+        <createSequence sequenceName="central_services_id_seq"/>
+        <createSequence sequenceName="configuration_signing_keys_id_seq"/>
+        <createSequence sequenceName="configuration_sources_id_seq"/>
+        <createSequence sequenceName="distributed_files_id_seq"/>
+        <createSequence sequenceName="global_group_members_id_seq"/>
+        <createSequence sequenceName="global_groups_id_seq"/>
+        <createSequence sequenceName="history_id_seq"/>
+        <createSequence sequenceName="identifiers_id_seq"/>
+        <createSequence sequenceName="member_classes_id_seq"/>
+        <createSequence sequenceName="ocsp_infos_id_seq"/>
+        <createSequence sequenceName="request_processings_id_seq"/>
+        <createSequence sequenceName="requests_id_seq"/>
+        <createSequence sequenceName="security_categories_id_seq"/>
+        <createSequence sequenceName="security_server_client_names_id_seq"/>
+        <createSequence sequenceName="security_server_clients_id_seq"/>
+        <createSequence sequenceName="security_servers_id_seq"/>
+        <createSequence sequenceName="security_servers_security_categories_id_seq"/>
+        <createSequence sequenceName="server_clients_id_seq"/>
+        <createSequence sequenceName="system_parameters_id_seq"/>
+        <createSequence sequenceName="trusted_anchors_id_seq"/>
+        <createSequence sequenceName="ui_users_id_seq"/>
+        <createTable tableName="anchor_url_certs">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="anchor_url_certs_pkey"/>
+            </column>
+            <column name="anchor_url_id" type="INT"/>
+            <column name="cert" type="BYTEA"/>
+        </createTable>
+        <createTable tableName="anchor_urls">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="anchor_urls_pkey"/>
+            </column>
+            <column name="trusted_anchor_id" type="INT"/>
+            <column name="url" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="approved_cas">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="approved_cas_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="authentication_only" type="BOOL"/>
+            <column name="identifier_decoder_member_class" type="VARCHAR(255)"/>
+            <column name="identifier_decoder_method_name" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="top_ca_id" type="INT"/>
+            <column name="cert_profile_info" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="approved_tsas">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="approved_tsas_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="url" type="VARCHAR(255)"/>
+            <column name="cert" type="BYTEA"/>
+            <column name="valid_from" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="valid_to" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="auth_certs">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="auth_certs_pkey"/>
+            </column>
+            <column name="security_server_id" type="INT"/>
+            <column name="cert" type="BYTEA"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="ca_infos">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="ca_infos_pkey"/>
+            </column>
+            <column name="cert" type="BYTEA"/>
+            <column name="intermediate_ca_id" type="INT"/>
+            <column name="valid_from" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="valid_to" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="central_services">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="central_services_pkey"/>
+            </column>
+            <column name="service_code" type="VARCHAR(255)"/>
+            <column name="target_service_id" type="INT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="configuration_signing_keys">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="configuration_signing_keys_pkey"/>
+            </column>
+            <column name="configuration_source_id" type="INT"/>
+            <column name="key_identifier" type="VARCHAR(255)"/>
+            <column name="cert" type="BYTEA"/>
+            <column name="key_generated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="token_identifier" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="configuration_sources">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="configuration_sources_pkey"/>
+            </column>
+            <column name="source_type" type="VARCHAR(255)"/>
+            <column name="active_key_id" type="INT"/>
+            <column name="anchor_file" type="BYTEA"/>
+            <column name="anchor_file_hash" type="TEXT"/>
+            <column name="anchor_generated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="ha_node_name" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="distributed_files">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="distributed_files_pkey"/>
+            </column>
+            <column name="file_name" type="VARCHAR(255)"/>
+            <column name="file_data" type="BYTEA"/>
+            <column name="content_identifier" type="VARCHAR(255)"/>
+            <column name="file_updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="ha_node_name" type="VARCHAR(255)"/>
+            <column defaultValueNumeric="0" name="version" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="global_group_members">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="global_group_members_pkey"/>
+            </column>
+            <column name="group_member_id" type="INT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="global_group_id" type="INT"/>
+        </createTable>
+        <createTable tableName="global_groups">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="global_groups_pkey"/>
+            </column>
+            <column name="group_code" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="member_count" type="INT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="history">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="history_pkey"/>
+            </column>
+            <column name="operation" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="table_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="record_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="field_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="old_value" type="TEXT"/>
+            <column name="new_value" type="TEXT"/>
+            <column name="user_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ha_node_name" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="identifiers">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="identifiers_pkey"/>
+            </column>
+            <column name="object_type" type="VARCHAR(255)"/>
+            <column name="xroad_instance" type="VARCHAR(255)"/>
+            <column name="member_class" type="VARCHAR(255)"/>
+            <column name="member_code" type="VARCHAR(255)"/>
+            <column name="subsystem_code" type="VARCHAR(255)"/>
+            <column name="service_code" type="VARCHAR(255)"/>
+            <column name="server_code" type="VARCHAR(255)"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="service_version" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="member_classes">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="member_classes_pkey"/>
+            </column>
+            <column name="code" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="ocsp_infos">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="ocsp_infos_pkey"/>
+            </column>
+            <column name="url" type="VARCHAR(255)"/>
+            <column name="cert" type="BYTEA"/>
+            <column name="ca_info_id" type="INT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="request_processings">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="request_processings_pkey"/>
+            </column>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="status" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="requests">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="requests_pkey"/>
+            </column>
+            <column name="request_processing_id" type="INT"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="security_server_id" type="INT"/>
+            <column name="sec_serv_user_id" type="INT"/>
+            <column name="auth_cert" type="BYTEA"/>
+            <column name="address" type="VARCHAR(255)"/>
+            <column name="origin" type="VARCHAR(255)"/>
+            <column name="server_owner_name" type="VARCHAR(255)"/>
+            <column name="server_user_name" type="VARCHAR(255)"/>
+            <column name="comments" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="server_owner_class" type="VARCHAR(255)"/>
+            <column name="server_owner_code" type="VARCHAR(255)"/>
+            <column name="server_code" type="VARCHAR(255)"/>
+            <column name="processing_status" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="security_categories">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="security_categories_pkey"/>
+            </column>
+            <column name="code" type="VARCHAR(255)"/>
+            <column name="description" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="security_server_client_names">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="security_server_client_names_pkey"/>
+            </column>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="client_identifier_id" type="INT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="security_server_clients">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="security_server_clients_pkey"/>
+            </column>
+            <column name="member_code" type="VARCHAR(255)"/>
+            <column name="subsystem_code" type="VARCHAR(255)"/>
+            <column name="name" type="VARCHAR(255)"/>
+            <column name="xroad_member_id" type="INT"/>
+            <column name="member_class_id" type="INT"/>
+            <column name="server_client_id" type="INT"/>
+            <column name="type" type="VARCHAR(255)"/>
+            <column name="administrative_contact" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="security_servers">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="security_servers_pkey"/>
+            </column>
+            <column name="server_code" type="VARCHAR(255)"/>
+            <column name="owner_id" type="INT"/>
+            <column name="address" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="security_servers_security_categories">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="security_servers_security_categories_pkey"/>
+            </column>
+            <column name="security_server_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="security_category_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="server_clients">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="server_clients_pkey"/>
+            </column>
+            <column name="security_server_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="security_server_client_id" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createTable tableName="system_parameters">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="system_parameters_pkey"/>
+            </column>
+            <column name="key" type="VARCHAR(255)"/>
+            <column name="value" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ha_node_name" type="VARCHAR(255)"/>
+        </createTable>
+        <createTable tableName="trusted_anchors">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="trusted_anchors_pkey"/>
+            </column>
+            <column name="instance_identifier" type="VARCHAR(255)"/>
+            <column name="trusted_anchor_file" type="BYTEA"/>
+            <column name="trusted_anchor_hash" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+            <column name="generated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE"/>
+        </createTable>
+        <createTable tableName="ui_users">
+            <column autoIncrement="true" name="id" type="SERIAL">
+                <constraints primaryKey="true" primaryKeyName="ui_users_pkey"/>
+            </column>
+            <column name="username" type="VARCHAR(255)"/>
+            <column name="locale" type="VARCHAR(255)"/>
+            <column name="created_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP(6) WITHOUT TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <createIndex indexName="index_anchor_url_certs_on_anchor_url_id" tableName="anchor_url_certs">
+            <column name="anchor_url_id"/>
+        </createIndex>
+        <createIndex indexName="index_anchor_urls_on_trusted_anchor_id" tableName="anchor_urls">
+            <column name="trusted_anchor_id"/>
+        </createIndex>
+        <createIndex indexName="index_approved_cas_on_top_ca_id" tableName="approved_cas">
+            <column name="top_ca_id"/>
+        </createIndex>
+        <createIndex indexName="index_auth_certs_on_security_server_id" tableName="auth_certs">
+            <column name="security_server_id"/>
+        </createIndex>
+        <createIndex indexName="index_ca_infos_on_intermediate_ca_id" tableName="ca_infos">
+            <column name="intermediate_ca_id"/>
+        </createIndex>
+        <createIndex indexName="index_central_services_on_target_service_id" tableName="central_services">
+            <column name="target_service_id"/>
+        </createIndex>
+        <createIndex indexName="index_configuration_signing_keys_on_configuration_source_id" tableName="configuration_signing_keys">
+            <column name="configuration_source_id"/>
+        </createIndex>
+        <createIndex indexName="index_configuration_sources_on_active_key_id" tableName="configuration_sources">
+            <column name="active_key_id"/>
+        </createIndex>
+        <createIndex indexName="index_global_group_members_on_global_group_id" tableName="global_group_members">
+            <column name="global_group_id"/>
+        </createIndex>
+        <createIndex indexName="index_global_group_members_on_group_member_id" tableName="global_group_members">
+            <column name="group_member_id"/>
+        </createIndex>
+        <createIndex indexName="index_ocsp_infos_on_ca_info_id" tableName="ocsp_infos">
+            <column name="ca_info_id"/>
+        </createIndex>
+        <createIndex indexName="index_requests_on_request_processing_id" tableName="requests">
+            <column name="request_processing_id"/>
+        </createIndex>
+        <createIndex indexName="index_requests_on_sec_serv_user_id" tableName="requests">
+            <column name="sec_serv_user_id"/>
+        </createIndex>
+        <createIndex indexName="index_requests_on_security_server_id" tableName="requests">
+            <column name="security_server_id"/>
+        </createIndex>
+        <createIndex indexName="index_security_server_client_names_on_client_identifier_id" tableName="security_server_client_names">
+            <column name="client_identifier_id"/>
+        </createIndex>
+        <createIndex indexName="index_security_server_clients_on_member_class_id" tableName="security_server_clients">
+            <column name="member_class_id"/>
+        </createIndex>
+        <createIndex indexName="index_security_server_clients_on_server_client_id" tableName="security_server_clients">
+            <column name="server_client_id"/>
+        </createIndex>
+        <createIndex indexName="index_security_server_clients_on_xroad_member_id" tableName="security_server_clients">
+            <column name="xroad_member_id"/>
+        </createIndex>
+        <createIndex indexName="index_security_servers_on_xroad_member_id" tableName="security_servers">
+            <column name="owner_id"/>
+        </createIndex>
+        <createIndex indexName="index_server_category_to_server_id" tableName="security_servers_security_categories">
+            <column name="security_server_id"/>
+        </createIndex>
+        <createIndex indexName="index_server_clients_on_security_server_client_id" tableName="server_clients">
+            <column name="security_server_client_id"/>
+        </createIndex>
+        <createIndex indexName="index_server_clients_on_security_server_id" tableName="server_clients">
+            <column name="security_server_id"/>
+        </createIndex>
+        <createIndex indexName="index_server_to_category" tableName="security_servers_security_categories">
+            <column name="security_category_id"/>
+        </createIndex>
+        <createIndex indexName="unique_content_identifier_version_ha_node_name" tableName="distributed_files" unique="true">
+            <column name="content_identifier"/>
+            <column name="version"/>
+            <column name="ha_node_name"/>
+        </createIndex>
+        <createIndex indexName="unique_type" tableName="configuration_sources" unique="true">
+            <column name="source_type"/>
+            <column name="ha_node_name"/>
+        </createIndex>
+        <addForeignKeyConstraint baseColumnNames="anchor_url_id" baseTableName="anchor_url_certs" constraintName="anchor_url_certs_anchor_url_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="anchor_urls"/>
+        <addForeignKeyConstraint baseColumnNames="trusted_anchor_id" baseTableName="anchor_urls" constraintName="anchor_urls_trusted_anchor_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="trusted_anchors"/>
+        <addForeignKeyConstraint baseColumnNames="top_ca_id" baseTableName="approved_cas" constraintName="approved_cas_top_ca_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ca_infos"/>
+        <addForeignKeyConstraint baseColumnNames="security_server_id" baseTableName="auth_certs" constraintName="auth_certs_security_server_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_servers"/>
+        <addForeignKeyConstraint baseColumnNames="intermediate_ca_id" baseTableName="ca_infos" constraintName="ca_infos_intermediate_ca_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="approved_cas"/>
+        <addForeignKeyConstraint baseColumnNames="target_service_id" baseTableName="central_services" constraintName="central_services_target_service_id_fk" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifiers"/>
+        <addForeignKeyConstraint baseColumnNames="configuration_source_id" baseTableName="configuration_signing_keys" constraintName="configuration_signing_keys_configuration_source_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="configuration_sources"/>
+        <addForeignKeyConstraint baseColumnNames="active_key_id" baseTableName="configuration_sources" constraintName="configuration_sources_active_key_id_fk" deferrable="false" initiallyDeferred="false" onDelete="SET NULL" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="configuration_signing_keys"/>
+        <addForeignKeyConstraint baseColumnNames="global_group_id" baseTableName="global_group_members" constraintName="global_group_members_global_group_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="global_groups"/>
+        <addForeignKeyConstraint baseColumnNames="group_member_id" baseTableName="global_group_members" constraintName="global_group_members_group_member_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifiers"/>
+        <addForeignKeyConstraint baseColumnNames="ca_info_id" baseTableName="ocsp_infos" constraintName="ocsp_infos_ca_info_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="ca_infos"/>
+        <addForeignKeyConstraint baseColumnNames="request_processing_id" baseTableName="requests" constraintName="requests_request_processing_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="request_processings"/>
+        <addForeignKeyConstraint baseColumnNames="sec_serv_user_id" baseTableName="requests" constraintName="requests_sec_serv_user_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifiers"/>
+        <addForeignKeyConstraint baseColumnNames="security_server_id" baseTableName="requests" constraintName="requests_security_server_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifiers"/>
+        <addForeignKeyConstraint baseColumnNames="client_identifier_id" baseTableName="security_server_client_names" constraintName="security_server_client_names_client_identifier_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifiers"/>
+        <addForeignKeyConstraint baseColumnNames="member_class_id" baseTableName="security_server_clients" constraintName="security_server_clients_member_class_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="member_classes"/>
+        <addForeignKeyConstraint baseColumnNames="server_client_id" baseTableName="security_server_clients" constraintName="security_server_clients_server_client_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="identifiers"/>
+        <addForeignKeyConstraint baseColumnNames="xroad_member_id" baseTableName="security_server_clients" constraintName="security_server_clients_xroad_member_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_server_clients"/>
+        <addForeignKeyConstraint baseColumnNames="owner_id" baseTableName="security_servers" constraintName="security_servers_owner_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_server_clients"/>
+        <addForeignKeyConstraint baseColumnNames="security_category_id" baseTableName="security_servers_security_categories" constraintName="security_servers_security_categories_security_category_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_categories"/>
+        <addForeignKeyConstraint baseColumnNames="security_server_id" baseTableName="security_servers_security_categories" constraintName="security_servers_security_categories_security_server_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_servers"/>
+        <addForeignKeyConstraint baseColumnNames="security_server_client_id" baseTableName="server_clients" constraintName="server_clients_security_server_client_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_server_clients"/>
+        <addForeignKeyConstraint baseColumnNames="security_server_id" baseTableName="server_clients" constraintName="server_clients_security_server_id_fk" deferrable="false" initiallyDeferred="false" onDelete="CASCADE" onUpdate="NO ACTION" referencedColumnNames="id" referencedTableName="security_servers"/>
+        <createView fullDefinition="false" viewName="ha_cluster_status"> SELECT sp.ha_node_name,
+            sp.value AS address,
+            df.configuration_generated
+            FROM (system_parameters sp
+            LEFT JOIN ( SELECT distributed_files.ha_node_name,
+            max(distributed_files.file_updated_at) AS configuration_generated
+            FROM distributed_files
+            WHERE ((distributed_files.content_identifier)::text = 'PRIVATE-PARAMETERS'::text)
+            GROUP BY distributed_files.ha_node_name) df ON (((sp.ha_node_name)::text = (df.ha_node_name)::text)))
+            WHERE ((sp.key)::text = 'centralServerAddress'::text);</createView>
+    </changeSet>
+</databaseChangeLog>
