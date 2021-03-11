@@ -156,7 +156,8 @@ public class GlobalConfChecker {
                 Optional<ApprovedTSAType> urlChanges =
                         globalTspMatches.stream().filter(t -> !t.getUrl().equals(localTsp.getUrl())).findAny();
                 if (urlChanges.isPresent()) {
-                    log.warn("Skipping timestamping service URL update due to multiple services with the same name.");
+                    log.warn("Skipping timestamping service URL update due to multiple services with the same name: {}",
+                            globalTspMatches.get(0).getName());
                 }
             } else if (globalTspMatches.size() == 1) {
                 ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
