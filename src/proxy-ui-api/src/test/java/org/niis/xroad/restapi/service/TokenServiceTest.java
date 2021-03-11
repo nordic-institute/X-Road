@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.restapi.service.TokenService.CKR_PIN_INCORRECT_MESSAGE;
 import static org.niis.xroad.restapi.service.TokenService.LOGIN_FAILED_FAULT_CODE;
@@ -71,6 +72,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
     private static final String UNRECOGNIZED_FAULT_CODE_TOKEN_ID = "unknown-faultcode";
     private static final String GOOD_KEY_ID = "key-which-exists";
     private static final String GOOD_TOKEN_NAME = "good-token";
+    private static final String BAD_POLICY_PIN = "-";
 
     public static final String GOOD_TOKEN_ID = "token-which-exists";
 
@@ -94,6 +96,18 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             }
             return null;
         }).when(signerProxyFacade).activateToken(any(), any());
+
+        doAnswer(invocation -> {
+            Object[] args = invocation.getArguments();
+            String oldPin = new String((char[]) args[1]);
+            String newPin = new String((char[]) args[2]);
+            if (WRONG_SOFTTOKEN_PIN_TOKEN_ID.equals(oldPin)) {
+                throw new CodedException(PIN_INCORRECT_FAULT_CODE);
+            } else {
+                log.debug("activate successful");
+            }
+            return null;
+        }).when(signerProxyFacade).updateSoftwareTokenPin(any(), any(), any());
 
         doAnswer(invocation -> {
             Object[] args = invocation.getArguments();
@@ -169,7 +183,7 @@ public class TokenServiceTest extends AbstractServiceTestContext {
             assertEquals("foo", expected.getFaultCode());
             assertEquals("bar", expected.getFaultString());
         }
-
+        tokenPinValidator.setTokenPinEnforced(false);
     }
 
     @Test
@@ -223,9 +237,41 @@ public class TokenServiceTest extends AbstractServiceTestContext {
         assertEquals(TokenInitStatusInfo.UNKNOWN, tokenStatus);
     }
 
+    @Test
+    public void updateTokenPinSuccess() {
+        try {
+            tokenService.updateSoftwareTokenPin(GOOD_TOKEN_ID, "oldPin", "newPin");
+        } catch (Exception e) {
+            fail("should not throw exceptions");
+        }
+    }
+
+    @Test(expected = TokenNotFoundException.class)
+    public void updateTokenPinNotFound() throws Exception {
+        tokenService.updateSoftwareTokenPin(TOKEN_NOT_FOUND_TOKEN_ID, "oldPin", "newPin");
+    }
+
+    @Test(expected = TokenService.PinIncorrectException.class)
+    public void updateTokenPinIncorrect() throws Exception {
+        tokenService.updateSoftwareTokenPin(GOOD_TOKEN_ID, WRONG_SOFTTOKEN_PIN_TOKEN_ID, "newPin");
+    }
+
+    @Test(expected = InvalidCharactersException.class)
+    public void updateTokenPinInvalidCharacters() throws Exception {
+        doThrow(InvalidCharactersException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
+        tokenService.updateSoftwareTokenPin(GOOD_TOKEN_ID, "oldPin", BAD_POLICY_PIN);
+    }
+
+    @Test(expected = WeakPinException.class)
+    public void updateTokenPinWeak() throws Exception {
+        doThrow(WeakPinException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
+        tokenService.updateSoftwareTokenPin(GOOD_TOKEN_ID, "oldPin", BAD_POLICY_PIN);
+    }
+
     private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper);
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper,
+                tokenPinValidator);
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {

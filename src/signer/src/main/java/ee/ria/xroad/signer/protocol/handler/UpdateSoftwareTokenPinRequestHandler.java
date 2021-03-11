@@ -23,26 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package ee.ria.xroad.signer.protocol.handler;
+
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 /**
- * List of actions that can be possible / not possible for tokens, keys,
- * certs and csrs.
- *
- * Uses service / core naming. Token logout is "deactivate" instead of "logout".
+ * Handles token pin update
  */
-public enum PossibleActionEnum {
-    DELETE,
-    ACTIVATE,
-    DISABLE, // cert
-    TOKEN_ACTIVATE,
-    TOKEN_CHANGE_PIN,
-    TOKEN_DEACTIVATE, // token
-    REGISTER,
-    UNREGISTER,
-    IMPORT_FROM_TOKEN,
-    GENERATE_KEY,
-    EDIT_FRIENDLY_NAME,
-    GENERATE_AUTH_CSR,
-    GENERATE_SIGN_CSR,
+public class UpdateSoftwareTokenPinRequestHandler
+        extends AbstractRequestHandler<UpdateSoftwareTokenPin> {
+
+    @Override
+    protected Object handle(UpdateSoftwareTokenPin message) throws Exception {
+        tellToken(message, message.getTokenId());
+        return nothing();
+    }
+
 }

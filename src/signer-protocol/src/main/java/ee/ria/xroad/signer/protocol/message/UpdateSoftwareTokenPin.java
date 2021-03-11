@@ -23,26 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.service;
+package ee.ria.xroad.signer.protocol.message;
+
+import lombok.Value;
+
+import java.io.Serializable;
 
 /**
- * List of actions that can be possible / not possible for tokens, keys,
- * certs and csrs.
- *
- * Uses service / core naming. Token logout is "deactivate" instead of "logout".
+ * Signer API message for updating software token pin.
  */
-public enum PossibleActionEnum {
-    DELETE,
-    ACTIVATE,
-    DISABLE, // cert
-    TOKEN_ACTIVATE,
-    TOKEN_CHANGE_PIN,
-    TOKEN_DEACTIVATE, // token
-    REGISTER,
-    UNREGISTER,
-    IMPORT_FROM_TOKEN,
-    GENERATE_KEY,
-    EDIT_FRIENDLY_NAME,
-    GENERATE_AUTH_CSR,
-    GENERATE_SIGN_CSR,
+@Value
+public class UpdateSoftwareTokenPin implements Serializable {
+
+    private final String tokenId;
+
+    private final char[] oldPin;
+
+    private final char[] newPin;
+
 }

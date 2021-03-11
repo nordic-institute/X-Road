@@ -25,24 +25,15 @@
  */
 package org.niis.xroad.restapi.service;
 
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
+
 /**
- * List of actions that can be possible / not possible for tokens, keys,
- * certs and csrs.
- *
- * Uses service / core naming. Token logout is "deactivate" instead of "logout".
+ * If the provided pin code contains invalid characters
  */
-public enum PossibleActionEnum {
-    DELETE,
-    ACTIVATE,
-    DISABLE, // cert
-    TOKEN_ACTIVATE,
-    TOKEN_CHANGE_PIN,
-    TOKEN_DEACTIVATE, // token
-    REGISTER,
-    UNREGISTER,
-    IMPORT_FROM_TOKEN,
-    GENERATE_KEY,
-    EDIT_FRIENDLY_NAME,
-    GENERATE_AUTH_CSR,
-    GENERATE_SIGN_CSR,
+public class InvalidCharactersException extends ServiceException {
+    public InvalidCharactersException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_INVALID_CHARACTERS_PIN));
+    }
 }

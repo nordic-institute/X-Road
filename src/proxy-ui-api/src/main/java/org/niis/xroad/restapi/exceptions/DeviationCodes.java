@@ -124,6 +124,7 @@ public final class DeviationCodes {
     public static final String ERROR_ORPHANS_NOT_FOUND = "orphans_not_found";
     public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
     public static final String ERROR_PIN_INCORRECT = "pin_incorrect";
+    public static final String ERROR_PIN_POLICY_FAILURE = "pin_policy_failure";
     public static final String ERROR_PROCESS_FAILED = "process_failed";
     public static final String ERROR_PROCESS_NOT_EXECUTABLE = "process_not_executable";
     public static final String ERROR_RESOURCE_READ = "resource_read_failed";

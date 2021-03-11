@@ -30,7 +30,9 @@ import org.niis.xroad.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
+import org.niis.xroad.restapi.service.InvalidCharactersException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.service.WeakPinException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,7 +117,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
             // expected
         }
 
-        doThrow(new InitializationService.InvalidCharactersException(""))
+        doThrow(new InvalidCharactersException(""))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
@@ -124,7 +126,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
             // expected
         }
 
-        doThrow(new InitializationService.WeakPinException("", Collections.emptyList()))
+        doThrow(new WeakPinException("", Collections.emptyList()))
                 .when(initializationService).initialize(any(), any(), any(), any(), anyBoolean());
         try {
             initializationApiController.initSecurityServer(initialServerConf);
