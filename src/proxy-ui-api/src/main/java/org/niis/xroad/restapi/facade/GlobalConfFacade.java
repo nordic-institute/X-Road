@@ -180,24 +180,10 @@ public class GlobalConfFacade {
     }
 
     /**
-     * {@link GlobalConf#getApprovedTsps(String)}
-     */
-    public List<String> getApprovedTsps(String instanceIdentifier) {
-        return GlobalConf.getApprovedTsps(instanceIdentifier);
-    }
-
-    /**
      * {@link GlobalConf#getApprovedTspTypes(String)}
      */
     public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
         return GlobalConf.getApprovedTspTypes(instanceIdentifier);
-    }
-
-    /**
-     * {@link GlobalConf#getApprovedTspName(String, String)}}
-     */
-    public String getApprovedTspName(String instanceIdentifier, String url) {
-        return GlobalConf.getApprovedTspName(instanceIdentifier, url);
     }
 
     /**
