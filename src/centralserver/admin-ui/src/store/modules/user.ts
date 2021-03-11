@@ -26,7 +26,7 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '../types';
+import { RootState } from '@/global';
 import { StoreTypes } from '@/global';
 
 export interface State {
