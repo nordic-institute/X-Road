@@ -730,7 +730,7 @@ public final class SystemProperties {
     /**
      * @return whether automatic update of timestamp service URLs is enabled, 'false' by default.
      */
-    public static boolean getAutoUpdateTimestampServiceUrl() {
+    public static boolean geUpdateTimestampServiceUrlsAutomatically() {
         return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
                 DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
     }

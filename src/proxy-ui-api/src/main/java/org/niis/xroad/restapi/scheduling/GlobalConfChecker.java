@@ -138,7 +138,7 @@ public class GlobalConfChecker {
             throw translateException(e);
         }
 
-        if (SystemProperties.getAutoUpdateTimestampServiceUrl()) {
+        if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
             updateTimestampServiceUrls(serverConf);
         }
     }
