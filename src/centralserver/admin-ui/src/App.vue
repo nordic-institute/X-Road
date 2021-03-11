@@ -35,6 +35,7 @@
 </template>
 
 <script lang="ts">
+// The root component of the Vue app
 import Vue from 'vue';
 import { StoreTypes } from '@/global';
 import { mapGetters } from 'vuex';

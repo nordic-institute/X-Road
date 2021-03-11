@@ -26,6 +26,7 @@
 import '@mdi/font/css/materialdesignicons.css';
 import Vue from 'vue';
 import Vuetify from 'vuetify/lib';
+import { Colors } from '@/global';
 
 Vue.use(Vuetify);
 
@@ -36,10 +37,9 @@ export default new Vuetify({
   theme: {
     themes: {
       light: {
-        primary: '#663cdc',
-        secondary: '#00C9E7',
-        accent: '#8c9eff',
-        grey: '#9c9c9c',
+        primary: Colors.Purple100,
+        accent: Colors.Purple70,
+        grey: Colors.Black50,
       },
     },
   },

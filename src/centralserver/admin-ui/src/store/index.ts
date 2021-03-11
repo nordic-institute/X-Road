@@ -23,9 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+/* 
+Initialises the Vuex store.
+Adds store modules and plugins.
+*/
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
-import { RootState } from './types';
+import { RootState } from '@/global';
 import { module as user } from './modules/user';
 import VuexPersistence from 'vuex-persist';
 

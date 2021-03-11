@@ -23,6 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+// Vuex Store root state
+export interface RootState {
+  version: string;
+}
+
+// Vuex store types
 export const StoreTypes = {
   getters: {
     IS_AUTHENTICATED: 'IS_AUTHENTICATED',

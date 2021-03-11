@@ -23,6 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+// This file helps IDE's to understand what a .vue file is
 declare module '*.vue' {
   import Vue from 'vue';
   export default Vue;
