@@ -145,12 +145,10 @@ public class GlobalConfChecker {
 
     private void updateTimestampServiceUrls(ServerConfType serverConf) {
 
-        List<TspType> localTsps = serverConf.getTsp();
         List<ApprovedTSAType> globalTsps =
                 globalConfFacade.getApprovedTspTypes(globalConfFacade.getInstanceIdentifier());
 
-        for (int i = 0; i < localTsps.size(); i++) {
-            TspType localTsp = localTsps.get(i);
+        for (TspType localTsp : serverConf.getTsp()) {
             List<ApprovedTSAType> globalTspMatches = globalTsps.stream()
                     .filter(g -> g.getName().equals(localTsp.getName()))
                     .collect(toList());
@@ -165,7 +163,7 @@ public class GlobalConfChecker {
                 if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
                     log.info("Updating changed timestamping service URL, Name: {}, Old URL: {}, New URL: {}",
                             localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
-                    serverConf.getTsp().get(i).setUrl(globalTspMatch.getUrl());
+                    localTsp.setUrl(globalTspMatch.getUrl());
                 }
             }
         }
