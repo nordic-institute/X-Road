@@ -94,7 +94,8 @@
 .view-wrap {
   width: 100%;
   max-width: 1050px;
-  margin: 10px;
+  margin: 40px;
+  margin-top: 30px;
   box-shadow: $XRoad-DefaultShadow;
   border-radius: 4px;
 
@@ -148,4 +149,8 @@
   margin-top: 10px;
   color: #ff5252;
   font-size: 12px;
+}
+
+.finish-info {
+  font-size: 14px;
 }

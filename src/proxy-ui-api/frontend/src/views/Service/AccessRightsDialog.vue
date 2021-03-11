@@ -120,11 +120,11 @@
                 </div>
 
                 <div class="search-wrap">
-                  <large-button
+                  <xrd-button
                     :loading="loading"
                     @click="search()"
                     data-test="search-button"
-                    >{{ $t('action.search') }}</large-button
+                    >{{ $t('action.search') }}</xrd-button
                   >
                 </div>
               </div>
@@ -182,17 +182,17 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button
+        <xrd-button
           class="button-margin"
           data-test="cancel-button"
           outlined
           @click="cancel()"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <large-button :disabled="!canSave" data-test="save" @click="save()">{{
+        <xrd-button :disabled="!canSave" data-test="save" @click="save()">{{
           $t('localGroup.addSelected')
-        }}</large-button>
+        }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>

@@ -35,34 +35,25 @@
     <div class="table-toolbar pb-3 pt-5">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
-        <v-text-field
-          v-model="search"
-          :label="$t('action.search')"
-          data-test="search-clients-input"
-          single-line
-          hide-details
-          class="search-input"
-          autofocus
-        >
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
+
+        <xrd-search v-model="search" />
       </div>
       <div>
-        <LargeButton
+        <xrd-button
           v-if="showAddMember"
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
           outlined
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addMember') }}</LargeButton
+          {{ $t('action.addMember') }}</xrd-button
         >
-        <LargeButton
+        <xrd-button
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
-          {{ $t('action.addClient') }}</LargeButton
+          {{ $t('action.addClient') }}</xrd-button
         >
       </div>
     </div>
@@ -128,7 +119,7 @@
             >icon-Folder-outline</v-icon
           >
 
-          <span class="identifier-wrap name-member">{{
+          <span class="identifier-wrap member-name">{{
             item.visibleName
           }}</span>
         </template>
@@ -154,7 +145,7 @@
 
       <template v-slot:[`item.button`]="{ item }">
         <div class="button-wrap">
-          <LargeButton
+          <xrd-button
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
@@ -166,10 +157,10 @@
             :outlined="false"
             @click="addSubsystem(item)"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.addSubsystem') }}</LargeButton
+            >{{ $t('action.addSubsystem') }}</xrd-button
           >
 
-          <LargeButton
+          <xrd-button
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
               item.type !== clientTypes.VIRTUAL_MEMBER &&
@@ -179,7 +170,7 @@
             text
             :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}</LargeButton
+            >{{ $t('action.register') }}</xrd-button
           >
         </div>
       </template>
@@ -190,7 +181,7 @@
       }}</v-alert>
     </v-data-table>
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"
@@ -487,7 +478,7 @@ export default Vue.extend({
 <style lang="scss">
 @import '~styles/colors';
 .xrd-table-header {
-  border-bottom: 1px solid #dedce4 !important;
+  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
 }
 
 // Override Vuetify default table cell height
@@ -496,6 +487,11 @@ export default Vue.extend({
 .v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
   height: 56px;
   color: $XRoad-Black100;
+}
+
+// Override Vuetify table row hover color
+.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+  background: $XRoad-Purple10 !important;
 }
 </style>
 
@@ -532,7 +528,14 @@ export default Vue.extend({
 
 .data-table-wrapper {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1600px;
+  margin-left: 10px;
+  margin-right: 10px;
+
+  @media only screen and (max-width: 1620px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
 .data-table {
@@ -540,10 +543,11 @@ export default Vue.extend({
 }
 
 .name {
-  margin-left: 34px;
+  margin-left: 40px;
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
+  font-weight: 600;
 
   &.clickable {
     cursor: pointer;
@@ -578,13 +582,6 @@ export default Vue.extend({
     color: $XRoad-Link;
     cursor: pointer;
   }
-}
-
-.name-member {
-  margin-left: 14px;
-  margin-top: auto;
-  margin-bottom: auto;
-  text-align: center;
 }
 
 .button-wrap {

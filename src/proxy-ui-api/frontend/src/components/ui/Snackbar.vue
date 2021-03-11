@@ -26,38 +26,40 @@
 <template>
   <div>
     <!-- Success -->
-    <v-snackbar
-      data-test="success-snackbar"
-      v-for="notification in successNotifications"
-      :key="notification.timeAdded"
-      :timeout="notification.timeout"
-      v-model="notification.show"
-      :color="colors.Success10"
-      multi-line
-      class="success-snackbar"
-      :min-width="760"
-      @input="closeSuccess(notification.timeAdded)"
-    >
-      <div class="row-wrapper-top scrollable identifier-wrap">
-        <v-icon color="#0CC177">icon-Checker</v-icon>
-        <div class="row-wrapper">
-          <div v-if="notification.successMessageCode">
-            {{ $t(notification.successMessageCode) }}
+    <transition name="fade">
+      <v-snackbar
+        data-test="success-snackbar"
+        v-for="notification in successNotifications"
+        :key="notification.timeAdded"
+        :timeout="notification.timeout"
+        v-model="notification.show"
+        :color="colors.Success10"
+        multi-line
+        class="success-snackbar"
+        :min-width="760"
+        @input="closeSuccess(notification.timeAdded)"
+      >
+        <div class="row-wrapper-top scrollable identifier-wrap">
+          <v-icon :color="colors.Success100">icon-Checker</v-icon>
+          <div class="row-wrapper">
+            <div v-if="notification.successMessageCode">
+              {{ $t(notification.successMessageCode) }}
+            </div>
+            <div v-if="notification.successMessageRaw">
+              {{ notification.successMessageRaw }}
+            </div>
           </div>
-          <div v-if="notification.successMessageRaw">
-            {{ notification.successMessageRaw }}
-          </div>
+          <v-btn
+            icon
+            :color="colors.Black100"
+            data-test="close-snackbar"
+            @click="closeSuccess(notification.timeAdded)"
+          >
+            <v-icon dark>icon-Close</v-icon>
+          </v-btn>
         </div>
-        <v-btn
-          icon
-          :color="colors.Black100"
-          data-test="close-snackbar"
-          @click="closeSuccess(notification.timeAdded)"
-        >
-          <v-icon dark>icon-Close</v-icon>
-        </v-btn>
-      </div>
-    </v-snackbar>
+      </v-snackbar>
+    </transition>
   </div>
 </template>
 
@@ -123,5 +125,14 @@ export default Vue.extend({
 .scrollable {
   overflow-y: auto;
   max-height: 300px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 1s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

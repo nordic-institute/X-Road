@@ -33,11 +33,11 @@
         {{ $t('wizard.member.info2') }}
       </div>
       <div class="action-block">
-        <large-button
+        <xrd-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-          >{{ $t('wizard.member.select') }}</large-button
+          >{{ $t('wizard.member.select') }}</xrd-button
         >
       </div>
     </div>
@@ -45,7 +45,7 @@
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberName')"
             :helpText="$t('wizard.client.memberNameTooltip')"
           />
@@ -53,7 +53,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberClass')"
             :helpText="$t('wizard.client.memberClassTooltip')"
           />
@@ -68,12 +68,13 @@
               class="form-input"
               v-model="memberClass"
               data-test="member-class-input"
+              :placeholder="$t('wizard.selectMemberClass')"
               outlined
             ></v-select>
           </ValidationProvider>
         </div>
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberCode')"
             :helpText="$t('wizard.client.memberCodeTooltip')"
           />
@@ -88,6 +89,7 @@
               type="text"
               :error-messages="errors"
               v-model="memberCode"
+              :placeholder="$t('wizard.memberCode')"
               autofocus
               outlined
               data-test="member-code-input"
@@ -101,15 +103,15 @@
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" data-test="cancel-button">{{
+          <xrd-button outlined @click="cancel" data-test="cancel-button">{{
             $t('action.cancel')
-          }}</large-button>
+          }}</xrd-button>
         </div>
-        <large-button
+        <xrd-button
           @click="done"
           :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
-          >{{ $t('action.next') }}</large-button
+          >{{ $t('action.next') }}</xrd-button
         >
       </div>
     </ValidationObserver>

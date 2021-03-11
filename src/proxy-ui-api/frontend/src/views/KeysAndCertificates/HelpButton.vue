@@ -31,14 +31,14 @@
       >
     </v-hover>
 
-    <helpDialog
+    <xrd-help-dialog
       :dialog="showHelp"
       @cancel="closeHelp"
       :title="helpTitle"
       :text="helpText"
     >
       <v-img :src="require('./../../assets/' + helpImage)"></v-img>
-    </helpDialog>
+    </xrd-help-dialog>
   </div>
 </template>
 

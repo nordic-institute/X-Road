@@ -4473,7 +4473,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Version'
+                $ref: '#/components/schemas/VersionInfo'
         '400':
           description: request was invalid
         '401':
@@ -6816,11 +6816,17 @@ components:
           items:
             type: string
             format: text
-    Version: # ok
+    VersionInfo: # ok
       type: object
       description: version information
       required:
         - info
+        - java_version
+        - min_java_version
+        - max_java_version
+        - using_supported_java_version
+        - java_vendor
+        - java_runtime_version
       properties:
         info:
           type: string
@@ -6829,5 +6835,23 @@ components:
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
+        java_version:
+          type: integer
+          description: java version currently in use
+        min_java_version:
+          type: integer
+          description: minimum supported java version
+        max_java_version:
+          type: integer
+          description: maximum supported java version
+        using_supported_java_version:
+          type: boolean
+          description: true if currently used java version is supported
+        java_vendor:
+          type: string
+          description: java vendor string from java.vendor system property
+        java_runtime_version:
+          type: string
+          description: java runtime version string from java.runtime.version system property
 security:
   - ApiKeyAuth: []

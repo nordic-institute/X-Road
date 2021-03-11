@@ -25,15 +25,15 @@
  -->
 <template>
   <div>
-    <LargeButton
+    <xrd-button
       data-test="unregister-client-button"
       @click="confirmUnregisterClient = true"
       outlined
-      >{{ $t('action.unregister') }}</LargeButton
+      >{{ $t('action.unregister') }}</xrd-button
     >
 
     <!-- Confirm dialog for unregister client -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmUnregisterClient"
       :loading="unregisterLoading"
       title="client.action.unregister.confirmTitle"

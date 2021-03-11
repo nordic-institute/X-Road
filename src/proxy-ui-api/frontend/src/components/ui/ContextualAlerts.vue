@@ -40,74 +40,75 @@
         border="left"
         colored-border
         class="alert"
-        icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
-          <div class="row-wrapper">
-            <!-- Show localised text by id -->
-            <div v-if="notification.errorMessageCode">
-              {{ $t(notification.errorMessageCode) }}
-            </div>
+          <div class="icon-wrapper">
+            <v-icon class="icon"> icon-Error-notification</v-icon>
+            <div class="row-wrapper">
+              <!-- Show localised text by id -->
+              <div v-if="notification.errorMessageCode">
+                {{ $t(notification.errorMessageCode) }}
+              </div>
 
-            <!-- Show raw text -->
-            <div v-else-if="notification.errorMessageRaw">
-              {{ notification.errorMessageRaw }}
-            </div>
+              <!-- Show raw text -->
+              <div v-else-if="notification.errorMessageRaw">
+                {{ notification.errorMessageRaw }}
+              </div>
 
-            <!-- Show localised text by id from error object -->
-            <div
-              v-else-if="notification.errorObject && errorCode(notification)"
-            >
-              {{ $t('error_code.' + errorCode(notification)) }}
-            </div>
-
-            <!-- If error doesn't have a text or localisation key then just print the error object -->
-            <div v-else-if="notification.errorObject">
-              {{ notification.errorObject }}
-            </div>
-
-            <!-- Show the error metadata if it exists -->
-            <div v-for="meta in errorMetadata(notification)" :key="meta">
-              {{ meta }}
-            </div>
-
-            <!-- Show validation errors -->
-            <ul v-if="hasValidationErrors(notification)">
-              <li
-                v-for="validationError in validationErrors(notification)"
-                :key="validationError.field"
+              <!-- Show localised text by id from error object -->
+              <div
+                v-else-if="notification.errorObject && errorCode(notification)"
               >
-                {{ $t(`fields.${validationError.field}`) }}:
-                <template v-if="validationError.errorCodes.length === 1">
-                  {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-                </template>
-                <template v-else>
-                  <ul>
-                    <li
-                      v-for="errorCode in validationError.errorCodes"
-                      :key="`${validationError.field}.${errorCode}`"
-                    >
-                      {{ $t(`validationError.${errorCode}`) }}
-                    </li>
-                  </ul>
-                </template>
-              </li>
-            </ul>
+                {{ $t('error_code.' + errorCode(notification)) }}
+              </div>
 
-            <!-- Error ID -->
-            <div v-if="errorId(notification)">
-              {{ $t('id') }}:
-              {{ errorId(notification) }}
-            </div>
+              <!-- If error doesn't have a text or localisation key then just print the error object -->
+              <div v-else-if="notification.errorObject">
+                {{ notification.errorObject }}
+              </div>
 
-            <!-- count -->
-            <div v-if="notification.count > 1">
-              {{ $t('count') }}
-              {{ notification.count }}
+              <!-- Show the error metadata if it exists -->
+              <div v-for="meta in errorMetadata(notification)" :key="meta">
+                {{ meta }}
+              </div>
+
+              <!-- Show validation errors -->
+              <ul v-if="hasValidationErrors(notification)">
+                <li
+                  v-for="validationError in validationErrors(notification)"
+                  :key="validationError.field"
+                >
+                  {{ $t(`fields.${validationError.field}`) }}:
+                  <template v-if="validationError.errorCodes.length === 1">
+                    {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+                  </template>
+                  <template v-else>
+                    <ul>
+                      <li
+                        v-for="errorCode in validationError.errorCodes"
+                        :key="`${validationError.field}.${errorCode}`"
+                      >
+                        {{ $t(`validationError.${errorCode}`) }}
+                      </li>
+                    </ul>
+                  </template>
+                </li>
+              </ul>
+
+              <!-- Error ID -->
+              <div v-if="errorId(notification)">
+                {{ $t('id') }}:
+                {{ errorId(notification) }}
+              </div>
+
+              <!-- count -->
+              <div v-if="notification.count > 1">
+                {{ $t('count') }}
+                {{ notification.count }}
+              </div>
             </div>
           </div>
-
-          <LargeButton
+          <xrd-button
             v-if="errorId(notification)"
             text
             :outlined="false"
@@ -115,7 +116,7 @@
             data-test="copy-id-button"
             @click.prevent="copyId(notification)"
             ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-            >{{ $t('action.copyId') }}</LargeButton
+            >{{ $t('action.copyId') }}</xrd-button
           >
 
           <div class="buttons">
@@ -211,6 +212,8 @@ export default Vue.extend({
 
 .alert {
   margin-top: 8px;
+  border: 2px solid $XRoad-WarmGrey30;
+  box-sizing: border-box;
   border-radius: 4px;
 }
 
@@ -220,6 +223,19 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: center;
 }
+
+.icon-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+
+  .icon {
+    margin-right: 12px;
+    color: $XRoad-Error;
+  }
+}
+
 .row-wrapper {
   display: flex;
   flex-direction: column;
