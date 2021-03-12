@@ -45,7 +45,11 @@
       * [4.5.6.1 Prerequisites](#4561-prerequisites)
       * [4.5.6.2 Primary Pod installation](#4562-primary-pod-installation)
       * [4.5.6.3 Secondary Pods installation](#4563-secondary-pods-installation)
-    * [4.5.7 Load Balancer IP or DNS options](#456-load-balancer-ip-or-dns-options)
+    * [4.5.7 Load balancer IP or DNS options](#457-load-balancer-ip-or-dns-options)
+       * [4.5.7.1 Use the internal Kubernetes DNS](#4571-use-the-internal-kubernetes-dns)
+       * [4.5.7.2 Use the assigned Private IP or public DNS name](#4572-use-the-assigned-private-ip-or-public-dns-name)
+       * [4.5.7.3 Set a fixed Private IP](#4573-set-a-fixed-private-ip)
+       * [4.5.7.4 Deploy Kubernetes External DNS](#4574-deploy-kubernetes-external-dns)
 * [5 Backup and Restore](#5-backup-and-restore)
 * [6 Monitoring](#6-monitoring)
   * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
@@ -896,13 +900,17 @@ TThe Secondary Pods will synchronize the configuration at initialization and thr
 
 In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server Sidecar Pods through the Load Balancer, the DNS or IP of the Load Balancer must be configured in Security Server address on the Central Server.
 <p align="center">
-  <img src="img/central_server_configuration.png" />
+  <img style="max-width: 250px;" src="img/central_server_configuration.png" />
 </p>
-Next, we are going to describe the possible options that we can use to establish the address of the Load Balancer.
+We are going to describe the possible options that we can use to establish the address of the Load Balancer.
 
-* **Use the internal Kubernetes DNS**: The internal Kubernetes DNS name for the Load Balancer will be &lt;primary DNS&gt; (**reference data: 3.20**). This option is only recommended for developing or testing purposes since this &lt;primary DNS&gt; will only work if the consumer Security Server Sidecar is deployed in the same cluster.
+##### 4.5.7.1 Use the internal Kubernetes DNS
 
-* **Use the assigned Private IP or public DNS name**: When a Load Balancer Service it's created, AWS automatically assigns to it a private IP and a public DNS. We can check it by running (**reference Data: 3.1**) checking the properties `CLUSTER-IP`, `EXTERNAL-IP`:
+The internal Kubernetes DNS name for the Load Balancer will be &lt;primary DNS&gt; (**reference data: 3.20**). This option is only recommended for developing or testing purposes since this &lt;primary DNS&gt; will only work if the consumer Security Server Sidecar is deployed in the same cluster.
+
+##### 4.5.7.2 Use the assigned Private IP or public DNS name
+
+When a Load Balancer Service it's created, AWS automatically assigns to it a private IP and a public DNS. We can check it by running (**reference Data: 3.1**) checking the properties `CLUSTER-IP`, `EXTERNAL-IP`:
 ```bash
 kubectl get svc -n <namespace name>
 
@@ -911,7 +919,8 @@ service-sidecar-balancer        LoadBalancer   10.100.160.10   a764b23040d98479f
 ```
 If the consumer Security Server Sidecar it's in the same Network we can use the `CLUSTER-IP`, if not, we must use the `EXTERNAL-IP`. The problem with this approach is that AWS will assign new values to this properties every time that the Load Balancer Service it's recreated, So it will require an update of one of this values in the Central Server configuration each time.
 
-* **Set a fixed Private IP** It is possible to define a Private IP in the Load Balancer Service deployment by adding the property `clusterIP` (**reference data: 3.17**):
+##### 4.5.7.3 Set a fixed Private IP
+It is possible to define a Private IP in the Load Balancer Service deployment by adding the property `clusterIP` (**reference data: 3.17**):
 ```
 [...]
 spec:
@@ -921,7 +930,9 @@ spec:
 ```
 By adding this property, the Load Balancer will keep the same private IP each time it is recreated, the public DNS (`EXTERNAL-IP`) will not and a new one will be assigned each time the Load Balancer is recreated, as with the previous section. If we need to make public the fixed private IP, we can create a new AWS Route 53 record that points to this IP. This solution is only recommend for developing or testing purposes since it's an anti pattern to have fixed IPs in our deployment.
 
-* **Deploy Kubernetes External DNS**. [Kubernetes External DNS](https://github.com/kubernetes-sigs/external-dns/) makes Kubernetes resources discoverable via public DNS servers. Use AWS Route 53 combine with Kubernetes External DNS will allow us to create a new record in an existing Hosted Zone in AWS Route 53 and it will update this record with the new `EXTERNAL-IP` assigned value each time that the Load Balancer Service is recreated.
+##### 4.5.7.4 Deploy Kubernetes External DNS
+
+[Kubernetes External DNS](https://github.com/kubernetes-sigs/external-dns/) makes Kubernetes resources discoverable via public DNS servers. Use AWS Route 53 combine with Kubernetes External DNS will allow us to create a new record in an existing Hosted Zone in AWS Route 53 and it will update this record with the new `EXTERNAL-IP` assigned value each time that the Load Balancer Service is recreated.
 First we need to have an existing AWS Route 53 Hoted zone, if we don't have one we must create it. Then the AWS EKS Cluster role must have the following permissions:
 ```
 {
