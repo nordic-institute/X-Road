@@ -194,6 +194,9 @@ public class LocalGroupService {
             groupMemberType.setGroupMemberId(clientIdToBeAdded);
             membersToBeAdded.add(groupMemberType);
         }
+        // do not remove this saveOrUpdateAll - contrary to expectations hibernate does not cascade such
+        // one-to-many + many-to-one construct properly
+        localGroupRepository.saveOrUpdateAll(membersToBeAdded);
         localGroupType.getGroupMember().addAll(membersToBeAdded);
     }
 
