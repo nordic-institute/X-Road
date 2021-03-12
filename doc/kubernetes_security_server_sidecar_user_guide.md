@@ -671,7 +671,7 @@ Startup probes are useful for Pods that have containers that take a long time to
 
 In a different scenario where the Sidecar container would take a long time to start, the startup probe can be used in combination with the liveness probe, so that it waits until the startup probe has succeeded before starting the liveness probe. The tricky part is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worst case startup time.
 
-```yaml
+``` yaml
 [...]
 containers:
   livenessProbe:
