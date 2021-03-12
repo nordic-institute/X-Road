@@ -31,12 +31,16 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx;
 import ee.ria.xroad.common.conf.serverconf.ServerConfImpl;
+import ee.ria.xroad.common.conf.serverconf.dao.LocalGroupDAOImpl;
 import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
+import ee.ria.xroad.common.conf.serverconf.model.GroupMemberType;
+import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
+import org.hibernate.Session;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -47,6 +51,7 @@ import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_UNKNOWN_SERVICE;
@@ -114,6 +119,16 @@ public class ServerConfTest {
         ServerConfDatabaseCtx.get().commitTransaction();
     }
 
+    @Test
+    public void saveLocalGroup() {
+        final Session session = ServerConfDatabaseCtx.get().getSession();
+        LocalGroupDAOImpl dao = new LocalGroupDAOImpl();
+        final LocalGroupType group = dao.getLocalGroup(session, 1L);
+        final GroupMemberType member = new GroupMemberType();
+        member.setGroupMemberId(ClientId.create("TEST","CLASS","MEMBER","DOESNOTEXIST"));
+        member.setAdded(new Date());
+        group.getGroupMember().add(member);
+    }
     /**
      * Test getting owner.
      */
