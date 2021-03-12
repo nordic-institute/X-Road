@@ -24,37 +24,43 @@
  * THE SOFTWARE.
  */
 
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
-import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans';
-import i18n from './i18n';
+// Filters an array of objects excluding specified object key
+export function selectedFilter<T, K extends keyof T>(
+  arr: T[],
+  search: string,
+  excluded?: K,
+): T[] {
+  // Clean the search string
+  const mysearch = search.toString().toLowerCase();
+  if (mysearch.trim() === '') {
+    return arr;
+  }
 
-Vue.config.productionTip = false;
+  const filtered = arr.filter((g) => {
+    let filteredKeys = Object.keys(g) as K[];
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
+    // If there is an excluded key remove it from the keys
+    if (excluded) {
+      filteredKeys = filteredKeys.filter((value) => {
+        return value !== excluded;
+      });
+    }
 
-Vue.use(Router);
+    return filteredKeys.find((key: K) => {
+      return String(g[key]).toLowerCase().includes(mysearch);
+    });
+  });
 
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+  return filtered;
+}
+
+// Checks if the given WSDL URL valid
+export function isValidWsdlURL(str: string): boolean {
+  const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
+  return !!pattern.test(str);
+}
+
+// Checks if the given REST URL is valid
+export function isValidRestURL(str: string): boolean {
+  return isValidWsdlURL(str);
+}

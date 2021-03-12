@@ -23,38 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
 import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans';
-import i18n from './i18n';
+import VueI18n from 'vue-i18n';
+import en from 'vee-validate/dist/locale/en.json';
 
-Vue.config.productionTip = false;
+Vue.use(VueI18n);
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
+import locals from './locales/en.json';
+// Any is ok here, there is no definition for the locale format
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(locals as any).validation = en.messages;
 
-Vue.use(Router);
-
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+export default new VueI18n({
+  locale: process.env.VUE_APP_I18N_LOCALE || 'en',
+  fallbackLocale: process.env.VUE_APP_I18N_FALLBACK_LOCALE || 'en',
+  silentFallbackWarn: true,
+  messages: {
+    en: locals,
+  },
+});

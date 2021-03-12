@@ -24,37 +24,54 @@
  * THE SOFTWARE.
  */
 
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
-import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans';
-import i18n from './i18n';
+// Vuex Store root state
+export interface RootState {
+  version: string;
+}
 
-Vue.config.productionTip = false;
+// Vuex store types
+export const StoreTypes = {
+  getters: {
+    IS_AUTHENTICATED: 'IS_AUTHENTICATED',
+    IS_SESSION_ALIVE: 'IS_SESSION_ALIVE',
+    USERNAME: 'USERNAME',
+  },
+  mutations: {
+    SET_SESSION_ALIVE: 'SET_SESSION_ALIVE',
+    SET_USERNAME: 'SET_USERNAME',
+    CLEAR_AUTH_DATA: 'CLEAR_AUTH_DATA',
+    AUTH_USER: 'AUTH_USER',
+  },
+  actions: {
+    LOGIN: 'LOGIN',
+    LOGOUT: 'LOGOUT',
+    CLEAR_AUTH: 'CLEAR_AUTH',
+    FETCH_SESSION_STATUS: 'FETCH_SESSION_STATUS',
+    FETCH_USER_DATA: 'FETCH_USER_DATA',
+  },
+};
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
-
-Vue.use(Router);
-
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+// Version 7.0 colors as enum.
+export enum Colors {
+  Purple10 = '#efebfb',
+  Purple20 = '#e0d8f8',
+  Purple30 = '#d1c4f4',
+  Purple70 = '#9376e6',
+  Purple100 = '#663cdc',
+  Black10 = '#e8e8e8',
+  Black30 = '#bcbbbb',
+  Black50 = '#908e8e',
+  Black70 = '#636161',
+  Black100 = '#211e1e',
+  White100 = '#ffffff',
+  WarmGrey10 = '#f4f3f6',
+  WarmGrey20 = '#eae8ee',
+  WarmGrey30 = '#dedce4',
+  WarmGrey50 = '#c9c6d3',
+  WarmGrey70 = '#b4afc2',
+  WarmGrey100 = '#575169',
+  Error = '#ec4040',
+  Success100 = '#0cc177',
+  Success10 = '#e6f8f1',
+  Background = '#e5e5e5',
+}

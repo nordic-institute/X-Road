@@ -23,38 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+/* Overrides for Vuetify variables
+"Once installed, create a folder called sass, scss or styles in your src directory with 
+a file named variables.scss or variables.sass. The vuetify-loader will automatically 
+bootstrap your variables into Vue CLI’s compilation process, overwriting the framework defaults."
+https://vuetifyjs.com/en/features/sass-variables/#vue-cli-install
 
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
+
+List of Vuetify SASS variables: https://vuetifyjs.com/en/api/vuetify/#sass-variables
 */
-import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans';
-import i18n from './i18n';
 
-Vue.config.productionTip = false;
-
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
-
-Vue.use(Router);
-
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+// Globals
+$body-font-family: "Open Sans", sans-serif;

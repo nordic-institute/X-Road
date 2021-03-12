@@ -23,38 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { extend, configure } from 'vee-validate';
+import { required, min, between } from 'vee-validate/dist/rules';
+import i18n from '../i18n';
 
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
-import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans';
-import i18n from './i18n';
+configure({
+  // This should be ok, as it is the vee-validate contract
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  defaultMessage: (field, values: any): string => {
+    // override the field name.
+    values._field_ = i18n.t(`fields.${field}`);
 
-Vue.config.productionTip = false;
+    return i18n.t(`validation.${values._rule_}`, values) as string;
+  },
+});
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
+// Install required rule and message.
+extend('required', required);
 
-Vue.use(Router);
+// Install min rule and message.
+extend('min', min);
 
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+// Install between rule and message.
+extend('between', between);

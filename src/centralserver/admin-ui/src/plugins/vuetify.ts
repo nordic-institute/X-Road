@@ -23,38 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
+import '@mdi/font/css/materialdesignicons.css';
 import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans';
-import i18n from './i18n';
+import Vuetify from 'vuetify/lib';
+import { Colors } from '@/global';
 
-Vue.config.productionTip = false;
+Vue.use(Vuetify);
 
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
-
-Vue.use(Router);
-
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+export default new Vuetify({
+  icons: {
+    iconfont: 'mdi',
+  },
+  theme: {
+    themes: {
+      light: {
+        primary: Colors.Purple100,
+        accent: Colors.Purple70,
+        grey: Colors.Black50,
+      },
+    },
+  },
+});
