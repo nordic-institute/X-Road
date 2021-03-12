@@ -900,7 +900,7 @@ TThe Secondary Pods will synchronize the configuration at initialization and thr
 
 In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server Sidecar Pods through the Load Balancer, the DNS or IP of the Load Balancer must be configured in Security Server address on the Central Server.
 <p align="center">
-  <img style="max-width: 250px;" src="img/central_server_configuration.png" />
+  <img style="max-width: 50%;" src="img/central_server_configuration.png" />
 </p>
 We are going to describe the possible options that we can use to establish the address of the Load Balancer.
 
