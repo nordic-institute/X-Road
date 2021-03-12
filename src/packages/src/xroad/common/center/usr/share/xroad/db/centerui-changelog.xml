@@ -5,7 +5,8 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.5.xsd">
 
-    <include file="centerui/000-baseline.xml"/>
+    <include file="centerui/000-pre-liquibase-conditions.xml"/>
+    <include file="centerui/001-baseline.xml"/>
 
     <!-- must be the last one -->
     <!-- TODO: not sure what this is, and if we need it
