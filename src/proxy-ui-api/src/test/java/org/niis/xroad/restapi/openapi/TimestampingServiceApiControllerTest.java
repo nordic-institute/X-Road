@@ -43,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
 
@@ -75,8 +74,6 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
         when(globalConfFacade.getInstanceIdentifier()).thenReturn("TEST");
 
         doReturn(Arrays.asList(tsa1, tsa2)).when(globalConfService).getApprovedTspsForThisInstance();
-        doReturn(tsa1.getName()).when(globalConfService).getApprovedTspName(TSA_1_URL);
-        doReturn(tsa2.getName()).when(globalConfService).getApprovedTspName(TSA_2_URL);
     }
 
     @Test
@@ -95,7 +92,6 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
     @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getApprovedTimestampingServicesEmptyList() {
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(new ArrayList<TspType>());
-        when(globalConfService.getApprovedTspName(any())).thenReturn(null);
 
         ResponseEntity<List<TimestampingService>> response =
                 timestampingServicesApiController.getApprovedTimestampingServices();
