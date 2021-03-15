@@ -23,40 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package ee.ria.xroad.signer.protocol.handler;
 
-import org.junit.Test;
-import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.niis.xroad.restapi.openapi.model.VersionInfo;
-
-import static org.junit.Assert.assertEquals;
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 /**
- * Test VersionConverter
+ * Handles token pin update
  */
-public class VersionConverterTest extends AbstractConverterTestContext {
+public class UpdateSoftwareTokenPinRequestHandler
+        extends AbstractRequestHandler<UpdateSoftwareTokenPin> {
 
-    @Test
-    public void convertVersion() {
-        VersionConverter versionConverter = new VersionConverter();
-
-        VersionInfoDto infoDto = new VersionInfoDto();
-        infoDto.setInfo("1.3.33");
-        infoDto.setJavaVersion(9);
-        infoDto.setMinJavaVersion(8);
-        infoDto.setMaxJavaVersion(11);
-        infoDto.setUsingSupportedJavaVersion(true);
-        infoDto.setJavaVendor("Xroad");
-        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
-
-        VersionInfo version = versionConverter.convert(infoDto);
-
-        assertEquals(infoDto.getInfo(), version.getInfo());
-        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
-        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
-        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
-        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
-        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
-        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
+    @Override
+    protected Object handle(UpdateSoftwareTokenPin message) throws Exception {
+        tellToken(message, message.getTokenId());
+        return nothing();
     }
+
 }

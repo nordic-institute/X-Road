@@ -91,6 +91,9 @@ public class KeyServiceTest extends AbstractServiceTestContext {
     @Autowired
     SecurityHelper securityHelper;
 
+    @Autowired
+    TokenPinValidator tokenPinValidator;
+
     // token ids for mocking
     private static final String KEY_NOT_FOUND_KEY_ID = "key-404";
     private static final String AUTH_KEY_ID = "auth-key-id";
@@ -296,7 +299,8 @@ public class KeyServiceTest extends AbstractServiceTestContext {
 
     private void mockServices(PossibleActionsRuleEngine possibleActionsRuleEngineParam) {
         // override instead of mocking for better performance
-        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper) {
+        tokenService = new TokenService(signerProxyFacade, possibleActionsRuleEngineParam, auditDataHelper,
+                tokenPinValidator) {
             @Override
             public TokenInfo getTokenForKeyId(String keyId) throws KeyNotFoundException {
                 if (AUTH_KEY_ID.equals(keyId)

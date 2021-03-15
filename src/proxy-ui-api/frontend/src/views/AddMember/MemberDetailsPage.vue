@@ -103,12 +103,9 @@
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <xrd-button
-            outlined
-            @click="cancel"
-            data-test="cancel-button"
-            >{{ $t('action.cancel') }}</xrd-button
-          >
+          <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+            $t('action.cancel')
+          }}</xrd-button>
         </div>
         <xrd-button
           @click="done"

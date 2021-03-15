@@ -23,40 +23,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package ee.ria.xroad.signer.protocol.message;
 
-import org.junit.Test;
-import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import lombok.Value;
 
-import static org.junit.Assert.assertEquals;
+import java.io.Serializable;
 
 /**
- * Test VersionConverter
+ * Signer API message for updating software token pin.
  */
-public class VersionConverterTest extends AbstractConverterTestContext {
+@Value
+public class UpdateSoftwareTokenPin implements Serializable {
 
-    @Test
-    public void convertVersion() {
-        VersionConverter versionConverter = new VersionConverter();
+    private final String tokenId;
 
-        VersionInfoDto infoDto = new VersionInfoDto();
-        infoDto.setInfo("1.3.33");
-        infoDto.setJavaVersion(9);
-        infoDto.setMinJavaVersion(8);
-        infoDto.setMaxJavaVersion(11);
-        infoDto.setUsingSupportedJavaVersion(true);
-        infoDto.setJavaVendor("Xroad");
-        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
+    private final char[] oldPin;
 
-        VersionInfo version = versionConverter.convert(infoDto);
+    private final char[] newPin;
 
-        assertEquals(infoDto.getInfo(), version.getInfo());
-        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
-        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
-        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
-        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
-        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
-        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
-    }
 }

@@ -26,8 +26,10 @@
 package org.niis.xroad.restapi.scheduling;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.CertUtils;
@@ -47,10 +49,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.cert.X509Certificate;
+import java.util.List;
+import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.translateException;
 import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Job that checks whether globalconf has changed.
@@ -129,8 +134,45 @@ public class GlobalConfChecker {
             log.debug("Security Server ID is \"{}\"", securityServerId);
             updateClientStatuses(serverConf, securityServerId);
             updateAuthCertStatuses(securityServerId);
+            if (SystemProperties.geUpdateTimestampServiceUrlsAutomatically()) {
+                updateTimestampServiceUrls(globalConfFacade.getApprovedTspTypes(
+                        globalConfFacade.getInstanceIdentifier()),
+                        serverConf.getTsp()
+                );
+            }
         } catch (Exception e) {
             throw translateException(e);
+        }
+    }
+
+    /**
+     * Matches timestamping services in globalTsps with localTsps by name and checks if the URLs have changed.
+     * If the change is unambiguous, it's performed on localTsps. Otherwise a warning is logged.
+     * @param globalTsps timestamping services from global configuration
+     * @param localTsps timestamping services from local database
+     */
+    void updateTimestampServiceUrls(List<ApprovedTSAType> globalTsps, List<TspType> localTsps) {
+
+        for (TspType localTsp : localTsps) {
+            List<ApprovedTSAType> globalTspMatches = globalTsps.stream()
+                    .filter(g -> g.getName().equals(localTsp.getName()))
+                    .collect(toList());
+            if (globalTspMatches.size() > 1) {
+                Optional<ApprovedTSAType> urlChanges =
+                        globalTspMatches.stream().filter(t -> !t.getUrl().equals(localTsp.getUrl())).findAny();
+                if (urlChanges.isPresent()) {
+                    log.warn("Skipping timestamping service URL update due to multiple services with the same name: {}",
+                            globalTspMatches.get(0).getName());
+                }
+            } else if (globalTspMatches.size() == 1) {
+                ApprovedTSAType globalTspMatch = globalTspMatches.get(0);
+                if (!globalTspMatch.getUrl().equals(localTsp.getUrl())) {
+                    log.info("Timestamping service URL has changed in the global configuration. "
+                            + "Updating the changes to the local configuration, Name: {}, Old URL: {}, New URL: {}",
+                            localTsp.getName(), localTsp.getUrl(), globalTspMatch.getUrl());
+                    localTsp.setUrl(globalTspMatch.getUrl());
+                }
+            }
         }
     }
 

@@ -25,40 +25,43 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.TokenPinPolicy;
 
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.dto.VersionInfoDto;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-/**
- * service class for handling X-Road version information
- */
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
+
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
-public class VersionService {
-    public static final int MIN_SUPPORTED_JAVA_VERSION = 8;
-    public static final int MAX_SUPPORTED_JAVA_VERSION = 11;
+@RequiredArgsConstructor
+public class TokenPinValidator {
+    @Setter
+    private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
 
-
-    /**
-     * Returns X-Road software version number and java version information
-     * @return
-     */
-    public VersionInfoDto getVersionInfo() {
-        VersionInfoDto result = new VersionInfoDto();
-        result.setInfo(Version.XROAD_VERSION);
-        int javaVersion = Version.readJavaVersion();
-        result.setJavaVersion(javaVersion);
-        result.setMinJavaVersion(MIN_SUPPORTED_JAVA_VERSION);
-        result.setMaxJavaVersion(MAX_SUPPORTED_JAVA_VERSION);
-        result.setUsingSupportedJavaVersion(javaVersion >= MIN_SUPPORTED_JAVA_VERSION
-                && javaVersion <= MAX_SUPPORTED_JAVA_VERSION);
-        result.setJavaVendor(Version.JAVA_VENDOR);
-        result.setJavaRuntimeVersion(Version.JAVA_RUNTIME_VERSION);
-
-        return result;
+    public void validateSoftwareTokenPin(char[] softwareTokenPin) throws InvalidCharactersException, WeakPinException {
+        if (isTokenPinEnforced) {
+            TokenPinPolicy.Description description = TokenPinPolicy.describe(softwareTokenPin);
+            if (!description.isValid()) {
+                if (description.hasInvalidCharacters()) {
+                    throw new InvalidCharactersException("The provided pin code contains invalid characters");
+                }
+                List<String> metadata = new ArrayList<>();
+                metadata.add(ERROR_METADATA_PIN_MIN_LENGTH);
+                metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
+                metadata.add(ERROR_METADATA_PIN_MIN_CHAR_CLASSES);
+                metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
+                throw new WeakPinException("The provided pin code was too weak", metadata);
+            }
+        }
     }
 }

@@ -105,9 +105,7 @@
       </table>
 
       <div class="close-button-wrap">
-        <xrd-button @click="close()">{{
-          $t('action.close')
-        }}</xrd-button>
+        <xrd-button @click="close()">{{ $t('action.close') }}</xrd-button>
       </div>
     </v-card>
 

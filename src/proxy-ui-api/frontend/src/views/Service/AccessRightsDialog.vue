@@ -190,12 +190,9 @@
           >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <xrd-button
-          :disabled="!canSave"
-          data-test="save"
-          @click="save()"
-          >{{ $t('localGroup.addSelected') }}</xrd-button
-        >
+        <xrd-button :disabled="!canSave" data-test="save" @click="save()">{{
+          $t('localGroup.addSelected')
+        }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>

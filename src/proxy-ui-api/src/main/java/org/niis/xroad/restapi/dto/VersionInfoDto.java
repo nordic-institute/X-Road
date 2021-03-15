@@ -23,40 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.dto;
 
-import org.junit.Test;
-import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import lombok.Data;
 
-import static org.junit.Assert.assertEquals;
+@Data
+public class VersionInfoDto {
+    private String info;
 
-/**
- * Test VersionConverter
- */
-public class VersionConverterTest extends AbstractConverterTestContext {
+    private int javaVersion;
 
-    @Test
-    public void convertVersion() {
-        VersionConverter versionConverter = new VersionConverter();
+    private int minJavaVersion;
 
-        VersionInfoDto infoDto = new VersionInfoDto();
-        infoDto.setInfo("1.3.33");
-        infoDto.setJavaVersion(9);
-        infoDto.setMinJavaVersion(8);
-        infoDto.setMaxJavaVersion(11);
-        infoDto.setUsingSupportedJavaVersion(true);
-        infoDto.setJavaVendor("Xroad");
-        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
+    private int maxJavaVersion;
 
-        VersionInfo version = versionConverter.convert(infoDto);
+    private boolean usingSupportedJavaVersion;
 
-        assertEquals(infoDto.getInfo(), version.getInfo());
-        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
-        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
-        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
-        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
-        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
-        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
-    }
+    private String javaVendor;
+
+    private String javaRuntimeVersion;
 }

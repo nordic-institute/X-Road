@@ -23,40 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.converter;
+package org.niis.xroad.restapi.service;
 
-import org.junit.Test;
-import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-import static org.junit.Assert.assertEquals;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
 
 /**
- * Test VersionConverter
+ * If the provided pin code contains invalid characters
  */
-public class VersionConverterTest extends AbstractConverterTestContext {
-
-    @Test
-    public void convertVersion() {
-        VersionConverter versionConverter = new VersionConverter();
-
-        VersionInfoDto infoDto = new VersionInfoDto();
-        infoDto.setInfo("1.3.33");
-        infoDto.setJavaVersion(9);
-        infoDto.setMinJavaVersion(8);
-        infoDto.setMaxJavaVersion(11);
-        infoDto.setUsingSupportedJavaVersion(true);
-        infoDto.setJavaVendor("Xroad");
-        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
-
-        VersionInfo version = versionConverter.convert(infoDto);
-
-        assertEquals(infoDto.getInfo(), version.getInfo());
-        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
-        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
-        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
-        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
-        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
-        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
+public class InvalidCharactersException extends ServiceException {
+    public InvalidCharactersException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_INVALID_CHARACTERS_PIN));
     }
 }
