@@ -20,6 +20,7 @@ OPTIONS:
     -s ID of the security server.
     -f Absolute path of the resulting tar archive.
     -S Skip database backup
+    -E encrypt backup
 EOF
 }
 

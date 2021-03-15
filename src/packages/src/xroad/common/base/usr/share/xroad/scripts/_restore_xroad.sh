@@ -14,6 +14,10 @@ source /usr/share/xroad/scripts/_backup_restore_common.sh
 PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
 PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
+RESTORE_DIR=/var/tmp/xroad/restore
+TEMP_TAR_DIR=/var/tmp/xroad
+TEMP_TAR_FILE=${TEMP_TAR_DIR}/decrypted_temporary.tar
+
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
 
@@ -22,8 +26,6 @@ XROAD_SERVICES=
 
 acquire_lock () {
     [ "${FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock -n $RESTORE_LOCK_FILENAME "$0" "$@" || true
-
-    trap "rm -f ${RESTORE_IN_PROGRESS_FILENAME}" EXIT
     touch "${RESTORE_IN_PROGRESS_FILENAME}"
 }
 
@@ -38,6 +40,17 @@ check_restore_options () {
     echo "The backup archive does not contain database dump. Skipping database restore."
     SKIP_DB_RESTORE=true
   fi
+}
+
+decrypt_tarball_if_encrypted () {
+    if [[ $ENCRYPTED_BACKUP = true ]] ; then
+      rm  -f ${TEMP_TAR_FILE}
+      mkdir -p ${TEMP_TAR_DIR}
+      GPG_FILENAME=${BACKUP_FILENAME}
+      BACKUP_FILENAME=${TEMP_TAR_FILE}
+      echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
+      gpg --homedir /etc/xroad/backupkeys/gpghome --decrypt --output ${BACKUP_FILENAME} ${GPG_FILENAME}
+    fi
 }
 
 check_tarball_label () {
@@ -96,7 +109,8 @@ stop_services () {
 create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
   # we will run this through eval to get a multi-line list
-  local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' -type f; find /etc/nginx/ -name \"*xroad*\""
+  local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' \
+-not -path '/etc/xroad/backupkeys/gpghome/*' -type f; find /etc/nginx/ -name \"*xroad*\""
 
   if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
     echo "Creating database dump to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
@@ -134,7 +148,6 @@ remove_old_existing_files () {
 }
 
 setup_tmp_restore_dir() {
-  RESTORE_DIR=/var/tmp/xroad/restore
   rm -rf ${RESTORE_DIR}
   mkdir -p ${RESTORE_DIR}
 }
@@ -142,14 +155,11 @@ setup_tmp_restore_dir() {
 extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
   # etc/xroad is always included in the backup, etc/nginx only when backup is for CS
-  if [[ $ENCRYPT_BACKUP = true ]] ; then
-    gpg --homedir /etc/xroad/backupkeys/gpghome  --decrypt ${BACKUP_FILENAME} \
-    | tar xfv - -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
-  else
-    tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
-  fi
+  echo "Exctracting tar archive to etc/xroad"
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/xroad || die "Extracting etc/xroad failed"
 
   if tar -tf ${BACKUP_FILENAME} etc/nginx >/dev/null 2>&1; then
+    echo "Extracting tar archive to etc/nginx"
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/nginx || die "Extracting etc/nginx failed"
   else
     echo "No etc/nginx in backup"
@@ -199,8 +209,10 @@ restore_database () {
   fi
 }
 
-remove_tmp_restore_dir() {
+remove_tmp_files() {
+  rm -f ${RESTORE_IN_PROGRESS_FILENAME}
   rm -rf ${RESTORE_DIR}
+  rm -rf ${TEMP_TAR_DIR}
 }
 
 restart_services () {
@@ -215,7 +227,7 @@ restart_services () {
   done
 }
 
-while getopts ":RFSt:i:s:n:f:b" opt ; do
+while getopts ":RFSt:i:s:n:f:bE" opt ; do
   case ${opt} in
     R)
       SKIP_REMOVAL=true
@@ -245,7 +257,7 @@ while getopts ":RFSt:i:s:n:f:b" opt ; do
       USE_BASE_64=true
       ;;
     E)
-      ENCRYPT_BACKUP=true
+      ENCRYPTED_BACKUP=true
       ;;
     \?)
       echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
@@ -257,8 +269,11 @@ while getopts ":RFSt:i:s:n:f:b" opt ; do
   esac
 done
 
+trap remove_tmp_files EXIT
+
 acquire_lock "$@"
 check_server_type
+decrypt_tarball_if_encrypted
 check_is_correct_tarball
 check_restore_options
 make_tarball_label
@@ -271,7 +286,6 @@ extract_to_tmp_restore_dir
 remove_old_existing_files
 restore_configuration_files
 restore_database
-remove_tmp_restore_dir
 restart_services
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

@@ -68,28 +68,22 @@ create_backup_tarball () {
   echo "Backup file saved to ${BACKUP_FILENAME}"
 }
 
-# TODO this should be in setup somewhere, also this function is not robust
+# TODO this should be in setup somewhere, also this function is not robust enough
 generate_private_key_if_needed () {
   if [[ $ENCRYPT_BACKUP = true ]] ; then
-    if [ ! -d "/etc/xroad/backupkeys/" ] ; then
+    if [ ! -d "/etc/xroad/backupkeys/gpghome" ] ; then
       echo "GENERATING NEW KEYPAIR"
-      mkdir /etc/xroad/backupkeys
-      chmod 700 /etc/xroad/backupkeys
-      mkdir /etc/xroad/backupkeys/gpghome
+      mkdir -p /etc/xroad/backupkeys/gpghome
+      chmod 700 /etc/xroad/backupkeys/gpghome
 
-      # create keygen settings file
-      {
-        echo "Key-Type: 1"
-        echo "Key-Length: 4096"
-        echo "Name-Real: XRoad Backup"
-        echo "Name-Email: backup@xroad"
-        echo "Expire-Date: 0"
-        echo "%no-protection"
-      } >> /etc/xroad/backupkeys/gen-key-settings
-
-      gpg --homedir /etc/xroad/backupkeys/gpghome --batch --gen-key /etc/xroad/backupkeys/gen-key-settings
-
-      rm /etc/xroad/backupkeys/gen-key-settings
+      gpg --homedir /etc/xroad/backupkeys/gpghome --batch --gen-key <<EOF
+Key-Type: 1
+Key-Length: 4096
+Name-Real: XRoad Backup
+Name-Email: backup@xroad
+Expire-Date: 0
+%no-protection
+EOF
 
     fi
   fi
