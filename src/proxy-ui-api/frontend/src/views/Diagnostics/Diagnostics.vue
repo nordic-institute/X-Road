@@ -30,7 +30,7 @@
       <v-layout align-center justify-center column fill-height elevation-0>
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
+            <span class="headline" data-test="diagnostics-java-version">{{
               $t('diagnostics.javaVersion.title')
             }}</span>
           </v-card-title>
@@ -93,9 +93,11 @@
 
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
-              $t('diagnostics.globalCongiguration.title')
-            }}</span>
+            <span
+              class="headline"
+              data-test="diagnostics-global-configuration"
+              >{{ $t('diagnostics.globalCongiguration.title') }}</span
+            >
           </v-card-title>
           <v-card-text class="xrd-card-text">
             <table class="xrd-table">
@@ -141,7 +143,7 @@
 
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
+            <span class="headline" data-test="diagnostics-timestamping">{{
               $t('diagnostics.timestamping.title')
             }}</span>
           </v-card-title>
@@ -192,7 +194,7 @@
 
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
+            <span class="headline" data-test="diagnostics-ocsp-responders">{{
               $t('diagnostics.ocspResponders.title')
             }}</span>
           </v-card-title>

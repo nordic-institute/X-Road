@@ -51,7 +51,9 @@
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <xrd-button @click="logout()">{{ $t('action.ok') }}</xrd-button>
+          <xrd-button data-test="session-expired-ok-button" @click="logout()">{{
+            $t('action.ok')
+          }}</xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>

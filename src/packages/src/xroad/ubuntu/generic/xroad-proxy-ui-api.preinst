@@ -1,11 +1,5 @@
 #!/bin/bash
-
 . /usr/share/debconf/confmodule
-
-
-if [ -n "$DEBIAN_SCRIPT_DEBUG" ]; then set -v -x; DEBIAN_SCRIPT_TRACE=1; fi
-
-${DEBIAN_SCRIPT_TRACE:+ echo "#42#DEBUG# RUNNING $0 $*" 1>&2 }
 
 function handle_error {
    ERR=$(</tmp/cert.err)
@@ -15,15 +9,11 @@ function handle_error {
    rm -f /tmp/cert.err
 }
 
-if  [ "$1" = "reconfigure" ];
-  then
-    db_fset xroad-common/proxy-ui-api-subject seen false
-    db_fset xroad-common/proxy-ui-api-altsubject seen false
+if [[ "$1" = "upgrade" ]]; then
+  invoke-rc.d --quiet xroad-jetty stop &>/dev/null || true
+  # restart nginx (to possibly free port 4000), but only if it was running
+  invoke-rc.d --quiet nginx try-restart || true
 fi
-
-service xroad-jetty stop || true
-# restart nginx (to possibly free port 4000), but only if it was running
-service nginx status > /dev/null && service nginx restart
 
 #check certificates and request necessary subject information from user
 HOST=`hostname -f`

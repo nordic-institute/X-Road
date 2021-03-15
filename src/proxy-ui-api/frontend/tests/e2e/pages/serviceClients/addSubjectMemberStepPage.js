@@ -103,7 +103,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     filterField: {
-      selector: '//input[contains(@data-test, "search-service-client")]',
+      selector: '//input[@data-test, "search-service-client"]',
       locateStrategy: 'xpath',
     },
     cancelButton: {
@@ -118,7 +118,7 @@ module.exports = {
     },
     addSubjectWizardHeader: {
       selector:
-        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
+        '//div[@data-test="add-subject-title"]',
       locateStrategy: 'xpath',
     },
     selectedSubjects: {

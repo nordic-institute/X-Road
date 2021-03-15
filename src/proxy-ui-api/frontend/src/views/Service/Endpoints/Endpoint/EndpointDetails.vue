@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div class="xrd-tab-max-width main-wrap" data-test="endpoint-details-dialog">
     <div class="px-4 pt-4">
       <xrd-sub-view-title :title="$t('endpoints.details')" @close="close" />
       <div class="delete-wrap">

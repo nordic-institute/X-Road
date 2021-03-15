@@ -1,9 +1,6 @@
 #!/bin/bash
-
 chown xroad:xroad /etc/xroad/backup.d/??_xroad-monitor
 chmod 0440 /etc/xroad/backup.d/??_xroad-monitor
-
-service xroad-monitor restart
 
 #DEBHELPER#
 
