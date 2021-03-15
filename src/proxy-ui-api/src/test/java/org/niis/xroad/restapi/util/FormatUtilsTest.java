@@ -65,6 +65,18 @@ public class FormatUtilsTest {
     }
 
     @Test
+    public void invalidBackupFilename() {
+        assertFalse(FormatUtils.isValidBackupFilename("/b.tar"));
+        assertFalse(FormatUtils.isValidBackupFilename("../b.tar"));
+        assertFalse(FormatUtils.isValidBackupFilename("a/b.tar"));
+    }
+
+    @Test
+    public void validBackupFilename() {
+        assertTrue(FormatUtils.isValidBackupFilename("b.tar"));
+    }
+
+    @Test
     public void invalidUrlProtocol() {
         assertFalse(FormatUtils.isValidUrl(INVALID_PROTOCOL));
     }

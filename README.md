@@ -70,13 +70,13 @@ X-Road central servers, configuration proxies and security servers can be automa
 
 Estonia - [X-tee](https://www.ria.ee/en/x-road.html)
 
-Finland - [Suomi.fi-palveluväylä (in Finnish)](https://esuomi.fi/palveluntarjoajille/palveluvayla/)
+Finland - [Suomi.fi-palveluväylä](https://palveluhallinta.suomi.fi/en/sivut/palveluvayla/esittely)
 
 **Contact information**
 
 Estonia - [X-tee contacts](https://www.ria.ee/en/contact.html)
 
-Finland - [Suomi.fi-palveluväylä contacts](https://esuomi.fi/contact-information/?lang=en)
+Finland - [Suomi.fi-palveluväylä contacts](https://palveluhallinta.suomi.fi/en/tuki/yhteydenotto)
 
 ## Support disclaimer
 
@@ -93,7 +93,7 @@ with regard to the X-Road core:
 * international cooperation.
 
 Support for member organizations of X-tee and Suomi.fi-palveluväylä is provided
-by [RIA](https://www.ria.ee) (X-tee) and [VRK](https://www.vrk.fi) (Suomi.fi-palveluväylä).
+by [RIA](https://www.ria.ee/en.html) (X-tee) and [DVV](https://dvv.fi/en/organisations) (Suomi.fi-palveluväylä).
 
 [X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible services, integrating informations systems with X-Road etc.
 

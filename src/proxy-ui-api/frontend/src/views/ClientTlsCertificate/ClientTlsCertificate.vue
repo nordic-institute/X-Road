@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
+  <div class="wrapper xrd-view-common" data-test="certificate-details-dialog">
     <div class="new-content">
       <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">

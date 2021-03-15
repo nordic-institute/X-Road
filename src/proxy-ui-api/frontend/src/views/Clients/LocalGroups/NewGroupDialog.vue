@@ -39,6 +39,7 @@
           outlined
           :label="$t('localGroup.code')"
           autofocus
+          data-test="add-local-group-code-input"
         ></v-text-field>
       </div>
 
@@ -48,6 +49,7 @@
           hint
           :label="$t('localGroup.description')"
           outlined
+          data-test="add-local-group-description-input"
         ></v-text-field>
       </div>
     </div>

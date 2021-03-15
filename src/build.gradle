@@ -123,13 +123,13 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     dependencies {
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
-        testImplementation 'junit:junit:4.13'
+        testImplementation 'junit:junit:4.13.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.12'
-        annotationProcessor 'org.projectlombok:lombok:1.18.12'
+        compileOnly 'org.projectlombok:lombok:1.18.18'
+        annotationProcessor 'org.projectlombok:lombok:1.18.18'
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.12'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+        testCompileOnly 'org.projectlombok:lombok:1.18.18'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     }
 
     task testJar(type: Jar) {

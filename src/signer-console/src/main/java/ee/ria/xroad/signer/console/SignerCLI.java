@@ -68,6 +68,7 @@ import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
 import ee.ria.xroad.signer.protocol.message.Sign;
 import ee.ria.xroad.signer.protocol.message.SignResponse;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import akka.actor.ActorSystem;
 import asg.cliche.CLIException;
@@ -126,6 +127,7 @@ import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SET_A_FRIENDLY
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.SUBJECT_NAME_PARAM;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_FRIENDLY_NAME_PARAM;
 import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.TOKEN_ID_PARAM;
+import static ee.ria.xroad.signer.console.AuditLogEventsAndParams.UPDATE_SOFTWARE_TOKEN_PIN;
 import static ee.ria.xroad.signer.console.Utils.base64ToFile;
 import static ee.ria.xroad.signer.console.Utils.bytesToFile;
 import static ee.ria.xroad.signer.console.Utils.createClientId;
@@ -140,6 +142,7 @@ import static ee.ria.xroad.signer.console.Utils.printTokenInfo;
 public class SignerCLI {
 
     private static final String APP_NAME = "xroad-signer-console";
+    private static final String PIN_PROMPT = "PIN: ";
     private static final int MIN_SUPPORTED_JAVA_VERSION = 8;
     private static final int MAX_SUPPORTED_JAVA_VERSION = 11;
     private static final int BENCHMARK_ITERATIONS = 10;
@@ -512,7 +515,7 @@ public class SignerCLI {
         try {
             char[] pin;
             if (System.console() != null) {
-                pin = System.console().readPassword("PIN: ");
+                pin = System.console().readPassword(PIN_PROMPT);
             } else {
                 pin = new Scanner(System.in).nextLine().toCharArray();
             }
@@ -556,7 +559,7 @@ public class SignerCLI {
      */
     @Command(description = "Initialize software token")
     public void initSoftwareToken() throws Exception {
-        char[] pin = System.console().readPassword("PIN: ");
+        char[] pin = System.console().readPassword(PIN_PROMPT);
         char[] pin2 = System.console().readPassword("retype PIN: ");
 
         if (!Arrays.equals(pin, pin2)) {
@@ -571,6 +574,39 @@ public class SignerCLI {
             AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, null);
         } catch (Exception e) {
             AuditLogger.log(INITIALIZE_THE_SOFTWARE_TOKEN_EVENT, XROAD_USER, e.getMessage(), null);
+
+            throw e;
+        }
+    }
+
+    /**
+     * Update the pin of a software token.
+     *
+     * @throws Exception if an error occurs
+     */
+    @Command(description = "Update software token pin")
+    public void updateSoftwareTokenPin() throws Exception {
+        String softwareTokenId = "0";
+        Map<String, Object> logData = new LinkedHashMap<>();
+        logData.put(TOKEN_ID_PARAM, softwareTokenId);
+
+        try {
+            char[] oldPin = System.console().readPassword(PIN_PROMPT);
+            char[] newPin = System.console().readPassword("new PIN: ");
+            char[] newPin1 = System.console().readPassword("retype new PIN: ");
+
+            if (!Arrays.equals(newPin, newPin1)) {
+                throw new Exception("PINs do not match");
+            }
+
+            if (newPin.length < 1) {
+                throw new Exception("new PIN was empty");
+            }
+
+            SignerClient.execute(new UpdateSoftwareTokenPin(softwareTokenId, oldPin, newPin));
+            AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, logData);
+        } catch (Exception e) {
+            AuditLogger.log(UPDATE_SOFTWARE_TOKEN_PIN, XROAD_USER, e.getMessage(), logData);
 
             throw e;
         }

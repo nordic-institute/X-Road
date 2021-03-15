@@ -75,7 +75,12 @@
           </v-row>
           <v-row>
             <v-col class="py-0">
-              <a rel="noopener" class="footer-link" href="https://niis.org/" target="_blank">
+              <a
+                rel="noopener"
+                class="footer-link"
+                href="https://niis.org/"
+                target="_blank"
+              >
                 {{ $t('footer.copyright.company') }}
               </a>
             </v-col>

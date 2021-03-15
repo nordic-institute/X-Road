@@ -171,6 +171,10 @@ export const mutations: MutationTree<NotificationsState> = {
       (item: Notification) => item.timeAdded !== id,
     );
   },
+
+  clearErrorNotifications(state: NotificationsState): void {
+    state.errorNotifications = [];
+  },
 };
 
 export const actions: ActionTree<NotificationsState, RootState> = {

@@ -27,7 +27,7 @@
   <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
     <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
-        <span class="headline">{{
+        <span class="headline" data-test="access-rights-dialog-title">{{
           $t('accessRights.addServiceClientsTitle')
         }}</span>
         <v-spacer />
@@ -190,12 +190,9 @@
           >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <xrd-button
-          :disabled="!canSave"
-          data-test="save"
-          @click="save()"
-          >{{ $t('localGroup.addSelected') }}</xrd-button
-        >
+        <xrd-button :disabled="!canSave" data-test="save" @click="save()">{{
+          $t('localGroup.addSelected')
+        }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>

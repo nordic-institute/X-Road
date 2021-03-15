@@ -4,7 +4,7 @@
 
 # X-Road: Configuration Proxy Manual
 
-Version: 2.7  
+Version: 2.8  
 Doc. ID: UG-CP
 
 ## Version History
@@ -25,6 +25,7 @@ Doc. ID: UG-CP
 | 15.11.2018 | 2.5     | Add Ubuntu 18.04 installation instructions | Jarkko Hyöty |
 | 11.09.2019 | 2.6     | Remove Ubuntu 14.04 support | Jarkko Hyöty |
 | 24.06.2020 | 2.7    | Add repository sign key details in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
+| 18.02.2021 | 2.8     | Add Ubuntu 20.04 in supported platforms | Petteri Kivimäki |
 
 ## Table of Contents
 
@@ -88,7 +89,7 @@ The configuration proxy can be configured to mediate several global configuratio
 
 ### 2.1 Supported Platforms
 
-The configuration proxy runs on the *Ubuntu Server 18.04 Long-Term Support (LTS)* operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
+The configuration proxy runs on the Ubuntu Server 18.04 LTS or 20.04 LTS operating system on a 64-bit platform. The configuration proxy's software is distributed as .deb packages through the official X-Road repository at [https://artifactory.niis.org/xroad-release-deb](https://artifactory.niis.org/xroad-release-deb).
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -156,7 +157,7 @@ The installation is successful if the 'xroad-signer' service is started, the 'xr
 
 * Check from the command line that the 'xroad-signer' service is in the running state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the configuration proxy since it operates in one-shot mode.
 
-  * Ubuntu 18.04
+  * Ubuntu 18.04 or 20.04
     ```bash
     systemctl list-units "xroad*" 
 

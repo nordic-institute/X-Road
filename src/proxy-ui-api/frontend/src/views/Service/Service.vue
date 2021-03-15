@@ -47,7 +47,7 @@
         v-for="tab in tabs"
         v-bind:key="tab.key"
         :to="tab.to"
-        data-test="service-tab"
+        :data-test="tab.key"
         >{{ $t(tab.name) }}</v-tab
       >
     </v-tabs>

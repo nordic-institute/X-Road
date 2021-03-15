@@ -117,12 +117,9 @@
           data-test="previous-button"
           >{{ $t('action.previous') }}</xrd-button
         >
-        <xrd-button
-          :disabled="invalid"
-          @click="done"
-          data-test="save-button"
-          >{{ $t(saveButtonText) }}</xrd-button
-        >
+        <xrd-button :disabled="invalid" @click="done" data-test="save-button">{{
+          $t(saveButtonText)
+        }}</xrd-button>
       </div>
     </ValidationObserver>
   </div>

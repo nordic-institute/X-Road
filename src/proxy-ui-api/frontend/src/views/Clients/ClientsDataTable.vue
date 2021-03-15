@@ -231,25 +231,25 @@ export default Vue.extend({
           text: this.$t('client.name') as string,
           align: 'start',
           value: 'visibleName',
-          class: 'xrd-table-header',
+          class: 'xrd-table-header xrd-table-header-name',
         },
         {
           text: this.$t('client.id') as string,
           align: 'start',
           value: 'id',
-          class: 'xrd-table-header',
+          class: 'xrd-table-header xrd-table-header-id',
         },
         {
           text: this.$t('client.status') as string,
           align: 'start',
           value: 'status',
-          class: 'xrd-table-header',
+          class: 'xrd-table-header xrd-table-header-status',
         },
         {
           text: '',
           value: 'button',
           sortable: false,
-          class: 'xrd-table-header',
+          class: 'xrd-table-header xrd-table-header-button',
         },
       ];
     },
@@ -478,7 +478,7 @@ export default Vue.extend({
 <style lang="scss">
 @import '~styles/colors';
 .xrd-table-header {
-  border-bottom: 1px solid #dedce4 !important;
+  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
 }
 
 // Override Vuetify default table cell height

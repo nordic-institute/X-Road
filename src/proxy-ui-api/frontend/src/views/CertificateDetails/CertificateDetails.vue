@@ -157,7 +157,9 @@ export default Vue.extend({
             Permissions.DELETE_AUTH_CERT,
           );
         } else {
-          return this.$store.getters.hasPermission(Permissions.DELETE_UNKNOWN_CERT)
+          return this.$store.getters.hasPermission(
+            Permissions.DELETE_UNKNOWN_CERT,
+          );
         }
       } else {
         return false;

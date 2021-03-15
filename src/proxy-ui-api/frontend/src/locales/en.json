@@ -797,6 +797,14 @@
     "previousUpdate": "Previous Update",
     "nextUpdate": "Next Update",
     "serviceUrl": "Service URL",
+    "javaVersion": {
+      "title": "Java version",
+      "vendor": "Vendor name",
+      "earliest": "Earliest supported version",
+      "latest": "Latest supported version",
+      "ok": "Everything ok",
+      "notSupported": "Current Java version is not supported"
+    },
     "globalCongiguration": {
       "title": "Global configuration",
       "configurationStatus": {

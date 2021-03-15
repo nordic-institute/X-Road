@@ -38,9 +38,7 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <xrd-button @click="cancel()">{{
-          $t('keys.gotIt')
-        }}</xrd-button>
+        <xrd-button @click="cancel()">{{ $t('keys.gotIt') }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
