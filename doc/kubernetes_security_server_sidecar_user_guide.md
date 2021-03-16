@@ -1314,7 +1314,7 @@ spec:
     kind: Deployment
     name: <hpa deployment name>
   minReplicas: <hpa min replicas>
-  maxReplicas: <hpa min replicas>
+  maxReplicas: <hpa max replicas>
   metrics:
   - type: Resource
     resource:
