@@ -96,20 +96,15 @@ export default Vue.extend({
   & > :first-child {
     margin-top: 4px;
   }
-}
 
-.alert {
-  margin-top: 8px;
-  border-radius: 4px;
-}
+  .alert {
+    margin-top: 8px;
+    border-radius: 4px;
+  }
 
-.alert-text {
-  color: $XRoad-Black100;
-  display: block;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
+  .alert-text {
+    color: $XRoad-Black100;
+    display: block;
+  }
 }
 </style>

@@ -103,6 +103,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { Colors, StoreTypes } from '@/global';
 
 export default Vue.extend({
   name: 'app-footer',
@@ -119,27 +120,27 @@ $text-color: $XRoad-Black100;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
 
-.footer-inner {
-  max-width: 1000px;
-  width: 100%;
-  margin-left: 0;
-  margin-right: 0;
-}
+  .footer-inner {
+    max-width: 1000px;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
 
-.footer-title {
-  color: $text-color;
-  font-size: 0.9rem;
-  font-weight: bold;
-}
+    .footer-title {
+      color: $text-color;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
 
-.footer-col {
-  color: $text-color;
-  font-size: 0.875rem;
-}
+    .footer-col {
+      color: $text-color;
+      font-size: 0.875rem;
+    }
 
-.footer-link {
-  color: $XRoad-Purple100;
+    .footer-link {
+      color: $XRoad-Purple100;
+    }
+  }
 }
 </style>

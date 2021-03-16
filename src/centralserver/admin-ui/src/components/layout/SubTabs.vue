@@ -28,7 +28,7 @@
     <v-tabs
       class="xrd-tabs"
       color="primary"
-      background-color="#F4F3F6"
+      :background-color="colors.WarmGrey10"
       slider-size="2"
     >
       <v-tabs-slider
@@ -42,6 +42,21 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { Colors } from '@/global';
 
-export default Vue.extend({});
+export default Vue.extend({
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
+});
 </script>
+
+<style lang="scss">
+.v-tabs-slider.xrd-sub-tabs-slider {
+  width: 40px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>

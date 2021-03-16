@@ -59,6 +59,7 @@
                   <v-text-field
                     id="username"
                     name="username"
+                    data-test="login-username-input"
                     outlined
                     :label="$t('fields.username')"
                     :error-messages="errors"
@@ -77,6 +78,7 @@
                   <v-text-field
                     id="password"
                     name="password"
+                    data-test="login-password-input"
                     outlined
                     :label="$t('fields.password')"
                     :error-messages="errors"
@@ -95,6 +97,7 @@
               gradient
               block
               large
+              data-test="login-button"
               @click="submit"
               :min_width="120"
               rounded
@@ -175,51 +178,51 @@ export default (Vue as VueConstructor<
 <style lang="scss" scoped>
 @import '~styles/colors';
 
-.graphics {
-  height: 100%;
-  width: 40%;
-  max-width: 576px; // width of the backround image
-  background-image: url('../assets/background.png');
-  background-size: cover;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
 .login-view-wrap {
   background-color: white;
   padding: 0;
-}
 
-.title-wrap {
-  display: flex;
-  flex-direction: column;
-}
+  .graphics {
+    height: 100%;
+    width: 40%;
+    max-width: 576px; // width of the backround image
+    background-image: url('../assets/background.png');
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
 
-.login-form-toolbar {
-  background-color: white;
-  margin-bottom: 30px;
-  padding-left: 0;
-}
+  .set-width {
+    max-width: 420px;
 
-.login-form-toolbar-title {
-  margin-left: 0;
-  color: #252121;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 40px;
-  line-height: 54px;
-}
+    .login-form-toolbar {
+      background-color: white;
+      margin-bottom: 30px;
+      padding-left: 0;
+    }
 
-.sub-title {
-  font-style: normal;
-  font-weight: normal;
-  font-size: $XRoad-DefaultFontSize;
-  line-height: 19px;
-}
+    .title-wrap {
+      display: flex;
+      flex-direction: column;
 
-.set-width {
-  max-width: 420px;
+      .login-form-toolbar-title {
+        margin-left: 0;
+        color: #252121;
+        font-style: normal;
+        font-weight: bold;
+        font-size: 40px;
+        line-height: 54px;
+      }
+
+      .sub-title {
+        font-style: normal;
+        font-weight: normal;
+        font-size: $XRoad-DefaultFontSize;
+        line-height: 19px;
+      }
+    }
+  }
 }
 </style>

@@ -36,7 +36,7 @@ import Vue from 'vue';
 import { Tab } from '@/ui-types';
 import { mainTabs, RouteName } from '@/global';
 import AppIcon from './AppIcon.vue';
-import AppDropMenu from './AppDropMenu.vue';
+import AppDropMenu from './UserDropMenu.vue';
 
 export default Vue.extend({
   components: {
@@ -62,27 +62,6 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss">
-@import '../../assets/colors';
-
-.v-tabs-slider.xrd-main-tabs-slider {
-  width: 70px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.v-tab {
-  text-transform: none;
-  font-weight: 600;
-}
-
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
-}
-</style>
-
 <style lang="scss" scoped>
 .main-content {
   background-color: #ffffff;
@@ -91,13 +70,9 @@ export default Vue.extend({
   @media only screen and (max-width: 920px) {
     padding-left: 0px;
   }
-}
 
-.tabs-wrap {
-  margin-left: 20px;
-}
-
-.main-tabs {
-  max-width: 1000px;
+  .tabs-wrap {
+    margin-left: 20px;
+  }
 }
 </style>

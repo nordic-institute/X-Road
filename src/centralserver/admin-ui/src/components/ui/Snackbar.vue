@@ -102,21 +102,22 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: center;
   padding-left: 14px;
-}
-.row-wrapper {
-  display: flex;
-  flex-direction: column;
-  overflow: auto;
-  width: 100%;
-  overflow-wrap: break-word;
-  justify-content: flex-start;
-  margin-right: 30px;
-  margin-left: 26px;
-  color: #211e1e;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 18px;
-  line-height: 24px;
+
+  .row-wrapper {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+    width: 100%;
+    overflow-wrap: break-word;
+    justify-content: flex-start;
+    margin-right: 30px;
+    margin-left: 26px;
+    color: #211e1e;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 24px;
+  }
 }
 
 .scrollable {

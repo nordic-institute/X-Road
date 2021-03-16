@@ -24,7 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar app dark absolute color="#636161" flat height="32" max-height="32">
+  <v-app-bar
+    app
+    dark
+    absolute
+    :color="colors.Black70"
+    flat
+    height="32"
+    max-height="32"
+  >
     <div class="auth-container" v-if="isAuthenticated">
       <div class="server-type">X-ROAD CENTRAL SERVER</div>
       <div
@@ -45,7 +53,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName } from '@/global';
+import { RouteName, Colors } from '@/global';
 
 export default Vue.extend({
   name: 'toolbar',
@@ -56,6 +64,11 @@ export default Vue.extend({
     isAuthenticated(): boolean {
       return true;
     },
+  },
+  data() {
+    return {
+      colors: Colors,
+    };
   },
   methods: {
     home(): void {
@@ -83,22 +96,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.server-name {
-  margin: 20px;
-  margin-right: 10px;
-}
-
-.server-type {
-  font-style: normal;
-  font-weight: bold;
-  margin-left: 64px;
-  user-select: none;
-
-  @media only screen and (max-width: 920px) {
-    display: none;
-  }
-}
-
 .auth-container {
   font-size: 12px;
   line-height: 16px;
@@ -108,5 +105,21 @@ export default Vue.extend({
   height: 100%;
   align-items: center;
   width: 100%;
+
+  .server-name {
+    margin: 20px;
+    margin-right: 10px;
+  }
+
+  .server-type {
+    font-style: normal;
+    font-weight: bold;
+    margin-left: 64px;
+    user-select: none;
+
+    @media only screen and (max-width: 920px) {
+      display: none;
+    }
+  }
 }
 </style>

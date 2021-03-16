@@ -24,7 +24,58 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
+  <div class="drop-menu">
+    <v-menu bottom right>
+      <template v-slot:activator="{ on }">
+        <v-btn text v-on="on" class="no-uppercase" data-test="username-button">
+          {{ username }}
+          <v-icon>mdi-chevron-down</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item
+          id="logout-list-tile"
+          data-test="logout-list-tile"
+          @click="logout"
+        >
+          <v-list-item-title id="logout-title">{{
+            $t('login.logOut')
+          }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
   </div>
 </template>
+
+<script lang="ts">
+import Vue from 'vue';
+import { mapGetters } from 'vuex';
+import { RouteName, StoreTypes } from '@/global';
+
+export default Vue.extend({
+  computed: {
+    ...mapGetters({ username: StoreTypes.getters.USERNAME }),
+  },
+  methods: {
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
+    },
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+.drop-menu {
+  margin-left: auto;
+  margin-right: 70px;
+  display: flex;
+  align-items: center;
+
+  .no-uppercase {
+    text-transform: none;
+    font-weight: 600;
+  }
+}
+</style>
