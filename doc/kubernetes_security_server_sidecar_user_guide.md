@@ -1054,7 +1054,7 @@ service-security-server-sidecar-primary   ClusterIP      None             <none>
 ```
 
 6. Verify that the Primary and Secondary Pods are deployed. The Secondary Pod should remain in the "Not Ready" state until the Primary Pod is configured. If we are using a volume that already has the Primary Pod configuration, the Secondary Pod should switch to the "Ready" state after approximately 3-4 minutes.
-```
+```bash
 kubectl get pods -n sidecar
 
 NAME                                                 READY   STATUS    RESTARTS   AGE
