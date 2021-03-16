@@ -27,7 +27,10 @@
   <div class="xrd-tab-max-width xrd-view-common main-wrap">
     <xrd-sub-view-title :title="serviceClientId" @close="close" class="pa-4" />
     <v-card flat>
-      <table class="xrd-table service-client-margin" data-test="service-clients-table">
+      <table
+        class="xrd-table service-client-margin"
+        data-test="service-clients-table"
+      >
         <thead>
           <tr>
             <th>{{ $t('serviceClients.name') }}</th>

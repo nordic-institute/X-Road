@@ -23,6 +23,7 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!-- This is the root component of the Vue app -->
 <template>
   <v-app class="xrd-app">
     <!-- Dont show toolbar or footer in login view -->
