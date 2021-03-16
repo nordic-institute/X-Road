@@ -50,7 +50,7 @@
   * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
 * [7 Version update](#7-version-update)
 * [8 Message logs and disk space](#8-message-logs-and-disk-space)
-* [9 Setup example](#8-setup-example)
+* [9 Setup example](#9-setup-example)
 
 ## 1 Introduction
 
