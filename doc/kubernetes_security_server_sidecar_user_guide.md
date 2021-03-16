@@ -1300,7 +1300,7 @@ kubectl autoscale deployment <hpa deployment name> -n <namespace name> --cpu-per
 ```
 The name of the HPA will be the same name as the Deployment.
 
-Another option for creating custom metrics is to create a manifest file, in this example we are going to show how to create an HPA based on Memory utilization (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.8**):
+Another option for creating custom metrics is to create a manifest file. The following example shows how to create an HPA based on Memory utilization (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.8**):
 ``` yaml
 
 apiVersion: autoscaling/v2beta2
