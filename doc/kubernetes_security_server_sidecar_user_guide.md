@@ -1032,7 +1032,7 @@ spec:
 ```
 Note (1): This manifest is for deploying Kubernetes External DNS using AWS Route 53 in a AWS EKS Cluster with RBAC authentication enabled, for more deployment options please check https://github.com/kubernetes-sigs/external-dns/#deploying-to-a-cluster.
 
-Verify that the Kubernetes External DNS is deployed and running:
+4. Verify that the Kubernetes External DNS is deployed and running:
 ```
 kubectl get pods
 
