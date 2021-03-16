@@ -45,7 +45,7 @@
       * [4.5.6.1 Prerequisites](#4561-prerequisites)
       * [4.5.6.2 Primary Pod installation](#4562-primary-pod-installation)
       * [4.5.6.3 Secondary Pods installation](#4563-secondary-pods-installation)
-    * [4.5.7 Load balancer IP or DNS options](#457-load-balancer-ip-or-dns-options)
+    * [4.5.7 Load Balancer address options](#457-load-balancer-address-options)
       * [4.5.7.1 Use the internal Kubernetes DNS](#4571-use-the-internal-kubernetes-dns)
       * [4.5.7.2 Use the assigned Private IP or public DNS name](#4572-use-the-assigned-private-ip-or-public-dns-name)
       * [4.5.7.3 Set a fixed Private IP](#4573-set-a-fixed-private-ip)
