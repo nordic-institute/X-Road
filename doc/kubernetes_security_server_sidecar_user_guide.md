@@ -1294,7 +1294,7 @@ To do that, set a minimum number of Pods in your HPA (**reference data: 4.2**) a
 It is possible to skip the Prometheus and Prometheus Adapter steps and only use the default metrics provided by the [Metrics Server](https://github.com/kubernetes-sigs/metrics-server). With these metrics, you can autoscale your Deployment based on CPU/Memory utilization.
 For example, if we define a target value of 50% of CPU utilization, the HPA will scale up the number of replicas if the CPU utilization of any of the Pods in the Deployment goes over 50%.
 
-It is possible to create and HPA for CPU utilization by running (**reference data: 3.1, 4.2, 4.3, 4.5, 4.7**):
+Create an HPA for CPU utilization by running (**reference data: 3.1, 4.2, 4.3, 4.5, 4.7**):
 ``` bash
 kubectl autoscale deployment <hpa deployment name> -n <namespace name> --cpu-percent=<target cpu percent> --min=<hpa min replicas> --max=<hpa max replicas>
 ```
