@@ -1058,7 +1058,7 @@ spec:
 [...]
 ```
 
-Apply the manifest, and then, after a couple of minutes, a new record with the name &lt;external DNS name&gt; should be created on the AWS Route 53 Hosted zone.
+6. Apply the manifest. After a couple of minutes, a new record with the name &lt;external DNS name&gt; should be created on the AWS Route 53 Hosted zone.
 This is the recommend option from production environment.
 
 ## 5 Backup and Restore
