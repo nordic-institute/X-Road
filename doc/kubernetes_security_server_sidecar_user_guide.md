@@ -1034,7 +1034,7 @@ NAME                 STATUS   VOLUME                  CAPACITY   ACCESS MODES   
 pvc-config-sidecar   Bound    pv-efs-config-sidecar   2Gi        RWX            sidecarstorage   5m38s
 ```
 
-Verify that the secrets are deployed:
+4. Verify that the secrets are deployed:
 ```
 kubectl get secrets -n sidecar
 
