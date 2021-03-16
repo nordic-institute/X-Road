@@ -1043,7 +1043,7 @@ default-token-zgl8g        kubernetes.io/service-account-token   3      6m28s
 secret-sidecar-variables   Opaque                                8      6m27s
 secret-ssh-keys            Opaque                                2      6m28s
 ```
-- Verify that the services are created:
+5. Verify that the services are created:
 ```
 kubectl get services -n sidecar
 
