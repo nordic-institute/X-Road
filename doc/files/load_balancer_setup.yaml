@@ -130,7 +130,6 @@ metadata:
     run: balancer-security-server-sidecar
   namespace: sidecar
 spec:
-  clusterIP: 10.100.217.185
   type: LoadBalancer
   selector:
     run: security-server-sidecar-secondary
