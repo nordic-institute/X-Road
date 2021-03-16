@@ -1287,7 +1287,7 @@ Now we can test to send request to our X-Road Security Server Sidecar cluster se
 
 ### 9.5 Autoscale when Pods fails
 The HPA doesn't allow us to scale the Pods when one of them fails. But if we neet to always have a minumin number of Pods in our deployment and create a new one if one of them fails, we can combine the HPA with a [Liveness probe](#4552-liveness-probes).
-Doing that we can set a minumin number of Pods in our HPA (**reference data: 4.2**) and configure a [Liveness probe](#4552-liveness-probes), that will attempt to recreate a new Pod if the healthcheck fails and the Pod is not able to receive messages.
+To do that, set a minimum number of Pods in your HPA (**reference data: 4.2**) and configure a [Liveness probe](#4552-liveness-probes) that will attempt to recreate a new Pod if the healthcheck fails and the Pod is not able to receive messages.
 
 ### 9.6 Installation with default metrics
 
