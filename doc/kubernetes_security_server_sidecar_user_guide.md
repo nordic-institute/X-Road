@@ -921,7 +921,7 @@ If the consumer Security Server Sidecar it's in the same Network we can use the 
 
 ##### 4.5.7.3 Set a fixed Private IP
 It is possible to define a Private IP in the Load Balancer Service deployment by adding the property `clusterIP` (**reference data: 3.17**):
-```
+```yaml
 [...]
 spec:
   type: LoadBalancer
