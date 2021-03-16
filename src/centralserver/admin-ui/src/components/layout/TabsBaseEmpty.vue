@@ -24,72 +24,80 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+  <v-layout class="main-content" align-left>
+    <app-icon />
+    <div class="tabs-wrap"></div>
+    <app-drop-menu />
+  </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import { mainTabs, RouteName } from '@/global';
+import AppIcon from './AppIcon.vue';
+import AppDropMenu from './AppDropMenu.vue';
 
 export default Vue.extend({
-  name: 'App',
-
   components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
+    AppIcon,
+    AppDropMenu,
+  },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
   },
   computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
+    allowedTabs(): Tab[] {
+      return this.$store.getters.getAllowedTabs(mainTabs);
     },
   },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-    this.$store.getters[StoreTypes.getters.USERNAME];
+  methods: {
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
+    },
   },
 });
 </script>
 
 <style lang="scss">
-@import './assets/global-style';
+@import '../../assets/colors';
+
+.v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v-tab {
+  text-transform: none;
+  font-weight: 600;
+}
+
+.v-tabs-slider.xrd-sub-tabs-slider {
+  width: 40px;
+  margin-left: auto;
+  margin-right: auto;
+}
 </style>
 
 <style lang="scss" scoped>
-@import './assets/colors';
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
+.main-content {
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
 }
 
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
+.tabs-wrap {
+  margin-left: 20px;
 }
 
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
+.main-tabs {
+  max-width: 1000px;
 }
 </style>

@@ -23,16 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router from 'vue-router';
-import { sync } from 'vuex-router-sync';
-import store from '@/store';
-import routes from './routes';
+/*
+ TypeScript typings that are used in UI, but not in backend.
+ These are not in openapi definitions.
+*/
+import { Location } from 'vue-router';
 
-// Create the router
-const router = new Router({
-  routes: routes,
-});
+// Interface for Tab data
+export interface Tab {
+  key: string;
+  name: string;
+  to: Location; // Same type as https://router.vuejs.org/api/#to
+  permissions?: string[];
+}
 
-sync(store, router);
+// The result of the FileUpload components fileChanged event
+export type FileUploadResult = {
+  buffer: ArrayBuffer;
+  file: File;
+};
 
-export default router;
+// Data for snackbar notification
+export interface Notification {
+  timeAdded: number;
+  timeout: number;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  errorObject?: any;
+  errorMessageCode?: string;
+  errorMessageRaw?: string;
+  successMessageCode?: string;
+  successMessageRaw?: string;
+  show: boolean;
+  count: number;
+}

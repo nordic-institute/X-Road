@@ -24,72 +24,58 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+  <div class="drop-menu">
+    <v-menu bottom right>
+      <template v-slot:activator="{ on }">
+        <v-btn text v-on="on" class="no-uppercase" data-test="username-button">
+          {{ username }}
+          <v-icon>mdi-chevron-down</v-icon>
+        </v-btn>
+      </template>
+
+      <v-list>
+        <v-list-item
+          id="logout-list-tile"
+          data-test="logout-list-tile"
+          @click="logout"
+        >
+          <v-list-item-title id="logout-title">{{
+            $t('login.logOut')
+          }}</v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
 import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
+import { RouteName, StoreTypes } from '@/global';
 
 export default Vue.extend({
-  name: 'App',
-
-  components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
-  },
   computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
-    },
+    ...mapGetters({ username: StoreTypes.getters.USERNAME }),
   },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-    this.$store.getters[StoreTypes.getters.USERNAME];
+  methods: {
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
+    },
   },
 });
 </script>
 
-<style lang="scss">
-@import './assets/global-style';
-</style>
-
 <style lang="scss" scoped>
-@import './assets/colors';
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
+.drop-menu {
+  margin-left: auto;
+  margin-right: 70px;
+  display: flex;
+  align-items: center;
 }
 
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
-}
-
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
+.no-uppercase {
+  text-transform: none;
+  font-weight: 600;
 }
 </style>

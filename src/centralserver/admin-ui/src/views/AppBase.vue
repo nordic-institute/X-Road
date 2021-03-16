@@ -23,58 +23,82 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
+  <div>
+    <router-view name="top" />
+    <v-layout align-center justify-center>
       <transition name="fade" mode="out-in">
-        <router-view />
+        <div class="base-full-width">
+          <router-view name="subTabs" />
+          <router-view name="alerts" />
+          <v-layout
+            align-center
+            justify-center
+            class="base-full-width bottom-pad"
+          >
+            <router-view />
+          </v-layout>
+        </div>
       </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+    </v-layout>
+
+    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
+      <v-card class="xrd-card">
+        <v-card-title>
+          <span class="headline">{{ $t('logout.sessionExpired') }}</span>
+        </v-card-title>
+        <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
+        <v-card-actions class="xrd-card-actions">
+          <v-spacer></v-spacer>
+          <xrd-button @click="logout()">{{ $t('action.ok') }}</xrd-button>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'App',
-
-  components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
+  data() {
+    return {
+      sessionPollInterval: 0,
+      alertsPollInterval: 0,
+    };
   },
   computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
+    showDialog(): boolean {
+      return this.$store.getters.isSessionAlive === false;
     },
   },
-
   created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-    this.$store.getters[StoreTypes.getters.USERNAME];
+    // Set interval to poll backend for session
+  },
+  methods: {
+    pollSessionStatus() {
+      // Do polling
+    },
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
+    },
   },
 });
 </script>
 
-<style lang="scss">
-@import './assets/global-style';
-</style>
-
 <style lang="scss" scoped>
-@import './assets/colors';
+@import '@/assets/shared';
+.base-full-width {
+  width: 100%;
+  padding-bottom: 40px;
+}
+
+.bottom-pad {
+  padding-bottom: 40px;
+}
 
 .fade-enter-active,
 .fade-leave-active {
@@ -82,14 +106,8 @@ export default Vue.extend({
   transition-property: opacity;
   transition-timing-function: ease;
 }
-
 .fade-enter,
 .fade-leave-active {
   opacity: 0;
-}
-
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
 }
 </style>
