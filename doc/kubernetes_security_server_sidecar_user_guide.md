@@ -1041,7 +1041,7 @@ external-dns-67c88b5577-lhgzt              1/1     Running     0          20h
 ```
 
 5. Modify the Secondary Pod Deployment manifest adding the external-dns annotation (**reference data: 3.1, 3.15, 3.27, 3.29**):
-```
+```yaml
 [...]
 apiVersion: v1
 kind: Service
