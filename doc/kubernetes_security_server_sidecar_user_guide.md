@@ -1020,7 +1020,7 @@ The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) con
   + &lt;version primary&gt; Supported image versions for the primary are: 6.25.0-primary, 6.25.0-primary-fi. Make sure that the image version for the secondary matches the image version for the primary, for example, if you choose the 6.25.0-primary-slim version for the primary, you must choose the 6.25.0-secondary-slim version for the secondary.
   + &lt;version secondary&gt; Supported image versions for the secondary are: 6.25.0-slim-secondary, 6.25.0-slim-secondary-fi. Make sure that the image version for the secondary matches the image version for the primary, for example, if you choose the 6.25.0-primary-slim version for the primary, you must choose the 6.25.0-secondary-slim version for the secondary.
 
-Once the values are replaced, apply the manifest file:
+2. Once the values are replaced, apply the manifest file:
 
 ```
 kubectl apply -f load_balancer_setup.yaml"
