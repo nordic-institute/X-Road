@@ -1291,7 +1291,7 @@ To do that, set a minimum number of Pods in your HPA (**reference data: 4.2**) a
 
 ### 9.6 Installation with default metrics
 
-It is possible to skip the Prometheus and Prometheus Adapter steps and only use the default metrics provided by the [Metrics Server](https://github.com/kubernetes-sigs/metrics-server). With this metrics we can autoscale our Deployment base on CPU/Memory utilization.
+It is possible to skip the Prometheus and Prometheus Adapter steps and only use the default metrics provided by the [Metrics Server](https://github.com/kubernetes-sigs/metrics-server). With these metrics, you can autoscale your Deployment based on CPU/Memory utilization.
 For example, if we define a target of 50% percent of CPU utilization, the HPA will scale the number of replicas if the CPU utilization of any of the Pods in the deployment goes higher than 50%.
 
 It is possible to create and HPA for CPU utilization by running (**reference data: 3.1, 4.2, 4.3, 4.5, 4.7**):
