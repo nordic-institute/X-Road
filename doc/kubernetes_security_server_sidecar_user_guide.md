@@ -1005,7 +1005,7 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
 
 ## 9 Setup example
 The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is `sidecar`.
-* Download the file and search for following variables and replace it with our desired values:
+1. Download the file and search for following variables and replace it with our desired values:
   + &lt;public key base64> Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
   + &lt;private key base64> Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
   + &lt;token pin&gt; (**reference data: 1.4**)
