@@ -95,6 +95,8 @@ EOF
         crudini --set "${db_properties}" '' schema "${db_schema}"
         crudini --set "${db_properties}" '' password "${db_password}"
     fi
+
+    /usr/share/xroad/db/migrate-liquibase-temp.sh || abort "Database migration failed. ABORTING."
 }
 
 # check certificates and request necessary subject information from the user
