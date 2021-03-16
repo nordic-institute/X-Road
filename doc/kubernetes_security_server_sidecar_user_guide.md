@@ -928,7 +928,8 @@ spec:
   clusterIP: <load balancer private ip>
 [...]
 ```
-By adding this property, the Load Balancer will keep the same private IP each time it is recreated, the public DNS (`EXTERNAL-IP`) will not and a new one will be assigned each time the Load Balancer is recreated, as with the previous section. If we need to make public the fixed private IP, we can create a new AWS Route 53 record that points to this IP. This solution is only recommend for developing or testing purposes since it's an anti pattern to have fixed IPs in our deployment.
+Note! This solution is only recommended for development or testing purposes since it's an anti-pattern to have fixed IPs in the Deployment.
+By adding this property, the Load Balancer will keep the same private IP each time is recreated. However, the public DNS (`EXTERNAL-IP`) will not and a new one will be assigned each time the Load Balancer is recreated, as with the previous section. If we need to make public the fixed private IP, we can create a new AWS Route 53 record that points to this IP.```
 
 ##### 4.5.7.4 Deploy Kubernetes External DNS
 
