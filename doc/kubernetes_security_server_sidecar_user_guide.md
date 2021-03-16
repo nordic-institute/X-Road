@@ -934,7 +934,9 @@ By adding this property, the Load Balancer will keep the same private IP each ti
 ##### 4.5.7.4 Deploy Kubernetes External DNS
 
 [Kubernetes External DNS](https://github.com/kubernetes-sigs/external-dns/) makes Kubernetes resources discoverable via public DNS servers. Use AWS Route 53 in combination with Kubernetes External DNS to create a new record in an existing Hosted Zone in AWS Route 53 and update this record with the new `EXTERNAL-IP` assigned value each time that the Load Balancer Service is recreated.
-First we need to have an existing AWS Route 53 Hoted zone, if we don't have one we must create it. Then the AWS EKS Cluster role must have the following permissions:
+1. Create an AWS Route 53 Hosted zone if you don't have one
+
+2. Check that the AWS EKS Cluster role has the following permissions:
 ```
 {
   "Version": "2012-10-17",
