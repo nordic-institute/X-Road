@@ -1026,7 +1026,7 @@ The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) con
 kubectl apply -f load_balancer_setup.yaml"
 ```
 
-Verify that the PersistentVolumeClaim is deployed and bounded:
+3. Verify that the PersistentVolumeClaim is deployed and bounded:
 ```
 kubectl get pvc -n sidecar
 
