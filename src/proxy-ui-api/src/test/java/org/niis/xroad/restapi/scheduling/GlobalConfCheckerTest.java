@@ -26,8 +26,10 @@
 package org.niis.xroad.restapi.scheduling;
 
 import ee.ria.xroad.common.conf.globalconf.MemberInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
+import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.signer.protocol.dto.AuthKeyInfo;
@@ -51,6 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,6 +61,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
@@ -162,7 +166,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
     }
 
     @Test
-    public void updateLocalClientStatus() throws Exception {
+    public void updateLocalClientStatus() {
         when(globalConfFacade.isSecurityServerClient(OWNER_MEMBER, SS_ID)).thenReturn(true);
         // Verify initial state
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
@@ -216,4 +220,58 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         assertEquals(NEW_OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
     }
 
+    @Test
+    public void testUpdateTimestampServiceUrls() {
+
+        // test with single matching items
+        List<ApprovedTSAType> approvedTSATypes =
+                Collections.singletonList(TestUtils.createApprovedTsaType("http://example.com:8121", "Foo"));
+        List<TspType> tspTypes =
+                Collections.singletonList(TestUtils.createTspType("http://example.com:8121", "Foo"));
+        globalConfChecker.updateTimestampServiceUrls(approvedTSATypes, tspTypes);
+        assertEquals(1, approvedTSATypes.size());
+        assertEquals(1, tspTypes.size());
+        assertEquals(approvedTSATypes.get(0).getName(), tspTypes.get(0).getName());
+        assertEquals(approvedTSATypes.get(0).getUrl(), tspTypes.get(0).getUrl());
+
+        // test the normal update case
+        // the change in approvedTSAType1 URL should be reflected to tspType1 URL
+        List<ApprovedTSAType> approvedTSATypes1 = Arrays.asList(
+                TestUtils.createApprovedTsaType("http://example.com:9999", "Foo"),
+                TestUtils.createApprovedTsaType("http://example.net", "Bar")
+        );
+        List<TspType> tspTypes1 = Arrays.asList(
+                TestUtils.createTspType("http://example.com:8121", "Foo"),
+                TestUtils.createTspType("http://example.net", "Bar")
+        );
+        globalConfChecker.updateTimestampServiceUrls(approvedTSATypes1, tspTypes1);
+        assertEquals(2, approvedTSATypes1.size());
+        assertEquals(2, tspTypes1.size());
+        assertEquals(approvedTSATypes1.get(0).getName(), tspTypes1.get(0).getName());
+        assertEquals(approvedTSATypes1.get(0).getUrl(), tspTypes1.get(0).getUrl());
+        assertEquals(approvedTSATypes1.get(1).getName(), tspTypes1.get(1).getName());
+        assertEquals(approvedTSATypes1.get(1).getUrl(), tspTypes1.get(1).getUrl());
+
+        // test the conflicting update case
+        // the change in approvedTSAType3 URL should not be reflected to tspType3 URL because of ambiguous names
+        List<ApprovedTSAType> approvedTSATypes2 = Arrays.asList(
+                TestUtils.createApprovedTsaType("http://example.com:9898", "Foo"),
+                TestUtils.createApprovedTsaType("http://example.net", "Foo"),
+                TestUtils.createApprovedTsaType("http://example.org:8080", "Zzz")
+        );
+        List<TspType> tspTypes2 = Arrays.asList(
+                TestUtils.createTspType("http://example.com:8121", "Foo"),
+                TestUtils.createTspType("http://example.net", "Foo"),
+                TestUtils.createTspType("http://example.org:8080", "Zzz")
+        );
+        globalConfChecker.updateTimestampServiceUrls(approvedTSATypes2, tspTypes2);
+        assertEquals(3, approvedTSATypes2.size());
+        assertEquals(3, tspTypes2.size());
+        assertEquals(approvedTSATypes2.get(0).getName(), tspTypes2.get(0).getName());
+        assertNotEquals(approvedTSATypes2.get(0).getUrl(), tspTypes2.get(0).getUrl());
+        assertEquals(approvedTSATypes2.get(1).getName(), tspTypes2.get(1).getName());
+        assertEquals(approvedTSATypes2.get(1).getUrl(), tspTypes2.get(1).getUrl());
+        assertEquals(approvedTSATypes2.get(2).getName(), tspTypes2.get(2).getName());
+        assertEquals(approvedTSATypes2.get(2).getUrl(), tspTypes2.get(2).getUrl());
+    }
 }

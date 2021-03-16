@@ -34,10 +34,13 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
+import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,6 +50,7 @@ import javax.security.auth.x500.X500Principal;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -110,9 +114,12 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
     @Test
     @WithMockUser(authorities = { "VIEW_APPROVED_CERTIFICATE_AUTHORITIES" })
     public void getApprovedCertificatesWithViewPermission() throws Exception {
+        // basically test that these do not throw exceptions
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
         caController.getApprovedCertificateAuthorities(null, false);
-        caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
+        ResponseEntity<List<CertificateAuthority>> response =
+                caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
     }
 
     @Test

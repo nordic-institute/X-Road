@@ -29,9 +29,14 @@
       <xrd-sub-view-title :title="groupCode" @close="close" />
 
       <template>
-        <div class="cert-hash">
+        <div class="cert-hash" data-test="local-group-title">
           {{ $t('localGroup.localGroup') }}
-          <xrd-button v-if="showDelete" @click="deleteGroup()" outlined>
+          <xrd-button
+            v-if="showDelete"
+            @click="deleteGroup()"
+            outlined
+            data-test="delete-local-group-button"
+          >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
@@ -46,6 +51,7 @@
           outlined
           :label="$t('localGroup.description')"
           hide-details
+          data-test="ocal-group-edit-description-input"
           class="description-input"
         ></v-text-field>
       </template>
@@ -62,6 +68,7 @@
           v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
+          data-test="remove-all-members-button"
           >{{ $t('action.removeAll') }}</xrd-button
         >
 
@@ -70,6 +77,7 @@
           v-if="canEditMembers"
           @click="addMembers()"
           outlined
+          data-test="add-members-button"
           >{{ $t('localGroup.addMembers') }}</xrd-button
         >
       </div>
@@ -105,7 +113,7 @@
       </table>
 
       <div class="close-button-wrap">
-        <xrd-button @click="close()">{{
+        <xrd-button @click="close()" data-test="local-group-close-button">{{
           $t('action.close')
         }}</xrd-button>
       </div>

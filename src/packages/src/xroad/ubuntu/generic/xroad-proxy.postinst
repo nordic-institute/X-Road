@@ -72,15 +72,14 @@ case "$1" in
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
   RET=""
-  db_get xroad-common/database-host || true
+  db_get xroad-common/database-host || RET=""
   /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
 
   db_stop
 
-  service rsyslog restart || true
-  service xroad-confclient restart || true
-  service xroad-jetty restart || true
-  service xroad-signer restart || true
+  invoke-rc.d --quiet rsyslog try-restart || true
+  invoke-rc.d --quiet xroad-confclient try-restart || true
+  invoke-rc.d --quiet xroad-signer try-restart || true
  ;;
 
  abort-upgrade|abort-remove|abort-deconfigure)

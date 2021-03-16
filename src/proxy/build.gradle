@@ -11,7 +11,7 @@ dependencies {
     implementation project(':common-op-monitoring')
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
-    implementation 'xerces:xercesImpl:2.12.1'
+    implementation "xerces:xercesImpl:$xercesVersion"
 
     testImplementation project(':common-test')
     testImplementation project(path: ':common-util', configuration: 'testArtifacts')

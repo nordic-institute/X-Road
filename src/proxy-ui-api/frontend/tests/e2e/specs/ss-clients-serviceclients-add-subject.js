@@ -106,10 +106,7 @@ const clearServices = (pages) => {
   browser.waitForElementVisible(serviceDetails);
   serviceDetails.deleteService();
   serviceDetails.confirmDelete();
-  browser.assert.containsText(
-    mainPage.elements.snackBarMessage,
-    'Service description deleted',
-  );
+  browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
   mainPage.closeSnackbar();
 };
 
@@ -268,10 +265,7 @@ module.exports = {
     addSubjectServiceStepPage.assertSelectedServicesCount(2);
     addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
     addSubjectServiceStepPage.clickAddSelectedButton();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights successfully added',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
     browser.waitForElementVisible(
       '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
     );

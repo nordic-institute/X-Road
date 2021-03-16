@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,6 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-export interface RootState {
-  version: string;
+package ee.ria.xroad.signer.protocol.handler;
+
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
+
+/**
+ * Handles token pin update
+ */
+public class UpdateSoftwareTokenPinRequestHandler
+        extends AbstractRequestHandler<UpdateSoftwareTokenPin> {
+
+    @Override
+    protected Object handle(UpdateSoftwareTokenPin message) throws Exception {
+        tellToken(message, message.getTokenId());
+        return nothing();
+    }
+
 }

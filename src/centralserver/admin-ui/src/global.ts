@@ -25,6 +25,12 @@
  */
 import { Tab } from '@/ui-types';
 
+// Vuex Store root state
+export interface RootState {
+    version: string;
+}
+
+// Vuex store types
 export const StoreTypes = {
     getters: {
         // User

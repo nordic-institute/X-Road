@@ -78,9 +78,7 @@
         :disabled="csrGenerated || generatingCsr"
         outlined
         data-test="generate-internal-csr-cancel-button"
-        >{{
-          $t('ssTlsCertificate.generateInternalCsr.cancel')
-        }}</xrd-button
+        >{{ $t('ssTlsCertificate.generateInternalCsr.cancel') }}</xrd-button
       >
 
       <xrd-button

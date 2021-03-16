@@ -40,7 +40,7 @@
       <xrd-button
         v-if="showAddGroup"
         @click="addGroup"
-        data-test="add-group-button"
+        data-test="add-local-group-button"
         ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('localGroups.addGroup') }}</xrd-button
       >

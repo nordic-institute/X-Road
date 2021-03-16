@@ -38,6 +38,7 @@
 </template>
 
 <script lang="ts">
+// The root component of the Vue app
 import Vue from 'vue';
 import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';

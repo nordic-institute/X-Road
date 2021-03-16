@@ -34,6 +34,7 @@
         <div class="edit-row">
           <xrd-form-label
             class="edit-title"
+            data-test="service-parameters-service-url-label"
             :labelText="$t('services.serviceUrl')"
             :helpText="$t('services.urlTooltip')"
           />
@@ -71,6 +72,7 @@
         <div class="edit-row">
           <xrd-form-label
             class="edit-title"
+            data-test="service-parameters-timeout-label"
             :labelText="$t('services.timeoutSec')"
             :helpText="$t('services.timeoutTooltip')"
           />
@@ -110,6 +112,7 @@
         <div class="edit-row">
           <xrd-form-label
             class="edit-title"
+            data-test="service-parameters-verify-tls-label"
             :labelText="$t('services.verifyTls')"
             :helpText="$t('services.tlsTooltip')"
           />
@@ -211,8 +214,10 @@
     <!-- Confirm dialog remove Access Right service clients -->
     <xrd-confirm-dialog
       :dialog="confirmMember"
+      v-if="confirmMember"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
+      data-test="confirm-delete-access-right"
       @cancel="confirmMember = false"
       @accept="doRemoveServiceClient()"
     />
@@ -220,8 +225,10 @@
     <!-- Confirm dialog remove all Access Right service clients -->
     <xrd-confirm-dialog
       :dialog="confirmAllServiceClients"
+      v-if="confirmAllServiceClients"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"
+      data-test="confirm-delete-all-access-right"
       @cancel="confirmAllServiceClients = false"
       @accept="doRemoveAllServiveClient()"
     />
@@ -229,6 +236,7 @@
     <!-- Add access right service clients dialog -->
     <accessRightsDialog
       :dialog="addServiceClientDialogVisible"
+      v-if="addServiceClientDialogVisible"
       :existingServiceClients="serviceClients"
       :clientId="clientId"
       title="accessRights.addServiceClientsTitle"

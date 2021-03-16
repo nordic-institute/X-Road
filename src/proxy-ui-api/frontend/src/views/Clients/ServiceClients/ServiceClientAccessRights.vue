@@ -27,7 +27,7 @@
   <div class="xrd-tab-max-width xrd-view-common main-wrap">
     <xrd-sub-view-title :title="serviceClientId" @close="close" class="pa-4" />
     <v-card flat>
-      <table class="xrd-table service-client-margin">
+      <table class="xrd-table service-client-margin" data-test="service-clients-table">
         <thead>
           <tr>
             <th>{{ $t('serviceClients.name') }}</th>
@@ -63,6 +63,7 @@
 
     <table
       class="xrd-table service-client-margin"
+      data-test="service-client-access-rights-table"
       v-if="serviceClientAccessRights.length > 0"
     >
       <thead>
@@ -120,6 +121,7 @@
     <!-- Confirm dialog delete group -->
     <xrd-confirm-dialog
       :dialog="showConfirmDeleteAll"
+      v-if="showConfirmDeleteAll"
       title="serviceClients.removeAllTitle"
       text="serviceClients.removeAllText"
       @cancel="showConfirmDeleteAll = false"
@@ -128,6 +130,7 @@
 
     <xrd-confirm-dialog
       :dialog="showConfirmDeleteOne"
+      v-if="showConfirmDeleteOne"
       title="serviceClients.removeOneTitle"
       text="serviceClients.removeOneText"
       @cancel="resetDeletionSettings()"

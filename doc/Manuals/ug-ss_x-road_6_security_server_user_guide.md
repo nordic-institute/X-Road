@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.54  
+Version: 2.55  
 Doc. ID: UG-SS
 
 ---
@@ -87,7 +87,8 @@ Doc. ID: UG-SS
  15.10.2020 | 2.52    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
  22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
  01.12.2020 | 2.54    | Added endpoint for getting one API key to [19.1.2 Listing API keys](#1912-listing-api-keys) | Janne Mattila
- 
+ 25.02.2020 | 2.55    | Added information to find X-Road ID from conf backup file in chapter [13.2 Restore from the Command Line](#132-restore-from-the-command-line) | Karl Talumäe
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -1808,6 +1809,10 @@ To **upload a configuration backup file** from the local file system to the secu
 To restore configuration from the command line, the following data must be available:
 
 -   The X-Road ID of the security server
+
+To find the X-Road ID of the security server, the following command can be used:
+
+    tar -tf /var/lib/xroad/backup/<security server conf backup file> | head -1
 
 It is expected that the restore command is run by the xroad user.
 

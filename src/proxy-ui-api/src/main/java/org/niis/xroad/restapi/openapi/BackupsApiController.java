@@ -41,6 +41,7 @@ import org.niis.xroad.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.restapi.service.RestoreService;
 import org.niis.xroad.restapi.service.TokenService;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -123,7 +124,7 @@ public class BackupsApiController implements BackupsApi {
     @AuditEventMethod(event = UPLOAD_BACKUP)
     public ResponseEntity<Backup> uploadBackup(Boolean ignoreWarnings, MultipartFile file) {
         try {
-            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, file.getOriginalFilename(),
+            BackupFile backupFile = backupService.uploadBackup(ignoreWarnings, getValidOriginalFilename(file),
                     file.getBytes());
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
         } catch (InvalidFilenameException | UnhandledWarningsException | InvalidBackupFileException e) {
@@ -150,5 +151,23 @@ public class BackupsApiController implements BackupsApi {
             throw new InternalServerErrorException(e);
         }
         return new ResponseEntity<>(tokensLoggedOut, HttpStatus.OK);
+    }
+
+    /**
+     * Get original filename from Multipartfile, or throw {@link InvalidFilenameException}
+     * if filename is not allowed
+     * @param file
+     * @return
+     */
+    private String getValidOriginalFilename(MultipartFile file) throws InvalidFilenameException {
+        String filename = file.getOriginalFilename();
+        validateFilename(filename);
+        return filename;
+    }
+
+    private void validateFilename(String filename) throws InvalidFilenameException {
+        if (!FormatUtils.isValidBackupFilename(filename)) {
+            throw new InvalidFilenameException("invalid filename (" + filename + ")");
+        }
     }
 }

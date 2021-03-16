@@ -23,6 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+// This file allows the use of .tsx files while enabling jsx syntax support in IDE for JSX-style typescript code
 import Vue, { VNode } from 'vue';
 
 declare global {
