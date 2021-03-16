@@ -1022,7 +1022,7 @@ The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) con
 
 2. Once the values are replaced, apply the manifest file:
 
-```
+```bash
 kubectl apply -f load_balancer_setup.yaml"
 ```
 
