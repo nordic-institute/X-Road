@@ -964,7 +964,7 @@ By adding this property, the Load Balancer will keep the same private IP each ti
 }
 ```
 
-An example of how to install the Kubernetes External DNS is shown in the manifest below (**reference data: 3.27, 3.28**):
+3. Install the Kubernetes External DNS. You can find an example manifest file below (**reference data: 3.27, 3.28**):
 ``` yaml
 apiVersion: v1
 kind: ServiceAccount
