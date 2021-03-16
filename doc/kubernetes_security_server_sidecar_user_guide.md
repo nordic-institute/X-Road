@@ -1062,7 +1062,7 @@ security-server-sidecar-primary                      1/1     Running   0        
 security-server-sidecar-secondary-7c844c6b5f-ntkx4   1/1     Running   0          8m34s
 ```
 
-Delete all the objects by running:
+7. Delete all the objects by running:
 ```
 kubectl delete -f load_balancer_setup.yaml"
 ```
