@@ -906,7 +906,7 @@ We are going to describe the possible options that we can use to establish the a
 
 ##### 4.5.7.1 Use the internal Kubernetes DNS
 
-The internal Kubernetes DNS name for the Load Balancer will be &lt;primary DNS&gt; (**reference data: 3.20**). This option is only recommended for developing or testing purposes since this &lt;primary DNS&gt; will only work if the consumer Security Server Sidecar is deployed in the same cluster.
+The internal Kubernetes DNS name for the Load Balancer will be &lt;primary DNS&gt; (**reference data: 3.20**). This option is only recommended for developing or testing purposes since this &lt;primary DNS&gt; it's a Kubernetes internal DNS and will only work if the consumer Security Server Sidecar is deployed in the same cluster.
 
 ##### 4.5.7.2 Use the assigned Private IP or public DNS name
 
@@ -917,7 +917,7 @@ kubectl get svc -n <namespace name>
 NAME                            TYPE           CLUSTER-IP      EXTERNAL-IP                                                             PORT(S)                                                                                                   AGE
 service-sidecar-balancer        LoadBalancer   10.100.160.10   a764b23040d98479f907e9899f730b2d-20635229.eu-west-1.elb.amazonaws.com   5500:31648/TCP,5577:32244/TCP,8080:32451/TCP   17h  
 ```
-If the consumer Security Server Sidecar is in the same Network use the `CLUSTER-IP`, otherwise, use the `EXTERNAL-IP`. The problem with this approach is that AWS will assign new values to these properties every time the Load Balancer Service is recreated, so it requires updating this value in the Central Server configuration each time.
+If the consumer Security Server Sidecar is in the same Network we could use the `CLUSTER-IP`, otherwise, use the `EXTERNAL-IP`. The problem with this approach is that AWS will assign new values to these properties every time the Load Balancer Service is recreated, so it requires updating this value in the Central Server configuration each time.
 
 ##### 4.5.7.3 Set a fixed Private IP
 It is possible to define a Private IP in the Load Balancer Service deployment by adding the property `clusterIP` (**reference data: 3.17**):
