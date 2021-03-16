@@ -47,7 +47,7 @@
       * [4.5.6.3 Secondary Pods installation](#4563-secondary-pods-installation)
     * [4.5.7 Load balancer IP or DNS options](#457-load-balancer-ip-or-dns-options)
       * [4.5.7.1 Use the internal Kubernetes DNS](#4571-use-the-internal-kubernetes-dns)
-       * [4.5.7.2 Use the assigned Private IP or public DNS name](#4572-use-the-assigned-private-ip-or-public-dns-name)
+      * [4.5.7.2 Use the assigned Private IP or public DNS name](#4572-use-the-assigned-private-ip-or-public-dns-name)
        * [4.5.7.3 Set a fixed Private IP](#4573-set-a-fixed-private-ip)
        * [4.5.7.4 Deploy Kubernetes External DNS](#4574-deploy-kubernetes-external-dns)
 * [5 Backup and Restore](#5-backup-and-restore)
