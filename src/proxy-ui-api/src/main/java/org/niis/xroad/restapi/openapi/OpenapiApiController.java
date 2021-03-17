@@ -60,6 +60,7 @@ public class OpenapiApiController implements OpenapiApi {
             byte[] bytes = Files.readAllBytes(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getFile().toPath());
             return ApiUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_FILENAME);
         } catch (IOException e) {
+            log.error("Error reading OpenAPI definition file: {}", e);
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));
         }
     }
