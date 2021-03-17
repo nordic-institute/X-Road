@@ -5,7 +5,7 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
-
+ 15.03.2021 | 1.1     | Add Ip address options                                          | Alberto Fernandez Lorenzo
 ## Table of contents
 
 * [1 Introduction](#1-introduction)
