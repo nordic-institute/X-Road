@@ -5,6 +5,7 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
+ 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                   | Alberto Fernandez Lorenzo
 
 ## Table of Contents
 
@@ -60,7 +61,7 @@
     * [9.4.3 Deploy HorizontalPodAutoscaler](#943-deploy-horizontalpodautoscaler)
   * [9.5 Autoscale when Pods fails](#95-autoscale-when-pods-fails)
   * [9.6 Installation with default metrics](#96-installation-with-default-metrics)
-  
+
 ## 1 Introduction
 
 ### 1.1 Target Audience
