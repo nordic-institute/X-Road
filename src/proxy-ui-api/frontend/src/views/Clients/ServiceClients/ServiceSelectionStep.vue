@@ -38,36 +38,37 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
     </div>
-
-    <table class="xrd-table">
-      <thead>
-        <tr>
-          <th class="selection-checkbox"></th>
-          <th>{{ $t('serviceClients.serviceCode') }}</th>
-          <th>{{ $t('serviceClients.title') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="accessRight in searchResults"
-          v-bind:key="accessRight.id"
-          class="service-row"
-          data-test="access-right-toggle"
-        >
-          <td class="selection-checkbox">
-            <div>
-              <v-checkbox
-                v-model="selections"
-                :value="accessRight"
-                data-test="access-right-checkbox-input"
-              />
-            </div>
-          </td>
-          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
-          <td class="identifier-wrap">{{ accessRight.title }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="scrollable">
+      <table class="xrd-table">
+        <thead>
+          <tr>
+            <th class="selection-checkbox"></th>
+            <th>{{ $t('serviceClients.serviceCode') }}</th>
+            <th>{{ $t('serviceClients.title') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="accessRight in searchResults"
+            v-bind:key="accessRight.id"
+            class="service-row"
+            data-test="access-right-toggle"
+          >
+            <td class="selection-checkbox">
+              <div>
+                <v-checkbox
+                  v-model="selections"
+                  :value="accessRight"
+                  data-test="access-right-checkbox-input"
+                />
+              </div>
+            </td>
+            <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+            <td class="identifier-wrap">{{ accessRight.title }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="empty" v-if="serviceCandidates.length === 0">
       {{ $t('serviceClients.noAvailableServices') }}
     </div>
@@ -200,5 +201,10 @@ export default Vue.extend({
 .empty {
   margin: 30px;
   text-align: center;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 55vh;
 }
 </style>

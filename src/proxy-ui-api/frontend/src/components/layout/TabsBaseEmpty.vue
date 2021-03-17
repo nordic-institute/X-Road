@@ -33,9 +33,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
-import { mainTabs, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './AppDropMenu.vue';
 
@@ -48,13 +47,6 @@ export default Vue.extend({
     return {
       tab: undefined as undefined | Tab,
     };
-  },
-  computed: {
-    ...mapGetters(['username']),
-
-    allowedTabs(): Tab[] {
-      return this.$store.getters.getAllowedTabs(mainTabs);
-    },
   },
   methods: {
     logout(): void {

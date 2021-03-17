@@ -96,6 +96,10 @@ export default Vue.extend({
           to: {
             name: RouteName.ServiceParameters,
             query: { descriptionType: this.$route.query.descriptionType },
+            params: {
+              clientId: this.clientId,
+              serviceId: this.serviceId,
+            },
           },
         },
         {
@@ -104,6 +108,10 @@ export default Vue.extend({
           to: {
             name: RouteName.Endpoints,
             query: { descriptionType: this.$route.query.descriptionType },
+            params: {
+              clientId: this.clientId,
+              serviceId: this.serviceId,
+            },
           },
         },
       ];
