@@ -2866,34 +2866,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /openapi:
-    get:
-      tags:
-        - openapi
-      summary: download security server's openapi definition
-      operationId: downloadOpenApi
-      description: <h3>Administrator downloads the security server's OpenAPI definition.</h3>
-      responses:
-        '200':
-          description: openapi definition
-          content:
-            application/x-yaml:
-              schema:
-                type: string
-                format: binary
-                description: openapi definition file
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
   /user:
     get:
       tags:
@@ -4283,6 +4255,34 @@ paths:
           description: request specified an invalid format
         '409':
           description: an existing item already exists
+        '500':
+          description: internal server error
+  /system/openapi:
+    get:
+      tags:
+        - system
+      summary: download security server's openapi definition
+      operationId: downloadOpenApi
+      description: <h3>Administrator downloads the security server's OpenAPI definition.</h3>
+      responses:
+        '200':
+          description: openapi definition
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+                description: openapi definition file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
         '500':
           description: internal server error
   /certificate-authorities:
