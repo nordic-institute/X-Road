@@ -46,17 +46,17 @@
     <v-card flat class="xrd-card pb-4">
       <div class="tls-title-wrap pa-4">
         <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
-        <file-upload
+        <xrd-file-upload
           v-if="canAddTlsCert"
           accepts=".pem, .cer, .der"
           @file-changed="onFileChange"
           v-slot="{ upload }"
         >
-          <large-button outlined color="primary" @click="upload"
+          <xrd-button outlined color="primary" @click="upload"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('action.add') }}</large-button
+            >{{ $t('action.add') }}</xrd-button
           >
-        </file-upload>
+        </xrd-file-upload>
       </div>
       <div class="cert-table-title pl-4">
         {{ $t('internalServers.certHash') }}
@@ -102,14 +102,14 @@
             </td>
 
             <td class="column-button">
-              <large-button
+              <xrd-button
                 v-if="canExportSSCert"
                 small
                 :outlined="false"
                 text
                 color="primary"
                 @click="exportSSCertificate"
-                >{{ $t('action.export') }}</large-button
+                >{{ $t('action.export') }}</xrd-button
               >
             </td>
           </tr>

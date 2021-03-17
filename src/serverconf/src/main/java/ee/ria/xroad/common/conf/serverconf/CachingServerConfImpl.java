@@ -275,6 +275,12 @@ public class CachingServerConfImpl extends ServerConfImpl {
         }
     }
 
+    @Override
+    public void clearCache() {
+        log.info("Clearing configuration cache");
+        internalKeyCache.invalidateAll();
+    }
+
     @Value
     private static class AclCacheKey {
         final ClientId client;

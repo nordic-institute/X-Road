@@ -63,7 +63,7 @@ export default Vue.extend({
           // Ignore the error regarding navigating to the same path
           if (err.name === 'NavigationDuplicated') {
             // eslint-disable-next-line no-console
-            console.log('Duplicate navigation');
+            console.info('Duplicate navigation');
           } else {
             // Throw for any other errors
             throw err;
@@ -79,6 +79,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
 .server-name {
   margin: 20px;
   margin-right: 10px;
@@ -99,7 +101,7 @@ export default Vue.extend({
   font-size: 12px;
   line-height: 16px;
   text-align: center;
-  color: #dedce4;
+  color: $XRoad-WarmGrey30;
   display: flex;
   height: 100%;
   align-items: center;

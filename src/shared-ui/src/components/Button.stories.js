@@ -24,26 +24,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import SmallButton from './SmallButton.vue';
+import Button from './Button.vue';
 
 export default {
-  title: 'X-Road/Small button',
-  component: SmallButton,
+  title: 'X-Road/Button',
+  component: Button,
   argTypes: {
     outlined: { control: 'boolean' },
     disabled: { control: 'boolean' },
     loading: { control: 'boolean' },
-    text: { control: 'boolean' },
-    label: { control: 'text' },
+    block: { control: 'boolean' },
+    large: { control: 'boolean' },
     click: { action: 'click' },
+    color: { control: 'text' },
   },
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { SmallButton },
-  template:
-    '<small-button @click="click" v-bind="$props">{{label}}</small-button>',
+  components: { Button },
+  template: '<xrd-button @click="click" v-bind="$props">{{label}}</xrd-button>',
 });
 
 export const Primary = Template.bind({});
@@ -55,4 +55,10 @@ Primary.args = {
 export const Secondary = Template.bind({});
 Secondary.args = {
   label: 'This is a very very long label for a button',
+};
+
+export const Gradient = Template.bind({});
+Gradient.args = {
+  label: 'Gradient button',
+  gradient: true,
 };

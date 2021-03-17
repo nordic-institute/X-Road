@@ -40,19 +40,22 @@
             </h3></v-col
           >
           <v-col class="text-right">
-            <large-button
-              data-test="system-parameters-configuration-anchor-download-button"
-              @click="downloadAnchor"
-              :loading="downloadingAnchor"
-              outlined
-              :requires-permission="permissions.DOWNLOAD_ANCHOR"
-            >
-              <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
-              {{ $t('systemParameters.configurationAnchor.action.download') }}
-            </large-button>
-            <upload-configuration-anchor-dialog
-              @uploaded="fetchConfigurationAnchor"
-            />
+            <div class="anchor-buttons">
+              <xrd-button
+                data-test="system-parameters-configuration-anchor-download-button"
+                @click="downloadAnchor"
+                :loading="downloadingAnchor"
+                outlined
+                :requires-permission="permissions.DOWNLOAD_ANCHOR"
+              >
+                <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
+                {{ $t('systemParameters.configurationAnchor.action.download') }}
+              </xrd-button>
+
+              <upload-configuration-anchor-dialog
+                @uploaded="fetchConfigurationAnchor"
+              />
+            </div>
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
@@ -362,5 +365,10 @@ tr td:last-child {
 
 .xrd-card {
   margin-bottom: 24px;
+}
+
+.anchor-buttons {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

@@ -55,6 +55,7 @@
           <v-row>
             <v-col>
               <a
+                rel="noopener"
                 class="footer-link"
                 target="_blank"
                 href="https://x-road.global/feedback"
@@ -74,7 +75,12 @@
           </v-row>
           <v-row>
             <v-col class="py-0">
-              <a class="footer-link" href="https://niis.org/" target="_blank">
+              <a
+                rel="noopener"
+                class="footer-link"
+                href="https://niis.org/"
+                target="_blank"
+              >
                 {{ $t('footer.copyright.company') }}
               </a>
             </v-col>
@@ -82,6 +88,7 @@
           <v-row>
             <v-col>
               <a
+                rel="noopener"
                 class="footer-link"
                 href="https://x-road.global/xroad-licence-info"
                 target="_blank"

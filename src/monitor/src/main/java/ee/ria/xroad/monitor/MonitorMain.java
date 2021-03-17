@@ -119,7 +119,7 @@ public final class MonitorMain {
     }
 
     private static void initAkka() throws Exception {
-        actorSystem = ActorSystem.create("xroad-monitor", loadAkkaConfiguration());
+        actorSystem = ActorSystem.create(APP_NAME, loadAkkaConfiguration());
         SignerClient.init(actorSystem);
 
         ActorRef unhandled = actorSystem.actorOf(Props.create(UnhandledListenerActor.class), "UnhandledListenerActor");

@@ -532,6 +532,11 @@ public class GlobalConfImpl implements GlobalConfProvider {
     }
 
     @Override
+    public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
+        return getSharedParameters(instanceIdentifier).getApprovedTSAs();
+    }
+
+    @Override
     public String getApprovedTspName(String instanceIdentifier,
             String approvedTspUrl) {
         return getSharedParameters(instanceIdentifier).getApprovedTSAs()

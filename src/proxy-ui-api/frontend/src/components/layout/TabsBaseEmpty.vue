@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,38 +24,75 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="footer-content">
-    <div>
-      <LargeButton @click="close()">{{ $t('action.close') }}</LargeButton>
-    </div>
-  </div>
+  <v-layout class="main-content" align-left>
+    <app-icon />
+    <div class="tabs-wrap"></div>
+    <app-drop-menu />
+  </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/LargeButton.vue';
+import { Tab } from '@/ui-types';
+import { RouteName } from '@/global';
+import AppIcon from './AppIcon.vue';
+import AppDropMenu from './AppDropMenu.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
+    AppIcon,
+    AppDropMenu,
+  },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
   },
   methods: {
-    close() {
-      this.$emit('close');
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
 </script>
 
-<style lang="scss" scoped>
-@import '../assets/colors';
+<style lang="scss">
+@import '../../assets/colors';
 
-.footer-content {
-  width: 100%;
-  display: flex;
-  margin-top: 20px;
-  padding-top: 30px;
-  justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
+.v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v-tab {
+  text-transform: none;
+  font-weight: 600;
+}
+
+.v-tabs-slider.xrd-sub-tabs-slider {
+  width: 40px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+
+<style lang="scss" scoped>
+.main-content {
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
+}
+
+.tabs-wrap {
+  margin-left: 20px;
+}
+
+.main-tabs {
+  max-width: 1000px;
 }
 </style>

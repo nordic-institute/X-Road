@@ -54,20 +54,20 @@ module.exports = {
       .not.be.enabled;
     clientServices.enterServiceUrl('a');
     clientServices.enterServiceUrl('');
-    browser.assert.containsText(
-      clientServices.elements.serviceUrlMessage,
-      'The URL field is required',
+    // Verify there's an error message, something like 'The URL field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.enterServiceUrl('foobar');
-    browser.assert.containsText(
-      clientServices.elements.serviceUrlMessage,
-      'URL is not valid',
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.enterServiceCode('a');
     clientServices.enterServiceCode('');
-    browser.assert.containsText(
-      clientServices.elements.serviceCodeMessage,
-      'The Service Code field is required',
+    // Verify there's an error message, something like 'The Service Code field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.enterServiceCode('s1c1');
     clientServices.selectRESTPath();
@@ -92,13 +92,13 @@ module.exports = {
     clientServices.enterServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
-    browser.assert.containsText(
-      clientServices.elements.serviceCodeMessage,
-      'Identifier value contains illegal characters',
+    // Verify there's an error message, something like 'Identifier value contains illegal characters'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.cancelAddDialog();
 
-    // Verify successfull URL open
+    // Verify successful URL open
     clientServices.openAddREST();
     clientServices.enterServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
@@ -107,10 +107,7 @@ module.exports = {
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'REST service added',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'REST service added'
     mainPage.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -123,7 +120,7 @@ module.exports = {
 
     clientServices.expandServiceDetails();
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
 
     browser.end();
@@ -160,25 +157,19 @@ module.exports = {
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'The URL where requests targeted at the service are directed',
-      );
+      .to.be.visible; // 'The URL where requests targeted at the service are directed'
 
     browser.moveToElement(operationDetails.elements.timeoutHelp, 0, 0);
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'The maximum duration of a request to the service, in seconds',
-      );
+      .to.be.visible; // 'The maximum duration of a request to the service, in seconds'
 
     browser.moveToElement(operationDetails.elements.verifyCertHelp, 0, 0);
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
-      .to.be.visible.and.text.to.equal(
-        'Verify TLS certificate when a secure connection is established',
-      );
+      .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
 
     // Verify cancel
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
@@ -212,10 +203,7 @@ module.exports = {
     browser.expect.element(operationDetails.elements.sslAuth).to.be.not
       .selected;
     operationDetails.saveParameters();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
     browser.waitForElementVisible(
@@ -236,10 +224,7 @@ module.exports = {
       .element(sslCheckFail.elements.continueButton)
       .to.be.visible.and.text.to.equal('CONTINUE');
     sslCheckFail.continue();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
     browser.waitForElementVisible(
@@ -257,10 +242,7 @@ module.exports = {
     );
     operationDetails.enterTimeout('40');
     operationDetails.saveParameters();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
 
@@ -359,10 +341,7 @@ module.exports = {
       .selectSubject('Security server owners')
       .selectSubject('Group1')
       .addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights added successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
     mainPage.closeSnackbar();
 
     browser.waitForElementVisible(
@@ -387,9 +366,9 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.restOperationDetails;
-    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
     const removeAllAccessRightsPopup =
       mainPage.section.removeAllAccessRightsPopup;
+    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
@@ -422,10 +401,7 @@ module.exports = {
     operationDetails.removeAccessRight('TestOrg');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent(
@@ -454,10 +430,7 @@ module.exports = {
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Access rights removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
@@ -504,10 +477,12 @@ module.exports = {
     // Verify validation rules
     addEndpointPopup.selectRequestMethod('GET');
     addEndpointPopup.enterPath('');
-    browser.assert.containsText(
-      addEndpointPopup.elements.requestPathMessage,
-      'The path field is required',
+
+    // 'The path field is required'
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
     );
+
 
     // test cancel
     addEndpointPopup.enterPath('/noreq1');
@@ -542,10 +517,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq2');
@@ -555,10 +527,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Endpoint already exists',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
     mainPage.closeSnackbar();
 
     // verify sorting of added
@@ -566,10 +535,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq1');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq1');
@@ -578,10 +544,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq3');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(3, 'POST', '/testreq3');
@@ -590,10 +553,7 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq1');
     addEndpointPopup.selectRequestMethod('DELETE');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'DELETE', '/testreq1');
@@ -602,10 +562,7 @@ module.exports = {
     addEndpointPopup.enterPath('/');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'New endpoint created successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(2, 'POST', '/');
@@ -650,9 +607,9 @@ module.exports = {
 
     // Verify validation rules
     endpointPopup.enterPath('');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'The path field is required'
+    browser.waitForElementVisible(
       endpointPopup.elements.requestPathMessage,
-      'The path field is required',
     );
 
     // test cancel
@@ -669,20 +626,14 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq2');
     endpointPopup.enterPath('/testreq3');
     endpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Endpoint already exists',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
     mainPage.closeSnackbar();
 
     // Verify edit
     endpointPopup.enterPath('/newreq1');
     endpointPopup.selectRequestMethod('PUT');
     endpointPopup.addSelected();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Changes to endpoint saved successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Changes to endpoint saved successfully'
     mainPage.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(5, 'PUT', '/newreq1');
@@ -691,7 +642,7 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete endpoint")]',
+      '//div[@data-test="dialog-simple"]',
     );
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
@@ -701,13 +652,10 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(), "Delete endpoint")]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     endpointPopup.confirmDelete();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Endpoint removed successfully',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[.//thead[.//*[contains(text(),"HTTP Request Method")]]]//*[contains(text(),"/testreq3")]',
@@ -742,53 +690,48 @@ module.exports = {
 
     clientServices.expandServiceDetails();
 
-    browser.getText(clientServices.elements.refreshTimestamp, function (
-      result,
-    ) {
-      startTimestamp = result.value;
-      startTime = new Date().getTime();
-    });
+    browser.getText(
+      clientServices.elements.refreshTimestamp,
+      function (result) {
+        startTimestamp = result.value;
+        startTime = new Date().getTime();
+      },
+    );
 
     // Verify enabling
     clientServices.toggleEnabled();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description enabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
 
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(),"Disable?")]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
-      '//*[contains(@data-test, "dialog-title") and contains(text(),"Disable?")]',
+      '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
     clientServices.confirmDisable();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description disabled',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
 
     // Verify editing, malformed URL and service code
     clientServices.openServiceDetails();
     browser.assert.containsText(
       restServiceDetails.elements.serviceType,
-      'REST API Base Path',
+      'REST API',
     );
     restServiceDetails.enterServiceCode('/');
     browser.expect.element(restServiceDetails.elements.confirmDialogButton).to
       .not.be.enabled;
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'Identifier value contains illegal characters'
+    browser.waitForElementVisible(
       restServiceDetails.elements.codeMessage,
-      'Identifier value contains illegal characters',
     );
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
@@ -803,19 +746,19 @@ module.exports = {
     });
 
     restServiceDetails.enterServiceCode('');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'The fields.code_field field is required'
+    browser.waitForElementVisible(
       restServiceDetails.elements.codeMessage,
-      'The fields.code_field field is required',
     );
     restServiceDetails.enterServiceUrl('foobar');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'URL is not valid'
+    browser.waitForElementVisible(
       restServiceDetails.elements.URLMessage,
-      'URL is not valid',
-    ); //!!! REST message
+    );
     restServiceDetails.enterServiceUrl('');
-    browser.assert.containsText(
+    // Verify there's an error message, something like 'The URL field is required'
+    browser.waitForElementVisible(
       restServiceDetails.elements.URLMessage,
-      'The URL field is required',
     );
 
     // Verify cancel
@@ -833,10 +776,10 @@ module.exports = {
         ')',
     );
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
 
-    // Verify succesfull edit
+    // Verify successful edit
     clientServices.openServiceDetails();
     restServiceDetails.enterServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
@@ -855,10 +798,7 @@ module.exports = {
 
     restServiceDetails.confirmDialog();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Description saved',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Description saved'
     mainPage.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -869,10 +809,10 @@ module.exports = {
         ')',
     );
     browser.waitForElementNotPresent(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c1")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
     browser.waitForElementVisible(
-      '//td[contains(@data-test, "service-link") and contains(text(),"s1c2")]',
+      '//td[@data-test="service-link" and contains(text(),"s1c2")]',
     );
 
     // Verify that the refresh time has been updated
@@ -928,10 +868,7 @@ module.exports = {
     restServiceDetails.deleteService();
     restServiceDetails.confirmDelete();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Service description deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       clientServices.elements.serviceDescription,

@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,42 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import LargeButton from './LargeButton.vue';
+package ee.ria.xroad.signer.protocol.handler;
 
-export default {
-  title: 'X-Road/Large button',
-  component: LargeButton,
-  argTypes: {
-    outlined: { control: 'boolean' },
-    disabled: { control: 'boolean' },
-    loading: { control: 'boolean' },
-    block: { control: 'boolean' },
-    large: { control: 'boolean' },
-    click: { action: 'click' },
-    color: { control: 'text' },
-  },
-};
+import ee.ria.xroad.signer.protocol.AbstractRequestHandler;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
-const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { LargeButton },
-  template:
-    '<large-button @click="click" v-bind="$props">{{label}}</large-button>',
-});
+/**
+ * Handles token pin update
+ */
+public class UpdateSoftwareTokenPinRequestHandler
+        extends AbstractRequestHandler<UpdateSoftwareTokenPin> {
 
-export const Primary = Template.bind({});
-Primary.args = {
-  primary: true,
-  label: 'Hello world!',
-};
+    @Override
+    protected Object handle(UpdateSoftwareTokenPin message) throws Exception {
+        tellToken(message, message.getTokenId());
+        return nothing();
+    }
 
-export const Secondary = Template.bind({});
-Secondary.args = {
-  label: 'This is a very very long label for a button',
-};
-
-export const Gradient = Template.bind({});
-Gradient.args = {
-  label: 'Gradient button',
-  gradient: true,
-};
+}

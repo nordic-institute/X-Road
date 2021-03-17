@@ -24,59 +24,62 @@
  * THE SOFTWARE.
  */
 
-import { RouteConfig } from 'vue-router';
-import TabsBase from '@/components/layout/TabsBase.vue';
-import AppLogin from '@/views/AppLogin.vue';
-import AppBase from '@/views/AppBase.vue';
-import Clients from '@/views/Clients/Clients.vue';
-import Client from '@/views/Clients/Client.vue';
-import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
-import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
-import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
-import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
-import Settings from '@/views/Settings/Settings.vue';
-import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
-import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
-import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
-import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
-import AddClient from '@/views/AddClient/AddClient.vue';
-import AddMember from '@/views/AddMember/AddMember.vue';
-import Subsystem from '@/views/Clients/Subsystem.vue';
-import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
-import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
-import Services from '@/views/Clients/Services/Services.vue';
-import ServiceClients from '@/views/Clients/ServiceClients/ServiceClients.vue';
-import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
-import ClientTlsCertificate from '@/views/ClientTlsCertificate/ClientTlsCertificate.vue';
-import AppError from '@/views/AppError.vue';
-import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
-import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails/ServiceDescriptionDetails.vue';
-import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
-import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
-import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
-import Service from '@/views/Service/Service.vue';
-import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
-import AddKey from '@/views/AddKey/AddKey.vue';
 import { Permissions, RouteName } from '@/global';
-import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
-import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
-import EndpointDetails from '@/views/Service/Endpoints/Endpoint/EndpointDetails.vue';
-import EndpointAccessRights from '@/views/Service/Endpoints/Endpoint/EndpointAccessRights.vue';
-import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
-import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
-import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
-import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
+
+import AddClient from '@/views/AddClient/AddClient.vue';
+import AddKey from '@/views/AddKey/AddKey.vue';
+import AddMember from '@/views/AddMember/AddMember.vue';
 import AddServiceClientAccessRights from '@/views/Clients/ServiceClients/AddServiceClientAccessRightsWizard.vue';
+import AddSubsystem from '@/views/AddSubsystem/AddSubsystem.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
-import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
-import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import ApiKey from '@/views/KeysAndCertificates/ApiKey/ApiKey.vue';
+import AppBase from '@/views/AppBase.vue';
+import AppError from '@/views/AppError.vue';
+import AppLogin from '@/views/AppLogin.vue';
+import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
+import CertificateDetails from '@/views/CertificateDetails/CertificateDetails.vue';
+import Client from '@/views/Clients/Client.vue';
+import ClientDetails from '@/views/Clients/Details/ClientDetails.vue';
 import ClientTabs from '@/views/Clients/ClientTabs.vue';
+import ClientTlsCertificate from '@/views/ClientTlsCertificate/ClientTlsCertificate.vue';
+import Clients from '@/views/Clients/Clients.vue';
+import CreateApiKeyStepper from '@/views/KeysAndCertificates/ApiKey/CreateApiKeyStepper.vue';
+import Diagnostics from '@/views/Diagnostics/Diagnostics.vue';
+import EndpointAccessRights from '@/views/Service/Endpoints/Endpoint/EndpointAccessRights.vue';
+import EndpointDetails from '@/views/Service/Endpoints/Endpoint/EndpointDetails.vue';
+import Endpoints from '@/views/Service/Endpoints/Endpoints.vue';
+import GenerateCertificateSignRequest from '@/views/GenerateCertificateSignRequest/GenerateCertificateSignRequest.vue';
+import GenerateInternalCsr from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateInternalCsr.vue';
+import InternalCertificateDetails from '@/views/InternalCertificateDetails/InternalCertificateDetails.vue';
+import InternalServers from '@/views/Clients/InternalServers/InternalServers.vue';
+import KeyDetails from '@/views/KeyDetails/KeyDetails.vue';
+import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates.vue';
+import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
+import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
+import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
+import { RouteConfig } from 'vue-router';
+import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
+import Service from '@/views/Service/Service.vue';
+import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
+import ServiceClients from '@/views/Clients/ServiceClients/ServiceClients.vue';
+import ServiceDescriptionDetails from '@/views/ServiceDescriptionDetails/ServiceDescriptionDetails.vue';
+import ServiceParameters from '@/views/Service/Parameters/ServiceParameters.vue';
+import Services from '@/views/Clients/Services/Services.vue';
+import Settings from '@/views/Settings/Settings.vue';
+import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import SignAndAuthKeys from '@/views/KeysAndCertificates/SignAndAuthKeys/SignAndAuthKeys.vue';
+import Subsystem from '@/views/Clients/Subsystem.vue';
+import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
+import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
+import TabsBase from '@/components/layout/TabsBase.vue';
+import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
 
 const routes: RouteConfig[] = [
   {
     path: '/',
     component: AppBase,
+    name: RouteName.BaseRoute,
     redirect: { name: RouteName.Clients },
     children: [
       {
@@ -197,6 +200,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddSubsystem,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: {
           default: true,
@@ -209,6 +213,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddClient,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         meta: { permissions: [Permissions.ADD_CLIENT] },
       },
@@ -218,6 +223,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddMember,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: {
           default: true,
@@ -318,10 +324,11 @@ const routes: RouteConfig[] = [
       },
       {
         name: RouteName.Certificate,
-        path: '/certificate/:hash',
+        path: '/certificate/:hash/:usage',
         components: {
           default: CertificateDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -331,6 +338,7 @@ const routes: RouteConfig[] = [
         components: {
           default: TokenDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -340,6 +348,7 @@ const routes: RouteConfig[] = [
         components: {
           default: KeyDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -349,6 +358,7 @@ const routes: RouteConfig[] = [
         components: {
           default: ClientTlsCertificate,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
         meta: {
@@ -362,6 +372,7 @@ const routes: RouteConfig[] = [
         components: {
           default: ServiceClientAccessRights,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
       },
       {
@@ -371,6 +382,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddServiceClientAccessRights,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
       },
       {
@@ -379,6 +391,7 @@ const routes: RouteConfig[] = [
         components: {
           default: LocalGroup,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -388,6 +401,7 @@ const routes: RouteConfig[] = [
         components: {
           default: ServiceDescriptionDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -397,6 +411,7 @@ const routes: RouteConfig[] = [
         components: {
           default: Service,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         redirect: '/service/:clientId/:serviceId/parameters',
         props: { default: true },
@@ -415,6 +430,7 @@ const routes: RouteConfig[] = [
             components: {
               default: Endpoints,
             },
+            props: { default: true },
           },
         ],
       },
@@ -424,6 +440,7 @@ const routes: RouteConfig[] = [
         components: {
           default: EndpointDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -433,6 +450,7 @@ const routes: RouteConfig[] = [
         components: {
           default: EndpointAccessRights,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -442,6 +460,7 @@ const routes: RouteConfig[] = [
         components: {
           default: GenerateCertificateSignRequest,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -451,6 +470,7 @@ const routes: RouteConfig[] = [
         components: {
           default: AddKey,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },
@@ -460,6 +480,7 @@ const routes: RouteConfig[] = [
         components: {
           default: InternalCertificateDetails,
           alerts: AlertsContainer,
+          top: TabsBaseEmpty,
         },
         props: { default: true },
       },

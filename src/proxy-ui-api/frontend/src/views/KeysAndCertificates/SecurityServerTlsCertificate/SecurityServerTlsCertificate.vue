@@ -37,36 +37,36 @@
     </div>
 
     <div class="details-view-tools">
-      <large-button
+      <xrd-button
         v-if="generateKeyVisible"
         class="button-spacing"
         outlined
         @click="generateDialog = true"
         data-test="security-server-tls-certificate-generate-key-button"
-        >{{ $t('ssTlsCertificate.generateKey') }}</large-button
+        >{{ $t('ssTlsCertificate.generateKey') }}</xrd-button
       >
-      <file-upload
+      <xrd-file-upload
         v-if="importCertificateVisible"
         accepts=".pem, .cer, .der"
         @file-changed="onImportFileChanged"
         v-slot="{ upload }"
       >
-        <large-button
+        <xrd-button
           class="button-spacing"
           outlined
           @click="upload"
           data-test="security-server-tls-certificate-import-certificate-key"
-          >{{ $t('ssTlsCertificate.importCertificate') }}</large-button
+          >{{ $t('ssTlsCertificate.importCertificate') }}</xrd-button
         >
-      </file-upload>
-      <large-button
+      </xrd-file-upload>
+      <xrd-button
         v-if="exportCertificateVisible"
         class="button-spacing"
         outlined
         :loading="exportPending"
         @click="exportCertificate()"
         data-test="security-server-tls-certificate-export-certificate-button"
-        >{{ $t('ssTlsCertificate.exportCertificate') }}</large-button
+        >{{ $t('ssTlsCertificate.exportCertificate') }}</xrd-button
       >
     </div>
 
@@ -104,14 +104,14 @@
         </div>
 
         <div>
-          <LargeButton
+          <xrd-button
             v-if="generateCsrVisible"
             class="mr-2"
             @click="generateCsr()"
             text
             :outlined="false"
             data-test="security-server-tls-certificate-generate-csr-button"
-            >{{ $t('ssTlsCertificate.generateCsr') }}</LargeButton
+            >{{ $t('ssTlsCertificate.generateCsr') }}</xrd-button
           >
         </div>
       </div>

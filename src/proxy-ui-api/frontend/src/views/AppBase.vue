@@ -43,7 +43,7 @@
       </transition>
     </v-layout>
 
-    <v-dialog v-if="showDialog" v-model="showDialog" width="500" persistent>
+    <v-dialog v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>
@@ -51,7 +51,9 @@
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
         <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <large-button @click="logout()">{{ $t('action.ok') }}</large-button>
+          <xrd-button data-test="session-expired-ok-button" @click="logout()">{{
+            $t('action.ok')
+          }}</xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>

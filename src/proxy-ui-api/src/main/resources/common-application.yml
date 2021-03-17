@@ -29,6 +29,7 @@ server:
     session:
       cookie:
         secure: true
+  tomcat:
     accesslog:
       enabled: true
       directory: /var/log/xroad
@@ -85,6 +86,7 @@ url:
   diagnostics-globalconf: http://localhost:%s/status
   diagnostics-timestamping-services: http://localhost:%s/timestampstatus
   diagnostics-ocsp-responders: http://localhost:%s/status
+  clear-configuration-cache: http://localhost:%s/clearconfcache
 
 cache:
   simple:

@@ -53,7 +53,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
-import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
@@ -74,6 +73,7 @@ public class TokenService {
     private final SignerProxyFacade signerProxyFacade;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final AuditDataHelper auditDataHelper;
+    private final TokenPinValidator tokenPinValidator;
 
     /**
      * get all tokens
@@ -276,10 +276,6 @@ public class TokenService {
         return CSR_NOT_FOUND_FAULT_CODE.equals(e.getFaultCode());
     }
 
-    static boolean isCausedByTokenNotActive(CodedException e) {
-        return TOKEN_NOT_ACTIVE_FAULT_CODE.equals(e.getFaultCode());
-    }
-
     // detect a couple of CodedException error codes from core
     static final String PIN_INCORRECT_FAULT_CODE = SIGNER_X + "." + X_PIN_INCORRECT;
     static final String TOKEN_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_FOUND;
@@ -287,7 +283,6 @@ public class TokenService {
     static final String CERT_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CERT_NOT_FOUND;
     static final String CSR_NOT_FOUND_FAULT_CODE = SIGNER_X + "." + X_CSR_NOT_FOUND;
     static final String LOGIN_FAILED_FAULT_CODE = SIGNER_X + "." + X_LOGIN_FAILED;
-    static final String TOKEN_NOT_ACTIVE_FAULT_CODE = SIGNER_X + "." + X_TOKEN_NOT_ACTIVE;
     static final String CKR_PIN_INCORRECT_MESSAGE = "Login failed: CKR_PIN_INCORRECT";
 
     /**
@@ -393,6 +388,41 @@ public class TokenService {
     public boolean hasHardwareTokens() {
         List<TokenInfo> allTokens = getAllTokens();
         return allTokens.stream().anyMatch(tokenInfo -> !SOFTWARE_TOKEN_ID.equals(tokenInfo.getId()));
+    }
+
+    /**
+     * Update the pin code for a token and it's keys
+     *
+     * @param tokenId ID of the token
+     * @param oldPin the old (current) passing pin
+     * @param newPin the new pin
+     * @throws TokenNotFoundException token not found
+     * @throws PinIncorrectException incorrect pin
+     */
+    public void updateSoftwareTokenPin(String tokenId, String oldPin, String newPin) throws TokenNotFoundException,
+            PinIncorrectException, ActionNotPossibleException, InvalidCharactersException,
+            WeakPinException {
+        TokenInfo tokenInfo = getToken(tokenId);
+
+        auditDataHelper.put(tokenInfo);
+
+        possibleActionsRuleEngine.requirePossibleTokenAction(PossibleActionEnum.TOKEN_CHANGE_PIN,
+                tokenInfo);
+        char[] newPinCharArray = newPin.toCharArray();
+        tokenPinValidator.validateSoftwareTokenPin(newPinCharArray);
+        try {
+            signerProxyFacade.updateSoftwareTokenPin(tokenId, oldPin.toCharArray(), newPinCharArray);
+        } catch (CodedException ce) {
+            if (isCausedByTokenNotFound(ce)) {
+                throw new TokenNotFoundException(ce);
+            } else if (isCausedByIncorrectPin(ce)) {
+                throw new PinIncorrectException(ce);
+            } else {
+                throw ce;
+            }
+        } catch (Exception other) {
+            throw new SignerNotReachableException("updateSoftwareTokenPin failed", other);
+        }
     }
 
     public static class PinIncorrectException extends ServiceException {

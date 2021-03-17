@@ -172,7 +172,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT')")
+    @PreAuthorize("hasAnyAuthority('IMPORT_AUTH_CERT', 'IMPORT_SIGN_CERT', 'IMPORT_UNKNOWN_CERT')")
     @AuditEventMethod(event = IMPORT_CERT_TOKEN)
     public ResponseEntity<TokenCertificate> importCertificateFromToken(String hash) {
         CertificateInfo certificate = null;
@@ -195,7 +195,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAuthority('DELETE_AUTH_CERT') or hasAuthority('DELETE_SIGN_CERT')")
+    @PreAuthorize("hasAnyAuthority('DELETE_AUTH_CERT','DELETE_SIGN_CERT','DELETE_UNKNOWN_CERT')")
     @AuditEventMethod(event = DELETE_CERT)
     public ResponseEntity<Void> deleteCertificate(String hash) {
         try {
@@ -209,7 +209,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
     }
 
     @Override
-    @PreAuthorize("hasAnyAuthority('VIEW_KEYS','VIEW_SIGN_CERT','VIEW_AUTH_CERT')")
+    @PreAuthorize("hasAnyAuthority('VIEW_KEYS','VIEW_SIGN_CERT','VIEW_AUTH_CERT','VIEW_UNKNOWN_CERT')")
     public ResponseEntity<List<PossibleAction>> getPossibleActionsForCertificate(String hash) {
         try {
             EnumSet<PossibleActionEnum> actions = tokenCertificateService

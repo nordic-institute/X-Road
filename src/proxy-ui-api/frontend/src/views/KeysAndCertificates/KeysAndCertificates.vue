@@ -38,6 +38,9 @@ export default Vue.extend({});
 
 <style lang="scss" scoped>
 .content {
-  width: 1000px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
+  max-width: 1620px;
 }
 </style>

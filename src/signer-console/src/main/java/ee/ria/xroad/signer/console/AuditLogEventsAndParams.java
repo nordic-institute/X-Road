@@ -44,6 +44,7 @@ final class AuditLogEventsAndParams {
     static final String DELETE_THE_CERT_REQUEST_EVENT =
             "Delete the certificate request";
     static final String LOG_INTO_THE_TOKEN = "Log into the token";
+    static final String UPDATE_SOFTWARE_TOKEN_PIN = "Update software token PIN";
     static final String LOGOUT_FROM_THE_TOKEN_EVENT =
             "Logout from the token";
     static final String INITIALIZE_THE_SOFTWARE_TOKEN_EVENT =

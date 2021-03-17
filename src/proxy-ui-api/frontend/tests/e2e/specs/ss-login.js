@@ -39,9 +39,9 @@ module.exports = {
       .enterPassword(browser.globals.login_wrong_pwd)
       .signin();
 
-    // Verify error message
+    // Verify there's an error message
     browser.waitForElementVisible(
-      '//div[text() = "Wrong username or password"]',
+      '//div[contains(@class, "v-messages__message")]',
     );
 
     browser.end();

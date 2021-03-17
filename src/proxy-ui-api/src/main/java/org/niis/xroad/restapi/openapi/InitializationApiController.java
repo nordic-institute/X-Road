@@ -35,7 +35,9 @@ import org.niis.xroad.restapi.openapi.model.InitializationStatus;
 import org.niis.xroad.restapi.openapi.validator.InitialServerConfValidator;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;
+import org.niis.xroad.restapi.service.InvalidCharactersException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.service.WeakPinException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -91,8 +93,8 @@ public class InitializationApiController implements InitializationApi {
                     ignoreWarnings);
         } catch (AnchorNotFoundException | InitializationService.ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
-        } catch (UnhandledWarningsException | InitializationService.InvalidCharactersException
-                | InitializationService.WeakPinException | InitializationService.InvalidInitParamsException e) {
+        } catch (UnhandledWarningsException | InvalidCharactersException
+                | WeakPinException | InitializationService.InvalidInitParamsException e) {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);

@@ -4473,7 +4473,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Version'
+                $ref: '#/components/schemas/VersionInfo'
         '400':
           description: request was invalid
         '401':
@@ -4611,6 +4611,64 @@ paths:
                 $ref: '#/components/schemas/Token'
         '400':
           description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /tokens/{id}/pin:
+    put: # ok
+      tags:
+        - tokens
+      summary: update security server software token pin code
+      operationId: updateTokenPin
+      description:
+        <h3>Administrator updates the software token pin code.</h3>
+        <p>This operation supports updating the pin code of a software token only.</p>
+        <p>
+          This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
+          If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
+          <ul>
+            <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+            <li>x = the minimum length of the pin code</li>
+            <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+          </ul>
+        </p>
+      parameters:
+        - in: path
+          name: id
+          description: id of the software token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPinUpdate'
+      responses:
+        '204':
+          description: software token pin updated
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_weak_pin:
+                  $ref: '#/components/examples/ErrorWeakPinMetadataExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4900,7 +4958,7 @@ components:
             - "member_code_not_provided"
             - "pin_code_not_provided"
     ErrorWeakPinMetadataExample:
-      summary: Initialization error with metadata when the provided pin is too weak
+      summary: Initialization or pin change error with metadata when the provided pin is too weak
       value:
         status: 400
         error:
@@ -5459,6 +5517,7 @@ components:
         - EDIT_FRIENDLY_NAME
         - GENERATE_AUTH_CSR
         - GENERATE_SIGN_CSR
+        - TOKEN_CHANGE_PIN
     Client: # ok
       type: object
       description: x-road client
@@ -6747,6 +6806,27 @@ components:
           maxLength: 255
       example:
         name: my-token-0
+    TokenPinUpdate: # ok
+      type: object
+      required:
+        - old_pin
+        - new_pin
+      properties:
+        old_pin:
+          type: string
+          description: the old pin code of the token
+          format: text
+          minLength: 1
+          maxLength: 255
+        new_pin:
+          type: string
+          description: the new pin code of the token
+          format: text
+          minLength: 1
+          maxLength: 255
+      example:
+        old_pin: 0000
+        new_pin: 1234
     TokensLoggedOut: # ok
       description: response that tells if hsm tokens were logged out during the restore process
       type: object
@@ -6816,11 +6896,17 @@ components:
           items:
             type: string
             format: text
-    Version: # ok
+    VersionInfo: # ok
       type: object
       description: version information
       required:
         - info
+        - java_version
+        - min_java_version
+        - max_java_version
+        - using_supported_java_version
+        - java_vendor
+        - java_runtime_version
       properties:
         info:
           type: string
@@ -6829,5 +6915,23 @@ components:
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
+        java_version:
+          type: integer
+          description: java version currently in use
+        min_java_version:
+          type: integer
+          description: minimum supported java version
+        max_java_version:
+          type: integer
+          description: maximum supported java version
+        using_supported_java_version:
+          type: boolean
+          description: true if currently used java version is supported
+        java_vendor:
+          type: string
+          description: java vendor string from java.vendor system property
+        java_runtime_version:
+          type: string
+          description: java runtime version string from java.runtime.version system property
 security:
   - ApiKeyAuth: []

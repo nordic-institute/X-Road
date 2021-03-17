@@ -84,6 +84,7 @@ public enum RestApiAuditEvent {
     // keys and certificates events
     LOGIN_TOKEN("Log in to token"),
     LOGOUT_TOKEN("Log out from token"),
+    CHANGE_PIN_TOKEN("Change token pin"),
     GENERATE_KEY("Generate key"),
     DELETE_KEY("Delete key"),
     DELETE_KEY_FROM_TOKEN_AND_CONFIG("Delete key from token and configuration"),

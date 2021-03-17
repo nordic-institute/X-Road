@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.54  
+Version: 2.55  
 Doc. ID: UG-SS
 
 ---
@@ -87,7 +87,8 @@ Doc. ID: UG-SS
  15.10.2020 | 2.52    | Added chapter [2.3 Managing API Keys](#23-managing-api-keys) | Caro Hautamäki
  22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
  01.12.2020 | 2.54    | Added endpoint for getting one API key to [19.1.2 Listing API keys](#1912-listing-api-keys) | Janne Mattila
- 
+ 25.02.2020 | 2.55    | Added information to find X-Road ID from conf backup file in chapter [13.2 Restore from the Command Line](#132-restore-from-the-command-line) | Karl Talumäe
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -1530,8 +1531,6 @@ _To import a new TLS certificate_, follow these steps.
 
    The imported certificate must be in PEM-format to be accepted. Certificate chains are supported; concatenate possible intermediate certificate(s) to the server certificate before importing the file.
 
-   Note that the Internal TLS Key and Certificate are cached by default for 60 seconds (default cache period for serverconf) so generating a new key and importing a new certificate might affect providing services from the security server for the caching period. The caching period can be changed with System Parameters \[[UG-SYSPAR](#Ref_UG-SYSPAR)\]
-
 _To export the security server's internal TLS certificate_, follow these steps.
 
 1. On the **Navigation tabs**, select **KEYS AND CERTIFICATES**
@@ -1810,6 +1809,10 @@ To **upload a configuration backup file** from the local file system to the secu
 To restore configuration from the command line, the following data must be available:
 
 -   The X-Road ID of the security server
+
+To find the X-Road ID of the security server, the following command can be used:
+
+    tar -tf /var/lib/xroad/backup/<security server conf backup file> | head -1
 
 It is expected that the restore command is run by the xroad user.
 

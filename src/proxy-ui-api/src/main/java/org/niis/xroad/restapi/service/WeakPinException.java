@@ -1,6 +1,5 @@
-/*
+/**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,26 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import ProgressLinear from './ProgressLinear.vue';
+package org.niis.xroad.restapi.service;
 
-export default {
-  title: 'X-Road/Progress linear',
-  component: ProgressLinear,
-  argTypes: {
-    active: { control: 'boolean' },
-    height: { control: 'text' },
-  },
-};
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { ProgressLinear },
-  template: `<progress-linear v-bind="$props"/>`,
-});
+import java.util.List;
 
-export const Primary = Template.bind({});
-Primary.args = {
-  primary: true,
-  active: true,
-  height: '2px',
-};
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
+
+/**
+ * If the provided pin code is too weak
+ */
+public class WeakPinException extends ServiceException {
+    public WeakPinException(String msg, List<String> metadata) {
+        super(msg, new ErrorDeviation(ERROR_WEAK_PIN, metadata));
+    }
+}

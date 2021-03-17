@@ -17,7 +17,7 @@ sourceSets {
 }
 
 dependencies {
-    api 'org.apache.santuario:xmlsec:2.2.0'
+    api 'org.apache.santuario:xmlsec:2.2.1'
     api 'org.bouncycastle:bcpkix-jdk15on:1.66'
     api 'org.apache.commons:commons-lang3:3.11'
     api 'commons-io:commons-io:2.8.0'
@@ -27,7 +27,7 @@ dependencies {
     api 'com.sun.xml.messaging.saaj:saaj-impl:1.5.2'
     api 'com.sun.activation:jakarta.activation:1.2.2'
     api "org.eclipse.jetty:jetty-server:$jettyVersion"
-    api 'org.apache.httpcomponents:httpclient:4.5.6'
+    api 'org.apache.httpcomponents:httpclient:4.5.13'
     api 'org.apache.httpcomponents:httpasyncclient:4.1.4'
 
     api "com.typesafe.akka:akka-actor_$akkaVersion"
@@ -48,8 +48,6 @@ dependencies {
 
     implementation 'ch.qos.logback:logback-classic:1.2.3'
 
-    testImplementation 'org.powermock:powermock-module-junit4:2.0.7'
-    testImplementation 'org.powermock:powermock-api-mockito2:2.0.7'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation project(':common-test')
 
@@ -171,29 +169,24 @@ licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
 def gitCommitHash() {
-    def env = System.getenv()
-    def hash = env['GIT_COMMIT']
-    def cmd = "git rev-parse --short HEAD"
-    if (hash == null) {
-        try {
-            def proc = cmd.execute()
-            hash = "git" + proc.text.trim()
-        } catch (Exception e) {
-            println("Could not execute git command: " + e.message)
-            hash = null
-        }
-    } else {
-        hash = hash[0..6]
+    def cmd = "git show -s --format=git%h --abbrev=7"
+    def hash = null
+    try {
+      def proc = cmd.execute()
+      hash = proc.text.trim()
+    } catch (Exception e) {
+      println("Could not execute git command: " + e.message)
+      hash = null
     }
     return hash
 }
 
 def gitCommitDate() {
-    def cmd = "git log -1 --date=short --pretty=format:%cd"
+    def cmd = "git show -s --format=%cd --date=format-local:%Y%m%d%H%M%S"
     def date = null
     try {
-        def proc = cmd.execute()
-        date = proc.text.trim().replaceAll(/-/, '')
+        def proc = cmd.execute(["TZ=UTC"], projectDir)
+        date = proc.text.trim()
     } catch (Exception e) {
         println("Could not execute git command: " + e.message)
         date = null
