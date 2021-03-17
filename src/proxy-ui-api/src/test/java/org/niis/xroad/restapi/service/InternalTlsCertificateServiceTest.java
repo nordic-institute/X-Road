@@ -92,6 +92,12 @@ public class InternalTlsCertificateServiceTest {
                     }
                     throw new RuntimeException("TEST command not supported");
                 }
+            },
+            new ClearCacheService() {
+                @Override
+                public boolean executeClearConfigurationCache() {
+                    return true;
+                }
             }, null, SCRIPT_ARGS, mock(AuditDataHelper.class));
 
     @Before

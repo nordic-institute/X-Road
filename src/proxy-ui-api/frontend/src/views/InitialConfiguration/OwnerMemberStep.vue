@@ -28,7 +28,7 @@
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberName')"
             :helpText="$t('wizard.client.memberNameTooltip')"
           />
@@ -43,7 +43,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberClass')"
             :helpText="$t('wizard.client.memberClassTooltip')"
           />
@@ -59,7 +59,7 @@
           </ValidationProvider>
         </div>
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('wizard.memberCode')"
             :helpText="$t('wizard.client.memberCodeTooltip')"
           />
@@ -83,7 +83,7 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
+          <xrd-form-label
             :labelText="$t('fields.securityServerCode')"
             :helpText="$t('initialConfiguration.member.serverCodeHelp')"
           />
@@ -107,19 +107,19 @@
       <div class="button-footer">
         <v-spacer></v-spacer>
         <div>
-          <large-button
+          <xrd-button
             v-if="showPreviousButton"
             @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
+            >{{ $t('action.previous') }}</xrd-button
           >
-          <large-button
+          <xrd-button
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-            >{{ $t(saveButtonText) }}</large-button
+            >{{ $t(saveButtonText) }}</xrd-button
           >
         </div>
       </div>

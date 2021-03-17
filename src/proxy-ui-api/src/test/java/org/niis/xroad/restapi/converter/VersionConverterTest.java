@@ -25,32 +25,38 @@
  */
 package org.niis.xroad.restapi.converter;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  * Test VersionConverter
  */
 public class VersionConverterTest extends AbstractConverterTestContext {
 
-    private VersionConverter versionConverter;
-
-    private static final String SOFTWARE_VERSION = "6.24.0";
-
-    @Before
-    public void setup() {
-        versionConverter = new VersionConverter();
-        when(versionService.getVersion()).thenReturn(SOFTWARE_VERSION);
-    }
-
     @Test
     public void convertVersion() {
-        Version version = versionConverter.convert(SOFTWARE_VERSION);
+        VersionConverter versionConverter = new VersionConverter();
 
-        assertEquals(SOFTWARE_VERSION, version.getInfo());
+        VersionInfoDto infoDto = new VersionInfoDto();
+        infoDto.setInfo("1.3.33");
+        infoDto.setJavaVersion(9);
+        infoDto.setMinJavaVersion(8);
+        infoDto.setMaxJavaVersion(11);
+        infoDto.setUsingSupportedJavaVersion(true);
+        infoDto.setJavaVendor("Xroad");
+        infoDto.setJavaRuntimeVersion("0.0.1 xroad jdk");
+
+        VersionInfo version = versionConverter.convert(infoDto);
+
+        assertEquals(infoDto.getInfo(), version.getInfo());
+        assertEquals(infoDto.getJavaVersion(), (long) version.getJavaVersion());
+        assertEquals(infoDto.getMinJavaVersion(), (long) version.getMinJavaVersion());
+        assertEquals(infoDto.getMaxJavaVersion(), (long) version.getMaxJavaVersion());
+        assertEquals(infoDto.isUsingSupportedJavaVersion(), version.getUsingSupportedJavaVersion());
+        assertEquals(infoDto.getJavaVendor(), version.getJavaVendor());
+        assertEquals(infoDto.getJavaRuntimeVersion(), version.getJavaRuntimeVersion());
     }
 }

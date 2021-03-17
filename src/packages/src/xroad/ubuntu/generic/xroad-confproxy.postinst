@@ -25,8 +25,8 @@ case "$1" in
             esac
         fi
 
-        invoke-rc.d nginx try-restart
-        invoke-rc.d xroad-signer try-restart
+        invoke-rc.d --quiet nginx try-restart || true
+        invoke-rc.d --quiet xroad-signer try-restart || true
 
         deb-systemd-invoke stop xroad-confclient
         deb-systemd-invoke disable xroad-confclient

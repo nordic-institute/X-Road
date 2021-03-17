@@ -24,83 +24,85 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="view-wrap">
-    <subViewTitle
-      class="view-title"
-      :title="$t('initialConfiguration.title')"
-      :showClose="false"
-      data-test="wizard-title"
-    />
-    <v-stepper
-      :alt-labels="true"
-      v-model="currentStep"
-      class="stepper noshadow"
-    >
-      <!-- Headers without anchor page -->
-      <v-stepper-header v-if="isAnchorImported" class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{
-          $t('initialConfiguration.member.title')
-        }}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{
-          $t('initialConfiguration.pin.title')
-        }}</v-stepper-step>
-      </v-stepper-header>
-      <!-- Headers with anchor page -->
-      <v-stepper-header v-else class="noshadow">
-        <v-stepper-step :complete="currentStep > 1" step="1">{{
-          $t('initialConfiguration.anchor.title')
-        }}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 2" step="2">{{
-          $t('initialConfiguration.member.title')
-        }}</v-stepper-step>
-        <v-divider></v-divider>
-        <v-stepper-step :complete="currentStep > 3" step="3">{{
-          $t('initialConfiguration.pin.title')
-        }}</v-stepper-step>
-      </v-stepper-header>
+  <v-layout align-center justify-center class="mt-6">
+    <div class="view-wrap">
+      <xrd-sub-view-title
+        class="view-title"
+        :title="$t('initialConfiguration.title')"
+        :showClose="false"
+        data-test="wizard-title"
+      />
+      <v-stepper
+        :alt-labels="true"
+        v-model="currentStep"
+        class="stepper noshadow"
+      >
+        <!-- Headers without anchor page -->
+        <v-stepper-header v-if="isAnchorImported" class="noshadow">
+          <v-stepper-step :complete="currentStep > 1" step="1">{{
+            $t('initialConfiguration.member.title')
+          }}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 2" step="2">{{
+            $t('initialConfiguration.pin.title')
+          }}</v-stepper-step>
+        </v-stepper-header>
+        <!-- Headers with anchor page -->
+        <v-stepper-header v-else class="noshadow">
+          <v-stepper-step :complete="currentStep > 1" step="1">{{
+            $t('initialConfiguration.anchor.title')
+          }}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 2" step="2">{{
+            $t('initialConfiguration.member.title')
+          }}</v-stepper-step>
+          <v-divider></v-divider>
+          <v-stepper-step :complete="currentStep > 3" step="3">{{
+            $t('initialConfiguration.pin.title')
+          }}</v-stepper-step>
+        </v-stepper-header>
 
-      <v-stepper-items v-if="isAnchorImported" class="stepper-content">
-        <!-- Member step -->
-        <v-stepper-content step="1">
-          <OwnerMemberStep @done="nextStep" :showPreviousButton="false" />
-        </v-stepper-content>
-        <!-- PIN step -->
-        <v-stepper-content step="2">
-          <TokenPinStep @previous="currentStep = 1" @done="tokenPinReady" />
-        </v-stepper-content>
-      </v-stepper-items>
+        <v-stepper-items v-if="isAnchorImported" class="stepper-content">
+          <!-- Member step -->
+          <v-stepper-content step="1">
+            <OwnerMemberStep @done="nextStep" :showPreviousButton="false" />
+          </v-stepper-content>
+          <!-- PIN step -->
+          <v-stepper-content step="2">
+            <TokenPinStep @previous="currentStep = 1" @done="tokenPinReady" />
+          </v-stepper-content>
+        </v-stepper-items>
 
-      <v-stepper-items v-else class="stepper-content">
-        <!-- Anchor step -->
-        <v-stepper-content step="1">
-          <ConfigurationAnchorStep @done="nextStep" />
-        </v-stepper-content>
-        <!-- Member step -->
-        <v-stepper-content step="2">
-          <OwnerMemberStep @previous="currentStep = 1" @done="nextStep" />
-        </v-stepper-content>
-        <!-- PIN step -->
-        <v-stepper-content step="3">
-          <TokenPinStep
-            @previous="currentStep = 2"
-            @done="tokenPinReady"
-            :saveBusy="pinSaveBusy"
-          />
-        </v-stepper-content>
-      </v-stepper-items>
-    </v-stepper>
+        <v-stepper-items v-else class="stepper-content">
+          <!-- Anchor step -->
+          <v-stepper-content step="1">
+            <ConfigurationAnchorStep @done="nextStep" />
+          </v-stepper-content>
+          <!-- Member step -->
+          <v-stepper-content step="2">
+            <OwnerMemberStep @previous="currentStep = 1" @done="nextStep" />
+          </v-stepper-content>
+          <!-- PIN step -->
+          <v-stepper-content step="3">
+            <TokenPinStep
+              @previous="currentStep = 2"
+              @done="tokenPinReady"
+              :saveBusy="pinSaveBusy"
+            />
+          </v-stepper-content>
+        </v-stepper-items>
+      </v-stepper>
 
-    <!-- Confirm dialog for warnings when initializing server -->
-    <warningDialog
-      :dialog="confirmInitWarning"
-      :warnings="warningInfo"
-      localizationParent="initialConfiguration.warning"
-      @cancel="confirmInitWarning = false"
-      @accept="acceptInitWarning()"
-    ></warningDialog>
-  </div>
+      <!-- Confirm dialog for warnings when initializing server -->
+      <warningDialog
+        :dialog="confirmInitWarning"
+        :warnings="warningInfo"
+        localizationParent="initialConfiguration.warning"
+        @cancel="confirmInitWarning = false"
+        @accept="acceptInitWarning()"
+      ></warningDialog>
+    </div>
+  </v-layout>
 </template>
 
 <script lang="ts">

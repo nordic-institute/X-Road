@@ -24,99 +24,107 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog v-if="showPreview" :value="showPreview" persistent max-width="850">
-    <template v-slot:activator="{}">
-      <file-upload
-        accepts=".xml"
-        @file-changed="onUploadFileChanged"
-        v-slot="{ upload }"
+  <div>
+    <xrd-file-upload
+      accepts=".xml"
+      @file-changed="onUploadFileChanged"
+      v-slot="{ upload }"
+    >
+      <xrd-button
+        data-test="system-parameters-configuration-anchor-upload-button"
+        outlined
+        @click="upload"
+        :loading="previewing"
+        :requires-permission="permissions.UPLOAD_ANCHOR"
+        class="ml-5"
       >
-        <large-button
-          data-test="system-parameters-configuration-anchor-upload-button"
-          outlined
-          @click="upload"
-          :loading="previewing"
-          :requires-permission="permissions.UPLOAD_ANCHOR"
-          class="ml-5"
-        >
-          <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
-          {{
-            $t('systemParameters.configurationAnchor.action.upload.button')
-          }}</large-button
-        ></file-upload
-      >
-    </template>
-    <v-card class="xrd-card">
-      <v-card-title>
-        <span data-test="dialog-title" class="headline">
-          {{
-            $t(
-              'systemParameters.configurationAnchor.action.upload.dialog.title',
-            )
-          }}
-        </span>
-      </v-card-title>
-      <v-card-text class="content-wrapper">
-        <v-container>
-          <v-row class="mb-5">
-            <v-col>
-              {{
-                $t(
-                  'systemParameters.configurationAnchor.action.upload.dialog.info',
-                )
-              }}
-            </v-col>
-          </v-row>
-          <v-row no-gutters>
-            <v-col class="font-weight-bold" cols="12" sm="3">
-              {{
-                $t(
-                  'systemParameters.configurationAnchor.action.upload.dialog.field.hash',
-                )
-              }}
-            </v-col>
-            <v-col cols="12" sm="9">{{ anchorPreview.hash | colonize }}</v-col>
-          </v-row>
-          <v-row no-gutters>
-            <v-col class="font-weight-bold" cols="12" sm="3">
-              {{
-                $t(
-                  'systemParameters.configurationAnchor.action.upload.dialog.field.generated',
-                )
-              }}
-            </v-col>
-            <v-col cols="12" sm="9">{{
-              anchorPreview.created_at | formatDateTime
-            }}</v-col>
-          </v-row>
-          <v-row class="mt-5">
-            <v-col>
-              {{
-                $t(
-                  'systemParameters.configurationAnchor.action.upload.dialog.confirmation',
-                )
-              }}
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card-text>
-      <v-card-actions class="xrd-card-actions">
-        <v-spacer></v-spacer>
-        <large-button
-          data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
-          outlined
-          @click="close"
-          >{{ $t('action.cancel') }}</large-button
-        >
-        <large-button
-          data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
-          @click="confirmUpload"
-          :loading="uploading"
-          >{{ $t('action.confirm') }}</large-button
-        >
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
+        <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+        {{
+          $t('systemParameters.configurationAnchor.action.upload.button')
+        }}</xrd-button
+      ></xrd-file-upload
+    >
+
+    <v-dialog
+      v-if="showPreview"
+      :value="showPreview"
+      persistent
+      max-width="850"
+    >
+      <v-card class="xrd-card">
+        <v-card-title>
+          <span data-test="dialog-title" class="headline">
+            {{
+              $t(
+                'systemParameters.configurationAnchor.action.upload.dialog.title',
+              )
+            }}
+          </span>
+        </v-card-title>
+        <v-card-text class="content-wrapper">
+          <v-container>
+            <v-row class="mb-5">
+              <v-col>
+                {{
+                  $t(
+                    'systemParameters.configurationAnchor.action.upload.dialog.info',
+                  )
+                }}
+              </v-col>
+            </v-row>
+            <v-row no-gutters>
+              <v-col class="font-weight-bold" cols="12" sm="3">
+                {{
+                  $t(
+                    'systemParameters.configurationAnchor.action.upload.dialog.field.hash',
+                  )
+                }}
+              </v-col>
+              <v-col cols="12" sm="9">{{
+                anchorPreview.hash | colonize
+              }}</v-col>
+            </v-row>
+            <v-row no-gutters>
+              <v-col class="font-weight-bold" cols="12" sm="3">
+                {{
+                  $t(
+                    'systemParameters.configurationAnchor.action.upload.dialog.field.generated',
+                  )
+                }}
+              </v-col>
+              <v-col cols="12" sm="9">{{
+                anchorPreview.created_at | formatDateTime
+              }}</v-col>
+            </v-row>
+            <v-row class="mt-5">
+              <v-col>
+                {{
+                  $t(
+                    'systemParameters.configurationAnchor.action.upload.dialog.confirmation',
+                  )
+                }}
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions class="xrd-card-actions">
+          <v-spacer></v-spacer>
+          <xrd-button
+            data-test="system-parameters-upload-configuration-anchor-dialog-cancel-button"
+            outlined
+            @click="close"
+            >{{ $t('action.cancel') }}</xrd-button
+          >
+          <xrd-button
+            data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
+            @click="confirmUpload"
+            :loading="uploading"
+            >{{ $t('action.confirm') }}</xrd-button
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <script lang="ts">

@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="certificate-details-wrapper xrd-default-shadow">
-    <SubViewTitle :title="$t('cert.certificate')" @close="close" />
+    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <template v-if="certificate">
         <div class="cert-hash-wrapper">

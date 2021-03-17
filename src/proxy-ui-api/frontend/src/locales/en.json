@@ -477,6 +477,7 @@
     "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
     "memberName": "Member Name",
     "memberClass": "Member Class",
+    "selectMemberClass": "Select Member Class",
     "memberCode": "Member Code",
     "subsystemCode": "Subsystem Code",
     "selectClient": "Select Client",
@@ -796,6 +797,14 @@
     "previousUpdate": "Previous Update",
     "nextUpdate": "Next Update",
     "serviceUrl": "Service URL",
+    "javaVersion": {
+      "title": "Java version",
+      "vendor": "Vendor name",
+      "earliest": "Earliest supported version",
+      "latest": "Latest supported version",
+      "ok": "Everything ok",
+      "notSupported": "Current Java version is not supported"
+    },
     "globalCongiguration": {
       "title": "Global configuration",
       "configurationStatus": {

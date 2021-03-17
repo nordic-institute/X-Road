@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="keys.registrationRequest"
     @save="save"
@@ -52,7 +52,7 @@
         </div>
       </ValidationObserver>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">

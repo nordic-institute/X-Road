@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <expandable
+  <xrd-expandable
     class="expandable"
     @open="descOpen(token.id)"
     @close="descClose(token.id)"
@@ -67,22 +67,22 @@
     <template v-slot:content>
       <div>
         <div class="button-wrap">
-          <large-button
+          <xrd-button
             v-if="canAddKey"
             outlined
             @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('keys.addKey') }}</large-button
+            >{{ $t('keys.addKey') }}</xrd-button
           >
-          <file-upload
+          <xrd-file-upload
             v-if="canImportCertificate"
             accepts=".pem, .cer, .der"
             @file-changed="importCert"
             v-slot="{ upload }"
           >
-            <large-button
+            <xrd-button
               outlined
               class="button-spacing"
               :disabled="!token.logged_in"
@@ -90,9 +90,9 @@
               data-test="token-import-cert-button"
             >
               <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
-              {{ $t('keys.importCert') }}</large-button
+              {{ $t('keys.importCert') }}</xrd-button
             >
-          </file-upload>
+          </xrd-file-upload>
         </div>
 
         <!-- AUTH keys table -->
@@ -136,7 +136,7 @@
         />
       </div>
     </template>
-  </expandable>
+  </xrd-expandable>
 </template>
 
 <script lang="ts">
@@ -259,7 +259,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: payload.cert.certificate_details.hash,
-          usage: payload.key.usage ?? '',
+          usage: payload.key.usage ?? 'undefined',
         },
       });
     },

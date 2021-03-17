@@ -103,7 +103,7 @@ module.exports = {
     },
     filterField: {
       selector:
-        '//input[contains(@data-test, "search-service-client-service")]',
+        '//input[@data-test="search-service-client-service"]',
       locateStrategy: 'xpath',
     },
     cancelButton: {

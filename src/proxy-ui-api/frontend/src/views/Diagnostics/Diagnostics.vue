@@ -30,9 +30,74 @@
       <v-layout align-center justify-center column fill-height elevation-0>
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
-              $t('diagnostics.globalCongiguration.title')
+            <span class="headline" data-test="diagnostics-java-version">{{
+              $t('diagnostics.javaVersion.title')
             }}</span>
+          </v-card-title>
+
+          <v-card-text class="xrd-card-text">
+            <table class="xrd-table">
+              <thead>
+                <tr>
+                  <th class="status-column">{{ $t('diagnostics.status') }}</th>
+                  <th>{{ $t('diagnostics.message') }}</th>
+                  <th class="level-column">
+                    {{ $t('diagnostics.javaVersion.vendor') }}
+                  </th>
+                  <th class="level-column">
+                    {{ $t('diagnostics.javaVersion.title') }}
+                  </th>
+                  <th class="level-column">
+                    {{ $t('diagnostics.javaVersion.earliest') }}
+                  </th>
+                  <th class="level-column">
+                    {{ $t('diagnostics.javaVersion.latest') }}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-test="java-icon">
+                    <xrd-status-icon
+                      v-if="securityServerVersion.using_supported_java_version"
+                      status="ok"
+                    />
+                    <xrd-status-icon v-else status="error" />
+                  </td>
+                  <td
+                    v-if="securityServerVersion.using_supported_java_version"
+                    data-test="java-message"
+                  >
+                    {{ $t('diagnostics.javaVersion.ok') }}
+                  </td>
+                  <td v-else data-test="java-message">
+                    {{ $t('diagnostics.javaVersion.notSupported') }}
+                  </td>
+                  <td data-test="java-vendor">
+                    {{ securityServerVersion.java_vendor }}
+                  </td>
+                  <td data-test="java-version">
+                    {{ securityServerVersion.java_version }}
+                  </td>
+                  <td data-test="java-min">
+                    {{ securityServerVersion.min_java_version }}
+                  </td>
+                  <td data-test="java-max">
+                    {{ securityServerVersion.max_java_version }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </v-card-text>
+        </v-card>
+
+        <v-card flat class="xrd-card diagnostic-card">
+          <v-card-title>
+            <span
+              class="headline"
+              data-test="diagnostics-global-configuration"
+              >{{ $t('diagnostics.globalCongiguration.title') }}</span
+            >
           </v-card-title>
           <v-card-text class="xrd-card-text">
             <table class="xrd-table">
@@ -51,7 +116,7 @@
               <tbody>
                 <tr v-if="globalConf">
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(globalConf.status_class)"
                     />
                   </td>
@@ -78,7 +143,7 @@
 
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
+            <span class="headline" data-test="diagnostics-timestamping">{{
               $t('diagnostics.timestamping.title')
             }}</span>
           </v-card-title>
@@ -91,8 +156,9 @@
                   <th class="url-column">{{ $t('diagnostics.serviceUrl') }}</th>
                   <th>{{ $t('diagnostics.message') }}</th>
                   <th class="time-column">
-                    {{ $t('diagnostics.nextUpdate') }}
+                    {{ $t('diagnostics.previousUpdate') }}
                   </th>
+                  <th class="time-column"></th>
                 </tr>
               </thead>
               <tbody>
@@ -101,7 +167,7 @@
                   v-bind:key="timestampingService.url"
                 >
                   <td>
-                    <StatusIcon
+                    <xrd-status-icon
                       :status="statusIconType(timestampingService.status_class)"
                     />
                   </td>
@@ -119,6 +185,7 @@
                   <td class="time-column">
                     {{ timestampingService.prev_update_at | formatHoursMins }}
                   </td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
@@ -127,7 +194,7 @@
 
         <v-card flat class="xrd-card diagnostic-card">
           <v-card-title>
-            <span class="headline">{{
+            <span class="headline" data-test="diagnostics-ocsp-responders">{{
               $t('diagnostics.ocspResponders.title')
             }}</span>
           </v-card-title>
@@ -166,7 +233,9 @@
                     v-bind:key="ocsp.url"
                   >
                     <td>
-                      <StatusIcon :status="statusIconType(ocsp.status_class)" />
+                      <xrd-status-icon
+                        :status="statusIconType(ocsp.status_class)"
+                      />
                     </td>
                     <td class="url-column" data-test="service-url">
                       {{ ocsp.url }}
@@ -198,6 +267,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import {
   TimestampingServiceDiagnostics,
@@ -206,6 +276,9 @@ import {
 } from '@/openapi-types';
 
 export default Vue.extend({
+  computed: {
+    ...mapGetters(['securityServerVersion']),
+  },
   data: () => ({
     timestampingServices: [] as TimestampingServiceDiagnostics[],
     globalConf: undefined as GlobalConfDiagnostics | undefined,
@@ -291,11 +364,11 @@ export default Vue.extend({
 }
 
 .inner-wrap {
-  max-width: 1000px;
+  max-width: 1600px;
   margin-left: auto;
   margin-right: auto;
 
-  @media only screen and (max-width: 1030px) {
+  @media only screen and (max-width: 1630px) {
     margin-left: 10px;
     margin-right: 10px;
   }
@@ -326,6 +399,12 @@ export default Vue.extend({
 
 .status-column {
   width: 80px;
+}
+
+.level-column {
+  @media only screen and (min-width: 1500px) {
+    width: 20%;
+  }
 }
 
 .url-column {

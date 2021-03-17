@@ -24,30 +24,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div
+    class="xrd-tab-max-width main-wrap"
+    data-test="service-description-details-dialog"
+  >
     <div class="pa-4">
-      <subViewTitle
+      <xrd-sub-view-title
         v-if="serviceDesc.type === serviceType.WSDL"
         :title="$t('services.wsdlDetails')"
         @close="close"
       />
-      <subViewTitle
+      <xrd-sub-view-title
         v-else-if="serviceDesc.type === serviceType.REST"
         :title="$t('services.restDetails')"
         @close="close"
       />
-      <subViewTitle
+      <xrd-sub-view-title
         v-else-if="serviceDesc.type === serviceType.OPENAPI3"
         :title="$t('services.openapiDetails')"
         @close="close"
       />
 
       <div class="delete-wrap">
-        <large-button
+        <xrd-button
           v-if="showDelete"
+          data-test="service-description-details-delete-button"
           @click="showDeletePopup(serviceDesc.type)"
           outlined
-          >{{ $t('action.delete') }}</large-button
+          >{{ $t('action.delete') }}</xrd-button
         >
       </div>
     </div>
@@ -57,16 +61,25 @@
         <div class="edit-row pb-4">
           <div>{{ $t('services.serviceType') }}</div>
 
-          <div class="code-input" v-if="serviceDesc.type === serviceType.REST">
+          <div
+            class="code-input"
+            data-test="service-description-details-url-type-value"
+            v-if="serviceDesc.type === serviceType.REST"
+          >
             {{ $t('services.restApiBasePath') }}
           </div>
           <div
             class="code-input"
+            data-test="service-description-details-url-type-value"
             v-else-if="serviceDesc.type === serviceType.OPENAPI3"
           >
             {{ $t('services.OpenApi3Description') }}
           </div>
-          <div class="code-input" v-else>
+          <div
+            class="code-input"
+            data-test="service-description-details-url-type-value"
+            v-else
+          >
             {{ $t('services.wsdlDescription') }}
           </div>
         </div>
@@ -123,21 +136,25 @@
       </div>
       <v-card flat>
         <div class="footer-button-wrap mt-12">
-          <large-button @click="close()" outlined>{{
-            $t('action.cancel')
-          }}</large-button>
-          <large-button
+          <xrd-button
+            @click="close()"
+            data-test="service-description-details-cancel-button"
+            outlined
+            >{{ $t('action.cancel') }}</xrd-button
+          >
+          <xrd-button
             :loading="saveBusy"
+            data-test="service-description-details-save-button"
             @click="save()"
             :disabled="!touched || invalid"
-            >{{ $t('action.save') }}</large-button
+            >{{ $t('action.save') }}</xrd-button
           >
         </div>
       </v-card>
     </ValidationObserver>
 
     <!-- Confirm dialog delete WSDL -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmWSDLDelete"
       title="services.deleteTitle"
       text="services.deleteWsdlText"
@@ -146,7 +163,7 @@
     />
 
     <!-- Confirm dialog delete REST -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmRESTDelete"
       title="services.deleteTitle"
       text="services.deleteRestText"

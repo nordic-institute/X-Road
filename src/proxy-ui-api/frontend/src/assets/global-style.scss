@@ -125,3 +125,13 @@
   margin-left: -2px;
   min-width: 20px; // needs a width or the buttons with short text "collapse"
 }
+
+// Override for Vuetify text input style
+.v-text-field {
+  font-weight: 600 !important;
+}
+
+// Override for Vuetify tab style
+.v-tab {
+  letter-spacing: normal !important;
+}

@@ -28,28 +28,28 @@
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="detail-view-content">
         <div>
-          <subViewTitle
+          <xrd-sub-view-title
             v-if="key.usage == 'SIGNING'"
             :title="$t('keys.signDetailsTitle')"
             @close="close"
           />
-          <subViewTitle
+          <xrd-sub-view-title
             v-else-if="key.usage == 'AUTHENTICATION'"
             :title="$t('keys.authDetailsTitle')"
             @close="close"
           />
-          <subViewTitle
+          <xrd-sub-view-title
             v-else
             :title="$t('keys.detailsTitle')"
             @close="close"
           />
           <div class="details-view-tools">
-            <large-button
+            <xrd-button
               v-if="canDelete"
               @click="confirmDelete = true"
               :loading="deleting"
               outlined
-              >{{ $t('action.delete') }}</large-button
+              >{{ $t('action.delete') }}</xrd-button
             >
           </div>
         </div>
@@ -93,20 +93,20 @@
         </div>
       </div>
       <div class="footer-button-wrap">
-        <large-button @click="close()" outlined>{{
+        <xrd-button @click="close()" outlined>{{
           $t('action.cancel')
-        }}</large-button>
-        <large-button
+        }}</xrd-button>
+        <xrd-button
           :loading="saveBusy"
           @click="save()"
           :disabled="!touched || invalid"
-          >{{ $t('action.save') }}</large-button
+          >{{ $t('action.save') }}</xrd-button
         >
       </div>
     </ValidationObserver>
 
     <!-- Confirm dialog delete Key -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDelete"
       title="keys.deleteTitle"
       text="keys.deleteKeyText"

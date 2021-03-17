@@ -24,11 +24,13 @@
  * THE SOFTWARE.
  */
 import Router, { NavigationGuardNext, Route, RouteConfig } from 'vue-router';
-import { sync } from 'vuex-router-sync';
-import store from '@/store';
-import { Permissions, RouteName } from '@/global';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
+import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import { Permissions, RouteName } from '@/global';
 import routes from '@/routes';
+import store from '@/store';
+import { sync } from 'vuex-router-sync';
 
 // Route for initialisation view. This is created separeately because it's linked to vuex store and this causes the unit tests to break.
 const initRoute: RouteConfig = {
@@ -36,6 +38,8 @@ const initRoute: RouteConfig = {
   path: '/initial-configuration',
   components: {
     default: InitialConfiguration,
+    alerts: AlertsContainer,
+    top: TabsBaseEmpty,
   },
   beforeEnter: (to: Route, from: Route, next: NavigationGuardNext): void => {
     // Coming from login is ok
@@ -73,6 +77,9 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     next();
     return;
   }
+
+  // Clear error notifications when route is changed
+  store.commit('clearErrorNotifications');
 
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing

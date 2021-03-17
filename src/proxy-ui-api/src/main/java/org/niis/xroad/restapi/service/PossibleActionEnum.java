@@ -36,6 +36,7 @@ public enum PossibleActionEnum {
     ACTIVATE,
     DISABLE, // cert
     TOKEN_ACTIVATE,
+    TOKEN_CHANGE_PIN,
     TOKEN_DEACTIVATE, // token
     REGISTER,
     UNREGISTER,

@@ -67,6 +67,7 @@ public class InternalTlsCertificateService {
     private static final String CERT_CER_FILENAME = "./cert.cer";
 
     private final ExternalProcessRunner externalProcessRunner;
+    private final ClearCacheService clearCacheService;
     private final String generateCertScriptArgs;
     private final AuditDataHelper auditDataHelper;
 
@@ -84,11 +85,13 @@ public class InternalTlsCertificateService {
     @Autowired
     public InternalTlsCertificateService(InternalTlsCertificateRepository internalTlsCertificateRepository,
             ExternalProcessRunner externalProcessRunner,
+            ClearCacheService clearCacheService,
             @Value("${script.generate-certificate.path}") String generateCertScriptPath,
             @Value("${script.generate-certificate.args}") String generateCertScriptArgs,
             AuditDataHelper auditDataHelper) {
         this.internalTlsCertificateRepository = internalTlsCertificateRepository;
         this.externalProcessRunner = externalProcessRunner;
+        this.clearCacheService = clearCacheService;
         this.generateCertScriptPath = generateCertScriptPath;
         this.generateCertScriptArgs = generateCertScriptArgs;
         this.auditDataHelper = auditDataHelper;
@@ -155,6 +158,9 @@ public class InternalTlsCertificateService {
             log.error("Failed to generate internal TLS key and cert", e);
             throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_KEY_CERT_GENERATION_FAILED));
         }
+
+        clearCacheService.executeClearConfigurationCache();
+
         // audit log hash of generated cert
         X509Certificate generatedCert = internalTlsCertificateRepository.getInternalTlsCertificate();
         auditDataHelper.putCertificateHash(generatedCert);
@@ -182,6 +188,9 @@ public class InternalTlsCertificateService {
             throw new DeviationAwareRuntimeException("cannot import internal tls cert", e,
                     new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));
         }
+
+        clearCacheService.executeClearConfigurationCache();
+
         return x509Certificate;
     }
 }

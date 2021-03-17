@@ -30,20 +30,10 @@
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}
         </div>
-        <v-text-field
-          v-model="search"
-          :label="$t('action.search')"
-          single-line
-          hide-details
-          class="search-input"
-          data-test="backup-search"
-          autofocus
-        >
-          <v-icon slot="append">mdi-magnify</v-icon>
-        </v-text-field>
+        <xrd-search v-model="search" />
       </div>
       <div>
-        <large-button
+        <xrd-button
           v-if="canBackup"
           color="primary"
           outlined
@@ -53,13 +43,13 @@
         >
           <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
           >{{ $t('backup.backupConfiguration.button') }}
-        </large-button>
-        <file-upload
+        </xrd-button>
+        <xrd-file-upload
           accepts=".tar"
           @file-changed="onFileUploaded"
           v-slot="{ upload }"
         >
-          <large-button
+          <xrd-button
             v-if="canBackup"
             color="primary"
             :loading="uploadingBackup"
@@ -70,9 +60,9 @@
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
 
             {{ $t('backup.uploadBackup.button') }}
-          </large-button>
-        </file-upload>
-        <confirm-dialog
+          </xrd-button>
+        </xrd-file-upload>
+        <xrd-confirm-dialog
           v-if="uploadedFile !== null"
           :dialog="needsConfirmation"
           title="backup.uploadBackup.confirmationDialog.title"

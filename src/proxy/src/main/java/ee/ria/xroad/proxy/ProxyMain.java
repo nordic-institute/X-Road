@@ -234,7 +234,25 @@ public final class ProxyMain {
 
         addMaintenanceHandler(adminPort);
 
+        addClearCacheHandler(adminPort);
+
         return adminPort;
+    }
+
+    private static void addClearCacheHandler(AdminPort adminPort) {
+        adminPort.addHandler("/clearconfcache", new AdminPort.SynchronousCallback() {
+            @Override
+            public void handle(HttpServletRequest request, HttpServletResponse response) {
+                ServerConf.clearCache();
+                try {
+                    response.setCharacterEncoding("UTF8");
+                    response.getWriter().println("Configuration cache cleared");
+                } catch (IOException e) {
+                    log.error("Unable to write to provided response, delegated request handling failed, response may"
+                            + " be malformed", e);
+                }
+            }
+        });
     }
 
     private static void addMaintenanceHandler(AdminPort adminPort) {

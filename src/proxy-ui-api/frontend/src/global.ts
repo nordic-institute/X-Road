@@ -92,6 +92,7 @@ export enum Permissions {
   DELETE_LOCAL_GROUP = 'DELETE_LOCAL_GROUP', // client > local groups
   DELETE_SIGN_CERT = 'DELETE_SIGN_CERT', // sign cert details
   DELETE_SIGN_KEY = 'DELETE_SIGN_KEY', // key details
+  DELETE_UNKNOWN_CERT = 'DELETE_UNKNOWN_CERT',
   DELETE_TSP = 'DELETE_TSP', // settings > system parameters
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
@@ -120,6 +121,7 @@ export enum Permissions {
   IMPORT_AUTH_CERT = 'IMPORT_AUTH_CERT',
   IMPORT_INTERNAL_TLS_CERT = 'IMPORT_INTERNAL_TLS_CERT', // Import security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
+  IMPORT_UNKNOWN_CERT = 'IMPORT_UNKNOWN_CERT', // Import hardware token certificate from token
   INIT_CONFIG = 'INIT_CONFIG', // can initialise security server
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
   REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
