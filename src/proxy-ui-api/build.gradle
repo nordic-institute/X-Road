@@ -153,6 +153,20 @@ task licenseCheckUILibrary(type: NpmTask) {
     }
 }
 
+// check that npm run test:unit passes
+task frontendUnitTests(type: NpmTask, dependsOn: 'npmInstall') {
+    onlyIf {
+        (!project.hasProperty('skip-frontend-build') && project.hasProperty('frontend-unit-tests'))
+    }
+    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
+    outputs.dir("frontend/dist")
+    args = ['run', 'test:unit']
+    execOverrides {
+        it.workingDir = 'frontend'
+    }
+}
+
+
 
 // run e2e tests vs remote url
 if (!project.hasProperty("testTargetUrl")) {
@@ -216,8 +230,9 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
-// checkFrontLicense -> checkFrontAudit -> buildFront -> processResources
-processResources.dependsOn 'buildFront'
+// checkFrontLicense -> checkFrontAudit -> buildFront -> frontendUnitTests -> processResources
+processResources.dependsOn 'frontendUnitTests'
+frontendUnitTests.dependsOn 'buildFront'
 buildFront.dependsOn 'checkFrontAudit'
 checkFrontAudit.dependsOn 'checkFrontLicense'
 checkFrontLicense.dependsOn 'buildUILibrary'
