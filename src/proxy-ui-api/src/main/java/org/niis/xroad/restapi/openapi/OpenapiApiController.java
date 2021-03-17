@@ -29,13 +29,13 @@ package org.niis.xroad.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -51,14 +51,14 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FIL
 @RequiredArgsConstructor
 public class OpenapiApiController implements OpenapiApi {
 
+    static final String OPENAPI_DEFINITION_FILENAME = "openapi-definition.yaml";
+
     @Override
     @PreAuthorize("hasAuthority('DOWNLOAD_OPENAPI')")
     public ResponseEntity<Resource> downloadOpenApi() {
-        final String filename = "openapi-definition.yaml";
-        File file = new File(getClass().getClassLoader().getResource(filename).getFile());
         try {
-            byte[] bytes = Files.readAllBytes(file.toPath());
-            return ApiUtil.createAttachmentResourceResponse(Files.readAllBytes(file.toPath()), filename);
+            byte[] bytes = Files.readAllBytes(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getFile().toPath());
+            return ApiUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_FILENAME);
         } catch (IOException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));
         }
