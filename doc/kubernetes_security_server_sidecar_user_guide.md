@@ -5,7 +5,7 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
-
+ 11.03.2021 | 1.1     | Add setup examples                                              | Alberto Fernandez Lorenzo
 ## Table of Contents
 
 * [1 Introduction](#1-introduction)
