@@ -24,73 +24,87 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+  <v-container
+    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    fluid
+    class="alerts-container"
+  >
+    <v-alert
+      data-test="global-alert-restore"
+      :value="showRestoreInProgress"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{
+        $t('globalAlert.backupRestoreInProgress', {
+          startTime: formatDateTime(restoreStartTime),
+        })
+      }}</span>
+    </v-alert>
+  </v-container>
 </template>
 
 <script lang="ts">
-// The root component of the Vue app
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
+import { formatDateTime } from '@/filters';
 
 export default Vue.extend({
-  name: 'App',
-
-  components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
-  },
+  name: 'AlertsContainer',
   computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
+    hasAlerts(): boolean {
+      return this.showRestoreInProgress;
+    },
+    isAuthenticated(): boolean {
+      // Mock. Add vuex getter later.
+      return true;
+    },
+    showRestoreInProgress(): boolean {
+      // Mock. Add vuex getter later.
+      return true;
+    },
+    needsInitialization(): boolean {
+      // Mock. Add vuex getter later.
+      return true;
+    },
+    restoreStartTime(): boolean {
+      // Mock. Add vuex getter later.
+      return true;
     },
   },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-    this.$store.getters[StoreTypes.getters.USERNAME];
+  methods: {
+    formatDateTime,
   },
 });
 </script>
 
-<style lang="scss">
-@import './assets/global-style';
-</style>
+<style scoped lang="scss">
+@import '~styles/colors';
 
-<style lang="scss" scoped>
-@import './assets/colors';
+.alerts-container {
+  width: 1000px;
+  padding: 0;
 
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
+  & > * {
+    margin-top: 0;
+    margin-bottom: 4px;
+    border-radius: 0;
+  }
 
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
-}
+  & > :first-child {
+    margin-top: 4px;
+  }
 
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
+  .alert {
+    margin-top: 8px;
+    border-radius: 4px;
+  }
+
+  .alert-text {
+    color: $XRoad-Black100;
+    display: block;
+  }
 }
 </style>

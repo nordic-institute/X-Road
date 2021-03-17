@@ -24,7 +24,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
-  </div>
+  <v-layout class="main-content" align-left>
+    <app-icon />
+    <div class="tabs-wrap"></div>
+    <app-drop-menu />
+  </v-layout>
 </template>
+
+<script lang="ts">
+import Vue from 'vue';
+import { Tab } from '@/ui-types';
+import { mainTabs, RouteName } from '@/global';
+import AppIcon from './AppIcon.vue';
+import AppDropMenu from './UserDropMenu.vue';
+
+export default Vue.extend({
+  components: {
+    AppIcon,
+    AppDropMenu,
+  },
+  data() {
+    return {
+      tab: undefined as undefined | Tab,
+    };
+  },
+  computed: {
+    allowedTabs(): Tab[] {
+      return this.$store.getters.getAllowedTabs(mainTabs);
+    },
+  },
+  methods: {
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
+    },
+  },
+});
+</script>
+
+<style lang="scss" scoped>
+.main-content {
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
+
+  .tabs-wrap {
+    margin-left: 20px;
+  }
+}
+</style>

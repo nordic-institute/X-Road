@@ -24,73 +24,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+  <div>
+    <sub-tabs :tab="tab">
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
+        $t(tab.name)
+      }}</v-tab>
+    </sub-tabs>
+  </div>
 </template>
 
 <script lang="ts">
-// The root component of the Vue app
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
+import { Permissions, RouteName } from '@/global';
+import { Tab } from '@/ui-types';
+import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
-  name: 'App',
-
   components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
+    SubTabs,
+  },
+  data() {
+    return {
+      tab: null,
+    };
   },
   computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
+    tabs(): Tab[] {
+      const allTabs: Tab[] = [
+        {
+          key: 'system',
+          name: 'tab.settings.systemSettings',
+          to: {
+            name: RouteName.SystemSettings,
+          },
+          permissions: [Permissions.MOCK_PERMISSION1],
+        },
+        {
+          key: 'backup',
+          name: 'tab.settings.backupAndRestore',
+          to: {
+            name: RouteName.BackupAndRestore,
+          },
+          permissions: [Permissions.MOCK_PERMISSION1],
+        },
+      ];
+      return allTabs; // needs to be filtered with permissions
     },
-  },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-    this.$store.getters[StoreTypes.getters.USERNAME];
   },
 });
 </script>
-
-<style lang="scss">
-@import './assets/global-style';
-</style>
-
-<style lang="scss" scoped>
-@import './assets/colors';
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
-
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
-}
-
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
-}
-</style>
