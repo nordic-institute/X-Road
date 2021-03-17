@@ -28,6 +28,7 @@ package org.niis.xroad.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -37,7 +38,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.io.IOException;
-import java.nio.file.Files;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FILE_NOT_FOUND;
 
@@ -57,10 +57,10 @@ public class OpenapiApiController implements OpenapiApi {
     @PreAuthorize("hasAuthority('DOWNLOAD_OPENAPI')")
     public ResponseEntity<Resource> downloadOpenApi() {
         try {
-            byte[] bytes = Files.readAllBytes(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getFile().toPath());
+            byte[] bytes = IOUtils.toByteArray(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getInputStream());
             return ApiUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_FILENAME);
         } catch (IOException e) {
-            log.error("Error reading OpenAPI definition file: {}", e);
+            log.error("Error reading OpenAPI definition file", e);
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));
         }
     }
