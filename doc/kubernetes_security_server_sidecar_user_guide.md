@@ -4,8 +4,11 @@
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
- 05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
- 11.03.2021 | 1.1     | Add setup examples                                              | Alberto Fernandez Lorenzo
+05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
+08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                   | Alberto Fernandez Lorenzo
+11.03.2021 | 1.1     | Add setup examples                                              | Alberto Fernandez Lorenzo
+15.03.2021 | 1.2     | Add IP address options                                          | Alberto Fernandez Lorenzo
+
 ## Table of Contents
 
 * [1 Introduction](#1-introduction)
@@ -45,12 +48,27 @@
       * [4.5.6.1 Prerequisites](#4561-prerequisites)
       * [4.5.6.2 Primary Pod installation](#4562-primary-pod-installation)
       * [4.5.6.3 Secondary Pods installation](#4563-secondary-pods-installation)
+    * [4.5.7 Load Balancer address options](#457-load-balancer-address-options)
+      * [4.5.7.1 Use the internal Kubernetes DNS](#4571-use-the-internal-kubernetes-dns)
+      * [4.5.7.2 Use the assigned Private IP or public DNS name](#4572-use-the-assigned-private-ip-or-public-dns-name)
+      * [4.5.7.3 Set a fixed Private IP](#4573-set-a-fixed-private-ip)
+      * [4.5.7.4 Deploy Kubernetes External DNS](#4574-deploy-kubernetes-external-dns)
 * [5 Backup and Restore](#5-backup-and-restore)
 * [6 Monitoring](#6-monitoring)
   * [6.1 Setup Container Insights on AWS EKS](#61-setup-container-insights-on-aws-eks)
 * [7 Version update](#7-version-update)
 * [8 Message logs and disk space](#8-message-logs-and-disk-space)
-* [9 Setup example](#9-setup-example)
+* [9 Horizontal Pod Autoscaler (HPA)](#9-horizontal-pod-autoscaler-hpa)
+  * [9.1 Prerequisites](#91-prerequisites)
+  * [9.2 Requirements](#92-requirements)
+  * [9.3 Reference data](#93-reference-data)
+  * [9.4 Installation with custom metrics](#94-installation-with-custom-metrics)
+    * [9.4.1 Deploy Prometheus Operator](#941-deploy-prometheus-operator)
+    * [9.4.2 Deploy Prometheus Adapter](#942-deploy-prometheus-adapter)
+    * [9.4.3 Deploy HorizontalPodAutoscaler](#943-deploy-horizontalpodautoscaler)
+  * [9.5 Autoscale when Pods fails](#95-autoscale-when-pods-fails)
+  * [9.6 Installation with default metrics](#96-installation-with-default-metrics)
+* [10 Setup example](#10-setup-example)
 
 ## 1 Introduction
 
@@ -184,6 +202,9 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 3.24    | &lt;volume mount path&gt;           | Local path on the EC2 instance where the volume is mounted.
 3.25    | &lt;bucket name&gt;           | Name of an AWS S3 bucket.
 3.26    | &lt;arn encryption key&gt;           | ARN encryption key used in an AWS S3 bucket, example: arn:aws:kms:eu-west-1:999999999:alias/aws/s3.
+3.27    | &lt;hosted zone domain&gt;           | AWS Route 53 hosted zone domain name.
+3.28    | &lt;hosted zone ID&gt;           | AWS Route 53 hosted zone ID.
+3.29    | &lt;external DNS name&gt;           | Name for the Load Balancer AWS Routed 53 hosted record.
 
 ### 4.5 Installation Instructions
 
@@ -368,10 +389,10 @@ An "awsElasticBlockStore" persistent volume mounts an AWS EBS volume into our Po
 
 4. Copy the property "Device" from the output of the previous command. Run the following commands on the cluster instance where the volume was mounted to get more information about the free disk space and the mount point:
 
-```bash
-df -hT <device>
-lsblk <device>
-```
+    ```bash
+    df -hT <device>
+    lsblk <device>
+    ```
 
 ###### 4.5.3.2.3 Persistent Volume AWS Elastic File System
 
@@ -658,7 +679,7 @@ Startup probes are useful for Pods that have containers that take a long time to
 
 In a different scenario where the Sidecar container would take a long time to start, the startup probe can be used in combination with the liveness probe, so that it waits until the startup probe has succeeded before starting the liveness probe. The tricky part is to set up a startup probe with the same command, HTTP or TCP check, with a failureThreshold * periodSeconds long enough to cover the worst case startup time.
 
-```yaml
+``` yaml
 [...]
 containers:
   livenessProbe:
@@ -881,7 +902,183 @@ After the manifest is deployed, you can scale the Secondary Pods by running (**r
 kubectl scale -n <namespace name> --replicas=<number replicas> deployment/<pod name>
 ```
 
-TThe Secondary Pods will synchronize the configuration at initialization and through a cron job that runs every minute. Once the configuration is synchronized, the secondary Pods can process the messages independently of the primary one. This means that if the primary Pods crashes, the cron that synchronizes the configuration will fail but the Secondary Pods can continue to process the messages.
+The Secondary Pods will synchronize the configuration at initialization and through a cron job that runs every minute. Once the configuration is synchronized, the secondary Pods can process the messages independently of the primary one. This means that if the primary Pods crashes, the cron that synchronizes the configuration will fail but the Secondary Pods can continue to process the messages.
+
+#### 4.5.7 Load Balancer address options
+
+In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server Sidecar Pods through the Load Balancer, the DNS or IP of the Load Balancer must be configured in the Security Server address on the Central Server.
+<p align="center">
+  <img style="max-width: 50%;" src="img/central_server_configuration.png" />
+</p>
+We are going to describe the possible options that we can use to establish the address of the Load Balancer.
+
+##### 4.5.7.1 Use the internal Kubernetes DNS
+
+The internal Kubernetes DNS name for the Load Balancer will be &lt;primary DNS&gt; (**reference data: 3.20**). This option is only recommended for developing or testing purposes since this &lt;primary DNS&gt; it's a Kubernetes internal DNS and will only work if the consumer Security Server Sidecar is deployed in the same cluster.
+
+##### 4.5.7.2 Use the assigned Private IP or public DNS name
+
+When a Load Balancer Service it's created, AWS automatically assigns to it a private IP and a public DNS. We can check it by running (**reference Data: 3.1**) checking the properties `CLUSTER-IP`, `EXTERNAL-IP`:
+
+```bash
+kubectl get svc -n <namespace name>
+
+NAME                            TYPE           CLUSTER-IP      EXTERNAL-IP                                                             PORT(S)                                                                                                   AGE
+service-sidecar-balancer        LoadBalancer   10.100.160.10   a764b23040d98479f907e9899f730b2d-20635229.eu-west-1.elb.amazonaws.com   5500:31648/TCP,5577:32244/TCP,8080:32451/TCP   17h  
+```
+
+If the consumer Security Server Sidecar is in the same Network we could use the `CLUSTER-IP`, otherwise, use the `EXTERNAL-IP`. The problem with this approach is that AWS will assign new values to these properties every time the Load Balancer Service is recreated, so it requires updating this value in the Central Server configuration each time.
+
+##### 4.5.7.3 Set a fixed Private IP
+
+It is possible to define a Private IP in the Load Balancer Service deployment by adding the property `clusterIP` (**reference data: 3.17**):
+
+```yaml
+[...]
+spec:
+  type: LoadBalancer
+  clusterIP: <load balancer private ip>
+[...]
+```
+
+Note! This solution is only recommended for development or testing purposes since it's an anti-pattern to have fixed IPs in the Deployment.
+By adding this property, the Load Balancer will keep the same private IP each time is recreated. However, the public DNS (`EXTERNAL-IP`) will not and a new one will be assigned each time the Load Balancer is recreated, as with the previous section. If we need to make public the fixed private IP, we can create a new AWS Route 53 record that points to this IP.
+
+##### 4.5.7.4 Deploy Kubernetes External DNS
+
+[Kubernetes External DNS](https://github.com/kubernetes-sigs/external-dns/) makes Kubernetes resources discoverable via public DNS servers. Use AWS Route 53 in combination with Kubernetes External DNS to create a new record in an existing Hosted Zone in AWS Route 53 and update this record with the new `EXTERNAL-IP` assigned value each time that the Load Balancer Service is recreated.
+
+1. Create an AWS Route 53 Hosted zone if you don't have one
+
+2. Check that the AWS EKS Cluster role has the following permissions:
+
+    ```json
+    {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+        "Effect": "Allow",
+        "Action": [
+            "route53:ChangeResourceRecordSets"
+        ],
+        "Resource": [
+            "arn:aws:route53:::hostedzone/*"
+        ]
+        },
+        {
+        "Effect": "Allow",
+        "Action": [
+            "route53:ListHostedZones",
+            "route53:ListResourceRecordSets"
+        ],
+        "Resource": [
+            "*"
+        ]
+        }
+    ]
+    }
+    ```
+
+3. Install the Kubernetes External DNS. You can find an example manifest file below (**reference data: 3.27, 3.28**):
+
+    ``` yaml
+    apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+    name: external-dns
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1beta1
+    kind: ClusterRole
+    metadata:
+    name: external-dns
+    rules:
+    - apiGroups: [""]
+    resources: ["services","endpoints","pods"]
+    verbs: ["get","watch","list"]
+    - apiGroups: ["extensions","networking.k8s.io"]
+    resources: ["ingresses"]
+    verbs: ["get","watch","list"]
+    - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["list","watch"]
+    ---
+    apiVersion: rbac.authorization.k8s.io/v1beta1
+    kind: ClusterRoleBinding
+    metadata:
+    name: external-dns-viewer
+    roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: external-dns
+    subjects:
+    - kind: ServiceAccount
+    name: external-dns
+    namespace: default
+    ---
+    apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+    name: external-dns
+    spec:
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+        app: external-dns
+    template:
+        metadata:
+        labels:
+            app: external-dns
+        spec:
+        serviceAccountName: external-dns
+        containers:
+        - name: external-dns
+            image: k8s.gcr.io/external-dns/external-dns:v0.7.6
+            args:
+            - --source=service
+            - --source=ingress
+            - --domain-filter=<hosted zone domain> # will make ExternalDNS see only the hosted zones matching provided domain, omit to process all available hosted zones
+            - --provider=aws
+            - --policy=upsert-only # would prevent ExternalDNS from deleting any records, omit to enable full synchronization
+            - --aws-zone-type=public # only look at public hosted zones (valid values are public, private or no value for both)
+            - --registry=txt
+            - --txt-owner-id=<hosted zone ID>
+        securityContext:
+            fsGroup: 65534 # For ExternalDNS to be able to read Kubernetes and AWS token files
+    ```
+
+    Note (1): This manifest is for deploying Kubernetes External DNS using AWS Route 53 in a AWS EKS Cluster with RBAC authentication enabled, for more deployment options please check `https://github.com/kubernetes-sigs/external-dns/#deploying-to-a-cluster`.
+
+4. Verify that the Kubernetes External DNS is deployed and running:
+
+    ```bash
+    kubectl get pods
+
+    NAME                                       READY   STATUS      RESTARTS   AGE
+    external-dns-67c88b5577-lhgzt              1/1     Running     0          20h
+    ```
+
+5. Modify the Secondary Pod Deployment manifest adding the external-dns annotation (**reference data: 3.1, 3.15, 3.27, 3.29**):
+
+    ```yaml
+    [...]
+    apiVersion: v1
+    kind: Service
+    metadata:
+    name: <service name>
+    annotations:
+        service.beta.Kubernetes.io/aws-load-balancer-type: nlb
+        external-dns.alpha.kubernetes.io/hostname: <external DNS name>.<hosted zone domain>
+    labels:
+        run: security-server-sidecar-balancer-run
+    namespace: <namespace name>
+    spec:
+    type: LoadBalancer
+    [...]
+    ```
+
+6. Apply the manifest. After a couple of minutes, a new record with the name &lt;external DNS name&gt; should be created on the AWS Route 53 Hosted zone.
+This is the recommended option from a production environment.
 
 ## 5 Backup and Restore
 
@@ -1002,8 +1199,350 @@ We also recommended sending the logs inside the volume to an AWS S3 Bucket. To d
     aws s3 sync <volume mount path> s3://<bucket name>/path/to/bucket-folder --sse aws:kms --sse-kms-key-id <arn encryption key>
     ```
 
+## 9 Horizontal Pod Autoscaler (HPA)
 
-## 9 Setup example
+The Horizontal Pod Autoscaler automatically scales the number of Pods in a replication controller, deployment, replica set based on the observed CPU/Memory utilization or some other custom metrics.
+The Horizontal Pod Autoscaler is implemented as a Kubernetes API resource and a controller. The controller will adjust the number of replicas periodically (default value is 30 seconds). The number of Pod replicas will go up when the workload increases and down when the workload decreases.
+The Horizontal Pod Autoscaler allows scaling the Secondary Pods described in the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer).
+The algorithm for calculating the number of Pod replicas needed is based on the ratio between desired metric value and current metric value as follows:
+
+desiredReplicas = ceil[currentReplicas * ( currentMetricValue / desiredMetricValue )]
+
+### 9.1 Prerequisites
+
+* The [Helm](https://helm.sh/docs/intro/install/) package should be installed.
+* The [Kubernetes Metrics Server](https://github.com/kubernetes-sigs/metrics-server) should be deployed on the cluster.
+* The [API aggregation layer](https://kubernetes.io/docs/tasks/extend-kubernetes/configure-aggregation-layer/) should be enabled. Note! If you are using an AWS EKS cluster this doesn't require any action.
+
+### 9.2 Requirements
+
+* A Kubernetes cluster with version 1.6 or later.
+* The scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) deployed in the cluster.
+
+### 9.3 Reference data
+
+**Ref** | **Value**                                | **Explanation**
+------- | ----------------------------------------- | ----------------------------------------------------------
+4.1    | &lt;hpa name&gt;                    | Unique name of the HorizontalPodAutoscaler object.
+4.2    | &lt;hpa min replicas&gt;                    | Minimum amount of Pod replicas allowed in the deployment.
+4.3    | &lt;hpa max replicas&gt;                    | Maximum amount of Pod replicas allowed in the deployment.
+4.4    | &lt;hpa metric name&gt;                    | Name of the metric we want to monitor with the HorizontalPodAutoscaler, in our example will be "container_network_receive_packets_per_minute".
+4.5    | &lt;hpa deployment name&gt;                    | Name of the deployment where to apply the HPA (In this case, the Secondary Pods deployment).
+4.6    | &lt;hpa target average value&gt;                    | Target value of the average of the metric over all relevant Pods expressed in "milli packets". The HPA will scale up (down) if the current value is higher (lower) than the target value. Example value: 100000m.
+4.7    | &lt;target cpu percent&gt;                    | Target average CPU utilization (represented as a percent of requested CPU) over all the pods. Example value: 60.
+4.8    | &lt;hpa average memory utilization&gt;         | Target average Memory utilization (represented as a percent of requested Memory) over all the Pods. Example value: 500Mi.
+
+### 9.4 Installation with custom metrics
+
+The [Kubernetes Metrics Server](https://github.com/kubernetes-sigs/metrics-server) gives the possibility to autoscale the Pods based on CPU/Memory utilization metrics. Although this could be enough in certain scenarios, in this guide we are going to show how Pods can be scaled with custom metrics, specifically based on network load.
+
+For autoscaling based on custom metrics, we are going to use the metrics collected by Prometheus Server, even though these metrics cannot be accessed directly from the Kubernetes metrics API. For this, you need to install a Prometheus Adapter to fetch these metrics in your deployment.
+
+<p align="center">
+  <img src="img/hpa_graphic.jpeg" />
+</p>
+
+The Prometheus operator obtains the custom metrics from the Pods via HTTP. The Prometheus Adapter pulls these metrics from the Prometheus operator and makes them available to the custom-metrics API. The HPA fetches them through the custom-metrics API to compare them with the target value and scales up or down the Pods in the Deployment accordingly.
+
+#### 9.4.1 Deploy Prometheus Operator
+
+Prometheus Operator is included as a module in the [kube-prometheus stack](https://github.com/prometheus-community/helm-charts/tree/main/charts/kube-prometheus-stack) which we can easily install with Helm.
+
+* The kube-prometheus stack contains the following preconfigured modules:
+  * [Alert Manager](https://prometheus.io/docs/alerting/latest/alertmanager/).
+  * [Prometheus](https://prometheus.io/).
+  * [Prometheus Operator](https://github.com/prometheus-operator/prometheus-operator).
+  * [Prometheus Node Exporter](https://github.com/helm/charts/tree/master/stable/prometheus-node-exporter).
+  * [Grafana](https://github.com/helm/charts/tree/master/stable/grafana).
+  * [Kube State Metrics](https://github.com/kubernetes/kube-state-metrics).
+
+1. Download the values file, located at `https://github.com/prometheus-community/helm-charts/blob/main/charts/kube-prometheus-stack/values.yaml`, which contains a set of configuration properties.
+
+2. For autoscaling the Pods, you only need to install the Prometheus and Prometheus Operator modules. The remaining modules are optional to install if you want any of the extra features, otherwise, you can disable them by editing the `values.yaml` file previously downloaded and setting the property `enabled` to false on these tags: "kubeStateMetrics", "prometheusOperator", "alertmanager", "nodeExporter".
+
+    ``` yaml
+    [...]
+    ## Configuration for alertmanager
+    ## ref: https://prometheus.io/docs/alerting/alertmanager/
+    ##
+    alertmanager:
+
+    ## Deploy alertmanager
+    ##
+    enabled: false
+
+    ## Api that prometheus will use to communicate with alertmanager. Possible values are v1, v2
+    ##
+    apiVersion: v2
+    [...]
+    ```
+
+3. Install the "kube-prometheus-stack" by running (**reference data: 3.1**) the following command. Note! It's recommended to deploy the Prometheus related objects in a new namespace:
+
+    ``` bash
+    helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+    helm repo update
+    helm install -f values.yaml  prometheus prometheus-community/kube-prometheus-stack --namespace <namespace name>
+    ```
+
+4. Verify if the Pods and Services are deployed by running the following commands (**reference data: 3.1**):
+
+    ``` bash
+    kubectl get pods -n <namespace name>
+    NAME                                                   READY   STATUS    RESTARTS   AGE
+    prometheus-kube-prometheus-operator-5456c7b946-mbfhx   1/1     Running   0          4d5h
+    prometheus-prometheus-kube-prometheus-prometheus-0     2/2     Running   0          4d5h
+    ```
+
+    ``` bash
+    kubectl get svc -n <namespace name>
+    NAME                                    TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+    prometheus-kube-prometheus-operator     ClusterIP   10.100.112.220   <none>        443/TCP    4d5h
+    prometheus-kube-prometheus-prometheus   ClusterIP   10.100.81.220    <none>        9090/TCP   4d5h
+    ```
+
+5. Expose the Prometheus 9090 port by running (**reference data: 3.1**):
+
+    ```bash
+    kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 --namespace <namespace name>
+    ```
+
+6. Check if Prometheus UI is accessible through the browser in the URL `http://localhost:9090`.
+
+To uninstall the kube-prometheus-stack Helm chart run the following command (**reference data: 3.1**):
+
+``` bash
+helm uninstall prometheus -n <namespace name>
+```
+
+#### 9.4.2 Deploy Prometheus Adapter
+
+Prometheus metrics can not be directly accessed from the Kubernetes metrics API. To discover all the Prometheus metrics from Kubernetes, you need to deploy in your cluster the Prometheus Adapter. This adapter will allow us to discover all Prometheus metrics from Kubernetes.
+
+1. Download the value files, located at `https://github.com/prometheus-community/helm-charts/blob/main/charts/prometheus-adapter/values.yaml`, which contains a set of configuration properties.
+
+2. Edit the `values.yaml` file and set the `url` and `port` properties in the `prometheus` object with the following values:
+
+    ``` yaml
+    [...]
+    # Url to access prometheus
+    prometheus:
+    # Value is templated
+    url: http://prometheus-operated.monitoring.svc.cluster.local
+    port: 9090
+    path: ""
+    [...]
+    ```
+
+    Note! The URL `prometheus-operated.monitoring.svc.cluster.local` is valid for AWS EKS clusters. For others scenarios, the URL may be `prometheus-operated.monitoring.svc`.
+
+    For detecting the network load, we need to know the number of packets received during a certain time interval. In the following example, we are using the Prometheus metric `container_network_receive_packets_total` which informs about the total number of packets received in the Deployment, but you can use any other metric provided by Prometheus, like `container_network_receive_bytes_total`. In principle, this metric might not be very useful, because it returns the total number of packets, but in this example, we will show how to create a rule in the Prometheus Adapter configuration so that it returns the value of this metric based on the average of packets during a time interval.
+
+3. Edit the `values.yaml` file, creating a new custom rule:
+
+    ``` yaml
+    [...]
+    rules:
+    default: true
+    custom:
+    - seriesQuery: 'container_network_receive_packets_total{namespace="<namespace name>"}'
+        resources:
+        overrides:
+            namespace:
+            resource: namespace
+            pod:
+            resource: pod
+            node:
+            resource: node
+        name:
+        matches: "^(.*)_total"
+        as: "${1}_per_minute"
+        metricsQuery: 'sum(rate(<<.Series>>{<<.LabelMatchers>>}[1m])) by (<<.GroupBy>>)'
+    # Mounts a configMap with pre-generated rules for use. Overrides the
+    # default, custom, external and resource entries
+    existing:
+    external: []
+    [...]
+    ```
+
+    * The `seriesQuery` property defines the metric and the namespace in which this metric applies. Use the namespace of your Deployment if you want to make the metric available for your Deployment only or set `{namespace!=""}` if you want to make the metric available to all namespaces.
+    * The `resource` property defines which type of Kubernetes resources can use this metric.
+    * The `name` property changes the metric name from `container_network_receive_packets_total` to `container_network_receive_packets_per_minute`.
+    * The `metricsQuery` property sums the average value of the metric in a time interval. For this example, the interval is set to 1 minute, but you can set any custom time interval.
+
+    More information about how to create rules can be found [here](https://github.com/kubernetes-sigs/prometheus-adapter/blob/master/docs/config-walkthrough.md).
+
+4. Install the Prometheus Adapter by running (**reference data: 3.1**):
+
+    ``` bash
+    helm install -f values.yaml  prometheus-adapter prometheus-community/prometheus-adapter --namespace <namespace name>
+    ```
+
+5. After a couple of minutes, list the metrics to verify that the metric `container_network_receive_packets_per_minute` created is included in the list for Pods resources:
+
+    ``` bash
+    kubectl get --raw /apis/custom.metrics.k8s.io/v1beta1 | jq
+    ```
+
+If you need to modify the Prometheus Adapter rules once it's deployed, do the following:
+
+1. Edit the configuration file `values.yaml` and run a Helm upgrade (**reference data: 3.1**):
+
+    ``` bash
+    helm upgrade --install -f values.yaml  prometheus-adapter prometheus-community/prometheus --namespace <namespace name>
+    ```
+
+2. Search for the Prometheus adapter ConfigMap and edit it (**reference data: 3.1**):
+
+    ```bash
+    $ kubectl get cm -n <namespace name>
+    NAME                                                           DATA   AGE
+    prometheus-adapter                                             1      4d5h
+    prometheus-prometheus-kube-prometheus-prometheus-rulefiles-0   26     4d5h
+
+    $ kubectl edit cm -n <namespace name> prometheus-adapter
+    ```
+
+You can uninstall the prometheus-adapter Helm chart by running (**reference data: 3.1**):
+
+``` bash
+helm uninstall prometheus-adapter -n <namespace name>
+```
+
+#### 9.4.3 Deploy HorizontalPodAutoscaler
+
+1. Create the following manifest file (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**):
+    Note! The namespace should match the Deployment namespace.
+
+    ``` yaml
+    kind: HorizontalPodAutoscaler
+    apiVersion: autoscaling/v2beta1
+    metadata:
+    name: <hpa name>
+    namespace: <namespace name>
+    spec:
+    scaleTargetRef:
+        # point the HPA at the sample application
+        # you created above
+        apiVersion: apps/v1
+        kind: Deployment
+        name: <hpa deployment name>
+    # autoscale between 1 and 10 replicas
+    minReplicas: <hpa min replicas>
+    maxReplicas: <hpa max replicas
+    metrics:
+    - type: Pods
+        pods:
+        metricName: <hpa metric name>
+        # target 500 milli-requests per second,
+        # which is 1 request every two seconds
+        targetAverageValue: <target average value>
+    ```
+
+2. Apply the HPA:
+
+    ```bash
+    kubectl apply -f /path/to/hpa.yaml
+    ```
+
+3. If we describe the HPA we should see something similar to this (**reference data 3.1, 4.1**):
+
+    ```
+    kubectl describe hpa -n <namespace name> <hpa name>
+
+    Name:                                                  secondary-sidecar-balancer-pod
+    Namespace:                                             test
+    Labels:                                                <none>
+    Annotations:                                           <none>
+    CreationTimestamp:                                     Mon, 01 Mar 2021 17:23:45 +0100
+    Reference:                                             Deployment/secondary-sidecar-balancer-pod
+    Metrics:                                               ( current / target )
+    resource cpu on pods  (as a percentage of request):  17% (34m) / 30%
+    Min replicas:                                          1
+    Max replicas:                                          5
+    Deployment pods:                                       2 current / 2 desired
+    Conditions:
+    Type            Status  Reason              Message
+    ----            ------  ------              -------
+    AbleToScale     True    ReadyForNewScale    recommended size matches current size
+    ScalingActive   True    ValidMetricFound    the HPA was able to successfully calculate a replica count from cpu resource utilization (percentage of request)
+    ScalingLimited  False   DesiredWithinRange  the desired count is within the acceptable range
+    Events:
+    Type    Reason             Age                From                       Message
+    ----    ------             ----               ----                       -------
+    Normal  SuccessfulRescale  38s (x4 over 23h)  horizontal-pod-autoscaler  New size: 1; reason: All metrics below target
+
+
+    Name:                                                      sidecar-secondary-hpa
+    Namespace:                                                 test
+    Labels:                                                    <none>
+    Annotations:                                               kubectl.kubernetes.io/last-applied-configuration:
+                                                                {"apiVersion":"autoscaling/v2beta1","kind":"HorizontalPodAutoscaler","metadata":{"annotations":{},"name":"sidecar-secondary-hpa","namespac...
+    CreationTimestamp:                                         Tue, 02 Mar 2021 18:03:45 +0100
+    Reference:                                                 Deployment/secondary-sidecar-balancer-pod
+    Metrics:                                                   ( current / target )
+    "container_network_receive_packets_per_minute" on pods:  5093m / 100
+    Min replicas:                                              1
+    Max replicas:                                              5
+    Deployment pods:                                           2 current / 2 desired
+    Conditions:
+    Type            Status  Reason              Message
+    ----            ------  ------              -------
+    AbleToScale     True    ReadyForNewScale    recommended size matches current size
+    ScalingActive   True    ValidMetricFound    the HPA was able to successfully calculate a replica count from pods metric container_network_receive_packets_per_minute
+    ScalingLimited  False   DesiredWithinRange  the desired count is within the acceptable range
+    Events:           <none>
+    ```
+
+The "Metrics" property gives information about the current value of the metric expressed in "milli" packets. In this example, it means that the Pods have received 5093 "milli" packets during the last minute. Given the target value of 100 (100000 milli packets), then the Pods will not scale up.
+
+Pods will scale up only when the condition ( "current" > "target" * "Nº of replicas" ) is true.
+
+You can test sending requests to your X-Road Security Server Sidecar cluster setup to see if the Pods are able to autoscale when the network load increases.
+
+### 9.5 Autoscale when Pods fails
+
+The HPA doesn't scale the Pods when one of them fails. But if you need to always have a minimum number of Pods in your Deployment so the HPA creates a new one if one of them fails, we can combine the HPA with a [Liveness probe](#4552-liveness-probes).
+To do that, set a minimum number of Pods in your HPA (**reference data: 4.2**) and configure a [Liveness probe](#4552-liveness-probes) that will attempt to recreate a new Pod if the healthcheck fails and the Pod is not able to receive messages.
+
+### 9.6 Installation with default metrics
+
+It is possible to skip the Prometheus and Prometheus Adapter steps and only use the default metrics provided by the [Metrics Server](https://github.com/kubernetes-sigs/metrics-server). With these metrics, you can autoscale your Deployment based on CPU/Memory utilization.
+For example, if we define a target value of 50% of CPU utilization, the HPA will scale up the number of replicas if the CPU utilization of any of the Pods in the Deployment goes over 50%.
+
+Create an HPA for CPU utilization by running (**reference data: 3.1, 4.2, 4.3, 4.5, 4.7**):
+
+``` bash
+kubectl autoscale deployment <hpa deployment name> -n <namespace name> --cpu-percent=<target cpu percent> --min=<hpa min replicas> --max=<hpa max replicas>
+```
+
+The name of the HPA will be the same name as the Deployment.
+
+Another option for creating custom metrics is to create a manifest file. The following example shows how to create an HPA based on Memory utilization (**reference data: 3.1, 4.1, 4.2, 4.3, 4.4, 4.5, 4.8**):
+
+``` yaml
+apiVersion: autoscaling/v2beta2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: <hpa name>
+  namespace: <namespace name>
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: <hpa deployment name>
+  minReplicas: <hpa min replicas>
+  maxReplicas: <hpa max replicas>
+  metrics:
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageValue: <hpa averge memory utilization>
+```
+
+## 10 Setup example
 The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is `sidecar`.
 1. Download the file and search for following variables and replace it with our desired values:
   + &lt;public key base64&gt; Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
@@ -1065,4 +1604,3 @@ security-server-sidecar-secondary-7c844c6b5f-ntkx4   1/1     Running   0        
 7. Delete all the objects by running:
 ```bash
 kubectl delete -f load_balancer_setup.yaml"
-```
