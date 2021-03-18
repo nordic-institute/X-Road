@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
  09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices                    | Alberto Fernandez Lorenzo
-
+ 
 ## Table of contents
 
 * [1 Introduction](#1-introduction)
