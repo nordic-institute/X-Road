@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
  08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                   | Alberto Fernandez Lorenzo
- 15.03.2021 | 1.1     | Add Ip address options                                          | Alberto Fernandez Lorenzo
+ 15.03.2021 | 1.2     | Add IP address options                                          | Alberto Fernandez Lorenzo
 
 ## Table of Contents
 
