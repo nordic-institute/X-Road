@@ -7,20 +7,6 @@
 
     <include file="centerui/000-pre-liquibase-conditions.xml"/>
     <include file="centerui/001-baseline.xml"/>
-
-    <!-- must be the last one -->
-    <!-- TODO: not sure what this is, and if we need it
-    <changeSet id="separate-admin-user" author="niis" context="admin" runAlways="true" runOnChange="true" runOrder="last">
-        <sql splitStatements="false"><![CDATA[
-        grant usage on schema "${db_schema}" to "${db_user}";
-        grant select,update,insert,delete on all tables in schema "${db_schema}" to "${db_user}";
-        grant select,usage on all sequences in schema "${db_schema}" to "${db_user}";
-        grant execute on all functions in schema "${db_schema}" to "${db_user}";
-        revoke insert,update,delete on databasechangelog, databasechangeloglock from "${db_user}";
-        revoke update,delete on history from "${db_user}";
-        ]]>
-        </sql>
-    </changeSet>
--->
+    <include file="centerui/002-history-and-functions.xml"/>
 
 </databaseChangeLog>
