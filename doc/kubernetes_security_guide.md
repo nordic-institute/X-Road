@@ -5,6 +5,7 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
+ 09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices                    | Alberto Fernandez Lorenzo
 
 ## Table of contents
 
@@ -24,9 +25,12 @@
 * [6 Pod Security Policies](#6-pod-security-policies)
   * [6.1 Pod Security Policies in AWS EKS](#61-pod-security-policies-in-aws-eks)
   * [6.2 Creating a Pod Security Policy](#62-creating-a-pod-security-policy)
-* [7 Monitoring](#7-monitoring)
-* [8 Backups](#8-backups)
-* [9 Message logs](#9-message-logs)
+* [7 Assign Resources to Containers and Pods](#7-assign-resources-to-containers-and-pods)
+* [8 Monitoring](#8-monitoring)
+* [9 Backups](#9-backups)
+* [10 Message logs](#10-message-logs)
+* [11 Horizontal Pod Autoscaler best practices](#11-horizontal-pod-autoscaler-best-practices)
+
 
 ## 1 Introduction
 
@@ -147,7 +151,7 @@ Alternatively, if we don't want to include all the environment variables in a si
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:latest
+    image: niis/xroad-security-server-sidecar:6.25.0
     imagePullPolicy: "Always"
     env:
     - name: XROAD_TOKEN_PIN
@@ -558,7 +562,44 @@ kubectl --as=system:serviceaccount:sidecar-psp-restrictive:sidecar-eks-user -n s
 
 Now the user sidecar-eks-user should be able to create pods that match the conditions on the Pod Security Policy eks.restrictive.
 
-## 7 Monitoring
+
+## 7 Assign Resources to Containers and Pods
+
+Requests and limits are the mechanisms Kubernetes uses to control resources such as CPU and memory. Requests are what the container is guaranteed to get. If a container requests a resource, Kubernetes will only schedule it on a node that can give it that resource. Limits, on the other hand, make sure a container never goes above a certain value. The container is only allowed to go up to the limit, and then it is restricted.
+
+By configuring the CPU requests and limits of the Containers that run in your cluster, you can make efficient use of the CPU resources available on your cluster Nodes.
+
+Setting a CPU/Memory limit prevents a Container from exhausting all the resources available on the Node.
+Pod scheduling is based on requests. A Pod is scheduled to run on a Node only if the Node has enough CPU/Memory resources available to satisfy the Pod CPU request. If you specify a CPU/Memory limit but you don't specify the corresponding request, Kubernetes will automatically assign a CPU/Memory request that matches the limit. If a Container allocates more memory than its limit, the Container becomes a candidate for termination. If the Container continues to consume memory beyond its limit, the Container is terminated.
+
+To specify a CPU request for a container, include the `resources:requests` field in the Container resource manifest. To specify a CPU limit, include `resources:limits`. Modify the X-Road Security Server deployment manifest to add the resources:
+
+``` yaml
+[...]
+containers:
+  - name: security-server-sidecar
+    image: niis/xroad-security-server-sidecar:6.25.0
+    imagePullPolicy: "Always"
+    resources:
+      limits:
+        cpu: "1"
+        memory: "200Mi"
+      requests:
+        cpu: "0.5"
+        memory: "200Mi"
+[...]
+```
+* The CPU resource is measured in CPU units. One CPU, in Kubernetes, is equivalent to:
+  + 1 AWS vCPU
+  + 1 GCP Core
+  + 1 Azure vCore
+  + 1 Hyperthread on a bare-metal Intel processor with Hyperthreading
+Fractional values are allowed. A Container that requests 0.5 CPU is guaranteed half as much CPU as a Container that requests 1 CPU. You can use the suffix m to mean milli. For example 100m CPU, 100 milliCPU, and 0.1 CPU are all the same. PrecisionFractional values are allowed for the CPU units. For example, a Container with a limit of 0.5 CPU is guaranteed half as much CPU as a Container that requests 1 CPU.
+You can also combine the value with the suffix `m` to mean milli. For example, 100m CPU, 100 milliCPU, and 0.1 CPU are all the same. A precision smaller than 1m is not allowed.
+
+* The memory resource is measured in bytes. You can express memory as a plain integer or a fixed-point integer with one of these suffixes: E, P, T, G, M, K, Ei, Pi, Ti, Gi, Mi, Ki.
+
+## 8 Monitoring
 
 The following steps are recommended for monitoring using AWS CloudWatch so that we can detect potential security risks in your Cluster.
 
@@ -572,10 +613,24 @@ AWS EKS Clusters can be configured to send control panel logs to Amazon CloudWat
 
 * **Monitor Node (EC2 Instance) Health and Security**: EKS provides no automated detection of node issues. Changes in node CPU, memory, or network metrics that do not correlate with the cluster workload activity can be signs of security events or other issues.
 
-## 8 Backups
+## 9 Backups
 
 The restoration of backups is a process that is executed with root permission and therefore it can lead to potential security risks. Please ensure the backup files are coming from trusted sources before restoring them.
 
-## 9 Message logs
+## 10 Message logs
 
 The backup of the log messages may contain sensitive information. Therefore, it is recommended to save the automatic backups in an AWS EFS type volume and periodically send the backups to an AWS S3 Bucket with encryption both in transit and rest. More information can be found in [the Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#8-message-logs-and-disk-space).
+
+## 11 Horizontal Pod Autoscaler best practices
+
+**Ensure every Pod has Resources Requests defined**: The cluster HPA based on CPU/Memory will scale down any nodes that have a utilization less than a specified threshold. Utilization values are calculated as a percentage of the resource requests of individual pods. Missing resource request values for some containers might throw off the utilisation calculations of the HPA controller leading to suboptimal operation and scaling decisions. More information about how to assign resource request and limits can be found [here](#7-assign-resources-to-containers-and-pods).
+
+**Ensure Resource Availability for the HPA Pod**: Make sure the Node can handle the maximum number of Pods to be autoscaled. Running out of resources may lead to low performance and the Pods being terminated.
+
+**Ensure Resource Requests are Close to Actual Usage**: Over-provisioning resources can lead to situations where Pods are not utilizing the requested resources efficiently, leading to a lower overall Node utilization. It is recommended to measure the historical usage of the Pods and adjust the resources assigned based on it.
+
+**Favour Custom Metrics over External Metrics**: External metrics, i.e. the metrics that do not come from the application itself, can be used for example to scale the Pods based on the utilization of an external server database (Prometheus adapter could be used to get those external metrics). However, it is preferable to use custom metrics rather than external metrics whenever possible since the external metrics API takes a lot more effort to secure than the custom metrics API, potentially allowing access to all metrics.
+
+**Configure Cooldown Period**: The dynamic nature of the metrics being evaluated by the HPA may lead to scaling events in quick succession without a cooldown period between those scaling events. This leads to thrashing where the number of replicas fluctuates frequently and is not desirable. To prevent this, it is recommended to specify a [cooldown period](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/#support-for-cooldown-delay), which specifies the duration that the HPA should wait after a downscale event before initiating another downscale operation, by setting the `--horizontal-pod-autoscaler-downscale-stabilization` flag passed to the `kube-controller-manager`. This flag has a default value of 5 minutes.
+
+**Avoid using HPA and VPA in tandem**: HPA and VPA (Vertical Pod Autoscaler) give us the ability to autoscale the resources of our application. However, both are currently incompatible so it is recommended to avoid using them together for the same set of pods.
