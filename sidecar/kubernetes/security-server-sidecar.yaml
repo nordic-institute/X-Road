@@ -7,7 +7,6 @@ metadata:
   labels:
     run: security-server-sidecar
 spec:
-  clusterIP: 10.100.144.91
   type: LoadBalancer
   selector:
     run: security-server-sidecar
@@ -48,7 +47,7 @@ spec:
           mountPath: /etc/xroad
       containers:
       - name: security-server-sidecar
-        image: niis/xroad-security-server-sidecar:6.24.0
+        image: niis/xroad-security-server-sidecar:6.25.0
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-volume
