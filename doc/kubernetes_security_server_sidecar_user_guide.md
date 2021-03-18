@@ -204,6 +204,8 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 3.28    | &lt;hosted zone ID&gt;           | AWS Route 53 hosted zone ID.
 3.29    | &lt;external DNS name&gt;           | Name for the Load Balancer AWS Routed 53 hosted record.
 
+### 4.5 Installation Instructions
+
 #### 4.5.1 Namespaces
 
 We recommended using namespaces in a Kubernetes deployment since namespaces will allow you to organize the resources of a shared cluster better.
