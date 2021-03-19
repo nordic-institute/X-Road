@@ -122,6 +122,7 @@ public final class DeviationCodes {
     public static final String ERROR_MISSING_PRIVATE_PARAMS = "conf_verification.missing_private_params";
     public static final String ERROR_OPENAPI_PARSING = "openapi_parsing_error";
     public static final String ERROR_ORPHANS_NOT_FOUND = "orphans_not_found";
+    public static final String ERROR_OPENAPI_FILE_NOT_FOUND = "openapi_file_not_found";
     public static final String ERROR_OUTDATED_GLOBALCONF = "global_conf_outdated";
     public static final String ERROR_PIN_INCORRECT = "pin_incorrect";
     public static final String ERROR_PIN_POLICY_FAILURE = "pin_policy_failure";
