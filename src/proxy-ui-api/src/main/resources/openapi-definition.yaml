@@ -6232,6 +6232,7 @@ components:
         - ERROR_CODE_OCSP_FAILED # Unable to fetch response from the OCSP responder.
         - ERROR_CODE_OCSP_RESPONSE_INVALID # Unable to parse the OCSP response.
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
+        - ERROR_CODE_OCSP_RESPONSE_UNVERIFIED # Unable to verify OCSP response.
         - UNKNOWN
     OrphanInformation: # ok
       type: object

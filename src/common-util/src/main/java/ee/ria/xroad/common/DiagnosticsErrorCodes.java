@@ -35,6 +35,7 @@ public final class DiagnosticsErrorCodes {
 
     public static final int RETURN_SUCCESS = 0;
     public static final int ERROR_CODE_LOGMANAGER_UNAVAILABLE = 132;
+    public static final int ERROR_CODE_OCSP_RESPONSE_UNVERIFIED = 133;
     public static final int ERROR_CODE_OCSP_UNINITIALIZED = 131;
     public static final int ERROR_CODE_OCSP_RESPONSE_INVALID = 130;
     public static final int ERROR_CODE_OCSP_CONNECTION_ERROR = 129;
