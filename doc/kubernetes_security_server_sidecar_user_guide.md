@@ -1606,4 +1606,4 @@ security-server-sidecar-secondary-7c844c6b5f-ntkx4   1/1     Running   0        
 
 7. Delete all the objects by running:
 ```bash
-kubectl delete -f load_balancer_setup.yaml"
+kubectl delete -f load_balancer_setup.yaml
