@@ -142,7 +142,7 @@ spec:
     targetPort: 5577
     protocol: TCP
     name: ocsp
-    name: tcp-4000
+    name: tcp-5577
   - port: 8080
     targetPort: 8080
     protocol: TCP
