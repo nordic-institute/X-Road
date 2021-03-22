@@ -6,7 +6,7 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
  09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices                    | Alberto Fernandez Lorenzo
- 
+
 ## Table of contents
 
 * [1 Introduction](#1-introduction)
@@ -30,7 +30,6 @@
 * [9 Backups](#9-backups)
 * [10 Message logs](#10-message-logs)
 * [11 Horizontal Pod Autoscaler best practices](#11-horizontal-pod-autoscaler-best-practices)
-
 
 ## 1 Introduction
 
@@ -562,7 +561,6 @@ kubectl --as=system:serviceaccount:sidecar-psp-restrictive:sidecar-eks-user -n s
 
 Now the user sidecar-eks-user should be able to create pods that match the conditions on the Pod Security Policy eks.restrictive.
 
-
 ## 7 Assign Resources to Containers and Pods
 
 Requests and limits are the mechanisms Kubernetes uses to control resources such as CPU and memory. Requests are what the container is guaranteed to get. If a container requests a resource, Kubernetes will only schedule it on a node that can give it that resource. Limits, on the other hand, make sure a container never goes above a certain value. The container is only allowed to go up to the limit, and then it is restricted.
@@ -589,11 +587,12 @@ containers:
         memory: "200Mi"
 [...]
 ```
+
 * The CPU resource is measured in CPU units. One CPU, in Kubernetes, is equivalent to:
-  + 1 AWS vCPU
-  + 1 GCP Core
-  + 1 Azure vCore
-  + 1 Hyperthread on a bare-metal Intel processor with Hyperthreading
+  * 1 AWS vCPU
+  * 1 GCP Core
+  * 1 Azure vCore
+  * 1 Hyperthread on a bare-metal Intel processor with Hyperthreading
 Fractional values are allowed. A Container that requests 0.5 CPU is guaranteed half as much CPU as a Container that requests 1 CPU. You can use the suffix m to mean milli. For example 100m CPU, 100 milliCPU, and 0.1 CPU are all the same. PrecisionFractional values are allowed for the CPU units. For example, a Container with a limit of 0.5 CPU is guaranteed half as much CPU as a Container that requests 1 CPU.
 You can also combine the value with the suffix `m` to mean milli. For example, 100m CPU, 100 milliCPU, and 0.1 CPU are all the same. A precision smaller than 1m is not allowed.
 

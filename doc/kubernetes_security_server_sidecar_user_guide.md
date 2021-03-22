@@ -4,10 +4,11 @@
 
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
-05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
-08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                   | Alberto Fernandez Lorenzo
-11.03.2021 | 1.1     | Add setup examples                                              | Alberto Fernandez Lorenzo
-15.03.2021 | 1.2     | Add IP address options                                          | Alberto Fernandez Lorenzo
+ 05.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
+ 08.03.2021 | 1.1     | Add Horizontal Pod Autoscaler                                   | Alberto Fernandez Lorenzo
+ 11.03.2021 | 1.2     | Add setup examples                                              | Alberto Fernandez Lorenzo
+ 15.03.2021 | 1.3     | Add IP address options                                          | Alberto Fernandez Lorenzo
+ 22.03.2021 | 1.4     | Add Load Balancer setup example                                 | Alberto Fernandez Lorenzo
 
 ## Table of Contents
 
@@ -68,7 +69,7 @@
     * [9.4.3 Deploy HorizontalPodAutoscaler](#943-deploy-horizontalpodautoscaler)
   * [9.5 Autoscale when Pods fails](#95-autoscale-when-pods-fails)
   * [9.6 Installation with default metrics](#96-installation-with-default-metrics)
-* [10 Setup example](#10-setup-example)
+* [10 Load Balancer setup example](#10-load-balancer-setup-example)
 
 ## 1 Introduction
 
@@ -1542,7 +1543,7 @@ spec:
         averageValue: <hpa averge memory utilization>
 ```
 
-## 10 Setup example
+## 10 Load Balancer setup example
 
 The [load_balancer_setup manifest template](./files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the deployment scenario in [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is named `sidecar`.
 
