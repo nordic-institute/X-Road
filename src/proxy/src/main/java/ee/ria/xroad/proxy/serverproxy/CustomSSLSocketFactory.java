@@ -110,7 +110,7 @@ class CustomSSLSocketFactory extends SSLConnectionSocketFactory {
 
         log.error("Could not find matching IS certificate for client '{}'",
                 client);
-        throw new Exception("Server certificate is not trusted");
+        throw new Exception("IS certificate is not trusted");
     }
 
     private static ServiceId getServiceId(HttpContext context)
