@@ -27,7 +27,7 @@ stringData:
   XROAD_DB_PWD: "<database password>"
   XROAD_DB_PORT: "<database port>"
   XROAD_LOG_LEVEL: "<xroad log level>"
-  XROAD_DATABASE_NAME: "<xroad dabase name>"
+  XROAD_DATABASE_NAME: "<xroad database name>"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
