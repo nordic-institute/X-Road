@@ -1543,6 +1543,7 @@ spec:
 ```
 
 ## 10 Setup example
+
 The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) contains all the necessary Kubernetes objects to set up the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer). The namespace where the objects are deployed is `sidecar`.
 1. Download the file and search for following variables and replace it with our desired values:
   + &lt;public key base64&gt; Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
