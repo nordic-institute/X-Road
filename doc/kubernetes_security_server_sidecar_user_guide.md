@@ -1569,6 +1569,7 @@ kubectl apply -f load_balancer_setup.yaml
 ```
 
 3. Verify that the PersistentVolumeClaim is deployed and bounded:
+
 ``` bash
 kubectl get pvc -n sidecar
 
