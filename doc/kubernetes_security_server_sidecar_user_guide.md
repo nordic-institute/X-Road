@@ -1548,7 +1548,7 @@ The [load_balancer_setup manifest template](/files/load_balancer_setup.yaml) con
 
 1. Download the file and search for the following variables and replace it with our desired values:
 
-  + &lt;public key base64&gt; Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
+    * &lt;public key base64&gt; Public key encoding in base64, we can get it by running: `path/to/id_rsa.pub|base64 -w0`.
   + &lt;private key base64&gt; Private key encoding in base64, we can get it by running: `path/to/id_rsa|base64 -w0`.
   + &lt;token pin&gt; (**reference data: 1.4**)
   + &lt;admin user&gt; (**reference data: 1.5**)
