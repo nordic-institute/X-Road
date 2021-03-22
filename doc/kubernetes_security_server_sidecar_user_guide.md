@@ -1578,6 +1578,7 @@ pvc-config-sidecar   Bound    pv-efs-config-sidecar   2Gi        RWX            
 ```
 
 4. Verify that the secrets are deployed:
+
 ```bash
 kubectl get secrets -n sidecar
 
