@@ -421,6 +421,8 @@ In this example, it will be shown how to isolate the Primary Pod described in [M
     kubectl delete -f /path/to/file.yaml
     ```
 
+The [security-server-sidecar-network-policy-examples manifest template](./files/security-server-sidecar-network-policy-examples.yaml) contains examples of all the above network policies.
+
 ## 6 Pod Security Policies
 
 Pod Security Policies are a cluster-level resource which holds a collection of flags that control security aspects of the pod specification. These flags define the conditions with which a pod should be run within the cluster when created. If a request for creating a pod does not meet these conditions, the request is rejected and the pod is not created.
