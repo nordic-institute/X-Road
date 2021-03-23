@@ -27,7 +27,14 @@
   <div>
     <div class="header">
       <div>
-        <v-btn fab icon small @click="clicked" class="no-hover">
+        <v-btn
+          fab
+          icon
+          small
+          @click="clicked"
+          class="no-hover"
+          v-bind:style="{ color: color }"
+        >
           <v-icon v-if="isOpen" class="button-icon">mdi-chevron-down</v-icon>
           <v-icon v-else class="button-icon">mdi-chevron-right</v-icon>
         </v-btn>
@@ -57,6 +64,10 @@ export default Vue.extend({
     isOpen: {
       type: Boolean,
       required: true,
+    },
+    color: {
+      type: String,
+      required: false,
     },
   },
   methods: {

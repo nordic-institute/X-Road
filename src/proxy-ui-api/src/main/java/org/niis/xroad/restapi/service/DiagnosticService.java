@@ -56,6 +56,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
+
 /**
  * diagnostic service
  */
@@ -84,6 +86,7 @@ public class DiagnosticService {
 
     /**
      * Query global configuration status from admin port over HTTP.
+     *
      * @return
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
@@ -97,6 +100,7 @@ public class DiagnosticService {
 
     /**
      * Query timestamping services status from admin port over HTTP.
+     *
      * @return
      */
     public List<DiagnosticsStatus> queryTimestampingStatus() {
@@ -112,6 +116,7 @@ public class DiagnosticService {
 
     /**
      * Query ocsp responders status from admin port over HTTP.
+     *
      * @return
      */
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
@@ -128,6 +133,7 @@ public class DiagnosticService {
 
     /**
      * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
+     *
      * @param address
      * @return
      * @throws DiagnosticRequestException if sending a diagnostics requests fails or an error is returned
@@ -158,6 +164,7 @@ public class DiagnosticService {
 
     /**
      * Parse DiagnosticsStatus representing a timestamping service diagnostics status
+     *
      * @param entry
      * @return
      */
@@ -171,6 +178,7 @@ public class DiagnosticService {
     /**
      * Parse parse OcspResponderDiagnosticsStatus representing a certificate authority including the ocsp services
      * of the certificate authority
+     *
      * @param entry
      * @return
      */
@@ -203,10 +211,8 @@ public class DiagnosticService {
      * Thrown when trying to send a diagnostic request
      */
     public static class DiagnosticRequestException extends ServiceException {
-        public static final String DIAGNOSTIC_REQUEST_FAILED = "diagnostic_request_failed";
-
         public DiagnosticRequestException() {
-            super(new ErrorDeviation(DIAGNOSTIC_REQUEST_FAILED));
+            super(new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
     }
 }

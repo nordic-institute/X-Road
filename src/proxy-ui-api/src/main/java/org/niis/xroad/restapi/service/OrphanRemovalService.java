@@ -33,10 +33,10 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ORPHANS_NOT_FOUND;
+
 /**
  * orphan cert and csr removal service
  */
@@ -53,6 +55,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class OrphanRemovalService {
 
     private final TokenService tokenService;
@@ -60,19 +63,6 @@ public class OrphanRemovalService {
     private final ClientService clientService;
     private final KeyService keyService;
     private final AuditDataHelper auditDataHelper;
-
-    @Autowired
-    public OrphanRemovalService(TokenService tokenService,
-            TokenCertificateService tokenCertificateService,
-            ClientService clientService,
-            KeyService keyService,
-            AuditDataHelper auditDataHelper) {
-        this.tokenService = tokenService;
-        this.tokenCertificateService = tokenCertificateService;
-        this.clientService = clientService;
-        this.keyService = keyService;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * Returns true, if orphaned keys, certs or csrs exist for given clientId.
@@ -242,20 +232,8 @@ public class OrphanRemovalService {
      * Thrown when someone tries to remove orphans, but none exist
      */
     public static class OrphansNotFoundException extends NotFoundException {
-        public static final String ERROR_ORPHANS_NOT_FOUND = "orphans_not_found";
         public OrphansNotFoundException() {
             super(new ErrorDeviation(ERROR_ORPHANS_NOT_FOUND));
         }
     }
-
-    /**
-     * Thrown when someone tries to remove orphans, but the client has not been deleted
-     */
-    public static class ClientNotDeletedException extends ServiceException {
-        public static final String ERROR_CLIENT_NOT_DELETED = "client_not_deleted";
-        public ClientNotDeletedException(String s) {
-            super(s, new ErrorDeviation(ERROR_CLIENT_NOT_DELETED));
-        }
-    }
-
 }

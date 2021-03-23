@@ -39,7 +39,7 @@ pipeline {
             steps {
                 sh 'cd src && ./update_ruby_dependencies.sh'
                 withCredentials([string(credentialsId: 'sonarqube-user-token-2', variable: 'SONAR_TOKEN')]) {
-                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube'
+                    sh 'cd src && ~/.rvm/bin/rvm jruby-$(cat .jruby-version) do ./gradlew -Dsonar.login=${SONAR_TOKEN} -Dsonar.pullrequest.key=${ghprbPullId} -Dsonar.pullrequest.branch=${ghprbSourceBranch} -Dsonar.pullrequest.base=${ghprbTargetBranch} --stacktrace --no-daemon buildAll runProxyTest runMetaserviceTest runProxymonitorMetaserviceTest jacocoTestReport dependencyCheckAggregate sonarqube -Pstrict-frontend-audit'
                 }
             }
         }
@@ -54,6 +54,20 @@ pipeline {
             steps {
                 script {
                     sh './src/packages/build-deb.sh bionic'
+                }
+            }
+        }
+        stage('Ubuntu focal packaging') {
+            agent {
+                dockerfile {
+                    dir 'src/packages/docker/deb-focal'
+                    args '-v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -e HOME=/tmp'
+                    reuseNode true
+                }
+            }
+            steps {
+                script {
+                    sh './src/packages/build-deb.sh focal'
                 }
             }
         }

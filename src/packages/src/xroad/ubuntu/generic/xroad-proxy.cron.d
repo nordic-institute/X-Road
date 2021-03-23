@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # automatic backups once a day
 15 3 * * * xroad /usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh

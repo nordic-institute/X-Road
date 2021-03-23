@@ -28,8 +28,8 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.config.audit.AuditEventHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.ServiceConverter;
 import org.niis.xroad.restapi.converter.ServiceDescriptionConverter;
@@ -50,7 +50,6 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -67,6 +66,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_SERV
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ENABLE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * service descriptions api
@@ -75,32 +75,11 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REFRESH_SERV
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class ServiceDescriptionsApiController implements ServiceDescriptionsApi {
-    public static final String WSDL_VALIDATOR_INTERRUPTED = "wsdl_validator_interrupted";
-
     private final ServiceDescriptionService serviceDescriptionService;
     private final ServiceDescriptionConverter serviceDescriptionConverter;
     private final ServiceConverter serviceConverter;
-    private final AuditEventHelper auditEventHelper;
-
-    /**
-     * ServiceDescriptionsApiController constructor
-     *
-     * @param serviceDescriptionService
-     * @param serviceDescriptionConverter
-     * @param serviceConverter
-     */
-
-    @Autowired
-    public ServiceDescriptionsApiController(ServiceDescriptionService serviceDescriptionService,
-            ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceConverter serviceConverter,
-            AuditEventHelper auditEventHelper) {
-        this.serviceDescriptionService = serviceDescriptionService;
-        this.serviceDescriptionConverter = serviceDescriptionConverter;
-        this.serviceConverter = serviceConverter;
-        this.auditEventHelper = auditEventHelper;
-    }
 
     @InitBinder("serviceDescriptionUpdate")
     @PreAuthorize("permitAll()")
@@ -192,15 +171,14 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                 | InvalidWsdlException | InvalidServiceUrlException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
-                | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
-            throw new ConflictException(e);
-        } catch (ServiceDescriptionService.UrlAlreadyExistsException
-                    | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
+                | ServiceDescriptionService.WsdlUrlAlreadyExistsException
+                | ServiceDescriptionService.UrlAlreadyExistsException
+                | ServiceDescriptionService.ServiceCodeAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
         }
 
         ServiceDescription serviceDescription = serviceDescriptionConverter.convert(updatedServiceDescription);
@@ -227,7 +205,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
         } catch (ServiceDescriptionNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (InterruptedException e) {
-            throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
         }
         return new ResponseEntity<>(serviceDescription, HttpStatus.OK);
     }

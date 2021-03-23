@@ -38,6 +38,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED;
 
 public class RestoreServiceTest extends AbstractServiceTestContext {
 
@@ -80,7 +82,7 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
             restoreService.restoreFromBackup("no-backups-here.tar");
             fail("should have thrown an exception");
         } catch (BackupFileNotFoundException e) {
-            assertEquals(BackupFileNotFoundException.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
+            assertEquals(ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
         }
     }
 
@@ -91,7 +93,7 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
             restoreService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (RestoreProcessFailedException e) {
-            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
+            assertEquals(ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 
@@ -102,7 +104,7 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
             restoreService.restoreFromBackup(tempBackupFilename);
             fail("should have thrown an exception");
         } catch (RestoreProcessFailedException e) {
-            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
+            assertEquals(ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 }

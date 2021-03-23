@@ -89,20 +89,20 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.service.ClientService.InvalidInstanceIdentifierException.ERROR_INVALID_INSTANCE_IDENTIFIER;
-import static org.niis.xroad.restapi.service.ClientService.InvalidMemberClassException.ERROR_INVALID_MEMBER_CLASS;
-import static org.niis.xroad.restapi.service.InvalidServiceUrlException.ERROR_INVALID_SERVICE_URL;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.ServiceAlreadyExistsException.ERROR_SERVICE_EXISTS;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.WARNING_WSDL_VALIDATION_WARNINGS;
-import static org.niis.xroad.restapi.service.ServiceDescriptionService.WsdlUrlAlreadyExistsException.ERROR_WSDL_EXISTS;
-import static org.niis.xroad.restapi.service.UnhandledWarningsException.ERROR_WARNINGS_DETECTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INSTANCE_IDENTIFIER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_MEMBER_CLASS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_URL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSDL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WARNINGS_DETECTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
 import static org.niis.xroad.restapi.util.CertificateTestUtils.getResource;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertWarning;
 import static org.niis.xroad.restapi.util.TestUtils.CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT;
 import static org.niis.xroad.restapi.util.TestUtils.assertLocationHeader;
-import static org.niis.xroad.restapi.wsdl.InvalidWsdlException.ERROR_INVALID_WSDL;
 
 /**
  * Test ClientsApiController

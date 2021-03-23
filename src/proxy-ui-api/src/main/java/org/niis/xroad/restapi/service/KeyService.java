@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -31,14 +31,13 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventHelper;
-import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.util.SecurityHelper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +56,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHA
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_FRIENDLY_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
  * Service that handles keys
@@ -65,10 +65,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.KEY_LABEL
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class KeyService {
-
-    public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";
-
     private final SignerProxyFacade signerProxyFacade;
     private final TokenService tokenService;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
@@ -76,26 +74,6 @@ public class KeyService {
     private final SecurityHelper securityHelper;
     private final AuditDataHelper auditDataHelper;
     private final AuditEventHelper auditEventHelper;
-
-    /**
-     * KeyService constructor
-     */
-    @Autowired
-    public KeyService(TokenService tokenService, SignerProxyFacade signerProxyFacade,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            ManagementRequestSenderService managementRequestSenderService,
-            SecurityHelper securityHelper,
-            AuditDataHelper auditDataHelper,
-            AuditEventHelper auditEventHelper,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
-        this.tokenService = tokenService;
-        this.signerProxyFacade = signerProxyFacade;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.managementRequestSenderService = managementRequestSenderService;
-        this.securityHelper = securityHelper;
-        this.auditDataHelper = auditDataHelper;
-        this.auditEventHelper = auditEventHelper;
-    }
 
     /**
      * Return one key

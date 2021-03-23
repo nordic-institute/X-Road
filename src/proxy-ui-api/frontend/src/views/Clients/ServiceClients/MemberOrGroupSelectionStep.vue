@@ -39,7 +39,10 @@
       </v-text-field>
     </div>
 
-    <v-radio-group>
+    <v-radio-group
+      v-model="selection"
+      @change="$emit('candidate-selection', $event)"
+    >
       <table class="xrd-table service-clients-table">
         <thead>
           <tr>
@@ -56,7 +59,6 @@
             <td class="checkbox-column">
               <div class="checkbox-wrap">
                 <v-radio
-                  v-on:change="selectCandidate(candidate)"
                   :disabled="isDisabled(candidate)"
                   :key="candidate.id"
                   :value="candidate"
@@ -79,9 +81,9 @@
 
     <div class="button-footer full-width">
       <div class="button-group">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
-          $t('action.cancel')
-        }}</large-button>
+        <large-button outlined @click="cancel" data-test="cancel-button"
+          >{{ $t('action.cancel') }}
+        </large-button>
       </div>
 
       <div>
@@ -89,8 +91,8 @@
           :disabled="!selection"
           @click="$emit('set-step')"
           data-test="next-button"
-          >{{ $t('action.next') }}</large-button
-        >
+          >{{ $t('action.next') }}
+        </large-button>
       </div>
     </div>
   </div>
@@ -153,10 +155,6 @@ export default Vue.extend({
           );
         },
       );
-    },
-    selectCandidate(candidate: ServiceClient): void {
-      this.selection = candidate;
-      this.$emit('candidate-selection', candidate);
     },
     isDisabled(scCandidate: ServiceClient): boolean {
       return this.serviceClients.some(

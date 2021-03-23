@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- * <p>
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -33,12 +33,12 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +57,8 @@ import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
 import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TOKEN_FRIENDLY_NAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PIN_INCORRECT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_TOKEN_NOT_ACTIVE;
 import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_TOKEN_ID;
 
 /**
@@ -66,23 +68,12 @@ import static org.niis.xroad.restapi.service.PossibleActionsRuleEngine.SOFTWARE_
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class TokenService {
 
     private final SignerProxyFacade signerProxyFacade;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final AuditDataHelper auditDataHelper;
-
-    /**
-     * TokenService constructor
-     */
-    @Autowired
-    public TokenService(SignerProxyFacade signerProxyFacade,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            AuditDataHelper auditDataHelper) {
-        this.signerProxyFacade = signerProxyFacade;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * get all tokens
@@ -405,9 +396,6 @@ public class TokenService {
     }
 
     public static class PinIncorrectException extends ServiceException {
-
-        public static final String ERROR_PIN_INCORRECT = "pin_incorrect";
-
         public PinIncorrectException(Throwable t) {
             super(t, createError());
         }
@@ -419,9 +407,6 @@ public class TokenService {
     }
 
     public static class TokenNotActiveException extends ServiceException {
-
-        public static final String ERROR_TOKEN_NOT_ACTIVE = "token_not_active";
-
         public TokenNotActiveException(Throwable t) {
             super(t, createError());
         }

@@ -21,7 +21,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR8")
+    set('springCloudVersion', "Hoxton.SR10")
 }
 
 sourceSets {
@@ -69,15 +69,21 @@ task buildFront(type: NpmTask) {
     }
 }
 
-// check that npm run check-audit passes
-// check-audit uses ignores from audit-resolve.json
 task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     onlyIf {
-        !project.hasProperty('skip-frontend-build')
+        (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
     }
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
-    args = ['run', 'check-audit']
+    if (project.hasProperty('strict-frontend-audit')) {
+        // do a strict front audit with npm run check-audit
+        // check-audit uses ignore list from audit-resolve.json
+        // To update that, do "npm run resolve-audit" from frontend dir
+        args = ['run', 'check-audit']
+    } else {
+        // do a loose front audit with npm in-built audit
+        args = ['audit', '--production', '--audit-level=moderate']
+    }
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -105,6 +111,24 @@ if (!project.hasProperty("testDataUrl")) {
     ext.testDataUrl = ""
 }
 
+if (!project.hasProperty("withTags")) {
+    ext.withTags = ""
+}
+
+if (!project.hasProperty("withoutTags")) {
+    ext.withoutTags = ""
+}
+
+if (!project.hasProperty("failScreenshot")) {
+    ext.failScreenshot = ""
+}
+
+if (!project.hasProperty("runHeadless")) {
+    ext.runHeadless = ""
+}
+
+
+
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     doFirst {
@@ -113,14 +137,26 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
         }
         if (testDataUrl.isEmpty()) {
             throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
-        }
+        }       
     }
 
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
 
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl]
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
 
+    if (!runHeadless.isEmpty()) {
+      if (runHeadless == "true") {
+        args += "--headless"
+      }
+    }
+
+    if (!failScreenshot.isEmpty()) {
+      if (failScreenshot == "true") {
+        args += "--env screenshot"
+      }
+    }
+    
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -213,6 +249,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.springframework.boot:spring-boot-starter-cache")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.apache.commons:commons-compress:1.20')

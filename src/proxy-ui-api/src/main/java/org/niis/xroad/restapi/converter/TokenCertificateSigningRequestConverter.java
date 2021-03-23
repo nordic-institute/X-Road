@@ -30,9 +30,9 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import com.google.common.collect.Streams;
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -42,20 +42,12 @@ import java.util.stream.Collectors;
  * Convert token certificate signing request related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class TokenCertificateSigningRequestConverter {
 
     private final ClientConverter clientConverter;
     private final PossibleActionsRuleEngine possibleActionsRuleEngine;
     private final PossibleActionConverter possibleActionConverter;
-
-    @Autowired
-    public TokenCertificateSigningRequestConverter(ClientConverter clientConverter,
-            PossibleActionsRuleEngine possibleActionsRuleEngine,
-            PossibleActionConverter possibleActionConverter) {
-        this.clientConverter = clientConverter;
-        this.possibleActionsRuleEngine = possibleActionsRuleEngine;
-        this.possibleActionConverter = possibleActionConverter;
-    }
 
     /**
      * Convert {@link CertRequestInfo} to {@link TokenCertificateSigningRequest}

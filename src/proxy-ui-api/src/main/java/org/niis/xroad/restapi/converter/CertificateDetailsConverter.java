@@ -31,9 +31,9 @@ import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
@@ -45,11 +45,11 @@ import java.util.ArrayList;
  * Converter for CertificateDetails related data between openapi and service domain classes
  */
 @Component
+@RequiredArgsConstructor
 public class CertificateDetailsConverter {
 
     public static final int RADIX_FOR_HEX = 16;
-    @Autowired
-    private KeyUsageConverter keyUsageConverter;
+    private final KeyUsageConverter keyUsageConverter;
 
     /**
      * convert CertificateType into openapi Certificate class
@@ -83,18 +83,24 @@ public class CertificateDetailsConverter {
 
         String issuerCommonName = null;
         String subjectCommonName = null;
+        String subjectAlternativeNames = null;
         try {
             issuerCommonName = CertUtils.getIssuerCommonName(x509Certificate);
-        } catch (CodedException didNotFindCommonName) {
+        } catch (CodedException didNotFindIssuerCommonName) {
         }
         try {
             subjectCommonName = CertUtils.getSubjectCommonName(x509Certificate);
-        } catch (CodedException didNotFindCommonName) {
+        } catch (CodedException didNotFindSubjectCommonName) {
+        }
+        try {
+            subjectAlternativeNames = CertUtils.getSubjectAlternativeNames(x509Certificate);
+        } catch (CodedException certParsingFailed) {
         }
         certificate.setIssuerCommonName(issuerCommonName);
         certificate.setIssuerDistinguishedName(x509Certificate.getIssuerDN().getName());
         certificate.setSubjectCommonName(subjectCommonName);
         certificate.setSubjectDistinguishedName(x509Certificate.getSubjectDN().getName());
+        certificate.setSubjectAlternativeNames(subjectAlternativeNames);
 
         certificate.setSerial(x509Certificate.getSerialNumber().toString());
         certificate.setVersion(x509Certificate.getVersion());

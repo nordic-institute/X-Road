@@ -27,7 +27,7 @@
   <v-dialog :value="dialog" width="850" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
-        <span class="headline">{{
+        <span class="headline" data-test="access-rights-dialog-title">{{
           $t('accessRights.addServiceClientsTitle')
         }}</span>
         <v-spacer />

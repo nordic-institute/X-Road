@@ -27,12 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_TIMESTAMPING_SERVICE_NOT_FOUND;
+
 /**
  * If timestamping service was not found
  */
 public class TimestampingServiceNotFoundException extends NotFoundException {
-    public static final String ERROR_TIMESTAMPING_SERVICE_NOT_FOUND = "timestamping_service_not_found";
-
     public TimestampingServiceNotFoundException(String s)  {
         super(s, new ErrorDeviation(ERROR_TIMESTAMPING_SERVICE_NOT_FOUND));
     }

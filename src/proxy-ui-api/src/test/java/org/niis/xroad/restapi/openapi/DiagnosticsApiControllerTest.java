@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.openapi;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
@@ -47,7 +46,6 @@ import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.TimeZone;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -71,11 +69,6 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
     private static final String CA_NAME_2 = "CN=Xroad Test, C=EE";
     private static final String OCSP_URL_1 = "https://ocsp1.example.com";
     private static final String OCSP_URL_2 = "https://ocsp2.example.com";
-
-    @Before
-    public void setup() {
-        TimeZone.setDefault(TimeZone.getTimeZone("GMT"));
-    }
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})

@@ -38,6 +38,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -47,7 +48,6 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -68,6 +68,8 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_C
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICE_CODES;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_ID;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_IDS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_ACCESSRIGHT;
 
 /**
  * Service class for handling access rights.
@@ -78,6 +80,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SUBJECT_I
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class AccessRightService {
 
     private final GlobalConfFacade globalConfFacade;
@@ -87,22 +90,6 @@ public class AccessRightService {
     private final AuditDataHelper auditDataHelper;
     private final ServiceDescriptionService serviceDescriptionService;
     private final ClientService clientService;
-
-    @Autowired
-    public AccessRightService(GlobalConfFacade globalConfFacade,
-            ClientRepository clientRepository, IdentifierService identifierService,
-            EndpointService endpointService,
-            ServiceDescriptionService serviceDescriptionService,
-            ClientService clientService,
-            AuditDataHelper auditDataHelper) {
-        this.globalConfFacade = globalConfFacade;
-        this.clientRepository = clientRepository;
-        this.identifierService = identifierService;
-        this.endpointService = endpointService;
-        this.serviceDescriptionService = serviceDescriptionService;
-        this.clientService = clientService;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * Remove AccessRights from a Service
@@ -463,6 +450,9 @@ public class AccessRightService {
             serviceClientDto.setLocalGroupId(localGroupType.getId().toString());
             serviceClientDto.setLocalGroupCode(localGroupType.getGroupCode());
             serviceClientDto.setLocalGroupDescription(localGroupType.getDescription());
+        } else if (subjectId.getObjectType() == XRoadObjectType.GLOBALGROUP) {
+            GlobalGroupId globalGroupId = (GlobalGroupId) subjectId;
+            serviceClientDto.setGlobalGroupDescription(globalConfFacade.getGlobalGroupDescription(globalGroupId));
         }
         return serviceClientDto;
     }
@@ -516,7 +506,6 @@ public class AccessRightService {
             }
         }
 
-        clientRepository.saveOrUpdate(clientType);
         return addedAccessRights;
     }
 
@@ -584,8 +573,6 @@ public class AccessRightService {
      * If access right was not found
      */
     public static class AccessRightNotFoundException extends NotFoundException {
-        public static final String ERROR_ACCESSRIGHT_NOT_FOUND = "accessright_not_found";
-
         public AccessRightNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_ACCESSRIGHT_NOT_FOUND));
         }
@@ -600,9 +587,6 @@ public class AccessRightService {
      * If duplicate access right was found
      */
     public static class DuplicateAccessRightException extends ServiceException {
-
-        public static final String ERROR_DUPLICATE_ACCESSRIGHT = "duplicate_accessright";
-
         public DuplicateAccessRightException(String msg) {
             super(msg, new ErrorDeviation(ERROR_DUPLICATE_ACCESSRIGHT));
         }
@@ -705,7 +689,7 @@ public class AccessRightService {
             globalGroupInfos.forEach(globalGroupInfo -> {
                 ServiceClientDto serviceClientDto = new ServiceClientDto();
                 serviceClientDto.setSubjectId(globalGroupInfo.getId());
-                serviceClientDto.setLocalGroupDescription(globalGroupInfo.getDescription());
+                serviceClientDto.setGlobalGroupDescription(globalGroupInfo.getDescription());
                 globalGroups.add(serviceClientDto);
             });
         }
@@ -824,8 +808,10 @@ public class AccessRightService {
         return dto -> {
             String memberName = dto.getMemberName();
             String localGroupDescription = dto.getLocalGroupDescription();
+            String globalGroupDescription = dto.getGlobalGroupDescription();
             boolean isMatch = StringUtils.containsIgnoreCase(memberName, memberNameOrGroupDescription)
-                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription);
+                    || StringUtils.containsIgnoreCase(localGroupDescription, memberNameOrGroupDescription)
+                    || StringUtils.containsIgnoreCase(globalGroupDescription, memberNameOrGroupDescription);
             return isMatch;
         };
     }

@@ -33,7 +33,6 @@ import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
-import org.niis.xroad.restapi.service.InvalidFilenameException;
 import org.niis.xroad.restapi.service.ProcessFailedException;
 import org.niis.xroad.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -59,6 +58,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED;
 
 /**
  * Test BackupsApiController
@@ -80,7 +81,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
-    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "test",
+    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "test.tar",
             "multipart/form-data", "content".getBytes());
 
     @Before
@@ -225,14 +226,14 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupWithInvalidFilename() throws Exception {
-        doThrow(new InvalidFilenameException("")).when(backupService)
-                .uploadBackup(any(Boolean.class), any(String.class), any());
-
+        MockMultipartFile mockMultipartWithInvalidName = new MockMultipartFile("test", "/test.tar",
+                "multipart/form-data", "content".getBytes());
         try {
-            ResponseEntity<Backup> response = backupsApiController.uploadBackup(true, mockMultipartFile);
+            ResponseEntity<Backup> response = backupsApiController.uploadBackup(true,
+                    mockMultipartWithInvalidName);
             fail("should throw BadRequestException");
         } catch (BadRequestException expected) {
-            // success
+            assertEquals("invalid_filename", expected.getErrorDeviation().getCode());
         }
     }
 
@@ -293,7 +294,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw BadRequestException");
         } catch (BadRequestException e) {
-            assertEquals(BackupFileNotFoundException.ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
+            assertEquals(ERROR_BACKUP_FILE_NOT_FOUND, e.getErrorDeviation().getCode());
         }
     }
 
@@ -318,7 +319,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
             backupsApiController.restoreBackup(BACKUP_FILE_1_NAME);
             fail("should throw InternalServerErrorException");
         } catch (InternalServerErrorException e) {
-            assertEquals(RestoreProcessFailedException.RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
+            assertEquals(ERROR_BACKUP_RESTORE_PROCESS_FAILED, e.getErrorDeviation().getCode());
         }
     }
 }

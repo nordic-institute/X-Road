@@ -54,7 +54,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.service.ConfigurationVerifier.MISSING_PRIVATE_PARAMS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS;
 import static org.niis.xroad.restapi.util.DeviationTestUtils.assertErrorWithoutMetadata;
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_HASH;
@@ -209,14 +209,14 @@ public class SystemServiceTest {
 
     @Test
     public void replaceAnchorFailVerification() throws Exception {
-        doThrow(new ConfigurationVerifier.ConfigurationVerificationException(MISSING_PRIVATE_PARAMS))
+        doThrow(new ConfigurationVerifier.ConfigurationVerificationException(ERROR_MISSING_PRIVATE_PARAMS))
                 .when(configurationVerifier).verifyInternalConfiguration(any());
         byte[] anchorBytes = FileUtils.readFileToByteArray(ANCHOR_FILE);
         try {
             systemService.replaceAnchor(anchorBytes);
             fail("Should have failed");
         } catch (Exception e) {
-            assertErrorWithoutMetadata(MISSING_PRIVATE_PARAMS,
+            assertErrorWithoutMetadata(ERROR_MISSING_PRIVATE_PARAMS,
                     (ConfigurationVerifier.ConfigurationVerificationException) e);
         }
     }

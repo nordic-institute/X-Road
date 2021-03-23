@@ -63,7 +63,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.niis.xroad.restapi.service.KeyService.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED;
 
 /**
  * test key service.
@@ -313,9 +313,8 @@ public class KeyServiceTest extends AbstractServiceTestContext {
                 return Collections.singletonList(TOKEN_INFO);
             }
         };
-        keyService = new KeyService(tokenService, signerProxyFacade, possibleActionsRuleEngineParam,
-                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper,
-                auditEventLoggingFacade);
+        keyService = new KeyService(signerProxyFacade, tokenService, possibleActionsRuleEngineParam,
+                managementRequestSenderService, securityHelper, auditDataHelper, auditEventHelper);
     }
 
     private void mockPossibleActionsRuleEngineAllowAll() {

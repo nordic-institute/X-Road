@@ -46,7 +46,7 @@
       slider-size="4"
     >
       <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to">{{
+      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" :data-test="tab.key">{{
         $t(tab.name)
       }}</v-tab>
     </v-tabs>

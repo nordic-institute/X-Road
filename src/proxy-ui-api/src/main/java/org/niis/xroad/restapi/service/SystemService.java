@@ -33,6 +33,7 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -45,7 +46,6 @@ import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.AnchorRepository;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +65,11 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.GENERATED_AT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_NAME;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_URL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_UPLOAD_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MALFORMED_ANCHOR;
 
 /**
  * Service that handles system services
@@ -73,6 +78,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.TSP_URL;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class SystemService {
 
     private final GlobalConfService globalConfService;
@@ -91,22 +97,6 @@ public class SystemService {
     private static final String ANCHOR_DOWNLOAD_FILENAME_PREFIX = "configuration_anchor_UTC_";
     private static final String ANCHOR_DOWNLOAD_DATE_TIME_FORMAT = "yyyy-MM-dd_HH_mm_ss";
     private static final String ANCHOR_DOWNLOAD_FILE_EXTENSION = ".xml";
-
-    /**
-     * constructor
-     */
-    @Autowired
-    public SystemService(GlobalConfService globalConfService, ServerConfService serverConfService,
-            AnchorRepository anchorRepository, ConfigurationVerifier configurationVerifier,
-            CurrentSecurityServerId currentSecurityServerId,
-            AuditDataHelper auditDataHelper) {
-        this.globalConfService = globalConfService;
-        this.serverConfService = serverConfService;
-        this.anchorRepository = anchorRepository;
-        this.configurationVerifier = configurationVerifier;
-        this.currentSecurityServerId = currentSecurityServerId;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * Return a list of configured timestamping services
@@ -448,9 +438,6 @@ public class SystemService {
      * Thrown when attempt to add timestamping service that is already configured
      */
     public static class DuplicateConfiguredTimestampingServiceException extends ServiceException {
-        public static final String ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE
-                = "timestamping_service_already_configured";
-
         public DuplicateConfiguredTimestampingServiceException(String s) {
             super(s, new ErrorDeviation(ERROR_DUPLICATE_CONFIGURED_TIMESTAMPING_SERVICE));
         }
@@ -460,11 +447,8 @@ public class SystemService {
      * Thrown when attempting to upload an anchor from a wrong instance
      */
     public static class InvalidAnchorInstanceException extends ServiceException {
-        public static final String INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID
-                = "internal_anchor_upload_invalid_instance_id";
-
         public InvalidAnchorInstanceException(String s) {
-            super(s, new ErrorDeviation(INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID));
+            super(s, new ErrorDeviation(ERROR_INTERNAL_ANCHOR_UPLOAD_INVALID_INSTANCE_ID));
         }
     }
 
@@ -472,10 +456,8 @@ public class SystemService {
      * Thrown when uploading a conf anchor fails
      */
     public static class AnchorUploadException extends ServiceException {
-        public static final String ANCHOR_UPLOAD_FAILED = "anchor_upload_failed";
-
         public AnchorUploadException(Throwable t) {
-            super(t, new ErrorDeviation(ANCHOR_UPLOAD_FAILED));
+            super(t, new ErrorDeviation(ERROR_ANCHOR_UPLOAD_FAILED));
         }
     }
 
@@ -483,10 +465,8 @@ public class SystemService {
      * Thrown e.g. if Anchor upload or preview fails because of invalid content
      */
     public static class MalformedAnchorException extends ServiceException {
-        public static final String MALFORMED_ANCHOR = "malformed_anchor";
-
         public MalformedAnchorException(String s) {
-            super(s, new ErrorDeviation(MALFORMED_ANCHOR));
+            super(s, new ErrorDeviation(ERROR_MALFORMED_ANCHOR));
         }
     }
 
@@ -494,10 +474,8 @@ public class SystemService {
      * Thrown if user tries to upload a new anchor instead of updating the old
      */
     public static class AnchorAlreadyExistsException extends ServiceException {
-        public static final String ANCHOR_EXISTS = "anchor_already_exists";
-
         public AnchorAlreadyExistsException(String s) {
-            super(s, new ErrorDeviation(ANCHOR_EXISTS));
+            super(s, new ErrorDeviation(ERROR_ANCHOR_EXISTS));
         }
     }
 }

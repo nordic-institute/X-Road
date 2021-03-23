@@ -27,10 +27,10 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
-public class RestoreProcessFailedException extends ServiceException {
-    public static final String RESTORE_PROCESS_FAILED = "restore_process_failed";
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED;
 
+public class RestoreProcessFailedException extends ServiceException {
     public RestoreProcessFailedException(Throwable t, String msg) {
-        super(msg, t, new ErrorDeviation(RESTORE_PROCESS_FAILED));
+        super(msg, t, new ErrorDeviation(ERROR_BACKUP_RESTORE_PROCESS_FAILED));
     }
 }

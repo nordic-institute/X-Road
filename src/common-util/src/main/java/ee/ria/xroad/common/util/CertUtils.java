@@ -77,11 +77,14 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
+import java.security.cert.CertificateParsingException;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
@@ -97,6 +100,20 @@ public final class CertUtils {
     private static final int DIGITAL_SIGNATURE_IDX = 0;
     private static final int KEY_ENCIPHERMENT_IDX = 2;
     private static final int DATA_ENCIPHERMENT_IDX = 3;
+
+    private static final List<String> FIELD_NAMES = Collections.unmodifiableList(
+            Arrays.asList("othername", "email", "DNS", "x400", "DirName", "ediPartyName",
+                    "URI", "IP Address", "Registered ID"));
+
+    private static final int OTHER_NAME_IDX = 0;
+    private static final int X400_IDX = 3;
+    private static final int EDI_PARTY_NAME_IDX = 5;
+    private static final int MAX_IDX = 8;
+
+    private static final List<Integer> UNSUPPORTED_FIELDS = Collections
+            .unmodifiableList(Arrays.asList(
+                    OTHER_NAME_IDX, X400_IDX,
+                    EDI_PARTY_NAME_IDX));
 
     private CertUtils() {
     }
@@ -136,6 +153,33 @@ public final class CertUtils {
         return cn;
     }
 
+    /**
+     * Reads subject alternative names from certificate and returns its string representation
+     * @param cert certificate for which to get the subject alternative names
+     * @return string representation of the subject alternative names
+     */
+    public static String getSubjectAlternativeNames(X509Certificate cert) {
+        StringBuilder builder = new StringBuilder();
+        Collection<List<?>> subjectAlternativeNames;
+        try {
+            subjectAlternativeNames = cert.getSubjectAlternativeNames();
+        } catch (CertificateParsingException e) {
+            throw new CodedException(ErrorCodes.X_INCORRECT_CERTIFICATE,
+                    "Failed parsing the certificate information");
+        }
+        if (subjectAlternativeNames != null) {
+            for (final List<?> sanItem : subjectAlternativeNames) {
+                final Integer itemType = (Integer) sanItem.get(0);
+                if (itemType >= 0 && itemType <= MAX_IDX) {
+                    if (builder.length() > 0) builder.append(", ");
+                    builder.append(FIELD_NAMES.get(itemType));
+                    builder.append(':');
+                    builder.append(UNSUPPORTED_FIELDS.contains(itemType) ? "<unsupported>" : (String) sanItem.get(1));
+                }
+            }
+        }
+        return builder.length() == 0 ? null : builder.toString();
+    }
 
     /**
      * @param cert certificate from which to get the subject serial number

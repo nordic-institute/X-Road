@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -72,6 +73,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.openapi.validator.ClientAddValidator;
+import org.niis.xroad.restapi.openapi.validator.LocalGroupAddValidator;
 import org.niis.xroad.restapi.openapi.validator.ServiceDescriptionAddValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
@@ -95,7 +97,6 @@ import org.niis.xroad.restapi.util.ResourceUtils;
 import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -130,8 +131,9 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_C
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 import static org.niis.xroad.restapi.openapi.ApiUtil.createCreatedResponse;
-import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * clients api
@@ -140,9 +142,8 @@ import static org.niis.xroad.restapi.openapi.ServiceDescriptionsApiController.WS
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class ClientsApiController implements ClientsApi {
-    public static final String ERROR_INVALID_CERT = "invalid_cert";
-
     private final ClientConverter clientConverter;
     private final ClientService clientService;
     private final LocalGroupConverter localGroupConverter;
@@ -161,42 +162,6 @@ public class ClientsApiController implements ClientsApi {
     private final AuditDataHelper auditDataHelper;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
     private final ClientSortingComparator clientSortingComparator;
-
-    /**
-     * ClientsApiController constructor
-     */
-    @SuppressWarnings("checkstyle:ParameterNumber")
-    @Autowired
-    public ClientsApiController(ClientService clientService, TokenService tokenService,
-            ClientConverter clientConverter, LocalGroupConverter localGroupConverter,
-            LocalGroupService localGroupService, CertificateDetailsConverter certificateDetailsConverter,
-            ServiceDescriptionConverter serviceDescriptionConverter,
-            ServiceDescriptionService serviceDescriptionService, AccessRightService accessRightService,
-            TokenCertificateConverter tokenCertificateConverter,
-            OrphanRemovalService orphanRemovalService, ServiceClientConverter serviceClientConverter,
-            AccessRightConverter accessRightConverter, ServiceClientService serviceClientService,
-            ServiceClientHelper serviceClientHelper,
-            ServiceClientIdentifierConverter serviceClientIdentifierConverter,
-            AuditDataHelper auditDataHelper) {
-        this.clientService = clientService;
-        this.tokenService = tokenService;
-        this.clientConverter = clientConverter;
-        this.localGroupConverter = localGroupConverter;
-        this.localGroupService = localGroupService;
-        this.certificateDetailsConverter = certificateDetailsConverter;
-        this.serviceDescriptionConverter = serviceDescriptionConverter;
-        this.serviceDescriptionService = serviceDescriptionService;
-        this.accessRightService = accessRightService;
-        this.tokenCertificateConverter = tokenCertificateConverter;
-        this.orphanRemovalService = orphanRemovalService;
-        this.serviceClientConverter = serviceClientConverter;
-        this.accessRightConverter = accessRightConverter;
-        this.serviceClientService = serviceClientService;
-        this.serviceClientHelper = serviceClientHelper;
-        this.auditDataHelper = auditDataHelper;
-        this.serviceClientSortingComparator = new ServiceClientSortingComparator();
-        this.clientSortingComparator = new ClientSortingComparator();
-    }
 
     /**
      * Finds clients matching search terms
@@ -351,6 +316,12 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
+    @InitBinder("localGroupAdd")
+    @PreAuthorize("permitAll()")
+    protected void initLocalGroupAddBinder(WebDataBinder binder) {
+        binder.addValidators(new LocalGroupAddValidator());
+    }
+
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP)
@@ -420,7 +391,7 @@ public class ClientsApiController implements ClientsApi {
                 // deviation data (errorcode + warnings) copied
                 throw new ConflictException(e);
             } catch (InterruptedException e) {
-                throw new InternalServerErrorException(new ErrorDeviation(WSDL_VALIDATOR_INTERRUPTED));
+                throw new InternalServerErrorException(new ErrorDeviation(ERROR_WSDL_VALIDATOR_INTERRUPTED));
             }
         } else if (serviceDescription.getType() == ServiceType.OPENAPI3) {
             try {
@@ -548,10 +519,8 @@ public class ClientsApiController implements ClientsApi {
             orphanRemovalService.deleteOrphans(clientId);
         } catch (OrphanRemovalService.OrphansNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
-        } catch (GlobalConfOutdatedException e) {
-            throw new BadRequestException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -576,12 +545,12 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.registerClient(clientId);
-        } catch (GlobalConfOutdatedException | ClientService.CannotRegisterOwnerException
+        } catch (ClientService.CannotRegisterOwnerException
                 | ClientService.InvalidMemberClassException | ClientService.InvalidInstanceIdentifierException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -594,11 +563,10 @@ public class ClientsApiController implements ClientsApi {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
             clientService.unregisterClient(clientId);
-        } catch (GlobalConfOutdatedException e) {
-            throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException | ClientService.CannotUnregisterOwnerException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException
+                | ClientService.CannotUnregisterOwnerException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -612,11 +580,11 @@ public class ClientsApiController implements ClientsApi {
         try {
             clientService.changeOwner(clientId.getMemberClass(), clientId.getMemberCode(),
                     clientId.getSubsystemCode());
-        } catch (GlobalConfOutdatedException | ClientService.MemberAlreadyOwnerException e) {
+        } catch (ClientService.MemberAlreadyOwnerException e) {
             throw new BadRequestException(e);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
-        } catch (ActionNotPossibleException e) {
+        } catch (GlobalConfOutdatedException | ActionNotPossibleException e) {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);

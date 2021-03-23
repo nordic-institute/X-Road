@@ -27,11 +27,12 @@ package org.niis.xroad.restapi.service;
 
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INSTANTIATION_FAILED;
+
 /**
  * If certificate profile could not be instantiated
  */
 public class CertificateProfileInstantiationException extends ServiceException {
-    public static final String ERROR_INSTANTIATION_FAILED = "certificate_profile_instantiation_failure";
     public CertificateProfileInstantiationException(Throwable t) {
         super(t, new ErrorDeviation(ERROR_INSTANTIATION_FAILED));
     }

@@ -34,7 +34,7 @@
       </v-layout>
     </v-layout>
 
-    <v-dialog v-model="logoutDialog" width="500" persistent>
+    <v-dialog v-model="showDialog" width="500" persistent>
       <v-card class="xrd-card">
         <v-card-title>
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>
@@ -47,7 +47,8 @@
             rounded
             dark
             class="mb-2 rounded-button elevation-0"
-            @click="closeLogoutDialog()"
+            data-test="session-expired-ok-button"
+            @click="logout()"
             >{{ $t('action.ok') }}</v-btn
           >
         </v-card-actions>
@@ -66,8 +67,12 @@ export default Vue.extend({
     return {
       sessionPollInterval: 0,
       alertsPollInterval: 0,
-      logoutDialog: false,
     };
+  },
+  computed: {
+    showDialog(): boolean {
+      return this.$store.getters.isSessionAlive === false;
+    },
   },
   created() {
     // Set interval to poll backend for session
@@ -76,24 +81,22 @@ export default Vue.extend({
       30000,
     );
     this.$store.dispatch('checkAlertStatus'); // Poll immediately to get initial alerts state
-    this.alertsPollInterval = setInterval(
-      () => this.$store.dispatch('checkAlertStatus'),
-      30000,
-    );
   },
   methods: {
-    closeLogoutDialog() {
-      this.logoutDialog = false;
-      this.logout();
-    },
     pollSessionStatus() {
-      return api.get('/notifications/session-status').catch((error) => {
-        if (error.response && error.response.status === 401) {
-          this.logoutDialog = true;
-          clearInterval(this.sessionPollInterval);
-          clearInterval(this.alertsPollInterval);
-        }
-      });
+      return api
+        .get('/notifications/session-status')
+        .then(() => {
+          // Check alert status after a successfull session-status call
+          this.$store.dispatch('checkAlertStatus');
+        })
+        .catch((error) => {
+          if (error?.response?.status === 401) {
+            this.$store.commit('setSessionAlive', false);
+            clearInterval(this.sessionPollInterval);
+            clearInterval(this.alertsPollInterval);
+          }
+        });
     },
     logout(): void {
       this.$store.dispatch('logout');

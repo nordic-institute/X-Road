@@ -2,6 +2,7 @@
 Description=X-Road Jetty server
 After=network.target xroad-base.service
 Requires=xroad-base.service
+ConditionPathExists=/etc/xroad/services/jetty.conf
 
 [Service]
 User=xroad

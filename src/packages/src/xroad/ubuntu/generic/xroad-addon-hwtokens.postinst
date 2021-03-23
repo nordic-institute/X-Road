@@ -1,5 +1,5 @@
-#!/bin/sh
+#!/bin/bash
 
-service xroad-signer restart
+invoke-rc.d --quiet xroad-signer try-restart || true
 
 exit 0

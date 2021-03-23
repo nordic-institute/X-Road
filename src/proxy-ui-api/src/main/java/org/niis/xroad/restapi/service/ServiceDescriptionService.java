@@ -35,6 +35,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
@@ -43,7 +44,6 @@ import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.repository.ClientRepository;
 import org.niis.xroad.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.restapi.util.EndpointHelper;
 import org.niis.xroad.restapi.util.FormatUtils;
@@ -51,7 +51,6 @@ import org.niis.xroad.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 import org.niis.xroad.restapi.wsdl.WsdlValidator;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,6 +73,16 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVICES_DELETED;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.URL_NEW;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.WSDL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_SERVICE_CODE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_URL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_SERVICE_IDENTIFIER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVICE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WRONG_TYPE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_OPENAPI_VALIDATION_WARNINGS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
 import static org.niis.xroad.restapi.util.FormatUtils.HTTPS_PROTOCOL;
 import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
 
@@ -82,17 +91,13 @@ import static org.niis.xroad.restapi.util.FormatUtils.HTTP_PROTOCOL;
  */
 @Slf4j
 @Service
-@Transactional(rollbackFor = ServiceException.class)
+@Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
     public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
-
-    public static final String WARNING_ADDING_SERVICES = "adding_services";
-    public static final String WARNING_DELETING_SERVICES = "deleting_services";
-    public static final String WARNING_WSDL_VALIDATION_WARNINGS = "wsdl_validation_warnings";
-    public static final String WARNING_OPENAPI_VALIDATION_WARNINGS = "openapi_validation_warnings";
 
     public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
 
@@ -100,41 +105,13 @@ public class ServiceDescriptionService {
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
-    private final ClientRepository clientRepository;
     private final ServiceChangeChecker serviceChangeChecker;
+    private final ServiceService serviceService;
     private final WsdlValidator wsdlValidator;
     private final UrlValidator urlValidator;
     private final OpenApiParser openApiParser;
     private final AuditDataHelper auditDataHelper;
     private final EndpointHelper endpointHelper;
-
-    /**
-     * ServiceDescriptionService constructor
-     *
-     * @param serviceDescriptionRepository
-     * @param clientService
-     * @param clientRepository
-     * @param urlValidator
-     * @param endpointHelper
-     */
-    @Autowired
-    public ServiceDescriptionService(ServiceDescriptionRepository serviceDescriptionRepository,
-            ClientService clientService, ClientRepository clientRepository,
-            ServiceChangeChecker serviceChangeChecker,
-            WsdlValidator wsdlValidator, UrlValidator urlValidator,
-            OpenApiParser openApiParser, AuditDataHelper auditDataHelper,
-            EndpointHelper endpointHelper) {
-
-        this.serviceDescriptionRepository = serviceDescriptionRepository;
-        this.clientService = clientService;
-        this.clientRepository = clientRepository;
-        this.serviceChangeChecker = serviceChangeChecker;
-        this.wsdlValidator = wsdlValidator;
-        this.urlValidator = urlValidator;
-        this.openApiParser = openApiParser;
-        this.auditDataHelper = auditDataHelper;
-        this.endpointHelper = endpointHelper;
-    }
 
     /**
      * Disable 1 services
@@ -180,7 +157,6 @@ public class ServiceDescriptionService {
         if (!toEnabled) {
             serviceDescriptionType.setDisabledNotice(disabledNotice);
         }
-        serviceDescriptionRepository.saveOrUpdate(serviceDescriptionType);
         auditDataHelper.put(serviceDescriptionType.getClient().getIdentifier());
         auditDataHelper.putServiceDescriptionUrl(serviceDescriptionType);
     }
@@ -207,7 +183,6 @@ public class ServiceDescriptionService {
         cleanAccessRights(client, serviceDescriptionType);
         cleanEndpoints(client, serviceDescriptionType);
         client.getServiceDescription().remove(serviceDescriptionType);
-        clientRepository.saveOrUpdate(client);
     }
 
     private void cleanEndpoints(ClientType client, ServiceDescriptionType serviceDescriptionType) {
@@ -276,7 +251,6 @@ public class ServiceDescriptionService {
 
         client.getEndpoint().addAll(endpointsToAdd);
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
         return serviceDescriptionType;
     }
 
@@ -406,7 +380,6 @@ public class ServiceDescriptionService {
         // Populate client with new servicedescription and endpoints
         client.getEndpoint().addAll(endpoints);
         client.getServiceDescription().add(serviceDescriptionType);
-        clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
     }
@@ -519,8 +492,6 @@ public class ServiceDescriptionService {
 
         checkDuplicateServiceCodes(serviceDescriptionType);
         checkDuplicateUrl(serviceDescriptionType);
-
-        clientRepository.saveOrUpdateAndFlush(client);
 
         return serviceDescriptionType;
     }
@@ -673,8 +644,6 @@ public class ServiceDescriptionService {
                 ignoreWarnings,
                 serviceDescriptionType);
 
-        clientRepository.saveOrUpdateAndFlush(serviceDescriptionType.getClient());
-
         return serviceDescriptionType;
     }
 
@@ -728,7 +697,6 @@ public class ServiceDescriptionService {
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
 
-        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
         return serviceDescription;
     }
 
@@ -789,8 +757,6 @@ public class ServiceDescriptionService {
 
         checkDuplicateServiceCodes(serviceDescription);
         checkDuplicateUrl(serviceDescription);
-
-        clientRepository.saveOrUpdateAndFlush(serviceDescription.getClient());
 
         return serviceDescription;
     }
@@ -913,7 +879,6 @@ public class ServiceDescriptionService {
      * @param clientType
      * @param serviceCode
      * @return title, or null if no title exists.
-     * @throws NoSuchElementException if client does not have the given service
      */
     public String getServiceTitle(ClientType clientType, String serviceCode) {
         ServiceType service = clientType.getServiceDescription().stream()
@@ -1028,8 +993,6 @@ public class ServiceDescriptionService {
         // add new endpoints
         Collection<EndpointType> endpointsToAdd = resolveNewEndpoints(client, serviceDescriptionType);
         client.getEndpoint().addAll(endpointsToAdd);
-
-        clientRepository.saveOrUpdate(client);
 
         return serviceDescriptionType;
     }
@@ -1286,8 +1249,6 @@ public class ServiceDescriptionService {
      * If wsdl had service codes and / or versions with illegal identifier values, such as colons
      */
     public static class InvalidServiceIdentifierException extends InvalidWsdlException {
-        public static final String ERROR_INVALID_SERVICE_IDENTIFIER = "invalid_wsdl_service_identifier";
-
         public InvalidServiceIdentifierException(List<String> invalidIdentifiers) {
             super(new ErrorDeviation(ERROR_INVALID_SERVICE_IDENTIFIER, invalidIdentifiers));
         }
@@ -1297,45 +1258,30 @@ public class ServiceDescriptionService {
      * If trying to add a service that already exists
      */
     public static class ServiceAlreadyExistsException extends ServiceException {
-
-        public static final String ERROR_SERVICE_EXISTS = "service_already_exists";
-
         public ServiceAlreadyExistsException(List<String> metadata) {
             super(new ErrorDeviation(ERROR_SERVICE_EXISTS, metadata));
         }
     }
 
     public static class WrongServiceDescriptionTypeException extends ServiceException {
-
-        public static final String ERROR_WRONG_TYPE = "wrong_servicedescription_type";
-
         public WrongServiceDescriptionTypeException(String s) {
             super(s, new ErrorDeviation(ERROR_WRONG_TYPE));
         }
     }
 
     public static class WsdlUrlAlreadyExistsException extends ServiceException {
-
-        public static final String ERROR_WSDL_EXISTS = "wsdl_exists";
-
         public WsdlUrlAlreadyExistsException(String s) {
             super(s, new ErrorDeviation(ERROR_WSDL_EXISTS));
         }
     }
 
     public static class UrlAlreadyExistsException extends ServiceException {
-
-        public static final String ERROR_EXISTING_URL = "url_already_exists";
-
         public UrlAlreadyExistsException(String s) {
             super(new ErrorDeviation(ERROR_EXISTING_URL, s));
         }
     }
 
     public static class ServiceCodeAlreadyExistsException extends ServiceException {
-
-        public static final String ERROR_EXISTING_SERVICE_CODE = "service_code_already_exists";
-
         public ServiceCodeAlreadyExistsException(List<String> metadata) {
             super(new ErrorDeviation(ERROR_EXISTING_SERVICE_CODE, metadata));
         }

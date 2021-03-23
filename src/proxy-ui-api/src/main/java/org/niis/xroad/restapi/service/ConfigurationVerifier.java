@@ -25,16 +25,24 @@
  */
 package org.niis.xroad.restapi.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_NOT_FOR_EXTERNAL_SOURCE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_OTHER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_OUTDATED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_SIGNATURE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_CONF_VERIFICATION_UNREACHABLE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_MISSING_PRIVATE_PARAMS;
 
 /**
  * Verify internal and external configurations
  */
 @Component
+@RequiredArgsConstructor
 public class ConfigurationVerifier {
     public static final int EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 120;
     public static final int EXIT_STATUS_MISSING_PRIVATE_PARAMS = 121;
@@ -43,24 +51,11 @@ public class ConfigurationVerifier {
     public static final int EXIT_STATUS_INVALID_SIGNATURE = 124;
     public static final int EXIT_STATUS_OTHER = 125;
 
-    public static final String ANCHOR_NOT_FOR_EXTERNAL_SOURCE = "conf_verification.anchor_not_for_external_source";
-    public static final String MISSING_PRIVATE_PARAMS = "conf_verification.missing_private_params";
-    public static final String UNREACHABLE = "conf_verification.unreachable";
-    public static final String OUTDATED = "conf_verification.outdated";
-    public static final String SIGNATURE = "conf_verification.signature_invalid";
-    public static final String OTHER = "conf_verification.other";
-
     @Setter
+    @Value("${script.internal-configuration-verifier.path}")
     private String internalConfVerificationScriptPath;
 
     private final ExternalProcessRunner externalProcessRunner;
-
-    @Autowired
-    public ConfigurationVerifier(ExternalProcessRunner externalProcessRunner,
-            @Value("${script.internal-configuration-verifier.path}") String internalConfVerificationScriptPath) {
-        this.externalProcessRunner = externalProcessRunner;
-        this.internalConfVerificationScriptPath = internalConfVerificationScriptPath;
-    }
 
     /**
      * Verify internal configuration anchor.
@@ -81,17 +76,17 @@ public class ConfigurationVerifier {
             case 0:
                 break;
             case EXIT_STATUS_ANCHOR_NOT_FOR_EXTERNAL_SOURCE:
-                throw new ConfigurationVerificationException(ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
+                throw new ConfigurationVerificationException(ERROR_ANCHOR_NOT_FOR_EXTERNAL_SOURCE);
             case EXIT_STATUS_MISSING_PRIVATE_PARAMS:
-                throw new ConfigurationVerificationException(MISSING_PRIVATE_PARAMS);
+                throw new ConfigurationVerificationException(ERROR_MISSING_PRIVATE_PARAMS);
             case EXIT_STATUS_UNREACHABLE:
-                throw new ConfigurationVerificationException(UNREACHABLE);
+                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_UNREACHABLE);
             case EXIT_STATUS_OUTDATED:
-                throw new ConfigurationVerificationException(OUTDATED);
+                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_OUTDATED);
             case EXIT_STATUS_INVALID_SIGNATURE:
-                throw new ConfigurationVerificationException(SIGNATURE);
+                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_SIGNATURE);
             case EXIT_STATUS_OTHER:
-                throw new ConfigurationVerificationException(OTHER);
+                throw new ConfigurationVerificationException(ERROR_CONF_VERIFICATION_OTHER);
             default:
                 throw new RuntimeException("Internal configuration verifier exited with an unknown code: " + exitCode);
         }

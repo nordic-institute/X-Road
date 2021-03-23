@@ -1,6 +1,10 @@
+
+| ![European Union / European Regional Development Fund / Investing in your future](img/eu_rdf_75_en.png "Documents that are tagged with EU/SF logos must keep the logos until 1.1.2022, if it has not stated otherwise in the documentation. If new documentation is created  using EU/SF resources the logos must be tagged appropriately so that the deadline for logos could be found.") |
+| -------------------------: |
+
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.19  
+Version: 2.21  
 Doc. ID: IG-CS
 
 ---
@@ -37,6 +41,9 @@ Doc. ID: IG-CS
 | 02.09.2020 | 2.17    | Improve database setup instructions. | Ilkka Seppälä
 | 23.09.2020 | 2.18    | List database users. | Ilkka Seppälä
 | 29.09.2020 | 2.19    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
+| 19.01.2021 | 2.20    | Add instructions for using an alternative Java distribution. | Jarkko Hyöty
+| 04.02.2021 | 2.21    | Minor updates. | Ilkka Seppälä
+
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -114,7 +121,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 2.1 Prerequisites to Installation
 
-The central server software assumes an existing installation of the Ubuntu operating system, on an x86-64bit platform. To provide management services, a security server is installed alongside the central server.
+The central server software assumes an existing installation of the Ubuntu 18.04 LTS or 20.04 LTS operating system, on an x86-64bit platform. To provide management services, a security server is installed alongside the central server.
 
 The central server’s software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -152,20 +159,25 @@ Minimum recommended hardware parameters:
 - 100 Mbps network interface card.
 
 Requirements for software and settings:
-- an installed and configured Ubuntu 18.04 LTS x86-64 operating system;
+- an installed and configured Ubuntu 18.04 LTS or 20.04 LTS x86-64 operating system;
 - the necessary connections are allowed in the firewall (reference data: 1.4; 1.4.1; 1.5; 1.6),
 - if the central server has a private IP address, a corresponding NAT record must be created in the firewall (reference data: 1.8).
 
 ### 2.4 Preparing OS
 
-- Add a system user (reference data: 1.3) whom all roles in the user interface are granted to. 
+- Add an X-Road system administrator user (reference data: 1.3) whom all roles in the user interface are granted to. 
 
-  Add the new user with the command: `sudo adduser username`.  
-  User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS).
+  Add the new user with the command: `sudo adduser username`.
+
+  User roles are discussed in detail in the X-Road Security Server User Guide [UG-SS](#Ref_UG-SS). Do not use the user name `xroad`, it is reserved for the X-Road system user.
+
+- Ensure that the packages `locales` and `software-properties-common` are present
+  
+  `sudo apt-get install locales software-properties-common`
 
 - Set the operating system locale.
 
-  Add the following line to the file /etc/environment: `LC_ALL=en_US.UTF-8`  
+  Add the following line to the file `/etc/environment`: `LC_ALL=en_US.UTF-8`  
   Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
 ### 2.5 Prepare for Installation
@@ -226,25 +238,39 @@ Edit `/etc/xroad.properties` contents. See the example below. Replace the parame
 ### 2.7 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-
-  ```
-  curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
-  ```
+```
+curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
+```
 
 Add X-Road package repository (**reference data: 1.1**)
+```
+sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
+```
 
-  ```
-  sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
-  ```
+**This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
+```
+curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
+sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
+```
 
 ### 2.8 Package Installation
 
-Issue the following commands to install the central server packages:
+Update package repository metadata:
+```
+sudo apt update
+```
 
-  ```
-  sudo apt-get update
-  sudo apt-get install xroad-centralserver
-  ```
+If using the AdoptOpenJDK Java distribution, install the Java runtime environment and set it as the default java:
+```
+sudo apt install adoptopenjdk-8-hotspot-jre
+sudo update-java-alternatives -s adoptopenjdk-8-hotspot-jre-amd64
+```
+
+Issue the following commands to install the central server packages:
+```
+sudo apt-get update
+sudo apt-get install xroad-centralserver
+```
 
 Upon the first installation of the central server software, the system asks for the following information.
 
@@ -330,11 +356,12 @@ The installation is successful if the system services are started and the user i
 
 -   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the central server since it operates in one-shot mode.
 
-    - Ubuntu 18.04
+    - Ubuntu 18.04 or 20.04
         ```
         sudo systemctl list-units "xroad*"
 
         UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
+        xroad-base.service       loaded active exited  X-Road initialization
         xroad-jetty.service      loaded active running X-Road Jetty server
         xroad-signer.service     loaded active running X-Road signer
         ```

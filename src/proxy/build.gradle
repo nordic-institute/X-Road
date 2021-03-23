@@ -11,7 +11,7 @@ dependencies {
     implementation project(':common-op-monitoring')
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
-    implementation 'xerces:xercesImpl:2.12.0'
+    implementation "xerces:xercesImpl:$xercesVersion"
 
     testImplementation project(':common-test')
     testImplementation project(path: ':common-util', configuration: 'testArtifacts')
@@ -123,6 +123,11 @@ task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
     // merge jacoco results from normal tests and runProxyTest
     destinationFile = file("$buildDir/jacoco/test.exec")
     executionData test, integrationTest, runProxyTest
+}
+
+jacocoTestReport {
+  shouldRunAfter mergedJacoco
+  executionData file("$buildDir/jacoco/test.exec")
 }
 
 task runBatchSigner(type: JavaExec) {

@@ -24,41 +24,60 @@
  * THE SOFTWARE.
  */
 
-const commands = [{
-  openAddServiceClient: function() {
-    this.click('@addServiceClient');
-    return this;
+const commands = [
+  {
+    openAddServiceClient: function () {
+      this.click('@addServiceClientButton');
+      return this;
+    },
+    enterServiceClientSearchWord: function (searchWord) {
+      this.clearValue2('@searchField');
+      this.setValue('@searchField', searchWord);
+      return this;
+    },
+    openServiceClient: function (clientName) {
+      this.api.click(
+        '//table[contains(@class, "service-clients-table")]//tr[@data-test="open-access-rights"]//td[contains(text(), "' +
+          clientName +
+          '")]',
+      );
+      return this;
+    },
   },
-  enterServiceClientSearchWord: function(searchWord) {
-    this.clearValue2('@searchField');
-    this.setValue('@searchField', searchWord);
-    return this;
-  },
-}];
+];
 
 module.exports = {
-  url: (subsystemId) => `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}`,
+  url: (subsystemId) =>
+    `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}`,
   commands: commands,
   elements: {
     addServiceClientButton: {
       selector: '//button[@data-test="add-service-client"]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
     unregisterButton: {
       selector: '//button[@data-test="unregister-client-button"]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
     addSubjectWizardHeader: {
-      selector: '//div[@data-test="add-subject-title"]//span[contains(@class, "cert-headline") and contains(text(), "Add a subject")]',
-      locateStrategy: 'xpath' },
+      selector:
+        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
+      locateStrategy: 'xpath',
+    },
     searchField: {
       selector: '//input[contains(@data-test, "search-service-client")]',
-      locateStrategy: 'xpath' },
+      locateStrategy: 'xpath',
+    },
   },
   sections: {
     serviceClientsTab: {
-      selector: '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab--active") and contains(text(), "service clients")]',
-      locateStrategy: 'xpath' },
+      selector:
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab--active") and contains(text(), "service clients")]',
+      locateStrategy: 'xpath',
+    },
     wizardSelectServices: {
-      selector: '//div[contains(@class, "view-wrap")]//div[contains(@class, "v-stepper"]//span[contains(@class, "primary") and contains(text(), "2"]'
-    }
-  }
+      selector:
+        '//div[contains(@class, "view-wrap")]//div[contains(@class, "v-stepper"]//span[contains(@class, "primary") and contains(text(), "2"]',
+    },
+  },
 };

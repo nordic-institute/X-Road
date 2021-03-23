@@ -27,7 +27,7 @@
   <div class="xrd-tab-max-width xrd-view-common">
     <subViewTitle :title="serviceClientId" @close="close" />
     <v-card flat>
-      <table class="xrd-table service-client-margin">
+      <table class="xrd-table service-client-margin" data-test="service-clients-table">
         <thead>
           <tr>
             <th>{{ $t('serviceClients.name') }}</th>
@@ -63,6 +63,7 @@
 
     <table
       class="xrd-table service-client-margin"
+      data-test="service-client-access-rights-table"
       v-if="serviceClientAccessRights.length > 0"
     >
       <thead>
@@ -180,7 +181,9 @@ export default Vue.extend({
   },
   computed: {
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_ACL);
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
+      );
     },
   },
   data() {

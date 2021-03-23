@@ -1,5 +1,34 @@
 # Change Log
 
+## 6.26.0 - 2021-03-22
+- XRDDEV-1357: Fix various permission check inconsistencies in the Security Server UI frontend implementation
+- XRDDEV-1368: Improve Security Server UI Keys and Certificates view to give better visual feedback about different token statuses
+- XRDDEV-1395: Update local memory caches for the Security Server API to have a TTL of 60 seconds. This resolves issue with clustered configurations where modifications to api keys on primary node were not reflected on secondary nodes
+- XRDDEV-1402: Add Subject Alternative Name (SAN) to the Security Server UI certificate details view. For API users this introduces a new field to the CertificateDetails type
+- XRDDEV-1423: Update the HSM wrapper library to current version
+- XRDDEV-1439: Fix incorrectly displaying session expiration errors in the Security Server UI when navigating away and back to the server
+- XRDDEV-1460: Fix incorrect Security Server API OpenApi description concerning possible key usage values
+- XRDDEV-1465: Update the Security Server UI Keys and Certificates view search field label from "Service" to "Search"
+- XRDDEV-1473: Update the Security Server UI add member/client/subsystem views and searches to have correct texts based on the wizard
+- XRDDEV-1474: Fix the Security Server UI add service clients view add subject wizard, where filtering the subjects would cause the radio button to visually appear to be deselected
+- XRDDEV-1475: Update the Security Server UI local groups view to forbid adding non-printable characters
+- XRDDEV-1480: Improve the Security Server UI endpoint input validation
+- XRDDEV-1503: Fix "Generate CSR" button not becoming disabled in Security Server UI add key flow while generating the CSR was in progress
+- XRDDEV-1504: Improve audit logging to escape special characters so that they would not cause certain file readers to show the log entries incorrectly
+- XRDDEV-1505: Fix a potential CSRF vulnerability in the Security Server API keys endpoints
+- XRDDEV-1509: Fix installing xroad-opmonitor packages on a server with no Security Server installed
+- XRDDEV-1510: Fix cases where missing OCSP responses would cause incorrect actions to be available to the user in the keys and certificates view of the Security Server UI
+- XRDDEV-1517: Improve configuration on Ubuntu based releases to make using alternative JAVA installations easier
+- XRDDEV-1527: Fix issue with log files where entries are hardcoded to be in the UTC timezone. After this update the logs will default to the servers timezone
+- XRDDEV-1537: Added functionality to X-Road components to log the JAVA version being used to run the component at startup. In case the version is not supported by the software a warning is logged
+- XRDDEV-1538: Update PostgreSQL JDBC driver that fixes a bug mentioned in: https://www.postgresql.org/message-id/flat/87h82kzwqn.fsf%40news-spur.riddles.org.uk
+- XRDDEV-1548: Fix issue caused by updating the Spring Boot library which caused the Security Server API validation to stop working
+- XRDDEV-1554: Update Akka to version 2.6.11 to properly fix a bug that affected Akka remoting in X-Road
+- XRDDEV-1567: Update Xerces to version 2.12.1 to get latest bug fixes 
+- XRDDEV-1609: Fix persistence error in adding members to local group on security server
+- XRDDEV-1613: Fix error in starting xroad-jetty in central server HA installation
+- XRDDEV-1620: Fix log file proxy_ui_api_access.log not being generated on security server
+
 ## 6.25.0 - 2020-11-26
 - XRDDEV-1222: Update installation and user guides
 - XRDDEV-1299: Add Ubuntu 20.04 packaging

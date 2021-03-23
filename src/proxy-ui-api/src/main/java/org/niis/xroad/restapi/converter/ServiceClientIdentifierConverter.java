@@ -30,9 +30,9 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -42,17 +42,11 @@ import java.util.List;
  * Converter for ServiceClient identifiers
  */
 @Component
+@RequiredArgsConstructor
 public class ServiceClientIdentifierConverter {
 
     private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
-
-    @Autowired
-    public ServiceClientIdentifierConverter(ClientConverter clientConverter,
-            GlobalGroupConverter globalGroupConverter) {
-        this.clientConverter = clientConverter;
-        this.globalGroupConverter = globalGroupConverter;
-    }
 
     /**
      * Convert encoded service client id into ServiceClientIdentifierDto (based on serviceClientType,

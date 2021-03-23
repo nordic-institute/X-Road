@@ -25,15 +25,16 @@
  */
 package org.niis.xroad.restapi.service;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.repository.ApiKeyRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,6 +48,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_API_KEY_NOT_FOUND;
+
 /**
  * ApiKey service.
  */
@@ -54,21 +57,13 @@ import java.util.UUID;
 @Service
 @Transactional
 @PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class ApiKeyService {
 
     private final PasswordEncoder passwordEncoder;
     private final ApiKeyRepository apiKeyRepository;
     private final CacheManager cacheManager;
     private final AuditDataHelper auditDataHelper;
-
-    @Autowired
-    public ApiKeyService(PasswordEncoder passwordEncoder, ApiKeyRepository apiKeyRepository,
-            CacheManager cacheManager, AuditDataHelper auditDataHelper) {
-        this.passwordEncoder = passwordEncoder;
-        this.apiKeyRepository = apiKeyRepository;
-        this.cacheManager = cacheManager;
-        this.auditDataHelper = auditDataHelper;
-    }
 
     /**
      * Api keys are created with UUID.randomUUID which uses SecureRandom,
@@ -81,8 +76,9 @@ public class ApiKeyService {
 
     /**
      * create api key with one role
+     * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
-    public PersistentApiKeyType create(String roleName) throws InvalidRoleNameException {
+    public PlaintextApiKeyDto create(String roleName) throws InvalidRoleNameException {
         return create(Collections.singletonList(roleName));
     }
 
@@ -91,7 +87,7 @@ public class ApiKeyService {
      * @return new PersistentApiKeyType that contains the new key in plain text
      * @throws InvalidRoleNameException if roleNames was empty or contained invalid roles
      */
-    public PersistentApiKeyType create(Collection<String> roleNames)
+    public PlaintextApiKeyDto create(Collection<String> roleNames)
             throws InvalidRoleNameException {
         if (roleNames.isEmpty()) {
             throw new InvalidRoleNameException("missing roles");
@@ -99,11 +95,13 @@ public class ApiKeyService {
         Set<Role> roles = Role.getForNames(roleNames);
         String plainKey = createApiKey();
         String encodedKey = encode(plainKey);
-        PersistentApiKeyType apiKey = new PersistentApiKeyType(plainKey, encodedKey,
+        PersistentApiKeyType apiKey = new PersistentApiKeyType(encodedKey,
                 Collections.unmodifiableCollection(roles));
+
         apiKeyRepository.saveOrUpdate(apiKey);
         auditLog(apiKey);
-        return apiKey;
+        PlaintextApiKeyDto plaintextApiKey = new PlaintextApiKeyDto(apiKey.getId(), plainKey, encodedKey, roles);
+        return plaintextApiKey;
     }
 
     private void auditLog(PersistentApiKeyType apiKey) {
@@ -139,10 +137,7 @@ public class ApiKeyService {
     public PersistentApiKeyType update(long id, Collection<String> roleNames)
             throws InvalidRoleNameException, ApiKeyService.ApiKeyNotFoundException {
         auditLog(id, roleNames);
-        PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
-        if (apiKeyType == null) {
-            throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
-        }
+        PersistentApiKeyType apiKeyType = getForId(id);
         if (roleNames.isEmpty()) {
             throw new InvalidRoleNameException("missing roles");
         }
@@ -152,21 +147,49 @@ public class ApiKeyService {
         return apiKeyType;
     }
 
+    /**
+     * get one API key
+     * @param id
+     * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
+     */
+    public PersistentApiKeyType getForId(long id)
+            throws ApiKeyService.ApiKeyNotFoundException {
+        PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
+        if (apiKeyType == null) {
+            throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
+        }
+        return apiKeyType;
+    }
+
+    /**
+     * Encode a plaintext key
+     * @param key
+     * @return encoded key
+     */
     private String encode(String key) {
         return passwordEncoder.encode(key);
     }
 
     /**
      * get matching key
-     * @param key
+     * @param key plaintext key
      * @return
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    public PersistentApiKeyType get(String key) throws ApiKeyService.ApiKeyNotFoundException {
-        String encodedKey = passwordEncoder.encode(key);
+    public PersistentApiKeyType getForPlaintextKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
+        return getForEncodedKey(encode(key));
+    }
+
+    /**
+     * get matching key
+     * @param key encoded key
+     * @return
+     * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
+     */
+    public PersistentApiKeyType getForEncodedKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
         List<PersistentApiKeyType> keys = apiKeyRepository.getAllApiKeys();
         for (PersistentApiKeyType apiKeyType : keys) {
-            if (apiKeyType.getEncodedKey().equals(encodedKey)) {
+            if (apiKeyType.getEncodedKey().equals(key)) {
                 return apiKeyType;
             }
         }
@@ -178,22 +201,19 @@ public class ApiKeyService {
      * @param key
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    public void remove(String key) throws ApiKeyService.ApiKeyNotFoundException {
-        PersistentApiKeyType apiKeyType = get(key);
+    public void removeForPlaintextKey(String key) throws ApiKeyService.ApiKeyNotFoundException {
+        PersistentApiKeyType apiKeyType = getForPlaintextKey(key);
         auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
 
     /**
-     * remove / revoke one key by id
+     * remove / revoke one key based on id
      * @param id
      * @throws ApiKeyService.ApiKeyNotFoundException if api key was not found
      */
-    public void removeById(long id) throws ApiKeyService.ApiKeyNotFoundException {
-        PersistentApiKeyType apiKeyType = apiKeyRepository.getApiKey(id);
-        if (apiKeyType == null) {
-            throw new ApiKeyService.ApiKeyNotFoundException("api key with id " + id + " not found");
-        }
+    public void removeForId(long id) throws ApiKeyService.ApiKeyNotFoundException {
+        PersistentApiKeyType apiKeyType = getForId(id);
         auditLog(apiKeyType);
         apiKeyRepository.delete(apiKeyType);
     }
@@ -222,8 +242,6 @@ public class ApiKeyService {
     }
 
     public static class ApiKeyNotFoundException extends NotFoundException {
-        public static final String ERROR_API_KEY_NOT_FOUND = "api_key_not_found";
-
         public ApiKeyNotFoundException(String s) {
             super(s, new ErrorDeviation(ERROR_API_KEY_NOT_FOUND));
         }

@@ -25,7 +25,7 @@
  */
 
 import * as Helpers from '@/util/helpers';
-import {Client, ClientStatus, ConnectionType} from '@/openapi-types';
+import { Client, ClientStatus, ConnectionType } from '@/openapi-types';
 
 const arr: Client[] = [
   {
@@ -64,10 +64,8 @@ const arr: Client[] = [
 ];
 
 describe('helper functions', () => {
-
   // REST URL can be http or https
   it('REST URL validation', () => {
-
     expect(Helpers.isValidRestURL('')).toEqual(false);
     expect(Helpers.isValidRestURL('xx://foo.bar')).toEqual(false);
     expect(Helpers.isValidWsdlURL('https://localhost:0009')).toEqual(true);
@@ -79,7 +77,6 @@ describe('helper functions', () => {
 
   // WSDL URL can be http or https
   it('WSDL URL validation', () => {
-
     expect(Helpers.isValidWsdlURL('')).toEqual(false);
     expect(Helpers.isValidWsdlURL('xx://foo.bar')).toEqual(false);
     expect(Helpers.isValidWsdlURL('https://localhost:0009')).toEqual(true);
@@ -89,11 +86,8 @@ describe('helper functions', () => {
     expect(Helpers.isValidWsdlURL('file:///foo.bar')).toEqual(false);
   });
 
-
   // Find client from clients array
   it('Does array contain client', () => {
-
-
     expect(Helpers.containsClient(arr, 'ORG', '8000', 'kraa')).toEqual(true);
     expect(Helpers.containsClient(arr, 'ORG', '8000', 'foo')).toEqual(false);
     expect(Helpers.containsClient(arr, 'ORG', '8099', 'kraa')).toEqual(false);
@@ -105,16 +99,15 @@ describe('helper functions', () => {
     expect(Helpers.containsClient(arr, 'ORG', '8000', '')).toEqual(false);
   });
 
-
   // Filter array with excluded key
   it('Filter array with excluded key', () => {
-
     expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest', 'id')).toEqual([]);
     expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest')).toHaveLength(1);
-    expect(Helpers.selectedFilter(arr, 'CS:ORG:8000:jest', 'owner')).toHaveLength(1);
+    expect(
+      Helpers.selectedFilter(arr, 'CS:ORG:8000:jest', 'owner'),
+    ).toHaveLength(1);
     expect(Helpers.selectedFilter(arr, 'SAVED', 'owner')).toHaveLength(3);
     expect(Helpers.selectedFilter(arr, 'SAVED')).toHaveLength(3);
     expect(Helpers.selectedFilter(arr, 'SAVED', 'status')).toEqual([]);
   });
-
 });

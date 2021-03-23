@@ -69,7 +69,7 @@ public class GetMemberSigningInfoRequestHandler extends AbstractRequestHandler<G
         if (memberKeys.isEmpty()) {
             throw CodedException.tr(X_UNKNOWN_MEMBER, "member_certs_not_found",
                     "Could not find any certificates for member '%s'. "
-                        + "Are you sure tokens containing the certifications are logged in?", message.getMemberId());
+                        + "Are you sure tokens containing the certificates are logged in?", message.getMemberId());
         }
 
         SelectedCertificate memberCert = selectMemberCert(memberKeys, message.getMemberId());

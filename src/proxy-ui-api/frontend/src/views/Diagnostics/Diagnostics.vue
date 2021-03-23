@@ -27,7 +27,7 @@
   <v-layout align-center justify-center column fill-height elevation-0>
     <v-card class="xrd-card diagnostic-card">
       <v-card-title>
-        <span class="headline">{{
+        <span class="headline" data-test="diagnostics-global-configuration">{{
           $t('diagnostics.globalCongiguration.title')
         }}</span>
       </v-card-title>
@@ -72,7 +72,7 @@
 
     <v-card class="xrd-card diagnostic-card">
       <v-card-title>
-        <span class="headline">{{ $t('diagnostics.timestamping.title') }}</span>
+        <span class="headline" data-test="diagnostics-timestamping">{{ $t('diagnostics.timestamping.title') }}</span>
       </v-card-title>
       <ProgressLinear :active="timestampingLoading" />
 
@@ -118,7 +118,7 @@
 
     <v-card class="xrd-card diagnostic-card">
       <v-card-title>
-        <span class="headline">{{
+        <span class="headline" data-test="diagnostics-ocsp-responders">{{
           $t('diagnostics.ocspResponders.title')
         }}</span>
       </v-card-title>
