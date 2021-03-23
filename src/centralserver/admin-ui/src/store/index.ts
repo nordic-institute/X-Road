@@ -30,6 +30,7 @@ Adds store modules and plugins.
 */
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
+import { module as notifications } from './modules/notifications';
 import { RootState } from '@/global';
 import { module as user } from './modules/user';
 import VuexPersistence from 'vuex-persist';
@@ -46,6 +47,7 @@ const store: StoreOptions<RootState> = {
     version: '1.0.0', // a simple property
   },
   modules: {
+    notifications,
     user,
   },
   plugins: [vuexLocal.plugin],

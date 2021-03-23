@@ -24,73 +24,49 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+  <v-img
+    :src="require('../../assets/xroad7_logo.svg')"
+    height="35"
+    width="132"
+    max-height="35"
+    max-width="132"
+    class="xrd-logo"
+    @click="home()"
+  ></v-img>
 </template>
 
 <script lang="ts">
-// The root component of the Vue app
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'App',
-
-  components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
-  },
-  computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
+  methods: {
+    home(): void {
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
+        })
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.info('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
+        });
     },
-  },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-    this.$store.getters[StoreTypes.getters.USERNAME];
   },
 });
 </script>
 
-<style lang="scss">
-@import './assets/global-style';
-</style>
-
 <style lang="scss" scoped>
-@import './assets/colors';
-
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
-}
-
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
-}
-
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
+.xrd-logo {
+  margin-top: auto;
+  margin-bottom: auto;
+  cursor: pointer;
+  @media only screen and (max-width: 920px) {
+    display: none;
+  }
 }
 </style>

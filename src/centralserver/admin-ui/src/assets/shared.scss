@@ -23,16 +23,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router from 'vue-router';
-import { sync } from 'vuex-router-sync';
-import store from '@/store';
-import routes from './routes';
 
-// Create the router
-const router = new Router({
-  routes: routes,
-});
+// Variables
+$view-area-max-width: 1600px;
 
-sync(store, router);
+.tab-max-width {
+    max-width: 850px;
+    width: 100%;
+}
 
-export default router;
+.full-width-centered {
+    width: 100%;
+    max-width: $view-area-max-width;
+    display: flex;
+    justify-content: center;
+}
