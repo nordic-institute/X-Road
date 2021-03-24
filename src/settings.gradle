@@ -33,6 +33,7 @@ include "centralserver"
 include "centralserver:admin-ui"
 include "centralserver:admin-service"
 include "centralserver:management-service"
+include "centralserver:database"
 include "centralserver:registration-service"
 include "centralserver:globalconf-generator"
 
