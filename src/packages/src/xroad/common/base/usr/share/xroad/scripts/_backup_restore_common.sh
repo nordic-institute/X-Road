@@ -13,7 +13,7 @@ COMMON_BACKUP_SCRIPT="/usr/share/xroad/scripts/_backup_xroad.sh"
 
 # This version number must be increased when we introduce changes that make
 # earlier backup files incompatible with the current system.
-XROAD_VERSION_LABEL="XROAD_6.24"
+XROAD_VERSION_LABEL="XROAD_7.1"
 
 die () {
     echo >&2 "$@"
