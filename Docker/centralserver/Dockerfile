@@ -29,7 +29,7 @@ RUN pg_ctlcluster 10 main start \
   && apt-get -qq clean \
   && pg_ctlcluster 10 main stop \
   && nginx -s stop \
-  && rm -f /var/run/nginx.pid \
+  && rm -f /var/run/nginx.pid ||: \
   && rm -rf /tmp/xroad
 
 # back up read-only config (for volume support)
