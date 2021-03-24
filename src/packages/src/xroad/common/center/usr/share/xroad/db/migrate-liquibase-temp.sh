@@ -23,7 +23,7 @@ migrate() {
 
   # read parameters from db.properties
   local -r db_user=$(get_required_db_prop 'username')
-  local -r db_schema=$(get_required_db_prop 'schema')
+  local -r db_schema=$(get_prop "$db_properties" 'schema' "$db_user")
   local -r db_host=$(get_required_db_prop 'host')
   local -r db_database=$(get_required_db_prop 'database')
   local -r db_password=$(get_required_db_prop 'password')
