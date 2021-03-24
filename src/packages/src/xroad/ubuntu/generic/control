@@ -15,7 +15,7 @@ Description: Monitoring client configuration for X-Road central
 Package: xroad-centralserver
 Conflicts: xroad-securityserver, xtee55-center
 Architecture: all
-Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version})
+Depends: xroad-center (=${binary:Version}), openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, xroad-centralserver-monitoring (=${binary:Version})
 Description: X-Road central server
  This is meta-package of X-Road central server.
 
@@ -30,7 +30,7 @@ Description: X-Road central server
 Package: xroad-base
 Architecture: amd64
 Pre-depends: dpkg (>= 1.15.7.2)
-Depends: ${misc:Depends}, openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl
+Depends: ${misc:Depends}, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl
 Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road base components
@@ -38,7 +38,7 @@ Description: X-Road base components
 
 Package: xroad-confclient
 Architecture: amd64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, openjdk-11-jre-headless | java11-runtime-headless | java11-runtime, xroad-base (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road configuration client components
@@ -55,7 +55,7 @@ Description: X-Road nginx component
 
 Package: xroad-signer
 Architecture: amd64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, openjdk-11-jre-headless | java11-runtime-headless | java11-runtime, xroad-base (=${binary:Version})
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road signer component
@@ -111,7 +111,7 @@ Description: X-Road AddOn: proxy monitoring metaservice
 
 Package: xroad-monitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, openjdk-11-jre-headless | java11-runtime-headless | java11-runtime, xroad-base (=${binary:Version})
 Description: X-Road monitoring service
  Monitoring service
 
