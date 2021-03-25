@@ -2,7 +2,9 @@
 
 ## 7.1.0 - UNRELEASED
 
-## 6.26.0 - 2021-02-25
+## 7.0.0 - UNRELEASED
+
+## 6.26.0 - 2021-03-22
 - XRDDEV-1357: Fix various permission check inconsistencies in the Security Server UI frontend implementation
 - XRDDEV-1368: Improve Security Server UI Keys and Certificates view to give better visual feedback about different token statuses
 - XRDDEV-1395: Update local memory caches for the Security Server API to have a TTL of 60 seconds. This resolves issue with clustered configurations where modifications to api keys on primary node were not reflected on secondary nodes
@@ -27,6 +29,9 @@
 - XRDDEV-1548: Fix issue caused by updating the Spring Boot library which caused the Security Server API validation to stop working
 - XRDDEV-1554: Update Akka to version 2.6.11 to properly fix a bug that affected Akka remoting in X-Road
 - XRDDEV-1567: Update Xerces to version 2.12.1 to get latest bug fixes 
+- XRDDEV-1609: Fix persistence error in adding members to local group on security server
+- XRDDEV-1613: Fix error in starting xroad-jetty in central server HA installation
+- XRDDEV-1620: Fix log file proxy_ui_api_access.log not being generated on security server
 
 ## 6.25.0 - 2020-11-26
 - XRDDEV-1222: Update installation and user guides
