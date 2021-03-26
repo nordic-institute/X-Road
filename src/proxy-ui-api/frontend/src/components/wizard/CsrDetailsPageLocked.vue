@@ -26,77 +26,81 @@
 <template>
   <div>
     <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.usage') }}
-          <helpIcon :text="$t('csr.helpUsage')" />
-        </div>
-        <div class="readonly-info-field">{{ usage }}</div>
-      </div>
+      <div class="wizard-step-form-content">
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('csr.usage')"
+            :helpText="$t('csr.helpUsage')"
+          />
 
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.client') }}
-          <helpIcon :text="$t('csr.helpClient')" />
-        </div>
-        <div class="readonly-info-field">{{ selectedMemberId }}</div>
-      </div>
-
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.certificationService') }}
-          <helpIcon :text="$t('csr.helpCertificationService')" />
+          <div class="readonly-info-field">{{ usage }}</div>
         </div>
 
-        <ValidationProvider name="csr.certService" rules="required" v-slot="{}">
-          <v-select
-            :items="filteredServiceList"
-            item-text="name"
-            item-value="name"
-            class="form-input"
-            v-model="certificationService"
-            data-test="csr-certification-service-select"
-          ></v-select>
-        </ValidationProvider>
-      </div>
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('csr.client')"
+            :helpText="$t('csr.helpClient')"
+          />
 
-      <div class="row-wrap">
-        <div class="label">
-          {{ $t('csr.csrFormat') }}
-          <helpIcon :text="$t('csr.helpCsrFormat')" />
+          <div class="readonly-info-field">{{ selectedMemberId }}</div>
         </div>
 
-        <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
-          <v-select
-            :items="csrFormatList"
-            class="form-input"
-            v-model="csrFormat"
-            data-test="csr-format-select"
-          ></v-select>
-        </ValidationProvider>
-      </div>
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('csr.certificationService')"
+            :helpText="$t('csr.helpCertificationService')"
+          />
 
+          <ValidationProvider
+            name="csr.certService"
+            rules="required"
+            v-slot="{}"
+          >
+            <v-select
+              :items="filteredServiceList"
+              item-text="name"
+              item-value="name"
+              class="form-input"
+              v-model="certificationService"
+              data-test="csr-certification-service-select"
+              outlined
+            ></v-select>
+          </ValidationProvider>
+        </div>
+
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('csr.csrFormat')"
+            :helpText="$t('csr.helpCsrFormat')"
+          />
+
+          <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
+            <v-select
+              :items="csrFormatList"
+              class="form-input"
+              v-model="csrFormat"
+              data-test="csr-format-select"
+              outlined
+            ></v-select>
+          </ValidationProvider>
+        </div>
+      </div>
       <div class="button-footer">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-button outlined @click="cancel" data-test="cancel-button">{{
           $t('action.cancel')
-        }}</large-button>
+        }}</xrd-button>
 
-        <div>
-          <large-button
-            v-if="showPreviousButton"
-            @click="previous"
-            outlined
-            class="previous-button"
-            data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
-          >
-          <large-button
-            :disabled="invalid"
-            @click="done"
-            data-test="save-button"
-            >{{ $t(saveButtonText) }}</large-button
-          >
-        </div>
+        <xrd-button
+          v-if="showPreviousButton"
+          @click="previous"
+          outlined
+          class="previous-button"
+          data-test="previous-button"
+          >{{ $t('action.previous') }}</xrd-button
+        >
+        <xrd-button :disabled="invalid" @click="done" data-test="save-button">{{
+          $t(saveButtonText)
+        }}</xrd-button>
       </div>
     </ValidationObserver>
   </div>
@@ -106,14 +110,10 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { CsrFormat } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
-    HelpIcon,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
   },

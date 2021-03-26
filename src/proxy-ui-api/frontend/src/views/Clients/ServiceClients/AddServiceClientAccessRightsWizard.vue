@@ -25,10 +25,11 @@
  -->
 <template>
   <div class="view-wrap" data-test="add-subject-view">
-    <subViewTitle
+    <xrd-sub-view-title
       :title="$t('serviceClients.addServiceClientTitle')"
       :showClose="false"
       data-test="add-subject-title"
+      class="pa-4"
     />
 
     <v-stepper :alt-labels="true" v-model="step" class="stepper noshadow">
@@ -67,7 +68,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberOrGroupSelectionStep from '@/views/Clients/ServiceClients/MemberOrGroupSelectionStep.vue';
 import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectionStep.vue';
 import {
@@ -89,7 +89,6 @@ export default Vue.extend({
     },
   },
   components: {
-    SubViewTitle,
     MemberOrGroupSelectionStep,
     ServiceSelectionStep,
   },
@@ -149,7 +148,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/global-style';
 @import '../../../assets/shared';
 @import '../../../assets/wizards';
 

@@ -27,18 +27,19 @@
   <tr data-test="system.parameters-timestamping-service-row">
     <td>{{ timestampingService.name }}</td>
     <td>{{ timestampingService.url }}</td>
-    <td>
-      <small-button
+    <td class="pr-4">
+      <xrd-button
         data-test="system-parameters-timestamping-service-delete-button"
-        outlined
         @click="confirmDeleteDialog = true"
         :requires-permission="permissions.DELETE_TSP"
+        :outlined="false"
+        text
       >
         {{
           $t('systemParameters.timestampingServices.table.action.delete.button')
         }}
-      </small-button>
-      <confirm-dialog
+      </xrd-button>
+      <xrd-confirm-dialog
         data-test="system-parameters-timestamping-service-delete-confirm-dialog"
         :dialog="confirmDeleteDialog"
         @cancel="confirmDeleteDialog = false"
@@ -53,19 +54,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Prop } from 'vue/types/options';
 import * as api from '@/util/api';
 
 export default Vue.extend({
   name: 'TimestampingServiceRow',
-  components: {
-    ConfirmDialog,
-    SmallButton,
-  },
   props: {
     timestampingService: {
       type: Object as Prop<TimestampingService>,

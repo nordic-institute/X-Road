@@ -178,6 +178,11 @@ subprojects {
     jar {
         from rootProject.file('LICENSE.txt')
     }
+
+    //compileJava {
+    //    options.compilerArgs << '-Xlint:deprecation'
+    //}
+
 }
 
 configure(subprojects.findAll { it.name.contains('center-') or it.name.contains('common-ui') }) {

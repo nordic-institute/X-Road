@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
@@ -34,7 +33,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
@@ -53,21 +51,17 @@ import java.util.List;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVERCODE_EXISTS;
@@ -90,9 +84,7 @@ public class InitializationService {
     private final ClientService clientService;
     private final SignerProxyFacade signerProxyFacade;
     private final AuditDataHelper auditDataHelper;
-
-    @Setter
-    private boolean isTokenPinEnforced = SystemProperties.shouldEnforceTokenPinPolicy();
+    private final TokenPinValidator tokenPinValidator;
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
@@ -264,20 +256,7 @@ public class InitializationService {
     private void initializeSoftwareToken(String softwareTokenPin) throws InvalidCharactersException, WeakPinException,
             SoftwareTokenInitException {
         char[] pin = softwareTokenPin.toCharArray();
-        if (isTokenPinEnforced) {
-            TokenPinPolicy.Description description = TokenPinPolicy.describe(pin);
-            if (!description.isValid()) {
-                if (description.hasInvalidCharacters()) {
-                    throw new InvalidCharactersException("The provided pin code contains invalid characters");
-                }
-                List<String> metadata = new ArrayList<>();
-                metadata.add(ERROR_METADATA_PIN_MIN_LENGTH);
-                metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
-                metadata.add(ERROR_METADATA_PIN_MIN_CHAR_CLASSES);
-                metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
-                throw new WeakPinException("The provided pin code was too weak", metadata);
-            }
-        }
+        tokenPinValidator.validateSoftwareTokenPin(pin);
         try {
             signerProxyFacade.initSoftwareToken(pin);
         } catch (Exception e) {
@@ -381,24 +360,6 @@ public class InitializationService {
     public static class InvalidInitParamsException extends ServiceException {
         public InvalidInitParamsException(String msg, List<String> metadata) {
             super(msg, new ErrorDeviation(ERROR_INVALID_INIT_PARAMS, metadata));
-        }
-    }
-
-    /**
-     * If the provided pin code contains invalid characters
-     */
-    public static class InvalidCharactersException extends ServiceException {
-        public InvalidCharactersException(String msg) {
-            super(msg, new ErrorDeviation(ERROR_INVALID_CHARACTERS_PIN));
-        }
-    }
-
-    /**
-     * If the provided pin code is too weak
-     */
-    public static class WeakPinException extends ServiceException {
-        public WeakPinException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(ERROR_WEAK_PIN, metadata));
         }
     }
 

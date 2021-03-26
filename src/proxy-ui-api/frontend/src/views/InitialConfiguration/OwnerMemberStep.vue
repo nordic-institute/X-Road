@@ -24,96 +24,102 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div class="step-content-wrapper">
     <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberName"
-          helpText="wizard.client.memberNameTooltip"
-        />
-        <div v-if="memberName" data-test="selected-member-name">
-          {{ memberName }}
+      <div class="wizard-step-form-content">
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('wizard.memberName')"
+            :helpText="$t('wizard.client.memberNameTooltip')"
+          />
+          <div
+            v-if="memberName"
+            class="readonly-info-field"
+            data-test="selected-member-name"
+          >
+            {{ memberName }}
+          </div>
+          <div v-else class="readonly-info-field"></div>
+        </div>
+
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('wizard.memberClass')"
+            :helpText="$t('wizard.client.memberClassTooltip')"
+          />
+
+          <ValidationProvider name="addClient.memberClass" rules="required">
+            <v-select
+              v-model="memberClass"
+              :items="memberClassesCurrentInstance"
+              :disabled="isServerOwnerInitialized"
+              data-test="member-class-input"
+              class="form-input"
+            ></v-select>
+          </ValidationProvider>
+        </div>
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('wizard.memberCode')"
+            :helpText="$t('wizard.client.memberCodeTooltip')"
+          />
+
+          <ValidationProvider
+            name="addClient.memberCode"
+            rules="required|xrdIdentifier"
+            v-slot="{ errors }"
+            ref="memberCodeVP"
+          >
+            <v-text-field
+              class="form-input"
+              type="text"
+              :error-messages="errors"
+              :disabled="isServerOwnerInitialized"
+              v-model="memberCode"
+              autofocus
+              data-test="member-code-input"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('fields.securityServerCode')"
+            :helpText="$t('initialConfiguration.member.serverCodeHelp')"
+          />
+
+          <ValidationProvider
+            name="securityServerCode"
+            rules="required|xrdIdentifier"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              class="form-input"
+              type="text"
+              :error-messages="errors"
+              :disabled="isServerCodeInitialized"
+              v-model="securityServerCode"
+              data-test="security-server-code-input"
+            ></v-text-field>
+          </ValidationProvider>
         </div>
       </div>
-
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberClass"
-          helpText="wizard.client.memberClassTooltip"
-        />
-
-        <ValidationProvider name="addClient.memberClass" rules="required">
-          <v-select
-            v-model="memberClass"
-            :items="memberClassesCurrentInstance"
-            :disabled="isServerOwnerInitialized"
-            data-test="member-class-input"
-            class="form-input"
-          ></v-select>
-        </ValidationProvider>
-      </div>
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberCode"
-          helpText="wizard.client.memberCodeTooltip"
-        />
-
-        <ValidationProvider
-          name="addClient.memberCode"
-          rules="required|xrdIdentifier"
-          v-slot="{ errors }"
-          ref="memberCodeVP"
-        >
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            :disabled="isServerOwnerInitialized"
-            v-model="memberCode"
-            autofocus
-            data-test="member-code-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
-
-      <div class="row-wrap">
-        <FormLabel
-          labelText="fields.securityServerCode"
-          helpText="initialConfiguration.member.serverCodeHelp"
-        />
-
-        <ValidationProvider
-          name="securityServerCode"
-          rules="required|xrdIdentifier"
-          v-slot="{ errors }"
-        >
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            :disabled="isServerCodeInitialized"
-            v-model="securityServerCode"
-            data-test="security-server-code-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
-
       <div class="button-footer">
         <v-spacer></v-spacer>
         <div>
-          <large-button
+          <xrd-button
             v-if="showPreviousButton"
             @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
+            >{{ $t('action.previous') }}</xrd-button
           >
-          <large-button
+          <xrd-button
             :disabled="invalid"
             @click="done"
             data-test="save-button"
-            >{{ $t(saveButtonText) }}</large-button
+            >{{ $t(saveButtonText) }}</xrd-button
           >
         </div>
       </div>
@@ -125,8 +131,6 @@
 import Vue, { VueConstructor } from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default (Vue as VueConstructor<
   Vue & {
@@ -136,10 +140,8 @@ export default (Vue as VueConstructor<
   }
 >).extend({
   components: {
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
-    FormLabel,
   },
   props: {
     saveButtonText: {
@@ -272,10 +274,10 @@ export default (Vue as VueConstructor<
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 
 .readonly-info-field {
-  max-width: 300px;
+  max-width: 405px;
   height: 60px;
   padding-top: 12px;
 }

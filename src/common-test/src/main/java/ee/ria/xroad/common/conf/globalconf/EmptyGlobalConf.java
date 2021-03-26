@@ -28,6 +28,7 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -157,6 +158,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public Collection<ApprovedCAInfo> getApprovedCAs(String instanceIdentifier) {
+        return null;
+    }
+
+    @Override
     public String getManagementRequestServiceAddress() {
         return null;
     }
@@ -251,6 +257,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
 
     @Override
     public List<String> getApprovedTsps(String instanceIdentifier) {
+        return null;
+    }
+
+    @Override
+    public List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
         return null;
     }
 

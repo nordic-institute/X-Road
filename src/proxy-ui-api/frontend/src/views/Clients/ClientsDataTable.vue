@@ -32,31 +32,28 @@
     elevation-0
     class="data-table-wrapper xrd-view-common"
   >
-    <div class="table-toolbar">
-      <v-text-field
-        v-model="search"
-        :label="$t('action.search')"
-        data-test="search-clients-input"
-        single-line
-        hide-details
-        class="search-input"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+    <div class="table-toolbar pb-3 pt-5">
+      <div class="xrd-title-search">
+        <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
+
+        <xrd-search v-model="search" />
+      </div>
       <div>
-        <LargeButton
+        <xrd-button
           v-if="showAddMember"
           @click="addMember"
           data-test="add-member-button"
           class="add-member"
-          >{{ $t('action.addMember') }}</LargeButton
+          outlined
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          {{ $t('action.addMember') }}</xrd-button
         >
-        <LargeButton
+        <xrd-button
           v-if="showAddClient"
           @click="addClient"
           data-test="add-client-button"
-          >{{ $t('action.addClient') }}</LargeButton
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          {{ $t('action.addClient') }}</xrd-button
         >
       </div>
     </div>
@@ -80,32 +77,34 @@
       <template v-slot:[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
-          <v-icon color="grey darken-2" class="icon-member icon-size"
-            >mdi-folder-open</v-icon
+          <i @click="openClient(item)">
+            <v-icon class="icon-member icon-size">icon-Folder</v-icon></i
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name identifier-wrap clickable"
+            class="member-name identifier-wrap clickable"
             @click="openClient(item)"
-            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+            >{{ item.visibleName }}
+            <span class="owner-box">{{ $t('client.owner') }}</span></span
           >
-
-          <span v-else class="font-weight-bold name identifier-wrap"
-            >{{ item.visibleName }} ({{ $t('client.owner') }})</span
+          <span v-else class="member-name identifier-wrap owner-box"
+            >{{ item.visibleName }} {{ $t('client.owner') }}</span
           >
         </template>
         <!-- Name - Member -->
         <template v-else-if="item.type === clientTypes.MEMBER">
-          <v-icon color="grey darken-2" class="icon-member icon-size"
-            >mdi-folder-open-outline</v-icon
+          <i @click="openClient(item)">
+            <v-icon class="icon-member icon-size"
+              >icon-Folder-outline</v-icon
+            ></i
           >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name identifier-wrap clickable"
+            class="member-name identifier-wrap clickable"
             @click="openClient(item)"
             >{{ item.visibleName }}</span
           >
-          <span v-else class="font-weight-bold name identifier-wrap">{{
+          <span v-else class="name identifier-wrap">{{
             item.visibleName
           }}</span>
         </template>
@@ -116,27 +115,23 @@
             item.type === clientTypes.MEMBER
           "
         >
-          <v-icon color="grey darken-2" class="icon-member icon-size"
-            >mdi-folder-open-outline</v-icon
+          <v-icon class="icon-virtual-member icon-size"
+            >icon-Folder-outline</v-icon
           >
-          <span class="font-weight-bold identifier-wrap name-member">{{
+
+          <span class="identifier-wrap member-name">{{
             item.visibleName
           }}</span>
         </template>
         <!-- Name - Subsystem -->
         <template v-else>
-          <v-icon color="grey darken-2" class="icon-subsystem icon-size"
-            >mdi-card-bulleted-outline</v-icon
-          >
           <span
             v-if="canOpenClient"
-            class="font-weight-bold name identifier-wrap clickable"
+            class="name identifier-wrap clickable"
             @click="openSubsystem(item)"
             >{{ item.visibleName }}</span
           >
-          <span v-else class="font-weight-bold name">{{
-            item.visibleName
-          }}</span>
+          <span v-else class="name">{{ item.visibleName }}</span>
         </template>
       </template>
 
@@ -150,7 +145,7 @@
 
       <template v-slot:[`item.button`]="{ item }">
         <div class="button-wrap">
-          <SmallButton
+          <xrd-button
             v-if="
               (item.type === clientTypes.OWNER_MEMBER ||
                 item.type === clientTypes.MEMBER ||
@@ -158,19 +153,24 @@
               item.member_name &&
               showAddClient
             "
+            text
+            :outlined="false"
             @click="addSubsystem(item)"
-            >{{ $t('action.addSubsystem') }}</SmallButton
+            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+            >{{ $t('action.addSubsystem') }}</xrd-button
           >
 
-          <SmallButton
+          <xrd-button
             v-if="
               item.type !== clientTypes.OWNER_MEMBER &&
               item.type !== clientTypes.VIRTUAL_MEMBER &&
               item.status === 'SAVED' &&
               showRegister
             "
+            text
+            :outlined="false"
             @click="registerClient(item)"
-            >{{ $t('action.register') }}</SmallButton
+            >{{ $t('action.register') }}</xrd-button
           >
         </div>
       </template>
@@ -181,7 +181,7 @@
       }}</v-alert>
     </v-data-table>
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"
@@ -199,13 +199,10 @@
  */
 import Vue from 'vue';
 import ClientStatus from './ClientStatus.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName, ClientTypes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
-import SmallButton from '@/components/ui/SmallButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
@@ -213,9 +210,6 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     ClientStatus,
-    LargeButton,
-    SmallButton,
-    ConfirmDialog,
   },
 
   data: () => ({
@@ -482,22 +476,41 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+@import '~styles/colors';
 .xrd-table-header {
-  border-bottom: 1px solid #9c9c9c !important;
+  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
+}
+
+// Override Vuetify default table cell height
+.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
+.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
+.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
+  height: 56px;
+  color: $XRoad-Black100;
+}
+
+// Override Vuetify table row hover color
+.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+  background: $XRoad-Purple10 !important;
 }
 </style>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
 .icon-member {
   padding-left: 0;
+  color: $XRoad-Link;
+  cursor: pointer;
 }
 
-.icon-subsystem {
-  padding-left: 40px;
+.icon-virtual-member {
+  padding-left: 0;
+  color: $XRoad-Black100;
 }
 
 .icon-size {
   font-size: 20px;
+  padding-bottom: 4px;
 }
 
 .table-toolbar {
@@ -506,7 +519,6 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: flex-end;
   width: 100%;
-  padding-left: 24px;
   margin-bottom: 24px;
 }
 
@@ -516,6 +528,14 @@ export default Vue.extend({
 
 .data-table-wrapper {
   width: 100%;
+  max-width: 1600px;
+  margin-left: 10px;
+  margin-right: 10px;
+
+  @media only screen and (max-width: 1620px) {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }
 
 .data-table {
@@ -523,22 +543,45 @@ export default Vue.extend({
 }
 
 .name {
-  margin-left: 14px;
+  margin-left: 40px;
   margin-top: auto;
   margin-bottom: auto;
   text-align: center;
+  font-weight: 600;
 
   &.clickable {
-    text-decoration: underline;
     cursor: pointer;
+    text-decoration: none;
+    color: $XRoad-Link;
   }
 }
 
-.name-member {
+.member-name {
+  @extend .name;
   margin-left: 14px;
-  margin-top: auto;
-  margin-bottom: auto;
-  text-align: center;
+}
+
+.owner-box {
+  border: solid 1px;
+  border-radius: 5px;
+  padding-left: 3px;
+  padding-right: 3px;
+  height: 16px;
+  text-transform: uppercase;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 20px;
+  letter-spacing: 0.4px;
+  color: #575169;
+  margin-left: 16px;
+  padding-top: 1px;
+
+  &.clickable {
+    text-decoration: none;
+    color: $XRoad-Link;
+    cursor: pointer;
+  }
 }
 
 .button-wrap {

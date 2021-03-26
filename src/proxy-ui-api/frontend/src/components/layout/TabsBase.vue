@@ -24,47 +24,84 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout class="main-content" align-center justify-center column>
-    <v-tabs
-      v-model="tab"
-      class="main-tabs"
-      grow
-      mb-10
-      color="secondary"
-      slider-size="4"
-    >
-      <v-tabs-slider
-        color="secondary"
-        class="xrd-main-tabs-slider"
-      ></v-tabs-slider>
-      <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to" :data-test="tab.key">{{
-        $t(tab.name)
-      }}</v-tab>
-    </v-tabs>
+  <v-layout class="main-content" align-left>
+    <app-icon />
+    <div class="tabs-wrap">
+      <v-tabs
+        v-model="tab"
+        class="main-tabs"
+        color="black"
+        height="56px"
+        slider-size="2"
+        slider-color="primary"
+        :show-arrows="true"
+      >
+        <v-tabs-slider
+          color="primary"
+          class="xrd-main-tabs-slider"
+        ></v-tabs-slider>
+        <v-tab
+          v-for="tab in allowedTabs"
+          v-bind:key="tab.key"
+          :to="tab.to"
+          :data-test="tab.key"
+          >{{ $t(tab.name) }}</v-tab
+        >
+      </v-tabs>
+    </div>
+    <app-drop-menu />
   </v-layout>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
+import { mainTabs, RouteName } from '@/global';
+import AppIcon from './AppIcon.vue';
+import AppDropMenu from './AppDropMenu.vue';
 
 export default Vue.extend({
+  components: {
+    AppIcon,
+    AppDropMenu,
+  },
   data() {
     return {
       tab: undefined as undefined | Tab,
     };
   },
   computed: {
+    ...mapGetters(['username']),
+
     allowedTabs(): Tab[] {
       return this.$store.getters.getAllowedTabs(mainTabs);
+    },
+  },
+  methods: {
+    logout(): void {
+      this.$store.dispatch('logout');
+      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
 </script>
 
 <style lang="scss">
+@import '../../assets/colors';
+
 .v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.v-tab {
+  text-transform: none;
+  font-weight: 600;
+}
+
+.v-tabs-slider.xrd-sub-tabs-slider {
   width: 40px;
   margin-left: auto;
   margin-right: auto;
@@ -73,11 +110,19 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 .main-content {
-  margin-top: 50px;
+  background-color: #ffffff;
+  height: 56px;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
+}
+
+.tabs-wrap {
+  margin-left: 20px;
 }
 
 .main-tabs {
-  width: 100%;
   max-width: 1000px;
 }
 </style>

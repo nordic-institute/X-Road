@@ -24,20 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <v-tabs
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" :data-test="tab.key" exact>
-        {{ $t(tab.name) }}
-      </v-tab>
-    </v-tabs>
-    <div class="content">
+  <div class="xrd-sub-view-wrapper">
+    <div class="content xrd-view-common">
       <router-view />
     </div>
   </div>
@@ -45,39 +33,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
 
-export default Vue.extend({
-  data() {
-    return {
-      tab: null,
-    };
-  },
-  computed: {
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'system',
-          name: 'tab.settings.systemParameters',
-          to: {
-            name: RouteName.SystemParameters,
-          },
-          permissions: [Permissions.VIEW_SYS_PARAMS],
-        },
-        {
-          key: 'backup',
-          name: 'tab.settings.backupAndRestore',
-          to: {
-            name: RouteName.BackupAndRestore,
-          },
-          permissions: [Permissions.BACKUP_CONFIGURATION],
-        },
-      ];
-      return this.$store.getters.getAllowedTabs(allTabs);
-    },
-  },
-});
+export default Vue.extend({});
 </script>
 <style lang="scss" scoped>
 .content {

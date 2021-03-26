@@ -33,79 +33,85 @@
         {{ $t('wizard.member.info2') }}
       </div>
       <div class="action-block">
-        <large-button
+        <xrd-button
           @click="showSelectClient = true"
           outlined
           data-test="select-client-button"
-          >{{ $t('wizard.member.select') }}</large-button
+          >{{ $t('wizard.member.select') }}</xrd-button
         >
       </div>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberName"
-          helpText="wizard.client.memberNameTooltip"
-        />
-        <div data-test="selected-member-name">{{ selectedMemberName }}</div>
-      </div>
+      <div class="wizard-step-form-content">
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('wizard.memberName')"
+            :helpText="$t('wizard.client.memberNameTooltip')"
+          />
+          <div data-test="selected-member-name">{{ selectedMemberName }}</div>
+        </div>
 
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberClass"
-          helpText="wizard.client.memberClassTooltip"
-        />
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('wizard.memberClass')"
+            :helpText="$t('wizard.client.memberClassTooltip')"
+          />
 
-        <ValidationProvider
-          name="addClient.memberClass"
-          rules="required"
-          v-slot="{}"
-        >
-          <v-select
-            :items="memberClassesCurrentInstance"
-            class="form-input"
-            v-model="memberClass"
-            data-test="member-class-input"
-          ></v-select>
-        </ValidationProvider>
-      </div>
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberCode"
-          helpText="wizard.client.memberCodeTooltip"
-        />
+          <ValidationProvider
+            name="addClient.memberClass"
+            rules="required"
+            v-slot="{}"
+          >
+            <v-select
+              :items="memberClassesCurrentInstance"
+              class="form-input"
+              v-model="memberClass"
+              data-test="member-class-input"
+              :placeholder="$t('wizard.selectMemberClass')"
+              outlined
+            ></v-select>
+          </ValidationProvider>
+        </div>
+        <div class="row-wrap">
+          <xrd-form-label
+            :labelText="$t('wizard.memberCode')"
+            :helpText="$t('wizard.client.memberCodeTooltip')"
+          />
 
-        <ValidationProvider
-          name="addClient.memberCode"
-          rules="required|xrdIdentifier"
-          v-slot="{ errors }"
-        >
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            v-model="memberCode"
-            autofocus
-            data-test="member-code-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
+          <ValidationProvider
+            name="addClient.memberCode"
+            rules="required|xrdIdentifier"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              class="form-input"
+              type="text"
+              :error-messages="errors"
+              v-model="memberCode"
+              :placeholder="$t('wizard.memberCode')"
+              autofocus
+              outlined
+              data-test="member-code-input"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
 
-      <div v-if="duplicateClient" class="duplicate-warning">
-        {{ $t('wizard.client.memberExists') }}
+        <div v-if="duplicateClient" class="duplicate-warning">
+          {{ $t('wizard.client.memberExists') }}
+        </div>
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" data-test="cancel-button">{{
+          <xrd-button outlined @click="cancel" data-test="cancel-button">{{
             $t('action.cancel')
-          }}</large-button>
+          }}</xrd-button>
         </div>
-        <large-button
+        <xrd-button
           @click="done"
           :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
-          >{{ $t('action.next') }}</large-button
+          >{{ $t('action.next') }}</xrd-button
         >
       </div>
     </ValidationObserver>
@@ -124,8 +130,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import FormLabel from '@/components/ui/FormLabel.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
 import { debounce, isEmpty } from '@/util/helpers';
@@ -139,8 +143,6 @@ let that: any;
 
 export default Vue.extend({
   components: {
-    FormLabel,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
@@ -311,23 +313,4 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
-
-.info-block {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 40px;
-
-  .action-block {
-    margin-top: 30px;
-    margin-left: auto;
-    margin-right: 0px;
-  }
-}
-
-.duplicate-warning {
-  margin-left: 230px;
-  margin-top: 10px;
-  color: #ff5252;
-  font-size: 12px;
-}
 </style>

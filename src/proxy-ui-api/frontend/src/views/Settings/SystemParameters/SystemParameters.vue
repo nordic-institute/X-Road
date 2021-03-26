@@ -24,28 +24,38 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="pt-10">
+  <div class="pt-6">
+    <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
+
     <v-card flat class="xrd-card">
-      <v-container>
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
+      <v-card-text class="card-text">
+        <v-row
+          no-gutters
+          class="px-4"
+          v-if="hasPermission(permissions.VIEW_ANCHOR)"
+        >
           <v-col
             ><h3>
               {{ $t('systemParameters.configurationAnchor.title') }}
             </h3></v-col
           >
           <v-col class="text-right">
-            <large-button
-              data-test="system-parameters-configuration-anchor-download-button"
-              @click="downloadAnchor"
-              :loading="downloadingAnchor"
-              outlined
-              :requires-permission="permissions.DOWNLOAD_ANCHOR"
-            >
-              {{ $t('systemParameters.configurationAnchor.action.download') }}
-            </large-button>
-            <upload-configuration-anchor-dialog
-              @uploaded="fetchConfigurationAnchor"
-            />
+            <div class="anchor-buttons">
+              <xrd-button
+                data-test="system-parameters-configuration-anchor-download-button"
+                @click="downloadAnchor"
+                :loading="downloadingAnchor"
+                outlined
+                :requires-permission="permissions.DOWNLOAD_ANCHOR"
+              >
+                <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
+                {{ $t('systemParameters.configurationAnchor.action.download') }}
+              </xrd-button>
+
+              <upload-configuration-anchor-dialog
+                @uploaded="fetchConfigurationAnchor"
+              />
+            </div>
           </v-col>
         </v-row>
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
@@ -74,7 +84,7 @@
               >
                 <tr>
                   <td>{{ this.configuratonAnchor.hash | colonize }}</td>
-                  <td>
+                  <td class="pr-4">
                     {{ this.configuratonAnchor.created_at | formatDateTime }}
                   </td>
                 </tr>
@@ -82,9 +92,13 @@
             </table>
           </v-col>
         </v-row>
+      </v-card-text>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-card-text class="card-text">
         <v-row
           no-gutters
-          class="mt-10"
+          class="px-4"
           v-if="hasPermission(permissions.VIEW_TSPS)"
         >
           <v-col
@@ -99,6 +113,7 @@
             />
           </v-col>
         </v-row>
+
         <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
           <v-col>
             <table class="xrd-table">
@@ -135,9 +150,13 @@
             </table>
           </v-col>
         </v-row>
+      </v-card-text>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-card-text class="card-text">
         <v-row
           no-gutters
-          class="mt-10"
+          class="px-4"
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
@@ -208,20 +227,19 @@
                       )
                     }}
                   </td>
-                  <td>{{ approvedCA.not_after | formatDate }}</td>
+                  <td class="pr-4">{{ approvedCA.not_after | formatDate }}</td>
                 </tr>
               </tbody>
             </table>
           </v-col>
         </v-row>
-      </v-container>
+      </v-card-text>
     </v-card>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import {
   Anchor,
   CertificateAuthority,
@@ -236,7 +254,6 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 
 export default Vue.extend({
   components: {
-    LargeButton,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,
@@ -311,21 +328,20 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
+@import '~styles/colors';
+@import '~styles/tables';
 
 h3 {
-  color: lighten($XRoad-Black, 10);
-  font-weight: 500;
+  color: #211e1e;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0;
+  line-height: 24px;
 }
 
-table {
-  font-size: 0.9rem;
-}
-
-tr th {
-  font-weight: 500;
-  color: lighten($XRoad-Black, 20);
+.card-text {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 tr td {
@@ -345,5 +361,14 @@ tr td:last-child {
 .interm-ca {
   font-weight: normal !important;
   padding-left: 2rem !important;
+}
+
+.xrd-card {
+  margin-bottom: 24px;
+}
+
+.anchor-buttons {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

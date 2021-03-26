@@ -24,43 +24,46 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="action-row">
-      <div>{{ $t('initialConfiguration.anchor.info') }}</div>
-      <upload-configuration-anchor-dialog
-        @uploaded="fetchConfigurationAnchor"
-        initMode
-      />
-    </div>
+  <div class="step-content-wrapper">
+    <div class="wizard-step-form-content">
+      <div class="action-row">
+        <div>{{ $t('initialConfiguration.anchor.info') }}</div>
+        <upload-configuration-anchor-dialog
+          @uploaded="fetchConfigurationAnchor"
+          initMode
+        />
+      </div>
 
-    <div style="height: 120px">
-      <template v-if="configuratonAnchor">
-        <div class="row-wrap">
-          <div class="label">{{ $t('initialConfiguration.anchor.hash') }}</div>
-          <template v-if="configuratonAnchor">{{
-            configuratonAnchor.hash | colonize
-          }}</template>
-        </div>
-
-        <div class="row-wrap">
-          <div class="label">
-            {{ $t('initialConfiguration.anchor.generated') }}
+      <div style="height: 120px">
+        <template v-if="configuratonAnchor">
+          <div class="row-wrap">
+            <div class="label">
+              {{ $t('initialConfiguration.anchor.hash') }}
+            </div>
+            <template v-if="configuratonAnchor">{{
+              configuratonAnchor.hash | colonize
+            }}</template>
           </div>
-          <template v-if="configuratonAnchor">{{
-            configuratonAnchor.created_at | formatDateTime
-          }}</template>
-        </div>
-      </template>
-    </div>
 
+          <div class="row-wrap">
+            <div class="label">
+              {{ $t('initialConfiguration.anchor.generated') }}
+            </div>
+            <template v-if="configuratonAnchor">{{
+              configuratonAnchor.created_at | formatDateTime
+            }}</template>
+          </div>
+        </template>
+      </div>
+    </div>
     <div class="button-footer">
       <v-spacer></v-spacer>
       <div>
-        <large-button
+        <xrd-button
           :disabled="!configuratonAnchor"
           @click="done"
           data-test="save-button"
-          >{{ $t(saveButtonText) }}</large-button
+          >{{ $t(saveButtonText) }}</xrd-button
         >
       </div>
     </div>
@@ -70,14 +73,12 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     UploadConfigurationAnchorDialog,
   },
   props: {
@@ -123,7 +124,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 
 .label {
   width: 170px;

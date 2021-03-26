@@ -24,19 +24,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr class="grey--text text--darken-1" :data-test="`api-key-row-${apiKey.id}`">
-    <td><i class="icon-xrd_key icon"></i></td>
+  <tr :data-test="`api-key-row-${apiKey.id}`">
+    <td>
+      <i class="icon-Key icon" />
+    </td>
     <td>{{ apiKey.id }}</td>
     <td>{{ translateRoles(apiKey.roles) | commaSeparate }}</td>
     <td class="text-right">
-      <small-button
+      <xrd-button
         v-if="canEdit"
         @click="openEditDialog"
+        text
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
-        >{{ $t('apiKey.table.action.edit.button') }}</small-button
+        >{{ $t('apiKey.table.action.edit.button') }}</xrd-button
       >
-      <simpleDialog
+      <xrd-simple-dialog
         :dialog="showEditDialog"
         @save="save"
         @cancel="showEditDialog = false"
@@ -70,16 +73,17 @@
             </v-col>
           </v-row>
         </div>
-      </simpleDialog>
-      <small-button
+      </xrd-simple-dialog>
+      <xrd-button
         v-if="canRevoke"
         class="ml-5"
+        text
         :data-test="`api-key-row-${apiKey.id}-revoke-button`"
         :loading="removingApiKey"
         @click="confirmRevoke = true"
-        >{{ $t('apiKey.table.action.revoke.button') }}</small-button
+        >{{ $t('apiKey.table.action.revoke.button') }}</xrd-button
       >
-      <confirm-dialog
+      <xrd-confirm-dialog
         :data-test="`api-key-row-${apiKey.id}-revoke-confirmation`"
         :dialog="confirmRevoke"
         title="apiKey.table.action.revoke.confirmationDialog.title"
@@ -97,18 +101,11 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
 import { ApiKey } from '@/global-types';
-import SmallButton from '@/components/ui/SmallButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { Roles, Permissions } from '@/global';
 import { encodePathParameter } from '@/util/api';
+
 export default Vue.extend({
   name: 'ApiKeyRow',
-  components: {
-    SmallButton,
-    ConfirmDialog,
-    SimpleDialog,
-  },
   props: {
     apiKey: {
       type: Object as Prop<ApiKey>,
@@ -187,5 +184,5 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '../../../assets/tables';
+@import '~styles/tables';
 </style>

@@ -24,13 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <small-button
+  <xrd-button
     :min_width="50"
+    text
+    :outlined="false"
     class="xrd-table-button"
     data-test="backup-restore"
     @click="showConfirmation = true"
     >{{ $t('action.restore') }}
-    <confirm-dialog
+    <xrd-confirm-dialog
       :dialog="showConfirmation"
       :loading="restoring"
       title="backup.action.restore.dialog.title"
@@ -39,7 +41,7 @@
       @cancel="showConfirmation = false"
       @accept="restoreBackup"
     />
-  </small-button>
+  </xrd-button>
 </template>
 
 <script lang="ts">
@@ -47,16 +49,10 @@ import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { Backup } from '@/openapi-types';
 import * as api from '@/util/api';
-import SmallButton from '@/components/ui/SmallButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   name: 'RestoreBackupButton',
-  components: {
-    SmallButton,
-    ConfirmDialog,
-  },
   props: {
     backup: {
       type: Object as Prop<Backup>,

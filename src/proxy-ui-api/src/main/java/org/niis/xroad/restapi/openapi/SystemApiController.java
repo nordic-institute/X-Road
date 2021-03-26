@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.AnchorConverter;
@@ -36,12 +37,13 @@ import org.niis.xroad.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.restapi.converter.VersionConverter;
 import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.ConfigurationDownloadException;
 import org.niis.xroad.restapi.service.ConfigurationVerifier;
@@ -52,6 +54,7 @@ import org.niis.xroad.restapi.service.SystemService;
 import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.service.VersionService;
 import org.niis.xroad.restapi.util.ResourceUtils;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +62,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.io.IOException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
@@ -72,6 +76,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UPLOAD_ANCHO
 import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.CERT_FILE_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_FILE_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FILE_NOT_FOUND;
 
 /**
  * system api controller
@@ -82,13 +87,16 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KE
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SystemApiController implements SystemApi {
+
+    static final String OPENAPI_DEFINITION_FILENAME = "openapi-definition.yaml";
+
     private final InternalTlsCertificateService internalTlsCertificateService;
     private final CertificateDetailsConverter certificateDetailsConverter;
     private final TimestampingServiceConverter timestampingServiceConverter;
     private final AnchorConverter anchorConverter;
+    private final VersionConverter versionConverter;
     private final SystemService systemService;
     private final VersionService versionService;
-    private final VersionConverter versionConverter;
     private final CsrFilenameCreator csrFilenameCreator;
     private final AuditDataHelper auditDataHelper;
 
@@ -110,10 +118,10 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<Version> systemVersion() {
-        String softwareVersion = versionService.getVersion();
-        Version version = versionConverter.convert(softwareVersion);
-        return new ResponseEntity<>(version, HttpStatus.OK);
+    public ResponseEntity<VersionInfo> systemVersion() {
+        VersionInfoDto versionInfoDto = versionService.getVersionInfo();
+        VersionInfo result = versionConverter.convert(versionInfoDto);
+        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
     @Override
@@ -274,5 +282,17 @@ public class SystemApiController implements SystemApi {
             throw new ConflictException(e);
         }
         return ApiUtil.createCreatedResponse("/api/system/anchor", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('DOWNLOAD_OPENAPI')")
+    public ResponseEntity<Resource> downloadOpenApi() {
+        try {
+            byte[] bytes = IOUtils.toByteArray(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getInputStream());
+            return ApiUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_FILENAME);
+        } catch (IOException e) {
+            log.error("Error reading OpenAPI definition file", e);
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));
+        }
     }
 }

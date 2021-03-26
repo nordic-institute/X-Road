@@ -25,86 +25,78 @@
  -->
 <template>
   <v-container class="xrd-view-common justify-center wrapper">
-    <SubViewTitle
-      :title="$t('ssTlsCertificate.generateInternalCsr.title')"
-      :show-close="false"
-    ></SubViewTitle>
-    <v-row class="first-action">
-      <v-col>{{
-        $t('ssTlsCertificate.generateInternalCsr.step1.description')
-      }}</v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="3" class="mt-6">
-        <HelpIcon
-          :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')"
-        />
-        {{ $t('ssTlsCertificate.generateInternalCsr.step1.label') }}
-      </v-col>
-      <v-col cols="8">
-        <v-text-field
-          autofocus
-          v-model="distinguishedName"
-          data-text="generate-internal-csr-distinguished-name-field"
-          :placeholder="
-            $t('ssTlsCertificate.generateInternalCsr.step1.placeholder')
-          "
-        />
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="8" class="mt-2">{{
-        $t('ssTlsCertificate.generateInternalCsr.step2.description')
-      }}</v-col>
-      <v-col cols="4" class="text-right">
-        <large-button
-          outlined
-          data-text="generate-internal-csr-generate-csr-button"
-          :disabled="distinguishedName.length === 0 || csrGenerated"
-          :loading="generatingCsr"
-          @click="generateCsr"
-          >{{
-            $t('ssTlsCertificate.generateInternalCsr.step2.generateCSR')
-          }}</large-button
-        >
-      </v-col>
-    </v-row>
-    <v-row class="bottom-buttons-wrapper">
-      <v-col cols="6" class="text-left">
-        <large-button
-          @click="back"
-          :disabled="csrGenerated || generatingCsr"
-          outlined
-          data-test="generate-internal-csr-cancel-button"
-          >{{ $t('ssTlsCertificate.generateInternalCsr.cancel') }}</large-button
-        >
-      </v-col>
-      <v-col cols="6" class="text-right">
-        <large-button
-          @click="back"
-          :disabled="!csrGenerated"
-          data-test="generate-internal-csr-done-button"
-          >{{ $t('ssTlsCertificate.generateInternalCsr.done') }}</large-button
-        >
-      </v-col>
-    </v-row>
+    <v-container>
+      <xrd-sub-view-title
+        :title="$t('ssTlsCertificate.generateInternalCsr.title')"
+        :show-close="false"
+      />
+      <v-row class="first-action">
+        <v-col>{{
+          $t('ssTlsCertificate.generateInternalCsr.step1.description')
+        }}</v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="3" class="mt-6">
+          <xrd-help-iconcon
+            :text="$t('ssTlsCertificate.generateInternalCsr.step1.tooltip')"
+          />
+          {{ $t('ssTlsCertificate.generateInternalCsr.step1.label') }}
+        </v-col>
+        <v-col cols="8">
+          <v-text-field
+            autofocus
+            v-model="distinguishedName"
+            outlined
+            data-text="generate-internal-csr-distinguished-name-field"
+            :placeholder="
+              $t('ssTlsCertificate.generateInternalCsr.step1.placeholder')
+            "
+          />
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col cols="8" class="mt-2">{{
+          $t('ssTlsCertificate.generateInternalCsr.step2.description')
+        }}</v-col>
+        <v-col cols="4" class="text-right">
+          <xrd-button
+            outlined
+            data-text="generate-internal-csr-generate-csr-button"
+            :disabled="distinguishedName.length === 0 || csrGenerated"
+            :loading="generatingCsr"
+            @click="generateCsr"
+            >{{
+              $t('ssTlsCertificate.generateInternalCsr.step2.generateCSR')
+            }}</xrd-button
+          >
+        </v-col>
+      </v-row>
+    </v-container>
+    <div class="button-footer">
+      <xrd-button
+        @click="back"
+        :disabled="csrGenerated || generatingCsr"
+        outlined
+        data-test="generate-internal-csr-cancel-button"
+        >{{ $t('ssTlsCertificate.generateInternalCsr.cancel') }}</xrd-button
+      >
+
+      <xrd-button
+        @click="back"
+        :disabled="!csrGenerated"
+        data-test="generate-internal-csr-done-button"
+        >{{ $t('ssTlsCertificate.generateInternalCsr.done') }}</xrd-button
+      >
+    </div>
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import HelpIcon from '@/components/ui/HelpIcon.vue';
 import { saveResponseAsFile } from '@/util/helpers';
 
 export default Vue.extend({
-  components: {
-    SubViewTitle,
-    LargeButton,
-    HelpIcon,
-  },
   data() {
     return {
       distinguishedName: '',
@@ -138,8 +130,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/detail-views';
-@import '../../../assets/colors';
+@import '~styles/detail-views';
+@import '~styles/colors';
+@import '~styles/wizards';
 
 $spacing: 12rem;
 
@@ -148,6 +141,11 @@ $spacing: 12rem;
   height: 100%;
   width: 100%;
   color: $XRoad-Grey60;
+  background-color: $XRoad-White100;
+  box-shadow: $XRoad-DefaultShadow;
+  border-radius: 4px;
+  padding: 0px;
+  margin-top: 20px;
 }
 
 .help-wrapper {

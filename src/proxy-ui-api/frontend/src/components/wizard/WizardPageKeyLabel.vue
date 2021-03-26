@@ -25,34 +25,41 @@
  -->
 <template>
   <div>
-    {{
-      tokenType === 'HARDWARE'
-        ? $t('wizard.signKey.info')
-        : $t('keys.keyLabelInfo')
-    }}
-    <div class="row-wrap">
-      <FormLabel :labelText="keyLabelText" />
-      <v-text-field
-        class="form-input"
-        type="text"
-        v-model="keyLabel"
-        data-test="key-label-button"
-        autofocus
-      ></v-text-field>
+    <div class="wizard-step-form-content pt-6">
+      <div class="row-wrap">
+        <xrd-form-label
+          v-if="tokenType === 'HARDWARE'"
+          :labelText="$t('wizard.signKey.keyLabel')"
+          :helpText="$t('wizard.signKey.info')"
+        />
+        <xrd-form-label
+          v-else
+          :labelText="$t('wizard.signKey.keyLabel')"
+          :helpText="$t('wizard.signKey.info')"
+        />
+
+        <v-text-field
+          class="form-input"
+          type="text"
+          v-model="keyLabel"
+          outlined
+          data-test="key-label-button"
+          autofocus
+        ></v-text-field>
+      </div>
     </div>
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="!disableDone"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
-      <large-button @click="done" data-test="next-button">{{
+      <xrd-button
+        outlined
+        @click="cancel"
+        :disabled="!disableDone"
+        data-test="cancel-button"
+        >{{ $t('action.cancel') }}</xrd-button
+      >
+
+      <xrd-button @click="done" data-test="next-button">{{
         $t('action.next')
-      }}</large-button>
+      }}</xrd-button>
     </div>
   </div>
 </template>
@@ -60,14 +67,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default Vue.extend({
-  components: {
-    FormLabel,
-    LargeButton,
-  },
   props: {
     tokenType: {
       type: String,

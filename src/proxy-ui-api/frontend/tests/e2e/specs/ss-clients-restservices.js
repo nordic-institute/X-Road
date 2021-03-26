@@ -690,12 +690,13 @@ module.exports = {
 
     clientServices.expandServiceDetails();
 
-    browser.getText(clientServices.elements.refreshTimestamp, function (
-      result,
-    ) {
-      startTimestamp = result.value;
-      startTime = new Date().getTime();
-    });
+    browser.getText(
+      clientServices.elements.refreshTimestamp,
+      function (result) {
+        startTimestamp = result.value;
+        startTime = new Date().getTime();
+      },
+    );
 
     // Verify enabling
     clientServices.toggleEnabled();

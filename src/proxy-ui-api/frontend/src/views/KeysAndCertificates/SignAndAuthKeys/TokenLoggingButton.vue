@@ -26,26 +26,29 @@
 
 <template>
   <div>
-    <v-btn
+    <xrd-button
       min-width="120px"
       v-if="!token.logged_in"
+      :outlined="false"
+      text
       :color="styles.color"
       :disabled="!token.available"
       @click="confirmLogin()"
       data-test="token-login-button"
       >{{ $t('keys.logIn') }}
-    </v-btn>
+    </xrd-button>
 
-    <v-btn
+    <xrd-button
       active-class="'test'"
-      outlined="outlined"
       min-width="120px"
+      :outlined="false"
+      text
       v-if="token.logged_in"
       :color="styles.color"
       @click="confirmLogout()"
       data-test="token-logout-button"
       >{{ $t('keys.logOut') }}
-    </v-btn>
+    </xrd-button>
   </div>
 </template>
 
@@ -106,16 +109,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '../../../assets/colors';
-.grey-background {
-  background-color: $XRoad-Grey10;
-}
-
-.large-button {
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
-}
-</style>

@@ -82,6 +82,8 @@ public abstract class AbstractServiceTestContext extends AbstractFacadeMockingTe
     LocalGroupRepository localGroupRepository;
     @MockBean
     ServerConfType serverConfType;
+    @MockBean
+    TokenPinValidator tokenPinValidator;
 
     static final ClientId COMMON_OWNER_ID = TestUtils.getClientId("FI", "GOV", "M1", null);
 

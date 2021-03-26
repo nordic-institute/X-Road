@@ -24,138 +24,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common">
-    <v-tabs
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" :data-test="tab.key" exact>
-        {{ $t(tab.name) }}
-        <v-hover v-slot:default="{ hover }">
-          <v-icon
-            :color="hover ? '#6eecff' : getIconColor(tab.to.name)"
-            dark
-            class="help-icon"
-            @click="helpClick(tab)"
-            >mdi-help-circle</v-icon
-          >
-        </v-hover>
-      </v-tab>
-    </v-tabs>
+  <div class="xrd-view-common xrd-sub-view-wrapper">
     <div class="content">
       <router-view />
     </div>
-    <helpDialog
-      v-if="helpTab"
-      :dialog="showHelp"
-      @cancel="closeHelp"
-      :imageSrc="helpTab.helpImage"
-      :title="helpTab.helpTitle"
-      :text="helpTab.helpText"
-    />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import HelpDialog from '@/components/ui/HelpDialog.vue';
-
-interface KeysTab extends Tab {
-  helpImage: string;
-  helpTitle: string;
-  helpText: string;
-}
-
-export default Vue.extend({
-  components: {
-    HelpDialog,
-  },
-  data: () => ({
-    tab: null,
-    showHelp: false,
-    helpTab: null as KeysTab | null,
-  }),
-
-  computed: {
-    tabs(): KeysTab[] {
-      const allTabs: KeysTab[] = [
-        {
-          key: 'signAndAuthKeys',
-          name: 'tab.keys.signAndAuthKeys',
-          to: {
-            name: RouteName.SignAndAuthKeys,
-          },
-          permissions: [Permissions.VIEW_KEYS],
-          helpImage: 'keys_and_certificates.png',
-          helpTitle: 'keys.helpTitleKeys',
-          helpText: 'keys.helpTextKeys',
-        },
-        {
-          key: 'apiKey',
-          name: 'tab.keys.apiKey',
-          to: {
-            name: RouteName.ApiKey,
-          },
-          permissions: [
-            Permissions.CREATE_API_KEY,
-            Permissions.VIEW_API_KEYS,
-            Permissions.UPDATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
-          helpImage: 'api_keys.png',
-          helpTitle: 'keys.helpTitleApi',
-          helpText: 'keys.helpTextApi',
-        },
-        {
-          key: 'ssTlsCertificate',
-          name: 'tab.keys.ssTlsCertificate',
-          to: {
-            name: RouteName.SSTlsCertificate,
-          },
-          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-          helpImage: 'tls_certificate.png',
-          helpTitle: 'keys.helpTitleSS',
-          helpText: 'keys.helpTextSS',
-        },
-      ];
-
-      return this.$store.getters.getAllowedTabs(allTabs);
-    },
-  },
-
-  methods: {
-    helpClick(tab: KeysTab): void {
-      this.helpTab = tab;
-      this.showHelp = true;
-    },
-    closeHelp(): void {
-      this.showHelp = false;
-    },
-    getIconColor(specTab: string): string {
-      if (this.$route.name === specTab) {
-        return 'secondary';
-      }
-      return '#9c9c9c';
-    },
-  },
-});
+export default Vue.extend({});
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/global-style';
-
-.help-icon {
-  margin-left: 20px;
-  font-size: 16px;
-}
-
 .content {
-  width: 1000px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
+  max-width: 1620px;
 }
 </style>

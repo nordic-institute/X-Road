@@ -25,37 +25,48 @@
  -->
 <template>
   <div class="wrapper">
+    <div class="title-row">
+      <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
+      <div>
+        <help-button
+          helpImage="tls_certificate.png"
+          helpTitle="keys.helpTitleSS"
+          helpText="keys.helpTextSS"
+        ></help-button>
+      </div>
+    </div>
+
     <div class="details-view-tools">
-      <large-button
+      <xrd-button
         v-if="generateKeyVisible"
         class="button-spacing"
         outlined
         @click="generateDialog = true"
         data-test="security-server-tls-certificate-generate-key-button"
-        >{{ $t('ssTlsCertificate.generateKey') }}</large-button
+        >{{ $t('ssTlsCertificate.generateKey') }}</xrd-button
       >
-      <file-upload
+      <xrd-file-upload
         v-if="importCertificateVisible"
         accepts=".pem, .cer, .der"
         @file-changed="onImportFileChanged"
         v-slot="{ upload }"
       >
-        <large-button
+        <xrd-button
           class="button-spacing"
           outlined
           @click="upload"
           data-test="security-server-tls-certificate-import-certificate-key"
-          >{{ $t('ssTlsCertificate.importCertificate') }}</large-button
+          >{{ $t('ssTlsCertificate.importCertificate') }}</xrd-button
         >
-      </file-upload>
-      <large-button
+      </xrd-file-upload>
+      <xrd-button
         v-if="exportCertificateVisible"
         class="button-spacing"
         outlined
         :loading="exportPending"
         @click="exportCertificate()"
         data-test="security-server-tls-certificate-export-certificate-button"
-        >{{ $t('ssTlsCertificate.exportCertificate') }}</large-button
+        >{{ $t('ssTlsCertificate.exportCertificate') }}</xrd-button
       >
     </div>
 
@@ -65,42 +76,48 @@
       @saved="newCertificateGenerated"
     />
 
-    <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
-    <div class="horizontal-line-dark"></div>
+    <div class="content-card">
+      <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
+      <div class="horizontal-line-dark"></div>
 
-    <div class="content-wrap">
-      <div>
-        <div class="key-wrap">
-          <i class="icon-xrd_key icon"></i>
-          {{ $t('ssTlsCertificate.keyText') }}
-        </div>
-        <div class="cert-wrap">
-          <i
-            class="icon-xrd_certificate icon clickable"
-            @click="certificateClick()"
-          ></i>
-          <div
-            class="clickable-link"
-            v-if="certificate"
-            @click="certificateClick()"
-          >
-            {{ certificate.hash | colonize }}
+      <div class="content-wrap">
+        <div>
+          <div class="key-wrap">
+            <i class="icon-Key icon" />
+
+            {{ $t('ssTlsCertificate.keyText') }}
+          </div>
+          <div class="cert-wrap">
+            <i
+              class="icon-Certificate icon clickable-link"
+              @click="certificateClick()"
+            />
+
+            <div
+              class="clickable-link"
+              v-if="certificate"
+              @click="certificateClick()"
+            >
+              {{ certificate.hash | colonize }}
+            </div>
           </div>
         </div>
+
+        <div>
+          <xrd-button
+            v-if="generateCsrVisible"
+            class="mr-2"
+            @click="generateCsr()"
+            text
+            :outlined="false"
+            data-test="security-server-tls-certificate-generate-csr-button"
+            >{{ $t('ssTlsCertificate.generateCsr') }}</xrd-button
+          >
+        </div>
       </div>
 
-      <div>
-        <SmallButton
-          v-if="generateCsrVisible"
-          class="table-button-fix"
-          @click="generateCsr()"
-          data-test="security-server-tls-certificate-generate-csr-button"
-          >{{ $t('ssTlsCertificate.generateCsr') }}</SmallButton
-        >
-      </div>
+      <div class="horizontal-line-light"></div>
     </div>
-
-    <div class="horizontal-line-light"></div>
   </div>
 </template>
 
@@ -109,19 +126,15 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { CertificateDetails } from '@/openapi-types';
 import * as api from '@/util/api';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
+import HelpButton from '../HelpButton.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    SmallButton,
     GenerateTlsAndCertificateDialog,
-    FileUpload,
+    HelpButton,
   },
   data() {
     return {
@@ -215,16 +228,29 @@ export default Vue.extend({
   width: 100%;
 }
 
+.title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+}
+
 .content-title {
   color: $XRoad-Black;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
   font-weight: 500;
   margin-top: 40px;
+  padding-top: 16px;
+  padding-left: 16px;
   margin-bottom: 12px;
 }
 
 .button-spacing {
   margin-left: 20px;
+}
+
+.content-card {
+  background-color: $XRoad-White100;
+  border-radius: 4px;
 }
 
 .content-wrap {
@@ -267,8 +293,8 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
   cursor: pointer;
   height: 100%;
+  color: $XRoad-Link;
 }
 </style>

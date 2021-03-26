@@ -25,9 +25,9 @@
  -->
 <template>
   <ValidationObserver ref="form" v-slot="{ valid }">
-    <simpleDialog
+    <xrd-simple-dialog
       :dialog="dialog"
-      :width="560"
+      :width="620"
       title="services.addRest"
       @save="save"
       @cancel="cancel"
@@ -63,29 +63,26 @@
           </ValidationProvider>
         </div>
 
-        <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{ $t('services.url') }}</div>
-
+        <div class="pt-3 dlg-input-width">
           <ValidationProvider
             rules="required|restUrl"
             name="serviceUrl"
             v-slot="{ errors }"
-            class="validation-provider dlg-row-input"
+            class="validation-provider"
           >
             <v-text-field
               :placeholder="$t('services.urlPlaceholder')"
               v-model="url"
-              single-line
+              :label="$t('services.url')"
               name="serviceUrl"
+              outlined
               autofocus
               :error-messages="errors"
             ></v-text-field>
           </ValidationProvider>
         </div>
 
-        <div class="dlg-edit-row">
-          <div class="dlg-row-title">{{ $t('services.serviceCode') }}</div>
-
+        <div class="pt-3 dlg-input-width">
           <ValidationProvider
             rules="required|xrdIdentifier"
             name="serviceCode"
@@ -94,9 +91,9 @@
           >
             <v-text-field
               v-model="serviceCode"
-              single-line
-              class="dlg-row-input"
+              outlined
               name="serviceCode"
+              :label="$t('services.serviceCode')"
               type="text"
               :placeholder="$t('services.serviceCodePlaceholder')"
               :maxlength="255"
@@ -105,17 +102,16 @@
           </ValidationProvider>
         </div>
       </div>
-    </simpleDialog>
+    </xrd-simple-dialog>
   </ValidationObserver>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider, ValidationObserver },
+  components: { ValidationProvider, ValidationObserver },
   props: {
     dialog: {
       type: Boolean,

@@ -25,15 +25,15 @@
  -->
 <template>
   <div>
-    <LargeButton
+    <xrd-button
       data-test="unregister-client-button"
       @click="confirmUnregisterClient = true"
       outlined
-      >{{ $t('action.unregister') }}</LargeButton
+      >{{ $t('action.unregister') }}</xrd-button
     >
 
     <!-- Confirm dialog for unregister client -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmUnregisterClient"
       :loading="unregisterLoading"
       title="client.action.unregister.confirmTitle"
@@ -46,16 +46,10 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-    ConfirmDialog,
-  },
   props: {
     id: {
       type: String,

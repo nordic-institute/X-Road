@@ -24,47 +24,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="localGroup.addLocalGroup"
     @save="save"
     @cancel="cancel"
     :disableSave="!formReady"
+    width="620"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('localGroup.code') }}</div>
+      <div class="dlg-input-width">
         <v-text-field
           v-model="code"
-          single-line
+          outlined
+          :label="$t('localGroup.code')"
           autofocus
-          class="dlg-row-input"
           data-test="add-local-group-code-input"
         ></v-text-field>
       </div>
 
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('localGroup.description') }}</div>
+      <div class="dlg-input-width">
         <v-text-field
           v-model="description"
           hint
-          single-line
-          class="dlg-row-input"
+          :label="$t('localGroup.description')"
+          outlined
           data-test="add-local-group-description-input"
         ></v-text-field>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog },
   props: {
     id: {
       type: String,

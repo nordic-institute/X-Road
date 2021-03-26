@@ -32,11 +32,12 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.AnchorFile;
+import org.niis.xroad.restapi.dto.VersionInfoDto;
 import org.niis.xroad.restapi.openapi.model.Anchor;
 import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
-import org.niis.xroad.restapi.openapi.model.Version;
+import org.niis.xroad.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
@@ -44,6 +45,7 @@ import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -68,6 +70,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.openapi.SystemApiController.OPENAPI_DEFINITION_FILENAME;
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 
 /**
@@ -130,13 +133,15 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void getVersion() throws Exception {
-        String versionNumber = "6.24.0";
-        given(versionService.getVersion()).willReturn(versionNumber);
-        ResponseEntity<Version> response = systemApiController.systemVersion();
+    public void getVersionInfo()  {
+        VersionInfoDto mockVersionInfo = new VersionInfoDto();
+        mockVersionInfo.setJavaVersion(33);
+
+        given(versionService.getVersionInfo()).willReturn(mockVersionInfo);
+        ResponseEntity<VersionInfo> response = systemApiController.systemVersion();
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(versionNumber, response.getBody().getInfo());
+        assertEquals(33, (long) response.getBody().getJavaVersion());
     }
 
     private void getSystemCertificate() throws IOException {
@@ -329,5 +334,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         Anchor anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
         assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DOWNLOAD_OPENAPI" })
+    public void testDownloadOpenApi() throws IOException {
+        ResponseEntity<Resource> response = systemApiController.downloadOpenApi();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getFile().length(),
+        response.getBody().contentLength());
     }
 }

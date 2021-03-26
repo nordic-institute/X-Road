@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.0.0 - UNRELEASED
+
 ## 6.26.0 - 2021-03-22
 - XRDDEV-1357: Fix various permission check inconsistencies in the Security Server UI frontend implementation
 - XRDDEV-1368: Improve Security Server UI Keys and Certificates view to give better visual feedback about different token statuses

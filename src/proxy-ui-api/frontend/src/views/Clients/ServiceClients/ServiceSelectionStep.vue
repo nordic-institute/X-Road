@@ -38,36 +38,37 @@
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
     </div>
-
-    <table class="xrd-table">
-      <thead>
-        <tr>
-          <th class="selection-checkbox"></th>
-          <th>{{ $t('serviceClients.serviceCode') }}</th>
-          <th>{{ $t('serviceClients.title') }}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr
-          v-for="accessRight in searchResults"
-          v-bind:key="accessRight.id"
-          class="service-row"
-          data-test="access-right-toggle"
-        >
-          <td class="selection-checkbox">
-            <div>
-              <v-checkbox
-                v-model="selections"
-                :value="accessRight"
-                data-test="access-right-checkbox-input"
-              />
-            </div>
-          </td>
-          <td class="identifier-wrap">{{ accessRight.service_code }}</td>
-          <td class="identifier-wrap">{{ accessRight.title }}</td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="scrollable">
+      <table class="xrd-table">
+        <thead>
+          <tr>
+            <th class="selection-checkbox"></th>
+            <th>{{ $t('serviceClients.serviceCode') }}</th>
+            <th>{{ $t('serviceClients.title') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            v-for="accessRight in searchResults"
+            v-bind:key="accessRight.id"
+            class="service-row"
+            data-test="access-right-toggle"
+          >
+            <td class="selection-checkbox">
+              <div>
+                <v-checkbox
+                  v-model="selections"
+                  :value="accessRight"
+                  data-test="access-right-checkbox-input"
+                />
+              </div>
+            </td>
+            <td class="identifier-wrap">{{ accessRight.service_code }}</td>
+            <td class="identifier-wrap">{{ accessRight.title }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div class="empty" v-if="serviceCandidates.length === 0">
       {{ $t('serviceClients.noAvailableServices') }}
     </div>
@@ -84,29 +85,25 @@
     </div>
 
     <div class="button-footer full-width">
-      <div class="button-group">
-        <large-button outlined @click="cancel" data-test="cancel-button">{{
-          $t('action.cancel')
-        }}</large-button>
-      </div>
+      <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+        $t('action.cancel')
+      }}</xrd-button>
 
-      <div>
-        <large-button
-          @click="$emit('set-step')"
-          data-test="previous-button"
-          outlined
-          class="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
+      <xrd-button
+        @click="$emit('set-step')"
+        data-test="previous-button"
+        outlined
+        class="previous-button"
+        >{{ $t('action.previous') }}</xrd-button
+      >
 
-        <large-button
-          data-test="finish-button"
-          @click="saveServices"
-          :disabled="!selections || selections.length === 0"
-        >
-          {{ $t('serviceClients.addSelected') }}
-        </large-button>
-      </div>
+      <xrd-button
+        data-test="finish-button"
+        @click="saveServices"
+        :disabled="!selections || selections.length === 0"
+      >
+        {{ $t('serviceClients.addSelected') }}
+      </xrd-button>
     </div>
   </div>
 </template>
@@ -117,13 +114,9 @@ import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
 import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     id: {
       type: String as Prop<string>,
@@ -197,16 +190,21 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../../assets/tables';
-@import '../../../assets/global-style';
-@import '../../../assets/shared';
 @import '../../../assets/wizards';
 
 .search-field {
   max-width: 300px;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
+  margin-left: 20px;
 }
 
 .empty {
-  margin-top: 20px;
+  margin: 30px;
+  text-align: center;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 55vh;
 }
 </style>

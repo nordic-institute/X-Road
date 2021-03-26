@@ -23,17 +23,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+/*
+Startpoint of the Vue application. 
+Sets up plugins and 3rd party components that the app uses.
+Creates a new Vue instance with the Vue function.
+Initialises the app root component.
+*/
 import Vue from 'vue';
 import axios from 'axios';
 import Router from 'vue-router';
+import SharedComponents from '@niis/shared-ui';
+Vue.use(SharedComponents); // This must be done before importing Vuetify
 import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
 import './filters';
 import App from './App.vue';
 import router from './router';
 import store from './store';
-import 'roboto-fontface/css/roboto/roboto-fontface.css';
-import './assets/icons.css';
+import '@fontsource/open-sans';
 import i18n from './i18n';
 
 Vue.config.productionTip = false;

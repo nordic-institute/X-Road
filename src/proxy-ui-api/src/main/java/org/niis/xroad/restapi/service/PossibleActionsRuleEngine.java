@@ -61,6 +61,7 @@ public class PossibleActionsRuleEngine {
 
         if (tokenInfo.isActive()) {
             actions.add(PossibleActionEnum.TOKEN_DEACTIVATE);
+            actions.add(PossibleActionEnum.TOKEN_CHANGE_PIN);
         } else {
             if (tokenInfo.isAvailable()) {
                 actions.add(PossibleActionEnum.TOKEN_ACTIVATE);

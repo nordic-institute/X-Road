@@ -58,12 +58,12 @@
           <td></td>
           <td></td>
           <td class="align-right">
-            <SmallButton
+            <xrd-button
               v-if="canCreateCsr"
               class="table-button-fix"
               :disabled="disableGenerateCsr(key)"
               @click="generateCsr(key)"
-              >{{ $t('keys.generateCsr') }}</SmallButton
+              >{{ $t('keys.generateCsr') }}</xrd-button
             >
           </td>
         </tr>
@@ -76,11 +76,11 @@
         >
           <div slot="certificateAction">
             <template v-if="canImportFromToken">
-              <SmallButton
+              <xrd-button
                 v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                 class="table-button-fix"
                 @click="importCert(cert.certificate_details.hash)"
-                >{{ $t('keys.importCert') }}</SmallButton
+                >{{ $t('keys.importCert') }}</xrd-button
               >
 
               <!-- Special case where HW cert has auth usage -->
@@ -100,14 +100,12 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
 
 export default Vue.extend({
   components: {
-    SmallButton,
     CertificateRow,
   },
   props: {
@@ -136,7 +134,7 @@ export default Vue.extend({
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
-      return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
+      return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
   },
   methods: {
@@ -162,7 +160,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: cert.certificate_details.hash,
-          usage: key.usage ?? "",
+          usage: key.usage ?? 'undefined',
         },
       });
     },

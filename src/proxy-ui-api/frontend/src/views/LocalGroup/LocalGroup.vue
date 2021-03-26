@@ -24,28 +24,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width">
-    <div>
-      <subViewTitle :title="groupCode" @close="close" />
+  <div class="xrd-tab-max-width main-wrap">
+    <div class="pa-4">
+      <xrd-sub-view-title :title="groupCode" @close="close" />
 
       <template>
         <div class="cert-hash" data-test="local-group-title">
           {{ $t('localGroup.localGroup') }}
-          <large-button v-if="showDelete" @click="deleteGroup()" outlined data-test="delete-local-group-button">
+          <xrd-button
+            v-if="showDelete"
+            @click="deleteGroup()"
+            outlined
+            data-test="delete-local-group-button"
+          >
             {{ $t('action.delete') }}
-          </large-button>
+          </xrd-button>
         </div>
       </template>
     </div>
 
-    <div class="edit-row">
+    <div class="px-4 description-field">
       <template v-if="canEditDescription">
-        <div data-test="local-group-edit-description-label">{{ $t('localGroup.editDesc') }}</div>
         <v-text-field
           v-model="description"
           @change="saveDescription"
-          single-line
+          outlined
+          :label="$t('localGroup.description')"
           hide-details
+          data-test="ocal-group-edit-description-input"
           class="description-input"
         ></v-text-field>
       </template>
@@ -54,25 +60,25 @@
       </template>
     </div>
 
-    <div class="group-members-row">
+    <div class="group-members-row px-4">
       <div class="row-title">{{ $t('localGroup.groupMembers') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-button
           :disabled="!hasMembers"
           v-if="canEditMembers"
           @click="removeAllMembers()"
           outlined
           data-test="remove-all-members-button"
-          >{{ $t('action.removeAll') }}</large-button
+          >{{ $t('action.removeAll') }}</xrd-button
         >
 
-        <large-button
+        <xrd-button
           class="add-members-button"
           v-if="canEditMembers"
           @click="addMembers()"
           outlined
           data-test="add-members-button"
-          >{{ $t('localGroup.addMembers') }}</large-button
+          >{{ $t('localGroup.addMembers') }}</xrd-button
         >
       </div>
     </div>
@@ -93,15 +99,12 @@
 
             <td>
               <div class="button-wrap">
-                <v-btn
+                <xrd-button
                   v-if="canEditMembers"
-                  small
-                  outlined
-                  rounded
-                  color="primary"
-                  class="xrd-small-button"
+                  text
+                  :outlined="false"
                   @click="removeMember(groupMember)"
-                  >{{ $t('action.remove') }}</v-btn
+                  >{{ $t('action.remove') }}</xrd-button
                 >
               </div>
             </td>
@@ -110,12 +113,14 @@
       </table>
 
       <div class="close-button-wrap">
-        <large-button @click="close()" data-test="local-group-close-button">{{ $t('action.close') }}</large-button>
+        <xrd-button @click="close()" data-test="local-group-close-button">{{
+          $t('action.close')
+        }}</xrd-button>
       </div>
     </v-card>
 
     <!-- Confirm dialog delete group -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmGroup"
       title="localGroup.deleteTitle"
       text="localGroup.deleteText"
@@ -124,7 +129,7 @@
     />
 
     <!-- Confirm dialog remove member -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmMember"
       title="localGroup.removeTitle"
       text="localGroup.removeText"
@@ -133,7 +138,7 @@
     />
 
     <!-- Confirm dialog remove all members -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmAllMembers"
       title="localGroup.removeAllTitle"
       text="localGroup.removeAllText"
@@ -156,19 +161,13 @@
 import Vue from 'vue';
 import { Permissions } from '@/global';
 import { GroupMember, LocalGroup } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import AddMembersDialog from './AddMembersDialog.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     AddMembersDialog,
-    ConfirmDialog,
-    LargeButton,
   },
   props: {
     clientId: {
@@ -351,8 +350,15 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/tables';
+@import '~styles/tables';
+
+.main-wrap {
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: $XRoad-DefaultShadow;
+  font-size: $XRoad-DefaultFontSize;
+}
 
 .edit-row {
   display: flex;
@@ -374,8 +380,7 @@ export default Vue.extend({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: $XRoad-Black;
-  font-family: Roboto;
+  color: $XRoad-Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -388,8 +393,7 @@ export default Vue.extend({
   margin-top: 50px;
   display: flex;
   justify-content: space-between;
-  color: $XRoad-Black;
-  font-family: Roboto;
+  color: $XRoad-Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -414,7 +418,13 @@ export default Vue.extend({
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
+  padding: 20px;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
+}
+
+.description-field {
+  width: 404px;
+  margin-top: 20px;
 }
 </style>

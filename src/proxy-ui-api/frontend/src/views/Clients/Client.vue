@@ -24,52 +24,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <v-flex mb-4 class="title-action identifier-wrap">
-      <h1 v-if="client && client.owner" class="display-1 mb-3">
-        {{ client.member_name }} ({{ $t('client.owner') }})
-      </h1>
-      <h1 v-else-if="client" class="display-1 mb-3">
-        {{ client.member_name }} ({{ $t('client.member') }})
-      </h1>
+  <div class="xrd-sub-view-wrapper">
+    <div class="content xrd-view-common">
+      <v-flex mb-4 class="title-action identifier-wrap">
+        <div v-if="client && client.owner" class="xrd-view-title mb-3">
+          {{ client.member_name }} ({{ $t('client.owner') }})
+        </div>
+        <div v-else-if="client" class="xrd-view-title mb-3">
+          {{ client.member_name }} ({{ $t('client.member') }})
+        </div>
 
-      <div class="action-block">
-        <MakeOwnerButton
-          v-if="showMakeOwner"
-          :id="id"
-          @done="fetchClient"
-          class="first-button"
-        />
-        <DeleteClientButton v-if="showDelete" :id="id" />
-        <UnregisterClientButton
-          v-if="showUnregister"
-          :id="id"
-          @done="fetchClient"
-        />
-      </div>
-    </v-flex>
-    <v-tabs
-      v-model="tab"
-      class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
-    >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" :data-test="tab.key">{{
-        $t(tab.name)
-      }}</v-tab>
-    </v-tabs>
+        <div class="action-block">
+          <MakeOwnerButton
+            v-if="showMakeOwner"
+            :id="id"
+            @done="fetchClient"
+            class="first-button"
+          />
+          <DeleteClientButton v-if="showDelete" :id="id" />
+          <UnregisterClientButton
+            v-if="showUnregister"
+            :id="id"
+            @done="fetchClient"
+          />
+        </div>
+      </v-flex>
 
-    <router-view />
+      <router-view />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
+import { Permissions } from '@/global';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
 import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
@@ -85,11 +74,6 @@ export default Vue.extend({
       type: String,
       required: true,
     },
-  },
-  data() {
-    return {
-      tab: undefined as undefined | Tab,
-    };
   },
   computed: {
     ...mapGetters(['client']),
@@ -121,30 +105,6 @@ export default Vue.extend({
 
       return this.$store.getters.hasPermission(Permissions.DELETE_CLIENT);
     },
-
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'details',
-          name: 'tab.client.details',
-          to: {
-            name: RouteName.MemberDetails,
-            params: { id: this.id },
-          },
-        },
-        {
-          key: 'internalServers',
-          name: 'tab.client.internalServers',
-          to: {
-            name: RouteName.MemberServers,
-            params: { id: this.id },
-          },
-          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
-        },
-      ];
-
-      return this.$store.getters.getAllowedTabs(allTabs);
-    },
   },
   created() {
     this.fetchClient(this.id);
@@ -173,5 +133,10 @@ export default Vue.extend({
 
 .first-button {
   margin-right: 20px;
+}
+
+.content {
+  width: 1000px;
+  margin-top: 30px;
 }
 </style>

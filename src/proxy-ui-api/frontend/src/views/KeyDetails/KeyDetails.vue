@@ -24,87 +24,89 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <div>
-      <subViewTitle
-        v-if="key.usage == 'SIGNING'"
-        :title="$t('keys.signDetailsTitle')"
-        @close="close"
-      />
-      <subViewTitle
-        v-else-if="key.usage == 'AUTHENTICATION'"
-        :title="$t('keys.authDetailsTitle')"
-        @close="close"
-      />
-      <subViewTitle v-else :title="$t('keys.detailsTitle')" @close="close" />
-      <div class="details-view-tools">
-        <large-button
-          v-if="canDelete"
-          @click="confirmDelete = true"
-          :loading="deleting"
-          outlined
-          >{{ $t('action.delete') }}</large-button
-        >
-      </div>
-    </div>
-
+  <div class="xrd-tab-max-width detail-view-outer">
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="edit-row">
-        <div>{{ $t('fields.keys.friendlyName') }}</div>
-        <ValidationProvider
-          rules="required"
-          name="keys.friendlyName"
-          v-slot="{ errors }"
-          class="validation-provider"
-        >
-          <v-text-field
-            v-model="key.name"
-            single-line
-            class="code-input"
+      <div class="detail-view-content">
+        <div>
+          <xrd-sub-view-title
+            v-if="key.usage == 'SIGNING'"
+            :title="$t('keys.signDetailsTitle')"
+            @close="close"
+          />
+          <xrd-sub-view-title
+            v-else-if="key.usage == 'AUTHENTICATION'"
+            :title="$t('keys.authDetailsTitle')"
+            @close="close"
+          />
+          <xrd-sub-view-title
+            v-else
+            :title="$t('keys.detailsTitle')"
+            @close="close"
+          />
+          <div class="details-view-tools">
+            <xrd-button
+              v-if="canDelete"
+              @click="confirmDelete = true"
+              :loading="deleting"
+              outlined
+              >{{ $t('action.delete') }}</xrd-button
+            >
+          </div>
+        </div>
+
+        <div>
+          <ValidationProvider
+            rules="required"
             name="keys.friendlyName"
-            type="text"
-            :maxlength="255"
-            :error-messages="errors"
-            :disabled="!canEdit"
-            @input="touched = true"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
-
-      <div>
-        <h3 class="info-title">{{ $t('keys.keyInfo') }}</h3>
-        <div class="info-row">
-          <div class="row-title">{{ $t('keys.keyId') }}</div>
-          <div class="row-data">{{ key.id }}</div>
-        </div>
-        <div class="info-row">
-          <div class="row-title">{{ $t('keys.label') }}</div>
-          <div class="row-data">{{ key.label }}</div>
-        </div>
-        <div class="info-row">
-          <div class="row-title">{{ $t('keys.readOnly') }}</div>
-          <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
-        </div>
-      </div>
-
-      <v-card flat>
-        <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{
-            $t('action.cancel')
-          }}</large-button>
-          <large-button
-            class="save-button"
-            :loading="saveBusy"
-            @click="save()"
-            :disabled="!touched || invalid"
-            >{{ $t('action.save') }}</large-button
+            v-slot="{ errors }"
+            class="validation-provider"
           >
+            <v-text-field
+              v-model="key.name"
+              class="code-input key-name"
+              name="keys.friendlyName"
+              type="text"
+              :label="$t('fields.keys.friendlyName')"
+              outlined
+              :maxlength="255"
+              :error-messages="errors"
+              :disabled="!canEdit"
+              @input="touched = true"
+            ></v-text-field>
+          </ValidationProvider>
         </div>
-      </v-card>
+
+        <div>
+          <h3 class="info-title">{{ $t('keys.keyInfo') }}</h3>
+          <div class="info-row">
+            <div class="row-title">{{ $t('keys.keyId') }}</div>
+            <div class="row-data">{{ key.id }}</div>
+          </div>
+          <div class="info-row">
+            <div class="row-title">{{ $t('keys.label') }}</div>
+            <div class="row-data">{{ key.label }}</div>
+          </div>
+          <div class="info-row">
+            <div class="row-title">{{ $t('keys.readOnly') }}</div>
+            <div class="row-data">{{ tokenForCurrentKey.read_only }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-button-wrap">
+        <xrd-button @click="close()" outlined>{{
+          $t('action.cancel')
+        }}</xrd-button>
+        <xrd-button
+          :loading="saveBusy"
+          @click="save()"
+          :disabled="!touched || invalid"
+          >{{ $t('action.save') }}</xrd-button
+        >
+      </div>
     </ValidationObserver>
 
     <!-- Confirm dialog delete Key -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDelete"
       title="keys.deleteTitle"
       text="keys.deleteKeyText"
@@ -138,9 +140,6 @@ import {
   PossibleActions as PossibleActionsList,
   Token,
 } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { mapGetters } from 'vuex';
@@ -149,9 +148,6 @@ import { isEmpty } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
-    ConfirmDialog,
-    LargeButton,
     ValidationProvider,
     ValidationObserver,
     WarningDialog,
@@ -308,5 +304,10 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/detail-views';
+@import '~styles/detail-views';
+@import '~styles/wizards';
+
+.key-name {
+  width: 405px;
+}
 </style>

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="750" scrollable persistent>
+  <v-dialog v-if="dialog" :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
@@ -77,19 +77,19 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button
+        <xrd-button
           class="button-margin"
           outlined
           @click="cancel()"
           data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <large-button
+        <xrd-button
           :disabled="!selectedMember"
           @click="save()"
           data-test="save-button"
-          >{{ $t('localGroup.addSelected') }}</large-button
+          >{{ $t('localGroup.addSelected') }}</xrd-button
         >
       </v-card-actions>
     </v-card>
@@ -98,13 +98,9 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/openapi-types';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     dialog: {
       type: Boolean,

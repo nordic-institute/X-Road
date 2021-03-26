@@ -24,32 +24,11 @@
  * THE SOFTWARE.
  */
 
-@import '../assets/colors';
+@import "./colors";
 
 // Use this to set up font etc. common things for normal views
 .xrd-view-common {
-  font-size: 14px;
-}
-
-.rounded-button {
-  padding-left: 24px;
-  padding-right: 24px;
-  border-radius: 4px;
-}
-
-.xrd-small-button {
-  height: 24px !important;
-  border-radius: 4px;
-  margin-right: 4px;
-  min-width: 120px;
-  text-transform: capitalize;
-
-  .v-btn__loader {
-    .v-progress-circular {
-      width: 16px !important;
-      height: 16px !important;
-    }
-  }
+  font-size: $XRoad-DefaultFontSize;
 }
 
 .xrd-table-button {
@@ -67,9 +46,9 @@
 .xrd-tabs {
   margin-left: auto;
   margin-right: auto;
+  padding-left: 80px;
+  background-color: $XRoad-WarmGrey10;
   width: 100%;
-  max-width: 1000px;
-  border-bottom: $XRoad-Grey40 solid 1px;
 }
 
 // Set validation provider to full width
@@ -77,29 +56,11 @@
   width: 100%;
 }
 
-// Override vuetify styling in alert dialog card
-.xrd-card {
-  .v-card__title {
-    border-bottom: solid $XRoad-Purple 2px;
-  }
-
-  .xrd-card-actions {
-    border-top: 1px $XRoad-Grey20 solid;
-    padding-top: 20px;
-  }
-}
-
-// Sub view header
-.sub-view-header {
-  margin-top: 50px;
+.xrd-sub-view-wrapper {
+  width: 100%;
   display: flex;
-  justify-content: space-between;
-  color: $XRoad-Black;
-  font-family: Roboto;
-  font-size: 20px;
-  font-weight: 500;
-  letter-spacing: 0.5px;
-  line-height: 30px;
+  flex-direction: column;
+  align-items: center;
 }
 
 // LAYOUT
@@ -118,4 +79,59 @@
 // Break long identifiers
 .identifier-wrap {
   word-break: break-word;
+}
+
+// X-Road 7
+.xrd-view-title {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 24px;
+  color: $XRoad-WarmGrey100;
+}
+
+.xrd-card {
+  .xrd-card-actions {
+    background-color: $XRoad-WarmGrey10;
+    height: 72px;
+    padding-right: 24px;
+  }
+}
+
+.xrd-title-search {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: flex-end;
+
+  .xrd-view-title {
+    margin-right: 20px;
+  }
+}
+
+// Helper for elements that need the "clickable" look
+.xrd-clickable {
+  color: $XRoad-Link;
+  cursor: pointer;
+}
+
+// Default shadow for "modals" and "card" components
+.xrd-default-shadow {
+  box-shadow: $XRoad-DefaultShadow;
+}
+
+// For adjusting the position of an icon when used inside a button component
+.xrd-large-button-icon {
+  margin-right: 5px;
+  margin-left: -2px;
+  min-width: 20px; // needs a width or the buttons with short text "collapse"
+}
+
+// Override for Vuetify text input style
+.v-text-field {
+  font-weight: 600 !important;
+}
+
+// Override for Vuetify tab style
+.v-tab {
+  letter-spacing: normal !important;
 }

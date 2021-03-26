@@ -80,20 +80,16 @@
     </v-radio-group>
 
     <div class="button-footer full-width">
-      <div class="button-group">
-        <large-button outlined @click="cancel" data-test="cancel-button"
-          >{{ $t('action.cancel') }}
-        </large-button>
-      </div>
+      <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+        $t('action.cancel')
+      }}</xrd-button>
 
-      <div>
-        <large-button
-          :disabled="!selection"
-          @click="$emit('set-step')"
-          data-test="next-button"
-          >{{ $t('action.next') }}
-        </large-button>
-      </div>
+      <xrd-button
+        :disabled="!selection"
+        @click="$emit('set-step')"
+        data-test="next-button"
+        >{{ $t('action.next') }}</xrd-button
+      >
     </div>
   </div>
 </template>
@@ -103,13 +99,9 @@ import Vue from 'vue';
 import { ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     id: {
       type: String as Prop<string>,
@@ -169,13 +161,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/global-style';
-@import '../../../assets/shared';
-@import '../../../assets/wizards';
+@import '~styles/tables';
+@import '~styles/wizards';
 
 .search-field {
   max-width: 300px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  margin-left: 20px;
 }
 </style>

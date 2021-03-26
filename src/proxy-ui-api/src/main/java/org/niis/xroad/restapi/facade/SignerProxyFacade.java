@@ -236,4 +236,8 @@ public class SignerProxyFacade {
     public <T> T execute(Object message) throws Exception {
         return SignerClient.execute(message);
     }
+
+    public void updateSoftwareTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
+        SignerProxy.updateTokenPin(tokenId, oldPin, newPin);
+    }
 }

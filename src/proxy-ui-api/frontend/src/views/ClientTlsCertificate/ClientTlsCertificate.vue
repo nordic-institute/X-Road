@@ -26,15 +26,15 @@
 <template>
   <div class="wrapper xrd-view-common" data-test="certificate-details-dialog">
     <div class="new-content">
-      <subViewTitle :title="$t('cert.certificate')" @close="close" />
+      <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
         <div class="cert-hash-wrapper">
           <certificateHash :hash="certificate.hash" />
-          <large-button
+          <xrd-button
             v-if="showDeleteButton"
             outlined
             @click="deleteCertificate()"
-            >{{ $t('action.delete') }}</large-button
+            >{{ $t('action.delete') }}</xrd-button
           >
         </div>
         <certificateInfo :certificate="certificate" />
@@ -42,7 +42,7 @@
     </div>
 
     <!-- Confirm dialog for delete -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
@@ -56,10 +56,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions } from '@/global';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
@@ -68,9 +65,6 @@ import { encodePathParameter } from '@/util/api';
 export default Vue.extend({
   components: {
     CertificateInfo,
-    ConfirmDialog,
-    SubViewTitle,
-    LargeButton,
     CertificateHash,
   },
   props: {

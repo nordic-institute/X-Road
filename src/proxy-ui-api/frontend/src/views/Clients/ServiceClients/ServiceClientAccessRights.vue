@@ -24,10 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <subViewTitle :title="serviceClientId" @close="close" />
+  <div class="xrd-tab-max-width xrd-view-common main-wrap">
+    <xrd-sub-view-title :title="serviceClientId" @close="close" class="pa-4" />
     <v-card flat>
-      <table class="xrd-table service-client-margin" data-test="service-clients-table">
+      <table
+        class="xrd-table service-client-margin"
+        data-test="service-clients-table"
+      >
         <thead>
           <tr>
             <th>{{ $t('serviceClients.name') }}</th>
@@ -41,23 +44,23 @@
       </table>
     </v-card>
 
-    <div class="group-members-row">
+    <div class="group-members-row px-4">
       <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-button
           @click="showConfirmDeleteAll = true"
           outlined
           data-test="remove-all-access-rights"
           v-if="canEdit && serviceClientAccessRights.length > 0"
           >{{ $t('serviceClients.removeAll') }}
-        </large-button>
-        <large-button
+        </xrd-button>
+        <xrd-button
           v-if="canEdit"
           @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
           >{{ $t('serviceClients.addService') }}
-        </large-button>
+        </xrd-button>
       </div>
     </div>
 
@@ -84,16 +87,14 @@
           <td>{{ accessRight.rights_given_at }}</td>
           <td>
             <div class="button-wrap">
-              <v-btn
+              <xrd-button
                 v-if="canEdit"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
+                text
+                :outlined="false"
+                class="mr-4"
                 data-test="access-right-remove"
                 @click="remove(accessRight)"
-                >{{ $t('action.remove') }}</v-btn
+                >{{ $t('action.remove') }}</xrd-button
               >
             </div>
           </td>
@@ -101,14 +102,14 @@
       </tbody>
     </table>
 
-    <h3 v-else class="service-client-margin">
+    <p v-else class="pa-6">
       {{ $t('serviceClients.noAccessRights') }}
-    </h3>
+    </p>
 
     <div class="footer-buttons-wrap">
-      <large-button @click="close()" data-test="close">{{
+      <xrd-button @click="close()" data-test="close">{{
         $t('action.close')
-      }}</large-button>
+      }}</xrd-button>
     </div>
 
     <AddServiceClientServiceDialog
@@ -121,7 +122,7 @@
     </AddServiceClientServiceDialog>
 
     <!-- Confirm dialog delete group -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="showConfirmDeleteAll"
       v-if="showConfirmDeleteAll"
       title="serviceClients.removeAllTitle"
@@ -130,7 +131,7 @@
       @accept="removeAll()"
     />
 
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="showConfirmDeleteOne"
       v-if="showConfirmDeleteOne"
       title="serviceClients.removeOneTitle"
@@ -150,11 +151,9 @@ import {
   ServiceClient,
   ServiceDescription,
 } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+
 import { ServiceCandidate } from '@/ui-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
@@ -166,10 +165,7 @@ interface UiAccessRight extends AccessRight {
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
-    LargeButton,
     AddServiceClientServiceDialog,
-    ConfirmDialog,
   },
   props: {
     id: {
@@ -326,8 +322,14 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/global-style';
+@import '~styles/tables';
+
+.main-wrap {
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: $XRoad-DefaultShadow;
+}
 
 .group-members-row {
   width: 100%;
@@ -345,8 +347,7 @@ export default Vue.extend({
   .row-title {
     width: 100%;
     justify-content: space-between;
-    color: #202020;
-    font-family: Roboto;
+    color: $XRoad-Black100;
     font-size: 20px;
     font-weight: 500;
     letter-spacing: 0.5px;
@@ -361,13 +362,5 @@ export default Vue.extend({
 
 .service-client-margin {
   margin-top: 40px;
-}
-
-.footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
 }
 </style>

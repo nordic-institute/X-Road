@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="table-toolbar">
+    <div class="table-toolbar pt-4">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -37,39 +37,40 @@
       >
         <v-icon slot="append">mdi-magnify</v-icon>
       </v-text-field>
-      <v-btn
+      <xrd-button
         v-if="showAddSubjects"
         color="primary"
         @click="addServiceClient"
-        outlined
-        rounded
         data-test="add-service-client"
-        class="ma-0 rounded-button elevation-0"
+        class="ma-0 elevation-0"
+        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
         >{{ $t('serviceClients.addServiceClient') }}
-      </v-btn>
+      </xrd-button>
     </div>
 
-    <table class="xrd-table xrd-table-highlightable service-clients-table">
-      <thead>
-        <tr>
-          <th>{{ $t('serviceClients.name') }}</th>
-          <th>{{ $t('serviceClients.id') }}</th>
-        </tr>
-      </thead>
-      <template v-if="serviceClients.length > 0">
-        <tbody>
-          <tr
-            v-for="sc in this.filteredServiceClients()"
-            v-bind:key="sc.id"
-            @click="showAccessRights(sc.id)"
-            data-test="open-access-rights"
-          >
-            <td class="identifier-wrap">{{ sc.name }}</td>
-            <td class="identifier-wrap">{{ sc.id }}</td>
+    <div class="xrd-card">
+      <table class="xrd-table xrd-table-highlightable service-clients-table">
+        <thead>
+          <tr>
+            <th>{{ $t('serviceClients.name') }}</th>
+            <th>{{ $t('serviceClients.id') }}</th>
           </tr>
-        </tbody>
-      </template>
-    </table>
+        </thead>
+        <template v-if="serviceClients.length > 0">
+          <tbody>
+            <tr
+              v-for="sc in this.filteredServiceClients()"
+              v-bind:key="sc.id"
+              @click="showAccessRights(sc.id)"
+              data-test="open-access-rights"
+            >
+              <td class="identifier-wrap clickable-link">{{ sc.name }}</td>
+              <td class="identifier-wrap">{{ sc.id }}</td>
+            </tr>
+          </tbody>
+        </template>
+      </table>
+    </div>
   </div>
 </template>
 
@@ -146,5 +147,15 @@ export default Vue.extend({
 
 .service-clients-table {
   margin-top: 40px;
+}
+
+.xrd-card {
+  background-color: white;
+  border-radius: 4px;
+}
+
+.clickable-link {
+  color: $XRoad-Link;
+  cursor: pointer;
 }
 </style>

@@ -24,65 +24,67 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div class="step-content-wrapper">
     <ValidationObserver ref="form1" v-slot="{ invalid }">
-      {{ $t('initialConfiguration.pin.info1') }}
-      <div class="row-wrap">
-        <div class="label">{{ $t('initialConfiguration.pin.pin') }}</div>
-        <ValidationProvider
-          name="pin"
-          rules="required|password:@confirmPin"
-          v-slot="{ errors }"
-        >
-          <v-text-field
-            class="form-input"
+      <div class="wizard-step-form-content">
+        {{ $t('initialConfiguration.pin.info1') }}
+        <div class="mt-6 mb-4">
+          <ValidationProvider
             name="pin"
-            autofocus
-            type="password"
-            v-model="pin"
-            :error-messages="errors"
-            data-test="pin-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
+            rules="required|password:@confirmPin"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              class="form-input"
+              name="pin"
+              autofocus
+              :label="$t('initialConfiguration.pin.pin')"
+              type="password"
+              v-model="pin"
+              :error-messages="errors"
+              data-test="pin-input"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
 
-      <div class="row-wrap">
-        <div class="label">{{ $t('initialConfiguration.pin.confirmPin') }}</div>
-        <ValidationProvider
-          name="confirmPin"
-          rules="required"
-          v-slot="{ errors }"
-        >
-          <v-text-field
-            class="form-input"
+        <div class="mb-6">
+          <ValidationProvider
             name="confirmPin"
-            type="password"
-            v-model="pinConfirm"
-            :error-messages="errors"
-            data-test="confirm-pin-input"
-          ></v-text-field>
-        </ValidationProvider>
+            rules="required"
+            v-slot="{ errors }"
+          >
+            <v-text-field
+              class="form-input"
+              name="confirmPin"
+              :label="$t('initialConfiguration.pin.confirmPin')"
+              type="password"
+              v-model="pinConfirm"
+              :error-messages="errors"
+              data-test="confirm-pin-input"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
+        {{ $t('initialConfiguration.pin.info2') }}
+        <br />
+        <br />
+        {{ $t('initialConfiguration.pin.info3') }}
       </div>
-      {{ $t('initialConfiguration.pin.info2') }}
-      <br />
-      <br />
-      {{ $t('initialConfiguration.pin.info3') }}
       <div class="button-footer">
         <v-spacer></v-spacer>
         <div>
-          <large-button
+          <xrd-button
             @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
-            >{{ $t('action.previous') }}</large-button
+            >{{ $t('action.previous') }}</xrd-button
           >
-          <large-button
+          <xrd-button
             :disabled="invalid"
             :loading="saveBusy"
             @click="done"
             data-test="save-button"
-            >{{ $t('action.submit') }}</large-button
+            >{{ $t('action.submit') }}</xrd-button
           >
         </div>
       </div>
@@ -93,7 +95,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { extend } from 'vee-validate';
 import i18n from '@/i18n';
 
@@ -112,7 +113,6 @@ extend('password', {
 
 export default Vue.extend({
   components: {
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
   },

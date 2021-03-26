@@ -24,35 +24,35 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <div>
-      <subViewTitle
+  <div class="xrd-tab-max-width main-wrap">
+    <div class="pa-4">
+      <xrd-sub-view-title
         :title="`${endpoint.method}${endpoint.path}`"
         @close="close"
       />
     </div>
 
-    <div class="group-members-row">
+    <div class="group-members-row px-4">
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
-        <large-button
+        <xrd-button
           v-if="canEdit"
           @click="removeAll()"
           outlined
           data-test="remove-all-access-rights"
           >{{ $t('action.removeAll') }}
-        </large-button>
-        <large-button
+        </xrd-button>
+        <xrd-button
           v-if="canEdit"
           @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
           >{{ $t('accessRights.addServiceClients') }}
-        </large-button>
+        </xrd-button>
       </div>
     </div>
 
-    <table class="xrd-table">
+    <table class="xrd-table mb-4">
       <thead>
         <tr>
           <th>{{ $t('accessRights.memberName') }}</th>
@@ -67,18 +67,15 @@
             <td class="identifier-wrap">{{ sc.name }}</td>
             <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.rights_given_at | formatDateTime }}</td>
-            <td class="button-wrap">
-              <v-btn
+            <td>
+              <xrd-button
                 v-if="canEdit"
-                small
-                outlined
-                rounded
-                color="primary"
-                class="xrd-small-button xrd-table-button"
+                text
+                :outlined="false"
                 @click="remove(sc)"
                 data-test="remove-access-right"
                 >{{ $t('action.remove') }}
-              </v-btn>
+              </xrd-button>
             </td>
           </tr>
         </template>
@@ -86,7 +83,7 @@
     </table>
 
     <!-- Confirm dialog remove all Access Right subjects -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDeleteAll"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"
@@ -95,7 +92,7 @@
     />
 
     <!-- Confirm dialog remove Access Right subject -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDeleteOne"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
@@ -118,10 +115,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Endpoint, ServiceClient } from '@/openapi-types';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
@@ -129,9 +123,6 @@ import { Permissions } from '@/global';
 export default Vue.extend({
   name: 'EndpointAccessRights',
   components: {
-    SubViewTitle,
-    LargeButton,
-    ConfirmDialog,
     AccessRightsDialog,
   },
   props: {
@@ -255,9 +246,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import 'src/assets/colors';
-@import 'src/assets/tables';
-@import 'src/assets/global-style';
+@import '~styles/tables';
 
 .group-members-row {
   width: 100%;
@@ -276,8 +265,7 @@ export default Vue.extend({
 .row-title {
   width: 100%;
   justify-content: space-between;
-  color: #202020;
-  font-family: Roboto;
+  color: $XRoad-Black100;
   font-size: 20px;
   font-weight: 500;
   letter-spacing: 0.5px;

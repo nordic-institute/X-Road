@@ -37,6 +37,7 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
@@ -45,7 +46,6 @@ import akka.actor.Props;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,13 +59,20 @@ import javax.persistence.criteria.Root;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_MLOG_TIMESTAMPER_FAILED;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
@@ -497,37 +504,58 @@ public class MessageLogTest extends AbstractMessageLogTest {
         return "delete from " + DigestEntry.class.getName();
     }
 
-    @SneakyThrows
-    private void assertArchiveHashChain() {
+    private void assertArchiveHashChain() throws Exception {
         String archiveFilePath = getArchiveFilePath();
 
-        String scriptFile = "../../../doc/archive-hashchain-verifier.rb";
-        String command = String.format("%s %s %s", scriptFile, archiveFilePath, LAST_DIGEST);
+        final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
+        final Map<String, byte[]> digests = new HashMap<>();
+        String linkinginfo = null;
 
-        ShellCommandOutput commandOutput = TestUtil.runShellCommand(command);
-
-        if (commandOutput.isError()) {
-            String errorMsg = String.format(
-                    "Running hash chain verifying script failed on zip file '%s', script standard error:\n\t%s",
-                    archiveFilePath, commandOutput.getStandardError());
-
-            throw new RuntimeException(errorMsg);
+        try (ZipInputStream zis = new ZipInputStream(Files.newInputStream(Paths.get(archiveFilePath)))) {
+            ZipEntry ze;
+            while ((ze = zis.getNextEntry()) != null) {
+                digest.reset();
+                final byte[] buf = new byte[4096];
+                int len = 0;
+                if ("linkinginfo".equals(ze.getName())) {
+                    StringBuilder builder = new StringBuilder();
+                    while ((len = zis.read(buf)) > 0) {
+                        builder.append(new String(buf, 0, len, StandardCharsets.UTF_8));
+                    }
+                    linkinginfo = builder.toString();
+                } else {
+                    while ((len = zis.read(buf)) > 0) {
+                        digest.update(buf, 0, len);
+                    }
+                    digests.put(ze.getName(), digest.digest());
+                }
+            }
         }
 
-        String lastHashStepInArchive = commandOutput.getStandardOutput().trim();
+        String prevHash = null;
+        for (final String line : linkinginfo.split("\n")) {
+            final String[] parts = line.split("\\s+");
+            if (prevHash == null) {
+                prevHash = parts[0];
+                assertEquals(LAST_DIGEST, prevHash);
+                assertEquals(MessageLogProperties.getHashAlg(), parts[2]);
+            } else {
+                digest.reset();
+                digest.update(prevHash.getBytes());
+                final byte[] d = digests.get(parts[1]);
+                assertNotNull("Archive did not contain file " + parts[1], d);
+                digest.update(CryptoUtils.encodeHex(d).getBytes());
+                prevHash = CryptoUtils.encodeHex(digest.digest());
+                assertEquals("Digest does not match", parts[0], prevHash);
+            }
+        }
+
         String lastStepInDatabase = getLastHashStepInDatabase();
 
-        if (!StringUtils.equals(lastStepInDatabase, lastHashStepInArchive)) {
-            String message = String.format(
-                    "Last hash step file must start with last hash step result, but does not. Result:\n\t%s",
-                    lastHashStepInArchive);
-
-            throw new RuntimeException(message);
-        }
+        assertEquals("Last hash step file must start with last hash step result", lastStepInDatabase, prevHash);
     }
 
-    @SneakyThrows
-    private static String getLastHashStepInDatabase() {
+    private static String getLastHashStepInDatabase() throws Exception {
         return doInTransaction(session -> (String) session
                 .createQuery(getLastDigestQuery())
                 .setMaxResults(1)

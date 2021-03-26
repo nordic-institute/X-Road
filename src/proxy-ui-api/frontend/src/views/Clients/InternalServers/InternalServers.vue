@@ -26,48 +26,49 @@
 <template>
   <div>
     <v-card flat class="xrd-card" v-if="showConnectionType">
-      <v-flex>
+      <v-flex class="px-4 pt-4">
         <h1 class="title mb-3">{{ $t('internalServers.connectionType') }}</h1>
         <v-select
           v-model="connectionType"
           :items="connectionTypes"
           class="select-connection"
           :key="revertHack"
+          outlined
           :disabled="!canEditConnectionType"
           :readonly="!canEditConnectionType"
         ></v-select>
       </v-flex>
-      <div class="conn-info">{{ $t('internalServers.connectionInfo') }}</div>
+      <div class="conn-info pa-4">
+        {{ $t('internalServers.connectionInfo') }}
+      </div>
     </v-card>
 
-    <v-card flat class="xrd-card">
-      <div class="tls-title-wrap">
+    <v-card flat class="xrd-card pb-4">
+      <div class="tls-title-wrap pa-4">
         <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
-        <file-upload
+        <xrd-file-upload
           v-if="canAddTlsCert"
           accepts=".pem, .cer, .der"
           @file-changed="onFileChange"
           v-slot="{ upload }"
         >
-          <v-btn
-            outlined
-            rounded
-            color="primary"
-            class="rounded-button elevation-0"
-            @click="upload"
-            >{{ $t('action.add') }}</v-btn
+          <xrd-button outlined color="primary" @click="upload"
+            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+            >{{ $t('action.add') }}</xrd-button
           >
-        </file-upload>
+        </xrd-file-upload>
       </div>
-      <div class="cert-table-title">{{ $t('internalServers.certHash') }}</div>
+      <div class="cert-table-title pl-4">
+        {{ $t('internalServers.certHash') }}
+      </div>
       <table class="certificate-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr
             v-for="certificate in tlsCertificates"
             v-bind:key="certificate.hash"
           >
-            <td class="cert-icon">
-              <i class="icon-xrd_certificate icon"></i>
+            <td class="pl-4 pt-2">
+              <i class="icon-Certificate icon" />
             </td>
             <td>
               <span
@@ -83,29 +84,32 @@
       </table>
     </v-card>
 
-    <v-card v-if="canViewSSCert" flat class="xrd-card">
-      <h1 class="title mb-3">{{ $t('internalServers.ssCertTitle') }}</h1>
-      <div class="cert-table-title">{{ $t('internalServers.certHash') }}</div>
+    <v-card v-if="canViewSSCert" flat class="xrd-card pb-4">
+      <div class="pa-4">
+        <h1 class="title mb-3">{{ $t('internalServers.ssCertTitle') }}</h1>
+      </div>
+      <div class="cert-table-title pl-4">
+        {{ $t('internalServers.certHash') }}
+      </div>
       <table class="certificate-table server-certificates">
         <template v-if="ssCertificate">
           <tr>
-            <td class="cert-icon">
-              <i class="icon-xrd_certificate icon"></i>
+            <td class="pl-4 pt-2">
+              <i class="icon-Certificate icon" />
             </td>
             <td>
               <span>{{ ssCertificate.hash | colonize }}</span>
             </td>
 
             <td class="column-button">
-              <v-btn
+              <xrd-button
                 v-if="canExportSSCert"
                 small
-                outlined
-                rounded
+                :outlined="false"
+                text
                 color="primary"
-                class="xrd-small-button"
                 @click="exportSSCertificate"
-                >{{ $t('action.export') }}</v-btn
+                >{{ $t('action.export') }}</xrd-button
               >
             </td>
           </tr>
@@ -120,17 +124,13 @@ import Vue from 'vue';
 
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 import { CertificateDetails } from '@/openapi-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    FileUpload,
-  },
   props: {
     id: {
       type: String,
@@ -273,8 +273,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .select-connection {
   max-width: 240px;
@@ -287,7 +287,7 @@ export default Vue.extend({
 }
 
 .xrd-card {
-  margin-top: 50px;
+  margin-top: 40px;
 }
 
 .conn-info {
@@ -296,18 +296,18 @@ export default Vue.extend({
 
 .cert-table-title {
   color: $XRoad-Grey60;
-  font-size: 14px;
+  font-size: $XRoad-DefaultFontSize;
   font-weight: bold;
   margin: 5px;
 }
 
 .server-certificates {
   width: 100%;
-  border-top: $XRoad-Grey40 solid 1px;
+  border-top: $XRoad-WarmGrey30 solid 1px;
 }
 
-.cert-icon {
-  width: 20px;
+.icon {
+  width: 2px;
 }
 
 .column-button {

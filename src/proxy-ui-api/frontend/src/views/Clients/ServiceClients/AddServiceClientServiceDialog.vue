@@ -24,12 +24,13 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     :width="750"
     title="serviceClients.addService"
     @save="save"
     @cancel="cancel"
+    scrollable
     :disableSave="filterSelections().length === 0"
   >
     <div slot="content" v-if="serviceCandidates.length > 0">
@@ -75,20 +76,16 @@
       </table>
     </div>
     <div slot="content" v-else>
-      <h3>{{ $t('serviceClients.noAvailableServices') }}</h3>
+      <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { AccessRight } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
 export default Vue.extend({
-  components: {
-    SimpleDialog,
-  },
   props: {
     dialog: {
       type: Boolean as Prop<boolean>,
@@ -151,6 +148,6 @@ export default Vue.extend({
 }
 .service-row:hover {
   cursor: pointer;
-  background-color: $XRoad-Grey10;
+  background-color: $XRoad-Purple10;
 }
 </style>

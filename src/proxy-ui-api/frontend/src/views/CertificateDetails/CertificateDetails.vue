@@ -24,41 +24,44 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <div class="new-content">
-      <subViewTitle :title="$t('cert.certificate')" @close="close" />
+  <div class="certificate-details-wrapper xrd-default-shadow">
+    <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
+    <div class="pl-4">
       <div class="details-view-tools" v-if="certificate">
-        <large-button
+        <xrd-button
           v-if="showActivate"
           class="button-spacing"
           outlined
           @click="activateCertificate(certificate.certificate_details.hash)"
           data-test="activate-button"
-          >{{ $t('action.activate') }}</large-button
+          >{{ $t('action.activate') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           v-if="showDisable"
           class="button-spacing"
           outlined
           @click="deactivateCertificate(certificate.certificate_details.hash)"
           data-test="deactivate-button"
-          >{{ $t('action.deactivate') }}</large-button
+          >{{ $t('action.deactivate') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           v-if="showUnregister"
           class="button-spacing"
           outlined
           @click="confirmUnregisterCertificate = true"
           data-test="unregister-button"
-          >{{ $t('action.unregister') }}</large-button
+          >{{ $t('action.unregister') }}</xrd-button
         >
-        <large-button
+        <xrd-button
           v-if="showDelete"
           class="button-spacing"
           outlined
           @click="showConfirmDelete()"
           data-test="delete-button"
-          >{{ $t('action.delete') }}</large-button
+        >
+          <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
+
+          {{ $t('action.delete') }}</xrd-button
         >
       </div>
       <template v-if="certificate && certificate.certificate_details">
@@ -70,7 +73,7 @@
     </div>
 
     <!-- Confirm dialog for delete -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirm"
       title="cert.deleteCertTitle"
       text="cert.deleteCertConfirm"
@@ -79,7 +82,7 @@
     />
 
     <!-- Confirm dialog for unregister certificate -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmUnregisterCertificate"
       :loading="unregisterLoading"
       title="keys.unregisterTitle"
@@ -109,10 +112,7 @@ import {
   KeyUsageType,
   PossibleAction,
 } from '@/openapi-types';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
@@ -121,9 +121,6 @@ import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 export default Vue.extend({
   components: {
     CertificateInfo,
-    ConfirmDialog,
-    SubViewTitle,
-    LargeButton,
     CertificateHash,
     UnregisterErrorDialog,
   },
@@ -155,9 +152,13 @@ export default Vue.extend({
           return this.$store.getters.hasPermission(
             Permissions.DELETE_SIGN_CERT,
           );
-        } else {
+        } else if (this.usage === KeyUsageType.AUTHENTICATION) {
           return this.$store.getters.hasPermission(
             Permissions.DELETE_AUTH_CERT,
+          );
+        } else {
+          return this.$store.getters.hasPermission(
+            Permissions.DELETE_UNKNOWN_CERT,
           );
         }
       } else {
@@ -342,23 +343,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/detail-views';
-
-.wrapper {
-  display: flex;
-  justify-content: center;
-  flex-direction: column;
-  max-width: 850px;
-  height: 100%;
-  width: 100%;
-}
-
-.cert-hash-wrapper {
-  margin-top: 30px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
+@import '~styles/detail-views';
 
 .button-spacing {
   margin-left: 20px;

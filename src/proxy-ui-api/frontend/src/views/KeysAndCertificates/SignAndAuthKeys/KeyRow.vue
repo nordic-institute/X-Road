@@ -25,23 +25,27 @@
  -->
 <template>
   <tr>
-    <td class="name-wrap-top no-border">
-      <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
-      <div class="clickable-link identifier-wrap" @click="keyClick">
-        <span v-if="!tokenKey.name || tokenKey.name === ''">{{
-          tokenKey.id
-        }}</span>
-        <span v-else>{{ tokenKey.name }}</span>
+    <td>
+      <div class="name-wrap-top">
+        <i class="icon-Key key-icon" />
+        <div class="clickable-link identifier-wrap" @click="keyClick">
+          <span v-if="!tokenKey.name || tokenKey.name === ''">{{
+            tokenKey.id
+          }}</span>
+          <span v-else>{{ tokenKey.name }}</span>
+        </div>
       </div>
     </td>
-    <td class="no-border" colspan="4"></td>
-    <td class="no-border td-align-right">
-      <SmallButton
+    <td colspan="4"></td>
+    <td class="td-align-right">
+      <xrd-button
         v-if="showGenerateCsr"
         class="table-button-fix"
+        :outlined="false"
+        text
         :disabled="disableGenerateCsr"
         @click="generateCsr"
-        >{{ $t('keys.generateCsr') }}</SmallButton
+        >{{ $t('keys.generateCsr') }}</xrd-button
       >
     </td>
   </tr>
@@ -53,14 +57,9 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import SmallButton from '@/components/ui/SmallButton.vue';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions } from '@/global';
-
 export default Vue.extend({
-  components: {
-    SmallButton,
-  },
   props: {
     tokenKey: {
       type: Object as Prop<Key>,
@@ -115,7 +114,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
 .icon {
   margin-left: 18px;
   margin-right: 20px;
@@ -139,8 +138,13 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Purple100;
   cursor: pointer;
+}
+
+.key-icon {
+  margin-right: 18px;
+  color: $XRoad-Purple100;
 }
 
 .name-wrap {
@@ -156,7 +160,7 @@ export default Vue.extend({
 .name-wrap-top {
   @extend .name-wrap;
   align-content: center;
-  margin-top: 18px;
+  margin-top: 5px;
   margin-bottom: 5px;
 }
 </style>

@@ -7,11 +7,11 @@
       "settings": "Settings"
     },
     "client": {
-      "details": "details",
-      "serviceClients": "service clients",
-      "services": "services",
-      "internalServers": "internal servers",
-      "localGroups": "local groups"
+      "details": "Details",
+      "serviceClients": "Service clients",
+      "services": "Services",
+      "internalServers": "Internal servers",
+      "localGroups": "Local groups"
     },
     "keys": {
       "signAndAuthKeys": "SIGN and AUTH Keys",
@@ -302,8 +302,8 @@
     "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
-    "addSubsystem": "add subsystem",
-    "addClient": "add client",
+    "addSubsystem": "Add subsystem",
+    "addClient": "Add client",
     "addMember": "Add member",
     "search": "Search",
     "add": "Add",
@@ -335,7 +335,8 @@
     "done": "Done",
     "next": "Next",
     "submit": "Submit",
-    "finish": "Finish"
+    "finish": "Finish",
+    "searching": "Searching..."
   },
   "keys": {
     "token": "Token:",
@@ -476,6 +477,7 @@
     "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
     "memberName": "Member Name",
     "memberClass": "Member Class",
+    "selectMemberClass": "Select Member Class",
     "memberCode": "Member Code",
     "subsystemCode": "Subsystem Code",
     "selectClient": "Select Client",
@@ -534,9 +536,9 @@
     "configurationAnchor": {
       "title": "Configuration Anchor",
       "action": {
-        "download": "DOWNLOAD",
+        "download": "Download",
         "upload": {
-          "button": "UPLOAD",
+          "button": "Upload",
           "dialog": {
             "title": "Confirm configuration anchor details",
             "info": "Configuration anchor details:",
@@ -560,7 +562,7 @@
       "title": "Timestamping Services",
       "action": {
         "add": {
-          "button": "ADD",
+          "button": "Add",
           "dialog": {
             "title": "Add Timestamping Service",
             "info": "Trusted Timestamping services:",
@@ -575,7 +577,7 @@
         },
         "action": {
           "delete": {
-            "button": "DELETE",
+            "button": "Delete",
             "confirmation": {
               "title": "Are you sure?",
               "text": "Are you sure you want to delete the timestamping service?"
@@ -795,6 +797,14 @@
     "previousUpdate": "Previous Update",
     "nextUpdate": "Next Update",
     "serviceUrl": "Service URL",
+    "javaVersion": {
+      "title": "Java version",
+      "vendor": "Vendor name",
+      "earliest": "Earliest supported version",
+      "latest": "Latest supported version",
+      "ok": "Everything ok",
+      "notSupported": "Current Java version is not supported"
+    },
     "globalCongiguration": {
       "title": "Global configuration",
       "configurationStatus": {

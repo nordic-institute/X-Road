@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <expandable
+  <xrd-expandable
     class="expandable"
     @open="descOpen(token.id)"
     @close="descClose(token.id)"
@@ -67,29 +67,32 @@
     <template v-slot:content>
       <div>
         <div class="button-wrap">
-          <large-button
+          <xrd-button
             v-if="canAddKey"
             outlined
             @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
-            >{{ $t('keys.addKey') }}</large-button
+            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+            >{{ $t('keys.addKey') }}</xrd-button
           >
-          <file-upload
+          <xrd-file-upload
             v-if="canImportCertificate"
             accepts=".pem, .cer, .der"
             @file-changed="importCert"
             v-slot="{ upload }"
           >
-            <large-button
+            <xrd-button
               outlined
               class="button-spacing"
               :disabled="!token.logged_in"
               @click="upload"
               data-test="token-import-cert-button"
-              >{{ $t('keys.importCert') }}</large-button
             >
-          </file-upload>
+              <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
+              {{ $t('keys.importCert') }}</xrd-button
+            >
+          </xrd-file-upload>
         </div>
 
         <!-- AUTH keys table -->
@@ -133,22 +136,19 @@
         />
       </div>
     </template>
-  </expandable>
+  </xrd-expandable>
 </template>
 
 <script lang="ts">
 // View for a token
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import Expandable from '@/components/ui/Expandable.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import KeysTable from './KeysTable.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
 import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
+import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
 import TokenLoggingButton from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenLoggingButton.vue';
 import { Prop } from 'vue/types/options';
 import {
@@ -158,11 +158,8 @@ import {
 
 export default Vue.extend({
   components: {
-    Expandable,
-    LargeButton,
     KeysTable,
     UnknownKeysTable,
-    FileUpload,
     TokenLoggingButton,
   },
   props: {
@@ -262,7 +259,7 @@ export default Vue.extend({
         name: RouteName.Certificate,
         params: {
           hash: payload.cert.certificate_details.hash,
-          usage: payload.key.usage ?? "",
+          usage: payload.key.usage ?? 'undefined',
         },
       });
     },
@@ -346,8 +343,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .token-logging-button {
   display: inline-flex;
@@ -359,10 +356,6 @@ export default Vue.extend({
   &.label {
     margin-right: 24px;
     text-decoration: none;
-  }
-
-  &.token-name {
-    text-decoration: underline;
   }
 
   &.inactive {
@@ -382,7 +375,7 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Purple100;
   cursor: pointer;
 }
 
@@ -392,6 +385,7 @@ export default Vue.extend({
 
 .button-wrap {
   margin-top: 10px;
+  padding-right: 16px;
   width: 100%;
   display: flex;
   justify-content: flex-end;

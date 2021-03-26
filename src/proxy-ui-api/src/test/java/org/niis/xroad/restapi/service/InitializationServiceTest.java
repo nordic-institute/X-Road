@@ -28,7 +28,6 @@ package org.niis.xroad.restapi.service;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
-import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -54,13 +53,10 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_ME
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
@@ -97,6 +93,8 @@ public class InitializationServiceTest {
     private SignerProxyFacade signerProxyFacade;
     @Mock
     private AuditDataHelper auditDataHelper;
+    @Mock
+    private TokenPinValidator tokenPinValidator;
 
     private InitializationService initializationService;
 
@@ -111,8 +109,7 @@ public class InitializationServiceTest {
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
         initializationService = new InitializationService(systemService, serverConfService,
-                tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper);
-        initializationService.setTokenPinEnforced(false);
+                tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator);
     }
 
     @Test
@@ -193,7 +190,7 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        initializationService.setTokenPinEnforced(true);
+        tokenPinValidator.setTokenPinEnforced(true);
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_VALID_PIN, true);
@@ -291,12 +288,12 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        initializationService.setTokenPinEnforced(true);
+        doThrow(InvalidCharactersException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_INVALID_PIN, true);
             fail("should have failed");
-        } catch (InitializationService.InvalidCharactersException expected) {
+        } catch (InvalidCharactersException expected) {
             // expected
         }
     }
@@ -306,16 +303,13 @@ public class InitializationServiceTest {
         when(tokenService.isSoftwareTokenInitialized()).thenReturn(false);
         when(serverConfService.isServerCodeInitialized()).thenReturn(false);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(false);
-        initializationService.setTokenPinEnforced(true);
+        doThrow(WeakPinException.class).when(tokenPinValidator).validateSoftwareTokenPin(any());
         try {
             initializationService.initialize(SECURITY_SERVER_CODE, OWNER_MEMBER_CLASS, OWNER_MEMBER_CODE,
                     SOFTWARE_TOKEN_WEAK_PIN, true);
             fail("should have failed");
-        } catch (InitializationService.WeakPinException expected) {
-            assertErrorWithMetadata(ERROR_WEAK_PIN, expected, ERROR_METADATA_PIN_MIN_LENGTH,
-                    String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-                    ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-                    String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
+        } catch (WeakPinException expected) {
+            // done
         }
     }
 

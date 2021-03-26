@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width">
-    <subViewTitle
+  <div class="xrd-tab-max-width main-wrap">
+    <xrd-sub-view-title
       :title="service.full_service_code"
       @close="close"
       class="sub-view-title-spacing"
@@ -34,12 +34,15 @@
     <v-tabs
       v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL"
       v-model="tab"
+      background-color="#F4F3F6"
       class="xrd-tabs"
-      color="secondary"
-      grow
-      slider-size="4"
+      color="primary"
+      slider-size="2"
     >
-      <v-tabs-slider color="secondary"></v-tabs-slider>
+      <v-tabs-slider
+        color="primary"
+        class="xrd-sub-tabs-slider"
+      ></v-tabs-slider>
       <v-tab
         v-for="tab in tabs"
         v-bind:key="tab.key"
@@ -60,7 +63,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
 import { mapGetters } from 'vuex';
@@ -68,9 +70,6 @@ import { Tab } from '@/ui-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    SubViewTitle,
-  },
   props: {
     serviceId: {
       type: String,
@@ -97,6 +96,10 @@ export default Vue.extend({
           to: {
             name: RouteName.ServiceParameters,
             query: { descriptionType: this.$route.query.descriptionType },
+            params: {
+              clientId: this.clientId,
+              serviceId: this.serviceId,
+            },
           },
         },
         {
@@ -105,6 +108,10 @@ export default Vue.extend({
           to: {
             name: RouteName.Endpoints,
             query: { descriptionType: this.$route.query.descriptionType },
+            params: {
+              clientId: this.clientId,
+              serviceId: this.serviceId,
+            },
           },
         },
       ];
@@ -153,6 +160,7 @@ export default Vue.extend({
 
 .sub-view-title-spacing {
   margin-bottom: 30px;
+  padding: 16px;
 }
 
 .sub-view-spacing {

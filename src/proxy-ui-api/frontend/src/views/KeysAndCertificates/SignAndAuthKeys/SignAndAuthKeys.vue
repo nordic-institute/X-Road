@@ -25,19 +25,19 @@
  -->
 <template>
   <div class="wrapper">
-    <div class="search-row">
-      <v-text-field
-        v-model="search"
-        :label="$t('action.search')"
-        single-line
-        hide-details
-        class="search-input"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+    <div class="title-and-search">
+      <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
+      <div>
+        <help-button
+          helpImage="keys_and_certificates.png"
+          helpTitle="keys.helpTitleKeys"
+          helpText="keys.helpTextKeys"
+        ></help-button>
+      </div>
+      <div class="search-row">
+        <xrd-search v-model="search" />
+      </div>
     </div>
-
     <div v-if="filtered && filtered.length < 1">
       {{ $t('services.noMatches') }}
     </div>
@@ -54,7 +54,7 @@
       />
     </template>
 
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="logoutDialog"
       title="keys.logOutTitle"
       text="keys.logOutText"
@@ -76,15 +76,15 @@ import Vue from 'vue';
 import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
+import HelpButton from '../HelpButton.vue';
 import { mapGetters } from 'vuex';
 import { Key, Token, TokenCertificate } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
+    HelpButton,
     TokenExpandable,
-    ConfirmDialog,
     TokenLoginDialog,
   },
   data() {
@@ -144,6 +144,9 @@ export default Vue.extend({
 
           if (key.name) {
             return key.name.toLowerCase().includes(mysearch);
+          }
+          if (key.id) {
+            return key.id.toLowerCase().includes(mysearch);
           }
           return false;
         });
@@ -212,14 +215,19 @@ export default Vue.extend({
   width: 100%;
 }
 
+.title-and-search {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  margin-bottom: 40px;
+}
+
 .search-row {
+  margin-left: 20px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
+  align-items: center;
 }
 
 .search-input {

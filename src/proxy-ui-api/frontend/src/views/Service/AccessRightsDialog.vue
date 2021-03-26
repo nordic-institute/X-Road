@@ -24,19 +24,23 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="850" scrollable persistent>
-    <v-card class="xrd-card">
+  <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
+    <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
-        <span class="headline" data-test="access-rights-dialog-title">{{
-          $t('accessRights.addServiceClientsTitle')
-        }}</span>
+        <span class="headline" data-test="access-rights-dialog-title">
+          {{ $t(title) }}
+        </span>
         <v-spacer />
         <i @click="cancel()" id="close-x" data-test="cancel"></i>
       </v-card-title>
 
-      <v-card-text style="height: 500px" class="elevation-0">
-        <v-expansion-panels class="elevation-0" v-model="expandPanel" multiple>
-          <v-expansion-panel class="elevation-0">
+      <v-card-text style="height: 500px" class="elevation-0 px-0">
+        <v-expansion-panels
+          class="elevation-0 px-0"
+          v-model="expandPanel"
+          multiple
+        >
+          <v-expansion-panel class="elevation-0 px-0">
             <v-expansion-panel-header></v-expansion-panel-header>
             <v-expansion-panel-content class="elevation-0">
               <template v-slot:header>
@@ -52,9 +56,10 @@
                     <v-text-field
                       v-model="name"
                       :label="$t('name')"
-                      single-line
                       hide-details
                       autofocus
+                      outlined
+                      clearable
                       data-test="name"
                       class="flex-input"
                     ></v-text-field>
@@ -65,6 +70,7 @@
                       :label="$t('instance')"
                       class="flex-input"
                       data-test="instance"
+                      outlined
                       clearable
                     ></v-select>
                   </div>
@@ -77,14 +83,16 @@
                       data-test="memberClass"
                       class="flex-input"
                       clearable
+                      outlined
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
                       :label="$t('serviceClients.memberGroupCodeLabel')"
-                      single-line
                       hide-details
+                      clearable
                       data-test="memberCode"
                       class="flex-input"
+                      outlined
                     ></v-text-field>
                   </div>
 
@@ -92,10 +100,11 @@
                     <v-text-field
                       v-model="subsystemCode"
                       :label="$t('subsystem_code')"
-                      single-line
                       hide-details
+                      clearable
                       data-test="subsystemCode"
                       class="flex-input"
+                      outlined
                     ></v-text-field>
 
                     <v-select
@@ -104,15 +113,19 @@
                       label="Subject type"
                       class="flex-input"
                       data-test="serviceClientType"
+                      outlined
                       clearable
                     ></v-select>
                   </div>
                 </div>
 
                 <div class="search-wrap">
-                  <large-button @click="search()" data-test="search-button">{{
-                    $t('action.search')
-                  }}</large-button>
+                  <xrd-button
+                    :loading="loading"
+                    @click="search()"
+                    data-test="search-button"
+                    >{{ $t('action.search') }}</xrd-button
+                  >
                 </div>
               </div>
             </v-expansion-panel-content>
@@ -153,8 +166,12 @@
             </tr>
           </tbody>
         </table>
+
+        <div v-if="loading" class="empty-row">
+          <p>{{ $t('action.searching') }}</p>
+        </div>
         <div
-          v-if="serviceClientCandidates.length < 1 && !noResults"
+          v-else-if="serviceClientCandidates.length < 1 && !noResults"
           class="empty-row"
         ></div>
 
@@ -165,17 +182,17 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button
+        <xrd-button
           class="button-margin"
           data-test="cancel-button"
           outlined
           @click="cancel()"
-          >{{ $t('action.cancel') }}</large-button
+          >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <large-button :disabled="!canSave" data-test="save" @click="save()">{{
+        <xrd-button :disabled="!canSave" data-test="save" @click="save()">{{
           $t('localGroup.addSelected')
-        }}</large-button>
+        }}</xrd-button>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -185,7 +202,6 @@
 import Vue, { PropType } from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { ServiceClient } from '@/openapi-types';
 
 enum ServiceClientTypes {
@@ -208,13 +224,11 @@ const initialState = () => {
     selectedIds: [] as ServiceClient[],
     noResults: false,
     checkbox1: true,
+    loading: false,
   };
 };
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     dialog: {
       type: Boolean,
@@ -226,6 +240,10 @@ export default Vue.extend({
     },
     existingServiceClients: {
       type: Array as PropType<ServiceClient[]>,
+      required: true,
+    },
+    title: {
+      type: String,
       required: true,
     },
   },
@@ -292,6 +310,10 @@ export default Vue.extend({
         );
       };
 
+      this.loading = true;
+      this.serviceClientCandidates = [];
+      this.selectedIds = [];
+
       api
         .get<ServiceClient[]>(query)
         .then((res) => {
@@ -311,6 +333,9 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
 

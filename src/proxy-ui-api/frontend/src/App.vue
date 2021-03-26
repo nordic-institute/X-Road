@@ -23,17 +23,18 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+<!-- This is the root component of the Vue app -->
 <template>
   <v-app class="xrd-app">
-    <app-toolbar />
+    <!-- Dont show toolbar or footer in login view -->
+    <app-toolbar v-if="loginView" />
     <v-main app>
-      <alerts-container />
       <transition name="fade" mode="out-in">
         <router-view />
       </transition>
     </v-main>
     <snackbar />
-    <app-footer />
+    <app-footer v-if="loginView" />
   </v-app>
 </template>
 
@@ -43,20 +44,23 @@ import axios from 'axios';
 import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import { RouteName } from '@/global';
 import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   name: 'App',
   components: {
-    AppToolbar,
     AppFooter,
+    AppToolbar,
     Snackbar,
-    AlertsContainer,
   },
   computed: {
     ...mapGetters(['isSessionAlive']),
+    loginView(): boolean {
+      return this.$route.name !== RouteName.Login;
+    },
   },
+
   created() {
     // Add a response interceptor
     axios.interceptors.response.use(
@@ -116,6 +120,8 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
+@import './assets/colors';
+
 .fade-enter-active,
 .fade-leave-active {
   transition-duration: 0.2s;
@@ -130,6 +136,6 @@ export default Vue.extend({
 
 // Set the app background color
 .theme--light.v-application.xrd-app {
-  background: white;
+  background: $XRoad-WarmGrey30;
 }
 </style>

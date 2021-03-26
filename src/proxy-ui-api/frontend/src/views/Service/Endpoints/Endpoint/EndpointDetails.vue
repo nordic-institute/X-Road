@@ -24,85 +24,80 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width" data-test="endpoint-details-dialog">
-    <div>
-      <subViewTitle :title="$t('endpoints.details')" @close="close" />
+  <div class="xrd-tab-max-width main-wrap" data-test="endpoint-details-dialog">
+    <div class="px-4 pt-4">
+      <xrd-sub-view-title :title="$t('endpoints.details')" @close="close" />
       <div class="delete-wrap">
-        <large-button
+        <xrd-button
           v-if="showDelete"
           @click="showDeletePopup()"
           outlined
           data-test="delete-endpoint"
-          >{{ $t('action.delete') }}</large-button
+          >{{ $t('action.delete') }}</xrd-button
         >
       </div>
     </div>
 
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title long-row-title">
-          {{ $t('endpoints.httpRequestMethod') }}
-        </div>
-        <v-select
-          class="dlg-row-input"
-          @input="touched = true"
-          data-test="endpoint-method"
-          v-model="endpoint.method"
-          autofocus
-          :items="methods"
-        />
-      </div>
-
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title long-row-title">
-          {{ $t('endpoints.path') }}
-        </div>
-        <ValidationProvider
-          rules="required|xrdEndpoint"
-          ref="path"
-          name="path"
-          class="validation-provider dlg-row-input"
-          v-slot="{ errors }"
-        >
-          <v-text-field
-            v-model="endpoint.path"
-            single-line
-            :error-messages="errors"
-            name="path"
-            data-test="endpoint-path"
+      <div class="px-4">
+        <div class="dlg-edit-row">
+          <v-select
+            class="dlg-row-input"
             @input="touched = true"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
-
-      <div class="dlg-edit-row helper-text">
-        <div class="dlg-row-title long-row-title"></div>
-        <div>
-          <div>{{ $t('endpoints.endpointHelp1') }}</div>
-          <div>{{ $t('endpoints.endpointHelp2') }}</div>
-          <div>{{ $t('endpoints.endpointHelp3') }}</div>
-          <div>{{ $t('endpoints.endpointHelp4') }}</div>
+            data-test="endpoint-method"
+            v-model="endpoint.method"
+            :label="$t('endpoints.httpRequestMethod')"
+            autofocus
+            outlined
+            :items="methods"
+          />
         </div>
-      </div>
 
-      <v-card flat>
-        <div class="footer-button-wrap">
-          <large-button @click="close()" outlined>{{
-            $t('action.cancel')
-          }}</large-button>
-          <large-button
-            class="save-button"
-            :loading="saveBusy"
-            @click="saveEndpoint()"
-            :disabled="!touched || invalid"
-            >{{ $t('action.save') }}</large-button
+        <div class="dlg-edit-row">
+          <ValidationProvider
+            rules="required|xrdEndpoint"
+            ref="path"
+            name="path"
+            class="validation-provider dlg-row-input"
+            v-slot="{ errors }"
           >
+            <v-text-field
+              v-model="endpoint.path"
+              outlined
+              :error-messages="errors"
+              name="path"
+              :label="$t('endpoints.path')"
+              data-test="endpoint-path"
+              @input="touched = true"
+            ></v-text-field>
+          </ValidationProvider>
         </div>
-      </v-card>
+
+        <div class="helper-text pl-2">
+          <div>
+            <div>{{ $t('endpoints.endpointHelp1') }}</div>
+            <div>{{ $t('endpoints.endpointHelp2') }}</div>
+            <div>{{ $t('endpoints.endpointHelp3') }}</div>
+            <div>{{ $t('endpoints.endpointHelp4') }}</div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-buttons-wrap">
+        <xrd-button @click="close()" outlined>{{
+          $t('action.cancel')
+        }}</xrd-button>
+        <xrd-button
+          class="save-button"
+          :loading="saveBusy"
+          @click="saveEndpoint()"
+          :disabled="!touched || invalid"
+          >{{ $t('action.save') }}</xrd-button
+        >
+      </div>
     </ValidationObserver>
 
     <!-- Confirm dialog delete REST -->
-    <confirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDelete"
       title="endpoints.deleteTitle"
       text="endpoints.deleteEndpointText"
@@ -115,19 +110,13 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import { Permissions } from '@/global';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Endpoint } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
-    ConfirmDialog,
-    LargeButton,
     ValidationProvider,
     ValidationObserver,
   },
@@ -215,7 +204,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import 'src/assets/dialogs';
+@import '~styles/dialogs';
+@import '~styles/tables';
 
 .delete-wrap {
   margin-top: 50px;
@@ -229,14 +219,6 @@ export default Vue.extend({
 
 .dlg-row-input {
   max-width: 400px;
-}
-
-.footer-button-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  border-top: 1px solid $XRoad-Grey40;
-  padding-top: 20px;
 }
 
 .save-button {

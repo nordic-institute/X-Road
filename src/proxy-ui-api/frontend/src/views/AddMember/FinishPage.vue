@@ -25,55 +25,54 @@
  -->
 <template>
   <div data-test="finish-content">
-    <p>{{ $t('wizard.finish.infoLine1') }}</p>
-    <p>{{ $t('wizard.finish.infoLine2') }}</p>
-    <br />
-    <p>{{ $t('wizard.finish.todo1') }}</p>
-    <p>{{ $t('wizard.finish.todo2') }}</p>
-    <p>{{ $t('wizard.finish.todo3') }}</p>
-    <br />
-    <br />
-    <p>{{ $t('wizard.finish.note') }}</p>
-    <p></p>
+    <div class="wizard-step-form-content px-12 pt-10">
+      <div class="finish-info">
+        <p>{{ $t('wizard.finish.infoLine1') }}</p>
+        <p>{{ $t('wizard.finish.infoLine2') }}</p>
+        <br />
+        <p>{{ $t('wizard.finish.todo1') }}</p>
+        <p>{{ $t('wizard.finish.todo2') }}</p>
+        <p>{{ $t('wizard.finish.todo3') }}</p>
+        <br />
+        <br />
+        <p>{{ $t('wizard.finish.note') }}</p>
+        <p></p>
 
-    <div v-if="showRegisterOption">
-      <FormLabel labelText="wizard.member.register" />
-      <v-checkbox
-        v-model="registerChecked"
-        color="primary"
-        class="register-checkbox"
-        data-test="register-member-checkbox"
-      ></v-checkbox>
+        <div v-if="showRegisterOption">
+          <xrd-form-label :labelText="$t('wizard.member.register')" />
+          <v-checkbox
+            v-model="registerChecked"
+            color="primary"
+            class="register-checkbox"
+            data-test="register-member-checkbox"
+          ></v-checkbox>
+        </div>
+      </div>
     </div>
-
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="disableCancel"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
+      <xrd-button
+        outlined
+        @click="cancel"
+        :disabled="disableCancel"
+        data-test="cancel-button"
+        >{{ $t('action.cancel') }}</xrd-button
+      >
 
-      <div>
-        <large-button
-          @click="previous"
-          outlined
-          :disabled="disableCancel"
-          class="previous-button"
-          data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
+      <xrd-button
+        @click="previous"
+        outlined
+        :disabled="disableCancel"
+        class="previous-button"
+        data-test="previous-button"
+        >{{ $t('action.previous') }}</xrd-button
+      >
 
-        <large-button
-          @click="done"
-          data-test="submit-button"
-          :loading="submitLoading"
-          >{{ $t('action.submit') }}</large-button
-        >
-      </div>
+      <xrd-button
+        @click="done"
+        data-test="submit-button"
+        :loading="submitLoading"
+        >{{ $t('action.submit') }}</xrd-button
+      >
     </div>
     <!-- Accept warnings -->
     <warningDialog
@@ -89,8 +88,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
@@ -99,8 +96,6 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    LargeButton,
-    FormLabel,
     WarningDialog,
   },
   computed: {
@@ -253,5 +248,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 </style>

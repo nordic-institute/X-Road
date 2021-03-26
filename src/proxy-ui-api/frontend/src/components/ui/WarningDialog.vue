@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="warning"
     @save="accept"
@@ -43,19 +43,15 @@
         <div v-for="meta in warning.metadata" :key="meta">{{ meta }}</div>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 // A dialog for backend warnings
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
-  components: {
-    SimpleDialog,
-  },
   props: {
     dialog: {
       type: Boolean,

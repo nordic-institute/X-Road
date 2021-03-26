@@ -39,28 +39,26 @@
       </v-text-field>
 
       <div>
-        <v-btn
+        <xrd-button
           v-if="showAddRestButton"
           color="primary"
           :loading="addRestBusy"
           @click="showAddRestDialog"
           outlined
-          rounded
           data-test="add-rest-button"
-          class="rounded-button elevation-0 rest-button"
-          >{{ $t('services.addRest') }}</v-btn
+          class="rest-button"
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+          >{{ $t('services.addRest') }}</xrd-button
         >
 
-        <v-btn
+        <xrd-button
           v-if="showAddWSDLButton"
-          color="primary"
           :loading="addWsdlBusy"
           @click="showAddWsdlDialog"
-          outlined
-          rounded
           data-test="add-wsdl-button"
-          class="ma-0 rounded-button elevation-0"
-          >{{ $t('services.addWsdl') }}</v-btn
+          class="ma-0"
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+          >{{ $t('services.addWsdl') }}</xrd-button
         >
       </div>
     </div>
@@ -70,7 +68,7 @@
     </div>
 
     <template v-if="filtered">
-      <expandable
+      <xrd-expandable
         v-for="(serviceDesc, index) in filtered"
         v-bind:key="serviceDesc.id"
         class="expandable"
@@ -109,18 +107,17 @@
                 {{ $t('services.lastRefreshed') }}
                 {{ serviceDesc.refreshed_at | formatDateTime }}
               </div>
-              <v-btn
+              <xrd-button
                 v-if="showRefreshButton(serviceDesc.type)"
                 :key="refreshButtonComponentKey"
-                small
-                outlined
-                rounded
+                :outlined="false"
+                text
                 :loading="refreshBusy[serviceDesc.id]"
                 color="primary"
-                class="xrd-small-button xrd-table-button"
+                class="xrd-table-button"
                 @click="refresh(serviceDesc)"
                 data-test="refresh-button"
-                >{{ $t('action.refresh') }}</v-btn
+                >{{ $t('action.refresh') }}</xrd-button
               >
             </div>
 
@@ -138,7 +135,7 @@
                   v-bind:key="service.id"
                 >
                   <td
-                    class="service-code identifier-wrap"
+                    class="clickable-link"
                     @click="serviceClick(serviceDesc, service)"
                     data-test="service-link"
                   >
@@ -154,7 +151,7 @@
             </table>
           </div>
         </template>
-      </expandable>
+      </xrd-expandable>
     </template>
 
     <addWsdlDialog
@@ -208,7 +205,6 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import Expandable from '@/components/ui/Expandable.vue';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
 import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
@@ -223,7 +219,6 @@ import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
-    Expandable,
     AddWsdlDialog,
     AddRestDialog,
     DisableServiceDescDialog,
@@ -700,14 +695,14 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Link;
   cursor: pointer;
 }
 
 .refresh-row {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-end;
   width: 100%;
   margin-top: 24px;
@@ -719,11 +714,6 @@ export default Vue.extend({
 
 .expandable {
   margin-bottom: 10px;
-}
-
-.service-code {
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 .service-url {
