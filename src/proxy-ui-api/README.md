@@ -1,5 +1,5 @@
 # Building
-
+upstream
 Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
 inside the spring boot jar. 
 Build installs project-local versions of `node` and `npm` using 
