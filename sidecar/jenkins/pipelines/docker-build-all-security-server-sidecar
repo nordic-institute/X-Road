@@ -9,7 +9,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: 'master']],
+                    branches: [[name: 'XRDDEV-1599']],
                     doGenerateSubmoduleConfigurations: false,
                     gitTool: 'Default',
                     userRemoteConfigs: [
