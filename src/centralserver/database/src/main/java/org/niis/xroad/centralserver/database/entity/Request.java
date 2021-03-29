@@ -66,6 +66,7 @@ public class Request extends AuditableEntity {
     private String processingStatus;
 
     public Request() {
+        //JPA
     }
 
     @Id

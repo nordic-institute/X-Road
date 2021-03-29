@@ -54,9 +54,10 @@ public class AnchorUrl {
     private int id;
     private TrustedAnchor trustedAnchor;
     private String url;
-    private Set<AnchorUrlCert> anchorUrlCerts = new HashSet<AnchorUrlCert>(0);
+    private Set<AnchorUrlCert> anchorUrlCerts = new HashSet<>(0);
 
     public AnchorUrl() {
+        //JPA
     }
 
     @Id

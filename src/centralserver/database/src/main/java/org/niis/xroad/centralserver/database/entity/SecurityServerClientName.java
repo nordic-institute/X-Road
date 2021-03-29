@@ -53,6 +53,7 @@ public class SecurityServerClientName extends AuditableEntity {
     private String name;
 
     public SecurityServerClientName() {
+        //JPA
     }
 
     @Id

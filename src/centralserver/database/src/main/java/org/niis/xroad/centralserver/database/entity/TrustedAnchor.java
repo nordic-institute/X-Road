@@ -57,9 +57,10 @@ public class TrustedAnchor extends AuditableEntity {
     private byte[] trustedAnchorFile;
     private String trustedAnchorHash;
     private Date generatedAt;
-    private Set<AnchorUrl> anchorUrls = new HashSet<AnchorUrl>(0);
+    private Set<AnchorUrl> anchorUrls = new HashSet<>(0);
 
     public TrustedAnchor() {
+        //JPA
     }
 
     @Id

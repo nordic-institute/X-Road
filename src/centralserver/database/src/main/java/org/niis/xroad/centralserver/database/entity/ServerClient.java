@@ -52,6 +52,7 @@ public class ServerClient {
     private SecurityServer securityServer;
 
     public ServerClient() {
+        //JPA
     }
 
     @Id
@@ -66,7 +67,7 @@ public class ServerClient {
         this.id = id;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "security_server_client_id", nullable = false)
     public SecurityServerClient getSecurityServerClient() {
         return this.securityServerClient;
@@ -76,7 +77,7 @@ public class ServerClient {
         this.securityServerClient = securityServerClient;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinColumn(name = "security_server_id", nullable = false)
     public SecurityServer getSecurityServer() {
         return this.securityServer;

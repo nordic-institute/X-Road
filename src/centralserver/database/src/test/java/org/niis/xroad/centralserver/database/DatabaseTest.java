@@ -41,6 +41,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import static org.junit.Assert.assertEquals;
+
 @RunWith(SpringRunner.class)
 @DataJpaTest
 @Slf4j
@@ -67,6 +69,13 @@ public class DatabaseTest {
         entityManager.persist(server);
 
         entityManager.flush();
+        entityManager.clear();
+
+        member = entityManager.find(XRoadMember.class, member.getId());
+        assertEquals(1, member.getSubsystems().size());
+        assertEquals(1, member.getOwnedServers().size());
+        final Subsystem sub = member.getSubsystems().iterator().next();
+        assertEquals(1, sub.getServerClients().size());
     }
 
     @SpringBootApplication

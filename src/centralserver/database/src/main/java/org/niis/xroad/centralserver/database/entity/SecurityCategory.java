@@ -48,6 +48,7 @@ public class SecurityCategory extends AuditableEntity {
     private String description;
 
     public SecurityCategory() {
+        //JPA
     }
 
     @Id

@@ -53,9 +53,10 @@ public class GlobalGroup extends AuditableEntity {
     private String groupCode;
     private String description;
     private Integer memberCount;
-    private Set<GlobalGroupMember> globalGroupMembers = new HashSet<GlobalGroupMember>(0);
+    private Set<GlobalGroupMember> globalGroupMembers = new HashSet<>(0);
 
     public GlobalGroup() {
+        //JPA
     }
 
     @Id

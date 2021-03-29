@@ -48,6 +48,7 @@ public class SystemParameter extends AuditableEntity {
     private String haNodeName;
 
     public SystemParameter() {
+        //JPA
     }
 
     @Id

@@ -51,6 +51,7 @@ public class AuthCert extends AuditableEntity {
     private byte[] cert;
 
     public AuthCert() {
+        //JPA
     }
 
     @Id

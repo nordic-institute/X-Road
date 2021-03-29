@@ -53,6 +53,7 @@ public class CentralService extends AuditableEntity {
     private String serviceCode;
 
     public CentralService() {
+        //JPA
     }
 
     @Id

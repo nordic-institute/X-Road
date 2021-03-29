@@ -58,6 +58,7 @@ public class ConfigurationSigningKey {
     private String tokenIdentifier;
 
     public ConfigurationSigningKey() {
+        //JPA
     }
 
     @Id

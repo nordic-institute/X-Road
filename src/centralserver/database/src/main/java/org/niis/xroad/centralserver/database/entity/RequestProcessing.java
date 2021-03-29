@@ -52,9 +52,10 @@ public class RequestProcessing extends AuditableEntity {
     private int id;
     private String type;
     private String status;
-    private Set<Request> requests = new HashSet<Request>(0);
+    private Set<Request> requests = new HashSet<>(0);
 
     public RequestProcessing() {
+        //JPA
     }
 
     @Id

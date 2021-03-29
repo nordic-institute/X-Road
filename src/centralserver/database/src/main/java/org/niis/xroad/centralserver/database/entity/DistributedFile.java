@@ -59,6 +59,7 @@ public class DistributedFile {
     private String haNodeName;
 
     public DistributedFile() {
+        //JPA
     }
 
     @Id

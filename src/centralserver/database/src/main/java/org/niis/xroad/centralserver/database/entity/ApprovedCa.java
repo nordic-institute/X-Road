@@ -59,9 +59,10 @@ public class ApprovedCa extends AuditableEntity {
     private String identifierDecoderMethodName;
     private String certProfileInfo;
     //this is the set of intermediate CAs
-    private Set<CaInfo> intermediateCaInfos = new HashSet<CaInfo>(0);
+    private Set<CaInfo> intermediateCaInfos = new HashSet<>(0);
 
     public ApprovedCa() {
+        //JPA
     }
 
     @Id

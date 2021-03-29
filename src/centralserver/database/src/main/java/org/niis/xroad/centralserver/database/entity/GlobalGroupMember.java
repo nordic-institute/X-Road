@@ -54,6 +54,7 @@ public class GlobalGroupMember extends AuditableEntity {
     private ClientId identifier;
 
     public GlobalGroupMember() {
+        //JPA
     }
 
     @Id

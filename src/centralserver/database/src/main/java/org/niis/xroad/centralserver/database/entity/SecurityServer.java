@@ -55,12 +55,12 @@ public class SecurityServer extends AuditableEntity {
     private XRoadMember owner;
     private String serverCode;
     private String address;
-    private Set<AuthCert> authCerts = new HashSet<AuthCert>(0);
-    private Set<SecurityServerSecurityCategory> securityServerSecurityCategories
-            = new HashSet<SecurityServerSecurityCategory>(0);
-    private Set<ServerClient> serverClients = new HashSet<ServerClient>(0);
+    private Set<AuthCert> authCerts = new HashSet<>(0);
+    private Set<SecurityServerSecurityCategory> securityServerSecurityCategories = new HashSet<>(0);
+    private Set<ServerClient> serverClients = new HashSet<>(0);
 
     public SecurityServer() {
+        //JPA
     }
 
     @Id

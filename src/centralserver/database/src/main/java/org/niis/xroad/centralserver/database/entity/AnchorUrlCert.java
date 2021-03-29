@@ -51,6 +51,7 @@ public class AnchorUrlCert {
     private byte[] cert;
 
     public AnchorUrlCert() {
+        //JPA
     }
 
     @Id

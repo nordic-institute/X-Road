@@ -47,10 +47,8 @@ public class MemberClass extends AuditableEntity {
     private String code;
     private String description;
 
-    //not yet sure two-way mapping is necessary
-    //private Set<SecurityServerClient> securityServerClients = new HashSet<>();
-
     public MemberClass() {
+        //JPA
     }
 
     @Id

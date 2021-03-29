@@ -52,6 +52,7 @@ public class OcspInfo extends AuditableEntity {
     private byte[] cert;
 
     public OcspInfo() {
+        //JPA
     }
 
     @Id

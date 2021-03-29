@@ -52,6 +52,7 @@ public class SecurityServerSecurityCategory {
     private SecurityServer securityServer;
 
     public SecurityServerSecurityCategory() {
+        //JPA
     }
 
     @Id

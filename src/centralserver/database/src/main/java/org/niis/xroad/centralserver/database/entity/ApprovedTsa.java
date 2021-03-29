@@ -55,6 +55,7 @@ public class ApprovedTsa extends AuditableEntity {
     private Date validTo;
 
     public ApprovedTsa() {
+        //JPA
     }
 
     @Id

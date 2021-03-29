@@ -48,6 +48,7 @@ public class UiUser extends AuditableEntity {
     private String locale;
 
     public UiUser() {
+        //JPA
     }
 
     @Id

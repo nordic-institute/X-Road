@@ -59,9 +59,10 @@ public class CaInfo {
     private byte[] cert;
     private Date validFrom;
     private Date validTo;
-    private Set<OcspInfo> ocspInfos = new HashSet<OcspInfo>(0);
+    private Set<OcspInfo> ocspInfos = new HashSet<>(0);
 
     public CaInfo() {
+        //JPA
     }
 
     @Id

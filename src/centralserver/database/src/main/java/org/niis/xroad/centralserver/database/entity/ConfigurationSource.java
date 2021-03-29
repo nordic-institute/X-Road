@@ -62,9 +62,10 @@ public class ConfigurationSource {
     private String anchorFileHash;
     private Date anchorGeneratedAt;
     private String haNodeName;
-    private Set<ConfigurationSigningKey> configurationSigningKeys = new HashSet<ConfigurationSigningKey>(0);
+    private Set<ConfigurationSigningKey> configurationSigningKeys = new HashSet<>(0);
 
     public ConfigurationSource() {
+        //JPA
     }
 
     @Id
@@ -86,7 +87,7 @@ public class ConfigurationSource {
     }
 
     public void setActiveConfigurationSigningKey(ConfigurationSigningKey activeKey) {
-        this.configurationSigningKey = configurationSigningKey;
+        this.configurationSigningKey = activeKey;
     }
 
     @Column(name = "source_type")
