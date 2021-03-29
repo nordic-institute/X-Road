@@ -24,6 +24,9 @@
    THE SOFTWARE.
  -->
 
+<!--
+  Members main view
+-->
 <template>
   <main-content-area>
     <div class="header-row">
@@ -85,9 +88,7 @@ import Vue from 'vue';
 import MainContentArea from '@/components/layout/MainContentArea.vue';
 
 export default Vue.extend({
-  components: { MainContentArea },
-  data: () => ({}),
-  methods: {},
+  components: { MainContentArea }
 });
 </script>
 
