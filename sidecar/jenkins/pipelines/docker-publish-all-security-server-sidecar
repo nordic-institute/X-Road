@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'dev-test' }
     parameters {
-        string(description: "Image tag", name: "REPOSITORY_NAME", defaultValue: "${params?.IMAGE_TAG}")
+        string(description: "Image tag", name: "REPOSITORY_NAME", defaultValue: "${params?.REPOSITORY_NAME}")
         string(description: "Version", name: "RELEASE_VERSION", defaultValue: "${params?.RELEASE_VERSION}")
     }
     stages {
