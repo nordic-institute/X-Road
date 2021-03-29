@@ -430,6 +430,7 @@ const routes: RouteConfig[] = [
             components: {
               default: Endpoints,
             },
+            props: { default: true },
           },
         ],
       },

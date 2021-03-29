@@ -100,6 +100,16 @@ export default Vue.extend({
   components: {
     addEndpointDialog,
   },
+  props: {
+    serviceId: {
+      type: String,
+      required: true,
+    },
+    clientId: {
+      type: String,
+      required: true,
+    },
+  },
   computed: {
     ...mapGetters(['service']),
 
@@ -161,7 +171,11 @@ export default Vue.extend({
       }
       this.$router.push({
         name: RouteName.EndpointDetails,
-        params: { id: endpoint.id },
+        params: {
+          id: endpoint.id,
+          clientId: this.clientId,
+          serviceId: this.serviceId,
+        },
       });
     },
     editAccessRights(endpoint: Endpoint): void {
@@ -170,7 +184,11 @@ export default Vue.extend({
       }
       this.$router.push({
         name: RouteName.EndpointAccessRights,
-        params: { id: endpoint.id },
+        params: {
+          id: endpoint.id,
+          clientId: this.clientId,
+          serviceId: this.serviceId,
+        },
       });
     },
     cancelAddEndpoint(): void {

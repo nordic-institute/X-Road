@@ -64,7 +64,7 @@
       </span>
     </v-alert>
     <v-alert
-      data-test="global-alert-soft-token-pin"
+      data-test="global-alert-restore"
       :value="showRestoreInProgress"
       color="red"
       border="left"
