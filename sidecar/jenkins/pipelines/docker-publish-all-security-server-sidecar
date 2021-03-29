@@ -17,18 +17,18 @@ pipeline {
       stage('Publish image with REPOSITORY_NAME:RELEASE_VERSION') {
           steps {
               withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-fi'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-fi'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-primary'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-secondary'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-primary'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-secondary'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-primary-fi'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-secondary-fi'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-primary-fi'
-                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-secondary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-primary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-secondary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-primary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-secondary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-primary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-secondary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-primary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-secondary-fi'
               }
           }
        }
