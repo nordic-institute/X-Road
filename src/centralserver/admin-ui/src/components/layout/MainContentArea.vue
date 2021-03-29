@@ -23,52 +23,29 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
-<!--
-This component is a wrapper for a X-Road table component that contains default styles
--->
-
 <template>
-  <table class="xrd-table">
+  <div class="xrd-view-common content">
     <slot></slot>
-  </table>
+  </div>
 </template>
 
-<script>
+<script lang="ts">
 import Vue from 'vue';
 
-export default Vue.extend({
-  name: 'xrd-table',
-});
+export default Vue.extend({});
 </script>
 
 <style scoped lang="scss">
-@import '../assets/colors';
-
-.xrd-table {
+.content {
+  margin-top: 40px;
+  padding-left: 10px;
+  padding-right: 10px;
   width: 100%;
-  margin-top: 10px;
-  border-collapse: collapse;
+  max-width: 1600px;
 
-  td {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-  }
-
-  th {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-    text-align: left;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: $XRoad-WarmGrey100;
-  }
-
-  &.xrd-table-highlightable tbody tr:hover {
-    cursor: pointer;
-    background-color: $XRoad-Purple10;
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
   }
 }
 </style>
