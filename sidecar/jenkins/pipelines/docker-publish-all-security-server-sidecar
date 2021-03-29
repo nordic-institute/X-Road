@@ -7,7 +7,7 @@ pipeline {
     stages {
       stage('Create Security server sidecar docker image') {
           steps {
-              build job: 'docker-build-all-security-server-sidecar',
+              build job: 'docker-build-all-security-server-sidecar-images',
               parameters: [
                   string(name: 'REPOSITORY_NAME', value: params.REPOSITORY_NAME),
                   string(name: 'RELEASE_VERSION', value: params.IMAGE_TAG)
