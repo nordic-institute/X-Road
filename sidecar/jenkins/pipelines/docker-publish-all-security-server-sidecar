@@ -1,0 +1,36 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Image tag", name: "REPOSITORY_NAME", defaultValue: "${params?.IMAGE_TAG}")
+        string(description: "Version", name: "RELEASE_VERSION", defaultValue: "${params?.RELEASE_VERSION}")
+    }
+    stages {
+      stage('Create Security server sidecar docker image') {
+          steps {
+              build job: 'docker-build-all-security-server-sidecar',
+              parameters: [
+                  string(name: 'REPOSITORY_NAME', value: params.REPOSITORY_NAME),
+                  string(name: 'RELEASE_VERSION', value: params.IMAGE_TAG)
+              ]
+          }
+      }
+      stage('Publish image with IMAGE_TAG') {
+          steps {
+              withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-fi'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-fi'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-primary'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-secondary'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-primary'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-secondary'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-primary-fi'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-secondary-fi'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-primary-fi'
+                  sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim-secondary-fi'
+              }
+          }
+       }
+    }
+}
