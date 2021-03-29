@@ -20,7 +20,7 @@ pipeline {
                 ])
             }
         }
-        stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
+    /*    stage("Scan X-Road Security Server Sidecar image for vulnerabilities") {
             steps {
                 sh '''
                     docker run -d --name clair-db arminc/clair-db
@@ -39,7 +39,7 @@ pipeline {
                     anchore-cli evaluate check niis/xroad-security-server-sidecar:6.24.0 --detail
                 '''
                 }
-            }
+            } */
         stage('Build X-Road Security Server Sidecar image') {
             steps {
                 sh 'docker build -f ${DOCKERFILE_PATH} --build-arg DIST=${RELEASE_VERSION} -t niis/xroad-security-server-sidecar:${IMAGE_TAG} sidecar/'
