@@ -103,7 +103,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Colors, StoreTypes } from '@/global';
 
 export default Vue.extend({
   name: 'app-footer',
