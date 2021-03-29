@@ -53,6 +53,15 @@ import static org.junit.Assert.assertTrue;
  */
 public class CertUtilsTest {
 
+    private String mergeTestString() {
+        return "foo";
+    }
+
+    @Test
+    public void mergeTest() {
+        assertEquals("bar", "bar");
+    }
+
     /**
      * Setup test
      * @throws IOException when error occurs
