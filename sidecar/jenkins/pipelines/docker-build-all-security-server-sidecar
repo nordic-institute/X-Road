@@ -23,7 +23,7 @@ pipeline {
         }
         stage('Build all X-Road Security Server Sidecar images') {
             steps {
-                sh '/sidecar/docker-build.sh ${RELEASE_VERSION} ${REPOSITORY_NAME}'
+                sh 'sidecar/docker-build.sh ${RELEASE_VERSION} ${REPOSITORY_NAME}'
             }
         }
     }
