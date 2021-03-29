@@ -14,8 +14,8 @@ build "$dir/slim/fi/Dockerfile" "-slim-fi"
 build "$dir/Dockerfile" ""
 build "$dir/fi/Dockerfile" "-fi"
 
-build "$dir/kubernetesBalancer/slim/primary/Dockerfile" "-primary-slim"
-build "$dir/kubernetesBalancer/slim/secondary/Dockerfile" "-secondary-slim"
+build "$dir/kubernetesBalancer/slim/primary/Dockerfile" "-slim-primary"
+build "$dir/kubernetesBalancer/slim/secondary/Dockerfile" "-slim-secondary"
 build "$dir/kubernetesBalancer/primary/Dockerfile" "-primary"
 build "$dir/kubernetesBalancer/secondary/Dockerfile" "-secondary"
 
