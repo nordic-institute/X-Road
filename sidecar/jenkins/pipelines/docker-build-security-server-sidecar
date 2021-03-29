@@ -53,7 +53,7 @@ pipeline {
         stage('Test') {
             steps {
                 retry (5) {
-                    sleep(time: 20, unit: 'SECONDS')
+                    sleep(time: 80, unit: 'SECONDS')
                     script {
                         def response = sh(script: 'curl --write-out %{http_code} --silent --output /dev/null --insecure https://localhost:4100', returnStdout: true)
                         if(response == '302') {
@@ -70,7 +70,7 @@ pipeline {
     post {
         always {
             sh '''
-                docker rm -f sss-${IMAGE_TAG} 
+                docker rm -f sss-${IMAGE_TAG}
             '''
         }
     }
