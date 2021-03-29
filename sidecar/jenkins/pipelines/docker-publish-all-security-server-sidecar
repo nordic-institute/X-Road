@@ -5,7 +5,7 @@ pipeline {
         string(description: "Version", name: "RELEASE_VERSION", defaultValue: "${params?.RELEASE_VERSION}")
     }
     stages {
-      stage('Create Security server sidecar docker image') {
+      stage('Build all security server sidecar images') {
           steps {
               build job: 'docker-build-all-security-server-sidecar-images',
               parameters: [
@@ -14,7 +14,7 @@ pipeline {
               ]
           }
       }
-      stage('Publish image with IMAGE_TAG') {
+      stage('Publish image with REPOSITORY_NAME:RELEASE_VERSION') {
           steps {
               withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
                   sh 'docker push $IMAGE_TAG:$RELEASE_VERSION-slim'
