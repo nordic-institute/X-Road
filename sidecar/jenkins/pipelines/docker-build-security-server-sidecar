@@ -47,7 +47,7 @@ pipeline {
         }
         stage('Run container') {
             steps {
-                sh 'docker run --detach -p 4100:4000 -p 4101:80 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
+                sh 'docker run --detach -p 4100:4000 -p 4101:8080 -p 5588:5588 -e XROAD_TOKEN_PIN=5678 -e XROAD_ADMIN_USER=admin -e XROAD_ADMIN_PASSWORD=1234 --name sss-${IMAGE_TAG} niis/xroad-security-server-sidecar:${IMAGE_TAG}'
             }
         }
         stage('Test') {
@@ -70,9 +70,7 @@ pipeline {
     post {
         always {
             sh '''
-                docker rm -f sss-${IMAGE_TAG} clair-db clair || true
-                rm clair-scanner
-                docker rmi arminc/clair-db:latest arminc/clair-local-scan:latest anchore/anchore-engine:v0.8.2
+                docker rm -f sss-${IMAGE_TAG} 
             '''
         }
     }
