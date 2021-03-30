@@ -70,7 +70,7 @@ public class MultiAuthWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final int FORM_LOGIN_SECURITY_ORDER = 100;
     public static final int GLOBAL_CONFIGURATION_SECURITY_ORDER = 200;
 
-    @Value("${web.security.debug:false}")
+    @Value("${web.security.debug:true}")
     private Boolean isWebSecurityDebugEnabled;
 
     /**
