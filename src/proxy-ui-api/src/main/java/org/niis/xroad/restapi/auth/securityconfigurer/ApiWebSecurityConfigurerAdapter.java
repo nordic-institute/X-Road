@@ -33,6 +33,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 
@@ -55,41 +58,41 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-//        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
-//        filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
-//        filter.setAuthenticationManager(apiKeyAuthenticationManager);
-//        filter.setExceptionIfHeaderMissing(false); // exception at this point
+        RequestHeaderAuthenticationFilter filter = new RequestHeaderAuthenticationFilter();
+        filter.setPrincipalRequestHeader(PRINCIPAL_REQUEST_HEADER);
+        filter.setAuthenticationManager(apiKeyAuthenticationManager);
+        filter.setExceptionIfHeaderMissing(false); // exception at this point
         // would cause http 500, we want http 401
         http
             .authorizeRequests()
-            .antMatchers("/*")
-            .permitAll();
-//                .and()
-//            .antMatcher("/api/**")
-//            .addFilter(filter)
-//            .sessionManagement()
-//                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-//                .and()
-//            .authorizeRequests()
-//                .anyRequest().authenticated()
-//                .and()
-//            .exceptionHandling()
-//                .authenticationEntryPoint(http401AuthenticationEntryPoint)
-//                .and()
-//            .csrf()
-//                // we require csrf protection only if there is a session alive
-//                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::sessionExists)
-//                // CsrfFilter always generates a new token in the repo -> prevent with lazy
-//                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
-//                .and()
-//            .anonymous()
-//                .disable()
-//            .headers()
-//                .contentSecurityPolicy("default-src 'none'")
-//                .and()
-//                .and()
-//            .formLogin()
-//                .disable();
+                .antMatchers("/api/**/openapi")
+                .permitAll()
+                .and()
+            .antMatcher("/api/**")
+            .addFilter(filter)
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .and()
+            .authorizeRequests()
+                .anyRequest().authenticated()
+                .and()
+            .exceptionHandling()
+                .authenticationEntryPoint(http401AuthenticationEntryPoint)
+                .and()
+            .csrf()
+                // we require csrf protection only if there is a session alive
+                .requireCsrfProtectionMatcher(ApiWebSecurityConfigurerAdapter::sessionExists)
+                // CsrfFilter always generates a new token in the repo -> prevent with lazy
+                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
+                .and()
+            .anonymous()
+                .disable()
+            .headers()
+                .contentSecurityPolicy("default-src 'none'")
+                .and()
+                .and()
+            .formLogin()
+                .disable();
     }
 
     /**
