@@ -59,7 +59,7 @@ public class CertUtilsTest {
 
     @Test
     public void mergeTest() {
-        assertEquals("bar", "bar");
+        assertEquals("bar", mergeTestString());
     }
 
     /**
