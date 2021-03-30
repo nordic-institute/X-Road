@@ -114,7 +114,7 @@ function openMemberEditDialog(memberRowData) {
         opts.bFilter = false;
         opts.bDestroy = true;
         opts.aoColumns = [
-            {"mData" : "server"}];
+            {"mData" : "server", "mRender": util.escape}];
 
         opts.fnRowCallback = function(nRow, ownedServer) {
             var ownedServerLink =
