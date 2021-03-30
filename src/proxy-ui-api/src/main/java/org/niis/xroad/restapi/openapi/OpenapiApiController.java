@@ -47,6 +47,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FIL
 @Controller
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
+@PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class OpenapiApiController implements OpenapiApi {
 

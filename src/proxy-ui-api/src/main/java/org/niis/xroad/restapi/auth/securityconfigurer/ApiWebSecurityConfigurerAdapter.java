@@ -64,6 +64,9 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
         filter.setExceptionIfHeaderMissing(false); // exception at this point
         // would cause http 500, we want http 401
         http
+            .antMatcher("/api/v1/openapi")
+                .anonymous()
+                .and()
             .antMatcher("/api/**")
             .addFilter(filter)
             .sessionManagement()
