@@ -17,7 +17,8 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, postgresql-server, postgresql-contrib
+Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release
+Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
 %define src %{_topdir}/..
 

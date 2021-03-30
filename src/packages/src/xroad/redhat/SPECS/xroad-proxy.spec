@@ -16,7 +16,8 @@ Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           net-tools, tar
-Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, rsyslog, postgresql-server, postgresql-contrib
+Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, xroad-signer = %version-%release, rsyslog
+Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
 %define src %{_topdir}/..
 
