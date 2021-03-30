@@ -42,16 +42,17 @@ psql_dbuser() {
 }
 
 pgrestore() {
-PGHOST="$db_addr" PGPORT="$db_port" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \
-  pg_restore --single-transaction --no-owner $dump_file
+PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+  pg_restore --single-transaction -d "$db_database" --schema=$db_schema $dump_file
 }
 
 { cat <<EOF
 DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
+CREATE SCHEMA "$db_schema";
 EOF
 } | psql_adminuser || abort "Dropping schema failed."
 
-pgrestore | abort "Restoring database failed."
+pgrestore || abort "Restoring database failed."
 
 # PostgreSQL does not in all cases detect that prepared statements in open sessions
 # need to be re-parsed. Therefore, try to forcibly close any serverconf connections.
@@ -78,4 +79,4 @@ JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquib
   --defaultSchemaName="${db_schema}" \
   $context \
   update \
-  || die "Database schema migration failed."
+  || abort "Database schema migration failed."
