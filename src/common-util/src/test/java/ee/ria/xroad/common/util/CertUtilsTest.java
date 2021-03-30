@@ -52,7 +52,7 @@ import static org.junit.Assert.assertTrue;
  * Unit tests for {@link CertUtils}
  */
 public class CertUtilsTest {
-
+a
     private String mergeTestString() {
         return "bar";
     }
