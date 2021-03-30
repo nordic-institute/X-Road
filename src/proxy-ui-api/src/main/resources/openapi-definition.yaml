@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
-  version: "1.0.31"
+  version: "1.0.32"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -14,7 +14,7 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.30/api/v1
+  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.32/api/v1
     description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
