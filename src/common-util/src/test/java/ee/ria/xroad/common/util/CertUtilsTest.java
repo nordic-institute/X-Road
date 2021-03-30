@@ -54,7 +54,7 @@ import static org.junit.Assert.assertTrue;
 public class CertUtilsTest {
 
     private String mergeTestString() {
-        return "bar";
+        return "foo";
     }
 
     @Test
