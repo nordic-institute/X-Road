@@ -1,0 +1,15 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+    }
+    stages {
+        stage('Create cluster') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks delete-cluster --name ${CLUSTER_NAME}'
+                }
+            }
+        }
+    }
+}

@@ -17,7 +17,7 @@ pipeline {
                        --name ${CLUSTER_NAME} \
                        --kubernetes-version ${KUBERNETES_VERSION} \
                        --role-arn ${ROLE_ARN} \
-                       --resources-vpc-config subnetIds=${SUBNET_ID},securityGroupIds=${SECURITY_GROUP_IDS}'
+                       --resources-vpc-config subnetIds=${SUBNET_IDS},securityGroupIds=${SECURITY_GROUP_IDS}'
                 }
             }
         }
