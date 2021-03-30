@@ -1,0 +1,25 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+        string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
+        string(description: "Kubernetes version", name: "KUBERNETES_VERSION", defaultValue: "${params?.KUBERNETES_VERSION}")
+        string(description: "ARN role of the cluster", name: "ROLE_ARN", defaultValue: "${params?.ROLE_ARN}")
+        string(description: "AWS subnets IDs separated by comma", name: "SUBNET_IDS", defaultValue: "${params?.SUBNET_IDS}")
+        string(description: "Security groups IDs separated by comma", name: "SECURITY_GROUP_IDS", defaultValue: "${params?.SECURITY_GROUP_IDS}")
+    }
+    stages {
+        stage('Create cluster') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks create-cluster \
+                       --region ${REGION_CODE} \
+                       --name ${CLUSTER_NAME} \
+                       --kubernetes-version ${KUBERNETES_VERSION} \
+                       --role-arn ${ROLE_ARN} \
+                       --resources-vpc-config subnetIds=${SUBNET_ID},securityGroupIds=${SECURITY_GROUP_IDS}'
+                }
+            }
+        }
+    }
+}
