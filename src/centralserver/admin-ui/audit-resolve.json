@@ -3,6 +3,11 @@
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
       "madeAt": 1614069170389
+    },
+    "1658|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>pac-resolver>netmask": {
+      "decision": "ignore",
+      "madeAt": 1617086786178,
+      "expiresAt": 1619678778845
     }
   },
   "rules": {},
