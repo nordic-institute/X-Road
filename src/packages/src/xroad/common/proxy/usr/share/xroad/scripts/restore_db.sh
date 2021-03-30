@@ -41,13 +41,17 @@ psql_dbuser() {
   PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
 }
 
+pgrestore() {
+PGHOST="$db_addr" PGPORT="$db_port" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" \
+  pg_restore --single-transaction --no-owner $dump_file
+}
+
 { cat <<EOF
-BEGIN;
 DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
 EOF
-  cat "$dump_file"
-  echo "COMMIT;"
-} | psql_adminuser || abort "Restoring database failed."
+} | psql_adminuser || abort "Dropping schema failed."
+
+pgrestore | abort "Restoring database failed."
 
 # PostgreSQL does not in all cases detect that prepared statements in open sessions
 # need to be re-parsed. Therefore, try to forcibly close any serverconf connections.
