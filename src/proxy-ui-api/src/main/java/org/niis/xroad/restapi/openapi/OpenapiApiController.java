@@ -33,7 +33,6 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -47,14 +46,12 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FIL
 @Controller
 @RequestMapping(ApiUtil.API_V1_PREFIX)
 @Slf4j
-@PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class OpenapiApiController implements OpenapiApi {
 
     static final String OPENAPI_DEFINITION_FILENAME = "openapi-definition.yaml";
 
     @Override
-    @PreAuthorize("hasAuthority('DOWNLOAD_OPENAPI')")
     public ResponseEntity<Resource> downloadOpenApi() {
         try {
             byte[] bytes = IOUtils.toByteArray(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getInputStream());
