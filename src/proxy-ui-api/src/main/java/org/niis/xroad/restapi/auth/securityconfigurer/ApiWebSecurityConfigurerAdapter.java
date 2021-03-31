@@ -34,7 +34,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
 import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
 import org.springframework.security.web.savedrequest.NullRequestCache;
@@ -71,7 +70,6 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 .and()
             .antMatcher("/api/**")
             .addFilter(filter)
-            .addFilterBefore(filter, AnonymousAuthenticationFilter.class)
             .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.NEVER)
                 .and()
@@ -87,8 +85,6 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 // CsrfFilter always generates a new token in the repo -> prevent with lazy
                 .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
                 .and()
-            .anonymous()
-                .disable()
             .headers()
                 .contentSecurityPolicy("default-src 'none'")
                 .and()
