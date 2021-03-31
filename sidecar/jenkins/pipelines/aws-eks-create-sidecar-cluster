@@ -36,7 +36,7 @@ pipeline {
             }
         } */
 
-        stage('Create Node Group') {
+        /*stage('Create Node Group') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks create-nodegroup \
@@ -49,7 +49,7 @@ pipeline {
                        --remote-access ec2SshKey=${SSH_KEY},sourceSecurityGroups=${SECURITY_GROUP_IDS}'
                 }
             }
-        }
+        }*/
         stage('Wait until the nodegroup is active') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
