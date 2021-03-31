@@ -78,6 +78,9 @@ export const StoreTypes = {
 export enum RouteName {
   BaseRoute = 'base',
   Members = 'members',
+  MemberDetails = 'member-details',
+  MemberManagementRequests = 'member-management-requests',
+  MemberSubsystems = 'member-subsystems',
   SecurityServers = 'security-servers',
   ManagementRequests = 'management-requests',
   TrustServices = 'trust-services',

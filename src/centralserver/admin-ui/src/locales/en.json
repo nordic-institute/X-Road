@@ -1,45 +1,69 @@
 {
-    "footer": {
-        "software": {
-            "title": "Software",
-            "versionPrefix": "X-Road",
-            "feedback": "Feedback"
-        },
-        "copyright": {
-            "title": "Copyright",
-            "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-            "licenceInfo": "Licence info"
-        }
-    },
-    "login": {
-        "logIn": "Log in",
-        "logOut": "Log out",
-        "generalError": "Login failed. Please try again.",
-        "errorMsg401": "Wrong username or password"
-    },
-    "tab": {
-        "main": {
-            "members": "Members",
-            "securityServers": "Security Servers",
-            "managementRequests": "Management Requests",
-            "trustServices": "Trust Services",
-            "globalConfiguration": "Global configuration",
-            "settings": "Settings"
-        },
-        "settings": {
-            "systemSettings": "System Settings",
-            "backupAndRestore": "Backup And Restore"
-        }
-    },
-    "fields": {
-        "password": "Password",
-        "username": "Username"
-    },
-    "members": {
-      "header": "Members",
-      "addMember": "Add member",
-      "memberName": "Member name",
-      "memberClass": "Member class",
-      "memberCode": "Member code"
+  "global": {
+    "subsystem": "Subsystem",
+    "memberName": "Member name",
+    "memberClass": "Member class",
+    "memberCode": "Member code",
+    "navigation": {
+      "back": "Back"
     }
+  },
+  "footer": {
+    "software": {
+      "title": "Software",
+      "versionPrefix": "X-Road",
+      "feedback": "Feedback"
+    },
+    "copyright": {
+      "title": "Copyright",
+      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "licenceInfo": "Licence info"
+    }
+  },
+  "login": {
+    "logIn": "Log in",
+    "logOut": "Log out",
+    "generalError": "Login failed. Please try again.",
+    "errorMsg401": "Wrong username or password"
+  },
+  "tab": {
+    "main": {
+      "members": "Members",
+      "securityServers": "Security Servers",
+      "managementRequests": "Management Requests",
+      "trustServices": "Trust Services",
+      "globalConfiguration": "Global configuration",
+      "settings": "Settings"
+    },
+    "settings": {
+      "systemSettings": "System Settings",
+      "backupAndRestore": "Backup And Restore"
+    }
+  },
+  "fields": {
+    "password": "Password",
+    "username": "Username"
+  },
+  "members": {
+    "header": "Members",
+    "addMember": "Add member",
+    "deleteMember": "Delete member",
+    "member": {
+      "pagenavigation": {
+        "details": "Details",
+        "managementRequests": "Management Requests",
+        "subsystems": "Subsystems"
+      },
+
+      "detailsView": {
+        "ownedServers": "Owned Servers",
+        "globalGroups": "Global Groups",
+        "server": "Server",
+        "group": "Group",
+        "addedToGroup": "Added to the group",
+        "addToGroup": "Add member to group"
+      }
+    }
+
+  }
 }

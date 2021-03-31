@@ -32,18 +32,20 @@
 <script lang="ts">
 import Vue from 'vue';
 
+/**
+ * View wrapper component for the main content area.
+ */
 export default Vue.extend({});
 </script>
 
 <style scoped lang="scss">
 .content {
   margin-top: 40px;
-  padding-left: 10px;
-  padding-right: 10px;
   width: 100%;
   max-width: 1600px;
-
+  padding-right: 92px;
   padding-left: 92px;
+
   @media only screen and (max-width: 920px) {
     padding-left: 0px;
   }
