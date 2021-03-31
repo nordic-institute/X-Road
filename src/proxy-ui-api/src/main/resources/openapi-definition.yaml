@@ -2884,8 +2884,6 @@ paths:
                 description: openapi definition file
         '400':
           description: request was invalid
-        '401':
-          description: authentication credentials are missing
         '403':
           description: request has been refused
         '404':
