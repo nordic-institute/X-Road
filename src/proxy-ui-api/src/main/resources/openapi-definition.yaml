@@ -2866,7 +2866,8 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /openapi:
+  /openapi.yaml:
+    x-style-validator-ignored: true
     get:
       tags:
         - openapi
@@ -5509,8 +5510,6 @@ components:
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
     DistinguishedName:
-      required:
-        - distinguished_name
       type: object
       properties:
         name:
