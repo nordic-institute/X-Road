@@ -15,7 +15,7 @@ pipeline {
         string(description: "SSH key name for the node group instances", name: "SSH_KEY", defaultValue: "${params?.SSH_KEY}")
     }
     stages {
-        stage('Create cluster') {
+      /*  stage('Create cluster') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks create-cluster \
@@ -33,7 +33,7 @@ pipeline {
                     sh 'aws eks wait cluster-active --name ${CLUSTER_NAME}'
                 }
             }
-        }
+        } */
 
         stage('Create Node Group') {
             steps {
