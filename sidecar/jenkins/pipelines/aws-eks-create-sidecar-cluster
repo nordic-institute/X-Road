@@ -7,6 +7,12 @@ pipeline {
         string(description: "ARN role of the cluster", name: "ROLE_ARN", defaultValue: "${params?.ROLE_ARN}")
         string(description: "AWS subnets IDs separated by comma", name: "SUBNET_IDS", defaultValue: "${params?.SUBNET_IDS}")
         string(description: "Security groups IDs separated by comma", name: "SECURITY_GROUP_IDS", defaultValue: "${params?.SECURITY_GROUP_IDS}")
+        string(description: "Node group name", name: "NODEGROUP_NAME", defaultValue: "${params?.NODEGROUP_NAME}")
+        integer(description: "Node group minimun size", name: "NODE_MIN_SIZE", defaultValue: "${params?.NODE_MIN_SIZE}")
+        integer(description: "Node group maximun size", name: "NODE_MAX_SIZE", defaultValue: "${params?.NODE_MAX_SIZE}")
+        integer(description: "Node group desired size", name: "NODE_DESIRED_SIZE", defaultValue: "${params?.NODE_DESIRED_SIZE}")
+        integer(description: "Disk size in Gb", name: "DISK_SIZE", defaultValue: "${params?.DISK_SIZE}")
+        string(description: "SSH key name for the node group instances", name: "SSH_KEY", defaultValue: "${params?.SSH_KEY}")
     }
     stages {
         stage('Create cluster') {
@@ -18,6 +24,35 @@ pipeline {
                        --kubernetes-version ${KUBERNETES_VERSION} \
                        --role-arn ${ROLE_ARN} \
                        --resources-vpc-config subnetIds=${SUBNET_IDS},securityGroupIds=${SECURITY_GROUP_IDS}'
+                }
+            }
+        }
+        stage('Wait until the cluster is active') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks wait cluster-active --name ${CLUSTER_NAME}'
+                }
+            }
+        }
+
+        stage('Create Node Group') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks create-nodegroup \
+                       --cluster-name ${CLUSTER_NAME}  \
+                       --scaling-config minSize=${NODE_MIN_SIZE},maxSize=${NODE_MAX_SIZE},desiredSize=${NODE_DESIRED_SIZE}  \
+                       --nodegroup-name ${NODEGROUP_NAME} \
+                       --subnets ${SUBNET_IDS}  \
+                       --node-role ${ROLE_ARN} \
+                       --disk-size ${DISK_SIZE} \
+                       --remote-access ec2SshKey=${SSH_KEY},sourceSecurityGroups=${SECURITY_GROUP_IDS}'
+                }
+            }
+        }
+        stage('Wait until the nodegroup is active') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks wait nodegroup-active --cluster-name ${CLUSTER_NAME} --nodegroup-name ${NODEGROUP_NAME}'
                 }
             }
         }
