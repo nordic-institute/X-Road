@@ -13,6 +13,7 @@ pipeline {
         string(description: "Node group desired size", name: "NODE_DESIRED_SIZE", defaultValue: "${params?.NODE_DESIRED_SIZE}")
         string(description: "Disk size in Gb", name: "DISK_SIZE", defaultValue: "${params?.DISK_SIZE}")
         string(description: "SSH key name for the node group instances", name: "SSH_KEY", defaultValue: "${params?.SSH_KEY}")
+        string(description: "Node instance subnet Id", name: "NODE_SUBNET_ID", defaultValue: "${params?.NODE_SUBNET_ID}")
     }
     stages {
       /*  stage('Create cluster') {
@@ -42,7 +43,7 @@ pipeline {
                        --cluster-name ${CLUSTER_NAME}  \
                        --scaling-config minSize=${NODE_MIN_SIZE},maxSize=${NODE_MAX_SIZE},desiredSize=${NODE_DESIRED_SIZE}  \
                        --nodegroup-name ${NODEGROUP_NAME} \
-                       --subnets ${SUBNET_IDS}  \
+                       --subnets ${NODE_SUBNET_ID}  \
                        --node-role ${ROLE_ARN} \
                        --disk-size ${DISK_SIZE} \
                        --remote-access ec2SshKey=${SSH_KEY},sourceSecurityGroups=${SECURITY_GROUP_IDS}'
