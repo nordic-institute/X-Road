@@ -1,9 +1,11 @@
 #!/bin/bash
 
-test -d /var/log/xroad/jetty && test -w /var/log/xroad/jetty || mkdir -p /var/log/xroad/jetty
-test -d /usr/share/xroad/webapps || mkdir -p /usr/share/xroad/webapps
-chown -R xroad:xroad /etc/xroad/jetty
-chown xroad:xroad /var/log/xroad/jetty
+if [ "$1" = "configure" ]; then
+  test -d /var/log/xroad/jetty && test -w /var/log/xroad/jetty || mkdir -p /var/log/xroad/jetty
+  test -d /usr/share/xroad/webapps || mkdir -p /usr/share/xroad/webapps
+  chown -R xroad:xroad /etc/xroad/jetty
+  chown xroad:xroad /var/log/xroad/jetty
+fi
 
 #DEBHELPER#
 
