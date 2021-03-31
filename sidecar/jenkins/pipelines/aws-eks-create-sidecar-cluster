@@ -16,7 +16,7 @@ pipeline {
         string(description: "Node instance subnet Id", name: "NODE_SUBNET_ID", defaultValue: "${params?.NODE_SUBNET_ID}")
     }
     stages {
-      /*  stage('Create cluster') {
+      stage('Create cluster') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks create-cluster \
@@ -34,9 +34,9 @@ pipeline {
                     sh 'aws eks wait cluster-active --name ${CLUSTER_NAME}'
                 }
             }
-        } */
+        }
 
-        /*stage('Create Node Group') {
+        stage('Create Node Group') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks create-nodegroup \
@@ -49,7 +49,7 @@ pipeline {
                        --remote-access ec2SshKey=${SSH_KEY},sourceSecurityGroups=${SECURITY_GROUP_IDS}'
                 }
             }
-        }*/
+        }
         stage('Wait until the nodegroup is active') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
