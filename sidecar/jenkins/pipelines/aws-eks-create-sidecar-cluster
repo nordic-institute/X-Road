@@ -8,10 +8,10 @@ pipeline {
         string(description: "AWS subnets IDs separated by comma", name: "SUBNET_IDS", defaultValue: "${params?.SUBNET_IDS}")
         string(description: "Security groups IDs separated by comma", name: "SECURITY_GROUP_IDS", defaultValue: "${params?.SECURITY_GROUP_IDS}")
         string(description: "Node group name", name: "NODEGROUP_NAME", defaultValue: "${params?.NODEGROUP_NAME}")
-        integer(description: "Node group minimun size", name: "NODE_MIN_SIZE", defaultValue: "${params?.NODE_MIN_SIZE}")
-        integer(description: "Node group maximun size", name: "NODE_MAX_SIZE", defaultValue: "${params?.NODE_MAX_SIZE}")
-        integer(description: "Node group desired size", name: "NODE_DESIRED_SIZE", defaultValue: "${params?.NODE_DESIRED_SIZE}")
-        integer(description: "Disk size in Gb", name: "DISK_SIZE", defaultValue: "${params?.DISK_SIZE}")
+        string(description: "Node group minimun size", name: "NODE_MIN_SIZE", defaultValue: "${params?.NODE_MIN_SIZE}")
+        string(description: "Node group maximun size", name: "NODE_MAX_SIZE", defaultValue: "${params?.NODE_MAX_SIZE}")
+        string(description: "Node group desired size", name: "NODE_DESIRED_SIZE", defaultValue: "${params?.NODE_DESIRED_SIZE}")
+        string(description: "Disk size in Gb", name: "DISK_SIZE", defaultValue: "${params?.DISK_SIZE}")
         string(description: "SSH key name for the node group instances", name: "SSH_KEY", defaultValue: "${params?.SSH_KEY}")
     }
     stages {
