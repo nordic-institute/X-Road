@@ -28,53 +28,119 @@
     <ValidationObserver ref="form" v-slot="{ invalid }">
       <div class="detail-view-content">
         <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
+        <v-row>
+          <v-col>
+            <h3>{{ $t('keys.tokenInfo') }}</h3>
+            <div class="d-flex">
+              <div class="row-title">{{ $t('keys.tokenId') }}</div>
+              <div class="row-data text-break">{{ token.id }}</div>
+            </div>
+            <div class="d-flex">
+              <div class="row-title">{{ $t('keys.type') }}</div>
+              <div class="row-data">{{ token.type }}</div>
+            </div>
+          </v-col>
 
-        <div class="mt-8 pt-8">
-          <ValidationProvider
-            rules="required"
-            name="keys.friendlyName"
-            v-slot="{ errors }"
-            class="validation-provider"
-          >
-            <v-text-field
-              v-model="token.name"
-              class="code-input"
-              name="keys.friendlyName"
-              type="text"
-              outlined
-              :label="$t('keys.friendlyName')"
-              :maxlength="255"
-              :error-messages="errors"
-              :loading="loading"
-              :disabled="!(hasEditPermission && canEditName())"
-              @input="touched = true"
-              autofocus
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-
-        <div>
-          <h3 class="info-title">{{ $t('keys.tokenInfo') }}</h3>
-          <div class="info-row">
-            <div class="row-title">{{ $t('keys.tokenId') }}</div>
-            <div class="row-data">{{ token.id }}</div>
-          </div>
-          <div class="info-row">
-            <div class="row-title">{{ $t('keys.type') }}</div>
-            <div class="row-data">{{ token.type }}</div>
-          </div>
-        </div>
+          <v-col>
+            <v-row no-gutters>
+              <ValidationProvider
+                rules="required"
+                name="keys.friendlyName"
+                v-slot="{ errors }"
+                class="validation-provider"
+              >
+                <v-text-field
+                  v-model="token.name"
+                  class="code-input"
+                  name="keys.friendlyName"
+                  type="text"
+                  outlined
+                  :label="$t('keys.friendlyName')"
+                  :maxlength="255"
+                  :error-messages="errors"
+                  :loading="loading"
+                  :disabled="!(hasEditPermission && canEditName())"
+                  @input="touched = true"
+                  autofocus
+                ></v-text-field>
+              </ValidationProvider>
+            </v-row>
+            <v-row no-gutters>
+              <xrd-expandable
+                class="expandable"
+                @open="toggleChangePinOpen"
+                @close="toggleChangePinOpen"
+                :isOpen="isChangePinOpen"
+                :color="'#9c9c9c'"
+              >
+                <template v-slot:link>
+                  <span>Change pin</span>
+                </template>
+                <template v-slot:content>
+                  <v-row no-gutters>
+                    <v-text-field
+                      v-model="token.name"
+                      class="code-input"
+                      name="keys.friendlyName"
+                      type="text"
+                      outlined
+                      :label="$t('keys.friendlyName')"
+                      :maxlength="255"
+                      :error-messages="errors"
+                      :loading="loading"
+                      :disabled="!(hasEditPermission && canEditName())"
+                      @input="touched = true"
+                      autofocus
+                    ></v-text-field>
+                  </v-row>
+                  <v-row no-gutters>
+                    <v-text-field
+                      v-model="token.name"
+                      class="code-input"
+                      name="keys.friendlyName"
+                      type="text"
+                      outlined
+                      :label="$t('keys.friendlyName')"
+                      :maxlength="255"
+                      :error-messages="errors"
+                      :loading="loading"
+                      :disabled="!(hasEditPermission && canEditName())"
+                      @input="touched = true"
+                      autofocus
+                    ></v-text-field>
+                  </v-row>
+                  <v-row no-gutters>
+                    <v-text-field
+                      v-model="token.name"
+                      class="code-input"
+                      name="keys.friendlyName"
+                      type="text"
+                      outlined
+                      :label="$t('keys.friendlyName')"
+                      :maxlength="255"
+                      :error-messages="errors"
+                      :loading="loading"
+                      :disabled="!(hasEditPermission && canEditName())"
+                      @input="touched = true"
+                      autofocus
+                    ></v-text-field>
+                  </v-row>
+                </template>
+              </xrd-expandable>
+            </v-row>
+          </v-col>
+        </v-row>
       </div>
       <div class="footer-button-wrap">
-        <xrd-button @click="close()" outlined>{{
-          $t('action.cancel')
-        }}</xrd-button>
+        <xrd-button @click="close()" outlined
+          >{{ $t('action.cancel') }}
+        </xrd-button>
         <xrd-button
           :loading="saveBusy"
           @click="save()"
           :disabled="!touched || invalid"
-          >{{ $t('action.save') }}</xrd-button
-        >
+          >{{ $t('action.save') }}
+        </xrd-button>
       </div>
     </ValidationObserver>
   </div>
@@ -86,10 +152,10 @@
  */
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { encodePathParameter } from '@/util/api';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Permissions } from '@/global';
 import { PossibleAction, Token } from '@/openapi-types';
-import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
@@ -115,6 +181,7 @@ export default Vue.extend({
       saveBusy: false,
       loading: false,
       token: {} as Token,
+      isChangePinOpen: false,
     };
   },
   methods: {
@@ -161,6 +228,10 @@ export default Vue.extend({
         ) ?? false
       );
     },
+
+    toggleChangePinOpen(): void {
+      this.isChangePinOpen = !this.isChangePinOpen;
+    },
   },
   created() {
     this.fetchData();
@@ -173,5 +244,10 @@ export default Vue.extend({
 
 .code-input {
   width: 450px;
+}
+
+.expandable::v-deep .exp-header {
+  padding: 0;
+  margin-left: -12px;
 }
 </style>
