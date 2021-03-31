@@ -96,7 +96,7 @@ stop_services () {
 create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
   # we will run this through eval to get a multi-line list
-  local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' -type f; find /etc/nginx/ -name \"*xroad*\""
+  local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' -not -path '/etc/xroad/services/*.conf' -type f; find /etc/nginx/ -name \"*xroad*\""
 
   if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
     echo "Creating database dump to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
