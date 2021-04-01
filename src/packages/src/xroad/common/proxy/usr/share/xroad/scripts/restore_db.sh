@@ -43,12 +43,11 @@ psql_dbuser() {
 
 pgrestore() {
 PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
-  pg_restore --single-transaction -d "$db_database" --schema=$db_schema $dump_file
+  pg_restore --single-transaction --clean -d "$db_database" --schema=$db_schema $dump_file
 }
 
 { cat <<EOF
-DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
-CREATE SCHEMA "$db_schema";
+CREATE SCHEMA IF NOT EXISTS "$db_schema";
 EOF
 } | psql_adminuser || abort "Dropping schema failed."
 
