@@ -1,9 +1,33 @@
 <!--
+   The MIT License
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
+<!--
   Member details view
 -->
 <template>
   <main id="member-details-content">
-
     <!-- Member Details -->
     <div id="member-details">
       <v-card class="details-card" data-test="member-name-card">
@@ -37,14 +61,17 @@
     <!-- Owned Servers -->
     <div id="owned-servers">
       <div class="xrd-title-search mb-8">
-        <div class="xrd-view-title">{{ $t('members.member.details.ownedServers') }}</div>
+        <div class="xrd-view-title">
+          {{ $t('members.member.details.ownedServers') }}
+        </div>
         <xrd-search data-test="search-owned-servers" />
       </div>
 
       <v-card>
         <div class="card-corner-button pt-4 pr-4">
           <xrd-button outlined>
-            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>{{$t('members.member.details.addServer')}}
+            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
+            >{{ $t('members.member.details.addServer') }}
           </xrd-button>
         </div>
         <v-card-title class="card-title">Server</v-card-title>
@@ -66,7 +93,8 @@
       <v-card>
         <div class="card-corner-button pt-4 pr-4">
           <xrd-button outlined data-test="add-member-to-group">
-            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>{{$t('members.member.details.addMemberToGroup')}}
+            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
+            >{{ $t('members.member.details.addMemberToGroup') }}
           </xrd-button>
         </div>
 
@@ -74,9 +102,9 @@
           <xrd-table id="global-groups-table">
             <thead>
               <tr>
-                <th>{{$t('members.member.details.group')}}</th>
-                <th>{{$t('global.subsystem')}}</th>
-                <th>{{$t('members.member.details.addedToGroup')}}</th>
+                <th>{{ $t('members.member.details.group') }}</th>
+                <th>{{ $t('global.subsystem') }}</th>
+                <th>{{ $t('members.member.details.addedToGroup') }}</th>
                 <th></th>
               </tr>
             </thead>
@@ -97,7 +125,6 @@
           </xrd-table>
         </v-card-text>
       </v-card>
-
     </div>
   </main>
 </template>
@@ -128,7 +155,6 @@ export default Vue.extend({
 .card-corner-button {
   display: flex;
   justify-content: flex-end;
-
 }
 
 #member-details {
@@ -158,5 +184,4 @@ export default Vue.extend({
     width: 50px;
   }
 }
-
 </style>
