@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="header-row">
-      <div class="title-search">
+      <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
         <xrd-search />
       </div>
@@ -31,9 +31,9 @@
             <tr data-test="niis">
               <!-- Set member identifier etc. as data-text attribute for real data so that individual member row can be found in e2e-test -->
               <td data-test="member-icon">
-                <v-icon class="link">icon-Folder-outline</v-icon>
+                <v-icon class="xrd-clickable">icon-Folder-outline</v-icon>
               </td>
-              <td data-test="member-name" class="link">
+              <td data-test="member-name" class="xrd-clickable">
                 Nordic Institue for Interoperability Solutions
               </td>
               <td data-test="member-class">ORG</td>
@@ -41,9 +41,9 @@
             </tr>
             <tr data-test="netum">
               <td data-test="member-icon">
-                <v-icon class="link">icon-Folder-outline</v-icon>
+                <v-icon class="xrd-clickable">icon-Folder-outline</v-icon>
               </td>
-              <td class="link" @click="toDetails('netum')">Netum Oy</td>
+              <td class="xrd-clickable" @click="toDetails('netum')">Netum Oy</td>
               <td>COM</td>
               <td>IMAMEMBERCODE</td>
             </tr>
@@ -74,32 +74,8 @@ export default Vue.extend({
 <style scoped lang="scss">
 @import '../../assets/colors';
 
-.header-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 24px;
-}
-
-.title-search {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
-
-  .xrd-view-title {
-    margin-right: 20px;
-  }
-}
-
 .icon-column {
   width: 40px;
 }
 
-.link {
-  color: $XRoad-Link;
-  cursor: pointer;
-}
 </style>

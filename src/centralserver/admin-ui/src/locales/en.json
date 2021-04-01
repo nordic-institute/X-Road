@@ -55,13 +55,15 @@
         "subsystems": "Subsystems"
       },
 
-      "detailsView": {
+      "details": {
         "ownedServers": "Owned Servers",
         "globalGroups": "Global Groups",
         "server": "Server",
         "group": "Group",
         "addedToGroup": "Added to the group",
-        "addToGroup": "Add member to group"
+        "addToGroup": "Add member to group",
+        "addServer": "Add server",
+        "addMemberToGroup": "Add member to group"
       }
     }
 

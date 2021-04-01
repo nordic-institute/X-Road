@@ -3,7 +3,7 @@
     <div class="navigation-back" data-test="navigation-back">
       <router-link to="/members">
         <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
-        {{ $t('global.navigation.back')}}
+        {{ $t('global.navigation.back') }}
       </router-link>
     </div>
     <div class="header-row">
@@ -25,7 +25,7 @@ import Vue from 'vue';
 import PageNavigation, {
   NavigationItem,
 } from '@/components/layout/PageNavigation';
-import {Colors} from "@/global";
+import { Colors } from '@/global';
 
 /**
  * Wrapper component for a member view
@@ -36,8 +36,8 @@ export default Vue.extend({
   props: {
     memberid: {
       type: String,
-      required: true
-    }
+      required: true,
+    },
   },
   data() {
     return {
@@ -68,25 +68,7 @@ export default Vue.extend({
 <style scoped lang="scss">
 @import '../../../assets/colors';
 
-.header-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-bottom: 24px;
-}
 
-.title-search {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
-
-  .xrd-view-title {
-    margin-right: 20px;
-  }
-}
 
 .navigation-back {
   color: $XRoad-Link;
@@ -97,5 +79,4 @@ export default Vue.extend({
     text-decoration: none;
   }
 }
-
 </style>

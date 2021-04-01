@@ -2,9 +2,104 @@
   Member details view
 -->
 <template>
-  <div>
-    <h3>Memberdetails</h3>
-  </div>
+  <main id="member-details-content">
+
+    <!-- Member Details -->
+    <div id="member-details">
+      <v-card class="details-card" data-test="member-name-card">
+        <v-card-title class="card-title">{{
+          $t('global.memberName')
+        }}</v-card-title>
+        <v-divider></v-divider>
+        <v-card-text data-test="member-name-value">Netum</v-card-text>
+        <v-divider class="pb-4"></v-divider>
+      </v-card>
+
+      <v-card class="details-card" data-test="member-class-card">
+        <v-card-title class="card-title">{{
+          $t('global.memberClass')
+        }}</v-card-title>
+        <v-divider></v-divider>
+        <v-card-text data-test="member-class-value">COM</v-card-text>
+        <v-divider class="pb-4"></v-divider>
+      </v-card>
+
+      <v-card class="details-card" data-test="member-code-card">
+        <v-card-title class="card-title">{{
+          $t('global.memberCode')
+        }}</v-card-title>
+        <v-divider></v-divider>
+        <v-card-text data-test="member-code-value">12121212</v-card-text>
+        <v-divider class="pb-4"></v-divider>
+      </v-card>
+    </div>
+
+    <!-- Owned Servers -->
+    <div id="owned-servers">
+      <div class="xrd-title-search mb-8">
+        <div class="xrd-view-title">{{ $t('members.member.details.ownedServers') }}</div>
+        <xrd-search data-test="search-owned-servers" />
+      </div>
+
+      <v-card>
+        <div class="card-corner-button pt-4 pr-4">
+          <xrd-button outlined>
+            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>{{$t('members.member.details.addServer')}}
+          </xrd-button>
+        </div>
+        <v-card-title class="card-title">Server</v-card-title>
+        <v-divider></v-divider>
+        <v-card-text>SS1</v-card-text>
+        <v-divider class="pb-4"></v-divider>
+      </v-card>
+    </div>
+
+    <!-- Global Groups -->
+    <div id="global-groups">
+      <div class="xrd-title-search mt-8 mb-8">
+        <div class="xrd-view-title">
+          {{ $t('members.member.details.globalGroups') }}
+        </div>
+        <xrd-search data-test="search-global-groups" />
+      </div>
+
+      <v-card>
+        <div class="card-corner-button pt-4 pr-4">
+          <xrd-button outlined data-test="add-member-to-group">
+            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>{{$t('members.member.details.addMemberToGroup')}}
+          </xrd-button>
+        </div>
+
+        <v-card-text>
+          <xrd-table id="global-groups-table">
+            <thead>
+              <tr>
+                <th>{{$t('members.member.details.group')}}</th>
+                <th>{{$t('global.subsystem')}}</th>
+                <th>{{$t('members.member.details.addedToGroup')}}</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>security-server-owners</td>
+                <td></td>
+                <td>2020-11-10 18:00</td>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Test data</td>
+                <td>Subsystem</td>
+                <td>2021-09-04 10:15</td>
+                <td class="xrd-clickable">Delete</td>
+              </tr>
+            </tbody>
+          </xrd-table>
+        </v-card-text>
+      </v-card>
+
+    </div>
+  </main>
 </template>
 
 <script lang="ts">
@@ -19,23 +114,49 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-.header-row {
+@import '../../../../assets/colors';
+
+.card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: $XRoad-Black70;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.card-corner-button {
+  display: flex;
+  justify-content: flex-end;
+
+}
+
+#member-details {
+  margin-top: 24px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items: flex-end;
-  width: 100%;
+
   margin-bottom: 24px;
-}
 
-.title-search {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
+  .details-card {
+    width: 100%;
 
-  .xrd-view-title {
-    margin-right: 20px;
+    &:first-child {
+      margin-right: 30px;
+    }
+
+    &:last-child {
+      margin-left: 30px;
+    }
   }
 }
+
+#global-groups-table {
+  tbody tr td:last-child {
+    width: 50px;
+  }
+}
+
 </style>

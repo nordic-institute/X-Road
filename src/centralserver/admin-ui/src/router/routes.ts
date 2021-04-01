@@ -47,6 +47,8 @@ import Member from '@/views/Members/Member/Member.vue';
 
 import MemberDetails from '@/views/Members/Member/Details/MemberDetails.vue';
 import PageNavigation from '@/components/layout/PageNavigation.vue';
+import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
+import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -117,7 +119,19 @@ const routes: RouteConfig[] = [
                 name: RouteName.MemberDetails,
                 path: 'details',
                 component: MemberDetails,
-                props: { default: true }
+                props: { default: true },
+              },
+              {
+                name: RouteName.MemberManagementRequests,
+                path: 'managementrequests',
+                component: MemberManagementRequests,
+                props: { default: true },
+              },
+              {
+                name: RouteName.MemberSubsystems,
+                path: 'subsystems',
+                component: MemberSubsystems,
+                props: { default: true },
               },
             ],
           },

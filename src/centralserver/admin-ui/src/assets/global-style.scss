@@ -31,28 +31,11 @@
   font-size: $XRoad-DefaultFontSize;
 }
 
-.xrd-table-button {
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.xrd-tab-max-width {
-  max-width: 850px;
-  width: 100%;
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
 .xrd-tabs {
   margin-left: auto;
   margin-right: auto;
   padding-left: 80px;
   background-color: $XRoad-WarmGrey10;
-  width: 100%;
-}
-
-// Set validation provider to full width
-.validation-provider {
   width: 100%;
 }
 
@@ -106,6 +89,15 @@
   .xrd-view-title {
     margin-right: 20px;
   }
+}
+
+.header-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-end;
+  width: 100%;
+  margin-bottom: 24px;
 }
 
 // Helper for elements that need the "clickable" look

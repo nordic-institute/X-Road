@@ -24,7 +24,6 @@
    THE SOFTWARE.
  -->
 
-
 <template>
   <main-content-area>
     <router-view></router-view>
