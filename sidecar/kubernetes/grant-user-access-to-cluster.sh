@@ -17,6 +17,4 @@ else
 kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapUsers: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
 fi
 
-#kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapRoles: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
-
-#kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
+kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
