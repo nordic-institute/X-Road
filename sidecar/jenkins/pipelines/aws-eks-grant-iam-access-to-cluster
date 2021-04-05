@@ -1,0 +1,32 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+        string(description: "Region code", name: "CLUSTER_NAME", defaultValue: "${params?.REGION_CODE}")
+        string(description: "User name", name: "USER_NAME", defaultValue: "${params?.USER_NAME}")
+        string(description: "User ARN", name: "USER_ARN", defaultValue: "${params?.USER_ARN}")
+    }
+    stages {
+        stage('Update kube config') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks --region ${REGION_CODE} update-kubeconfig --name ${CLUSTER_NAME}'
+                }
+            }
+        }
+        stage('Modify kube config') {
+            steps {
+                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh '''
+                      ROLE="    - userarn: ${USER_ARN}\n      username: ${USER_NAME}\n      groups:\n        - system:masters\n        - system:nodes"
+
+                      kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapUsers: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
+
+                      kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
+                    '''
+
+                }
+            }
+        }
+    }
+}
