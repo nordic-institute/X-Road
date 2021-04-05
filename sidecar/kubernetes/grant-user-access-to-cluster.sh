@@ -10,8 +10,8 @@ ROLE="    - rolearn: $USER_ARN\n      username: $USER_NAME\n      groups:\n     
 CONFIG_MAP= $( kubectl get -n kube-system configmap/aws-auth -o yaml )
 
 echo "THIS IS THE $CONFIG_MAP"
-
-if [[ CONFIG_MAP != *"mapRoles:"* ]]; then
+echo  $CONFIG_MAP
+if [[ $CONFIG_MAP != *"mapRoles:"* ]]; then
   echo "Its not there!"
 fi
 
