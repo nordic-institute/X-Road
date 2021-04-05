@@ -16,6 +16,7 @@ pipeline {
         }
         stage('Modify kube config') {
             steps {
+               withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh '''
                       ROLE="    - userarn: ${USER_ARN}\n      username: ${USER_NAME}\n      groups:\n        - system:masters\n        - system:nodes"
 
@@ -23,6 +24,7 @@ pipeline {
 
                       kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
                     '''
+               }
             }
         }
     }
