@@ -20,7 +20,9 @@ pipeline {
                     sh '''
                       ROLE="    - userarn: ${USER_ARN}\n      username: ${USER_NAME}\n      groups:\n        - system:masters\n        - system:nodes"
 
-                      kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapUsers: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
+                      echo "The Role:" $ROLE
+
+                      kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapUsers: \\|/{print;print \\"$ROLE\\";next}1" > /tmp/aws-auth-patch.yml
 
                       kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
                     '''
