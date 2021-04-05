@@ -2,7 +2,7 @@ pipeline {
     agent { label 'dev-test' }
     parameters {
         string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
-        string(description: "Region code", name: "CLUSTER_NAME", defaultValue: "${params?.REGION_CODE}")
+        string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
         string(description: "User name", name: "USER_NAME", defaultValue: "${params?.USER_NAME}")
         string(description: "User ARN", name: "USER_ARN", defaultValue: "${params?.USER_ARN}")
     }
