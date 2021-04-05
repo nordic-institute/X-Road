@@ -12,7 +12,7 @@ kubectl get -n kube-system configmap/aws-auth -o yaml > /tmp/aws-auth-patch.yml
 isInFile=$(cat  /tmp/aws-auth-patch.yml | grep -c "mapUsers")
 
 if [ $isInFile -eq 0 ]; then
-kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/data: /{print;print \"mapUsers: \| \n  $ROLE\";next}1" > /tmp/aws-auth-patch.yml
+kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/^data: /{print;print \"  mapUsers: \| \n  $ROLE\";next}1" > /tmp/aws-auth-patch.yml
 else
 kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapUsers: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
 fi
