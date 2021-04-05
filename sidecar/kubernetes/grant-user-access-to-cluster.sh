@@ -7,6 +7,14 @@ USER_ARN=$4
 
 ROLE="    - rolearn: $USER_ARN\n      username: $USER_NAME\n      groups:\n        - system:masters\n        - system:nodes"
 
-kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapRoles: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
+CONFIG_MAP=kubectl get -n kube-system configmap/aws-auth -o yaml
 
-kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
+echo "THIS IS THE $CONFIG_MAP"
+
+if [[ CONFIG_MAP != *"mapUsers:"* ]]; then
+  echo "Its not there!"
+fi
+
+#kubectl get -n kube-system configmap/aws-auth -o yaml | awk "/mapRoles: \|/{print;print \"$ROLE\";next}1" > /tmp/aws-auth-patch.yml
+
+#kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
