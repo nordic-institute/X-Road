@@ -19,8 +19,8 @@ pipeline {
                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh '''
 
-                      ROLE="    - rolearn: ${USER_ARN}\n      username: ${USER_NAME}\n      groups:\n        - system:masters\n        - system:nodes"
-
+                      ROLE=`    - rolearn: $USER_ARN\n      username: $USER_NAME\n      groups:\n        - system:masters\n        - system:nodes`
+echo "$ROLE"
                       kubectl get -n kube-system configmap/aws-auth -o yaml | awk '/mapRoles: \\|/{print;print \"$ROLE\";next}1\' > /tmp/aws-auth-patch.yml
 
                       kubectl patch configmap/aws-auth -n kube-system --patch "$(cat /tmp/aws-auth-patch.yml)"
