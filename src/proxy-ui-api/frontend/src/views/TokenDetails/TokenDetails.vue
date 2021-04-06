@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-tab-max-width detail-view-outer">
-    <ValidationObserver ref="form" v-slot="{ invalid }">
+    <ValidationObserver ref="form" v-slot="{ dirty, invalid }">
       <div class="detail-view-content">
         <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
         <v-row>
@@ -45,14 +45,14 @@
             <v-row no-gutters>
               <ValidationProvider
                 rules="required"
-                name="keys.friendlyName"
+                name="token.friendlyName"
                 v-slot="{ errors }"
                 class="validation-provider"
               >
                 <v-text-field
                   v-model="token.name"
                   class="code-input"
-                  name="keys.friendlyName"
+                  name="token.friendlyName"
                   type="text"
                   outlined
                   :label="$t('keys.friendlyName')"
@@ -60,12 +60,12 @@
                   :error-messages="errors"
                   :loading="loading"
                   :disabled="!(hasEditPermission && canEditName())"
-                  @input="touched = true"
+                  @input="isFriendlyNameFieldDirty = true"
                   autofocus
                 ></v-text-field>
               </ValidationProvider>
             </v-row>
-            <v-row no-gutters>
+            <v-row v-if="canUpdatePin" no-gutters>
               <xrd-expandable
                 class="expandable"
                 @open="toggleChangePinOpen"
@@ -74,56 +74,77 @@
                 :color="'#9c9c9c'"
               >
                 <template v-slot:link>
-                  <span>Change pin</span>
+                  <div
+                    class="pointer"
+                    @click="toggleChangePinOpen"
+                    data-test="open-pin-change"
+                  >
+                    <span class="font-weight-black">{{
+                      $t('token.changePin')
+                    }}</span>
+                  </div>
                 </template>
                 <template v-slot:content>
                   <v-row no-gutters>
-                    <v-text-field
-                      v-model="token.name"
-                      class="code-input"
-                      name="keys.friendlyName"
-                      type="text"
-                      outlined
-                      :label="$t('keys.friendlyName')"
-                      :maxlength="255"
-                      :error-messages="errors"
-                      :loading="loading"
-                      :disabled="!(hasEditPermission && canEditName())"
-                      @input="touched = true"
-                      autofocus
-                    ></v-text-field>
+                    <ValidationProvider
+                      rules="required"
+                      name="token.oldPin"
+                      v-slot="{ errors }"
+                      class="validation-provider"
+                    >
+                      <v-text-field
+                        v-model="tokenPinUpdate.old_pin"
+                        class="code-input"
+                        name="token.oldPin"
+                        type="password"
+                        outlined
+                        :label="$t('fields.token.oldPin')"
+                        :maxlength="255"
+                        :error-messages="errors"
+                        :loading="loading"
+                      ></v-text-field>
+                    </ValidationProvider>
                   </v-row>
                   <v-row no-gutters>
-                    <v-text-field
-                      v-model="token.name"
-                      class="code-input"
-                      name="keys.friendlyName"
-                      type="text"
-                      outlined
-                      :label="$t('keys.friendlyName')"
-                      :maxlength="255"
-                      :error-messages="errors"
-                      :loading="loading"
-                      :disabled="!(hasEditPermission && canEditName())"
-                      @input="touched = true"
-                      autofocus
-                    ></v-text-field>
+                    <ValidationProvider
+                      rules="required|confirmed:confirm"
+                      name="token.newPin"
+                      v-slot="{ errors }"
+                      class="validation-provider"
+                    >
+                      <v-text-field
+                        v-model="tokenPinUpdate.new_pin"
+                        class="code-input"
+                        name="token.newPin"
+                        type="password"
+                        outlined
+                        :label="$t('fields.token.newPin')"
+                        :maxlength="255"
+                        :error-messages="errors"
+                        :loading="loading"
+                      ></v-text-field>
+                    </ValidationProvider>
                   </v-row>
                   <v-row no-gutters>
-                    <v-text-field
-                      v-model="token.name"
-                      class="code-input"
-                      name="keys.friendlyName"
-                      type="text"
-                      outlined
-                      :label="$t('keys.friendlyName')"
-                      :maxlength="255"
-                      :error-messages="errors"
-                      :loading="loading"
-                      :disabled="!(hasEditPermission && canEditName())"
-                      @input="touched = true"
-                      autofocus
-                    ></v-text-field>
+                    <ValidationProvider
+                      rules="required"
+                      vid="confirm"
+                      name="token.newPinConfirm"
+                      v-slot="{ errors }"
+                      class="validation-provider"
+                    >
+                      <v-text-field
+                        v-model="newPinConfirm"
+                        class="code-input"
+                        name="token.newPinConfirm"
+                        type="password"
+                        outlined
+                        :label="$t('fields.token.newPinConfirm')"
+                        :maxlength="255"
+                        :error-messages="errors"
+                        :loading="loading"
+                      ></v-text-field>
+                    </ValidationProvider>
                   </v-row>
                 </template>
               </xrd-expandable>
@@ -138,7 +159,7 @@
         <xrd-button
           :loading="saveBusy"
           @click="save()"
-          :disabled="!touched || invalid"
+          :disabled="!dirty || invalid"
           >{{ $t('action.save') }}
         </xrd-button>
       </div>
@@ -155,7 +176,7 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Permissions } from '@/global';
-import { PossibleAction, Token } from '@/openapi-types';
+import { PossibleAction, Token, TokenPinUpdate } from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -177,11 +198,13 @@ export default Vue.extend({
   },
   data() {
     return {
-      touched: false,
       saveBusy: false,
       loading: false,
       token: {} as Token,
+      tokenPinUpdate: {} as TokenPinUpdate,
       isChangePinOpen: false,
+      isFriendlyNameFieldDirty: false,
+      newPinConfirm: '',
     };
   },
   methods: {
@@ -189,21 +212,30 @@ export default Vue.extend({
       this.$router.go(-1);
     },
 
-    save(): void {
+    async save(): Promise<void> {
       this.saveBusy = true;
 
-      api
-        .patch(`/tokens/${encodePathParameter(this.id)}`, this.token)
-        .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.tokenSaved');
-          this.$router.go(-1);
-        })
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        })
-        .finally(() => {
-          this.saveBusy = false;
-        });
+      try {
+        if (this.isChangePinOpen) {
+          await api.put(
+            `/tokens/${encodePathParameter(this.id)}/pin`,
+            this.tokenPinUpdate,
+          );
+        }
+        if (this.isFriendlyNameFieldDirty) {
+          await api.patch(
+            `/tokens/${encodePathParameter(this.id)}`,
+            this.token,
+          );
+        }
+        await this.$store.dispatch('showSuccess', 'keys.tokenSaved');
+        this.$router.go(-1);
+      } catch (error) {
+        await this.$store.dispatch('showError', error);
+        this.saveBusy = false;
+      }
+
+      this.saveBusy = false;
     },
 
     fetchData(): void {
@@ -229,8 +261,15 @@ export default Vue.extend({
       );
     },
 
+    canUpdatePin(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_TOKEN_PIN);
+    },
+
     toggleChangePinOpen(): void {
       this.isChangePinOpen = !this.isChangePinOpen;
+      this.tokenPinUpdate.old_pin = '';
+      this.tokenPinUpdate.new_pin = '';
+      this.newPinConfirm = '';
     },
   },
   created() {
