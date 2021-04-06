@@ -1,0 +1,15 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Public keys", name: "PUBLIC_KEYS", defaultValue: "${params?.PUBLIC_KEYS}")
+        string(description: "Public, private or dns name of the instance", name: "INSTANCE_IP", defaultValue: "${params?.INSTANCE_IP}")
+    }
+    stages {
+        stage('Copy keys to the list of authorized keys for ec2-user') {
+            steps {
+                    sh 'echo "${PUBLIC_KEYS}" >> ssh ec2-user@${INSTANCE_IP} /home/ec2-user/.ssh/authorized_keys'
+
+            }
+        }
+    }
+}
