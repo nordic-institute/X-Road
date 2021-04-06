@@ -2,7 +2,6 @@ pipeline {
     agent { label 'dev-test' }
     parameters {
         string(description: "Deployment template path", name: "DEPLOYMENT_PATH", defaultValue:  "${params?.DEPLOYMENT_PATH}" )
-        string(description: "Volume claim name", name: "VOLUME_CLAIM", defaultValue: "${params?.VOLUME_CLAIM}")
     }
     stages {
         stage('Check if provider is deployed on kubernetes ') {
@@ -11,12 +10,12 @@ pipeline {
                     sh 'kubectl rollout status deployment.v1.apps/security-server-sidecar'
                 }
             }
-        } 
+        }
         stage('Delete deployment') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh '''
-                        template=`cat "${DEPLOYMENT_PATH}" | sed "s/{{VOLUME_CLAIM}}/$VOLUME_CLAIM/g" `
+                        template=`cat "${DEPLOYMENT_PATH}" `
                         echo "$template" | kubectl delete -f -
                     '''
                 }
