@@ -119,7 +119,7 @@
                 <td>Test data</td>
                 <td>Subsystem</td>
                 <td>2021-09-04 10:15</td>
-                <td class="xrd-clickable">Delete</td>
+                <td class="xrd-clickable">{{$t('global.delete')}}</td>
               </tr>
             </tbody>
           </xrd-table>

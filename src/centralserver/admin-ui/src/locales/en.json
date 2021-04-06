@@ -4,6 +4,9 @@
     "memberName": "Member name",
     "memberClass": "Member class",
     "memberCode": "Member code",
+    "delete": "Delete",
+    "register": "Register",
+    "approve": "Approve",
     "navigation": {
       "back": "Back"
     }
@@ -54,7 +57,6 @@
         "managementRequests": "Management Requests",
         "subsystems": "Subsystems"
       },
-
       "details": {
         "ownedServers": "Owned Servers",
         "globalGroups": "Global Groups",
@@ -64,6 +66,13 @@
         "addToGroup": "Add member to group",
         "addServer": "Add server",
         "addMemberToGroup": "Add member to group"
+      },
+      "subsystems": {
+        "subsystemcode": "Subsystem code",
+        "servercode": "Server code",
+        "serverOwner": "Server owner",
+        "status": "Status",
+        "addClient": "Add Client"
       }
     }
 

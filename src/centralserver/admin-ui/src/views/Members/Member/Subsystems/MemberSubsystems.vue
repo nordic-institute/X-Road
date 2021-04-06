@@ -24,18 +24,115 @@
    THE SOFTWARE.
  -->
 <template>
-  <h3>Subsystems</h3>
+
+  <v-card class="mt-8">
+
+    <div class="card-corner-button pt-4 pr-4">
+      <xrd-button outlined data-test="add-member-to-group">
+        <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
+        >{{ $t('members.member.subsystems.addClient') }}
+      </xrd-button>
+    </div>
+
+    <v-card-text>
+      <xrd-table>
+        <thead>
+          <tr>
+            <th>{{ $t('members.member.subsystems.subsystemcode' )}} <v-icon class="sorting-flip">icon-Sorting-arrow</v-icon></th>
+            <th>{{ $t('members.member.subsystems.servercode' )}}</th>
+            <th>{{ $t('members.member.subsystems.serverOwner' )}}</th>
+            <th>{{ $t('members.member.subsystems.status' )}}</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Management</td>
+            <td class="xrd-clickable">NIIS-SS1</td>
+            <td></td>
+            <td class="status"><v-icon :small="true" :color="colors.Success100">icon-Checked</v-icon> Registered</td>
+            <td class="subsystem-actions"><span class="xrd-clickable">Delete</span></td>
+          </tr>
+          <tr class="unregistered-subsystem">
+            <td>RR</td>
+            <td></td>
+            <td></td>
+            <td class="status"><v-icon>icon-Error</v-icon> Unregistered</td>
+            <td class="subsystem-actions">
+              <span class="xrd-clickable">Register</span>
+              <span class="xrd-clickable">Delete</span>
+            </td>
+          </tr>
+          <tr>
+            <td rowspan="2">DHX</td>
+            <td class="xrd-clickable">NIIS-SS1</td>
+            <td class="xrd-clickable">NIIS</td>
+            <td class="status"><v-icon :small="true" :color="colors.Success100">icon-Checked</v-icon> Registered</td>
+            <td class="subsystem-actions"><span class="xrd-clickable">Delete</span></td>
+          </tr>
+          <tr>
+            <td class="xrd-clickable">NIIS-FUTU</td>
+            <td class="xrd-clickable">FUTU</td>
+            <td class="status">
+              <v-icon :small="true" :color="colors.Success100">icon-In-progress</v-icon> Pending approval
+            </td>
+            <td class="subsystem-actions">
+              <span class="xrd-clickable">Approve</span>
+              <span class="xrd-clickable">Delete</span>
+            </td>
+          </tr>
+        </tbody>
+      </xrd-table>
+    </v-card-text>
+  </v-card>
+
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import {Colors} from "@/global";
+
 
 /**
  * Component for Member Subsystem
  */
 export default Vue.extend({
   name: 'MemberSubsystems',
+  data() {
+    return {
+      colors: Colors
+    }
+  }
 });
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+@import '../../../../assets/colors';
+
+.card-corner-button {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.status {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.subsystem-actions  {
+  text-align: right;
+
+  .xrd-clickable {
+    margin-left: 10px;
+  }
+}
+
+.sorting-flip {
+  margin-bottom: 5px;
+}
+
+.unregistered-subsystem {
+  background-color: $XRoad-WarmGrey30;
+}
+
+</style>
