@@ -32,7 +32,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.restapi.converter.Converters;
+import org.niis.xroad.restapi.openapi.v2.converter.Converters;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.wsdl.WsdlParser;
 

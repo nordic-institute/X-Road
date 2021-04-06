@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.restapi.openapi.v2.EndpointsApiController;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;

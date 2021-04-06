@@ -30,7 +30,7 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.SessionTimeoutFilter;
-import org.niis.xroad.restapi.converter.AlertDataConverter;
+import org.niis.xroad.restapi.openapi.v2.converter.AlertDataConverter;
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
 import org.niis.xroad.restapi.service.NotificationService;

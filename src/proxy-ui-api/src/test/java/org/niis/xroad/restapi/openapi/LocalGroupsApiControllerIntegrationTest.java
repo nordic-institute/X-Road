@@ -33,6 +33,7 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.Members;
+import org.niis.xroad.restapi.openapi.v2.LocalGroupsApiController;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

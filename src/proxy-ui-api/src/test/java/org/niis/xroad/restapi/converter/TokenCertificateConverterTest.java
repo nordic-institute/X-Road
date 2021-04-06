@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.openapi.v2.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;

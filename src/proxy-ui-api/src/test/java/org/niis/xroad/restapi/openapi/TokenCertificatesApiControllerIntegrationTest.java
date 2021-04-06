@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.KeyUsage;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.openapi.v2.TokenCertificatesApiController;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;

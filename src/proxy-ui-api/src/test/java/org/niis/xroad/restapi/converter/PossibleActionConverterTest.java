@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.converter;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.openapi.v2.converter.PossibleActionConverter;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 
 import java.util.Arrays;

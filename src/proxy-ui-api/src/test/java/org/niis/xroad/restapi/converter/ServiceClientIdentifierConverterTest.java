@@ -32,6 +32,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.ServiceClientIdentifierDto;
+import org.niis.xroad.restapi.openapi.v2.converter.ClientConverter;
+import org.niis.xroad.restapi.openapi.v2.converter.GlobalGroupConverter;
+import org.niis.xroad.restapi.openapi.v2.converter.ServiceClientIdentifierConverter;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

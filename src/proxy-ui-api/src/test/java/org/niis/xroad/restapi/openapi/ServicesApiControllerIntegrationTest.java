@@ -38,6 +38,8 @@ import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
+import org.niis.xroad.restapi.openapi.v2.ServiceDescriptionsApiController;
+import org.niis.xroad.restapi.openapi.v2.ServicesApiController;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;

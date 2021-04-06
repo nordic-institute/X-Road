@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspStatus;
 import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
 import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.restapi.openapi.v2.DiagnosticsApiController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

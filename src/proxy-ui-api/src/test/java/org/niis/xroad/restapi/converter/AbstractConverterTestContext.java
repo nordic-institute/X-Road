@@ -26,6 +26,7 @@
 package org.niis.xroad.restapi.converter;
 
 import org.niis.xroad.restapi.config.AbstractFacadeMockingTestContext;
+import org.niis.xroad.restapi.openapi.v2.converter.KeyConverter;
 import org.niis.xroad.restapi.service.PossibleActionsRuleEngine;
 import org.niis.xroad.restapi.service.VersionService;
 import org.springframework.boot.test.mock.mockito.MockBean;

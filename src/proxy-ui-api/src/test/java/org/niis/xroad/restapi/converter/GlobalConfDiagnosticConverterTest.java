@@ -33,6 +33,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.ConfigurationStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.GlobalConfDiagnostics;
+import org.niis.xroad.restapi.openapi.v2.converter.GlobalConfDiagnosticConverter;
 
 import java.time.OffsetDateTime;
 

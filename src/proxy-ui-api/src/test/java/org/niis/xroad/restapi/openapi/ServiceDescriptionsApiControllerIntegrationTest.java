@@ -37,6 +37,8 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionDisabledNotice;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.v2.ClientsApiController;
+import org.niis.xroad.restapi.openapi.v2.ServiceDescriptionsApiController;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -55,6 +55,7 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.openapi.v2.ClientsApiController;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
 import org.niis.xroad.restapi.util.TestUtils;

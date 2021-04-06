@@ -42,7 +42,7 @@ import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
+import org.niis.xroad.restapi.openapi.v2.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;

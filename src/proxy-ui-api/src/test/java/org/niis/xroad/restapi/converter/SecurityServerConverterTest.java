@@ -31,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.model.SecurityServer;
+import org.niis.xroad.restapi.openapi.v2.converter.SecurityServerConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;

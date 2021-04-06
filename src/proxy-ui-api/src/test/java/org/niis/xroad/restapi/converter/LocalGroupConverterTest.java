@@ -36,6 +36,8 @@ import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.v2.converter.ClientConverter;
+import org.niis.xroad.restapi.openapi.v2.converter.LocalGroupConverter;
 
 import java.util.ArrayList;
 import java.util.Date;

@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.domain.AlertData;
 import org.niis.xroad.restapi.dto.AlertStatus;
+import org.niis.xroad.restapi.openapi.v2.converter.AlertDataConverter;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;

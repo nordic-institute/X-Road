@@ -32,6 +32,7 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.domain.Role;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
+import org.niis.xroad.restapi.openapi.v2.converter.PublicApiKeyDataConverter;
 
 import java.util.Arrays;
 import java.util.List;

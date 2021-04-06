@@ -1,8 +1,8 @@
 # Building
 
 Default build does frontend `npm run build` and packages the built frontend assets from `frontend/dist`
-inside the spring boot jar. 
-Build installs project-local versions of `node` and `npm` using 
+inside the spring boot jar.
+Build installs project-local versions of `node` and `npm` using
 https://github.com/srs/gradle-node-plugin, and uses those to build the package.
 
 ```
@@ -46,7 +46,7 @@ server {
 # Development profiles
 
 - `development` profile toggles some "safe" development aspects. It enables more logging and supports
-accessing signer from a remote IP.
+  accessing signer from a remote IP.
 - other development profiles exist in a separate module, which is not included in a regular build. See [proxy-ui-api-devtools](../proxy-ui-api-devtools/README.md)
 
 # TLS
@@ -56,7 +56,7 @@ Application listens to https in port 4000.
 Since it uses a self-signed certificate, clients need to trust this certificate. In browser access this means manually allow exception for
 "your connection is not secure" warning. For `curl` commands this means `-k` parameter (which you can see used in the examples).
 
-By default the certificate is read from keystore `/etc/xroad/ssl/proxy-ui-api.p12`. 
+By default the certificate is read from keystore `/etc/xroad/ssl/proxy-ui-api.p12`.
 This keystore is automatically created when linux packages are installed.
 If this does not suit you (for example in local development environment), you can do one of:
 
@@ -68,7 +68,7 @@ If this does not suit you (for example in local development environment), you ca
 
 # Api key administration
 
-Api keys can be created, listed and revoked through an administration API. 
+Api keys can be created, listed and revoked through an administration API.
 
 For details and example commands, see
 [Security server user guide](https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#19-management-rest-apis)
@@ -86,10 +86,10 @@ PAM authentication is active by default.
 PAM authentication is done using unix user and password. There's some requirements
 - application has to be run as user who can read `/etc/shadow`
 - roles are granted using linux groups `xroad-security-officer`,
-`xroad-registration-officer`,
-`xroad-service-administrator`,
-`xroad-system-administrator`, and
-`xroad-securityserver-observer` as in old implementation.
+  `xroad-registration-officer`,
+  `xroad-service-administrator`,
+  `xroad-system-administrator`, and
+  `xroad-securityserver-observer` as in old implementation.
 
 To set some test users up
 ```
@@ -116,23 +116,23 @@ sudo passwd xrd-system-admin
 
 # CSRF protection
 
-When using session cookie authentication for /test-api apis, 
+When using session cookie authentication for /test-api apis,
 [Spring's CSRF prevention](https://docs.spring.io/spring-security/site/docs/5.1.1.RELEASE/reference/htmlsingle/#csrf)
 mechanism is used.
 
-CSRF prevention checks that http header `X-XSRF-TOKEN` matches cookie `XSRF-TOKEN`. This way attacker cannot execute 
+CSRF prevention checks that http header `X-XSRF-TOKEN` matches cookie `XSRF-TOKEN`. This way attacker cannot execute
 unwanted requests against the apis just by triggering hostile requests from browser to rest apis and relying on the fact
 that browser will send session cookie automatically.
 
 Frontend would use CSRF token like so:
 1. Call /login, store `XSRF-TOKEN` cookie from the response
 2. Call api, include
- - JESSIONID cookie for session
- - XSRF-TOKEN with original csrf token value
- - http header X-XSRF-TOKEN with original csrf token value
- 
-Implementation uses CookieCsrfTokenRepository and token does not have to be the original token as long as cookie 
-and header match. We could also use HttpSessionCsrfTokenRepository but the security level would not be 
+- JESSIONID cookie for session
+- XSRF-TOKEN with original csrf token value
+- http header X-XSRF-TOKEN with original csrf token value
+
+Implementation uses CookieCsrfTokenRepository and token does not have to be the original token as long as cookie
+and header match. We could also use HttpSessionCsrfTokenRepository but the security level would not be
 substantially different and it would probably make Vue+Login+RestAPI integration more complex.
 
 This implements [Cookie-to-Header token pattern](https://medium.com/spektrakel-blog/angular2-and-spring-a-friend-in-security-need-is-a-friend-against-csrf-indeed-9f83eaa9ca2e)

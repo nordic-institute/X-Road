@@ -243,31 +243,51 @@ auditCheckUILibrary.dependsOn 'installUILibrary'
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
 
-openApiGenerate {
+task openApiGenerateV1(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
     outputDir = "$buildDir/generated-sources/openapi".toString()
-    apiPackage = "org.niis.xroad.restapi.openapi"
-    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    inputSpec = "$projectDir/src/main/resources/openapi-definition-v1.yaml".toString()
+    apiPackage = "org.niis.xroad.restapi.openapi.v1"
+    modelPackage = "org.niis.xroad.restapi.openapi.v1.model"
     systemProperties = [
-        modelDocs: "false",
-        apis     : "", // must use empty strings instead of "true":
-        // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : ""
+            modelDocs: "false",
+            apis     : "", // must use empty strings instead of "true":
+            models   : ""
     ]
     configOptions = [
-        interfaceOnly: "true",
-        useTags      : "true"
+            interfaceOnly: "true",
+            useTags      : "true"
+    ]
+}
+
+task openApiGenerateV2(type: org.openapitools.generator.gradle.plugin.tasks.GenerateTask) {
+    generatorName = "spring"
+    outputDir = "$buildDir/generated-sources/openapi".toString()
+    inputSpec = "$projectDir/src/main/resources/openapi-definition-v2.yaml".toString()
+    apiPackage = "org.niis.xroad.restapi.openapi.v2"
+    modelPackage = "org.niis.xroad.restapi.openapi.v2.model"
+    systemProperties = [
+            modelDocs: "false",
+            apis     : "", // must use empty strings instead of "true":
+            models   : ""
+    ]
+    configOptions = [
+            interfaceOnly: "true",
+            useTags      : "true"
     ]
 }
 
 // Fix up to date check
-tasks.openApiGenerate {
-    inputs.files(openApiGenerate.inputSpec)
-    outputs.dir(openApiGenerate.outputDir)
+tasks.openApiGenerateV1 {
+    inputs.files(openApiGenerateV1.inputSpec)
+    outputs.dir(openApiGenerateV1.outputDir)
 }
-
-compileJava.dependsOn tasks.openApiGenerate
+tasks.openApiGenerateV2 {
+    inputs.files(openApiGenerateV2.inputSpec)
+    outputs.dir(openApiGenerateV2.outputDir)
+}
+compileJava.dependsOn tasks.openApiGenerateV1
+compileJava.dependsOn tasks.openApiGenerateV2
 
 // set license format to ignore generated java sources
 task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
@@ -291,16 +311,20 @@ jar {
 }
 
 apiValidationParameters.apiDefinitionPaths = [
-    "$projectDir/src/main/resources/openapi-definition.yaml".toString(),
+        "$projectDir/src/main/resources/openapi-definition-v1.yaml".toString(),
+        "$projectDir/src/main/resources/openapi-definition-v2.yaml".toString(),
     "$projectDir/src/main/resources/openapi-authentication.yaml".toString()
 ]
 
 validateApiDefinitions {
-    inputs.files("src/main/resources/openapi-definition.yaml", "src/main/resources/openapi-authentication.yaml")
+    inputs.files("src/main/resources/openapi-definition-v1.yaml",
+            "src/main/resources/openapi-definition-v2.yaml",
+            "src/main/resources/openapi-authentication.yaml")
     outputs.upToDateWhen { true }
 }
 
-tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
+tasks.openApiGenerateV1.dependsOn 'validateApiDefinitions'
+tasks.openApiGenerateV2.dependsOn 'validateApiDefinitions'
 
 dependencyManagement {
     imports {

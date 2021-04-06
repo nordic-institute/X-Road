@@ -35,6 +35,7 @@ import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
 import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
 import org.niis.xroad.restapi.openapi.model.OcspStatus;
+import org.niis.xroad.restapi.openapi.v2.converter.OcspResponderDiagnosticConverter;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;

@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.restapi.openapi.v2.CertificateAuthoritiesApiController;
 import org.niis.xroad.restapi.service.KeyNotFoundException;
 import org.niis.xroad.restapi.util.TokenTestUtils.KeyInfoBuilder;
 import org.springframework.beans.factory.annotation.Autowired;

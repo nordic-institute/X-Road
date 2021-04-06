@@ -31,6 +31,7 @@ import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.openapi.model.Backup;
 import org.niis.xroad.restapi.openapi.model.TokensLoggedOut;
+import org.niis.xroad.restapi.openapi.v2.BackupsApiController;
 import org.niis.xroad.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.restapi.service.ProcessFailedException;

@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.controller;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
+import org.niis.xroad.restapi.openapi.v2.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;

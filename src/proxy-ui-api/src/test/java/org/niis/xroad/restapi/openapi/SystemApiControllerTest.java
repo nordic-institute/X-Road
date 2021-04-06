@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.restapi.openapi.v2.SystemApiController;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InvalidDistinguishedNameException;
 import org.niis.xroad.restapi.service.SystemService;
@@ -70,7 +71,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.openapi.SystemApiController.OPENAPI_DEFINITION_FILENAME;
+import static org.niis.xroad.restapi.openapi.v2.SystemApiController.OPENAPI_DEFINITION_FILENAME;
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 
 /**
