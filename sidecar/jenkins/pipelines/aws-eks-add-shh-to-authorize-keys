@@ -9,7 +9,7 @@ pipeline {
             steps {
                 sh '''
 
-                  ssh -q -o "StrictHostKeyChecking no" jenkins@${INSTANCE_IP} "ls -l /home/"
+                  ssh jenkins@${INSTANCE_IP} "ls -l /home/"
 
                     //sh 'echo "${PUBLIC_KEYS}" >> ssh ec2-user@${INSTANCE_IP} /home/ec2-user/.ssh/authorized_keys'
                 '''
