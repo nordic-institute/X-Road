@@ -7,14 +7,12 @@ pipeline {
     stages {
         stage('Copy keys to the list of authorized keys for ec2-user') {
             steps {
-                  script {
+                sh '''
 
                   ssh -q -o "StrictHostKeyChecking no" jenkins@${INSTANCE_IP} "ls -l /home/"
 
                     //sh 'echo "${PUBLIC_KEYS}" >> ssh ec2-user@${INSTANCE_IP} /home/ec2-user/.ssh/authorized_keys'
-                  }
-
-
+                '''
             }
         }
     }
