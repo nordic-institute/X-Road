@@ -102,8 +102,13 @@ create_pre_restore_backup () {
     echo "Creating database dump to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
     ${DATABASE_BACKUP_SCRIPT} ${PRE_RESTORE_DATABASE_DUMP_FILENAME}
     if [ $? -ne 0 ] ; then
-      die "Error occured while creating pre-restore database backup" \
-          "to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
+      # allow force restore even when schema does not exist
+      if [[ $FORCE_RESTORE == true ]] ; then
+        echo "Ignoring pre restore db backup errors"
+      else
+        die "Error occured while creating pre-restore database backup" \
+            "to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
+      fi
     fi
     backed_up_files_cmd="${backed_up_files_cmd}; echo ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
   else
@@ -184,7 +189,10 @@ restore_database () {
   else
     if [[ -x ${DATABASE_RESTORE_SCRIPT} && -e ${DATABASE_DUMP_FILENAME} ]] ; then
       echo "RESTORING DATABASE FROM ${DATABASE_DUMP_FILENAME}"
-      if ! ${DATABASE_RESTORE_SCRIPT} "${DATABASE_DUMP_FILENAME}" 1>/dev/null; then
+      if [[ $FORCE_RESTORE == true ]] ; then
+        RESTORE_FLAGS=-F
+      fi
+      if ! ${DATABASE_RESTORE_SCRIPT} ${RESTORE_FLAGS} "${DATABASE_DUMP_FILENAME}" 1>/dev/null; then
         die "Failed to restore database!"
       fi
     else
