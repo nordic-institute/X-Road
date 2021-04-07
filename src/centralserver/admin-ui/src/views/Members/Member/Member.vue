@@ -81,6 +81,7 @@ export default Vue.extend({
           label: this.$t(
             'members.member.pagenavigation.managementRequests',
           ) as string,
+          showAttention: true,
         },
         {
           url: `/members/${this.memberid}/subsystems`,

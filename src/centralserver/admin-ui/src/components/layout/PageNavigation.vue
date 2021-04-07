@@ -26,9 +26,10 @@
 <template>
   <div>
     <v-tabs :background-color="'transparent'" class="page-navigation-row">
-      <v-tab v-for="item in items" v-bind:key="item.url" :to="item.url">{{
-        item.label
-      }}</v-tab>
+      <v-tab v-for="item in items" v-bind:key="item.url" :to="item.url"
+        >{{ item.label }}
+        <span v-if="item.showAttention" class="dot mb-3"></span
+      ></v-tab>
     </v-tabs>
   </div>
 </template>
@@ -40,6 +41,7 @@ import { Prop } from 'vue/types/options';
 export interface NavigationItem {
   url: string;
   label: string;
+  showAttention?: boolean;
 }
 
 export default Vue.extend({

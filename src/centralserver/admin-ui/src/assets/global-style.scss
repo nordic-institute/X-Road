@@ -117,3 +117,12 @@
   margin-left: -2px;
   min-width: 20px; // needs a width or the buttons with short text "collapse"
 }
+
+// Draws small red circle
+.dot {
+  position: relative;
+  height: 5px;
+  width: 5px;
+  background-color: red;
+  border-radius: 50%;
+}
