@@ -6,6 +6,9 @@ echo $0 must run under xroad user
 exit 1
 fi
 
-. /etc/xroad/services/jetty.conf
-exec java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9 jetty.base=/usr/share/xroad/jetty9
-
+if [ -f /etc/xroad/services/jetty.conf ]; then
+  source /etc/xroad/services/jetty.conf
+  exec java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9 jetty.base=/usr/share/xroad/jetty9
+else
+  exit 1
+fi

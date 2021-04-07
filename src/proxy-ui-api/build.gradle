@@ -4,7 +4,7 @@ buildscript {
     ext {
         openapiGeneratorVersion = '4.2.1'
         nodePluginVersion = '2.2.4'
-        nodeVersion = '12.16.3'
+        nodeVersion = '12.21.0'
         swaggerParserVersion = '2.0.21'
     }
     repositories {
