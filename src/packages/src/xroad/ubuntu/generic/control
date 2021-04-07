@@ -15,7 +15,7 @@ Description: Monitoring client configuration for X-Road central
 Package: xroad-centralserver
 Conflicts: xroad-securityserver, xtee55-center
 Architecture: all
-Depends: xroad-center (=${binary:Version}), openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, xroad-centralserver-monitoring (=${binary:Version})
+Depends: xroad-center (=${binary:Version}), xroad-centralserver-monitoring (=${binary:Version})
 Description: X-Road central server
  This is meta-package of X-Road central server.
 
@@ -30,7 +30,7 @@ Description: X-Road central server
 Package: xroad-base
 Architecture: amd64
 Pre-depends: dpkg (>= 1.15.7.2)
-Depends: ${misc:Depends}, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl
+Depends: ${misc:Depends}, openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl
 Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road base components
@@ -64,14 +64,14 @@ Description: X-Road signer component
 Package: xroad-securityserver
 Conflicts: xroad-centralserver, uxp-addon-monitor (<=6.5)
 Architecture: all
-Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: xroad-proxy (=${binary:Version}), xroad-addon-metaservices (=${binary:Version}), xroad-addon-messagelog (=${binary:Version}), xroad-addon-proxymonitor (=${binary:Version}), xroad-addon-wsdlvalidator (=${binary:Version}), xroad-proxy-ui-api (=${binary:Version})
 Description: X-Road security server
  This is meta-package of X-Road security server.
 
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
 Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
@@ -92,32 +92,32 @@ Description: X-Road AddOn: hwtokens
 
 Package: xroad-addon-messagelog
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Conflicts: xroad-addon-legacy-securelog
 Description: X-Road AddOn: messagelog
  AddOn for secure message log
 
 Package: xroad-addon-metaservices
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Description: X-Road AddOn: metaservices
  AddOn for metaservice reponders
 
 Package: xroad-addon-proxymonitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-monitor (=${binary:Version})
 Description: X-Road AddOn: proxy monitoring metaservice
  Addon for proxy monitoring
 
 Package: xroad-monitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, xroad-base (=${binary:Version})
 Description: X-Road monitoring service
  Monitoring service
 
 Package: xroad-addon-wsdlvalidator
 Architecture: all
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Description: X-Road AddOn: wsdlvalidator
  AddOn for WSDL validator for the X-Road services
 
@@ -180,7 +180,7 @@ Description: Automatic token pin code entry
 Package: xroad-proxy-ui-api
 Architecture: all
 Pre-depends: xroad-base (=${binary:Version})
-Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
 Replaces: xroad-nginx, xroad-jetty9
 Breaks: xroad-nginx, xroad-jetty9
 Description: X-Road proxy UI REST API
