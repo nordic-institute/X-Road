@@ -652,13 +652,13 @@ module.exports = {
     diagnosticsTab: diagnosticsTab,
     settingsTab: settingsTab,
     clientInfo: {
-      selector: 'h1.display-1',
-      locateStrategy: 'css selector',
+      selector: '//div[contains(@class, "xrd-view-common")]',
+      locateStrategy: 'xpath',
       commands: [clientInfoCommands],
       elements: {
         detailsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="details"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Details")]',
           locateStrategy: 'xpath',
         },
         serviceClientsTab: {
@@ -685,7 +685,7 @@ module.exports = {
       sections: {
         details: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active")] and .//*[@data-test="details"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Details")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientDetailsCommands],
           elements: {
@@ -904,13 +904,13 @@ module.exports = {
     },
     certificatePopup: {
       selector:
-        '//div[@data-test="certificate-details-dialog"]',
+        '//div[contains(@class, "certificate-details-wrapper")]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
         certificateInfoCloseButton: {
-          selector: 'div.cert-dialog-header #close-x',
-          locateStrategy: 'css selector',
+          selector: '//*[@data-test="close-x"]',
+          locateStrategy: 'xpath',
         },
         deleteButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',

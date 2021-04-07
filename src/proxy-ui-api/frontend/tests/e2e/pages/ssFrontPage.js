@@ -59,8 +59,8 @@ module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [loginCommands],
   elements: {
-    usernameInput: { selector: 'input[id=username]' },
-    passwordInput: { selector: 'input[id=password]' },
-    loginButton: { selector: 'button[id=submit-button]' },
+    usernameInput: { selector: '//input[@id="username"]', locateStrategy: 'xpath', },
+    passwordInput: { selector: '//input[@id="password"]', locateStrategy: 'xpath', },
+    loginButton: { selector: '//button[@id="submit-button"]', locateStrategy: 'xpath', },
   },
 };
