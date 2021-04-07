@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.openapi.v2.converter.comparator;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.Client;
+import org.niis.xroad.restapi.openapi.v2.model.Client;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -61,77 +61,77 @@ public class ClientSortingComparatorTest {
 
         Collections.sort(clients, new ClientSortingComparator());
 
-        assertEquals("AClient", clients.get(0).getMemberName());
+        assertEquals("AClient", clients.get(0).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(0).getMemberClass());
         assertEquals("12345", clients.get(0).getMemberCode());
         assertEquals(null, clients.get(0).getSubsystemCode());
 
-        assertEquals("AClient", clients.get(1).getMemberName());
+        assertEquals("AClient", clients.get(1).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(1).getMemberClass());
         assertEquals("12345", clients.get(1).getMemberCode());
         assertEquals("System1", clients.get(1).getSubsystemCode());
 
-        assertEquals("AClient", clients.get(2).getMemberName());
+        assertEquals("AClient", clients.get(2).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(2).getMemberClass());
         assertEquals("12345", clients.get(2).getMemberCode());
         assertEquals("System2", clients.get(2).getSubsystemCode());
 
-        assertEquals("aClient", clients.get(3).getMemberName());
+        assertEquals("aClient", clients.get(3).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(3).getMemberClass());
         assertEquals("12346", clients.get(3).getMemberCode());
         assertEquals(null, clients.get(3).getSubsystemCode());
 
-        assertEquals("aClient", clients.get(4).getMemberName());
+        assertEquals("aClient", clients.get(4).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(4).getMemberClass());
         assertEquals("12346", clients.get(4).getMemberCode());
         assertEquals("System1", clients.get(4).getSubsystemCode());
 
-        assertEquals("AClient", clients.get(5).getMemberName());
+        assertEquals("AClient", clients.get(5).getMemberNameChangedV2());
         assertEquals("ORG", clients.get(5).getMemberClass());
         assertEquals("12345", clients.get(5).getMemberCode());
         assertEquals(null, clients.get(5).getSubsystemCode());
 
-        assertEquals("AClient", clients.get(6).getMemberName());
+        assertEquals("AClient", clients.get(6).getMemberNameChangedV2());
         assertEquals("ORG", clients.get(6).getMemberClass());
         assertEquals("12345", clients.get(6).getMemberCode());
         assertEquals("System1", clients.get(6).getSubsystemCode());
 
-        assertEquals("client", clients.get(7).getMemberName());
+        assertEquals("client", clients.get(7).getMemberNameChangedV2());
         assertEquals("COM", clients.get(7).getMemberClass());
         assertEquals("33455", clients.get(7).getMemberCode());
         assertEquals("Client", clients.get(7).getSubsystemCode());
 
-        assertEquals("Client", clients.get(8).getMemberName());
+        assertEquals("Client", clients.get(8).getMemberNameChangedV2());
         assertEquals("COM", clients.get(8).getMemberClass());
         assertEquals("33456", clients.get(8).getMemberCode());
         assertEquals("Client", clients.get(8).getSubsystemCode());
 
-        assertEquals("äClient", clients.get(9).getMemberName());
+        assertEquals("äClient", clients.get(9).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(9).getMemberClass());
         assertEquals("12345", clients.get(9).getMemberCode());
         assertEquals("Service", clients.get(9).getSubsystemCode());
 
-        assertEquals("ÄClient", clients.get(10).getMemberName());
+        assertEquals("ÄClient", clients.get(10).getMemberNameChangedV2());
         assertEquals("GOV", clients.get(10).getMemberClass());
         assertEquals("12346", clients.get(10).getMemberCode());
         assertEquals("Service", clients.get(10).getSubsystemCode());
 
-        assertEquals(null, clients.get(11).getMemberName());
+        assertEquals(null, clients.get(11).getMemberNameChangedV2());
         assertEquals("ORG", clients.get(11).getMemberClass());
         assertEquals("33455", clients.get(11).getMemberCode());
         assertEquals(null, clients.get(11).getSubsystemCode());
 
-        assertEquals(null, clients.get(12).getMemberName());
+        assertEquals(null, clients.get(12).getMemberNameChangedV2());
         assertEquals("ORG", clients.get(12).getMemberClass());
         assertEquals("33455", clients.get(12).getMemberCode());
         assertEquals("Client1", clients.get(12).getSubsystemCode());
 
-        assertEquals(null, clients.get(13).getMemberName());
+        assertEquals(null, clients.get(13).getMemberNameChangedV2());
         assertEquals("ORG", clients.get(13).getMemberClass());
         assertEquals("33456", clients.get(13).getMemberCode());
         assertEquals(null, clients.get(13).getSubsystemCode());
 
-        assertEquals(null, clients.get(14).getMemberName());
+        assertEquals(null, clients.get(14).getMemberNameChangedV2());
         assertEquals("ORG", clients.get(14).getMemberClass());
         assertEquals("33456", clients.get(14).getMemberCode());
         assertEquals("Service1", clients.get(14).getSubsystemCode());
@@ -140,7 +140,7 @@ public class ClientSortingComparatorTest {
     private Client createTestClient(String name, String memberClass, String memberCode, String subsystemCode) {
         Client client = new Client();
         client.setInstanceId(INSTANCE_ID);
-        client.setMemberName(name);
+        client.setMemberNameChangedV2(name);
         client.setMemberClass(memberClass);
         client.setMemberCode(memberCode);
         client.setSubsystemCode(subsystemCode);

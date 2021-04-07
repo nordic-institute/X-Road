@@ -32,9 +32,9 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.OcspResponderDiagnostics;
-import org.niis.xroad.restapi.openapi.model.OcspStatus;
+import org.niis.xroad.restapi.openapi.v2.model.DiagnosticStatusClass;
+import org.niis.xroad.restapi.openapi.v2.model.OcspResponderDiagnostics;
+import org.niis.xroad.restapi.openapi.v2.model.OcspStatus;
 import org.niis.xroad.restapi.openapi.v2.converter.OcspResponderDiagnosticConverter;
 
 import java.time.OffsetDateTime;

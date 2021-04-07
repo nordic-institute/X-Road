@@ -57,7 +57,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_
  * Init (Security Server) controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ApiUtil.API_V2_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

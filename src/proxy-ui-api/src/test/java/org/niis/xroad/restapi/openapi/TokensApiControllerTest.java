@@ -31,10 +31,10 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.Key;
-import org.niis.xroad.restapi.openapi.model.KeyLabel;
-import org.niis.xroad.restapi.openapi.model.Token;
-import org.niis.xroad.restapi.openapi.model.TokenStatus;
+import org.niis.xroad.restapi.openapi.v2.model.Key;
+import org.niis.xroad.restapi.openapi.v2.model.KeyLabel;
+import org.niis.xroad.restapi.openapi.v2.model.Token;
+import org.niis.xroad.restapi.openapi.v2.model.TokenStatus;
 import org.niis.xroad.restapi.openapi.v2.TokensApiController;
 import org.niis.xroad.restapi.service.TokenNotFoundException;
 import org.niis.xroad.restapi.util.TokenTestUtils;

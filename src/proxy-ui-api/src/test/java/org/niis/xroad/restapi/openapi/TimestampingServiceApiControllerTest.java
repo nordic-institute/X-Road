@@ -29,7 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.openapi.v2.model.TimestampingService;
 import org.niis.xroad.restapi.openapi.v2.TimestampingServicesApiController;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;

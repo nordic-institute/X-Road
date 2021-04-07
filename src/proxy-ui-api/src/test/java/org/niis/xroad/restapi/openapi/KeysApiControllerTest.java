@@ -30,8 +30,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.Key;
-import org.niis.xroad.restapi.openapi.model.PossibleAction;
+import org.niis.xroad.restapi.openapi.v2.model.Key;
+import org.niis.xroad.restapi.openapi.v2.model.PossibleAction;
 import org.niis.xroad.restapi.openapi.v2.KeysApiController;
 import org.niis.xroad.restapi.service.CsrNotFoundException;
 import org.niis.xroad.restapi.service.KeyNotFoundException;

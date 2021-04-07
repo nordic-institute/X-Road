@@ -45,19 +45,19 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.restapi.openapi.ApiUtil.API_V1_PREFIX;
+import static org.niis.xroad.restapi.openapi.ApiUtil.API_V2_PREFIX;
 
 /**
  * User controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ApiUtil.API_V2_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class UserApiController implements UserApi {
 
-    public static final String USER_API_V1_PATH = API_V1_PREFIX + "/user";
+    public static final String USER_API_V1_PATH = API_V2_PREFIX + "/user";
 
     private final UsernameHelper usernameHelper;
 

@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.converter;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.VersionInfoDto;
-import org.niis.xroad.restapi.openapi.model.VersionInfo;
+import org.niis.xroad.restapi.openapi.v2.model.VersionInfo;
 import org.niis.xroad.restapi.openapi.v2.converter.VersionConverter;
 
 import static org.junit.Assert.assertEquals;

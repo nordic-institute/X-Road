@@ -30,9 +30,9 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.DiagnosticStatusClass;
-import org.niis.xroad.restapi.openapi.model.TimestampingServiceDiagnostics;
-import org.niis.xroad.restapi.openapi.model.TimestampingStatus;
+import org.niis.xroad.restapi.openapi.v2.model.DiagnosticStatusClass;
+import org.niis.xroad.restapi.openapi.v2.model.TimestampingServiceDiagnostics;
+import org.niis.xroad.restapi.openapi.v2.model.TimestampingStatus;
 import org.niis.xroad.restapi.openapi.v2.converter.TimestampingServiceDiagnosticConverter;
 
 import java.time.OffsetDateTime;

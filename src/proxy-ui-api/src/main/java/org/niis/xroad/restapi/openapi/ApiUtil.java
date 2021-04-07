@@ -46,6 +46,7 @@ import java.net.URI;
 public class ApiUtil {
 
     public static final String API_V1_PREFIX = "/api/v1";
+    public static final String API_V2_PREFIX = "/api/v2";
 
     /**
      * Create a specified example response, to return from endpoints not implemented yet

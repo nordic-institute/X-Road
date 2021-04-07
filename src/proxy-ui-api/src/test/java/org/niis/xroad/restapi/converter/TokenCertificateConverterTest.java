@@ -34,9 +34,9 @@ import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.cert.ocsp.RevokedStatus;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.CertificateOcspStatus;
-import org.niis.xroad.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.openapi.v2.model.CertificateOcspStatus;
+import org.niis.xroad.restapi.openapi.v2.model.PossibleAction;
+import org.niis.xroad.restapi.openapi.v2.model.TokenCertificate;
 import org.niis.xroad.restapi.openapi.v2.converter.TokenCertificateConverter;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
@@ -95,7 +95,7 @@ public class TokenCertificateConverterTest extends AbstractConverterTestContext 
         assertEquals(CertificateOcspStatus.OCSP_RESPONSE_GOOD, certificate.getOcspStatus());
         assertEquals("a:b:c", certificate.getOwnerId());
         assertEquals(true, certificate.getSavedToConfiguration());
-        assertEquals(org.niis.xroad.restapi.openapi.model.CertificateStatus.REGISTERED, certificate.getStatus());
+        assertEquals(org.niis.xroad.restapi.openapi.v2.model.CertificateStatus.REGISTERED, certificate.getStatus());
     }
 
     @Test

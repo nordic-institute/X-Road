@@ -37,24 +37,24 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
-import org.niis.xroad.restapi.openapi.model.AccessRight;
-import org.niis.xroad.restapi.openapi.model.AccessRights;
-import org.niis.xroad.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.restapi.openapi.model.Client;
-import org.niis.xroad.restapi.openapi.model.ClientAdd;
-import org.niis.xroad.restapi.openapi.model.ClientStatus;
-import org.niis.xroad.restapi.openapi.model.ConnectionType;
-import org.niis.xroad.restapi.openapi.model.ConnectionTypeWrapper;
-import org.niis.xroad.restapi.openapi.model.LocalGroup;
-import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
-import org.niis.xroad.restapi.openapi.model.OrphanInformation;
-import org.niis.xroad.restapi.openapi.model.Service;
-import org.niis.xroad.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.restapi.openapi.model.ServiceClientType;
-import org.niis.xroad.restapi.openapi.model.ServiceDescription;
-import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
-import org.niis.xroad.restapi.openapi.model.ServiceType;
-import org.niis.xroad.restapi.openapi.model.TokenCertificate;
+import org.niis.xroad.restapi.openapi.v2.model.AccessRight;
+import org.niis.xroad.restapi.openapi.v2.model.AccessRights;
+import org.niis.xroad.restapi.openapi.v2.model.CertificateDetails;
+import org.niis.xroad.restapi.openapi.v2.model.Client;
+import org.niis.xroad.restapi.openapi.v2.model.ClientAdd;
+import org.niis.xroad.restapi.openapi.v2.model.ClientStatus;
+import org.niis.xroad.restapi.openapi.v2.model.ConnectionType;
+import org.niis.xroad.restapi.openapi.v2.model.ConnectionTypeWrapper;
+import org.niis.xroad.restapi.openapi.v2.model.LocalGroup;
+import org.niis.xroad.restapi.openapi.v2.model.LocalGroupAdd;
+import org.niis.xroad.restapi.openapi.v2.model.OrphanInformation;
+import org.niis.xroad.restapi.openapi.v2.model.Service;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceClientType;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceDescription;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceDescriptionAdd;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceType;
+import org.niis.xroad.restapi.openapi.v2.model.TokenCertificate;
 import org.niis.xroad.restapi.openapi.v2.ClientsApiController;
 import org.niis.xroad.restapi.util.CertificateTestUtils;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;
@@ -194,7 +194,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(7, response.getBody().size());
         Client client = response.getBody().get(0);
-        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberNameChangedV2());
         assertEquals("M1", client.getMemberCode());
     }
 
@@ -207,7 +207,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         Client client = response.getBody();
         assertEquals(ConnectionType.HTTP, client.getConnectionType());
         assertEquals(ClientStatus.REGISTERED, client.getStatus());
-        assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "test-member", client.getMemberNameChangedV2());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1", client.getId());
@@ -217,7 +217,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         client = response.getBody();
         assertEquals(ConnectionType.HTTPS_NO_AUTH, client.getConnectionType());
         assertEquals(ClientStatus.REGISTERED, client.getStatus());
-        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + "SS1", client.getMemberNameChangedV2());
         assertEquals("GOV", client.getMemberClass());
         assertEquals("M1", client.getMemberCode());
         assertEquals("FI:GOV:M1:SS1", client.getId());
@@ -274,7 +274,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertTrue(onlyCertificate.getCertificateDetails().getSignature().startsWith("314b7a50a09a9b74322671"));
         assertTrue(onlyCertificate.getCertificateDetails().getRsaPublicKeyModulus().startsWith("9d888fbe089b32a35f58"));
         assertEquals(new Integer(65537), onlyCertificate.getCertificateDetails().getRsaPublicKeyExponent());
-        assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.model.KeyUsage.NON_REPUDIATION)),
+        assertEquals(new ArrayList<>(Arrays.asList(org.niis.xroad.restapi.openapi.v2.model.KeyUsage.NON_REPUDIATION)),
                 new ArrayList<>(onlyCertificate.getCertificateDetails().getKeyUsages()));
         try {
             certificates = clientsApiController.getClientSignCertificates("FI:GOV:M2");
@@ -445,7 +445,7 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(1, clientsResponse.getBody().size());
         List<Client> clients = clientsResponse.getBody();
         Client client = clients.get(0);
-        assertEquals(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, client.getMemberName());
+        assertEquals(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, client.getMemberNameChangedV2());
         assertEquals(TestUtils.MEMBER_CLASS_GOV, client.getMemberClass());
         assertEquals(TestUtils.MEMBER_CODE_M1, client.getMemberCode());
         assertEquals(TestUtils.SUBSYSTEM1, client.getSubsystemCode());

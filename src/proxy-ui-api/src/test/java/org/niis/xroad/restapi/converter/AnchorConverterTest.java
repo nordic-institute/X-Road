@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.converter;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.AnchorFile;
-import org.niis.xroad.restapi.openapi.model.Anchor;
+import org.niis.xroad.restapi.openapi.v2.model.Anchor;
 import org.niis.xroad.restapi.openapi.v2.converter.AnchorConverter;
 
 import java.time.ZoneOffset;

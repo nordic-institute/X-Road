@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.openapi;
 
 import org.junit.Test;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
-import org.niis.xroad.restapi.openapi.model.InitialServerConf;
+import org.niis.xroad.restapi.openapi.v2.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.v2.InitializationApiController;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.restapi.service.InitializationService;

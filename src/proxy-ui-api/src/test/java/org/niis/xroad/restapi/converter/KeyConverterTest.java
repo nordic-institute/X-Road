@@ -32,8 +32,8 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.Key;
-import org.niis.xroad.restapi.openapi.model.KeyUsageType;
+import org.niis.xroad.restapi.openapi.v2.model.Key;
+import org.niis.xroad.restapi.openapi.v2.model.KeyUsageType;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertificateInfoBuilder;
 import org.niis.xroad.restapi.util.TokenTestUtils;
 

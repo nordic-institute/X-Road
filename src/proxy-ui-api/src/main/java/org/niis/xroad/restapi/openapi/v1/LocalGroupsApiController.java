@@ -23,56 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.v2;
+package org.niis.xroad.restapi.openapi.v1;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.ApiUtil;
-import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
-import org.niis.xroad.restapi.openapi.v2.MemberClassesApi;
-import org.niis.xroad.restapi.service.GlobalConfService;
-import org.springframework.http.HttpStatus;
+import org.niis.xroad.restapi.openapi.v1.model.LocalGroup;
+import org.springframework.beans.BeanUtils;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * member classes controller
+ * groups api
  */
-@Controller
-@RequestMapping(ApiUtil.API_V2_PREFIX)
-@Slf4j
-@PreAuthorize("denyAll")
-@RequiredArgsConstructor
-public class MemberClassesApiController implements MemberClassesApi {
+//@Controller(value = "localGroupsApiControllerv1")
+//@RequestMapping(ApiUtil.API_V1_PREFIX)
+//@Slf4j
+//@PreAuthorize("denyAll")
+//@RequiredArgsConstructor
+public class LocalGroupsApiController implements LocalGroupsApi {
 
-    private final GlobalConfFacade globalConfFacade;
-    private final GlobalConfService globalConfService;
+//    private final org.niis.xroad.restapi.openapi.v2.LocalGroupsApiController localGroupsApiControllerV2;
+//
+//    @Override
+//    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
+//    public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
+//        ResponseEntity<org.niis.xroad.restapi.openapi.v2.model.LocalGroup> responseFromV2 =
+//                localGroupsApiControllerV2.getLocalGroup(groupIdString);
+//        return convert(responseFromV2);
+//    }
+//
+//    private ResponseEntity<LocalGroup> convert(
+//            ResponseEntity<org.niis.xroad.restapi.openapi.v2.model.LocalGroup> response) {
+//        LocalGroup l = new LocalGroup();
+//        BeanUtils.copyProperties(response.getBody(), l);
+//        return new ResponseEntity<>(l, response.getStatusCode());
+//    }
 
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<List<String>> getMemberClasses(Boolean currentInstance) {
-        List<String> memberClasses = null;
-        if (currentInstance) {
-            memberClasses = new ArrayList(globalConfService.getMemberClassesForThisInstance());
-        } else {
-            memberClasses = new ArrayList(globalConfFacade.getMemberClasses());
-        }
-        return new ResponseEntity<>(memberClasses, HttpStatus.OK);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<List<String>> getMemberClassesForInstance(String instanceId) {
-        if (!globalConfFacade.getInstanceIdentifiers().contains(instanceId)) {
-            throw new ResourceNotFoundException("instance identifier not found: " + instanceId);
-        }
-        List<String> memberClasses = new ArrayList(globalConfFacade.getMemberClasses(instanceId));
-        return new ResponseEntity<>(memberClasses, HttpStatus.OK);
-    }
 }

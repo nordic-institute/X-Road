@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.openapi.v2.converter.comparator;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceClient;
 
 import java.util.ArrayList;
 import java.util.Collections;

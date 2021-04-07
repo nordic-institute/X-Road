@@ -35,8 +35,8 @@ import org.niis.xroad.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.model.Client;
-import org.niis.xroad.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.restapi.openapi.v2.model.Client;
+import org.niis.xroad.restapi.openapi.v2.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.v2.converter.ClientConverter;
 
 import java.util.ArrayList;
@@ -82,8 +82,8 @@ public class ClientConverterTest {
         assertEquals("GOV", converted.getMemberClass());
         assertEquals("M4", converted.getMemberCode());
         assertEquals("SS1", converted.getSubsystemCode());
-        assertEquals(org.niis.xroad.restapi.openapi.model.ConnectionType.HTTPS_NO_AUTH, converted.getConnectionType());
-        assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberName());
+        assertEquals(org.niis.xroad.restapi.openapi.v2.model.ConnectionType.HTTPS_NO_AUTH, converted.getConnectionType());
+        assertEquals(MEMBER_NAME_PREFIX + "M4", converted.getMemberNameChangedV2());
     }
 
     @Test

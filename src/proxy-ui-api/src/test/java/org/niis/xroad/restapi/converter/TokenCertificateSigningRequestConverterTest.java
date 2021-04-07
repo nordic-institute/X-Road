@@ -32,8 +32,8 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.restapi.openapi.model.TokenCertificateSigningRequest;
+import org.niis.xroad.restapi.openapi.v2.model.PossibleAction;
+import org.niis.xroad.restapi.openapi.v2.model.TokenCertificateSigningRequest;
 import org.niis.xroad.restapi.openapi.v2.converter.TokenCertificateSigningRequestConverter;
 import org.niis.xroad.restapi.service.PossibleActionEnum;
 import org.niis.xroad.restapi.util.CertificateTestUtils.CertRequestInfoBuilder;

@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.restapi.openapi.model.User;
+import org.niis.xroad.restapi.openapi.v2.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;

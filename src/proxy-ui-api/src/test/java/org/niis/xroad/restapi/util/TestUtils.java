@@ -36,7 +36,7 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.niis.xroad.restapi.openapi.v2.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
-import org.niis.xroad.restapi.openapi.model.TimestampingService;
+import org.niis.xroad.restapi.openapi.v2.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.ResponseEntity;

@@ -32,11 +32,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.Endpoint;
-import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
-import org.niis.xroad.restapi.openapi.model.ServiceClient;
-import org.niis.xroad.restapi.openapi.model.ServiceClientType;
-import org.niis.xroad.restapi.openapi.model.ServiceClients;
+import org.niis.xroad.restapi.openapi.v2.model.Endpoint;
+import org.niis.xroad.restapi.openapi.v2.model.EndpointUpdate;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceClient;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceClientType;
+import org.niis.xroad.restapi.openapi.v2.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.v2.EndpointsApiController;
 import org.niis.xroad.restapi.service.ClientService;
 import org.niis.xroad.restapi.util.PersistenceUtils;

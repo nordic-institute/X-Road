@@ -78,7 +78,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDA
  * service descriptions api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ApiUtil.API_V2_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

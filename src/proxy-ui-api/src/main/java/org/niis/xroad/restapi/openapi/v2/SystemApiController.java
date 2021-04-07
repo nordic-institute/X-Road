@@ -88,7 +88,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FIL
  * system api controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ApiUtil.API_V2_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

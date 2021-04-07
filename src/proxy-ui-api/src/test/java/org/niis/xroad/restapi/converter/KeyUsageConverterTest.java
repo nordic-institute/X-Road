@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.converter;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.openapi.model.KeyUsage;
+import org.niis.xroad.restapi.openapi.v2.model.KeyUsage;
 import org.niis.xroad.restapi.openapi.v2.converter.KeyUsageConverter;
 
 import java.util.Arrays;
