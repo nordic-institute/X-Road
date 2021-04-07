@@ -61,6 +61,7 @@
                   :loading="loading"
                   :disabled="!(hasEditPermission && canEditName())"
                   @input="isFriendlyNameFieldDirty = true"
+                  data-test="token-friendly-name"
                   autofocus
                 ></v-text-field>
               </ValidationProvider>
@@ -72,13 +73,14 @@
                 @close="toggleChangePinOpen"
                 :isOpen="isChangePinOpen"
                 :isDisabled="!isTokenLoggedIn()"
-                :color="'#9c9c9c'"
+                color="#9c9c9c"
+                data-test="token-open-pin-change-button"
               >
                 <template v-slot:link>
                   <div
                     :class="isTokenLoggedIn() && 'pointer'"
                     @click="toggleChangePinOpen"
-                    data-test="open-pin-change"
+                    data-test="token-open-pin-change-link"
                   >
                     <span class="font-weight-black">{{
                       $t('token.changePin')
@@ -103,6 +105,7 @@
                         :maxlength="255"
                         :error-messages="errors"
                         :loading="loading"
+                        data-test="token-change-pin-old"
                       ></v-text-field>
                     </ValidationProvider>
                   </v-row>
@@ -123,6 +126,7 @@
                         :maxlength="255"
                         :error-messages="errors"
                         :loading="loading"
+                        data-test="token-change-pin-new"
                       ></v-text-field>
                     </ValidationProvider>
                   </v-row>
@@ -144,6 +148,7 @@
                         :maxlength="255"
                         :error-messages="errors"
                         :loading="loading"
+                        data-test="token-change-pin-new-confirm"
                       ></v-text-field>
                     </ValidationProvider>
                   </v-row>
@@ -154,13 +159,14 @@
         </v-row>
       </div>
       <div class="footer-button-wrap">
-        <xrd-button @click="close()" outlined
+        <xrd-button @click="close()" outlined data-test="token-details-cancel"
           >{{ $t('action.cancel') }}
         </xrd-button>
         <xrd-button
           :loading="saveBusy"
           @click="save()"
           :disabled="!dirty || invalid"
+          data-test="token-details-save"
           >{{ $t('action.save') }}
         </xrd-button>
       </div>
