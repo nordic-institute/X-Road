@@ -41,7 +41,7 @@
           <v-icon v-else color="primary">mdi-chevron-right</v-icon>
         </v-btn>
       </div>
-      <div v-bind:class="isDisabled && 'text--disabled'">
+      <div v-bind:class="{ 'text--disabled': isDisabled }">
         <slot name="link"></slot>
       </div>
 
@@ -52,7 +52,7 @@
     </div>
     <div
       v-if="isOpen"
-      v-bind:class="'exp-content-wrap' && isDisabled && 'v-input--disabled'"
+      v-bind:class="['exp-content-wrap', { 'v-input--disabled': isDisabled }]"
     >
       <slot name="content"></slot>
     </div>

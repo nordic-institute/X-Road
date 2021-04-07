@@ -73,7 +73,6 @@
                 @close="toggleChangePinOpen"
                 :isOpen="isChangePinOpen"
                 :isDisabled="!isTokenLoggedIn()"
-                color="#9c9c9c"
                 data-test="token-open-pin-change-button"
               >
                 <template v-slot:link>
@@ -244,10 +243,9 @@ export default Vue.extend({
         this.$router.go(-1);
       } catch (error) {
         await this.$store.dispatch('showError', error);
+      } finally {
         this.saveBusy = false;
       }
-
-      this.saveBusy = false;
     },
 
     fetchData(): void {
