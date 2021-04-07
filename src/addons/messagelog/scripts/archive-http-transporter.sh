@@ -116,7 +116,7 @@ flock -n 123 || die "There is archive transporter process already running"
   shopt -s nullglob
   for i in "$ARCHIVE_DIR"/*.zip; do
     http_code=$(curl -s -S -o /dev/null -w "%{http_code}" \
-        -F file=@"$i" $HTTPS_OPTIONS $URL)
+        -F file=@"$i" $HTTPS_OPTIONS --url "$URL")
     ret=$?
 
     if [ $ret -ne 0 ]; then
