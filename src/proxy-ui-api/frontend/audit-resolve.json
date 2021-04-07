@@ -6,8 +6,8 @@
     },
     "1658|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>pac-resolver>netmask": {
       "decision": "ignore",
-      "madeAt": 1617096864560,
-      "expiresAt": 1617701646296
+      "madeAt": 1617798000304,
+      "expiresAt": 1620389984501
     }
   },
   "rules": {},
