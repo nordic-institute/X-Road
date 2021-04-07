@@ -135,6 +135,7 @@ export enum Permissions {
   SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
+  UPDATE_TOKEN_PIN = 'UPDATE_TOKEN_PIN', // token details
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES', // not needed because roles can't access the view
   VIEW_ANCHOR = 'VIEW_ANCHOR', // settings > system paramters > configuration anchor
