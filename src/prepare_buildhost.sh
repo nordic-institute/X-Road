@@ -16,3 +16,13 @@ fi
 sudo apt-get install -y openjdk-8-jdk-headless build-essential git unzip debhelper devscripts
 sudo update-ca-certificates -f
 
+mkdir -p /var/tmp/xroad
+
+if [[ $REL -ge 16 && ! -e /.dockerenv ]]; then
+    if ! command -v docker &>/dev/null; then
+        echo "Install docker"
+        sudo apt-get install -y docker.io
+        sudo addgroup $(whoami) docker
+        newgrp docker
+    fi
+fi
