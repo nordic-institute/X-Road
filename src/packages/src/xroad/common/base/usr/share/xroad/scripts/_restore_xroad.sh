@@ -165,6 +165,8 @@ extract_to_tmp_restore_dir () {
       cp /etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties
   fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
+  # remove executable bit from all files (but not from directories)
+  find "$RESTORE_DIR" -type f -executable -execdir chmod a-x {} +
 }
 
 restore_configuration_files () {
