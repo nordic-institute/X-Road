@@ -38,28 +38,34 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * groups api
  */
-//@Controller(value = "localGroupsApiControllerv1")
-//@RequestMapping(ApiUtil.API_V1_PREFIX)
-//@Slf4j
-//@PreAuthorize("denyAll")
-//@RequiredArgsConstructor
+@Controller(value = "localGroupsApiControllerV1")
+@RequestMapping(ApiUtil.API_V1_PREFIX)
+@Slf4j
+@PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class LocalGroupsApiController implements LocalGroupsApi {
 
-//    private final org.niis.xroad.restapi.openapi.v2.LocalGroupsApiController localGroupsApiControllerV2;
-//
-//    @Override
-//    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-//    public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
-//        ResponseEntity<org.niis.xroad.restapi.openapi.v2.model.LocalGroup> responseFromV2 =
-//                localGroupsApiControllerV2.getLocalGroup(groupIdString);
-//        return convert(responseFromV2);
-//    }
-//
-//    private ResponseEntity<LocalGroup> convert(
-//            ResponseEntity<org.niis.xroad.restapi.openapi.v2.model.LocalGroup> response) {
-//        LocalGroup l = new LocalGroup();
-//        BeanUtils.copyProperties(response.getBody(), l);
-//        return new ResponseEntity<>(l, response.getStatusCode());
-//    }
+    private final org.niis.xroad.restapi.openapi.v2.LocalGroupsApiController localGroupsApiControllerV2;
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
+    public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
+        log.info("getLocalGroup V1");
+        ResponseEntity<org.niis.xroad.restapi.openapi.v2.model.LocalGroup> responseFromV2 =
+                localGroupsApiControllerV2.getLocalGroup(groupIdString);
+        return convert(responseFromV2);
+    }
+
+    /**
+     * Only a shallow copy
+     * @param response
+     * @return
+     */
+    private ResponseEntity<LocalGroup> convert(
+            ResponseEntity<org.niis.xroad.restapi.openapi.v2.model.LocalGroup> response) {
+        LocalGroup l = new LocalGroup();
+        BeanUtils.copyProperties(response.getBody(), l);
+        return new ResponseEntity<>(l, response.getStatusCode());
+    }
 
 }

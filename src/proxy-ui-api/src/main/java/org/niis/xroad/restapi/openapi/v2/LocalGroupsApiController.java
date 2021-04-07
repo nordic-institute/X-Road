@@ -79,6 +79,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
     public ResponseEntity<LocalGroup> getLocalGroup(String groupIdString) {
+        log.info("getLocalGroup V2");
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
     }

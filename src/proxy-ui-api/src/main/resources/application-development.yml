@@ -5,15 +5,15 @@ logging:
   level:
     org:
       springframework:
-        security: DEBUG
+        security: ERROR
       hibernate:
         SQL:
-          TRACE
+          INFO
         type:
           descriptor:
             sql:
               BasicBinder:
-                TRACE
+                INFO
 web:
   security:
-    debug: true
+    debug: false

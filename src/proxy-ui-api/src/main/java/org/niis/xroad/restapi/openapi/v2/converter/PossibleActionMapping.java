@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 /**
- * Mapping between {@link org.niis.xroad.restapi.openapi.model.PossibleAction} in api (enum) and
+ * Mapping between {@link org.niis.xroad.restapi.openapi.v2.model.PossibleAction} in api (enum) and
  * model {@link PossibleActionEnum} status string
  */
 @Getter

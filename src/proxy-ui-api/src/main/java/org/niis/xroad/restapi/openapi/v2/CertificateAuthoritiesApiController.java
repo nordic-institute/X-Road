@@ -88,10 +88,10 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     @Override
     @PreAuthorize("hasAuthority('VIEW_APPROVED_CERTIFICATE_AUTHORITIES')"
             + " or (hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION"
+            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.v2.model.KeyUsageType).AUTHENTICATION"
             + " or #keyUsageType == null))"
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
+            + "#keyUsageType == T(org.niis.xroad.restapi.openapi.v2.model.KeyUsageType).SIGNING)")
     public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
             Boolean includeIntermediateCas) {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
@@ -108,9 +108,9 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
     @SuppressWarnings("squid:S3655") // see reason below
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
+            + " (#keyUsageType == T(org.niis.xroad.restapi.openapi.v2.model.KeyUsageType).AUTHENTICATION))"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "(#keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING))")
+            + "(#keyUsageType == T(org.niis.xroad.restapi.openapi.v2.model.KeyUsageType).SIGNING))")
     public ResponseEntity<List<CsrSubjectFieldDescription>> getSubjectFieldDescriptions(
             String caName,
             KeyUsageType keyUsageType,

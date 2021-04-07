@@ -155,7 +155,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
                 .subsystemCode(subsystemCode)
                 .status(ClientStatus.SAVED);
         ClientAdd clientAdd = new ClientAdd().client(client);
-        return restTemplate.postForEntity("/api/v1/clients", clientAdd, Object.class);
+        return restTemplate.postForEntity("/api/v2/customers", clientAdd, Object.class);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
                 .url("http://www.google.com")
                 .restServiceCode(restServiceCode)
                 .type(ServiceType.REST);
-        return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/service-descriptions",
+        return restTemplate.postForEntity("/api/v2/customers/FI:GOV:M1:SS1/service-descriptions",
                 serviceDescriptionAdd, Object.class);
     }
 
@@ -207,7 +207,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
                 .newRestServiceCode(restServiceCode)
                 .type(ServiceType.REST);
 
-        return restTemplate.patchForObject("/api/v1/service-descriptions/1", serviceDescriptionUpdate, Object.class);
+        return restTemplate.patchForObject("/api/v2/service-descriptions/1", serviceDescriptionUpdate, Object.class);
     }
 
     private void assertUpdateServiceDescriptionValidationFailure(String restServiceCode) {
@@ -251,7 +251,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
                 .ownerMemberClass(ownerMemberClass)
                 .ownerMemberCode(ownerMemberCode)
                 .softwareTokenPin("1234");
-        return restTemplate.postForEntity("/api/v1/initialization", initialServerConf, Object.class);
+        return restTemplate.postForEntity("/api/v2/initialization", initialServerConf, Object.class);
     }
 
     private void assertInitialServerConfValidationError(String securityServerCode, String ownerMemberClass,
@@ -343,13 +343,13 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         HttpEntity<LocalGroupDescription> localGroupDescriptionEntity = new HttpEntity<>(localGroupDescription);
         ParameterizedTypeReference<LocalGroup> typeRef = new ParameterizedTypeReference<LocalGroup>() {
         };
-        return restTemplate.exchange("/api/v1/local-groups/0", HttpMethod.PATCH, localGroupDescriptionEntity,
+        return restTemplate.exchange("/api/v2/local-groups/0", HttpMethod.PATCH, localGroupDescriptionEntity,
                 Object.class);
     }
 
     private ResponseEntity<Object> createTestLocalGroup(String localGroupCode, String localGroupDescription) {
         LocalGroupAdd localGroupAdd = new LocalGroupAdd().code(localGroupCode).description(localGroupDescription);
-        return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/local-groups", localGroupAdd, Object.class);
+        return restTemplate.postForEntity("/api/v2/customers/FI:GOV:M1:SS1/local-groups", localGroupAdd, Object.class);
     }
 
     private void assertValidationErrors(ResponseEntity<Object> response,

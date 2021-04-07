@@ -131,9 +131,9 @@ public class KeysApiController implements KeysApi {
     @SuppressWarnings("squid:S3655") // see reason below
     @Override
     @PreAuthorize("(hasAuthority('GENERATE_AUTH_CERT_REQ') and "
-            + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).AUTHENTICATION)"
+            + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.v2.model.KeyUsageType).AUTHENTICATION)"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
-            + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.model.KeyUsageType).SIGNING)")
+            + "#csrGenerate.keyUsageType == T(org.niis.xroad.restapi.openapi.v2.model.KeyUsageType).SIGNING)")
     @AuditEventMethod(event = GENERATE_CSR)
     public ResponseEntity<Resource> generateCsr(String keyId, CsrGenerate csrGenerate) {
 
