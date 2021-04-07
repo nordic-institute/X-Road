@@ -783,7 +783,7 @@ paths:
             default: false
         - in: query
           name: new_v2_boolean_param
-          description: some boolean parameter that only exists for v2 API. Also, internal_search param has been removed (let's say it is e.g. always "false")
+          description: some boolean parameter that only exists for v2 API. Also, internal_search param has been removed (let's say it is e.g. always "false" for v2)
           required: false
           schema:
             type: boolean

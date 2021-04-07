@@ -112,6 +112,9 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -171,28 +174,51 @@ public class ClientsApiController implements ClientsApi {
 
     /**
      * Finds clients matching search terms
-     * @param name
-     * @param instance
-     * @param memberClass
-     * @param memberCode
-     * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
-     * @param internalSearch search only in the local clients
      * @return
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
+            String memberCode,
+            String subsystemCode,
+            Boolean showMembers,
+            Boolean hasFunctionalSignCert,
+            Boolean newV2BooleanParam,
+            Boolean excludeLocal) {
+
+        log.info("findClients V2");
+        Boolean internalSearch = false; // always false for V2
+        Boolean localValidSignCert = false; // let's say this is also always false for V2 API
+        return findClientsMultiVersion(name, instance, memberClass,
+                memberCode, subsystemCode, showMembers, internalSearch,
+                localValidSignCert, hasFunctionalSignCert,
+                newV2BooleanParam, excludeLocal);
+    }
+
+    /**
+     * Shared between V1 and V2 endpoints
+     * @return
+     */
+    @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
+    public ResponseEntity<List<Client>> findClientsMultiVersion(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-            Boolean localValidSignCert, Boolean excludeLocal) {
+            Boolean localValidSignCert, Boolean hasFunctionalSignCert,
+            Boolean newV2BooleanParam, Boolean excludeLocal) {
+        // we're faking hasFunctionalSignCert and newV2BooleanParam in this example, not using those in reality
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 localValidSignCert, excludeLocal));
+        if (Boolean.TRUE.equals(newV2BooleanParam)) {
+            for (Client client: clients) {
+                client.setMemberNameChangedV2("***" + client.getMemberNameChangedV2() + "***");
+            }
+        }
         Collections.sort(clients, clientSortingComparator);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
+
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")

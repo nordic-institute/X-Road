@@ -714,7 +714,7 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
-  /customers:
+  /clients:
     get:
       tags:
         - clients
