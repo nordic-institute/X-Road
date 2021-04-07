@@ -148,6 +148,7 @@ export enum Colors {
   Black70 = '#636161',
   Black100 = '#211e1e',
   White100 = '#ffffff',
+  Yellow = '#f2994A',
   WarmGrey10 = '#f4f3f6',
   WarmGrey20 = '#eae8ee',
   WarmGrey30 = '#dedce4',

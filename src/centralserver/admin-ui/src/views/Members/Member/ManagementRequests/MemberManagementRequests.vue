@@ -24,18 +24,81 @@
    THE SOFTWARE.
  -->
 <template>
-  <h3>Management requests</h3>
+  <main id="member-management-requests">
+    <div id="management-request-filters">
+      <xrd-search class="search" :label="$t('global.search')"></xrd-search>
+      <v-checkbox
+        class="show-only-waiting"
+        :label="$t('members.member.managementRequests.showOnlyWaiting')"
+        :background-color="colors.Purple100100"
+        :input-value="showOnlyWaitingRequests"
+      />
+    </div>
+
+    <v-card class="mt-4">
+      <v-card-text>
+        <xrd-table>
+          <thead>
+            <tr>
+              <th>
+                {{ $t('members.member.managementRequests.id') }}
+                <v-icon>icon-Sorting-arrow</v-icon>
+              </th>
+              <th>{{ $t('members.member.managementRequests.created') }}</th>
+              <th>{{ $t('members.member.managementRequests.type') }}</th>
+              <th>{{ $t('members.member.managementRequests.status') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>2</td>
+              <td>2021-09-04 10:15</td>
+              <td>Client registration</td>
+              <td class="status">
+                <v-icon :color="colors.Yellow">icon-Error</v-icon> waiting
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td>2021-09-04 10:15</td>
+              <td>Client deletion</td>
+              <td class="status">
+                <v-icon :color="colors.Success100">icon-Error</v-icon> approved
+              </td>
+            </tr>
+          </tbody>
+        </xrd-table>
+      </v-card-text>
+    </v-card>
+  </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { Colors } from '@/global';
 
 /**
  * Component for Member management requests
  */
 export default Vue.extend({
   name: 'MemberManagementRequests',
+  data() {
+    return {
+      colors: Colors,
+      showOnlyWaitingRequests: false as boolean,
+    };
+  },
 });
 </script>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.status {
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+#management-request-filters {
+  display: flex;
+  justify-content: space-between;
+}
+</style>

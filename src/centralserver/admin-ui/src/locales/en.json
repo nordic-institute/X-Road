@@ -9,7 +9,8 @@
     "approve": "Approve",
     "navigation": {
       "back": "Back"
-    }
+    },
+    "search": "Search"
   },
   "footer": {
     "software": {
@@ -73,6 +74,13 @@
         "serverOwner": "Server owner",
         "status": "Status",
         "addClient": "Add Client"
+      },
+      "managementRequests": {
+        "id": "Req id",
+        "created": "Created",
+        "type": "Request type",
+        "status": "Status",
+        "showOnlyWaiting": "Show only waiting requests"
       }
     }
 

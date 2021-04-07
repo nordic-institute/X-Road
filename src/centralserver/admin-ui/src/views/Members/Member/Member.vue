@@ -49,7 +49,7 @@
 import Vue from 'vue';
 import PageNavigation, {
   NavigationItem,
-} from '@/components/layout/PageNavigation';
+} from '@/components/layout/PageNavigation.vue';
 import { Colors } from '@/global';
 
 /**
@@ -74,15 +74,17 @@ export default Vue.extend({
       return [
         {
           url: `/members/${this.memberid}/details`,
-          label: this.$t('members.member.pagenavigation.details'),
+          label: this.$t('members.member.pagenavigation.details') as string,
         },
         {
           url: `/members/${this.memberid}/managementrequests`,
-          label: this.$t('members.member.pagenavigation.managementRequests'),
+          label: this.$t(
+            'members.member.pagenavigation.managementRequests',
+          ) as string,
         },
         {
           url: `/members/${this.memberid}/subsystems`,
-          label: this.$t('members.member.pagenavigation.subsystems'),
+          label: this.$t('members.member.pagenavigation.subsystems') as string,
         },
       ];
     },

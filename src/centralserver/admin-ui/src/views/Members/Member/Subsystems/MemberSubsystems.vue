@@ -24,9 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-
   <v-card class="mt-8">
-
     <div class="card-corner-button pt-4 pr-4">
       <xrd-button outlined data-test="add-member-to-group">
         <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
@@ -38,10 +36,13 @@
       <xrd-table>
         <thead>
           <tr>
-            <th>{{ $t('members.member.subsystems.subsystemcode' )}} <v-icon class="sorting-flip">icon-Sorting-arrow</v-icon></th>
-            <th>{{ $t('members.member.subsystems.servercode' )}}</th>
-            <th>{{ $t('members.member.subsystems.serverOwner' )}}</th>
-            <th>{{ $t('members.member.subsystems.status' )}}</th>
+            <th>
+              {{ $t('members.member.subsystems.subsystemcode') }}
+              <v-icon class="sorting">icon-Sorting-arrow</v-icon>
+            </th>
+            <th>{{ $t('members.member.subsystems.servercode') }}</th>
+            <th>{{ $t('members.member.subsystems.serverOwner') }}</th>
+            <th>{{ $t('members.member.subsystems.status') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -50,8 +51,15 @@
             <td>Management</td>
             <td class="xrd-clickable">NIIS-SS1</td>
             <td></td>
-            <td class="status"><v-icon :small="true" :color="colors.Success100">icon-Checked</v-icon> Registered</td>
-            <td class="subsystem-actions"><span class="xrd-clickable">Delete</span></td>
+            <td class="status">
+              <v-icon :small="true" :color="colors.Success100"
+                >icon-Checked</v-icon
+              >
+              Registered
+            </td>
+            <td class="subsystem-actions">
+              <span class="xrd-clickable">Delete</span>
+            </td>
           </tr>
           <tr class="unregistered-subsystem">
             <td>RR</td>
@@ -67,14 +75,24 @@
             <td rowspan="2">DHX</td>
             <td class="xrd-clickable">NIIS-SS1</td>
             <td class="xrd-clickable">NIIS</td>
-            <td class="status"><v-icon :small="true" :color="colors.Success100">icon-Checked</v-icon> Registered</td>
-            <td class="subsystem-actions"><span class="xrd-clickable">Delete</span></td>
+            <td class="status">
+              <v-icon :small="true" :color="colors.Success100"
+                >icon-Checked</v-icon
+              >
+              Registered
+            </td>
+            <td class="subsystem-actions">
+              <span class="xrd-clickable">Delete</span>
+            </td>
           </tr>
           <tr>
             <td class="xrd-clickable">NIIS-FUTU</td>
             <td class="xrd-clickable">FUTU</td>
             <td class="status">
-              <v-icon :small="true" :color="colors.Success100">icon-In-progress</v-icon> Pending approval
+              <v-icon :small="true" :color="colors.Success100"
+                >icon-In-progress</v-icon
+              >
+              Pending approval
             </td>
             <td class="subsystem-actions">
               <span class="xrd-clickable">Approve</span>
@@ -85,13 +103,11 @@
       </xrd-table>
     </v-card-text>
   </v-card>
-
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import {Colors} from "@/global";
-
+import { Colors } from '@/global';
 
 /**
  * Component for Member Subsystem
@@ -100,9 +116,9 @@ export default Vue.extend({
   name: 'MemberSubsystems',
   data() {
     return {
-      colors: Colors
-    }
-  }
+      colors: Colors,
+    };
+  },
 });
 </script>
 
@@ -119,7 +135,7 @@ export default Vue.extend({
   font-weight: bold;
 }
 
-.subsystem-actions  {
+.subsystem-actions {
   text-align: right;
 
   .xrd-clickable {
@@ -127,12 +143,11 @@ export default Vue.extend({
   }
 }
 
-.sorting-flip {
+.sorting {
   margin-bottom: 5px;
 }
 
 .unregistered-subsystem {
   background-color: $XRoad-WarmGrey30;
 }
-
 </style>
