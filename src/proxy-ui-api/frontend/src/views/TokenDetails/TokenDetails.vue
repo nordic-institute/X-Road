@@ -71,11 +71,12 @@
                 @open="toggleChangePinOpen"
                 @close="toggleChangePinOpen"
                 :isOpen="isChangePinOpen"
+                :isDisabled="!isTokenLoggedIn()"
                 :color="'#9c9c9c'"
               >
                 <template v-slot:link>
                   <div
-                    class="pointer"
+                    :class="isTokenLoggedIn() && 'pointer'"
                     @click="toggleChangePinOpen"
                     data-test="open-pin-change"
                   >
@@ -195,6 +196,9 @@ export default Vue.extend({
         Permissions.EDIT_TOKEN_FRIENDLY_NAME,
       );
     },
+    canUpdatePin(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_TOKEN_PIN);
+    },
   },
   data() {
     return {
@@ -216,11 +220,13 @@ export default Vue.extend({
       this.saveBusy = true;
 
       try {
+        let successMsg = this.$t('keys.tokenSaved') as string;
         if (this.isChangePinOpen) {
           await api.put(
             `/tokens/${encodePathParameter(this.id)}/pin`,
             this.tokenPinUpdate,
           );
+          successMsg = this.$t('token.pinChanged') as string;
         }
         if (this.isFriendlyNameFieldDirty) {
           await api.patch(
@@ -228,7 +234,7 @@ export default Vue.extend({
             this.token,
           );
         }
-        await this.$store.dispatch('showSuccess', 'keys.tokenSaved');
+        await this.$store.dispatch('showSuccessRaw', successMsg);
         this.$router.go(-1);
       } catch (error) {
         await this.$store.dispatch('showError', error);
@@ -261,11 +267,18 @@ export default Vue.extend({
       );
     },
 
-    canUpdatePin(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_TOKEN_PIN);
+    isTokenLoggedIn(): boolean {
+      return (
+        this.token.possible_actions?.includes(
+          PossibleAction.TOKEN_CHANGE_PIN,
+        ) ?? false
+      );
     },
 
     toggleChangePinOpen(): void {
+      if (!this.isTokenLoggedIn()) {
+        return;
+      }
       this.isChangePinOpen = !this.isChangePinOpen;
       this.tokenPinUpdate.old_pin = '';
       this.tokenPinUpdate.new_pin = '';

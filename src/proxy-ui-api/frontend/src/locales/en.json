@@ -425,7 +425,8 @@
     }
   },
   "token": {
-    "changePin": "Change the pin"
+    "changePin": "Change the pin",
+    "pinChanged": "Token pin was changed – please log in the token with the new pin"
   },
   "ssTlsCertificate": {
     "generateKey": "Generate key",
