@@ -61,6 +61,10 @@ var navigateCommands = {
     this.click('@snackBarCloseButton');
     return this;
   },
+  closeAlertMessage: function () {
+    this.click('@alertCloseButton');
+    return this;
+  },
   closeSessionExpiredPopup: function () {
     this.click('@sessionExpiredPopupOkButton');
     return this;
@@ -641,6 +645,14 @@ module.exports = {
       selector: '//div[contains(@class, "v-snack__content")]',
       locateStrategy: 'xpath',
     },
+    alertCloseButton: {
+      selector: '//button[@data-test="close-snackbar"]',
+      locateStrategy: 'xpath',
+    },
+    alertMessage: {
+      selector: '//div[@data-test="contextual-alert"]//div[contains(@class, "row-wrapper")]/div',
+      locateStrategy: 'xpath',
+    },
     sessionExpiredPopupOkButton: {
       selector: '//button[@data-test="session-expired-ok-button"]',
       locateStrategy: 'xpath',
@@ -673,7 +685,7 @@ module.exports = {
         },
         internalServersTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="internalServers"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Internal servers")]',
           locateStrategy: 'xpath',
         },
         localGroupsTab: {
@@ -697,7 +709,7 @@ module.exports = {
         },
         internalServers: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and @data-test="internalServers"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Internal servers")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientInternalServersCommands],
           elements: {
@@ -904,7 +916,7 @@ module.exports = {
     },
     certificatePopup: {
       selector:
-        '//div[contains(@class, "certificate-details-wrapper")]',
+        '//div[@data-test="certificate-details-dialog"]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {

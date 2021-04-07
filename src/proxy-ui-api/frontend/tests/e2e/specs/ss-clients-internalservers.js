@@ -112,12 +112,12 @@ module.exports = {
     clientInternalServers.addCert(
       browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
     );
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Certificate already exists'
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Certificate already exists'
     mainPage.closeSnackbar();
 
     // Open and verify certificate info
     clientInternalServers.openTLSCert();
-    browser.waitForElementVisible(certificatePopup);
+    browser.waitForElementVisible(certificatePopup); //
 
     browser.assert.containsText(
       certificatePopup,
