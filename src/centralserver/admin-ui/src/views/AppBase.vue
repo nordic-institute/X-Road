@@ -91,12 +91,9 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '@/assets/shared';
+
 .base-full-width {
   width: 100%;
-  padding-bottom: 40px;
-}
-
-.bottom-pad {
   padding-bottom: 40px;
 }
 

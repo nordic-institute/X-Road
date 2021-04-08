@@ -41,6 +41,7 @@ import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 import MockView1 from '@/views/MockView1.vue';
 import MockView2 from '@/views/MockView2.vue';
 import MockSubview from '@/views/MockSubview.vue';
+import Members from '@/views/Members/Members.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -99,7 +100,7 @@ const routes: RouteConfig[] = [
         name: RouteName.Members,
         path: '/members',
         components: {
-          default: MockView1,
+          default: Members,
           top: TabsBase,
           alerts: AlertsContainer,
         },

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,40 +24,52 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
+<!--
+This component is a wrapper for a X-Road table component that contains default styles
+-->
+
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-tabs
-      class="xrd-tabs"
-      color="primary"
-      :background-color="colors.WarmGrey10"
-      slider-size="2"
-    >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
-      <slot></slot>
-    </v-tabs>
-  </div>
+  <table class="xrd-table">
+    <slot></slot>
+  </table>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from 'vue';
-import { Colors } from '@/global';
 
 export default Vue.extend({
-  data() {
-    return {
-      colors: Colors,
-    };
-  },
+  name: 'xrd-table',
 });
 </script>
 
-<style lang="scss">
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
+<style scoped lang="scss">
+@import '../assets/colors';
+
+.xrd-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+
+  td {
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    padding-left: 16px;
+  }
+
+  th {
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    padding-left: 16px;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: $XRoad-WarmGrey100;
+  }
+
+  &.xrd-table-highlightable tbody tr:hover {
+    cursor: pointer;
+    background-color: $XRoad-Purple10;
+  }
 }
 </style>
