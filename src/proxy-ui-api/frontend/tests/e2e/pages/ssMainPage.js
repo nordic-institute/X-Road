@@ -690,7 +690,7 @@ module.exports = {
         },
         localGroupsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="localGroups"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
           locateStrategy: 'xpath',
         },
       },
@@ -734,7 +734,7 @@ module.exports = {
         },
         localGroups: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and @data-test="localGroups"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Local groups")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientLocalGroupsCommands],
           elements: {
@@ -1002,7 +1002,7 @@ module.exports = {
         },
         localGroupDescriptionLabel: {
           selector:
-            '//div[@data-test="local-group-edit-description-label"]',
+            '//div[@data-test="ocal-group-edit-description-label"]',
           locateStrategy: 'xpath',
         },
         localGroupDescription: {
