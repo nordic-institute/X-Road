@@ -34,13 +34,14 @@
           small
           @click="clicked"
           class="no-hover"
-          v-bind:style="{ color: color }"
+          v-bind:disabled="isDisabled"
+          v-bind:style="{ color }"
         >
           <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
           <v-icon v-else color="primary">mdi-chevron-right</v-icon>
         </v-btn>
       </div>
-      <div>
+      <div v-bind:class="{ 'text--disabled': isDisabled }">
         <slot name="link"></slot>
       </div>
 
@@ -49,7 +50,10 @@
         <slot name="action"></slot>
       </div>
     </div>
-    <div v-if="isOpen" class="exp-content-wrap">
+    <div
+      v-if="isOpen"
+      v-bind:class="['exp-content-wrap', { 'v-input--disabled': isDisabled }]"
+    >
       <slot name="content"></slot>
     </div>
   </div>
@@ -72,9 +76,17 @@ export default Vue.extend({
       type: String,
       required: false,
     },
+    isDisabled: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
   },
   methods: {
     clicked(): void {
+      if (this.isDisabled) {
+        return;
+      }
       if (this.isOpen) {
         this.$emit('close');
       } else {
