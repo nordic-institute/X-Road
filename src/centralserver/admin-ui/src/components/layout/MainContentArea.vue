@@ -24,39 +24,28 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-tabs
-      class="xrd-tabs"
-      color="primary"
-      :background-color="colors.WarmGrey10"
-      slider-size="2"
-    >
-      <v-tabs-slider
-        color="primary"
-        class="xrd-sub-tabs-slider"
-      ></v-tabs-slider>
-      <slot></slot>
-    </v-tabs>
+  <div class="xrd-view-common content">
+    <slot></slot>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Colors } from '@/global';
 
-export default Vue.extend({
-  data() {
-    return {
-      colors: Colors,
-    };
-  },
-});
+export default Vue.extend({});
 </script>
 
-<style lang="scss">
-.v-tabs-slider.xrd-sub-tabs-slider {
-  width: 40px;
-  margin-left: auto;
-  margin-right: auto;
+<style scoped lang="scss">
+.content {
+  margin-top: 40px;
+  padding-left: 10px;
+  padding-right: 10px;
+  width: 100%;
+  max-width: 1600px;
+
+  padding-left: 92px;
+  @media only screen and (max-width: 920px) {
+    padding-left: 0px;
+  }
 }
 </style>

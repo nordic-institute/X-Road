@@ -34,5 +34,12 @@
     "fields": {
         "password": "Password",
         "username": "Username"
+    },
+    "members": {
+      "header": "Members",
+      "addMember": "Add member",
+      "memberName": "Member name",
+      "memberClass": "Member class",
+      "memberCode": "Member code"
     }
 }
