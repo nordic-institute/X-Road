@@ -49,7 +49,8 @@ create_database_backup () {
 
 create_backup_tarball () {
   echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"
-  tar --create -v --label "${TARBALL_LABEL}" --file ${BACKUP_FILENAME} --exclude="tmp*.tmp" --exclude="/etc/xroad/postgresql" ${BACKED_UP_PATHS}
+  tar --create -v --label "${TARBALL_LABEL}" --file ${BACKUP_FILENAME} --exclude="tmp*.tmp" \
+      --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" ${BACKED_UP_PATHS}
   if [ $? != 0 ] ; then
     echo "Removing incomplete backup archive"
     rm -v ${BACKUP_FILENAME}

@@ -2,6 +2,20 @@
 get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
+while getopts "F" opt ; do
+  case ${opt} in
+    F)
+      FORCE_RESTORE=true
+      ;;
+    \?)
+      echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
+      exit 2
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
 dump_file="$1"
 db_properties=/etc/xroad/db.properties
 root_properties=/etc/xroad.properties
@@ -30,7 +44,7 @@ db_addr=${hosts[0]%%:*}
 db_port=${hosts[0]##*:}
 
 remote_psql() {
-  psql -h "$db_addr" -p "$db_port" -qtA "$@"
+  psql -v ON_ERROR_STOP=1 -h "$db_addr" -p "$db_port" -qtA "$@"
 }
 
 psql_adminuser() {
@@ -41,13 +55,42 @@ psql_dbuser() {
   PGOPTIONS="$pg_options" PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
 }
 
-{ cat <<EOF
-BEGIN;
-DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
+pgrestore() {
+  # no --clean for force restore
+  if [[ $FORCE_RESTORE == true ]] ; then
+    PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+      pg_restore --single-transaction -d "$db_database" --schema=$db_schema $dump_file
+  else
+    PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
+      pg_restore --single-transaction --clean -d "$db_database" --schema=$db_schema $dump_file
+  fi
+}
+
+if [[ $FORCE_RESTORE == true ]] ; then
+  { cat <<EOF
+     DROP SCHEMA IF EXISTS $db_schema CASCADE;
 EOF
-  cat "$dump_file"
-  echo "COMMIT;"
-} | psql_adminuser || abort "Restoring database failed."
+  } | psql_adminuser || abort "Restoring database failed. Could not drop schema."
+fi
+
+# PostgreSQL 9.2 and earlier do not support CREATE SCHEMA IF NOT EXISTS
+{ cat <<EOF
+DO \$\$
+BEGIN
+    IF NOT EXISTS(
+        SELECT schema_name
+          FROM information_schema.schemata
+          WHERE schema_name = '$db_schema'
+      )
+    THEN
+      EXECUTE 'CREATE SCHEMA $db_schema';
+    END IF;
+END
+\$\$;
+EOF
+} | psql_adminuser || abort "Restoring database failed. Could not create schema."
+
+pgrestore || abort "Restoring database failed."
 
 # PostgreSQL does not in all cases detect that prepared statements in open sessions
 # need to be re-parsed. Therefore, try to forcibly close any serverconf connections.
@@ -74,4 +117,4 @@ JAVA_OPTS="-Ddb_user=$db_user -Ddb_schema=$db_schema" /usr/share/xroad/db/liquib
   --defaultSchemaName="${db_schema}" \
   $context \
   update \
-  || die "Database schema migration failed."
+  || abort "Database schema migration failed."

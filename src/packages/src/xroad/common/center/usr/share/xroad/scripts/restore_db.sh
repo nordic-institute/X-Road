@@ -7,6 +7,20 @@ get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 get_db_prop() { get_prop "/etc/xroad/db.properties" "$@"; }
 abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
+while getopts "F" opt ; do
+  case ${opt} in
+    F)
+      FORCE_RESTORE=true
+      ;;
+    \?)
+      echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
+      exit 2
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
 DUMP_FILE=$1
 USER=$(get_db_prop 'username' 'centerui')
 SCHEMA=$(get_db_prop 'schema' "$USER")

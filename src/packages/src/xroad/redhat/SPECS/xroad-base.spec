@@ -76,6 +76,7 @@ rm -rf %{buildroot}
 %dir /var/lib/xroad
 %dir /var/lib/xroad/backup
 %config /etc/xroad/services/global.conf
+%config(noreplace) /etc/xroad/services/local.properties
 %config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
 
