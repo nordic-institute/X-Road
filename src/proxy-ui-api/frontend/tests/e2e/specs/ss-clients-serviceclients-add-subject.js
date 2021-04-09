@@ -165,7 +165,7 @@ module.exports = {
     addSubjectMemberStepPage.assertWizardFirstPage();
     addSubjectMemberStepPage.cancel();
     browser.expect.element(
-      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
     ).to.be.visible;
     serviceClientsPage.openAddServiceClient();
     browser.waitForElementVisible(
@@ -224,7 +224,7 @@ module.exports = {
     // Test cancel on second page
     addSubjectServiceStepPage.cancel();
     browser.waitForElementVisible(
-      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
     );
     browser.end();
   },
@@ -267,7 +267,7 @@ module.exports = {
     addSubjectServiceStepPage.clickAddSelectedButton();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
     browser.waitForElementVisible(
-      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
     );
     browser.waitForElementVisible(
       '//table[contains(@class, "service-clients-table")]//td[contains(text(), "TestClient")]',
