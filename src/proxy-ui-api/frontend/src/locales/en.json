@@ -424,6 +424,10 @@
       "unsaved": "Not saved"
     }
   },
+  "token": {
+    "changePin": "Change the pin",
+    "pinChanged": "Token pin was changed – please log in the token with the new pin"
+  },
   "ssTlsCertificate": {
     "generateKey": "Generate key",
     "generateTlsAndCertificateDialog": {
@@ -763,6 +767,12 @@
     },
     "serviceDescriptionUpdate": {
       "newRestServiceCode": "Service code"
+    },
+    "token": {
+      "friendlyName": "Friendly name",
+      "oldPin": "Old pin",
+      "newPin": "New pin",
+      "newPinConfirm": "Confirm new pin"
     }
   },
   "certificateProfile": {

@@ -30,4 +30,3 @@ This is meta package of X-Road security server
 
 %files
 
-
