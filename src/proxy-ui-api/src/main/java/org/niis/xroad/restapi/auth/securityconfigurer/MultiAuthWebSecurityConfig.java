@@ -65,8 +65,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Order(MultiAuthWebSecurityConfig.GLOBAL_CONFIGURATION_SECURITY_ORDER)
 public class MultiAuthWebSecurityConfig extends WebSecurityConfigurerAdapter {
     public static final int API_KEY_MANAGEMENT_SECURITY_ORDER = 1;
-    public static final int API_SECURITY_ORDER = 2;
-    public static final int STATIC_ASSETS_SECURITY_ORDER = 3;
+    public static final int UNAUTHENTICATED_API_SECURITY_ORDER = 2;
+    public static final int API_SECURITY_ORDER = 3;
+    public static final int STATIC_ASSETS_SECURITY_ORDER = 4;
     public static final int FORM_LOGIN_SECURITY_ORDER = 100;
     public static final int GLOBAL_CONFIGURATION_SECURITY_ORDER = 200;
 

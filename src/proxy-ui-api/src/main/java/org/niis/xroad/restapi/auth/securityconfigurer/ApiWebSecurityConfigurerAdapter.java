@@ -64,10 +64,6 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
         filter.setExceptionIfHeaderMissing(false); // exception at this point
         // would cause http 500, we want http 401
         http
-            .authorizeRequests()
-                .antMatchers("/api/**/openapi")
-                .permitAll()
-                .and()
             .antMatcher("/api/**")
             .addFilter(filter)
             .sessionManagement()
@@ -85,6 +81,8 @@ public class ApiWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapte
                 // CsrfFilter always generates a new token in the repo -> prevent with lazy
                 .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
                 .and()
+            .anonymous()
+                .disable()
             .headers()
                 .contentSecurityPolicy("default-src 'none'")
                 .and()
