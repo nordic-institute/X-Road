@@ -90,13 +90,12 @@ module.exports = {
     clientServices.enterServiceUrl(urlToTest);
     clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Parsing OpenApi3 description failed...'
+    browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); // loading a missing file can sometimes take more time before failing
     browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
+      mainPage.elements.alertMessage,
       urlToTest,
     );
-    mainPage.closeSnackbar();
+    mainPage.closeAlertMessage();
 
     // Verify invalid service code
     clientServices.openAddREST();
@@ -169,6 +168,7 @@ module.exports = {
     clientServices.openOperation('s3c1');
 
     // Verify tooltips
+    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
@@ -183,6 +183,7 @@ module.exports = {
     browser.expect
       .element(operationDetails.elements.activeTooltip)
       .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
+    */
 
     // Verify cancel
     operationDetails.enterUrl('https://niis.org/nosuch.yaml');
@@ -507,8 +508,8 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // verify sorting of added
     restEndpoints.openAddDialog();
@@ -617,8 +618,8 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq2');
     endpointPopup.enterPath('/testreq3');
     endpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // Verify edit
     endpointPopup.enterPath('/newreq1');
@@ -760,8 +761,8 @@ module.exports = {
     clientServices.openServiceDetails();
     openApiServiceDetails.enterServiceUrl('https://www.niis.org/nosuch.yaml');
     openApiServiceDetails.confirmDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Parsing OpenApi3 description failed'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Parsing OpenApi3 description failed'
+    mainPage.closeAlertMessage();
 
     // Verify cancel
     openApiServiceDetails.enterServiceUrl(
