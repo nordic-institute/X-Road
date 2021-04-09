@@ -288,12 +288,12 @@ const keysTab = {
   elements: {
     signAndAuthKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="signAndAuthKeys"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "SIGN and AUTH Keys")]',
       locateStrategy: 'xpath',
     },
     APIKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="apiKey"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "API Keys")]',
       locateStrategy: 'xpath',
     },
     securityServerTLSKeyTab: {
@@ -562,7 +562,7 @@ const keysTab = {
         },
         csrUsage: {
           selector:
-            '//div[@role="button" and .//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]]',
+            '//div[contains(@class, "v-select__selections") and ./input[@data-test="csr-usage-select"]]',
           locateStrategy: 'xpath',
         },
         csrService: {
