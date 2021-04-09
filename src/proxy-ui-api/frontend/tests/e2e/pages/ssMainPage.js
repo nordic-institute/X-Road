@@ -625,12 +625,12 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     userMenuButton: {
-      selector: 'div.v-toolbar__content button .mdi-account-circle',
-      locateStrategy: 'css selector',
+      selector: '//button[@data-test="username-button"]',
+      locateStrategy: 'xpath',
     },
     userMenuitemLogout: {
-      selector: '#logout-list-tile',
-      locateStrategy: 'css selector',
+      selector: '//*[@data-test="logout-list-tile"]',
+      locateStrategy: 'xpath',
     },
     logoutOKButton: {
       selector:
