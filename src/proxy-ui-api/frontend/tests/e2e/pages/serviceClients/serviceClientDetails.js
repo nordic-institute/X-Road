@@ -137,7 +137,7 @@ module.exports = {
         },
         closeButton: {
           selector:
-            '//div[contains(@class, "v-card__title")]//i[@id="dlg-close-x"]',
+            '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
           locateStrategy: 'xpath',
         },
       },

@@ -675,12 +675,12 @@ module.exports = {
         },
         serviceClientsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="serviceClients"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Service clients")]',
           locateStrategy: 'xpath',
         },
         servicesTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="services"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Services")]',
           locateStrategy: 'xpath',
         },
         internalServersTab: {
@@ -795,7 +795,7 @@ module.exports = {
         },
         services: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and @data-test="services"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Services")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientServicesCommands],
           elements: {
@@ -1394,7 +1394,7 @@ module.exports = {
         },
         closeButton: {
           selector:
-            '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
+            '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
           locateStrategy: 'xpath',
         },
         editButton: {

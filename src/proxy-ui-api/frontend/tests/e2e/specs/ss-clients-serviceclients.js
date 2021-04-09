@@ -381,6 +381,8 @@ module.exports = {
     clientServices.selectRESTPath();
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
+    mainPage.closeSnackbar();
 
     // Add service level access right for rest
     clientServices.expandServiceDetails();
@@ -527,6 +529,8 @@ module.exports = {
     clientServices.selectRESTPath();
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // Service added successfully
+    mainPage.closeSnackbar();
 
     // Add service level access right for rest
     clientServices.expandServiceDetails();

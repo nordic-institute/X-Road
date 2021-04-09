@@ -72,7 +72,7 @@ module.exports = {
   sections: {
     serviceClientsTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="serviceClients"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Service clients")]',
       locateStrategy: 'xpath',
     },
     wizardSelectServices: {
