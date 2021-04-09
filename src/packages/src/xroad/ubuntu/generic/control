@@ -23,7 +23,8 @@ Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: postgresql|postgresql-9.4, postgresql-contrib|postgresql-contrib-9.4, xroad-base (=${binary:Version})
+Recommends: xroad-database-local (=${binary:Version})
+Pre-depends: xroad-database (=${binary:Version}), xroad-base (=${binary:Version})
 Description: X-Road central server
  X-Road central server programs and utilities
 
@@ -72,7 +73,8 @@ Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
-Pre-depends: postgresql, postgresql-contrib, xroad-base (=${binary:Version})
+Pre-depends: xroad-database (=${binary:Version}), xroad-base (=${binary:Version})
+Recommends: xroad-database-local (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
 
@@ -159,7 +161,8 @@ Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: postgresql, postgresql-contrib
+Pre-depends: xroad-database (=${binary:Version})
+Recommends: xroad-database-local (=${binary:Version})
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
 
@@ -179,3 +182,17 @@ Replaces: xroad-nginx, xroad-jetty9
 Breaks: xroad-nginx, xroad-jetty9
 Description: X-Road proxy UI REST API
  REST API for X-Road proxy UI and management operations
+
+Package: xroad-database-local
+Architecture: all
+Conflicts: xroad-database-remote
+Depends: xroad-base (=${binary:Version}), postgresql | postgresql-9.4, postgresql-contrib | postgresql-contrib-9.4
+Provides: xroad-database (=${binary:Version})
+Description: Meta-package for X-Road local database dependencies
+
+Package: xroad-database-remote
+Architecture: all
+Conflicts: xroad-database-local
+Depends: xroad-base (=${binary:Version}), postgresql-client
+Provides: xroad-database (=${binary:Version})
+Description: Meta-package for X-Road remote database dependencies
