@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper">
+  <div class="mt-3">
     <div class="title-row">
       <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
       <div>
@@ -223,10 +223,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../../assets/detail-views';
-.wrapper {
-  margin-top: 20px;
-  width: 100%;
-}
 
 .title-row {
   display: flex;

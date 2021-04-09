@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <div class="content xrd-view-common">
+    <v-container class="xrd-view-common mt-7">
       <v-flex mb-4 class="title-action identifier-wrap">
         <div v-if="client && client.owner" class="xrd-view-title mb-3">
           {{ client.member_name }} ({{ $t('client.owner') }})
@@ -51,7 +51,7 @@
       </v-flex>
 
       <router-view />
-    </div>
+    </v-container>
   </div>
 </template>
 
