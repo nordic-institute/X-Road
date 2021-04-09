@@ -59,7 +59,7 @@ tags:
     description: xroad-instances endpoints
 paths:
   /backups:
-    get: # ok
+    get:
       tags:
         - backups
       summary: get security server backups
@@ -88,7 +88,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - backups
       summary: add new backup for the security server
@@ -129,7 +129,7 @@ paths:
         '500':
           description: internal server error
   /backups/upload:
-    post: # ok
+    post:
       tags:
         - backups
       summary: upload new backup for the security server
@@ -191,7 +191,7 @@ paths:
         '500':
           description: internal server error
   /backups/{filename}:
-    delete: # ok
+    delete:
       tags:
         - backups
       summary: delete security server backup
@@ -221,7 +221,7 @@ paths:
         '500':
           description: internal server error
   /backups/{filename}/restore:
-    put: # ok
+    put:
       tags:
         - backups
       summary: restore security server configuration from backup
@@ -268,7 +268,7 @@ paths:
         '500':
           description: internal server error
   /backups/{filename}/download:
-    get: # ok
+    get:
       tags:
         - backups
       summary: download security server backup
@@ -306,7 +306,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates:
-    post: # ok
+    post:
       tags:
         - token-certificates
       summary: import new certificate
@@ -353,7 +353,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}:
-    get: # ok
+    get:
       tags:
         - token-certificates
       summary: get certificate information
@@ -388,7 +388,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - token-certificates
       summary: delete certificate
@@ -429,7 +429,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}/activate:
-    put: # ok
+    put:
       tags:
         - token-certificates
       summary: activate certificate
@@ -461,7 +461,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}/disable:
-    put: # ok
+    put:
       tags:
         - token-certificates
       summary: deactivate certificate
@@ -493,7 +493,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}/import:
-    post: # ok
+    post:
       tags:
         - token-certificates
       summary: import an existing certificate from a token by cert hash
@@ -542,7 +542,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}/possible-actions:
-    get: # ok
+    get:
       tags:
         - token-certificates
       summary: get possible actions for one certificate
@@ -578,7 +578,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}/register:
-    put: # ok
+    put:
       tags:
         - token-certificates
       summary: register certificate
@@ -615,7 +615,7 @@ paths:
         '500':
           description: internal server error
   /token-certificates/{hash}/unregister:
-    put: # ok
+    put:
       tags:
         - token-certificates
       summary: unregister authentication certificate
@@ -665,7 +665,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
   /token-certificates/{hash}/mark-for-deletion:
-    put: # ok
+    put:
       tags:
         - token-certificates
       summary: marks an auth certificate for deletion
@@ -715,7 +715,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
   /clients:
-    get: # ok
+    get:
       tags:
         - clients
       summary: find security server clients
@@ -818,7 +818,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - clients
       summary: Add new client for the security server.
@@ -871,7 +871,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get security server client information
@@ -906,7 +906,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    patch: # ok
+    patch:
       tags:
         - clients
       summary: update security server client information
@@ -946,7 +946,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - clients
       summary: delete security server client
@@ -976,7 +976,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/local-groups:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get local groups for the selected client
@@ -1015,7 +1015,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - clients
       summary: add new local group for the security server client
@@ -1059,7 +1059,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/orphans:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get information about orphaned sign keys, certificates and csrs left behind a delete client
@@ -1102,7 +1102,7 @@ paths:
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
-    delete: # ok
+    delete:
       tags:
         - clients
       summary: delete orphaned sign keys, certificates and csrs left behind a delete client
@@ -1139,7 +1139,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/register:
-    put: # ok
+    put:
       tags:
         - clients
       summary: register security server client
@@ -1189,7 +1189,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
   /clients/{id}/service-clients:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get service clients for the selected client's services
@@ -1229,7 +1229,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/service-clients/{sc_id}:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get single service client by client id and service client id
@@ -1274,7 +1274,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/service-clients/{sc_id}/access-rights:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get access rights for the selected service client.
@@ -1322,7 +1322,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - clients
       summary: Add new access rights for selected service client. If service client did not exist yet, one is created.
@@ -1378,7 +1378,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/service-clients/{sc_id}/access-rights/delete:
-    post: # ok
+    post:
       tags:
         - clients
       summary: remove access rights
@@ -1427,7 +1427,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/sign-certificates:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get security server client certificates information
@@ -1467,7 +1467,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/tls-certificates:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get security server client TLS certificates information
@@ -1506,7 +1506,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - clients
       summary: add new certificate for the security server client
@@ -1552,7 +1552,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/tls-certificates/{hash}:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get TLS certificate
@@ -1596,7 +1596,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - clients
       summary: delete certificate
@@ -1635,7 +1635,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/unregister:
-    put: # ok
+    put:
       tags:
         - clients
       summary: unregister security server client
@@ -1685,7 +1685,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
   /clients/{id}/service-descriptions:
-    get: # ok
+    get:
       tags:
         - clients
       summary: get security server client service descriptions
@@ -1733,7 +1733,7 @@ paths:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - clients
       summary: add new service description for the security server client
@@ -1822,7 +1822,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/service-client-candidates:
-    get: # ok
+    get:
       tags:
         - clients
       summary: find ServiceClient candidates for a specific client
@@ -1918,7 +1918,7 @@ paths:
         '500':
           description: internal server error
   /clients/{id}/make-owner:
-    put: # ok
+    put:
       tags:
         - clients
       summary: make client Security Server's owner. Client must be a member and already registered on the Security Server
@@ -1969,7 +1969,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
   /diagnostics/globalconf:
-    get: # ok
+    get:
       tags:
         - diagnostics
       summary: view global configuration diagnostics information
@@ -1995,7 +1995,7 @@ paths:
         '500':
           description: internal server error
   /diagnostics/ocsp-responders:
-    get: # ok
+    get:
       tags:
         - diagnostics
       summary: view ocsp responders diagnostics information
@@ -2025,7 +2025,7 @@ paths:
         '500':
           description: internal server error
   /diagnostics/timestamping-services:
-    get: # ok
+    get:
       tags:
         - diagnostics
       summary: view timestamping services diagnostics information
@@ -2055,7 +2055,7 @@ paths:
         '500':
           description: internal server error
   /initialization:
-    post: # ok
+    post:
       tags:
         - initialization
       summary: Initialize a new security server with the provided initial configuration
@@ -2133,7 +2133,7 @@ paths:
         '500':
           description: internal server error
   /initialization/status:
-    get: # ok
+    get:
       tags:
         - initialization
       summary: Check the initialization status of the Security Server
@@ -2161,7 +2161,7 @@ paths:
         '500':
           description: internal server error
   /local-groups/{group_id}:
-    get: # ok
+    get:
       tags:
         - local-groups
       summary: get local group information
@@ -2195,7 +2195,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    patch: # ok
+    patch:
       tags:
         - local-groups
       summary: update local group information
@@ -2234,7 +2234,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - local-groups
       summary: delete local group
@@ -2263,7 +2263,7 @@ paths:
         '500':
           description: internal server error
   /local-groups/{group_id}/members:
-    post: # ok
+    post:
       tags:
         - local-groups
       summary: add new member for the local group
@@ -2307,7 +2307,7 @@ paths:
         '500':
           description: internal server error
   /local-groups/{group_id}/members/delete:
-    post: # ok
+    post:
       tags:
         - local-groups
       summary: delete member from local group
@@ -2345,7 +2345,7 @@ paths:
         '500':
           description: internal server error
   /keys/{id}:
-    get: # ok
+    get:
       tags:
         - keys
       summary: get information for the selected key in selected token
@@ -2379,7 +2379,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    patch: # ok
+    patch:
       tags:
         - keys
       summary: update key information
@@ -2418,7 +2418,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - keys
       summary: delete key
@@ -2483,7 +2483,7 @@ paths:
                 error_metadata_response:
                   $ref: '#/components/examples/ErrorWithMetadataExample'
   /keys/{id}/csrs:
-    post: # ok
+    post:
       tags:
         - keys
       summary: generate csr for the selected key
@@ -2531,7 +2531,7 @@ paths:
         '500':
           description: internal server error
   /keys/{id}/csrs/{csr_id}:
-    get: # ok
+    get:
       tags:
         - keys
       summary: download a CSR binary
@@ -2582,7 +2582,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - keys
       summary: delete csr from the selected key
@@ -2622,7 +2622,7 @@ paths:
         '500':
           description: internal server error
   /keys/{id}/csrs/{csr_id}/possible-actions:
-    get: # ok
+    get:
       tags:
         - keys
       summary: get possible actions for one csr
@@ -2666,7 +2666,7 @@ paths:
         '500':
           description: internal server error
   /keys/{id}/possible-actions:
-    get: # ok
+    get:
       tags:
         - keys
       summary: get possible actions for one key
@@ -2701,7 +2701,7 @@ paths:
         '500':
           description: internal server error
   /member-classes:
-    get: # ok
+    get:
       tags:
         - member-classes
       summary: get list of known member classes
@@ -2743,7 +2743,7 @@ paths:
         '500':
           description: internal server error
   /member-classes/{id}:
-    get: # ok
+    get:
       tags:
         - member-classes
       summary: get list of known member classes for a given instance
@@ -2786,7 +2786,7 @@ paths:
         '500':
           description: internal server error
   /member-names:
-    get: # ok
+    get:
       tags:
         - member-names
       summary: find member name by member class and member code
@@ -2831,7 +2831,7 @@ paths:
         '500':
           description: internal server error
   /language/{code}:
-    put: # ok
+    put:
       tags:
         - language
       summary: change language
@@ -2867,7 +2867,7 @@ paths:
         '500':
           description: internal server error
   /user:
-    get: # ok
+    get:
       tags:
         - user
       summary: get user data for the logged user
@@ -2893,7 +2893,7 @@ paths:
         '500':
           description: internal server error
   /security-servers:
-    get: # ok
+    get:
       tags:
         - security-servers
       summary: get all security servers
@@ -2931,7 +2931,7 @@ paths:
         '500':
           description: internal server error
   /security-servers/{id}:
-    get: # ok
+    get:
       tags:
         - security-servers
       summary: get security server information
@@ -2969,7 +2969,7 @@ paths:
         '500':
           description: internal server error
   /services/{id}:
-    get: # ok
+    get:
       tags:
         - services
       summary: get service
@@ -3005,7 +3005,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    patch: # ok
+    patch:
       tags:
         - services
       summary: update service
@@ -3120,7 +3120,7 @@ paths:
         '500':
           description: internal server error
   /services/{id}/service-clients:
-    get: # ok
+    get:
       tags:
         - services
       summary: get service clients who have access rights for the selected service
@@ -3217,7 +3217,7 @@ paths:
         '500':
           description: internal server error
   /services/{id}/service-clients/delete:
-    post: # ok
+    post:
       tags:
         - services
       summary: remove access to selected service from given ServiceClients
@@ -3581,7 +3581,7 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}:
-    get: # ok
+    get:
       tags:
         - service-descriptions
       summary: get service description with provided id
@@ -3615,7 +3615,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    patch: # ok
+    patch:
       tags:
         - service-descriptions
       summary: update url or service code for the selected service description
@@ -3705,7 +3705,7 @@ paths:
                   $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
         '500':
           description: internal server error
-    delete: # ok
+    delete:
       tags:
         - service-descriptions
       summary: delete service description
@@ -3734,7 +3734,7 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}/disable:
-    put: # ok
+    put:
       tags:
         - service-descriptions
       summary: disable selected service description
@@ -3771,7 +3771,7 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}/enable:
-    put: # ok
+    put:
       tags:
         - service-descriptions
       summary: enable selected service description
@@ -3802,7 +3802,7 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}/refresh:
-    put: # ok
+    put:
       tags:
         - service-descriptions
       summary: refresh selected service description
@@ -3891,7 +3891,7 @@ paths:
         '500':
           description: internal server error
   /service-descriptions/{id}/services:
-    get: # ok
+    get:
       tags:
         - service-descriptions
       summary: get services for the selected service description
@@ -3930,7 +3930,7 @@ paths:
         '500':
           description: internal server error
   /system/anchor:
-    get: # ok
+    get:
       tags:
         - system
       summary: view the configuration anchor information
@@ -3955,7 +3955,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - system
       summary: Upload a new configuration anchor file when initializing a new security server.
@@ -3991,7 +3991,7 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-    put: # ok
+    put:
       tags:
         - system
       summary: Upload a configuration anchor file to replace an existing one.
@@ -4028,7 +4028,7 @@ paths:
         '500':
           description: internal server error
   /system/anchor/previews:
-    post: # ok
+    post:
       tags:
         - system
       summary: Read and the configuration anchor file and return the hash for a preview.
@@ -4076,7 +4076,7 @@ paths:
         '500':
           description: internal server error
   /system/anchor/download:
-    get: # ok
+    get:
       tags:
         - system
       summary: download configuration anchor information
@@ -4104,7 +4104,7 @@ paths:
         '500':
           description: internal server error
   /system/certificate:
-    get: # ok
+    get:
       tags:
         - system
       summary: view the security server certificate information
@@ -4129,7 +4129,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - system
       summary: generate a new internal TLS key and cert
@@ -4161,7 +4161,7 @@ paths:
         '500':
           description: internal server error
   /system/certificate/export:
-    get: # ok
+    get:
       tags:
         - system
       summary: download the security server certificate as gzip compressed tar archive
@@ -4189,7 +4189,7 @@ paths:
         '500':
           description: internal server error
   /system/certificate/csr:
-    post: # ok
+    post:
       tags:
         - system
       summary: generate new certificate request
@@ -4222,7 +4222,7 @@ paths:
         '500':
           description: internal server error
   /system/certificate/import:
-    post: # ok
+    post:
       tags:
         - system
       summary: import new internal TLS certificate.
@@ -4257,8 +4257,36 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /system/openapi:
+    get:
+      tags:
+        - system
+      summary: download security server's openapi definition
+      operationId: downloadOpenApi
+      description: <h3>Administrator downloads the security server's OpenAPI definition.</h3>
+      responses:
+        '200':
+          description: openapi definition
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+                description: openapi definition file
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /certificate-authorities:
-    get: # ok
+    get:
       tags:
         - certificate-authorities
       summary: view the approved certificate authorities
@@ -4300,7 +4328,7 @@ paths:
         '500':
           description: internal server error
   /certificate-authorities/{ca_name}/csr-subject-fields:
-    get: # ok
+    get:
       tags:
         - certificate-authorities
       summary: get description of subject DN fields for CSR
@@ -4372,7 +4400,7 @@ paths:
         '500':
           description: internal server error
   /system/timestamping-services:
-    get: # ok
+    get:
       tags:
         - system
       summary: view the configured timestamping services
@@ -4401,7 +4429,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    post: # ok
+    post:
       tags:
         - system
       summary: add a configured timestamping service
@@ -4435,7 +4463,7 @@ paths:
         '500':
           description: internal server error
   /system/timestamping-services/delete:
-    post: # ok
+    post:
       tags:
         - system
       summary: delete configured timestamping service
@@ -4461,7 +4489,7 @@ paths:
         '500':
           description: internal server error
   /system/version:
-    get: # ok
+    get:
       tags:
         - system
       summary: get information for the system version
@@ -4487,7 +4515,7 @@ paths:
         '500':
           description: internal server error
   /timestamping-services:
-    get: # ok
+    get:
       tags:
         - timestamping-services
       summary: view the approved timestamping services
@@ -4518,7 +4546,7 @@ paths:
           description: internal server error
 
   /tokens:
-    get: # ok
+    get:
       tags:
         - tokens
       summary: get security server tokens
@@ -4548,7 +4576,7 @@ paths:
         '500':
           description: internal server error
   /tokens/{id}:
-    get: # ok
+    get:
       tags:
         - tokens
       summary: get security server token information
@@ -4582,7 +4610,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-    patch: # ok
+    patch:
       tags:
         - tokens
       summary: update security server token information
@@ -4622,7 +4650,7 @@ paths:
         '500':
           description: internal server error
   /tokens/{id}/pin:
-    put: # ok
+    put:
       tags:
         - tokens
       summary: update security server software token pin code
@@ -4680,7 +4708,7 @@ paths:
         '500':
           description: internal server error
   /tokens/{id}/keys-with-csrs:
-    post: # ok
+    post:
       tags:
         - tokens
       summary: add a new key and generate a csr for it
@@ -4735,7 +4763,7 @@ paths:
         '500':
           description: internal server error
   /tokens/{id}/keys:
-    post: # ok
+    post:
       tags:
         - tokens
       summary: add new key
@@ -4777,7 +4805,7 @@ paths:
         '500':
           description: internal server error
   /tokens/{id}/login:
-    put: # ok
+    put:
       tags:
         - tokens
       summary: login to token
@@ -4817,7 +4845,7 @@ paths:
         '500':
           description: internal server error
   /tokens/{id}/logout:
-    put: # ok
+    put:
       tags:
         - tokens
       summary: logout from token
@@ -4852,7 +4880,7 @@ paths:
         '500':
           description: internal server error
   /xroad-instances:
-    get: # ok
+    get:
       tags:
         - xroad-instances
       summary: get list of known xroad instance identifiers
@@ -5094,7 +5122,7 @@ components:
       description: X-Road-ApiKey token=<api key>
       # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   schemas:
-    AccessRight: # ok
+    AccessRight:
       type: object
       description: access right given for a specific subject (ServiceClient) for specific service (service_code) owned by some client. This object does not represent endpoint-level access rights
       required:
@@ -5123,7 +5151,7 @@ components:
           readOnly: true
           minLength: 24
           maxLength: 24
-    AccessRights: # ok
+    AccessRights:
       type: object
       description: object containing and array of AccessRights
       properties:
@@ -5133,7 +5161,7 @@ components:
           description: array of AccessRights
           items:
             $ref: '#/components/schemas/AccessRight'
-    Anchor: # ok
+    Anchor:
       type: object
       description: security server anchor
       required:
@@ -5154,7 +5182,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    Backup: # ok
+    Backup:
       type: object
       description: security server backup
       required:
@@ -5175,14 +5203,14 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    BackupArchive: # ok
+    BackupArchive:
       type: object
       description: security server backup archive file
       properties:
         file:
           type: string
           format: binary
-    TokenCertificateSigningRequest: # ok
+    TokenCertificateSigningRequest:
       type: object
       description: CSR for certificate that is stored in a Token. Also includes the possible actions that can be
         done to this object, e.g DELETE (only for csr related operations and does not consider user authorization).
@@ -5207,7 +5235,7 @@ components:
           readOnly: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-    TokenCertificate: # ok
+    TokenCertificate:
       type: object
       description: Certificate that is stored in a Token (auth or sign cert). Also includes the possible actions
         that can be done to this object, e.g DELETE (only for cert related operations and does not consider
@@ -5244,7 +5272,7 @@ components:
           $ref: '#/components/schemas/CertificateStatus'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-    OcspResponderDiagnostics: # ok
+    OcspResponderDiagnostics:
       type: object
       description: Ocsp responder diagnostics
       required:
@@ -5264,7 +5292,7 @@ components:
           readOnly: true
           items:
             $ref: '#/components/schemas/OcspResponder'
-    CertificateDetails: # ok
+    CertificateDetails:
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
       required:
@@ -5392,7 +5420,7 @@ components:
           example: DNS:*.example.org
           minLength: 1
           maxLength: 1000
-    CertificateAuthority: # ok
+    CertificateAuthority:
       type: object
       description: approved certificate authority information. Only for top CAs.
       required:
@@ -5448,7 +5476,7 @@ components:
         authentication_only:
           type: boolean
           description: if certificate authority is limited for authentication use only
-    CertificateStatus: # ok
+    CertificateStatus:
       type: string
       format: enum
       description: certificate status
@@ -5459,7 +5487,7 @@ components:
         - REGISTERED
         - DELETION_IN_PROGRESS
         - GLOBAL_ERROR
-    CertificateAuthorityOcspResponse: # ok
+    CertificateAuthorityOcspResponse:
       type: string
       format: enum
       description: certificate authority OCSP status
@@ -5470,7 +5498,7 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
-    CertificateOcspStatus: # ok
+    CertificateOcspStatus:
       type: string
       format: enum
       description: certificate status
@@ -5482,7 +5510,7 @@ components:
         - OCSP_RESPONSE_GOOD
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
-    DistinguishedName: # ok
+    DistinguishedName:
       required:
         - distinguished_name
       type: object
@@ -5494,12 +5522,12 @@ components:
           example: C=FI, O=X-Road Test, OU=X-Road Test CA OU, CN=X-Road Test CA CN
           minLength: 1
           maxLength: 255
-    PossibleActions: # ok
+    PossibleActions:
       type: array
       description: array containing the possible actions that can be done for this item
       items:
         $ref: '#/components/schemas/PossibleAction'
-    PossibleAction: # ok
+    PossibleAction:
       type: string
       format: enum
       description: an action to change state or edit token, key, cert or csr
@@ -5518,7 +5546,7 @@ components:
         - GENERATE_AUTH_CSR
         - GENERATE_SIGN_CSR
         - TOKEN_CHANGE_PIN
-    Client: # ok
+    Client:
       type: object
       description: x-road client
       required:
@@ -5585,7 +5613,7 @@ components:
           $ref: '#/components/schemas/ConnectionType'
         status:
           $ref: '#/components/schemas/ClientStatus'
-    ClientAdd: # ok
+    ClientAdd:
       type: object
       description: Request to add client. Carries a Client and ignore warnings parameter
       required:
@@ -5598,7 +5626,7 @@ components:
           default: false
           description: if true, any ignorable warnings are ignored. if false (or missing),
             any warnings cause request to fail
-    ClientStatus: # ok
+    ClientStatus:
       type: string
       format: enum
       description: client status
@@ -5610,7 +5638,7 @@ components:
         - GLOBAL_ERROR
         - REGISTRATION_IN_PROGRESS
         - DELETION_IN_PROGRESS
-    ConfigurationStatus: # ok
+    ConfigurationStatus:
       type: string
       format: enum
       description: configuration status
@@ -5658,7 +5686,7 @@ components:
           example:
             clientAdd.client.memberCode: ["NoPercent"]
             clientAdd.client.subsystemCode: ["NoPercent", "NoBackslashes"]
-    ConnectionType: # ok
+    ConnectionType:
       type: string
       format: enum
       description: connection type
@@ -5668,13 +5696,13 @@ components:
         - HTTP
         - HTTPS
         - HTTPS_NO_AUTH
-    ConnectionTypeWrapper: # ok
+    ConnectionTypeWrapper:
       type: object
       description: connection type
       properties:
         connection_type:
           $ref: '#/components/schemas/ConnectionType'
-    CsrFormat: # ok
+    CsrFormat:
       type: string
       format: enum
       description: format of the certificate signing request (PEM or DER)
@@ -5767,7 +5795,7 @@ components:
           description: if true, label key is in property "label_key". If false, actual label is in property "label"
           example: true
           readOnly: true
-    DiagnosticStatusClass: # ok
+    DiagnosticStatusClass:
       type: string
       format: enum
       description: diagnostics status class
@@ -5795,7 +5823,7 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/CodeWithDetails'
-    InitialServerConf: # ok
+    InitialServerConf:
       type: object
       description: security server initial configuration
       properties:
@@ -5832,7 +5860,7 @@ components:
           default: false
           description: if true, any ignorable warnings are ignored. if false (or missing),
             any warnings cause request to fail
-    LocalGroup: # ok
+    LocalGroup:
       type: object
       description: group
       required:
@@ -5879,7 +5907,7 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/GroupMember'
-    LocalGroupAdd: # ok
+    LocalGroupAdd:
       type: object
       description: model for adding a new LocalGroup
       required:
@@ -5900,7 +5928,7 @@ components:
           example: description
           minLength: 1
           maxLength: 255
-    LocalGroupDescription: # ok
+    LocalGroupDescription:
       type: object
       required:
         - description
@@ -5913,7 +5941,7 @@ components:
           maxLength: 255
       example:
         name: This is an awesome local group!
-    GlobalConfDiagnostics: # ok
+    GlobalConfDiagnostics:
       type: object
       description: global configuration diagnostics
       required:
@@ -5946,7 +5974,7 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    GroupMember: # ok
+    GroupMember:
       type: object
       description: group member
       required:
@@ -5975,7 +6003,7 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-    IgnoreWarnings: # ok
+    IgnoreWarnings:
       type: object
       properties:
         ignore_warnings:
@@ -5983,7 +6011,7 @@ components:
           default: false
           description: if true, any ignorable warnings are ignored. if false (or missing),
             any warnings cause request to fail
-    InitializationStatus: # ok
+    InitializationStatus:
       type: object
       description: Initialization status of the Security Server
       required:
@@ -6003,7 +6031,7 @@ components:
           description: whether the server owner of the security server has been initialized or not
         software_token_init_status:
           $ref: '#/components/schemas/TokenInitStatus'
-    KeyWithCertificateSigningRequestId: # ok
+    KeyWithCertificateSigningRequestId:
       type: object
       description: Key and TokenCertificateSigningRequest id
       required:
@@ -6017,7 +6045,7 @@ components:
           format: text
           description: CSR id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
-    Key: # ok
+    Key:
       type: object
       description: Key for the certificate. Also includes the possible actions that can be done to this object,
         e.g DELETE (only for key related operations and does not consider user authorization).
@@ -6071,7 +6099,7 @@ components:
           example: true
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-    KeyName: # ok
+    KeyName:
       type: object
       required:
         - name
@@ -6084,7 +6112,7 @@ components:
           maxLength: 255
       example:
         name: my-key-0
-    KeyLabel: # ok
+    KeyLabel:
       type: object
       properties:
         label:
@@ -6095,7 +6123,7 @@ components:
           maxLength: 255
       example:
         label: My new key
-    KeyLabelWithCsrGenerate: # ok
+    KeyLabelWithCsrGenerate:
       type: object
       required:
         - key_label
@@ -6110,7 +6138,7 @@ components:
           example: My new key
         csr_generate_request:
           $ref: '#/components/schemas/CsrGenerate'
-    KeyUsage: # ok
+    KeyUsage:
       type: string
       format: enum
       description: certificate key usage
@@ -6125,7 +6153,7 @@ components:
         - CRL_SIGN
         - ENCIPHER_ONLY
         - DECIPHER_ONLY
-    KeyUsageType: # ok
+    KeyUsageType:
       type: string
       format: enum
       description: intended usage for the key (signing or authentication)
@@ -6133,7 +6161,7 @@ components:
       enum:
         - AUTHENTICATION
         - SIGNING
-    KeyValuePair: # ok
+    KeyValuePair:
       type: object
       description: key-value pair of strings
       required:
@@ -6146,7 +6174,7 @@ components:
         value:
           type: string
           description: value
-    Language: # ok
+    Language:
       type: object
       description: language
       required:
@@ -6160,14 +6188,14 @@ components:
           minLength: 2
           maxLength: 2
           readOnly: true
-    MemberName: # ok
+    MemberName:
       type: object
       description: member's name
       properties:
         member_name:
           type: string
           format: text
-    Members: # ok
+    Members:
       type: object
       description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
       properties:
@@ -6180,7 +6208,7 @@ components:
             format: text
             minLength: 1
             maxLength: 1023
-    OcspResponder: # ok
+    OcspResponder:
       type: object
       description: OCSP responder diagnostics
       required:
@@ -6221,7 +6249,7 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    OcspStatus: # ok
+    OcspStatus:
       type: string
       format: enum
       description: OCSP responder status
@@ -6234,13 +6262,13 @@ components:
         - ERROR_CODE_OCSP_UNINITIALIZED # Status request not sent yet.
         - ERROR_CODE_OCSP_RESPONSE_UNVERIFIED # Unable to verify OCSP response.
         - UNKNOWN
-    OrphanInformation: # ok
+    OrphanInformation:
       type: object
       properties:
         orphans_exist:
           type: boolean
           default: false
-    SecurityServer: # ok
+    SecurityServer:
       type: object
       description: security server information
       required:
@@ -6285,7 +6313,7 @@ components:
           description: security server address (ip or name)
           example: 192.168.1.100
           maxLength: 255
-    SecurityServerAddress: # ok
+    SecurityServerAddress:
       type: object
       required:
         - address
@@ -6298,7 +6326,7 @@ components:
           maxLength: 255
       example:
         address: 127.0.0.1
-    Service: # ok
+    Service:
       type: object
       description: service for the service description
       required:
@@ -6366,7 +6394,7 @@ components:
           description: list of endpoints linked to this service
           items:
             $ref: '#/components/schemas/Endpoint'
-    ServiceUpdate: # ok
+    ServiceUpdate:
       type: object
       description: object for updating a service or all services within service description
       required:
@@ -6454,7 +6482,7 @@ components:
           type: string
           description: relative path where this endpoint is mapped to
           example: '/foo'
-    ServiceClient: # ok
+    ServiceClient:
       type: object
       description: service client. May be a subsystem, local group, or a global group
       required:
@@ -6493,7 +6521,7 @@ components:
           readOnly: true
           minLength: 24
           maxLength: 24
-    ServiceClients: # ok
+    ServiceClients:
       type: object
       description: object containing and array of ServiceClients
       properties:
@@ -6503,7 +6531,7 @@ components:
           description: array of ServiceClients
           items:
             $ref: '#/components/schemas/ServiceClient'
-    ServiceDescription: # ok
+    ServiceDescription:
       type: object
       description: WSDL/OPENAPI3/REST service
       required:
@@ -6588,7 +6616,7 @@ components:
           default: false
         type:
           $ref: '#/components/schemas/ServiceType'
-    ServiceDescriptionDisabledNotice: # ok
+    ServiceDescriptionDisabledNotice:
       type: object
       properties:
         disabled_notice:
@@ -6632,7 +6660,7 @@ components:
           default: false
         type:
           $ref: '#/components/schemas/ServiceType'
-    ServiceType: # ok
+    ServiceType:
       type: string
       format: text
       description: service type
@@ -6641,7 +6669,7 @@ components:
         - WSDL
         - REST
         - OPENAPI3
-    ServiceClientType: # ok
+    ServiceClientType:
       type: string
       format: text
       description: subject type
@@ -6651,7 +6679,7 @@ components:
         - GLOBALGROUP
         - LOCALGROUP
         - SUBSYSTEM
-    TimestampingService: # ok
+    TimestampingService:
       type: object
       description: timestamping services
       required:
@@ -6672,7 +6700,7 @@ components:
           example: http://dev.xroad.rocks:123
           minLength: 1
           maxLength: 255
-    TimestampingServiceDiagnostics: # ok
+    TimestampingServiceDiagnostics:
       type: object
       description: timestamping service diagnostics
       required:
@@ -6705,7 +6733,7 @@ components:
           minLength: 24
           maxLength: 24
           readOnly: true
-    TimestampingStatus: # ok
+    TimestampingStatus:
       type: string
       format: enum
       description: timestamping status
@@ -6717,7 +6745,7 @@ components:
         - ERROR_CODE_TIMESTAMP_UNINITIALIZED # Connection ok, no timestamp request made yet.
         - ERROR_CODE_INTERNAL # Internal error occurred.
         - UNKNOWN
-    Token: # ok
+    Token:
       type: object
       description: Token. Also includes the possible actions that can be done to this object,
         e.g DELETE (only for token related operations and does not consider user authorization).
@@ -6784,7 +6812,7 @@ components:
             $ref: '#/components/schemas/KeyValuePair'
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
-    TokenInitStatus: # ok
+    TokenInitStatus:
       type: string
       format: enum
       description: whether a token has been initialized or not – if the software token init status
@@ -6794,7 +6822,7 @@ components:
         - INITIALIZED
         - NOT_INITIALIZED
         - UNKNOWN
-    TokenName: # ok
+    TokenName:
       type: object
       required:
         - name
@@ -6807,7 +6835,7 @@ components:
           maxLength: 255
       example:
         name: my-token-0
-    TokenPinUpdate: # ok
+    TokenPinUpdate:
       type: object
       required:
         - old_pin
@@ -6828,7 +6856,7 @@ components:
       example:
         old_pin: 0000
         new_pin: 1234
-    TokensLoggedOut: # ok
+    TokensLoggedOut:
       description: response that tells if hsm tokens were logged out during the restore process
       type: object
       properties:
@@ -6836,7 +6864,7 @@ components:
           description: whether any hsm tokens were logged out during the restore process
           type: boolean
           default: false
-    TokenPassword: # ok
+    TokenPassword:
       type: object
       properties:
         password:
@@ -6846,7 +6874,7 @@ components:
           minLength: 1
       example:
         password: sm3!!ycat
-    TokenStatus: # ok
+    TokenStatus:
       type: string
       format: text
       description: token type
@@ -6860,7 +6888,7 @@ components:
         - USER_PIN_COUNT_LOW # Only a few tries left
         - USER_PIN_FINAL_TRY # Final try
         - NOT_INITIALIZED # Not inited
-    TokenType: # ok
+    TokenType:
       type: string
       format: text
       description: token type
@@ -6868,7 +6896,7 @@ components:
       enum:
         - SOFTWARE
         - HARDWARE
-    User: # ok
+    User:
       type: object
       description: x-road user
       required:
@@ -6897,7 +6925,7 @@ components:
           items:
             type: string
             format: text
-    VersionInfo: # ok
+    VersionInfo:
       type: object
       description: version information
       required:
