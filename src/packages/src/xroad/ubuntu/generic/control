@@ -72,7 +72,7 @@ Description: X-Road security server
 Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version})
+Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
 Pre-depends: xroad-database (=${binary:Version}), xroad-base (=${binary:Version})
 Recommends: xroad-database-local (=${binary:Version})
 Description: X-Road security server
