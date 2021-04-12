@@ -25,15 +25,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div class="px-3">
     <!-- Error -->
-    <v-container fluid class="alerts-container" v-if="show">
+    <v-container fluid class="alerts-container px-3" v-if="show">
       <v-alert
         data-test="contextual-modal-alert"
         color="red"
         border="left"
         colored-border
-        class="alert"
+        class="mb-2"
         icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
@@ -69,7 +69,6 @@ export default Vue.extend({
 @import '../assets/colors';
 
 .alerts-container {
-  width: 1000px;
   padding: 0;
 
   & > * {
