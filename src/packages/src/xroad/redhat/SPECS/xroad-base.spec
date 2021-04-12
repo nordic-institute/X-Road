@@ -18,7 +18,7 @@ Requires:  systemd
 %if 0%{?el7}
 Requires:  rlwrap
 %endif
-Requires:  jre-1.8.0-headless >= 1.8.0.51
+Requires:  jre-11-headless
 Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..

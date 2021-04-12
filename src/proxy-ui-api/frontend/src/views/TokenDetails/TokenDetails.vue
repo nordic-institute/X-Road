@@ -66,7 +66,7 @@
                 ></v-text-field>
               </ValidationProvider>
             </v-row>
-            <v-row v-if="canUpdatePin" no-gutters>
+            <v-row v-if="isSoftwareToken() && canUpdatePin" no-gutters>
               <xrd-expandable
                 class="expandable"
                 @open="toggleChangePinOpen"
@@ -182,7 +182,12 @@ import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Permissions } from '@/global';
-import { PossibleAction, Token, TokenPinUpdate } from '@/openapi-types';
+import {
+  PossibleAction,
+  Token,
+  TokenPinUpdate,
+  TokenType,
+} from '@/openapi-types';
 
 export default Vue.extend({
   components: {
@@ -277,6 +282,10 @@ export default Vue.extend({
           PossibleAction.TOKEN_CHANGE_PIN,
         ) ?? false
       );
+    },
+
+    isSoftwareToken(): boolean {
+      return this.token.type === TokenType.SOFTWARE;
     },
 
     toggleChangePinOpen(): void {
