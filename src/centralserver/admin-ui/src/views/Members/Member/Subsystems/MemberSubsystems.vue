@@ -38,7 +38,7 @@
           <tr>
             <th>
               {{ $t('members.member.subsystems.subsystemcode') }}
-              <v-icon class="sorting">icon-Sorting-arrow</v-icon>
+              <v-icon class="mb-1">icon-Sorting-arrow</v-icon>
             </th>
             <th>{{ $t('members.member.subsystems.servercode') }}</th>
             <th>{{ $t('members.member.subsystems.serverOwner') }}</th>
@@ -141,10 +141,6 @@ export default Vue.extend({
   .xrd-clickable {
     margin-left: 10px;
   }
-}
-
-.sorting {
-  margin-bottom: 5px;
 }
 
 .unregistered-subsystem {

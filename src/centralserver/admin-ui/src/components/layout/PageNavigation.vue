@@ -54,14 +54,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style scoped lang="scss">
-@import '../../assets/colors';
-
-.page-navigation-row {
-  // Unset default purple background
-  .v-tab::before:hover {
-    opacity: 0 !important;
-  }
-}
-</style>
