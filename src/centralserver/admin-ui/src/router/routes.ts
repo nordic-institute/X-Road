@@ -37,11 +37,18 @@ import { Permissions, RouteName } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import Settings from '@/views/Settings/Settings.vue';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
+import MemberList from '@/views/Members/MemberList.vue';
 
 import MockView1 from '@/views/MockView1.vue';
 import MockView2 from '@/views/MockView2.vue';
 import MockSubview from '@/views/MockSubview.vue';
 import Members from '@/views/Members/Members.vue';
+import Member from '@/views/Members/Member/Member.vue';
+
+import MemberDetails from '@/views/Members/Member/Details/MemberDetails.vue';
+import PageNavigation from '@/components/layout/PageNavigation.vue';
+import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
+import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -86,21 +93,56 @@ const routes: RouteConfig[] = [
       },
 
       {
-        name: RouteName.SecurityServers,
-        path: '/security-servers',
+        path: '/members',
         components: {
-          default: MockView2,
+          default: Members,
           top: TabsBase,
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        children: [
+          {
+            name: RouteName.Members,
+            path: '',
+            component: MemberList,
+          },
+          {
+            path: ':memberid',
+            components: {
+              default: Member,
+              pageNavigation: PageNavigation,
+            },
+            props: { default: true },
+            redirect: '/members/:memberid/details',
+            children: [
+              {
+                name: RouteName.MemberDetails,
+                path: 'details',
+                component: MemberDetails,
+                props: { default: true },
+              },
+              {
+                name: RouteName.MemberManagementRequests,
+                path: 'managementrequests',
+                component: MemberManagementRequests,
+                props: { default: true },
+              },
+              {
+                name: RouteName.MemberSubsystems,
+                path: 'subsystems',
+                component: MemberSubsystems,
+                props: { default: true },
+              },
+            ],
+          },
+        ],
       },
 
       {
-        name: RouteName.Members,
-        path: '/members',
+        name: RouteName.SecurityServers,
+        path: '/security-servers',
         components: {
-          default: Members,
+          default: MockView2,
           top: TabsBase,
           alerts: AlertsContainer,
         },

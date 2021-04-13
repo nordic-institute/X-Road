@@ -24,30 +24,33 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common content">
-    <slot></slot>
+  <div>
+    <v-tabs :background-color="'transparent'" class="page-navigation-row">
+      <v-tab v-for="item in items" v-bind:key="item.url" :to="item.url"
+        >{{ item.label }}
+        <span v-if="item.showAttention" class="dot mb-3"></span
+      ></v-tab>
+    </v-tabs>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { Prop } from 'vue/types/options';
 
-/**
- * View wrapper component for the main content area.
- */
-export default Vue.extend({});
-</script>
-
-<style scoped lang="scss">
-.content {
-  margin-top: 40px;
-  width: 100%;
-  max-width: 1600px;
-  padding-right: 92px;
-  padding-left: 92px;
-
-  @media only screen and (max-width: 920px) {
-    padding-left: 0px;
-  }
+export interface NavigationItem {
+  url: string;
+  label: string;
+  showAttention?: boolean;
 }
-</style>
+
+export default Vue.extend({
+  name: 'PageNavigation',
+  props: {
+    items: {
+      type: Array as Prop<NavigationItem[]>,
+      required: true,
+    },
+  },
+});
+</script>
