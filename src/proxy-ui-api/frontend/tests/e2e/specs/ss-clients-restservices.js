@@ -153,6 +153,7 @@ module.exports = {
     clientServices.openOperation('s1c1');
 
     // Verify tooltips
+    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
@@ -170,6 +171,7 @@ module.exports = {
     browser.expect
       .element(operationDetails.elements.activeTooltip)
       .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
+    */
 
     // Verify cancel
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
@@ -222,7 +224,7 @@ module.exports = {
     browser.waitForElementVisible(sslCheckFail);
     browser.expect
       .element(sslCheckFail.elements.continueButton)
-      .to.be.visible.and.text.to.equal('CONTINUE');
+      .to.be.visible.and.text.to.equal('Continue');
     sslCheckFail.continue();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
@@ -527,8 +529,8 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // verify sorting of added
     restEndpoints.openAddDialog();
@@ -626,8 +628,8 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq2');
     endpointPopup.enterPath('/testreq3');
     endpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // Verify edit
     endpointPopup.enterPath('/newreq1');
