@@ -100,6 +100,7 @@ public final class ConfigurationClientMain {
      * 1) <anchor file> <configuration path> -- download and exit,
      * 2) <anchor file> -- download and verify,
      * 3) [no args] -- start as daemon.
+     *
      * @param args the arguments
      * @throws Exception if an error occurs
      */
@@ -286,7 +287,8 @@ public final class ConfigurationClientMain {
                     log.info("handler /status");
 
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(ConfigurationClientJobListener.getStatus(), response.getWriter());
+                    JsonUtils.getObjectWriter()
+                            .writeValue(response.getWriter(), ConfigurationClientJobListener.getStatus());
                 } catch (Exception e) {
                     log.error("Error getting conf client status", e);
                 }
@@ -376,7 +378,7 @@ public final class ConfigurationClientMain {
         public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
             log.info("job was executed result={}", context.getResult());
 
-            setStatus((DiagnosticsStatus)context.getResult());
+            setStatus((DiagnosticsStatus) context.getResult());
         }
     }
 

@@ -25,10 +25,10 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import ee.ria.xroad.common.util.JsonUtils.Exclude;
-
-import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -43,7 +43,7 @@ import java.util.List;
 class OperationalDataRecords {
 
     @Getter
-    @SerializedName("records")
+    @JsonProperty("records")
     private List<OperationalDataRecord> records = new ArrayList<>();
 
     /**
@@ -51,7 +51,7 @@ class OperationalDataRecords {
      */
     @Getter
     @Setter
-    @Exclude
+    @JsonIgnore
     private Long nextRecordsFrom = null;
 
     OperationalDataRecords(List<OperationalDataRecord> records) {
@@ -75,7 +75,7 @@ class OperationalDataRecords {
                 ? null : records.get(records.size() - 1).getMonitoringDataTs();
     }
 
-    String getPayload(Gson gson) {
-        return gson.toJson(this);
+    String getPayload(ObjectWriter objectWriter) throws JsonProcessingException {
+        return objectWriter.writeValueAsString(this);
     }
 }

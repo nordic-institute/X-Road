@@ -34,7 +34,7 @@ import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.ResourceUtils;
 import ee.ria.xroad.opmonitordaemon.message.ObjectFactory;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import com.sun.istack.ByteArrayDataSource;
 import com.sun.xml.bind.api.AccessorException;
 import lombok.RequiredArgsConstructor;
@@ -79,7 +79,7 @@ import static ee.ria.xroad.common.util.MimeUtils.HEADER_CONTENT_TRANSFER_ENCODIN
 abstract class QueryRequestHandler {
 
     static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
-    static final Gson GSON = JsonUtils.getSerializer();
+    static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     private static final JAXBContext JAXB_CTX = initJaxbCtx();
     private static final Schema OP_MONITORING_SCHEMA = createSchema();

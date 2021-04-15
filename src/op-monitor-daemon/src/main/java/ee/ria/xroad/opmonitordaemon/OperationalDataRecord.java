@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
-import com.google.gson.annotations.JsonAdapter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -34,7 +35,6 @@ import lombok.ToString;
 import javax.validation.constraints.Min;
 
 import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerType;
-import static ee.ria.xroad.common.util.JsonUtils.Exclude;
 
 
 /**
@@ -49,7 +49,7 @@ public class OperationalDataRecord {
     // The unique ID of the record in the database.
     @Getter
     @Setter
-    @Exclude
+    @JsonIgnore
     private Long id;
 
     // The Unix timestamp (in seconds) of receiving the data at the monitoring
@@ -67,7 +67,7 @@ public class OperationalDataRecord {
     @Setter
     private String securityServerInternalIp;
 
-    @JsonAdapter(SecurityServerTypeTypeAdapter.class)
+    @JsonDeserialize(using = SecurityServerTypeTypeAdapter.class)
     private String securityServerType;
 
     public SecurityServerType getSecurityServerType() {

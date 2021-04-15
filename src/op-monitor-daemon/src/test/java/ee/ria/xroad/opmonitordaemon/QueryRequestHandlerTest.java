@@ -49,6 +49,7 @@ import org.w3c.dom.Element;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.GSON;
+import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.formatFullOperationalDataAsJson;
 import static org.junit.Assert.assertEquals;
 
@@ -213,7 +214,7 @@ public class QueryRequestHandlerTest {
     }
 
     private final class TestMetricsRegistry extends MetricRegistry {
-        TestMetricsRegistry() {
+        TestMetricsRegistry() throws IOException {
             HealthDataMetrics.registerInitialMetrics(this,
                     () -> TEST_TIMESTAMP);
 
@@ -248,8 +249,8 @@ public class QueryRequestHandlerTest {
         }
 
         private OperationalDataRecord createRecord(ServiceId serviceId,
-                boolean success) {
-            OperationalDataRecord record = GSON.fromJson(
+                boolean success) throws IOException {
+            OperationalDataRecord record = OBJECT_READER.readValue(
                     formatFullOperationalDataAsJson(),
                     OperationalDataRecord.class);
             record.setServiceXRoadInstance(serviceId.getXRoadInstance());

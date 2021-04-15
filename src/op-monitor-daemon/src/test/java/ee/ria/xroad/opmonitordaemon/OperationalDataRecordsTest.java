@@ -27,7 +27,7 @@ package ee.ria.xroad.opmonitordaemon;
 
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -40,7 +40,7 @@ import static org.junit.Assert.assertEquals;
  */
 public class OperationalDataRecordsTest {
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     /**
      * Test empty records payload.
@@ -54,6 +54,6 @@ public class OperationalDataRecordsTest {
         recordList.add(new OperationalDataRecord());
         recordList.add(new OperationalDataRecord());
 
-        assertEquals("{\"records\":[{},{}]}", records.getPayload(GSON));
+        assertEquals("{\"records\":[{},{}]}", records.getPayload(OBJECT_WRITER));
     }
 }
