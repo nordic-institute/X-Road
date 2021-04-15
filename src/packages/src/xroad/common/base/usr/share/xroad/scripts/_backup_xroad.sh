@@ -51,13 +51,14 @@ create_backup_tarball () {
   if [[ $ENCRYPT_BACKUP = true ]] ; then
     echo "CREATING ENCRYPTED TAR ARCHIVE TO ${BACKUP_FILENAME}"
     tar --create -v --label "${TARBALL_LABEL}" \
-        --exclude="tmp*.tmp" --exclude="/etc/xroad/postgresql" --exclude="/etc/xroad/backupkeys/gpghome" \
-        ${BACKED_UP_PATHS} \
+        --exclude="tmp*.tmp" --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" \
+        --exclude="/etc/xroad/backupkeys/gpghome"  ${BACKED_UP_PATHS} \
     | gpg --homedir /etc/xroad/backupkeys/gpghome --encrypt --sign --recipient backup@xroad --output ${BACKUP_FILENAME}
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"
-    tar --create -v --label "${TARBALL_LABEL}" --file ${BACKUP_FILENAME} --exclude="tmp*.tmp" --exclude="/etc/xroad/postgresql" ${BACKED_UP_PATHS}
+    tar --create -v --label "${TARBALL_LABEL}" --file ${BACKUP_FILENAME} --exclude="tmp*.tmp" \
+      --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" ${BACKED_UP_PATHS}
   fi
   if [ $? != 0 ] ; then
     echo "Removing incomplete backup archive"

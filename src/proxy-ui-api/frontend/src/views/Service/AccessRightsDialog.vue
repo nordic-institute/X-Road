@@ -27,9 +27,9 @@
   <v-dialog v-if="dialog" :value="dialog" width="842" scrollable persistent>
     <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
-        <span class="headline">{{
-          $t('accessRights.addServiceClientsTitle')
-        }}</span>
+        <span class="headline" data-test="access-rights-dialog-title">
+          {{ $t(title) }}
+        </span>
         <v-spacer />
         <i @click="cancel()" id="close-x" data-test="cancel"></i>
       </v-card-title>
@@ -240,6 +240,10 @@ export default Vue.extend({
     },
     existingServiceClients: {
       type: Array as PropType<ServiceClient[]>,
+      required: true,
+    },
+    title: {
+      type: String,
       required: true,
     },
   },

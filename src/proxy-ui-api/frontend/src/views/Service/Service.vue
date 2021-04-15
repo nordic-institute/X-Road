@@ -47,7 +47,7 @@
         v-for="tab in tabs"
         v-bind:key="tab.key"
         :to="tab.to"
-        data-test="service-tab"
+        :data-test="tab.key"
         >{{ $t(tab.name) }}</v-tab
       >
     </v-tabs>
@@ -96,6 +96,10 @@ export default Vue.extend({
           to: {
             name: RouteName.ServiceParameters,
             query: { descriptionType: this.$route.query.descriptionType },
+            params: {
+              clientId: this.clientId,
+              serviceId: this.serviceId,
+            },
           },
         },
         {
@@ -104,6 +108,10 @@ export default Vue.extend({
           to: {
             name: RouteName.Endpoints,
             query: { descriptionType: this.$route.query.descriptionType },
+            params: {
+              clientId: this.clientId,
+              serviceId: this.serviceId,
+            },
           },
         },
       ];

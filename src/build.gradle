@@ -1,6 +1,6 @@
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
     }
     dependencies {
         classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
@@ -11,15 +11,15 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'org.owasp.dependencycheck' version '6.0.3'
+    id 'org.owasp.dependencycheck' version '6.0.5'
     id 'jacoco'
     id 'idea'
-    id "io.spring.dependency-management" version "1.0.10.RELEASE" apply false
-    id 'org.springframework.boot' version '2.3.6.RELEASE' apply false
+    id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
+    id 'org.springframework.boot' version '2.3.8.RELEASE' apply false
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 def getRubySourceCheckCommand(def projectPath) {
@@ -112,13 +112,13 @@ subprojects {
     dependencies {
         testImplementation 'org.hamcrest:hamcrest:2.2'
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
-        testImplementation 'junit:junit:4.13'
+        testImplementation 'junit:junit:4.13.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.12'
-        annotationProcessor 'org.projectlombok:lombok:1.18.12'
+        compileOnly 'org.projectlombok:lombok:1.18.18'
+        annotationProcessor 'org.projectlombok:lombok:1.18.18'
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.12'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+        testCompileOnly 'org.projectlombok:lombok:1.18.18'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
     }
 
     task testJar(type: Jar) {

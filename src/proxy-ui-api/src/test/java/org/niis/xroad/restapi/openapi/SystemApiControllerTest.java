@@ -45,6 +45,7 @@ import org.niis.xroad.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,6 +70,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.restapi.openapi.SystemApiController.OPENAPI_DEFINITION_FILENAME;
 import static org.niis.xroad.restapi.util.TestUtils.ANCHOR_FILE;
 
 /**
@@ -332,5 +334,14 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         Anchor anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
         assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "DOWNLOAD_OPENAPI" })
+    public void testDownloadOpenApi() throws IOException {
+        ResponseEntity<Resource> response = systemApiController.downloadOpenApi();
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getFile().length(),
+        response.getBody().contentLength());
     }
 }

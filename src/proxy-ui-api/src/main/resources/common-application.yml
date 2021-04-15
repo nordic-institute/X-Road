@@ -29,6 +29,7 @@ server:
     session:
       cookie:
         secure: true
+  tomcat:
     accesslog:
       enabled: true
       directory: /var/log/xroad

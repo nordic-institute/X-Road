@@ -40,9 +40,13 @@
           color="primary"
           class="xrd-main-tabs-slider"
         ></v-tabs-slider>
-        <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
-          $t(tab.name)
-        }}</v-tab>
+        <v-tab
+          v-for="tab in allowedTabs"
+          v-bind:key="tab.key"
+          :to="tab.to"
+          :data-test="tab.key"
+          >{{ $t(tab.name) }}</v-tab
+        >
       </v-tabs>
     </div>
     <app-drop-menu />

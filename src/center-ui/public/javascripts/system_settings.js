@@ -6,8 +6,8 @@
         opts.sDom = "t";
         opts.asStripeClasses = [];
         opts.aoColumns = [
-            { "mData": "code", "sClass": "uppercase", "sWidth": "15em" },
-            { "mData": "description" }
+            { "mData": "code", "sClass": "uppercase", "sWidth": "15em", "mRender": util.escape },
+            { "mData": "description", "mRender": util.escape }
         ];
         opts.fnRowCallback = null;
         opts.asRowId = ["code"];

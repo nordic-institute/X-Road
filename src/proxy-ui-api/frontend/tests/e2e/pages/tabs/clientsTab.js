@@ -62,28 +62,28 @@ var clientsTabCommands = {
 const clientsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/clients`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "Clients")]]//div[contains(@class, "base-full-width")]',
+    '//div[.//a[contains(@class, "v-tab--active") and @data-test="clients"]]//div[contains(@class, "base-full-width")]',
   locateStrategy: 'xpath',
   commands: clientsTabCommands,
   elements: {
     searchField: {
-      selector: '//*[contains(@data-test, "search-clients-input")]',
+      selector: '//*[@data-test="search-clients-input"]',
       locateStrategy: 'xpath',
     },
     addClientButton: {
-      selector: '//button[.//*[contains(text(), "add client")]]',
+      selector: '//button[@data-test="add-client-button"]',
       locateStrategy: 'xpath',
     },
     listNameHeader: {
-      selector: '//th[span[contains(text(),"Name")]]',
+      selector: '//th[contains(@class, "xrd-table-header-name")]',
       locateStrategy: 'xpath',
     },
     listIDHeader: {
-      selector: '//th[span[contains(text(),"ID")]]',
+      selector: '//th[contains(@class, "xrd-table-header-id")]',
       locateStrategy: 'xpath',
     },
     listStatusHeader: {
-      selector: '//th[span[contains(text(),"Status")]]',
+      selector: '//th[contains(@class, "xrd-table-header-status")]',
       locateStrategy: 'xpath',
     },
     testServiceListItem: {

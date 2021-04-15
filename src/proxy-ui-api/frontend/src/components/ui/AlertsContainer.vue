@@ -32,9 +32,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { formatDateTime } from '@/filters';
-import { RouteName } from '@/global';
 import ContextualAlerts from './ContextualAlerts.vue';
 import GlobalAlerts from './GlobalAlerts.vue';
 
@@ -42,32 +39,6 @@ export default Vue.extend({
   components: {
     ContextualAlerts,
     GlobalAlerts,
-  },
-  computed: {
-    hasAlerts(): boolean {
-      return (
-        this.showGlobalConfAlert ||
-        this.showSoftTokenPinEnteredAlert ||
-        this.showRestoreInProgress
-      );
-    },
-    showLoginLink(): boolean {
-      return this.$route.name !== RouteName.SignAndAuthKeys;
-    },
-    ...mapGetters([
-      'showGlobalConfAlert',
-      'showSoftTokenPinEnteredAlert',
-      'showRestoreInProgress',
-      'restoreStartTime',
-      'isAuthenticated',
-      'needsInitialization',
-    ]),
-  },
-  methods: {
-    formatDateTime,
-    tokenLogin(): void {
-      this.$router.replace({ name: RouteName.SignAndAuthKeys });
-    },
   },
 });
 </script>

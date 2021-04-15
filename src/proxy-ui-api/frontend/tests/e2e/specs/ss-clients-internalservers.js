@@ -90,10 +90,7 @@ module.exports = {
       'HTTPS NO AUTH',
     );
     clientInternalServers.selectConnectionType('HTTP');
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Connection type updated',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Connection type updated'
     mainPage.closeSnackbar();
     browser.assert.containsText(
       clientInternalServers.elements.connectionTypeMenu,
@@ -115,10 +112,7 @@ module.exports = {
     clientInternalServers.addCert(
       browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
     );
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Certificate already exists',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Certificate already exists'
     mainPage.closeSnackbar();
 
     // Open and verify certificate info
@@ -139,10 +133,7 @@ module.exports = {
     certificatePopup.deleteCert();
     browser.waitForElementVisible(certificatePopup);
     deletePopup.confirm();
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'Certificate deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Certificate deleted'
     mainPage.closeSnackbar();
     browser.waitForElementNotPresent(
       clientInternalServers.elements.tlsCertificate,

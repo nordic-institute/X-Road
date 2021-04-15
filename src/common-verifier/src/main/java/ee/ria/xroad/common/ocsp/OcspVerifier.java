@@ -49,6 +49,7 @@ import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.OperatorCreationException;
 
+import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Date;
@@ -73,10 +74,6 @@ import static ee.ria.xroad.common.util.TimeUtils.toOffsetDateTime;
 public final class OcspVerifier {
 
     private static final String ID_KP_OCSPSIGNING = "1.3.6.1.5.5.7.3.9";
-
-    private static final String SINGLE_RESP = "single_resp";
-    private static final String SIGNATURE = "signature";
-    private static final String CERTIFICATE = "certificate";
 
     private final int ocspFreshnessSeconds;
 
@@ -205,11 +202,10 @@ public final class OcspVerifier {
         }
     }
 
-    private SingleResp verifyResponseValidityCached(OCSPResp response, X509Certificate subject,
-            X509Certificate issuer)
-            throws Exception {
+    private SingleResp verifyResponseValidityCached(final OCSPResp response, final X509Certificate subject,
+            final X509Certificate issuer) throws Exception {
         try {
-            final String key = SINGLE_RESP + response.hashCode() + subject.hashCode() + issuer.hashCode();
+            final String key = response.hashCode() + ":" + subject.hashCode() + ":" + issuer.hashCode();
             return RESPONSE_VALIDITY_CACHE.get(key, () -> verifyResponseValidity(response, subject, issuer));
         } catch (ExecutionException | UncheckedExecutionException e) {
             throw (Exception) e.getCause();
@@ -270,10 +266,10 @@ public final class OcspVerifier {
      * Verifies the status of the OCSP response.
      *
      * @param response the OCSP response
-     * @throws Exception CodedException with error code X_CERT_VALIDATION
-     *                   if status is not good.
+     * @throws OCSPException  if ocsp response is not available
+     * @throws CodedException with error code X_CERT_VALIDATION if status is not good.
      */
-    public static void verifyStatus(OCSPResp response) throws Exception {
+    public static void verifyStatus(OCSPResp response) throws OCSPException {
         BasicOCSPResp basicResp = (BasicOCSPResp) response.getResponseObject();
         SingleResp singleResp = basicResp.getResponses()[0];
 
@@ -413,6 +409,11 @@ public final class OcspVerifier {
         // question.
         if (ocspCert.getIssuerX500Principal().equals(
                 issuer.getSubjectX500Principal())) {
+            try {
+                ocspCert.verify(issuer.getPublicKey());
+            } catch (GeneralSecurityException e) {
+                return false;
+            }
             List<String> keyUsage = ocspCert.getExtendedKeyUsage();
             if (keyUsage == null) {
                 return false;
