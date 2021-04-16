@@ -45,10 +45,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_system_administrator,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_system_administrator);
 
     // System admin should be in keys and certs view and not see clients tab
     browser.waitForElementVisible(keysTab);
@@ -75,10 +72,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_security_officer,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_security_officer);
 
     // Security officer should see clients list
     mainPage.openClientsTab();
@@ -108,10 +102,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_registration_officer,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_registration_officer);
 
     // Registration officer should not see local groups in clients details
     mainPage.openClientsTab();
@@ -142,10 +133,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_service_administrator,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_service_administrator);
 
     // Service administrator should see local groups list
     mainPage.openClientsTab();
@@ -199,10 +187,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_securityserver_observer,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_securityserver_observer);
 
     // Security server observer should see local groups list
     mainPage.openClientsTab();

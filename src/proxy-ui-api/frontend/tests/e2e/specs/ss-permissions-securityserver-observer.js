@@ -58,10 +58,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_securityserver_observer,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_securityserver_observer);
 
     // clients
     mainPage.openClientsTab();

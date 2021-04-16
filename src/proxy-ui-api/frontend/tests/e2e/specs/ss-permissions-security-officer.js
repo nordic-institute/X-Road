@@ -55,10 +55,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.assert.containsText(
-      mainPage.elements.userMenuButton,
-      browser.globals.login_security_officer,
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_security_officer);
 
     // clients
     mainPage.openClientsTab();

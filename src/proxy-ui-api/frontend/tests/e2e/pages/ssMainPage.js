@@ -69,6 +69,14 @@ var navigateCommands = {
     this.click('@sessionExpiredPopupOkButton');
     return this;
   },
+  verifyCurrentUser: function (user) {
+    this.api.assert.containsText(
+      this.elements.userMenuButton,
+      user,
+    );
+
+    return this;
+  },
 };
 
 var clientInfoCommands = {
