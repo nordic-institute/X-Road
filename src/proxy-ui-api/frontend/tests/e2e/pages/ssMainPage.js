@@ -924,7 +924,7 @@ module.exports = {
     },
     certificatePopup: {
       selector:
-        '//div[@data-test="certificate-details-dialog"]',
+        '//div[contains(@class, "certificate-details-wrapper")]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {

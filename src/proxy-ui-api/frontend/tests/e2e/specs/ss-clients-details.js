@@ -43,7 +43,7 @@ module.exports = {
 
     // Open TestGov client details view
     mainPage.openClientsTab();
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openDetailsTab();
     browser.waitForElementVisible(clientDetails);
@@ -85,7 +85,7 @@ module.exports = {
 
     // Open TestService
     mainPage.openClientsTab();
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     clientInfo.openDetailsTab();
 
     // Verify info

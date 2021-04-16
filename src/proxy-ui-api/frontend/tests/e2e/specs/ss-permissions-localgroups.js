@@ -78,7 +78,7 @@ module.exports = {
     mainPage.openClientsTab();
 
     // Security officer should not see clients details and thus not local groups
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementNotPresent(clientInfo);
 
     browser.end();
@@ -106,7 +106,7 @@ module.exports = {
 
     // Registration officer should not see local groups in clients details
     mainPage.openClientsTab();
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
     browser.waitForElementNotPresent(clientInfo.elements.localGroupsTab);
 
@@ -137,7 +137,7 @@ module.exports = {
 
     // Service administrator should see local groups list
     mainPage.openClientsTab();
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
 
@@ -191,7 +191,7 @@ module.exports = {
 
     // Security server observer should see local groups list
     mainPage.openClientsTab();
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     clientInfo.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
 

@@ -82,7 +82,7 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // Security officer should not see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementNotPresent(clientInfo);
 
     browser.end();
@@ -115,7 +115,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab.elements.addClientButton);
 
     // Registration officer should see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
     browser
@@ -164,7 +164,7 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // Service administrator should see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
     browser
@@ -213,7 +213,7 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // Security server observer should see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
     browser

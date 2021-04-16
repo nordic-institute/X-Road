@@ -275,7 +275,7 @@ module.exports = {
     // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
     clientInfo.openServiceClientsTab();
@@ -319,7 +319,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
@@ -368,7 +368,7 @@ module.exports = {
     // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -402,7 +402,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
@@ -474,7 +474,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
@@ -516,7 +516,7 @@ module.exports = {
     // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -553,7 +553,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);

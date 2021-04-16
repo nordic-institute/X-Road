@@ -41,14 +41,6 @@ var clientsTabCommands = {
     this.click('@searchIcon');
     return this;
   },
-  openTestGov: function () {
-    this.click('@testGovListItem');
-    return this;
-  },
-  openTestService: function () {
-    this.click('@testServiceListItem');
-    return this;
-  },
   openClient: function (name) {
     this.api.click(
       this.selector + '//tbody//span[contains(text(),"' + name + '")]',

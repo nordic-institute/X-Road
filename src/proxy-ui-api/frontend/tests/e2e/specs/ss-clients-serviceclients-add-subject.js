@@ -69,7 +69,7 @@ const setupServices = (pages) => {
   // Add wsdl
   frontPage.navigate();
   browser.waitForElementVisible('//*[@id="app"]');
-  clientsTab.openTestService();
+  clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   clientInfo.openServicesTab();
   browser.waitForElementVisible(clientServices);
@@ -98,7 +98,7 @@ const clearServices = (pages) => {
   // Remove WSDL service description
   frontPage.navigate();
   browser.waitForElementVisible('//*[@id="app"]');
-  clientsTab.openTestService();
+  clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   clientInfo.openServicesTab();
   browser.waitForElementVisible(clientServices);
@@ -121,7 +121,7 @@ const navigateToAddSubjectDialog = (pages) => {
   } = pages;
   frontPage.navigate();
   browser.waitForElementVisible('//*[@id="app"]');
-  clientsTab.openTestService();
+  clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   // Navigate to service clients -tab
   clientInfo.openServiceClientsTab();

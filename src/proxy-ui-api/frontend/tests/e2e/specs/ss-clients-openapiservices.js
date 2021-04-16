@@ -43,7 +43,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -159,7 +159,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -276,7 +276,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -363,7 +363,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -444,7 +444,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -581,7 +581,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -675,7 +675,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -845,7 +845,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
