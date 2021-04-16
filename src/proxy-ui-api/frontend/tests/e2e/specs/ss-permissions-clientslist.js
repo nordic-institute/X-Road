@@ -45,10 +45,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_system_administrator +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_system_administrator,
     );
 
     // System admin should be in keys and certs view and not see clients tab
@@ -76,10 +75,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_security_officer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_security_officer,
     );
 
     // Security officer should see clients list
@@ -114,10 +112,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_registration_officer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_registration_officer,
     );
 
     // Registration officer should see clients list
@@ -131,7 +128,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
 
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible('//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]')
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
@@ -166,10 +163,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_service_administrator +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_service_administrator,
     );
 
     // Security officer should see clients list
@@ -184,7 +180,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
 
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible('//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]')
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
@@ -219,10 +215,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_securityserver_observer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_securityserver_observer,
     );
 
     // Security server observer should see clients list
@@ -237,7 +232,7 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
 
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible('//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]')
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
