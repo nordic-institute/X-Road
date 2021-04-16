@@ -58,14 +58,14 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_securityserver_observer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_securityserver_observer,
     );
 
     // clients
     mainPage.openClientsTab();
+    clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 

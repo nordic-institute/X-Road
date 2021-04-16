@@ -52,14 +52,14 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_registration_officer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_registration_officer,
     );
 
     // clients
     mainPage.openClientsTab();
+    clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementVisible(clientsTab.elements.addClientButton);
 

@@ -298,7 +298,7 @@ const keysTab = {
     },
     securityServerTLSKeyTab: {
       selector:
-        '//a[@data-test="ssTlsCertificate"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "Security Server TLS Key")]',
       locateStrategy: 'xpath',
     },
     tokenName: {

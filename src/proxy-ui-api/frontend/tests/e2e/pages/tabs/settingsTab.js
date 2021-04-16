@@ -106,7 +106,7 @@ const settingsTab = {
   elements: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "System Parameters")]',
       locateStrategy: 'xpath',
     },
     backupAndRestoreTab: {
