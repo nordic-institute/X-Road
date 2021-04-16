@@ -32,7 +32,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
 
 import java.io.IOException;
 
@@ -45,7 +44,6 @@ public class OpenapiApiControllerTest extends AbstractApiControllerTestContext {
     OpenapiApiController openapiApiController;
 
     @Test
-    @WithMockUser(authorities = { "DOWNLOAD_OPENAPI" })
     public void testDownloadOpenApi() throws IOException {
         ResponseEntity<Resource> response = openapiApiController.downloadOpenApi();
         assertEquals(HttpStatus.OK, response.getStatusCode());
