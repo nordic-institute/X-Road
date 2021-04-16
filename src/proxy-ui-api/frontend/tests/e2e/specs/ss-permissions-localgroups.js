@@ -45,10 +45,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_system_administrator +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_system_administrator,
     );
 
     // System admin should be in keys and certs view and not see clients tab
@@ -76,10 +75,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_security_officer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_security_officer,
     );
 
     // Security officer should see clients list
@@ -110,10 +108,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_registration_officer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_registration_officer,
     );
 
     // Registration officer should not see local groups in clients details
@@ -145,10 +142,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_service_administrator +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_service_administrator,
     );
 
     // Service administrator should see local groups list
@@ -161,7 +157,7 @@ module.exports = {
     browser.waitForElementVisible(clientLocalGroups.elements.addGroupButton);
 
     //  Service administrator should see local groups members and edit buttons
-    clientLocalGroups.openBacDetails();
+    clientLocalGroups.openDetails('bac');
     browser.assert.containsText(
       localGroupPopup.elements.groupIdentifier,
       'bac',
@@ -203,10 +199,9 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_securityserver_observer +
-        '")]',
+    browser.assert.containsText(
+      mainPage.elements.userMenuButton,
+      browser.globals.login_securityserver_observer,
     );
 
     // Security server observer should see local groups list
@@ -219,7 +214,7 @@ module.exports = {
     browser.waitForElementNotPresent(clientLocalGroups.elements.addGroupButton);
 
     // security server observer should see local group members but not be able to edit them
-    clientLocalGroups.openBacDetails();
+    clientLocalGroups.openDetails('bac');
 
     browser.assert.containsText(
       localGroupPopup.elements.groupIdentifier,
