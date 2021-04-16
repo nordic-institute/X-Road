@@ -27,6 +27,7 @@ package ee.ria.xroad.signer.certmanager;
 
 import ee.ria.xroad.common.CertificationServiceDiagnostics;
 import ee.ria.xroad.common.CertificationServiceStatus;
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.cert.CertChain;
@@ -52,11 +53,13 @@ import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.security.Principal;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -64,6 +67,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.util.CryptoUtils.calculateCertHexHash;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
@@ -71,7 +75,6 @@ import static ee.ria.xroad.common.util.CryptoUtils.readCertificate;
 import static ee.ria.xroad.signer.protocol.ComponentNames.OCSP_CLIENT_JOB;
 import static ee.ria.xroad.signer.tokenmanager.ServiceLocator.getOcspResponseManager;
 import static java.util.Collections.emptyList;
-
 
 /**
  * This class is responsible for retrieving the OCSP responses from the OCSP
@@ -117,7 +120,7 @@ public class OcspClientWorker extends AbstractSignerActor {
             handleDiagnostics();
         } else {
             if (message instanceof Exception) {
-                log.error("received Exception message", ((Exception)message));
+                log.error("received Exception message", ((Exception) message));
             }
 
             unhandled(message);
@@ -300,53 +303,47 @@ public class OcspClientWorker extends AbstractSignerActor {
             throw new ConnectException("No OCSP responder URIs available");
         }
 
-        OCSPResp response = null;
+        final OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), verifierOptions);
 
         for (String responderURI : responderURIs) {
             final OffsetDateTime prevUpdate = OffsetDateTime.now();
-            final OffsetDateTime nextUpdate =
-                    prevUpdate.plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval());
+            final OffsetDateTime nextUpdate = prevUpdate
+                    .plusSeconds(GlobalConfExtensions.getInstance().getOcspFetchInterval());
+            int errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
 
             try {
                 log.debug("Fetching response from: {}", responderURI);
-                response = OcspClient.fetchResponse(responderURI, subject, issuer, signerKey, signer, signAlgoId);
+                final OCSPResp response = OcspClient
+                        .fetchResponse(responderURI, subject, issuer, signerKey, signer, signAlgoId);
 
                 if (response != null) {
+                    log.debug("Verifying response: {}", response);
+                    verifier.verifyValidity(response, subject, issuer);
+                    log.debug("Verified OCSP response for certificate '{}'", subject.getSubjectX500Principal());
+
                     reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.RETURN_SUCCESS, prevUpdate,
                             nextUpdate);
-                    break;
+
+                    return response;
                 }
             } catch (OCSPException e) {
-                log.error("Parsing OCSP response from " + responderURI + " failed", e);
-
-                reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID,
-                        prevUpdate, nextUpdate);
+                log.error("Parsing OCSP response from {} failed", responderURI, e);
+                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
             } catch (IOException e) {
-                log.error("Unable to connect to responder at " + responderURI, e);
-                reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR,
-                        prevUpdate, nextUpdate);
+                log.error("Unable to connect to responder at {}", responderURI, e);
+                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_CONNECTION_ERROR;
+            } catch (CodedException e) {
+                log.warn("Received OCSP response that failed verification", e);
+                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED;
             } catch (Exception e) {
-                log.error("Unable to fetch response from responder at " + responderURI, e);
-
-                reportOcspDiagnostics(issuer, responderURI, DiagnosticsErrorCodes.ERROR_CODE_OCSP_FAILED,
-                        prevUpdate, nextUpdate);
+                log.error("Unable to fetch response from responder at {}", responderURI, e);
+                errorCode = DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID;
             }
+
+            reportOcspDiagnostics(issuer, responderURI, errorCode, prevUpdate, nextUpdate);
         }
-        try {
-            log.debug("Verifying response: {}", response);
 
-            OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), verifierOptions);
-            verifier.verifyValidity(response, subject, issuer);
-
-            log.debug("Received OCSP response for certificate '{}'", subject.getSubjectX500Principal());
-            log.debug("Verification successful");
-
-            return response;
-        } catch (Exception e) {
-            log.warn("Received OCSP response that failed verification", e);
-
-            return null;
-        }
+        return null;
     }
 
     private void reportOcspDiagnostics(X509Certificate issuer, String responderURI, int statusCode,
@@ -430,14 +427,14 @@ public class OcspClientWorker extends AbstractSignerActor {
                 new IsCachedOcspResponse(certHash, atDate));
 
         if (isCachedOcspResponseObject instanceof Exception) {
-            Exception e = (Exception)isCachedOcspResponseObject;
+            Exception e = (Exception) isCachedOcspResponseObject;
 
             log.debug("cannot figure out if IsCachedOcspResponse");
 
             throw e;
         }
 
-        Boolean isCachedOcspResponse = (Boolean)isCachedOcspResponseObject;
+        Boolean isCachedOcspResponse = (Boolean) isCachedOcspResponseObject;
 
         log.trace("isCachedOcspResponse(certHash: {}, atDate: {}) = {}", certHash, atDate, isCachedOcspResponse);
 
@@ -454,37 +451,39 @@ public class OcspClientWorker extends AbstractSignerActor {
 
             return chain.getAllCertsWithoutTrustedRoot();
         } catch (Exception e) {
-            log.error("Error getting certificate chain for certificate " + cert.getSubjectX500Principal(), e);
+            log.error("Error getting certificate chain for certificate {}", cert.getSubjectX500Principal(), e);
         }
 
         return emptyList();
     }
 
     private void initializeDiagnostics() {
-        for (X509Certificate caCertificate : GlobalConf.getAllCaCerts()) {
+
+        final int fetchInterval = GlobalConfExtensions.getInstance().getOcspFetchInterval();
+        final Map<String, CertificationServiceStatus> serviceStatusMap = certServDiagnostics
+                .getCertificationServiceStatusMap();
+
+        final Collection<X509Certificate> caCerts = GlobalConf.getAllCaCerts();
+        serviceStatusMap.keySet().retainAll(caCerts.stream()
+                .map(X509Certificate::getSubjectDN)
+                .map(Principal::toString)
+                .collect(Collectors.toSet()));
+
+        for (X509Certificate caCertificate : caCerts) {
             try {
                 final String key = caCertificate.getSubjectDN().toString();
+                final CertificationServiceStatus serviceStatus = serviceStatusMap
+                        .computeIfAbsent(key, k -> new CertificationServiceStatus(k));
 
-                // add certification service if it does not exist
-                if (!certServDiagnostics.getCertificationServiceStatusMap().containsKey(key)) {
-                    CertificationServiceStatus newServiceStatus = new CertificationServiceStatus(key);
-                    certServDiagnostics.getCertificationServiceStatusMap().put(key, newServiceStatus);
-                }
+                final List<String> addresses = GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate);
+                final Map<String, OcspResponderStatus> responderStatusMap = serviceStatus.getOcspResponderStatusMap();
+                responderStatusMap.keySet().retainAll(addresses);
 
-                CertificationServiceStatus serviceStatus =
-                        certServDiagnostics.getCertificationServiceStatusMap().get(key);
-                // add ocsp responder if it does not exist
-                GlobalConf.getOcspResponderAddressesForCaCertificate(caCertificate).stream()
-                        .filter(responderURI -> !serviceStatus.getOcspResponderStatusMap().containsKey(responderURI))
-                        .forEach(responderURI -> {
-                            OcspResponderStatus responderStatus = new OcspResponderStatus(
-                                    DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, responderURI, null,
-                                    OffsetDateTime.now().plusSeconds(
-                                            GlobalConfExtensions.getInstance().getOcspFetchInterval()));
-                            serviceStatus.getOcspResponderStatusMap().put(responderURI, responderStatus);
-                        });
+                addresses.forEach(responderURI -> responderStatusMap.computeIfAbsent(responderURI,
+                        uri -> new OcspResponderStatus(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, uri, null,
+                                OffsetDateTime.now().plusSeconds(fetchInterval))));
             } catch (Exception e) {
-                log.error("Error while initializing diagnostics: {}", e);
+                log.error("Error while initializing diagnostics", e);
             }
         }
     }

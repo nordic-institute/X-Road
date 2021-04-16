@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.31  
+Version: 2.32  
 Doc. ID: IG-SS
 
 ---
@@ -56,7 +56,7 @@ Doc. ID: IG-SS
  29.09.2020 | 2.29    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
  19.01.2021 | 2.30    | Add instructions for using an alternative Java distribution. | Jarkko Hyöty
  04.02.2021 | 2.31    | Minor updates. | Ilkka Seppälä
-
+ 13.04.2021 | 2.32    | Update minimum requirements in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
 
 ## License
 
@@ -164,7 +164,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
  **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
- 1.0    | Ubuntu 18.04, x86-64<br>3 GB RAM, 3 GB free disk space | Minimum requirements
+ 1.0    | Ubuntu 18.04, x86-64<br>3 GB RAM, 3 GB free disk space | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
  1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
  1.3    |                                         | Account name in the user interface

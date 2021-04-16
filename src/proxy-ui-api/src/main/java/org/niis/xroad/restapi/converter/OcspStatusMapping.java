@@ -50,8 +50,9 @@ public enum OcspStatusMapping {
             OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID),
     ERROR_CODE_OCSP_UNINITIALIZED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED,
             OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED),
-    UNKNOWN(-1,
-            OcspStatus.UNKNOWN);
+    ERROR_CODE_OCSP_RESPONSE_UNVERIFIED(DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED,
+            OcspStatus.ERROR_CODE_OCSP_RESPONSE_UNVERIFIED),
+    UNKNOWN(-1, OcspStatus.UNKNOWN);
 
     private static final int DIAGNOSTICS_ERROR_CODE_UNKNOWN = -1;
     private final Integer diagnosticsErrorCode;
@@ -59,6 +60,7 @@ public enum OcspStatusMapping {
 
     /**
      * Return matching OcspStatus, if any
+     *
      * @param diagnosticsErrorCode
      * @return
      */
@@ -68,17 +70,13 @@ public enum OcspStatusMapping {
 
     /**
      * return OcspStatusMapping matching the given DiagnosticsErrorCode, if any
+     *
      * @param diagnosticsErrorCode
      * @return
      */
     public static Optional<OcspStatusMapping> getFor(Integer diagnosticsErrorCode) {
-        Optional<OcspStatusMapping> result = Arrays.stream(values())
+        return Optional.of(Arrays.stream(values())
                 .filter(mapping -> mapping.diagnosticsErrorCode.equals(diagnosticsErrorCode))
-                .findFirst();
-        if (result.isPresent()) {
-            return result;
-        }  else {
-            return getFor(DIAGNOSTICS_ERROR_CODE_UNKNOWN);
-        }
+                .findFirst().orElse(UNKNOWN));
     }
 }
