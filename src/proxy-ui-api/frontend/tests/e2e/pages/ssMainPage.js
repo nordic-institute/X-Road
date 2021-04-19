@@ -672,7 +672,7 @@ module.exports = {
     diagnosticsTab: diagnosticsTab,
     settingsTab: settingsTab,
     clientInfo: {
-      selector: '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(), "Details")]]//div[contains(@class, "xrd-view-common")]',
+      selector: '//div[contains(@class, "v-main__wrap") and .//*[@data-test="clients" and @aria-selected="true"]]',
       locateStrategy: 'xpath',
       commands: [clientInfoCommands],
       elements: {
