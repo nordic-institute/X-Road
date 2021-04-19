@@ -36,6 +36,7 @@ import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
+import org.niis.xroad.restapi.openapi.model.KeyLabel;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
@@ -94,6 +95,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAdd.client.memberCode";
     public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAdd.client.subsystemCode";
     public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAdd.code";
+    public static final String FIELD_KEYLABEL_LABEL = "keyLabel.label";
     public static final String FIELD_LOCALGROUPADD_DESCRIPTION = "localGroupAdd.description";
     public static final String FIELD_LOCALGROUPDESCRIPTION = "localGroupDescription.description";
 
@@ -295,6 +297,15 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     @Test
+    @WithMockUser(authorities = "GENERATE_KEY")
+    public void addKeyWithControlCharacter() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        expectedFieldValidationErrors.put(FIELD_KEYLABEL_LABEL,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertAddKeyValidationError("1", HAS_CONTROL_CHAR, expectedFieldValidationErrors);
+    }
+
+    @Test
     @WithMockUser(authorities = "ADD_LOCAL_GROUP")
     public void addClientLocalGroupWithControlCharacter() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
@@ -323,6 +334,14 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         expectedFieldValidationErrors.put(FIELD_LOCALGROUPDESCRIPTION,
                 Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
         assertUpdateLocalGroupDescValidationError(HAS_CONTROL_CHAR, expectedFieldValidationErrors);
+    }
+
+    private void assertAddKeyValidationError(String tokenIdParam, String keyLabelParam,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        KeyLabel keyLabel = new KeyLabel().label(keyLabelParam);
+        ResponseEntity<Object> response =
+                restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys", keyLabel, Object.class);
+        assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
     private void assertAddLocalGroupValidationError(String localGroupCode, String localGroupDescription,

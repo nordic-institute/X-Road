@@ -48,6 +48,7 @@ import org.niis.xroad.restapi.openapi.model.Token;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.openapi.model.TokenPinUpdate;
+import org.niis.xroad.restapi.openapi.validator.KeyLabelValidator;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -62,6 +63,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
@@ -245,5 +248,11 @@ public class TokensApiController implements TokensApi {
             throw new ConflictException(e);
         }
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @InitBinder("keyLabel")
+    @PreAuthorize("permitAll()")
+    protected void initKeyLabelBinder(WebDataBinder binder) {
+        binder.addValidators(new KeyLabelValidator());
     }
 }
