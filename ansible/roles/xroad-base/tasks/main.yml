@@ -15,7 +15,8 @@
 - name: xroad user
   user:
     name: xroad
-    comment: "XRoad User"
+    comment: "X-Road User"
+    groups: xroad
     state: present
     shell: "/bin/bash"
     password: '*'
