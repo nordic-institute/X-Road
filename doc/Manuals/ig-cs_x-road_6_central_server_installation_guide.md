@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.21  
+Version: 2.22  
 Doc. ID: IG-CS
 
 ---
@@ -43,52 +43,50 @@ Doc. ID: IG-CS
 | 29.09.2020 | 2.19    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
 | 19.01.2021 | 2.20    | Add instructions for using an alternative Java distribution. | Jarkko Hyöty
 | 04.02.2021 | 2.21    | Minor updates. | Ilkka Seppälä
+| 16.04.2021 | 2.22    | Update remote database installation instructions. | Jarkko Hyöty
 
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1. Introduction](#1-introduction)
-  - [1.1 Target Audience](#11-target-audience)
-  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  - [1.3 References](#13-references)
-- [2. Installation](#2-installation)
-  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  - [2.2 Reference Data](#22-reference-data)
-  - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
-  - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Prepare for Installation](#25-prepare-for-installation)
-  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.6 Remote Database Installation](#26-remote-database-installation)
-  - [2.7 Setup Package Repository](#27-setup-package-repository)
-  - [2.8 Package Installation](#28-package-installation)
-  - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
-  - [2.10 Installing the Support for Monitoring](#210-installing-the-support-for-monitoring)
-  - [2.11 Remote Database Post-Installation Tasks](#211-remote-database-post-installation-tasks)
-  - [2.12 Post-Installation Checks](#212-post-installation-checks)
-- [3 Initial Configuration](#3-initial-configuration)
-  - [3.1 Reference Data](#31-reference-data)
-  - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
-  - [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
-- [4 Additional configuration](#4-additional-configuration)
-  - [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
-- [5 Installation Error Handling](#5-installation-error-handling)
-  - [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
-  - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
-  - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
-  - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
-- [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
-- [Annex B Database Users](#annex-b-database-users)
-- [Annex C Deployment Options](#annex-c-deployment-options)
-  - [C.1 General](#c1-general)
-  - [C.2 Local Database](#c2-local-database)
-  - [C.3 Remote Database](#c3-remote-database)
-  - [C.4 Remote Database Cluster](#c4-remote-database-cluster)
-  - [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
-  - [C.6 Summary](#c6-summary)
-- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+* [License](#license)
+* [1. Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+* [2. Installation](#2-installation)
+  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  * [2.2 Reference Data](#22-reference-data)
+  * [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Setup Package Repository](#25-setup-package-repository)
+  * [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  * [2.7 Package Installation](#27-package-installation)
+  * [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
+  * [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
+  * [2.10 Post-Installation Checks](#210-post-installation-checks)
+* [3 Initial Configuration](#3-initial-configuration)
+  * [3.1 Reference Data](#31-reference-data)
+  * [3.2 Initializing the Central Server](#32-initializing-the-central-server)
+  * [3.3 Configuring the Central Server and the Management Services' Security Server](#33-configuring-the-central-server-and-the-management-services-security-server)
+* [4 Additional configuration](#4-additional-configuration)
+  * [4.1 Global configuration V1 support](#41-global-configuration-v1-support)
+* [5 Installation Error Handling](#5-installation-error-handling)
+  * [5.1 Cannot Set LC_ALL to Default Locale](#51-cannot-set-lc_all-to-default-locale)
+  * [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
+  * [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
+  * [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+* [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
+* [Annex B Database Users](#annex-b-database-users)
+* [Annex C Deployment Options](#annex-c-deployment-options)
+  * [C.1 General](#c1-general)
+  * [C.2 Local Database](#c2-local-database)
+  * [C.3 Remote Database](#c3-remote-database)
+  * [C.4 Remote Database Cluster](#c4-remote-database-cluster)
+  * [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
+  * [C.6 Summary](#c6-summary)
+* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -180,62 +178,7 @@ Requirements for software and settings:
   Add the following line to the file `/etc/environment`: `LC_ALL=en_US.UTF-8`  
   Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
-### 2.5 Prepare for Installation
-
-The database users required by central server are listed in [Annex B Database Users](#annex-b-database-users). The database properties created by the default installation can be found at [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
-
-### 2.5.1 Customize the Database Properties
-
-**This is an optional step.** Central server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
-
-  ```
-  sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
-  sudo mkdir /etc/xroad
-  sudo chown xroad:xroad /etc/xroad
-  sudo chmod 751 /etc/xroad
-  sudo touch /etc/xroad/db.properties
-  sudo chown xroad:xroad /etc/xroad/db.properties
-  sudo chmod 640 /etc/xroad/db.properties
-  ```
-
-Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
-
-  ```
-  adapter=postgresql
-  encoding=utf8
-  username=<database user>
-  password=<database password>
-  database=<database name>
-  reconnect=true
-  host=<database host>
-  port=<database port>
-  schema=<database schema>
-  ```
-
-### 2.6 Remote Database Installation
-
-**This is an optional step.** In case you want to install central server with remote database, perform the steps in this chapter. Otherwise, skip it and continue from the next chapter.
-
-When using a remote database server with the central server, you should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
-
-To use a remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. If storing the database administrator password on the central server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
-
-  ```
-  sudo touch /etc/xroad.properties
-  sudo chown root:root /etc/xroad.properties
-  sudo chmod 600 /etc/xroad.properties
-  ```
-
-Edit `/etc/xroad.properties` contents. See the example below. Replace the parameter values with your own.
-
-  ```
-  postgres.connection.user = <database superuser name (postgres by default)>
-  postgres.connection.password = <database superuser password>
-  ```
-
-**Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
-
-### 2.7 Setup Package Repository
+### 2.5 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```
@@ -248,12 +191,52 @@ sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $
 ```
 
 **This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
+
 ```
 curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
 sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
 ```
 
-### 2.8 Package Installation
+### 2.6 Remote Database Setup (optional)
+
+*This is an optional step.* 
+
+Optionally, the central server can use a remote database server. To avoid installing the default local PostgreSQL server during the installation, first install the `xroad-database-remote` -package.
+```
+sudo apt install xroad-database-remote
+```
+
+For backup and restore to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
+```
+psql --version
+psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
+
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
+```
+
+The installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
+
+For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+
+Create the property file:
+```
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
+```
+postgres.connection.password = <database superuser password>
+postgres.connection.user = <database superuser name, postgres by default>
+```
+
+Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
+
+For additional security, the super-user credentials can be removed after the installation. Database upgrades don't need super-user rights.
+
+### 2.7 Package Installation
 
 Update package repository metadata:
 ```
@@ -290,7 +273,7 @@ Upon the first installation of the central server software, the system asks for 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-### 2.9 Installing the Support for Hardware Tokens
+### 2.8 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -332,25 +315,13 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
-### 2.10 Installing the Support for Monitoring
+### 2.9 Installing the Support for Monitoring
 
 The optional configuration for monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 2.11 Remote Database Post-Installation Tasks
-
-Local PostgreSQL is always installed with central server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
-
-To stop the local PostgreSQL server
-
-`systemctl stop postgresql`
-
-To disable the local PostgreSQL server so that it does not start automatically when the server is rebooted.
-
-`systemctl mask postgresql`
-
-### 2.12 Post-Installation Checks
+### 2.10 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -563,29 +534,44 @@ The following table lists a summary of the central server deployment options and
 
 ## Annex D Create Database Structure Manually
 
-First install PostgreSQL client.
-
-  ```
-  sudo apt install postgresql-client-10
-  ```
-
 Login to the database server as the superuser (`postgres` by default).
 
-  ```
-  psql -h <database host> -U <superuser> -d postgres
-  ```
+```
+psql -h <database host> -U <superuser> -d postgres
+```
 
 Run the following commands to create the necessary database structures and roles.
 
-  ```
-  create database <database name> encoding 'UTF8';
-  REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
-  CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
-  GRANT <database user> to <superuser>;
-  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
-  \c <database name>
-  CREATE EXTENSION hstore;
-  CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
-  REVOKE ALL ON SCHEMA public FROM PUBLIC;
-  GRANT USAGE ON SCHEMA public to <database user>;
-  ```
+```
+CREATE DATABASE <database name> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
+CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
+GRANT <database user> to <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
+\c <database name>
+CREATE EXTENSION hstore;
+CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public to <database user>;
+```
+
+Create the `/etc/xroad/db.properties` file
+```
+sudo touch /etc/xroad/db.properties
+sudo chmod 0640 /etc/xroad/db.properties
+sudo chown xroad:xroad /etc/xroad/db.properties
+```
+
+Edit `/etc/xroad/db.properties` to match the values used. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
+
+```
+adapter=postgresql
+encoding=utf8
+username=<database user>
+password=<database password>
+database=<database name>
+reconnect=true
+host=<database host>
+port=<database port>
+schema=<database schema>
+```
