@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
-  version: "1.0.31"
+  version: "1.0.32"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -14,7 +14,7 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
-  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.30/api/v1
+  - url: https://virtserver.swaggerhub.com/Gofore/X-Road/1.0.32/api/v1
     description: SwaggerHub API TEST URL for example requests
 tags:
   - name: backups
@@ -2866,6 +2866,33 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /openapi.yaml:
+    x-style-validator-ignored: true
+    get:
+      tags:
+        - openapi
+      summary: download security server's openapi definition
+      operationId: downloadOpenApi
+      description: <h3>Administrator downloads the security server's OpenAPI definition.</h3>
+      responses:
+        '200':
+          description: openapi definition
+          content:
+            application/x-yaml:
+              schema:
+                type: string
+                format: binary
+                description: openapi definition file
+        '400':
+          description: request was invalid
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /user:
     get:
       tags:
@@ -4257,34 +4284,6 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
-  /system/openapi:
-    get:
-      tags:
-        - system
-      summary: download security server's openapi definition
-      operationId: downloadOpenApi
-      description: <h3>Administrator downloads the security server's OpenAPI definition.</h3>
-      responses:
-        '200':
-          description: openapi definition
-          content:
-            application/x-yaml:
-              schema:
-                type: string
-                format: binary
-                description: openapi definition file
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
   /certificate-authorities:
     get:
       tags:
@@ -5511,8 +5510,6 @@ components:
         - OCSP_RESPONSE_SUSPENDED
         - OCSP_RESPONSE_REVOKED
     DistinguishedName:
-      required:
-        - distinguished_name
       type: object
       properties:
         name:

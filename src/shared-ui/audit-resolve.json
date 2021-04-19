@@ -14,10 +14,55 @@
       "madeAt": 1613991319355,
       "expiresAt": 1616583302132
     },
-    "1658|@vue/cli-plugin-e2e-nightwatch>nightwatch>proxy-agent>pac-proxy-agent>pac-resolver>netmask": {
+    "565|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>webpack>terser-webpack-plugin>cacache>ssri": {
       "decision": "ignore",
-      "madeAt": 1617096864560,
-      "expiresAt": 1617701646296
+      "madeAt": 1618813428580,
+      "expiresAt": 1621405368956
+    },
+    "565|@storybook/vue>@storybook/core>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813436668,
+      "expiresAt": 1621405368956
+    },
+    "565|@storybook/vue>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-plugin-babel>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-plugin-eslint>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-plugin-typescript>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-service>webpack>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-service>copy-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-service>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
+    },
+    "565|@vue/cli-service>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1618813438955,
+      "expiresAt": 1621405368956
     }
   },
   "rules": {},
