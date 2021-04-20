@@ -39,6 +39,7 @@ import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.KeyLabel;
 import org.niis.xroad.restapi.openapi.model.KeyLabelWithCsrGenerate;
+import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
@@ -101,6 +102,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAdd.code";
     public static final String FIELD_KEYLABEL_LABEL = "keyLabel.label";
     public static final String FIELD_TOKENNAME_NAME = "tokenName.name";
+    public static final String FIELD_KEYNAME_NAME = "keyName.name";
     public static final String FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL = "keyLabelWithCsrGenerate.keyLabel";
     public static final String FIELD_KEYLABELWITHCSRGENERATE_CSRGENERATEREQUEST
             = "keyLabelWithCsrGenerate.csrGenerateRequest";
@@ -314,6 +316,15 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     @Test
+    @WithMockUser(authorities = "EDIT_KEY_FRIENDLY_NAME")
+    public void updateKeyWithControlCharacter() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        expectedFieldValidationErrors.put(FIELD_KEYNAME_NAME,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        assertKeyNameValidationError("1", new KeyName().name(HAS_CONTROL_CHAR), expectedFieldValidationErrors);
+    }
+
+    @Test
     @WithMockUser(authorities = "EDIT_TOKEN_FRIENDLY_NAME")
     public void updateTokenWithControlCharacter() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
@@ -376,6 +387,16 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         KeyLabel keyLabel = new KeyLabel().label(keyLabelParam);
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys", keyLabel, Object.class);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
+    private void assertKeyNameValidationError(String idParam, KeyName keyNameParam,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        HttpEntity<KeyName> keyNameEntity = new HttpEntity<>(keyNameParam);
+        ResponseEntity<Object> response = restTemplate.exchange("/api/v1/keys/" + idParam,
+                HttpMethod.PATCH,
+                keyNameEntity,
+                Object.class);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
