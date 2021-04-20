@@ -237,7 +237,6 @@ module.exports = {
     addKeyWizardDetails.next();
 
     browser.waitForElementVisible(addKeyWizardCSR);
-    browser.waitForElementVisible(addKeyWizardCSR.elements.csrUsage);
     addKeyWizardCSR.selectUsageMethod('AUTHENTICATION');
     browser.waitForElementNotPresent(addKeyWizardCSR.elements.csrClient);
     addKeyWizardCSR.selectUsageMethod('SIGNING');

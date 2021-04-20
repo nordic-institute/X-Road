@@ -201,6 +201,8 @@ var addKeywizardCSRCommands = {
     return this;
   },
   selectUsageMethod: function (method) {
+    
+    this.waitForElementVisible('@csrUsage');
     this.click('@csrUsage');
 
     this.api.pause(1000);
