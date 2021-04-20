@@ -37,6 +37,9 @@ dependencies {
     api "com.fasterxml.jackson.core:jackson-databind:${project.property('jackson.version')}"
     api "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${project.property('jackson.version')}"
 
+    api 'com.google.code.gson:gson:2.8.6' // REMOVE ME
+
+
     api 'com.google.guava:guava:29.0-jre'
 
     api ('org.quartz-scheduler:quartz:2.3.2') {

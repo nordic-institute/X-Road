@@ -331,7 +331,7 @@ public final class ProxyMain {
 
                 try {
                     response.setCharacterEncoding("UTF8");
-                    JsonUtils.getSerializer().toJson(result, response.getWriter());
+                    JsonUtils.getObjectWriter().writeValue(response.getWriter(), result);
                 } catch (IOException e) {
                     log.error("Unable to write to provided response, delegated request handling failed, response may"
                             + " be malformed", e);

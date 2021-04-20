@@ -43,6 +43,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.io.IOException;
 import java.util.List;
 
 /**
@@ -63,21 +64,33 @@ public class DiagnosticsApiController implements DiagnosticsApi {
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<GlobalConfDiagnostics> getGlobalConfDiagnostics() {
-        DiagnosticsStatus status = diagnosticService.queryGlobalConfStatus();
-        return new ResponseEntity<>(globalConfDiagnosticConverter.convert(status), HttpStatus.OK);
+        try {
+            DiagnosticsStatus status = diagnosticService.queryGlobalConfStatus();
+            return new ResponseEntity<>(globalConfDiagnosticConverter.convert(status), HttpStatus.OK);
+        } catch (IOException e) {
+            throw new InternalServerErrorException("Error deserializing DiagnosticsStatus", e);
+        }
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<List<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
-        List<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
-        return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(statuses), HttpStatus.OK);
+        try {
+            List<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
+            return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(statuses), HttpStatus.OK);
+        } catch (IOException e) {
+            throw new InternalServerErrorException("Error deserializing DiagnosticsStatus", e);
+        }
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
     public ResponseEntity<List<OcspResponderDiagnostics>> getOcspRespondersDiagnostics() {
-        List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
-        return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
+        try {
+            List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
+            return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
+        } catch (IOException e) {
+            throw new InternalServerErrorException("Error deserializing DiagnosticsStatus", e);
+        }
     }
 }
