@@ -938,6 +938,22 @@ module.exports = {
         },
       },
     },
+    certificateDetails: {
+      selector:
+        '//*[@data-test="certificate-details-dialog"]',
+      locateStrategy: 'xpath',
+      commands: [certificatePopupCommands],
+      elements: {
+        certificateInfoCloseButton: {
+          selector: '//*[@data-test="close-x"]',
+          locateStrategy: 'xpath',
+        },
+        deleteButton: {
+          selector: '//button[.//*[contains(text(), "Delete")]]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
     localGroupPopup: {
       selector:
         '//div[contains(@class, "xrd-tab-max-width") and .//div[contains(@class, "cert-hash") and @data-test="local-group-title"]]',
