@@ -77,7 +77,8 @@ module.exports = {
     );
 
     browser.assert.containsText(
-      '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap")]', 'TestCom',
+      '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap")]',
+      'TestCom',
     );
     browser.waitForElementVisible(
       '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',

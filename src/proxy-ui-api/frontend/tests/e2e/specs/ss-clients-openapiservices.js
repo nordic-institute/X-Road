@@ -91,10 +91,7 @@ module.exports = {
     clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.assert.containsText(
-      mainPage.elements.alertMessage,
-      urlToTest,
-    );
+    browser.assert.containsText(mainPage.elements.alertMessage, urlToTest);
     mainPage.closeAlertMessage();
 
     // Verify invalid service code
@@ -633,9 +630,7 @@ module.exports = {
     // Verify cancel delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
@@ -643,9 +638,7 @@ module.exports = {
     // Verify confirm delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
     mainPage.closeSnackbar();
@@ -697,15 +690,11 @@ module.exports = {
 
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
     clientServices.confirmDisable();
@@ -723,27 +712,19 @@ module.exports = {
       .to.not.be.enabled;
 
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
     openApiServiceDetails.enterServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
     openApiServiceDetails.enterServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.URLMessage);
 
     openApiServiceDetails.enterServiceUrl('');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.URLMessage);
     openApiServiceDetails.cancelDialog();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test

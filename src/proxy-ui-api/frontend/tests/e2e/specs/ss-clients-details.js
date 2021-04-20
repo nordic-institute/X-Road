@@ -50,7 +50,9 @@ module.exports = {
 
     // Verify info
     browser
-      .waitForElementVisible('//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
@@ -90,7 +92,9 @@ module.exports = {
 
     // Verify info
     browser
-      .waitForElementVisible('//div[contains(@class, "xrd-view-title") and contains(text(),"TestService")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestService")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )

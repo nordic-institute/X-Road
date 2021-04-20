@@ -502,14 +502,10 @@ module.exports = {
     clientServices.openServiceDetails();
     serviceDetails.enterServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
-    browser.waitForElementVisible(
-      serviceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(serviceDetails.elements.URLMessage);
     serviceDetails.enterServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      serviceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(serviceDetails.elements.URLMessage);
 
     // verify missing file
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');

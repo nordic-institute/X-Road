@@ -60,8 +60,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     addSubjectWizardHeader: {
-      selector:
-        '//div[@data-test="add-subject-title"]',
+      selector: '//div[@data-test="add-subject-title"]',
       locateStrategy: 'xpath',
     },
     searchField: {

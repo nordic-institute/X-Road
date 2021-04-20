@@ -188,13 +188,11 @@ const settingsTab = {
           commands: confirmationDialog,
           elements: {
             confirmation: {
-              selector:
-                '//button[@data-test, "dialog-save-button"]',
+              selector: '//button[@data-test, "dialog-save-button"]',
               locateStrategy: 'xpath',
             },
             cancel: {
-              selector:
-                '//button[@data-test="dialog-cancel-button"]',
+              selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
           },

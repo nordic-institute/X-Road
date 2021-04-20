@@ -101,10 +101,7 @@ module.exports = {
 
     clientLocalGroups.openAddDialog();
     clientLocalGroups.enterCode('abc');
-    browser.assert.valueContains(
-      clientLocalGroups.elements.groupCode,
-      'abc',
-    );
+    browser.assert.valueContains(clientLocalGroups.elements.groupCode, 'abc');
     clientLocalGroups.enterDescription('addDesc');
     clientLocalGroups.cancelAddDialog();
 
@@ -117,14 +114,8 @@ module.exports = {
 
     // Verify that local group dialog fields are empty after re-opening
     clientLocalGroups.openAddDialog();
-    browser.assert.value(
-      clientLocalGroups.elements.groupCode,
-      '',
-    );
-    browser.assert.value(
-      clientLocalGroups.elements.groupDescription,
-      '',
-    );
+    browser.assert.value(clientLocalGroups.elements.groupCode, '');
+    browser.assert.value(clientLocalGroups.elements.groupDescription, '');
 
     // Verify that add is disabled if only Code is entered
     clientLocalGroups.enterCode('abc');

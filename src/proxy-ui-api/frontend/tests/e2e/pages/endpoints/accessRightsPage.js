@@ -62,7 +62,8 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     closeButton: {
-      selector: '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
+      selector:
+        '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
       locateStrategy: 'xpath',
     },
     pageHeader: {

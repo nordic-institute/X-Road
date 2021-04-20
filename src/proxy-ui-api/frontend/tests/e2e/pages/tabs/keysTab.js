@@ -201,7 +201,6 @@ var addKeywizardCSRCommands = {
     return this;
   },
   selectUsageMethod: function (method) {
-    
     this.waitForElementVisible('@csrUsage');
     this.click('@csrUsage');
 
@@ -616,8 +615,10 @@ const keysTab = {
         },
       },
     },
-    generateKeyCsrWizardCsr: { // Generate csr for existing sign key. Page 1, CSR details
-      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
+    generateKeyCsrWizardCsr: {
+      // Generate csr for existing sign key. Page 1, CSR details
+      selector:
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardCSRCommands],
       elements: {
@@ -655,8 +656,10 @@ const keysTab = {
         },
       },
     },
-    generateKeyCsrWizardGenerate: { // Generate csr for existing sign key. Page 2, generate
-      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
+    generateKeyCsrWizardGenerate: {
+      // Generate csr for existing sign key. Page 2, generate
+      selector:
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardGenerateCommands],
       elements: {

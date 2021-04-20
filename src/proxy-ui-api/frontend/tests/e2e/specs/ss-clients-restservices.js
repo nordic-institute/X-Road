@@ -485,7 +485,6 @@ module.exports = {
       '//div[contains(@class, "v-messages__message")]',
     );
 
-
     // test cancel
     addEndpointPopup.enterPath('/noreq1');
     addEndpointPopup.cancel();
@@ -610,9 +609,7 @@ module.exports = {
     // Verify validation rules
     endpointPopup.enterPath('');
     // Verify there's an error message, something like 'The path field is required'
-    browser.waitForElementVisible(
-      endpointPopup.elements.requestPathMessage,
-    );
+    browser.waitForElementVisible(endpointPopup.elements.requestPathMessage);
 
     // test cancel
     endpointPopup.enterPath('/newreq1');
@@ -643,9 +640,7 @@ module.exports = {
     // Verify cancel delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
@@ -732,9 +727,7 @@ module.exports = {
     browser.expect.element(restServiceDetails.elements.confirmDialogButton).to
       .not.be.enabled;
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
@@ -749,19 +742,13 @@ module.exports = {
 
     restServiceDetails.enterServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
     restServiceDetails.enterServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
     restServiceDetails.enterServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
 
     // Verify cancel
     restServiceDetails.enterServiceUrl(
