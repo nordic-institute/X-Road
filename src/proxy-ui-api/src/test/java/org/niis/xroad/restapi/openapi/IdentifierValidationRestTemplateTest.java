@@ -34,9 +34,12 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
+import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.KeyLabel;
+import org.niis.xroad.restapi.openapi.model.KeyLabelWithCsrGenerate;
+import org.niis.xroad.restapi.openapi.model.KeyUsageType;
 import org.niis.xroad.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
@@ -98,6 +101,9 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAdd.code";
     public static final String FIELD_KEYLABEL_LABEL = "keyLabel.label";
     public static final String FIELD_TOKENNAME_NAME = "tokenName.name";
+    public static final String FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL = "keyLabelWithCsrGenerate.keyLabel";
+    public static final String FIELD_KEYLABELWITHCSRGENERATE_CSRGENERATEREQUEST
+            = "keyLabelWithCsrGenerate.csrGenerateRequest";
     public static final String FIELD_LOCALGROUPADD_DESCRIPTION = "localGroupAdd.description";
     public static final String FIELD_LOCALGROUPDESCRIPTION = "localGroupDescription.description";
 
@@ -317,6 +323,18 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     @Test
+    @WithMockUser(authorities = { "GENERATE_KEY", "GENERATE_AUTH_CERT_REQ", "GENERATE_SIGN_CERT_REQ" })
+    public void addKeyAndCsrWithControlCharacter() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        expectedFieldValidationErrors.put(FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        CsrGenerate csrGenerate = new CsrGenerate().keyUsageType(KeyUsageType.AUTHENTICATION).caName("foobar");
+        KeyLabelWithCsrGenerate keyLabelWithCsrGenerate = new KeyLabelWithCsrGenerate().keyLabel(HAS_CONTROL_CHAR)
+                .csrGenerateRequest(csrGenerate);
+        assertAddKeyAndCsrValidationError("1", keyLabelWithCsrGenerate, expectedFieldValidationErrors);
+    }
+
+    @Test
     @WithMockUser(authorities = "ADD_LOCAL_GROUP")
     public void addClientLocalGroupWithControlCharacter() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
@@ -347,17 +365,17 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertUpdateLocalGroupDescValidationError(HAS_CONTROL_CHAR, expectedFieldValidationErrors);
     }
 
+    private void assertAddLocalGroupValidationError(String localGroupCode, String localGroupDescription,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        ResponseEntity<Object> response = createTestLocalGroup(localGroupCode, localGroupDescription);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
     private void assertAddKeyValidationError(String tokenIdParam, String keyLabelParam,
             Map<String, List<String>> expectedFieldValidationErrors) {
         KeyLabel keyLabel = new KeyLabel().label(keyLabelParam);
         ResponseEntity<Object> response =
                 restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys", keyLabel, Object.class);
-        assertValidationErrors(response, expectedFieldValidationErrors);
-    }
-
-    private void assertAddLocalGroupValidationError(String localGroupCode, String localGroupDescription,
-            Map<String, List<String>> expectedFieldValidationErrors) {
-        ResponseEntity<Object> response = createTestLocalGroup(localGroupCode, localGroupDescription);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
@@ -369,6 +387,15 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
                 HttpMethod.PATCH,
                 tokenNameEntity,
                 Object.class);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
+    private void assertAddKeyAndCsrValidationError(String tokenIdParam,
+            KeyLabelWithCsrGenerate keyLabelWithCsrGenerateParam, Map<String,
+            List<String>> expectedFieldValidationErrors) {
+        ResponseEntity<Object> response =
+                restTemplate.postForEntity("/api/v1/tokens/" + tokenIdParam + "/keys-with-csrs",
+                        keyLabelWithCsrGenerateParam, Object.class);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 

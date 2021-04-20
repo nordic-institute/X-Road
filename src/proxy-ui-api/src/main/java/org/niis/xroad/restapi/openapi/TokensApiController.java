@@ -49,6 +49,7 @@ import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.model.TokenPassword;
 import org.niis.xroad.restapi.openapi.model.TokenPinUpdate;
 import org.niis.xroad.restapi.openapi.validator.KeyLabelValidator;
+import org.niis.xroad.restapi.openapi.validator.KeyLabelWithCsrGenerateValidator;
 import org.niis.xroad.restapi.openapi.validator.TokenNameValidator;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
@@ -261,5 +262,11 @@ public class TokensApiController implements TokensApi {
     @PreAuthorize("permitAll()")
     protected void initTokenNameBinder(WebDataBinder binder) {
         binder.addValidators(new TokenNameValidator());
+    }
+
+    @InitBinder("keyLabelWithCsrGenerate")
+    @PreAuthorize("permitAll()")
+    protected void initKeyLabelWithCsrGenerateBinder(WebDataBinder binder) {
+        binder.addValidators(new KeyLabelWithCsrGenerateValidator());
     }
 }
