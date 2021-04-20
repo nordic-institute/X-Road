@@ -278,10 +278,9 @@ public final class ProxyMain {
     }
 
     /**
-     * Diganostics for timestamping.
-     * First check the connection to timestamp server. If OK, check the status of the previous timestamp request.
-     * If the previous request has failed or connection cannot be made, DiagnosticsStatus tells the reason. If
-     * LogManager is unavailable, uses the connection check to produce a more informative status.
+     * Diagnostics for timestamping.
+     * First check the simple connection to timestamp server. If OK, check the status of the previous timestamp request.
+     * If the previous request has failed or the simple connection cannot be made, DiagnosticsStatus tells the reason.
      */
     private static void addTimestampStatusHandler(AdminPort adminPort) {
         adminPort.addHandler("/timestampstatus", new AdminPort.SynchronousCallback() {
@@ -303,24 +302,33 @@ public final class ProxyMain {
 
                     log.info("statusFromLogManager {}", statusFromLogManager.toString());
 
-                    // Use the status either from simple connection check or from LogManager.
-                    for (String key : result.keySet()) {
-                        // If status exists in LogManager for given timestamp server, and it is successful or if
-                        // simple connection check status is unsuccessful, use the status from LogManager
-                        if (statusFromLogManager.get(key) != null
-                                && (DiagnosticsErrorCodes.RETURN_SUCCESS == statusFromLogManager.get(key)
-                                .getReturnCode() && DiagnosticsErrorCodes.RETURN_SUCCESS == result.get(key)
-                                .getReturnCode()
-                                || DiagnosticsErrorCodes.RETURN_SUCCESS != result.get(key).getReturnCode()
-                                && DiagnosticsErrorCodes.RETURN_SUCCESS != statusFromLogManager.get(key)
-                                .getReturnCode())) {
-                            result.put(key, statusFromLogManager.get(key));
-
-                            log.info("Using time stamping status from LogManager for url {} status: {}", key,
-                                    statusFromLogManager.get(key));
-                        } else if (statusFromLogManager.get(key) == null
-                                && DiagnosticsErrorCodes.RETURN_SUCCESS == result.get(key).getReturnCode()) {
-                            result.get(key).setReturnCodeNow(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
+                    for (String url : result.keySet()) {
+                        // for given timestamp server, use the status either from simple connection check or from
+                        // LogManager
+                        int simpleConnectionCheckStatus = result.get(url).getReturnCode();
+                        if (simpleConnectionCheckStatus == DiagnosticsErrorCodes.RETURN_SUCCESS) {
+                            // simple connection check = OK
+                            if (statusFromLogManager.get(url) == null) {
+                                // missing LogManager status -> "uninitialized" error
+                                result.get(url).setReturnCodeNow(
+                                        DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
+                            } else {
+                                // use the status from LogManager (ok or fail)
+                                log.info("Using time stamping status from LogManager for url {} status: {}", url,
+                                        statusFromLogManager.get(url));
+                                result.put(url, statusFromLogManager.get(url));
+                            }
+                        } else {
+                            // simple connection check = fail
+                            // Use fail status from LogManager, if one exists
+                            // Otherwise, retain the original simple connection check fail status.
+                            if (statusFromLogManager.get(url) != null
+                                    && statusFromLogManager.get(url).getReturnCode()
+                                    != DiagnosticsErrorCodes.RETURN_SUCCESS) {
+                                log.info("Using time stamping status from LogManager for url {} status: {}", url,
+                                        statusFromLogManager.get(url));
+                                result.put(url, statusFromLogManager.get(url));
+                            }
                         }
                     }
                 } catch (Exception e) {
