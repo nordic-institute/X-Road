@@ -43,7 +43,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -90,13 +90,9 @@ module.exports = {
     clientServices.enterServiceUrl(urlToTest);
     clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Parsing OpenApi3 description failed...'
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      urlToTest,
-    );
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); // loading a missing file can sometimes take more time before failing
+    browser.assert.containsText(mainPage.elements.alertMessage, urlToTest);
+    mainPage.closeAlertMessage();
 
     // Verify invalid service code
     clientServices.openAddREST();
@@ -160,7 +156,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -169,6 +165,7 @@ module.exports = {
     clientServices.openOperation('s3c1');
 
     // Verify tooltips
+    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
@@ -183,6 +180,7 @@ module.exports = {
     browser.expect
       .element(operationDetails.elements.activeTooltip)
       .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
+    */
 
     // Verify cancel
     operationDetails.enterUrl('https://niis.org/nosuch.yaml');
@@ -275,7 +273,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -362,7 +360,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -443,7 +441,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -507,8 +505,8 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // verify sorting of added
     restEndpoints.openAddDialog();
@@ -580,7 +578,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -617,8 +615,8 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq2');
     endpointPopup.enterPath('/testreq3');
     endpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // Verify edit
     endpointPopup.enterPath('/newreq1');
@@ -632,9 +630,7 @@ module.exports = {
     // Verify cancel delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
@@ -642,9 +638,7 @@ module.exports = {
     // Verify confirm delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
     mainPage.closeSnackbar();
@@ -674,7 +668,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -696,15 +690,11 @@ module.exports = {
 
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     clientServices.enterDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     browser.assert.value(clientServices.elements.disableNotice, '');
     clientServices.enterDisableNotice('Notice1');
     clientServices.confirmDisable();
@@ -722,27 +712,19 @@ module.exports = {
       .to.not.be.enabled;
 
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
     openApiServiceDetails.enterServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
     openApiServiceDetails.enterServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.URLMessage);
 
     openApiServiceDetails.enterServiceUrl('');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      openApiServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(openApiServiceDetails.elements.URLMessage);
     openApiServiceDetails.cancelDialog();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
@@ -760,8 +742,8 @@ module.exports = {
     clientServices.openServiceDetails();
     openApiServiceDetails.enterServiceUrl('https://www.niis.org/nosuch.yaml');
     openApiServiceDetails.confirmDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Parsing OpenApi3 description failed'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Parsing OpenApi3 description failed'
+    mainPage.closeAlertMessage();
 
     // Verify cancel
     openApiServiceDetails.enterServiceUrl(
@@ -844,7 +826,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);

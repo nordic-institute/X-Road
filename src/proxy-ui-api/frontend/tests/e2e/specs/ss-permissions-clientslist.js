@@ -45,11 +45,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_system_administrator +
-        '")]',
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_system_administrator);
 
     // System admin should be in keys and certs view and not see clients tab
     browser.waitForElementVisible(keysTab);
@@ -76,11 +72,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_security_officer +
-        '")]',
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_security_officer);
 
     // Security officer should see clients list
     mainPage.openClientsTab();
@@ -90,8 +82,8 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // Security officer should not see clients details
-    clientsTab.openTestGov();
-    browser.waitForElementNotPresent(clientInfo);
+    clientsTab.openClient('TestGov');
+    browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
 
     browser.end();
   },
@@ -114,11 +106,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_registration_officer +
-        '")]',
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_registration_officer);
 
     // Registration officer should see clients list
     mainPage.openClientsTab();
@@ -127,11 +115,13 @@ module.exports = {
     browser.waitForElementVisible(clientsTab.elements.addClientButton);
 
     // Registration officer should see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
@@ -166,11 +156,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_service_administrator +
-        '")]',
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_service_administrator);
 
     // Security officer should see clients list
     mainPage.openClientsTab();
@@ -180,11 +166,13 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // Service administrator should see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
@@ -219,11 +207,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_securityserver_observer +
-        '")]',
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_securityserver_observer);
 
     // Security server observer should see clients list
     mainPage.openClientsTab();
@@ -233,11 +217,13 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
 
     // Security server observer should see clients details
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
