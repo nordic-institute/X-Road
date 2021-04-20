@@ -83,7 +83,7 @@ module.exports = {
 
     // Security officer should not see clients details
     clientsTab.openClient('TestGov');
-    browser.waitForElementNotPresent(clientInfo);
+    browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
 
     browser.end();
   },
