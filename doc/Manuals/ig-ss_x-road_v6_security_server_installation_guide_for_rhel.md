@@ -229,7 +229,7 @@ Optionally, the security server can use a remote database server. To avoid insta
 sudo yum install xroad-database-remote
 ```
 
-For backup and restore to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql` package (see https://www.postgresql.org/download/linux/redhat/)
+For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql` package (see https://www.postgresql.org/download/linux/redhat/)
 ```
 psql --version
 psql (PostgreSQL) 10.16
@@ -256,7 +256,7 @@ postgres.connection.user = <database superuser name, postgres by default>
 ```
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
-For additional security, the super-user credentials can be removed after the installation. Database upgrades don't need super-user rights, separate admin users are created for that purpose and stored into /etc/xroad.properties by the installer.
+For additional security, the super-user credential properties can be removed after the installation. However, do not simply delete /etc/xroad.properties file, it will be populated with migration database user credentials during install.
 
 Create the `/etc/xroad/db.properties` file
 ```

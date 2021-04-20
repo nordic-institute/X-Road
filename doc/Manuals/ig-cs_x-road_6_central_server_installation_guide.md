@@ -206,7 +206,7 @@ Optionally, the central server can use a remote database server. To avoid instal
 sudo apt install xroad-database-remote
 ```
 
-For backup and restore to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
+For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
 ```
 psql --version
 psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
@@ -234,7 +234,7 @@ postgres.connection.user = <database superuser name, postgres by default>
 
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
-For additional security, the super-user credentials can be removed after the installation. Database upgrades don't need super-user rights.
+For additional security, the super-user credential properties can be removed after the installation. However, do not simply delete /etc/xroad.properties file, it will be populated with migration database user credentials during install.
 
 ### 2.7 Package Installation
 
