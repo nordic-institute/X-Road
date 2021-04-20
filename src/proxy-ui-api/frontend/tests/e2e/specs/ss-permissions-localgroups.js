@@ -79,7 +79,7 @@ module.exports = {
 
     // Security officer should not see clients details and thus not local groups
     clientsTab.openClient('TestGov');
-    browser.waitForElementNotPresent(clientInfo);
+    browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
 
     browser.end();
   },
