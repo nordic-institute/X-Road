@@ -18,7 +18,7 @@ Requires:  systemd
 %if 0%{?el7}
 Requires:  rlwrap
 %endif
-Requires:  jre-1.8.0-headless >= 1.8.0.51
+Requires:  jre-11-headless
 Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
@@ -76,6 +76,7 @@ rm -rf %{buildroot}
 %dir /var/lib/xroad
 %dir /var/lib/xroad/backup
 %config /etc/xroad/services/global.conf
+%config(noreplace) /etc/xroad/services/local.properties
 %config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
 

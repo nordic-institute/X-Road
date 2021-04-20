@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,33 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common;
+package org.niis.xroad.restapi.openapi;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import java.io.IOException;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FILE_NOT_FOUND;
 
 /**
- * Configuration client error codes
+ * OpenAPI controller
  */
-public final class DiagnosticsErrorCodes {
+@Controller
+@RequestMapping(ApiUtil.API_V1_PREFIX)
+@Slf4j
+@RequiredArgsConstructor
+public class OpenapiApiController implements OpenapiApi {
 
-    private DiagnosticsErrorCodes() {
+    static final String OPENAPI_DEFINITION_FILENAME = "openapi-definition.yaml";
+
+    @Override
+    public ResponseEntity<Resource> downloadOpenApi() {
+        try {
+            byte[] bytes = IOUtils.toByteArray(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getInputStream());
+            return ApiUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_FILENAME);
+        } catch (IOException e) {
+            log.error("Error reading OpenAPI definition file", e);
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));
+        }
     }
-
-    public static final int RETURN_SUCCESS = 0;
-    public static final int ERROR_CODE_LOGMANAGER_UNAVAILABLE = 132;
-    public static final int ERROR_CODE_OCSP_RESPONSE_UNVERIFIED = 133;
-    public static final int ERROR_CODE_OCSP_UNINITIALIZED = 131;
-    public static final int ERROR_CODE_OCSP_RESPONSE_INVALID = 130;
-    public static final int ERROR_CODE_OCSP_CONNECTION_ERROR = 129;
-    public static final int ERROR_CODE_OCSP_FAILED = 128;
-    public static final int ERROR_CODE_TIMESTAMP_UNINITIALIZED = 127;
-    public static final int ERROR_CODE_UNINITIALIZED = 126;
-    public static final int ERROR_CODE_INTERNAL = 125;
-    public static final int ERROR_CODE_INVALID_SIGNATURE_VALUE = 124;
-    public static final int ERROR_CODE_EXPIRED_CONF = 123;
-    public static final int ERROR_CODE_CANNOT_DOWNLOAD_CONF = 122;
-    public static final int ERROR_CODE_MISSING_PRIVATE_PARAMS = 121;
-    public static final int ERROR_CODE_TIMESTAMP_REQUEST_TIMED_OUT = 120;
-    public static final int ERROR_CODE_NO_NETWORK_CONNECTION = 119;
-    public static final int ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL = 118;
-    public static final int ERROR_CODE_ANCHOR_NOT_FOR_EXTERNAL_SOURCE = 117;
-
 }
