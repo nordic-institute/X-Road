@@ -102,8 +102,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     filterField: {
-      selector:
-        '//input[@data-test="search-service-client-service"]',
+      selector: '//input[@data-test="search-service-client-service"]',
       locateStrategy: 'xpath',
     },
     cancelButton: {

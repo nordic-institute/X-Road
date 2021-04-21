@@ -139,7 +139,7 @@ module.exports = {
     backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
     browser.waitForElementVisible(deleteBackupConfirmationDialog);
     deleteBackupConfirmationDialog.cancel();
-    browser.waitForElementNotVisible(deleteBackupConfirmationDialog);
+    browser.waitForElementNotPresent(deleteBackupConfirmationDialog);
 
     deleteBackup(browser, createdBackupFileName);
     browser.end();
@@ -183,7 +183,7 @@ module.exports = {
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
     backupFileAlreadyExistsDialog.cancel();
-    browser.waitForElementNotVisible(backupFileAlreadyExistsDialog);
+    browser.waitForElementNotPresent(backupFileAlreadyExistsDialog);
 
     backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName);
     browser.waitForElementVisible(backupFileAlreadyExistsDialog);
@@ -195,7 +195,7 @@ module.exports = {
       `${createdBackupFileName}`,
     );
     mainPage.closeSnackbar();
-    browser.waitForElementNotVisible(backupFileAlreadyExistsDialog);
+    browser.waitForElementNotPresent(backupFileAlreadyExistsDialog);
 
     // Remove created backup from local filesystem
     browser.perform(() =>
@@ -209,7 +209,7 @@ module.exports = {
     backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
     browser.waitForElementVisible(deleteBackupConfirmationDialog);
     deleteBackupConfirmationDialog.cancel();
-    browser.waitForElementNotVisible(deleteBackupConfirmationDialog);
+    browser.waitForElementNotPresent(deleteBackupConfirmationDialog);
 
     deleteBackup(browser, createdBackupFileName);
     browser.end();
@@ -230,7 +230,7 @@ module.exports = {
     backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);
     browser.waitForElementVisible(restoreConfirmationDialog);
     restoreConfirmationDialog.cancel();
-    browser.waitForElementNotVisible(restoreConfirmationDialog);
+    browser.waitForElementNotPresent(restoreConfirmationDialog);
 
     // Not doing actual restore
     // backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName);

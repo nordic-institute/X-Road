@@ -55,11 +55,7 @@ module.exports = {
       .signin();
 
     // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_system_administrator +
-        '")]',
-    );
+    mainPage.verifyCurrentUser(browser.globals.login_system_administrator);
 
     // keys and certs
     mainPage.openKeysTab();
