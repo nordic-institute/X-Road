@@ -6469,6 +6469,9 @@ components:
     EndpointUpdate:
       type: object
       description: Object for updating endpoints method and/or path
+      required:
+        - method
+        - path
       properties:
         method:
           type: string
