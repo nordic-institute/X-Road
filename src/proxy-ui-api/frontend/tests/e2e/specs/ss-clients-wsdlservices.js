@@ -74,8 +74,8 @@ module.exports = {
     // Verify opening nonexisting URL
     clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'WSDL download failed'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'WSDL download failed'
+    mainPage.closeAlertMessage();
 
     // Verify successful URL open
     clientServices.openAddWSDL();
@@ -126,6 +126,7 @@ module.exports = {
     browser.waitForElementVisible(operationDetails);
 
     // Verify tooltips
+    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.expect
       .element(operationDetails.elements.activeTooltip)
@@ -144,6 +145,7 @@ module.exports = {
     browser.expect
       .element(operationDetails.elements.activeTooltip)
       .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
+    */
 
     // Verify cancel
     operationDetails.toggleCertVerification();
@@ -239,7 +241,7 @@ module.exports = {
     browser.waitForElementVisible(sslCheckFail);
     browser.expect
       .element(sslCheckFail.elements.continueButton)
-      .to.be.visible.and.text.to.equal('CONTINUE');
+      .to.be.visible.and.text.to.equal('Continue');
     sslCheckFail.continue();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
@@ -500,21 +502,16 @@ module.exports = {
     clientServices.openServiceDetails();
     serviceDetails.enterServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
-    browser.waitForElementVisible(
-      serviceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(serviceDetails.elements.URLMessage);
     serviceDetails.enterServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      serviceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(serviceDetails.elements.URLMessage);
 
     // verify missing file
     serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage, 20000); // loading a missing file can sometimes take more time before failing
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'WSDL download failed'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); //  'WSDL download failed', loading a missing file can sometimes take more time before failing
+    mainPage.closeAlertMessage();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts

@@ -43,14 +43,16 @@ module.exports = {
 
     // Open TestGov client details view
     mainPage.openClientsTab();
-    clientsTab.openTestGov();
+    clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openDetailsTab();
     browser.waitForElementVisible(clientDetails);
 
     // Verify info
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestGov")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
@@ -85,12 +87,14 @@ module.exports = {
 
     // Open TestService
     mainPage.openClientsTab();
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     clientInfo.openDetailsTab();
 
     // Verify info
     browser
-      .waitForElementVisible('//h1[contains(text(),"TestService")]')
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestService")]',
+      )
       .waitForElementVisible(
         '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
       )
