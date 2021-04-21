@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
@@ -49,7 +49,7 @@ public class LocalGroupDescriptionValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         LocalGroupDescription localGroupDescription = (LocalGroupDescription) target;
-        if (SpringFirewallValidationRules.containsControlChars(localGroupDescription.getDescription())) {
+        if (StringValidationUtils.containsControlChars(localGroupDescription.getDescription())) {
             errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
                     IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
         }

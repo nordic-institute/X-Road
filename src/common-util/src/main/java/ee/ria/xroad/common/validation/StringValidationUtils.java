@@ -25,41 +25,26 @@
  */
 package ee.ria.xroad.common.validation;
 
+import com.google.common.base.CharMatcher;
+
 /**
- * Encapsulates validation logic that is copied from Spring firewall internal methods and
- * variables
+ * Validation utilities for strings
  */
-public final class SpringFirewallValidationRules {
-    private SpringFirewallValidationRules() {
-    }
+public final class StringValidationUtils {
 
-    private static final char FORBIDDEN_PERCENT = '%';
+    //byte order mark / zero-width no-break space
+    private static final char FORBIDDEN_BOM = '\ufeff';
 
-    private static final char FORBIDDEN_COLON = ':';
+    //zero-width space
+    private static final char FORBIDDEN_ZWSP = '\u200b';
 
-    private static final char FORBIDDEN_SEMICOLON = ';';
+    private StringValidationUtils() { }
 
-    private static final char FORBIDDEN_FORWARDSLASH = '/';
-
-    private static final char FORBIDDEN_BACKSLASH = '\\';
-
-    public static boolean containsPercent(String s) {
-        return s.indexOf(FORBIDDEN_PERCENT) >= 0;
-    }
-
-    public static boolean containsColon(String s) {
-        return s.indexOf(FORBIDDEN_COLON) >= 0;
-    }
-
-    public static boolean containsSemicolon(String s) {
-        return s.indexOf(FORBIDDEN_SEMICOLON) >= 0;
-    }
-
-    public static boolean containsForwardslash(String s) {
-        return s.indexOf(FORBIDDEN_FORWARDSLASH) >= 0;
-    }
-
-    public static boolean containsBackslash(String s) {
-        return s.indexOf(FORBIDDEN_BACKSLASH) >= 0;
+    /**
+     * checks if the string contains ISO control characters or zero-width spaces
+     */
+    public static boolean containsControlChars(String s) {
+        return CharMatcher.javaIsoControl().matchesAnyOf(s) || s.indexOf(FORBIDDEN_BOM) >= 0
+                || s.indexOf(FORBIDDEN_ZWSP) >= 0;
     }
 }

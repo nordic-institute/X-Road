@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.TokenName;
@@ -49,7 +49,7 @@ public class TokenNameValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         TokenName tokenName = (TokenName) target;
-        if (SpringFirewallValidationRules.containsControlChars(tokenName.getName())) {
+        if (StringValidationUtils.containsControlChars(tokenName.getName())) {
             errors.rejectValue(NAME_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
                     IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
         }

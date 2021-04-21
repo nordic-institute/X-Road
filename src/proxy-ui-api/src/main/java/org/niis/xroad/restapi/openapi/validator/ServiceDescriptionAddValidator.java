@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
@@ -57,7 +57,7 @@ public class ServiceDescriptionAddValidator extends AbstractIdentifierValidator 
     public void validate(Object target, Errors errors) {
         super.validate(target, errors);
         ServiceDescriptionAdd add = (ServiceDescriptionAdd) target;
-        if (SpringFirewallValidationRules.containsControlChars(add.getUrl())) {
+        if (StringValidationUtils.containsControlChars(add.getUrl())) {
             errors.rejectValue(URL_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
                     IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
         }

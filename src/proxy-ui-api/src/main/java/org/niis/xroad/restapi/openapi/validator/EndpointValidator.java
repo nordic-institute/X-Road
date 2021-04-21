@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
@@ -49,7 +49,7 @@ public class EndpointValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         Endpoint endpoint = (Endpoint) target;
-        if (SpringFirewallValidationRules.containsControlChars(endpoint.getPath())) {
+        if (StringValidationUtils.containsControlChars(endpoint.getPath())) {
             errors.rejectValue(PATH_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
                     IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
         }

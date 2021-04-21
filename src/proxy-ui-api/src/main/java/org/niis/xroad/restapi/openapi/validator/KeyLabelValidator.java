@@ -26,7 +26,7 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.KeyLabel;
@@ -49,7 +49,7 @@ public class KeyLabelValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         KeyLabel keyLabel = (KeyLabel) target;
-        if (SpringFirewallValidationRules.containsControlChars(keyLabel.getLabel())) {
+        if (StringValidationUtils.containsControlChars(keyLabel.getLabel())) {
             errors.rejectValue(LABEL_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
                     IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
         }

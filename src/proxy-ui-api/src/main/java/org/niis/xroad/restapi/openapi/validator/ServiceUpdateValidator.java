@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
@@ -45,7 +45,7 @@ public class ServiceUpdateValidator implements Validator {
     @Override
     public void validate(Object target, Errors errors) {
         ServiceUpdate update = (ServiceUpdate) target;
-        if (SpringFirewallValidationRules.containsControlChars(update.getUrl())) {
+        if (StringValidationUtils.containsControlChars(update.getUrl())) {
             errors.rejectValue(URL_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
                     IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
         }
