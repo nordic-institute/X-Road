@@ -21,6 +21,7 @@ OPTIONS:
     -s ID of the security server. Mandatory if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
+    -P Backup archive is in decrypted TAR format NOT in PGP format (not encrypted nor signed).
     -R Skip removal of old files and just copy the backup on top of the existing configuration.
 EOF
 }
@@ -39,7 +40,7 @@ execute_restore () {
     if [ -n ${SKIP_REMOVAL} ] && [[ ${SKIP_REMOVAL} = true ]] ; then
       args="${args} -R"
     fi
-    if [[ $ENCRYPT_BACKUP = true ]] ; then
+    if [[ $PLAIN_BACKUP != true ]] ; then
       args="${args} -E"
     fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
@@ -53,7 +54,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":RFs:f:bhE" opt ; do
+while getopts ":RFs:f:bhP" opt ; do
   case $opt in
     h)
       usage
@@ -74,8 +75,8 @@ while getopts ":RFs:f:bhE" opt ; do
     b)
       USE_BASE_64=true
       ;;
-    E)
-      ENCRYPT_BACKUP=true
+    P)
+      PLAIN_BACKUP=true
       ;;
     \?)
       echo "Invalid option $OPTARG"

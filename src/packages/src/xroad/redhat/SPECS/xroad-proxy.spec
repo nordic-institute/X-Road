@@ -78,6 +78,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/override-rhel-proxy.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
+
 %dir /etc/xroad/jetty
 %config /etc/xroad/jetty/clientproxy.xml
 %config /etc/xroad/jetty/serverproxy.xml
@@ -99,6 +100,7 @@ rm -rf %{buildroot}
 %attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,root) /usr/share/xroad/bin/xroad-add-admin-user.sh
 %attr(540,root,root) /usr/share/xroad/scripts/setup_serverconf_db.sh
+%attr(550,root,xroad) /usr/share/xroad/scripts/generate_gpg_keypair.sh
 
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml

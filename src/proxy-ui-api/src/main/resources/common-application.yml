@@ -68,6 +68,8 @@ file-upload-endpoints:
       pathEnding: /certificate/import
 
 script:
+  generate-gpg-keypair:
+    path: /usr/share/xroad/scripts/generate_gpg_keypair.sh
   generate-certificate:
     path: /usr/share/xroad/scripts/generate_certificate.sh
     args: -n internal -f -S -p 2>&1
@@ -79,7 +81,6 @@ script:
     path: /usr/share/xroad/scripts/verify_external_configuration.sh
   restore-configuration:
     path: /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
-    args: -b -s %s -f %s -E
 
 url:
   download-configuration-anchor: http://localhost:%s/execute
@@ -91,3 +92,6 @@ url:
 cache:
   simple:
     ttl: 60
+
+gpgkeys:
+  gpghome: /etc/xroad/gpghome

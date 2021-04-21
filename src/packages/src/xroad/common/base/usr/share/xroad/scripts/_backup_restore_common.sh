@@ -117,4 +117,15 @@ has_command () {
     command -v $1 &>/dev/null
 }
 
+get_proxy_prop() {
+  # local.ini overrides keys
+  local value=$(crudini --get ~/etc/conf.d/local.ini "$2" "$3" 2>/dev/null || echo EMPTYKEY)
+  if [ -n "$value" ]; then
+    if [ $value = EMPTYKEY ]; then
+      local value=$(crudini --get ~/etc/conf.d/"$1" "$2" "$3" 2>/dev/null || echo -n "$4")
+    fi
+  fi
+  echo $value
+}
+
 # vim: ts=2 sw=2 sts=2 et filetype=sh

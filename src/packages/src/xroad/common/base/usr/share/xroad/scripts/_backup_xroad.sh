@@ -48,17 +48,37 @@ create_database_backup () {
 }
 
 create_backup_tarball () {
-  if [[ $ENCRYPT_BACKUP = true ]] ; then
-    echo "CREATING ENCRYPTED TAR ARCHIVE TO ${BACKUP_FILENAME}"
+  if [ $ENCRYPT_MODE = "encrypt" ] || [ $ENCRYPT_MODE = "signonly" ] ; then
+    if [ $ENCRYPT_MODE = "encrypt" ] ; then
+      echo "CREATING ENCRYPTED AND SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
+      local PUBCOUNT=0
+      if [ -d ${PUBKEYS_FOLDER} ] ; then
+        local ENCRYPTION_ARGS
+
+        if [ -d $DIR ] ; then
+          for keyfile in "$PUBKEYS_FOLDER"/* ; do
+            PUBCOUNT=$PUBCOUNT + 1
+            ENCRYPTION_ARGS="${ENCRYPTION_ARGS} -f ${keyfile}"
+          done
+        fi
+        if [ -n "$ENCRYPTION_ARGS" ] ; then
+          ENCRYPTION_ARGS="--encrypt ${ENCRYPTION_ARGS}"
+        fi
+        echo "Encrypting archive with $PUBCOUNT extra public keys"
+      else
+        echo "CREATING SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
+      fi
+    fi
+
     tar --create -v --label "${TARBALL_LABEL}" \
         --exclude="tmp*.tmp" --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" \
-        --exclude="/etc/xroad/backupkeys/gpghome"  ${BACKED_UP_PATHS} \
-    | gpg --homedir /etc/xroad/backupkeys/gpghome --encrypt --sign --recipient backup@xroad --output ${BACKUP_FILENAME}
+        --exclude="/etc/xroad/gpghome/*"  ${BACKED_UP_PATHS} \
+    | gpg --homedir /etc/xroad/backupkeys/gpghome --sign ${ENCRYPTION_ARGS} --output ${BACKUP_FILENAME}
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"
     tar --create -v --label "${TARBALL_LABEL}" --file ${BACKUP_FILENAME} --exclude="tmp*.tmp" \
-      --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" ${BACKED_UP_PATHS}
+      --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" --exclude="/etc/xroad/gpghome" ${BACKED_UP_PATHS}
   fi
   if [ $? != 0 ] ; then
     echo "Removing incomplete backup archive"
@@ -69,28 +89,9 @@ create_backup_tarball () {
   echo "Backup file saved to ${BACKUP_FILENAME}"
 }
 
-# TODO this should be in setup somewhere, also this function is not robust enough
-generate_private_key_if_needed () {
-  if [[ $ENCRYPT_BACKUP = true ]] ; then
-    if [ ! -d "/etc/xroad/backupkeys/gpghome" ] ; then
-      echo "GENERATING NEW KEYPAIR"
-      mkdir -p /etc/xroad/backupkeys/gpghome
-      chmod 700 /etc/xroad/backupkeys/gpghome
+ENCRYPT_MODE="none"
 
-      gpg --homedir /etc/xroad/backupkeys/gpghome --batch --gen-key <<EOF
-Key-Type: 1
-Key-Length: 4096
-Name-Real: XRoad Backup
-Name-Email: backup@xroad
-Expire-Date: 0
-%no-protection
-EOF
-
-    fi
-  fi
-}
-
-while getopts ":t:i:s:n:f:bSE" opt ; do
+while getopts ":t:i:s:n:f:E:k:bS" opt ; do
   case $opt in
     S)
       SKIP_DB_BACKUP=true
@@ -114,7 +115,10 @@ while getopts ":t:i:s:n:f:bSE" opt ; do
       USE_BASE_64=true
       ;;
     E)
-      ENCRYPT_BACKUP=true
+      ENCRYPT_MODE=$OPTARG
+      ;;
+    k)
+      PUBKEYS_FOLDER=$OPTARG
       ;;
     \?)
       echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
@@ -129,7 +133,6 @@ done
 check_server_type
 create_database_backup
 make_tarball_label
-generate_private_key_if_needed
 create_backup_tarball
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

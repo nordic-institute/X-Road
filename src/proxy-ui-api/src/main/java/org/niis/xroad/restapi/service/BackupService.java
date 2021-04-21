@@ -73,6 +73,10 @@ public class BackupService {
     @Setter
     @Value("${script.generate-backup.path}")
     private String generateBackupScriptPath;
+    @Setter
+    @Value("${gpgkeys.backupkeysfolder}")
+    private String backupKeysFolder;
+
     private static final String BACKUP_FILENAME_DATE_TIME_FORMAT = "yyyyMMdd-HHmmss";
 
     /**
@@ -125,7 +129,7 @@ public class BackupService {
         String filename = generateBackupFileName();
         auditDataHelper.putBackupFilename(backupRepository.getFilePath(filename));
         String fullPath = backupRepository.getConfigurationBackupPath() + filename;
-        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath, "-E"};
+        String[] args = new String[] {"-s", securityServerId.toShortString(), "-f", fullPath, "-k", backupKeysFolder};
 
         try {
             log.info("Run configuration backup with command '"

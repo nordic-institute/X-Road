@@ -24,6 +24,17 @@ OPTIONS:
 EOF
 }
 
+get_proxy_prop() {
+  # local.ini overrides keys
+  local value=$(crudini --get ~/etc/conf.d/local.ini proxy "$1" 2>/dev/null || echo EMPTYKEY)
+  if [ -n "$value" ]; then
+    if [ $value = EMPTYKEY ]; then
+      local value=$(crudini --get ~/etc/conf.d/proxy.ini proxy "$1" 2>/dev/null || echo -n "$2")
+    fi
+  fi
+  echo $value
+}
+
 execute_backup () {
   if [ -x $COMMON_BACKUP_SCRIPT ] ; then
     local args="-t security -s $SECURITY_SERVER_ID -f $BACKUP_FILENAME"
@@ -34,7 +45,12 @@ execute_backup () {
       args="${args} -S"
     fi
     if [[ $ENCRYPT_BACKUP = true ]] ; then
-      args="${args} -E"
+      args="${args} -E encrypt"
+    else
+      args="${args} -E signonly"
+    fi
+    if [ -n "$PUBKEYS_FOLDER" ]; then
+      args="${args} -k $PUBKEYS_FOLDER"
     fi
     ${COMMON_BACKUP_SCRIPT} ${args}
     if [ $? -ne 0 ] ; then
@@ -47,7 +63,7 @@ execute_backup () {
   fi
 }
 
-while getopts ":s:f:SbhE" opt ; do
+while getopts ":s:f:Sbh" opt ; do
   case $opt in
     h)
       usage
@@ -65,9 +81,6 @@ while getopts ":s:f:SbhE" opt ; do
     b)
       USE_BASE_64=true
       ;;
-    E)
-      ENCRYPT_BACKUP=true
-      ;;
     \?)
       echo "Invalid option $OPTARG"
       usage
@@ -80,6 +93,9 @@ while getopts ":s:f:SbhE" opt ; do
       ;;
   esac
 done
+
+ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encrypted" false)
+PUBKEYS_FOLDER=$(get_proxy_prop proxy.ini proxy "backup-public-key-path")
 
 check_user
 check_security_server_id

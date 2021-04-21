@@ -49,7 +49,11 @@ decrypt_tarball_if_encrypted () {
       GPG_FILENAME=${BACKUP_FILENAME}
       BACKUP_FILENAME=${TEMP_TAR_FILE}
       echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
-      gpg --homedir /etc/xroad/backupkeys/gpghome --decrypt --output ${BACKUP_FILENAME} ${GPG_FILENAME}
+      # gpg --decrypt can handle files that are only signed!
+      gpg --homedir /etc/xroad/gpghome --decrypt --output ${BACKUP_FILENAME} ${GPG_FILENAME}
+      if [ $? != 0 ] ; then
+        die "Decrypting backup archive failed"
+      fi
     fi
 }
 
@@ -110,7 +114,7 @@ create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
   # we will run this through eval to get a multi-line list
   local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' \
-    -not -path '/etc/xroad/services/*.conf' -not -path '/etc/xroad/backupkeys/gpghome/*' -type f; \
+    -not -path '/etc/xroad/services/*.conf' -not -path '/etc/xroad/gpghome/*' -type f; \
     find /etc/nginx/ -name \"*xroad*\""
 
   if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
@@ -161,7 +165,7 @@ setup_tmp_restore_dir() {
 extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
   # etc/xroad is always included in the backup, etc/nginx only when backup is for CS
-  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} --exclude="*.conf" etc/xroad || die "Extracting etc/xroad failed"
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} --exclude="*.conf" --exclude="gpghome/*" etc/xroad || die "Extracting etc/xroad failed"
   if tar -tf ${BACKUP_FILENAME} etc/nginx >/dev/null 2>&1; then
     echo "Extracting tar archive to etc/nginx"
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/nginx || die "Extracting etc/nginx failed"
