@@ -26,6 +26,9 @@
 
 module.exports = {
   tags: ['ss', 'clients', 'wsdlservices'],
+  before: function (browser) {
+    browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
+  },
   'Security server client add wsdl service': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -634,6 +637,191 @@ module.exports = {
     browser.waitForElementNotPresent(
       clientServices.elements.serviceDescription,
     );
+
+    browser.end();
+  },
+  'Security server client refresh wsdl service': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientServices = clientInfo.section.services;
+    const operationDetails = mainPage.section.wsdlOperationDetails;
+    const serviceChangePopup = mainPage.section.servicesWarningPopup;
+
+    var startTime, startTimestamp;
+
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+    // Navigate
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
+    // Verify successfull URL open
+    clientServices.openAddWSDL();
+    clientServices.enterServiceUrl(
+      browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
+    );
+    clientServices.confirmAddDialog();
+    browser.assert.containsText(
+      clientServices.elements.serviceDescription,
+      browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
+    );
+
+    clientServices.expandServiceDetails();
+    browser.waitForElementVisible(
+      '//td[contains(@data-test, "service-link") and contains(text(),"testOp1")]',
+    );
+    browser.waitForElementVisible(
+      '//td[contains(@data-test, "service-link") and contains(text(),"testOpA")]',
+    );
+
+    browser.getText(clientServices.elements.refreshTimestamp, function (
+      result,
+    ) {
+      startTimestamp = result.value;
+      startTime = new Date().getTime();
+    });
+
+    clientServices.openOperation('testOpA');
+    browser.waitForElementVisible(operationDetails);
+    operationDetails.toggleUrlApplyToAll();
+    operationDetails.toggleTimeoutApplyToAll();
+    operationDetails.toggleVerifyCertApplyToAll();
+    operationDetails.enterUrl('https://www.niis.org/nosuch3/');
+    operationDetails.enterTimeout('30');
+    operationDetails.saveParameters();
+    browser.assert.containsText(
+      mainPage.elements.snackBarMessage,
+      'Service saved',
+    );
+    mainPage.closeSnackbar();
+
+    // Part 1 wait until at least 1 min has passed since refresh at the start of the test
+    // Split this wait into two parts to not cause timeouts
+    browser.perform(function () {
+      const endTime = new Date().getTime();
+      const passedTime = endTime - startTime;
+      if (passedTime < 30000) {
+        console.log('Waiting', 30000 - passedTime, 'ms');
+        browser.pause(30000 - passedTime);
+      }
+    });
+    operationDetails.close();
+
+    clientServices.verifyServiceURL('testOp1', 'https://www.niis.org/nosuch3/');
+    clientServices.verifyServiceURL('testOpA', 'https://www.niis.org/nosuch3/');
+
+    clientServices.verifyServiceSSL(
+      'testOp1',
+      browser.globals.service_ssl_auth_off_style,
+    );
+    clientServices.verifyServiceSSL(
+      'testOpA',
+      browser.globals.service_ssl_auth_off_style,
+    );
+
+    // change the wsdl and refresh
+    browser.perform(function () {
+      browser.page.ssMainPage().updateWSDLFileTo('testservice3.wsdl');
+    });
+
+    // Part 2 wait until at least 1 min has passed since refresh at the start of the test
+    browser.perform(function () {
+      const endTime = new Date().getTime();
+      const passedTime = endTime - startTime;
+      if (passedTime < 60000) {
+        console.log('Waiting', 60000 - passedTime, 'ms');
+        browser.pause(60000 - passedTime);
+      }
+    });
+
+    // test cancel
+    clientServices.refreshServiceData();
+    browser.waitForElementVisible(serviceChangePopup);
+    browser.assert.containsText(
+      serviceChangePopup.elements.addedServices,
+      'testOpZ',
+    );
+    browser.assert.containsText(
+      serviceChangePopup.elements.deletedServices,
+      'testOp1',
+    );
+
+    serviceChangePopup.cancel();
+
+    clientServices.verifyServiceURL('testOp1', 'https://www.niis.org/nosuch3/');
+    clientServices.verifyServiceURL('testOpA', 'https://www.niis.org/nosuch3/');
+    clientServices.verifyServiceSSL(
+      'testOp1',
+      browser.globals.service_ssl_auth_off_style,
+    );
+    clientServices.verifyServiceSSL(
+      'testOpA',
+      browser.globals.service_ssl_auth_off_style,
+    );
+
+    // Verify that the refresh time has not been updated
+    browser.perform(function () {
+      browser.expect
+        .element(clientServices.elements.refreshTimestamp)
+        .text.to.contain(startTimestamp);
+    });
+
+    // test success
+    clientServices.refreshServiceData();
+    browser.waitForElementVisible(serviceChangePopup);
+    browser.assert.containsText(
+      serviceChangePopup.elements.addedServices,
+      'testOpZ',
+    );
+    browser.assert.containsText(
+      serviceChangePopup.elements.deletedServices,
+      'testOp1',
+    );
+
+    serviceChangePopup.accept();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Refreshed'
+    mainPage.closeSnackbar();
+
+    // Verify that displayed services have changed
+    browser.waitForElementVisible(
+      '//td[contains(@data-test, "service-link") and contains(text(),"testOpA")]',
+    );
+    browser.waitForElementVisible(
+      '//td[contains(@data-test, "service-link") and contains(text(),"testOpZ")]',
+    );
+    browser.waitForElementNotPresent(
+      '//td[contains(@data-test, "service-link") and contains(text(),"testOp1")]',
+    );
+
+    // check that values have not changed when service remains
+    clientServices.verifyServiceURL('testOpA', 'https://www.niis.org/nosuch3/');
+    clientServices.verifyServiceURL('testOpZ', 'https://www.niis.org/nosuch1/');
+    clientServices.verifyServiceSSL(
+      'testOpA',
+      browser.globals.service_ssl_auth_off_style,
+    );
+    clientServices.verifyServiceSSL(
+      'testOpZ',
+      browser.globals.service_ssl_auth_on_style,
+    );
+
+    // Verify that the refresh time has been updated
+    browser.perform(function () {
+      browser.expect
+        .element(clientServices.elements.refreshTimestamp)
+        .text.to.not.contain(startTimestamp);
+    });
 
     browser.end();
   },

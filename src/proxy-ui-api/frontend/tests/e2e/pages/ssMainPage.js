@@ -74,6 +74,21 @@ var navigateCommands = {
 
     return this;
   },
+  updateWSDLFileTo: function (newfile) {
+    const { exec } = require('child_process');
+    exec(
+      'ssh ' +
+        this.api.globals.testdata.split(':')[1].substring(2) + // remove protocol and port data
+        ' "cp ' +
+        this.api.globals.testfiles_path +
+        '/' +
+        newfile +
+        ' ' +
+        this.api.globals.testfiles_path +
+        '/testserviceX.wsdl"'
+    );
+    return this;
+  },
 };
 
 var clientInfoCommands = {
@@ -316,6 +331,26 @@ var clientServicesCommands = {
       this.selector +
         '//td[@data-test="service-link" and contains(text(),"' +
         op +
+        '")]',
+    );
+    return this;
+  },
+  verifyServiceSSL: function (service, status) {
+    this.api.waitForElementVisible(
+      '//tr[.//td[@data-test="service-link" and contains(text(), "' +
+        service +
+        '")]]//*[contains(@class, "mdi-lock") and contains(@style, "' +
+        status +
+        '")]',
+    );
+    return this;
+  },
+  verifyServiceURL: function (service, url) {
+    this.api.waitForElementVisible(
+      '//tr[.//td[@data-test="service-link" and contains(text(), "' +
+        service +
+        '")]]//*[contains(text(), "' +
+        url +
         '")]',
     );
     return this;
@@ -1039,6 +1074,16 @@ module.exports = {
         },
         warningCancelButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
+          locateStrategy: 'xpath',
+        },
+        addedServices: {
+          selector:
+            '//div[contains(@class, "dlg-warning-header") and contains(text(), "Adding services:")]/following-sibling::div',
+          locateStrategy: 'xpath',
+        },
+        deletedServices: {
+          selector:
+             '//div[contains(@class, "dlg-warning-header") and contains(text(), "Deleting services:")]/following-sibling::div',
           locateStrategy: 'xpath',
         },
       },
