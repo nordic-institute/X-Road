@@ -35,6 +35,8 @@ import org.niis.xroad.restapi.openapi.model.Client;
 import org.niis.xroad.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.restapi.openapi.model.CsrGenerate;
+import org.niis.xroad.restapi.openapi.model.Endpoint;
+import org.niis.xroad.restapi.openapi.model.Endpoint.MethodEnum;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.KeyLabel;
@@ -105,6 +107,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String FIELD_KEYLABEL_LABEL = "keyLabel.label";
     public static final String FIELD_TOKENNAME_NAME = "tokenName.name";
     public static final String FIELD_KEYNAME_NAME = "keyName.name";
+    public static final String FIELD_ENDPOINT_PATH = "endpoint.path";
     public static final String FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL = "keyLabelWithCsrGenerate.keyLabel";
     public static final String FIELD_KEYLABELWITHCSRGENERATE_CSRGENERATEREQUEST
             = "keyLabelWithCsrGenerate.csrGenerateRequest";
@@ -347,6 +350,16 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     @Test
+    @WithMockUser(authorities = "ADD_OPENAPI3_ENDPOINT")
+    public void updateEndpointWithControlCharacter() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        expectedFieldValidationErrors.put(FIELD_ENDPOINT_PATH,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        Endpoint endpoint = new Endpoint().path(HAS_CONTROL_CHAR).serviceCode("foobar").method(MethodEnum.GET);
+        assertEndpointValidationError("1", endpoint, expectedFieldValidationErrors);
+    }
+
+    @Test
     @WithMockUser(authorities = "EDIT_TOKEN_FRIENDLY_NAME")
     public void updateTokenWithControlCharacter() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
@@ -470,6 +483,14 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
                 HttpMethod.PATCH,
                 serviceUpdateEntity,
                 Object.class);
+        assertValidationErrors(response, expectedFieldValidationErrors);
+    }
+
+    private void assertEndpointValidationError(String idParam, Endpoint endpoint,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        ResponseEntity<Object> response =
+                restTemplate.postForEntity("/api/v1/services/" + idParam + "/endpoints",
+                        endpoint, Object.class);
         assertValidationErrors(response, expectedFieldValidationErrors);
     }
 

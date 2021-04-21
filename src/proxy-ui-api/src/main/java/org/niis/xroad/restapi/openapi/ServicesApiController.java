@@ -44,6 +44,7 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
+import org.niis.xroad.restapi.openapi.validator.EndpointValidator;
 import org.niis.xroad.restapi.openapi.validator.ServiceUpdateValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -98,6 +99,12 @@ public class ServicesApiController implements ServicesApi {
     @PreAuthorize("permitAll()")
     protected void initServiceDescriptionUpdateBinder(WebDataBinder binder) {
         binder.addValidators(new ServiceUpdateValidator());
+    }
+
+    @InitBinder("endpoint")
+    @PreAuthorize("permitAll()")
+    protected void initEndpointUpdateBinder(WebDataBinder binder) {
+        binder.addValidators(new EndpointValidator());
     }
 
     @Override
