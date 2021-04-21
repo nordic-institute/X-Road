@@ -42,6 +42,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import java.io.IOException;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
@@ -72,7 +73,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getGlobalConfDiagnosticsSuccess() {
+    public void getGlobalConfDiagnosticsSuccess() throws IOException {
         final OffsetDateTime prevUpdate = OffsetDateTime.now();
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
 
@@ -91,7 +92,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getGlobalConfDiagnosticsWaiting() {
+    public void getGlobalConfDiagnosticsWaiting() throws IOException {
         final OffsetDateTime prevUpdate = OffsetDateTime.now();
         final OffsetDateTime nextUpdate = prevUpdate.plusHours(1);
 
@@ -110,7 +111,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() {
+    public void getGlobalConfDiagnosticsFailNextUpdateTomorrow() throws IOException {
         final OffsetDateTime prevUpdate = OffsetDateTime.now();
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
 
@@ -129,7 +130,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() {
+    public void getGlobalConfDiagnosticsFailPreviousUpdateYesterday() throws IOException {
         final OffsetDateTime prevUpdate = OffsetDateTime.now().with(LocalTime.of(0, 0));
         final OffsetDateTime nextUpdate = prevUpdate.plusDays(1);
 
@@ -148,7 +149,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getGlobalConfDiagnosticsException() {
+    public void getGlobalConfDiagnosticsException() throws IOException {
         when(diagnosticService.queryGlobalConfStatus()).thenThrow(new RuntimeException());
 
         try {
@@ -161,7 +162,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getTimestampingServiceDiagnosticsSuccess() {
+    public void getTimestampingServiceDiagnosticsSuccess() throws IOException {
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE);
         diagnosticsStatus.setDescription(TSA_URL_1);
@@ -182,7 +183,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getTimestampingServiceDiagnosticsWaiting() {
+    public void getTimestampingServiceDiagnosticsWaiting() throws IOException {
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, PREVIOUS_UPDATE);
         diagnosticsStatus.setDescription(TSA_URL_1);
@@ -204,7 +205,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() {
+    public void getTimestampingServiceDiagnosticsFailPreviousUpdateYesterday() throws IOException {
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL, PREVIOUS_UPDATE_MIDNIGHT);
         diagnosticsStatus.setDescription(TSA_URL_1);
@@ -226,7 +227,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getTimestampingServiceDiagnosticsException() {
+    public void getTimestampingServiceDiagnosticsException() throws IOException {
         when(diagnosticService.queryTimestampingStatus()).thenThrow(new RuntimeException());
 
         try {
@@ -240,7 +241,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getOcspResponderDiagnosticsSuccess() {
+    public void getOcspResponderDiagnosticsSuccess() throws IOException {
         OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(CA_NAME_1);
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE, NEXT_UPDATE);
@@ -267,7 +268,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getOcspResponderDiagnosticsWaiting() {
+    public void getOcspResponderDiagnosticsWaiting() throws IOException {
         OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(CA_NAME_2);
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_OCSP_UNINITIALIZED, null, NEXT_UPDATE);
@@ -295,7 +296,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getOcspResponderDiagnosticsFailNextUpdateTomorrow() {
+    public void getOcspResponderDiagnosticsFailNextUpdateTomorrow() throws IOException {
         OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(CA_NAME_1);
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 DiagnosticsErrorCodes.ERROR_CODE_OCSP_RESPONSE_INVALID, null, NEXT_UPDATE_MIDNIGHT);
@@ -323,7 +324,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getOcspResponderDiagnosticsFailPreviousUpdateYesterday() {
+    public void getOcspResponderDiagnosticsFailPreviousUpdateYesterday() throws IOException {
         OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(CA_NAME_2);
         DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(
                 ERROR_CODE_UNKNOWN, PREVIOUS_UPDATE_MIDNIGHT, NEXT_UPDATE_MIDNIGHT);
@@ -350,7 +351,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
     @Test
     @WithMockUser(authorities = {"DIAGNOSTICS"})
-    public void getOcspResponderDiagnosticsException() {
+    public void getOcspResponderDiagnosticsException() throws IOException {
         when(diagnosticService.queryOcspResponderStatus()).thenThrow(new RuntimeException());
 
         try {
