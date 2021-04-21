@@ -75,8 +75,27 @@ var navigateCommands = {
     return this;
   },
   updateWSDLFileTo: function (newfile) {
-    const { exec } = require('child_process');
-    exec(
+    
+   var sshScript;
+   const { exec } = require('child_process');
+
+    sshScript = 'ssh ' +
+        this.api.globals.testdata.split(':')[1].substring(2) + // remove protocol and port data
+        ' "cp ' +
+        this.api.globals.testfiles_path +
+        '/' +
+        newfile +
+        ' ' +
+        this.api.globals.testfiles_path +
+        '/testserviceX.wsdl"';
+
+console.debug('SSSHS: ' + sshScript);
+    exec(sshScript, (error, stdout, stderr) => {
+      console.debug('O: ' + stdout);
+      console.debug('E: ' + stderr);
+
+    });
+/*    exec(
       'ssh ' +
         this.api.globals.testdata.split(':')[1].substring(2) + // remove protocol and port data
         ' "cp ' +
@@ -86,8 +105,8 @@ var navigateCommands = {
         ' ' +
         this.api.globals.testfiles_path +
         '/testserviceX.wsdl"'
-    );
-    return this;
+    );*/
+    return this; //
   },
 };
 

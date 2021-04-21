@@ -28,7 +28,7 @@ module.exports = {
   tags: ['ss', 'clients', 'wsdlservices'],
   before: function (browser) {
     browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
-  },
+  },/*
   'Security server client add wsdl service': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -148,7 +148,7 @@ module.exports = {
     browser.expect
       .element(operationDetails.elements.activeTooltip)
       .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
-    */
+    *//*
 
     // Verify cancel
     operationDetails.toggleCertVerification();
@@ -639,7 +639,7 @@ module.exports = {
     );
 
     browser.end();
-  },
+  },*/
   'Security server client refresh wsdl service': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
