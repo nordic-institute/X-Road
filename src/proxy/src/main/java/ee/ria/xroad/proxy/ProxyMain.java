@@ -288,51 +288,34 @@ public final class ProxyMain {
             public void handle(HttpServletRequest request, HttpServletResponse response) {
                 log.info("/timestampstatus");
 
-                Map<String, DiagnosticsStatus> result = checkConnectionToTimestampUrl();
-                log.info("result {}", result);
+                Map<String, DiagnosticsStatus> statusesFromSimpleConnectionCheck = checkConnectionToTimestampUrl();
+                Map<String, DiagnosticsStatus> result = new HashMap<>();
+
+                log.info("simple connection check result {}", statusesFromSimpleConnectionCheck);
 
                 ActorSelection logManagerSelection = actorSystem.actorSelection("/user/LogManager");
 
                 Timeout timeout = new Timeout(DIAGNOSTICS_CONNECTION_TIMEOUT_MS, TimeUnit.MILLISECONDS);
                 try {
-                    Map<String, DiagnosticsStatus> statusFromLogManager =
+                    Map<String, DiagnosticsStatus> statusesFromLogManager =
                             (Map<String, DiagnosticsStatus>)Await.result(
                                     Patterns.ask(logManagerSelection, CommonMessages.TIMESTAMP_STATUS, timeout),
                                     timeout.duration());
 
-                    log.info("statusFromLogManager {}", statusFromLogManager.toString());
+                    log.info("statusesFromLogManager {}", statusesFromLogManager.toString());
 
-                    for (String url : result.keySet()) {
-                        // for given timestamp server, use the status either from simple connection check or from
-                        // LogManager
-                        int simpleConnectionCheckStatus = result.get(url).getReturnCode();
-                        if (simpleConnectionCheckStatus == DiagnosticsErrorCodes.RETURN_SUCCESS) {
-                            // simple connection check = OK
-                            if (statusFromLogManager.get(url) == null) {
-                                // missing LogManager status -> "uninitialized" error
-                                result.get(url).setReturnCodeNow(
-                                        DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
-                            } else {
-                                // use the status from LogManager (ok or fail)
-                                log.info("Using time stamping status from LogManager for url {} status: {}", url,
-                                        statusFromLogManager.get(url));
-                                result.put(url, statusFromLogManager.get(url));
-                            }
-                        } else {
-                            // simple connection check = fail
-                            // Use fail status from LogManager, if one exists
-                            // Otherwise, retain the original simple connection check fail status.
-                            if (statusFromLogManager.get(url) != null
-                                    && statusFromLogManager.get(url).getReturnCode()
-                                    != DiagnosticsErrorCodes.RETURN_SUCCESS) {
-                                log.info("Using time stamping status from LogManager for url {} status: {}", url,
-                                        statusFromLogManager.get(url));
-                                result.put(url, statusFromLogManager.get(url));
-                            }
-                        }
+                    // go through all simple connection statuses, and enrich using LogManager status info
+                    for (Map.Entry<String, DiagnosticsStatus> simpleConnectionUrlStatus
+                            : statusesFromSimpleConnectionCheck.entrySet()) {
+
+                        String timestamperUrl = simpleConnectionUrlStatus.getKey();
+                        DiagnosticsStatus finalStatus = determineDiagnosticsStatus(timestamperUrl,
+                                simpleConnectionUrlStatus.getValue(), statusesFromLogManager.get(timestamperUrl));
+                        result.put(timestamperUrl, finalStatus);
                     }
                 } catch (Exception e) {
                     log.error("Unable to connect to LogManager, immediate timestamping status unavailable", e);
+                    result = statusesFromSimpleConnectionCheck;
                     transmuteErrorCodes(result, DiagnosticsErrorCodes.RETURN_SUCCESS,
                             DiagnosticsErrorCodes.ERROR_CODE_LOGMANAGER_UNAVAILABLE);
                 }
@@ -346,6 +329,44 @@ public final class ProxyMain {
                 }
             }
         });
+    }
+
+    /**
+     * Logic that determines correct DiagnosticsStatus based on simple connection check and LogManager status
+     * @param timestamperUrl url of timestamper
+     * @param statusFromSimpleConnectionCheck status from simple connection check
+     * @param statusFromLogManager (possible) status from LogManager
+     * @return
+     */
+    private static DiagnosticsStatus determineDiagnosticsStatus(String timestamperUrl,
+            DiagnosticsStatus statusFromSimpleConnectionCheck, DiagnosticsStatus statusFromLogManager) {
+
+        DiagnosticsStatus status = statusFromSimpleConnectionCheck;
+
+        // use the status either from simple connection check or from LogManager
+        if (statusFromSimpleConnectionCheck.getReturnCode() == DiagnosticsErrorCodes.RETURN_SUCCESS) {
+            // simple connection check = OK
+            if (statusFromLogManager == null) {
+                // missing LogManager status -> "uninitialized" error
+                status.setReturnCodeNow(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED);
+            } else {
+                // use the status from LogManager (ok or fail)
+                log.info("Using time stamping status from LogManager for url {} status: {}",
+                        timestamperUrl, statusFromLogManager);
+                status = statusFromLogManager;
+            }
+        } else {
+            // simple connection check = fail
+            // Use fail status from LogManager, if one exists
+            // Otherwise, retain the original simple connection check fail status.
+            if (statusFromLogManager != null
+                    && statusFromLogManager.getReturnCode() != DiagnosticsErrorCodes.RETURN_SUCCESS) {
+                log.info("Using time stamping status from LogManager for url {} status: {}",
+                        timestamperUrl, statusFromLogManager);
+                status = statusFromLogManager;
+            }
+        }
+        return status;
     }
 
     private static void addShutdownHook(AdminPort adminPort) {
