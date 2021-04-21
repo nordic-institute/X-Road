@@ -47,6 +47,7 @@ import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
+import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
 import org.niis.xroad.restapi.openapi.model.TokenName;
 import org.niis.xroad.restapi.openapi.validator.IdentifierValidationErrorInfo;
 import org.niis.xroad.restapi.service.AnchorNotFoundException;
@@ -100,6 +101,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     public static final String FIELD_CLIENTADD_MEMBER_CODE = "clientAdd.client.memberCode";
     public static final String FIELD_CLIENTADD_SUBSYSTEM_CODE = "clientAdd.client.subsystemCode";
     public static final String FIELD_LOCALGROUPADD_CODE = "localGroupAdd.code";
+    public static final String FIELD_SERVICEUPDATE_URL = "serviceUpdate.url";
     public static final String FIELD_KEYLABEL_LABEL = "keyLabel.label";
     public static final String FIELD_TOKENNAME_NAME = "tokenName.name";
     public static final String FIELD_KEYNAME_NAME = "keyName.name";
@@ -202,6 +204,17 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         ResponseEntity<Object> response = createClientServiceDescription("http://www.google.com",
                 restServiceCode);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    }
+
+    @Test
+    @WithMockUser(authorities = "EDIT_SERVICE_PARAMS")
+    public void testUpdateService() {
+        Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
+        expectedFieldValidationErrors.put(FIELD_SERVICEUPDATE_URL,
+                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+        ServiceUpdate serviceUpdate = new ServiceUpdate().url("http://www.goo" + HAS_CONTROL_CHAR + "gle.com")
+                .timeout(60).sslAuth(false);
+        assertUpdateServiceValidationError("1", serviceUpdate, expectedFieldValidationErrors);
     }
 
     @Test
@@ -448,6 +461,16 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     private ResponseEntity<Object> createTestLocalGroup(String localGroupCode, String localGroupDescription) {
         LocalGroupAdd localGroupAdd = new LocalGroupAdd().code(localGroupCode).description(localGroupDescription);
         return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/local-groups", localGroupAdd, Object.class);
+    }
+
+    private void assertUpdateServiceValidationError(String idParam, ServiceUpdate serviceUpdate,
+            Map<String, List<String>> expectedFieldValidationErrors) {
+        HttpEntity<ServiceUpdate> serviceUpdateEntity = new HttpEntity<>(serviceUpdate);
+        ResponseEntity<Object> response = restTemplate.exchange("/api/v1/services/" + idParam,
+                HttpMethod.PATCH,
+                serviceUpdateEntity,
+                Object.class);
+        assertValidationErrors(response, expectedFieldValidationErrors);
     }
 
     private void assertValidationErrors(ResponseEntity<Object> response,
