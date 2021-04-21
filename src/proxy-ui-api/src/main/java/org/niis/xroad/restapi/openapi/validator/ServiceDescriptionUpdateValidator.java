@@ -25,14 +25,19 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
+import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
+import org.springframework.validation.Errors;
 
 import java.util.Arrays;
 import java.util.Collection;
 
 @Slf4j
 public class ServiceDescriptionUpdateValidator extends AbstractIdentifierValidator {
+
+    private static final String URL_FIELD_NAME = "url";
 
     @Override
     public boolean supports(Class<?> clazz) {
@@ -46,5 +51,15 @@ public class ServiceDescriptionUpdateValidator extends AbstractIdentifierValidat
                 ValidatedField.builder()
                         .fieldName("newRestServiceCode")
                         .value(serviceDescriptionUpdate.getNewRestServiceCode()).build());
+    }
+
+    @Override
+    public void validate(Object target, Errors errors) {
+        super.validate(target, errors);
+        ServiceDescriptionUpdate update = (ServiceDescriptionUpdate) target;
+        if (SpringFirewallValidationRules.containsControlChars(update.getUrl())) {
+            errors.rejectValue(URL_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
+                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
+        }
     }
 }

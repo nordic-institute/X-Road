@@ -207,20 +207,22 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = "EDIT_OPENAPI3")
     public void testUpdateServiceDescription() {
-        assertUpdateServiceDescriptionValidationFailure(HAS_COLON);
-        assertUpdateServiceDescriptionValidationFailure(HAS_SEMICOLON);
-        assertUpdateServiceDescriptionValidationFailure(HAS_PERCENT);
-        assertUpdateServiceDescriptionValidationFailure(HAS_NON_NORMALIZED);
-        assertUpdateServiceDescriptionValidationFailure(HAS_BACKSLASH);
-        assertUpdateServiceDescriptionValidationFailure(HAS_CONTROL_CHAR);
+        assertUpdateServiceDescriptionValidationFailure("http://www.google.com", HAS_COLON);
+        assertUpdateServiceDescriptionValidationFailure("http://www.google.com", HAS_SEMICOLON);
+        assertUpdateServiceDescriptionValidationFailure("http://www.google.com", HAS_PERCENT);
+        assertUpdateServiceDescriptionValidationFailure("http://www.google.com", HAS_NON_NORMALIZED);
+        assertUpdateServiceDescriptionValidationFailure("http://www.google.com", HAS_BACKSLASH);
+        assertUpdateServiceDescriptionValidationFailure("http://www.google.com", HAS_CONTROL_CHAR);
+        assertUpdateServiceDescriptionValidationFailure("http://www.goo" + HAS_CONTROL_CHAR + "gle.com",
+                "validServiceCode");
     }
 
     /**
      * @return response body as a Map
      */
-    private Object updateServiceDescription(String restServiceCode) {
+    private Object updateServiceDescription(String url, String restServiceCode) {
         ServiceDescriptionUpdate serviceDescriptionUpdate = new ServiceDescriptionUpdate()
-                .url("http://www.google.com")
+                .url(url)
                 .restServiceCode("asdf")
                 .newRestServiceCode(restServiceCode)
                 .type(ServiceType.REST);
@@ -228,8 +230,9 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         return restTemplate.patchForObject("/api/v1/service-descriptions/1", serviceDescriptionUpdate, Object.class);
     }
 
-    private void assertUpdateServiceDescriptionValidationFailure(String restServiceCode) {
-        Map<String, Object> response = (Map<String, Object>) updateServiceDescription(restServiceCode);
+    private void assertUpdateServiceDescriptionValidationFailure(String url, String restServiceCode) {
+        Map<String, Object> response =
+                (Map<String, Object>) updateServiceDescription(url, restServiceCode);
         assertEquals(new Integer(HttpStatus.BAD_REQUEST.value()), response.get("status"));
         Map<String, Object> errors = (Map<String, Object>) response.get("error");
         assertEquals("validation_failure", errors.get("code"));
