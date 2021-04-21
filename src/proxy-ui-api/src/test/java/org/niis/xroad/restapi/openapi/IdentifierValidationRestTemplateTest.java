@@ -180,13 +180,18 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         assertAddClientServiceDescriptionValidationError(HAS_BACKSLASH);
         assertAddClientServiceDescriptionValidationError(HAS_CONTROL_CHAR);
 
-        ResponseEntity<Object> response = createClientServiceDescription("aa.bb.列.ä");
+        ResponseEntity<Object> response = createClientServiceDescription("http://www.google.com",
+                "aa.bb.列.ä");
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        ResponseEntity<Object> invalidUrlResponse
+                = createClientServiceDescription("http://www.goo" + HAS_CONTROL_CHAR + "gle.com",
+                "validServiceCode");
+        assertEquals(HttpStatus.BAD_REQUEST, invalidUrlResponse.getStatusCode());
     }
 
-    private ResponseEntity<Object> createClientServiceDescription(String restServiceCode) {
+    private ResponseEntity<Object> createClientServiceDescription(String url, String restServiceCode) {
         ServiceDescriptionAdd serviceDescriptionAdd = new ServiceDescriptionAdd()
-                .url("http://www.google.com")
+                .url(url)
                 .restServiceCode(restServiceCode)
                 .type(ServiceType.REST);
         return restTemplate.postForEntity("/api/v1/clients/FI:GOV:M1:SS1/service-descriptions",
@@ -194,7 +199,8 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     private void assertAddClientServiceDescriptionValidationError(String restServiceCode) {
-        ResponseEntity<Object> response = createClientServiceDescription(restServiceCode);
+        ResponseEntity<Object> response = createClientServiceDescription("http://www.google.com",
+                restServiceCode);
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }
 

@@ -44,7 +44,6 @@ import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.restapi.openapi.validator.KeyLabelWithCsrGenerateValidator;
 import org.niis.xroad.restapi.openapi.validator.KeyNameValidator;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
