@@ -61,7 +61,7 @@ pipeline {
       /*  stage('Copy list of authorized keys') {
           steps {
             withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-              sh 'aws s3 cp s3://mybucket/test.txt /tmp/list_authorized_keys'
+              sh 'aws s3 cp s3://niis-xroad-ci-files/niis-authorized-ssh-keys /tmp/list_authorized_keys'
             }
           }
         } */

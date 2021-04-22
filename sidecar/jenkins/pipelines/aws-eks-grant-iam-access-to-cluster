@@ -9,18 +9,15 @@ pipeline {
     stages {
         stage('Update kube config') {
             steps {
-                 withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws eks --region ${REGION_CODE} update-kubeconfig --name ${CLUSTER_NAME}'
                 }
             }
         }
-        stage('Modify kube config') {
+        stage('Modify aws-auth config to add role to EKS cluster') {
             steps {
-               withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-
-sh 'sidecar/kubernetes/grant-user-access-to-cluster.sh ${CLUSTER_NAME} ${REGION_CODE} ${USER_NAME} ${USER_ARN} '
-
-
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'sidecar/kubernetes/grant-user-access-to-cluster.sh ${USER_NAME} ${USER_ARN}'
                 }
             }
         }
