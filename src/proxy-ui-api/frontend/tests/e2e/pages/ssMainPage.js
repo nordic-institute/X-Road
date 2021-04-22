@@ -61,8 +61,17 @@ var navigateCommands = {
     this.click('@snackBarCloseButton');
     return this;
   },
+  closeAlertMessage: function () {
+    this.click('@alertCloseButton');
+    return this;
+  },
   closeSessionExpiredPopup: function () {
     this.click('@sessionExpiredPopupOkButton');
+    return this;
+  },
+  verifyCurrentUser: function (user) {
+    this.api.assert.containsText(this.elements.userMenuButton, user);
+
     return this;
   },
 };
@@ -601,32 +610,28 @@ module.exports = {
   commands: [navigateCommands],
   elements: {
     clientsTab: {
-      selector:
-        '//a[@data-test="clients"]',
+      selector: '//a[@data-test="clients"]',
       locateStrategy: 'xpath',
     },
     keysTab: {
-      selector:
-        '//a[@data-test="keys"]',
+      selector: '//a[@data-test="keys"]',
       locateStrategy: 'xpath',
     },
     diagnosticsTab: {
-      selector:
-        '//a[@data-test="diagnostics"]',
+      selector: '//a[@data-test="diagnostics"]',
       locateStrategy: 'xpath',
     },
     settingsTab: {
-      selector:
-        '//a[@data-test="settings"]',
+      selector: '//a[@data-test="settings"]',
       locateStrategy: 'xpath',
     },
     userMenuButton: {
-      selector: 'div.v-toolbar__content button .mdi-account-circle',
-      locateStrategy: 'css selector',
+      selector: '//button[@data-test="username-button"]',
+      locateStrategy: 'xpath',
     },
     userMenuitemLogout: {
-      selector: '#logout-list-tile',
-      locateStrategy: 'css selector',
+      selector: '//*[@data-test="logout-list-tile"]',
+      locateStrategy: 'xpath',
     },
     logoutOKButton: {
       selector:
@@ -641,6 +646,15 @@ module.exports = {
       selector: '//div[contains(@class, "v-snack__content")]',
       locateStrategy: 'xpath',
     },
+    alertCloseButton: {
+      selector: '//button[@data-test="close-snackbar"]',
+      locateStrategy: 'xpath',
+    },
+    alertMessage: {
+      selector:
+        '//div[@data-test="contextual-alert"]//div[contains(@class, "row-wrapper")]/div',
+      locateStrategy: 'xpath',
+    },
     sessionExpiredPopupOkButton: {
       selector: '//button[@data-test="session-expired-ok-button"]',
       locateStrategy: 'xpath',
@@ -652,40 +666,41 @@ module.exports = {
     diagnosticsTab: diagnosticsTab,
     settingsTab: settingsTab,
     clientInfo: {
-      selector: 'h1.display-1',
-      locateStrategy: 'css selector',
+      selector:
+        '//div[contains(@class, "v-main__wrap") and .//*[@data-test="clients" and @aria-selected="true"]]',
+      locateStrategy: 'xpath',
       commands: [clientInfoCommands],
       elements: {
         detailsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="details"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Details")]',
           locateStrategy: 'xpath',
         },
         serviceClientsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="serviceClients"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Service clients")]',
           locateStrategy: 'xpath',
         },
         servicesTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="services"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Services")]',
           locateStrategy: 'xpath',
         },
         internalServersTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="internalServers"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Internal servers")]',
           locateStrategy: 'xpath',
         },
         localGroupsTab: {
           selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and @data-test="localGroups"]',
+            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
           locateStrategy: 'xpath',
         },
       },
       sections: {
         details: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active")] and .//*[@data-test="details"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Details")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientDetailsCommands],
           elements: {
@@ -697,7 +712,7 @@ module.exports = {
         },
         internalServers: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and @data-test="internalServers"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Internal servers")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientInternalServersCommands],
           elements: {
@@ -722,7 +737,7 @@ module.exports = {
         },
         localGroups: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and @data-test="localGroups"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Local groups")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientLocalGroupsCommands],
           elements: {
@@ -743,8 +758,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             groupCode: {
-              selector:
-                '//input[@data-test="add-local-group-code-input"]',
+              selector: '//input[@data-test="add-local-group-code-input"]',
               locateStrategy: 'xpath',
             },
             groupDescription: {
@@ -783,7 +797,7 @@ module.exports = {
         },
         services: {
           selector:
-            '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "v-tab--active") and @data-test="services"]]',
+            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Services")]]//div[contains(@class, "xrd-view-common")]',
           locateStrategy: 'xpath',
           commands: [clientServicesCommands],
           elements: {
@@ -825,8 +839,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             cancelAddServiceButton: {
-              selector:
-                '//button[@data-test="dialog-cancel-button"]',
+              selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
             RESTPathRadioButton: {
@@ -846,8 +859,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             serviceDescription: {
-              selector:
-                '//*[@data-test="service-description-header"]',
+              selector: '//*[@data-test="service-description-header"]',
               locateStrategy: 'xpath',
             },
             serviceExpandButton: {
@@ -885,8 +897,7 @@ module.exports = {
               locateStrategy: 'xpath',
             },
             cancelDisableButton: {
-              selector:
-                '//button[@data-test="dialog-cancel-button"]',
+              selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
             disableNotice: {
@@ -903,14 +914,28 @@ module.exports = {
       },
     },
     certificatePopup: {
-      selector:
-        '//div[@data-test="certificate-details-dialog"]',
+      selector: '//div[contains(@class, "certificate-details-wrapper")]',
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
         certificateInfoCloseButton: {
-          selector: 'div.cert-dialog-header #close-x',
-          locateStrategy: 'css selector',
+          selector: '//*[@data-test="close-x"]',
+          locateStrategy: 'xpath',
+        },
+        deleteButton: {
+          selector: '//button[.//*[contains(text(), "Delete")]]',
+          locateStrategy: 'xpath',
+        },
+      },
+    },
+    certificateDetails: {
+      selector: '//*[@data-test="certificate-details-dialog"]',
+      locateStrategy: 'xpath',
+      commands: [certificatePopupCommands],
+      elements: {
+        certificateInfoCloseButton: {
+          selector: '//*[@data-test="close-x"]',
+          locateStrategy: 'xpath',
         },
         deleteButton: {
           selector: '//button[.//*[contains(text(), "Delete")]]',
@@ -989,8 +1014,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         localGroupDescriptionLabel: {
-          selector:
-            '//div[@data-test="local-group-edit-description-label"]',
+          selector: '//div[@data-test="ocal-group-edit-description-label"]',
           locateStrategy: 'xpath',
         },
         localGroupDescription: {
@@ -1020,8 +1044,7 @@ module.exports = {
       },
     },
     serviceDetails: {
-      selector:
-        '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog"]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1031,7 +1054,8 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         deleteServiceButton: {
-          selector: '//button[@data-test="service-description-details-delete-button"]',
+          selector:
+            '//button[@data-test="service-description-details-delete-button"]',
           locateStrategy: 'xpath',
         },
         confirmDeleteButton: {
@@ -1052,18 +1076,19 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         confirmDialogButton: {
-          selector: '//button[@data-test="service-description-details-save-button"]',
+          selector:
+            '//button[@data-test="service-description-details-save-button"]',
           locateStrategy: 'xpath',
         },
         cancelDialogButton: {
-          selector: '//button[@data-test="service-description-details-cancel-button"]',
+          selector:
+            '//button[@data-test="service-description-details-cancel-button"]',
           locateStrategy: 'xpath',
         },
       },
     },
     restServiceDetails: {
-      selector:
-        '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog"]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1073,7 +1098,8 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         deleteServiceButton: {
-          selector: '//button[@data-test="service-description-details-delete-button"]',
+          selector:
+            '//button[@data-test="service-description-details-delete-button"]',
           locateStrategy: 'xpath',
         },
         confirmDeleteButton: {
@@ -1093,7 +1119,8 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         serviceType: {
-          selector: '//div[@data-test="service-description-details-url-type-value"]',
+          selector:
+            '//div[@data-test="service-description-details-url-type-value"]',
           locateStrategy: 'xpath',
         },
         URLMessage: {
@@ -1107,18 +1134,19 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         confirmDialogButton: {
-          selector: '//button[@data-test="service-description-details-save-button"]',
+          selector:
+            '//button[@data-test="service-description-details-save-button"]',
           locateStrategy: 'xpath',
         },
         cancelDialogButton: {
-          selector: '//button[@data-test="service-description-details-cancel-button"]',
+          selector:
+            '//button[@data-test="service-description-details-cancel-button"]',
           locateStrategy: 'xpath',
         },
       },
     },
     openApiServiceDetails: {
-      selector:
-        '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog"]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1128,7 +1156,8 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         deleteServiceButton: {
-          selector: '//button[@data-test="service-description-details-delete-button"]',
+          selector:
+            '//button[@data-test="service-description-details-delete-button"]',
           locateStrategy: 'xpath',
         },
         confirmDeleteButton: {
@@ -1164,11 +1193,13 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         confirmDialogButton: {
-          selector: '//button[@data-test="service-description-details-save-button"]',
+          selector:
+            '//button[@data-test="service-description-details-save-button"]',
           locateStrategy: 'xpath',
         },
         cancelDialogButton: {
-          selector: '//button[@data-test="service-description-details-cancel-button"]',
+          selector:
+            '//button[@data-test="service-description-details-cancel-button"]',
           locateStrategy: 'xpath',
         },
       },
@@ -1180,28 +1211,23 @@ module.exports = {
       commands: [wsdlOperationCommands],
       elements: {
         parametersTab: {
-          selector:
-            '//*[@data-test="parameters"]',
+          selector: '//*[@data-test="parameters"]',
           locateStrategy: 'xpath',
         },
         endpointsTab: {
-          selector:
-            '//*[@data-test="endpoints"]',
+          selector: '//*[@data-test="endpoints"]',
           locateStrategy: 'xpath',
         },
         urlApplyToAllCheckbox: {
-          selector:
-            '//input[@data-test="url-all"]/following-sibling::div',
+          selector: '//input[@data-test="url-all"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
         timeoutApplyToAllCheckbox: {
-          selector:
-            '//input[@data-test="timeout-all"]/following-sibling::div',
+          selector: '//input[@data-test="timeout-all"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
         verifyCertApplyToAllCheckbox: {
-          selector:
-            '//input[@data-test="ssl-auth-all"]/following-sibling::div',
+          selector: '//input[@data-test="ssl-auth-all"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
         serviceURL: {
@@ -1217,8 +1243,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         sslAuthClickarea: {
-          selector:
-            '//input[@data-test="ssl-auth"]/following-sibling::div',
+          selector: '//input[@data-test="ssl-auth"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
         save2Button: {
@@ -1240,8 +1265,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         timeoutHelp: {
-          selector:
-            '//div[@data-test="service-parameters-timeout-label"]//i',
+          selector: '//div[@data-test="service-parameters-timeout-label"]//i',
           locateStrategy: 'xpath',
         },
         verifyCertHelp: {
@@ -1271,13 +1295,11 @@ module.exports = {
       commands: [wsdlOperationCommands],
       elements: {
         parametersTab: {
-          selector:
-            '//*[@data-test="parameters"]',
+          selector: '//*[@data-test="parameters"]',
           locateStrategy: 'xpath',
         },
         endpointsTab: {
-          selector:
-            '//*[@data-test="endpoints"]',
+          selector: '//*[@data-test="endpoints"]',
           locateStrategy: 'xpath',
         },
         serviceURL: {
@@ -1293,8 +1315,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         sslAuthClickarea: {
-          selector:
-            '//input[@data-test="ssl-auth"]/following-sibling::div',
+          selector: '//input[@data-test="ssl-auth"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
         save2Button: {
@@ -1320,8 +1341,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         timeoutHelp: {
-          selector:
-            '//div[@data-test="service-parameters-timeout-label"]//i',
+          selector: '//div[@data-test="service-parameters-timeout-label"]//i',
           locateStrategy: 'xpath',
         },
         verifyCertHelp: {
@@ -1367,13 +1387,11 @@ module.exports = {
       commands: [restEndpointCommands],
       elements: {
         parametersTab: {
-          selector:
-            '//*[@data-test="parameters"]',
+          selector: '//*[@data-test="parameters"]',
           locateStrategy: 'xpath',
         },
         endpointsTab: {
-          selector:
-            '//*[@data-test="endpoints"]',
+          selector: '//*[@data-test="endpoints"]',
           locateStrategy: 'xpath',
         },
         addButton: {
@@ -1382,7 +1400,7 @@ module.exports = {
         },
         closeButton: {
           selector:
-            '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
+            '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
           locateStrategy: 'xpath',
         },
         editButton: {
@@ -1390,8 +1408,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         accessRightsButton: {
-          selector:
-            '//button[@data-test="endpoint-edit-accessrights"]',
+          selector: '//button[@data-test="endpoint-edit-accessrights"]',
           locateStrategy: 'xpath',
         },
       },

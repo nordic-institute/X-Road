@@ -46,7 +46,7 @@ module.exports = {
     browser.waitForElementVisible(
       '//th[contains(@class, "xrd-table-header-name") and contains(@class, "active") and contains(@aria-sort, "ascending")]',
     );
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSaved');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSub');
@@ -61,7 +61,7 @@ module.exports = {
       '//th[contains(@class, "xrd-table-header-name") and contains(@class, "active") and contains(@aria-sort, "descending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSub');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSaved');
@@ -80,7 +80,7 @@ module.exports = {
         '//th[contains(@class, "xrd-table-header-name") and contains(@aria-sort, "none")]',
       );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSaved');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSub');
@@ -95,7 +95,7 @@ module.exports = {
       '//th[contains(@class, "xrd-table-header-id") and contains(@class, "active") and contains(@aria-sort, "descending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSub');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSaved');
@@ -110,7 +110,7 @@ module.exports = {
       '//th[contains(@class, "xrd-table-header-status") and contains(@class, "active") and contains(@aria-sort, "ascending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestService');
     clientsTab.verifyRowName(3, 'TestSub');
     clientsTab.verifyRowName(4, 'TestSaved');
@@ -125,7 +125,7 @@ module.exports = {
       '//th[contains(@class, "xrd-table-header-status") and contains(@class, "active") and contains(@aria-sort, "descending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSaved');
     clientsTab.verifyRowName(3, 'TestSub');
     clientsTab.verifyRowName(4, 'TestService');

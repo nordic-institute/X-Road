@@ -47,7 +47,7 @@ module.exports = {
 
     // Logout and verify
     mainPage.logout();
-    browser.waitForElementVisible('//*[@id="username"]');
+    browser.waitForElementVisible(frontPage.elements.usernameInput);
 
     browser.end();
   },
