@@ -30,6 +30,6 @@ dependencies {
     implementation 'org.apache.cxf:cxf-rt-transports-http:3.4.2'
     implementation 'org.apache.cxf:cxf-core:3.4.2'
 
-    testImplementation "junit:junit:4.13"
+    testImplementation "junit:junit:$junitVersion"
 }
 
