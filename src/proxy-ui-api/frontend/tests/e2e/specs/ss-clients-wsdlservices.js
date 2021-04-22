@@ -685,12 +685,13 @@ module.exports = {
       '//td[contains(@data-test, "service-link") and contains(text(),"testOpA")]',
     );
 
-    browser.getText(clientServices.elements.refreshTimestamp, function (
-      result,
-    ) {
-      startTimestamp = result.value;
-      startTime = new Date().getTime();
-    });
+    browser.getText(
+      clientServices.elements.refreshTimestamp,
+      function (result) {
+        startTimestamp = result.value;
+        startTime = new Date().getTime();
+      },
+    );
 
     clientServices.openOperation('testOpA');
     browser.waitForElementVisible(operationDetails);

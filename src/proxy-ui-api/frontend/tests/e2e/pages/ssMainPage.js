@@ -75,16 +75,18 @@ var navigateCommands = {
     return this;
   },
   updateWSDLFileTo: function (newfile) {
-
     var sshScript;
     const { exec } = require('child_process');
 
     // remove protocol and port data from globals.testdata
-    sshScript = `ssh ${this.api.globals.testdata.split(':')[1].substring(2)} "cp ${this.api.globals.testfiles_path}/${newfile} ${this.api.globals.testfiles_path}/testserviceX.wsdl"`;
+    sshScript = `ssh ${this.api.globals.testdata
+      .split(':')[1]
+      .substring(2)} "cp ${this.api.globals.testfiles_path}/${newfile} ${
+      this.api.globals.testfiles_path
+    }/testserviceX.wsdl"`;
 
-      
     exec(sshScript, (err, stdout, stderr) => {
-      if(stderr){
+      if (stderr) {
         console.log('SSH error, stderr: ' + stderr);
         console.log('SSH error, script: ' + sshScript);
       }
@@ -1076,7 +1078,7 @@ module.exports = {
         },
         deletedServices: {
           selector:
-             '//div[contains(@class, "dlg-warning-header") and contains(text(), "Deleting services:")]/following-sibling::div',
+            '//div[contains(@class, "dlg-warning-header") and contains(text(), "Deleting services:")]/following-sibling::div',
           locateStrategy: 'xpath',
         },
       },
