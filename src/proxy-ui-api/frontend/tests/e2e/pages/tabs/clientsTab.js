@@ -37,12 +37,8 @@ var clientsTabCommands = {
     this.click('@listStatusHeader');
     return this;
   },
-  openTestGov: function () {
-    this.click('@testGovListItem');
-    return this;
-  },
-  openTestService: function () {
-    this.click('@testServiceListItem');
+  clickSearchIcon: function () {
+    this.click('@searchIcon');
     return this;
   },
   openClient: function (name) {
@@ -66,8 +62,12 @@ const clientsTab = {
   locateStrategy: 'xpath',
   commands: clientsTabCommands,
   elements: {
+    searchIcon: {
+      selector: '//*[contains(@class, "mdi-magnify")]',
+      locateStrategy: 'xpath',
+    },
     searchField: {
-      selector: '//*[@data-test="search-clients-input"]',
+      selector: '//*[@data-test="search-input"]',
       locateStrategy: 'xpath',
     },
     addClientButton: {

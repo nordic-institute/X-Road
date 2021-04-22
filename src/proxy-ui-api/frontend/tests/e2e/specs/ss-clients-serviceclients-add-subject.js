@@ -69,7 +69,7 @@ const setupServices = (pages) => {
   // Add wsdl
   frontPage.navigate();
   browser.waitForElementVisible('//*[@id="app"]');
-  clientsTab.openTestService();
+  clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   clientInfo.openServicesTab();
   browser.waitForElementVisible(clientServices);
@@ -98,7 +98,7 @@ const clearServices = (pages) => {
   // Remove WSDL service description
   frontPage.navigate();
   browser.waitForElementVisible('//*[@id="app"]');
-  clientsTab.openTestService();
+  clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   clientInfo.openServicesTab();
   browser.waitForElementVisible(clientServices);
@@ -121,7 +121,7 @@ const navigateToAddSubjectDialog = (pages) => {
   } = pages;
   frontPage.navigate();
   browser.waitForElementVisible('//*[@id="app"]');
-  clientsTab.openTestService();
+  clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   // Navigate to service clients -tab
   clientInfo.openServiceClientsTab();
@@ -165,7 +165,7 @@ module.exports = {
     addSubjectMemberStepPage.assertWizardFirstPage();
     addSubjectMemberStepPage.cancel();
     browser.expect.element(
-      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
     ).to.be.visible;
     serviceClientsPage.openAddServiceClient();
     browser.waitForElementVisible(
@@ -224,7 +224,7 @@ module.exports = {
     // Test cancel on second page
     addSubjectServiceStepPage.cancel();
     browser.waitForElementVisible(
-      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
     );
     browser.end();
   },
@@ -267,7 +267,7 @@ module.exports = {
     addSubjectServiceStepPage.clickAddSelectedButton();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
     browser.waitForElementVisible(
-      '//h1[contains(@class, "identifier-wrap")][contains(text(), "TestService")]',
+      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
     );
     browser.waitForElementVisible(
       '//table[contains(@class, "service-clients-table")]//td[contains(text(), "TestClient")]',

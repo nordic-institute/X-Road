@@ -81,6 +81,7 @@ public class TaskQueue extends UntypedAbstractActor {
         }
 
         boolean succeeded = true;
+        Exception failureCause = null;
 
         try {
             saveTimestampRecord(message);
@@ -99,7 +100,7 @@ public class TaskQueue extends UntypedAbstractActor {
                     handleStartTimestamping();
                 }
             } else {
-                indicateFailure();
+                indicateFailure(failureCause);
             }
         }
     }
@@ -112,7 +113,10 @@ public class TaskQueue extends UntypedAbstractActor {
         sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.SUCCESS);
     }
 
-    private void indicateFailure() {
+    /**
+     * @param cause possible exception that caused the failure. Used for diagnostics error code.
+     */
+    private void indicateFailure(Exception cause) {
         // If the timestamping task queue is currently empty, it means some previous timestamping task was successful
         // already. In that case do not indicate failure to the LogManager, otherwise the message logging may block
         // (in non-timestamp-immediately mode) in case further no more messages are logged until the acceptable
@@ -120,6 +124,9 @@ public class TaskQueue extends UntypedAbstractActor {
         if (isTaskQueueEmpty()) {
             return;
         }
+
+        // set diagnostics status
+        LogManager.putStatusMapFailures(cause);
 
         sendTimestampingStatusToLogManager(SetTimestampingStatusMessage.Status.FAILURE);
     }
@@ -135,7 +142,7 @@ public class TaskQueue extends UntypedAbstractActor {
     protected void handleTimestampFailed(TimestampFailed message) {
         log.trace("handleTimestampFailed");
 
-        indicateFailure();
+        indicateFailure(message.getCause());
     }
 
     protected void handleStartTimestamping() {

@@ -33,7 +33,7 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
-    const certificatePopup = mainPage.section.certificatePopup;
+    const certificateDetails = mainPage.section.certificateDetails;
     const deletePopup = mainPage.section.deleteCertPopup;
     const clientInternalServers = clientInfo.section.internalServers;
 
@@ -112,26 +112,26 @@ module.exports = {
     clientInternalServers.addCert(
       browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
     );
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Certificate already exists'
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Certificate already exists'
     mainPage.closeSnackbar();
 
     // Open and verify certificate info
     clientInternalServers.openTLSCert();
-    browser.waitForElementVisible(certificatePopup);
+    browser.waitForElementVisible(certificateDetails);
 
     browser.assert.containsText(
-      certificatePopup,
+      certificateDetails,
       'CN=restuitest-ss1.i.x-road.rocks',
     );
-    browser.assert.containsText(certificatePopup, 'SHA256withRSA');
+    browser.assert.containsText(certificateDetails, 'SHA256withRSA');
     browser.assert.containsText(
-      certificatePopup,
+      certificateDetails,
       '29:F4:6E:58:F2:ED:A0:6A:AC:37:10:95:35:F8:7A:79:B6:C3:70:0E',
     );
 
     // Delete cert
-    certificatePopup.deleteCert();
-    browser.waitForElementVisible(certificatePopup);
+    certificateDetails.deleteCert();
+    browser.waitForElementVisible(certificateDetails);
     deletePopup.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Certificate deleted'
     mainPage.closeSnackbar();

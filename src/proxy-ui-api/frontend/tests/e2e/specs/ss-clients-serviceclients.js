@@ -77,7 +77,8 @@ module.exports = {
     );
 
     browser.assert.containsText(
-      '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap")]', 'TestCom',
+      '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap")]',
+      'TestCom',
     );
     browser.waitForElementVisible(
       '//table[@data-test="service-clients-table"]//td[contains(@class, "identifier-wrap") and contains(text(), "TestClient")]',
@@ -275,7 +276,7 @@ module.exports = {
     // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
     clientInfo.openServiceClientsTab();
@@ -319,7 +320,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
@@ -368,7 +369,7 @@ module.exports = {
     // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -381,6 +382,8 @@ module.exports = {
     clientServices.selectRESTPath();
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
+    mainPage.closeSnackbar();
 
     // Add service level access right for rest
     clientServices.expandServiceDetails();
@@ -400,7 +403,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
@@ -472,7 +475,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
@@ -514,7 +517,7 @@ module.exports = {
     // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -527,6 +530,8 @@ module.exports = {
     clientServices.selectRESTPath();
     clientServices.enterServiceCode('s1c1');
     clientServices.confirmAddDialog();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // Service added successfully
+    mainPage.closeSnackbar();
 
     // Add service level access right for rest
     clientServices.expandServiceDetails();
@@ -549,7 +554,7 @@ module.exports = {
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
