@@ -27,7 +27,10 @@ node {
 task npmInstallDeps(type: NpmTask) {
   inputs.files(configurations.npm)
   args = ['install', '--quiet'] + inputs.files.collect { it.toString() }
-  outputs.files("package.json", "package-lock.json")
+  outputs.files(fileTree("node_modules/@niis/shared-ui") {
+      // npmInstall will overwrite this with a different version (!?)
+      exclude("package.json")
+  })
 }
 
 npmInstall {

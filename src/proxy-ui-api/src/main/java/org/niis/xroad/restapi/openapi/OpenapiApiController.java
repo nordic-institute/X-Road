@@ -1,5 +1,6 @@
-/*
+/**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,53 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.niis.xroad.restapi.openapi;
 
-var loginCommands = {
-  clearUsername: function () {
-    this.clearValue2('@usernameInput');
-    return this;
-  },
-  clearPassword: function () {
-    this.clearValue2('@passwordInput');
-    return this;
-  },
-  enterUsername: function (username) {
-    this.setValue('@usernameInput', username);
-    return this;
-  },
-  enterPassword: function (password) {
-    this.setValue('@passwordInput', password);
-    return this;
-  },
-  signin: function () {
-    this.click('@loginButton');
-    return this;
-  },
-  signinDefaultUser: function () {
-    this.clearValue2('@usernameInput');
-    this.clearValue2('@passwordInput');
-    this.setValue('@usernameInput', this.api.globals.login_usr);
-    this.setValue('@passwordInput', this.api.globals.login_pwd);
-    this.click('@loginButton');
-    return this;
-  },
-};
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
-module.exports = {
-  url: process.env.VUE_DEV_SERVER_URL,
-  commands: [loginCommands],
-  elements: {
-    usernameInput: {
-      selector: '//input[@id="username"]',
-      locateStrategy: 'xpath',
-    },
-    passwordInput: {
-      selector: '//input[@id="password"]',
-      locateStrategy: 'xpath',
-    },
-    loginButton: {
-      selector: '//button[@id="submit-button"]',
-      locateStrategy: 'xpath',
-    },
-  },
-};
+import java.io.IOException;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_FILE_NOT_FOUND;
+
+/**
+ * OpenAPI controller
+ */
+@Controller
+@RequestMapping(ApiUtil.API_V1_PREFIX)
+@Slf4j
+@RequiredArgsConstructor
+public class OpenapiApiController implements OpenapiApi {
+
+    static final String OPENAPI_DEFINITION_FILENAME = "openapi-definition.yaml";
+
+    @Override
+    public ResponseEntity<Resource> downloadOpenApi() {
+        try {
+            byte[] bytes = IOUtils.toByteArray(new ClassPathResource(OPENAPI_DEFINITION_FILENAME).getInputStream());
+            return ApiUtil.createAttachmentResourceResponse(bytes, OPENAPI_DEFINITION_FILENAME);
+        } catch (IOException e) {
+            log.error("Error reading OpenAPI definition file", e);
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_OPENAPI_FILE_NOT_FOUND));
+        }
+    }
+}

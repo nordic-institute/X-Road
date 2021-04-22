@@ -45,6 +45,7 @@ const systemParametersCommands = {};
 
 const backupAndRestoreCommands = {
   enterFilterInput: function (input) {
+    this.click('@searchButton');
     this.clearValue2('@searchField');
     this.setValue('@searchField', input);
     return this;
@@ -64,7 +65,7 @@ const backupAndRestoreCommands = {
   clickDownloadForBackup: function (backupFilename) {
     this.click(
       'xpath',
-      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test, "backup-download"]`,
+      `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-download"]`,
     );
 
     return this;
@@ -105,12 +106,12 @@ const settingsTab = {
   elements: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "System Parameters")]',
       locateStrategy: 'xpath',
     },
     backupAndRestoreTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="backup"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Backup And Restore")]',
       locateStrategy: 'xpath',
     },
   },
@@ -123,7 +124,7 @@ const settingsTab = {
     },
     backupAndRestoreTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="backup"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Backup And Restore")]',
       locateStrategy: 'xpath',
       commands: backupAndRestoreCommands,
       elements: {
@@ -136,8 +137,12 @@ const settingsTab = {
           selector: '//*[@data-test="backup-create-configuration"]',
           locateStrategy: 'xpath',
         },
+        searchButton: {
+          selector: '//button[contains(@class, "mdi-magnify")]',
+          locateStrategy: 'xpath',
+        },
         searchField: {
-          selector: '//*[@data-test="backup-search"]',
+          selector: '//input[@data-test="search-input"]',
           locateStrategy: 'xpath',
         },
       },
@@ -183,13 +188,11 @@ const settingsTab = {
           commands: confirmationDialog,
           elements: {
             confirmation: {
-              selector:
-                '//button[@data-test, "dialog-save-button"]',
+              selector: '//button[@data-test, "dialog-save-button"]',
               locateStrategy: 'xpath',
             },
             cancel: {
-              selector:
-                '//button[@data-test="dialog-cancel-button"]',
+              selector: '//button[@data-test="dialog-cancel-button"]',
               locateStrategy: 'xpath',
             },
           },
