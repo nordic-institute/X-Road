@@ -29,9 +29,9 @@
     <td>{{ timestampingService.url }}</td>
     <td class="pr-4">
       <xrd-button
+        v-if="showDeleteTsp"
         data-test="system-parameters-timestamping-service-delete-button"
         @click="confirmDeleteDialog = true"
-        :requires-permission="permissions.DELETE_TSP"
         :outlined="false"
         text
       >
@@ -65,6 +65,11 @@ export default Vue.extend({
     timestampingService: {
       type: Object as Prop<TimestampingService>,
       required: true,
+    },
+  },
+  computed: {
+    showDeleteTsp(): boolean {
+      return this.$store.getters.hasPermission(Permissions.DELETE_TSP);
     },
   },
   data() {

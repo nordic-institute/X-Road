@@ -42,11 +42,11 @@
           <v-col class="text-right">
             <div class="anchor-buttons">
               <xrd-button
+                v-if="hasPermission(permissions.DOWNLOAD_ANCHOR)"
                 data-test="system-parameters-configuration-anchor-download-button"
                 @click="downloadAnchor"
                 :loading="downloadingAnchor"
                 outlined
-                :requires-permission="permissions.DOWNLOAD_ANCHOR"
               >
                 <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
                 {{ $t('systemParameters.configurationAnchor.action.download') }}
@@ -108,6 +108,7 @@
           >
           <v-col class="text-right">
             <add-timestamping-service-dialog
+              v-if="hasPermission(permissions.ADD_TSP)"
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
             />
