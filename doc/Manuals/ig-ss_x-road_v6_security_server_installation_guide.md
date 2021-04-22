@@ -301,7 +301,12 @@ postgres.connection.user = <database superuser name, postgres by default>
 ```
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
-For additional security, the super-user credential properties can be removed after the installation. However, do not simply delete /etc/xroad.properties file, it will be populated with migration database user credentials during install.
+Before continuing, test that the connection to the database works, e.g.
+```
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+```
+
+For additional security, the `postgresql.connection.*` properties can be removed from the `/etc/xroad.properties` file after installation (keep the other properties added by the installer).
 
 ### 2.7 Security Server Installation
 

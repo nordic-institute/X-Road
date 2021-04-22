@@ -234,7 +234,12 @@ postgres.connection.user = <database superuser name, postgres by default>
 
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
-For additional security, the super-user credential properties can be removed after the installation. However, do not simply delete /etc/xroad.properties file, it will be populated with migration database user credentials during install.
+For additional security, the `postgresql.connection.*` properties can be removed from the `/etc/xroad.properties` file after installation (keep the other properties added by the installer).
+
+Before continuing, test that the connection to the database works, e.g.
+```
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+```
 
 ### 2.7 Package Installation
 
@@ -562,7 +567,7 @@ sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
 ```
 
-Edit `/etc/xroad/db.properties` to match the values used. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
+Edit `/etc/xroad/db.properties` to match the values used when creating the database (the default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)).
 
 ```
 adapter=postgresql
