@@ -30,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.converter.TokenInitStatusMapping;
 import org.niis.xroad.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.restapi.openapi.model.InitializationStatus;
 import org.niis.xroad.restapi.openapi.validator.InitialServerConfValidator;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
 
 /**
  * Init (Security Server) controller
@@ -98,7 +100,10 @@ public class InitializationApiController implements InitializationApi {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GPG_KEY_GENERATION_INTERRUPTED));
         }
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }
