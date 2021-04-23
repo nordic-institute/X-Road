@@ -50,6 +50,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.junit.After;
@@ -61,6 +62,11 @@ import org.junit.rules.ExpectedException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
@@ -81,8 +87,12 @@ public class RestMetadataServiceHandlerTest {
 
 
     private static final String EXPECTED_XR_INSTANCE = "EE";
+    private static final String SUBSYSTEM_FOR_YAML_FILE = "YAMLSUBSYSTEM";
+    private static final String SUBSYSTEM_FOR_JSON_FILE = "JSONSUBSYSTEM";
     private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
-            "1234TEST_CLIENT", "SUBCODE5");
+            "1234TEST_CLIENT", SUBSYSTEM_FOR_YAML_FILE);
+    private static final ClientId SECONDARY_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+            "1234TEST_CLIENT", SUBSYSTEM_FOR_JSON_FILE);
     private static final byte[] REQUEST_HASH = "foobar1234".getBytes();
     private static final int MOCK_SERVER_PORT = 9858;
 
@@ -127,7 +137,11 @@ public class RestMetadataServiceHandlerTest {
             }
             @Override
             public String getServiceDescriptionURL(ServiceId service) {
-                return "http://localhost:9858/petstore.yaml";
+                if (SUBSYSTEM_FOR_JSON_FILE.equals(service.getSubsystemCode())) {
+                    return "http://localhost:9858/petstore.json";
+                } else {
+                    return "http://localhost:9858/petstore.yaml";
+                }
             }
         });
 
@@ -137,8 +151,13 @@ public class RestMetadataServiceHandlerTest {
         mockProxyMessage = mock(ProxyMessage.class);
 
         mockServer = new WireMockServer(options().port(MOCK_SERVER_PORT));
+
+        mockServer.stubFor(WireMock.any(urlPathEqualTo("/petstore.json"))
+                .willReturn(aResponse().withBodyFile("petstore.json")));
+
         mockServer.stubFor(WireMock.any(urlPathEqualTo("/petstore.yaml"))
                 .willReturn(aResponse().withBodyFile("petstore.yaml")));
+
         mockServer.start();
     }
 
@@ -249,4 +268,67 @@ public class RestMetadataServiceHandlerTest {
         CachingStream restResponseBody = handlerToTest.getRestResponseBody();
         assertTrue(restResponseBody.getCachedContents().size() > 0);
     }
+
+    @Test
+    public void shouldOverrideServerUrlsForYaml() throws Exception {
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
+        ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
+
+        // Test for petstore.yaml parsing
+        ServiceId serviceId = ServiceId.create(DEFAULT_CLIENT, GET_OPENAPI);
+
+        RestRequest mockRestRequest = mock(RestRequest.class);
+        when(mockRestRequest.getQuery()).thenReturn("serviceCode=yaml");
+        when(mockRestRequest.getServiceId()).thenReturn(serviceId);
+        when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
+        when(mockRestRequest.getClientId()).thenReturn(DEFAULT_CLIENT);
+        when(mockRestRequest.getHash()).thenReturn(REQUEST_HASH);
+        when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
+
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        CachingStream yamlFileResponseBody = handlerToTest.getRestResponseBody();
+        String yaml = new BufferedReader(
+                new InputStreamReader(yamlFileResponseBody.getCachedContents(), StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+
+        assertTrue(yaml.contains(Openapi3Anonymiser.PLACEHOLDER));
+        assertEquals(StringUtils.countMatches(yaml, Openapi3Anonymiser.PLACEHOLDER), 1);
+
+    }
+
+    @Test
+    public void shouldOverrideServerUrlsForJson() throws Exception {
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
+        ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
+
+        // Test petstore.json parsing
+        ServiceId serviceId = ServiceId.create(SECONDARY_CLIENT, GET_OPENAPI);
+
+        RestRequest secondaryMockRestRequest = mock(RestRequest.class);
+        when(secondaryMockRestRequest.getQuery()).thenReturn("serviceCode=json");
+        when(secondaryMockRestRequest.getServiceId()).thenReturn(serviceId);
+        when(secondaryMockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
+        when(secondaryMockRestRequest.getClientId()).thenReturn(SECONDARY_CLIENT);
+        when(secondaryMockRestRequest.getHash()).thenReturn(REQUEST_HASH);
+        when(mockProxyMessage.getRest()).thenReturn(secondaryMockRestRequest);
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
+                httpClientMock, mock(OpMonitoringData.class));
+
+        CachingStream jsonFileResponseBody = handlerToTest.getRestResponseBody();
+        String json = new BufferedReader(
+                new InputStreamReader(jsonFileResponseBody.getCachedContents(), StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+
+        assertTrue(json.contains(Openapi3Anonymiser.PLACEHOLDER));
+        assertEquals(2, StringUtils.countMatches(json, Openapi3Anonymiser.PLACEHOLDER));
+    }
+
 }
