@@ -1,13 +1,4 @@
 ---
-- name: install packages
-  apt:
-    name: "{{ items }}"
-    state: present
-  vars:
-    items:
-      - postgresql
-      - postgresql-contrib
-
 - name: debconf xroad-center
   debconf:
     name: xroad-center
@@ -27,6 +18,11 @@
     content: "postgres.connection.password = {{ database_admin_password }}"
     dest: /etc/xroad.properties
     mode: 0600
+  when: (database_admin_password is defined) and (database_admin_password != "")
+
+- name: use remote database
+  apt:
+    name: xroad-database-remote
   when: (database_admin_password is defined) and (database_admin_password != "")
 
 - name: install xroad central server

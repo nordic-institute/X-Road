@@ -22,16 +22,15 @@ Description: X-Road central server
 Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
-Depends: ${misc:Depends}, rsyslog, xroad-jetty9 (=${binary:Version}), curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
-Recommends: xroad-database-local (=${binary:Version})
-Pre-depends: xroad-database (=${binary:Version}), xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, rsyslog, xroad-jetty9 (=${binary:Version}), curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
+Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road central server
  X-Road central server programs and utilities
 
 Package: xroad-base
 Architecture: amd64
 Pre-depends: dpkg (>= 1.15.7.2)
-Depends: ${misc:Depends}, openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, rlwrap, ca-certificates-java, crudini, adduser, net-tools, iproute2, sudo, openssl
+Depends: ${misc:Depends}, rlwrap, crudini, adduser, net-tools, iproute2, sudo, openssl
 Replaces: xroad-proxy (<< 6.8.9), xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road base components
@@ -39,7 +38,7 @@ Description: X-Road base components
 
 Package: xroad-confclient
 Architecture: amd64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), openjdk-11-jre-headless | java8-runtime-headless | java8-runtime
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road configuration client components
@@ -56,7 +55,7 @@ Description: X-Road nginx component
 
 Package: xroad-signer
 Architecture: amd64
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), openjdk-11-jre-headless | java8-runtime-headless | java8-runtime
 Replaces: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Breaks: xroad-common (<= 6.17.0-0.20171018082348git2ecf68ed)
 Description: X-Road signer component
@@ -73,15 +72,14 @@ Package: xroad-proxy
 Conflicts: xroad-center, xroad-confproxy
 Architecture: all
 Depends: ${misc:Depends}, rsyslog, curl, systemd, xroad-confclient (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-11-jre-headless | java11-runtime-headless | java11-runtime
-Pre-depends: xroad-database (=${binary:Version}), xroad-base (=${binary:Version})
-Recommends: xroad-database-local (=${binary:Version})
+Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road security server
  X-Road security server programs and utilities
 
 Package: xroad-confproxy
 Conflicts: xroad-center, xroad-proxy
 Architecture: all
-Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version})
+Depends: ${misc:Depends}, xroad-confclient (=${binary:Version}), xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), openjdk-8-jre-headless | java8-runtime-headless | java8-runtime
 Pre-depends: xroad-base (=${binary:Version})
 Description: X-Road configuration proxy
  X-Road configuration proxy
@@ -113,7 +111,7 @@ Description: X-Road AddOn: proxy monitoring metaservice
 
 Package: xroad-monitor
 Architecture: all
-Depends: ${misc:Depends}, xroad-base (=${binary:Version})
+Depends: ${misc:Depends}, xroad-base (=${binary:Version}), openjdk-11-jre-headless | java8-runtime-headless | java8-runtime
 Description: X-Road monitoring service
  Monitoring service
 
@@ -128,12 +126,6 @@ Architecture: all
 Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${binary:Version})
 Description: X-Road AddOn: operations monitoring service
  AddOn for operations monitoring.
-
-Package: xroad-center-clusterhelper
-Architecture: all
-Depends: ${misc:Depends}, openssh-client, openssl, crudini, python3-requests
-Description: X-Road central cluster scripts
- Scripts for maintaining X-Road cluster
 
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
@@ -193,12 +185,10 @@ Package: xroad-database-local
 Architecture: all
 Conflicts: xroad-database-remote
 Depends: xroad-base (=${binary:Version}), postgresql | postgresql-9.4, postgresql-contrib | postgresql-contrib-9.4
-Provides: xroad-database (=${binary:Version})
 Description: Meta-package for X-Road local database dependencies
 
 Package: xroad-database-remote
 Architecture: all
 Conflicts: xroad-database-local
 Depends: xroad-base (=${binary:Version}), postgresql-client
-Provides: xroad-database (=${binary:Version})
 Description: Meta-package for X-Road remote database dependencies
