@@ -77,6 +77,14 @@ case "$1" in
 
   db_stop
 
+  # generate gpg keypair when needed - directory does not exist and server is initialised
+  if [ ! -d /etc/xroaqd/gpghome ] ; then
+    ID=$(source /usr/share/xroad/scripts/get_security_server_id.sh)
+    if [[ -n "${ID}" ]] ; then
+      /usr/share/xroad/scripts/generate_gpg_keypair.sh ${ID}
+    fi
+  fi
+
   invoke-rc.d --quiet rsyslog try-restart || true
   invoke-rc.d --quiet xroad-confclient try-restart || true
   invoke-rc.d --quiet xroad-signer try-restart || true

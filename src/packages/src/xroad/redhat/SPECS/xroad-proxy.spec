@@ -100,7 +100,6 @@ rm -rf %{buildroot}
 %attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,root) /usr/share/xroad/bin/xroad-add-admin-user.sh
 %attr(540,root,root) /usr/share/xroad/scripts/setup_serverconf_db.sh
-%attr(550,root,xroad) /usr/share/xroad/scripts/generate_gpg_keypair.sh
 
 /usr/bin/xroad-add-admin-user
 /usr/share/xroad/db/serverconf-changelog.xml
@@ -184,6 +183,16 @@ if [ $1 -gt 1 ]; then
         bash /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh >>/var/log/xroad/proxy-install.log
     fi
     rm -rf %{_localstatedir}/lib/rpm-state/%{name}
+fi
+
+if [ $1 -gt 1 ]; then
+  # upgrade, generate gpg keypair when needed
+  if [ ! -d /etc/xroaqd/gpghome ] ; then
+    ID=$(source /usr/share/xroad/scripts/get_security_server_id.sh)
+    if [[ -n "${ID}" ]] ; then
+      /usr/share/xroad/scripts/generate_gpg_keypair.sh ${ID}
+    fi
+  fi
 fi
 
 #parameters:
