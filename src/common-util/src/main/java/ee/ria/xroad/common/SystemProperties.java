@@ -1600,11 +1600,4 @@ public final class SystemProperties {
         return "true".equalsIgnoreCase(System.getProperty(ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK,
                 DEFAULT_ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK));
     }
-
-    /**
-     * @return Whether to encrypt or just sign proxy backups
-     */
-    public static boolean isProxyBackupEncrypted() {
-        return "true".equalsIgnoreCase(System.getProperty(SystemProperties.PROXY_BACKUP_ENCRYPTED, "false"));
-    }
 }

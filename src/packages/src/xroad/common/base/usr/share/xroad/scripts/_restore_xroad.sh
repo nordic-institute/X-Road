@@ -48,9 +48,13 @@ decrypt_tarball_if_encrypted () {
       mkdir -p ${TEMP_TAR_DIR}
       GPG_FILENAME=${BACKUP_FILENAME}
       BACKUP_FILENAME=${TEMP_TAR_FILE}
+      if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
+        SKIPARG="--skip-verify"
+      fi
+
       echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
-      # gpg --decrypt can handle files that are only signed!
-      gpg --homedir /etc/xroad/gpghome --decrypt --output ${BACKUP_FILENAME} ${GPG_FILENAME}
+      # gpg --decrypt can also handle files that are only signed!
+      gpg --homedir /etc/xroad/gpghome --decrypt --output ${BACKUP_FILENAME} ${SKIPARG} ${GPG_FILENAME}
       if [ $? != 0 ] ; then
         die "Decrypting backup archive failed"
       fi
@@ -240,7 +244,7 @@ restart_services () {
   done
 }
 
-while getopts ":RFSt:i:s:n:f:bE" opt ; do
+while getopts ":RFSt:i:s:n:f:bEN" opt ; do
   case ${opt} in
     R)
       SKIP_REMOVAL=true
@@ -271,6 +275,9 @@ while getopts ":RFSt:i:s:n:f:bE" opt ; do
       ;;
     E)
       ENCRYPTED_BACKUP=true
+      ;;
+    N)
+      SKIP_SIGNATURE_CHECK=true
       ;;
     \?)
       echo "Invalid option $OPTARG -- did you use the correct wrapper script?"

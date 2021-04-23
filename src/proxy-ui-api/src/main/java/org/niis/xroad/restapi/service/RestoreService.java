@@ -25,7 +25,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
@@ -119,10 +118,6 @@ public class RestoreService {
         String encodedBackupPath = FormatUtils.encodeStringToBase64(backupFilePath);
 
         String configurationRestoreScriptArgs = "-b -s %s -f %s";
-        if (SystemProperties.isProxyBackupEncrypted()) {
-            configurationRestoreScriptArgs += " -E";
-        }
-
         String argumentsString = String
                 .format(configurationRestoreScriptArgs, encodedOwner, encodedBackupPath)
                 .trim();

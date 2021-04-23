@@ -174,6 +174,10 @@ public class InitializationService {
         if (!ignoreWarnings) {
             checkForWarnings(ownerClientId, securityServerCode);
         }
+
+        // Both software token initialisation and GPG key generation are non transactional
+        // when second one fails server server moves to unusable state
+
         // --- Start the init ---
         ServerConfType serverConf = createInitialServerConf(ownerClientId, securityServerCode);
         if (!isSoftwareTokenInitialized) {

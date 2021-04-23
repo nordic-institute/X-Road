@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -s <security server ID> -f <path of tar archive> [-F] [-R]
+Usage: $0 -s <security server ID> -f <path of tar archive> [-F] [-P] [-N] [-R]
 
 Restore the configuration (files and database) of the X-Road security server
 from a tar archive.
@@ -21,7 +21,8 @@ OPTIONS:
     -s ID of the security server. Mandatory if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
-    -P Backup archive is in decrypted TAR format NOT in PGP format (not encrypted nor signed).
+    -P Backup archive is in unencrypted TAR format NOT in GPG format (not encrypted nor signed).
+    -N Skip GPG signature verification
     -R Skip removal of old files and just copy the backup on top of the existing configuration.
 EOF
 }
@@ -43,6 +44,9 @@ execute_restore () {
     if [[ $PLAIN_BACKUP != true ]] ; then
       args="${args} -E"
     fi
+    if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
+      args="${args} -N"
+    fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
     if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road security server"
@@ -54,7 +58,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":RFs:f:bhP" opt ; do
+while getopts ":RFs:f:bhPN" opt ; do
   case $opt in
     h)
       usage
@@ -77,6 +81,9 @@ while getopts ":RFs:f:bhP" opt ; do
       ;;
     P)
       PLAIN_BACKUP=true
+      ;;
+    N)
+      SKIP_SIGNATURE_CHECK=true
       ;;
     \?)
       echo "Invalid option $OPTARG"

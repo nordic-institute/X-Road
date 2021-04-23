@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GPGHOME="%1"
+GPGHOME="$1"
 if [ -d $GPGHOME ] ; then
   rm -rf $GPGHOME
 fi

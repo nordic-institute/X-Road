@@ -53,27 +53,25 @@ create_backup_tarball () {
       echo "CREATING ENCRYPTED AND SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
       local PUBCOUNT=0
       if [ -d ${PUBKEYS_FOLDER} ] ; then
-        local ENCRYPTION_ARGS
+        local ENCRYPTION_ARGS=""
 
         if [ -d $DIR ] ; then
           for keyfile in "$PUBKEYS_FOLDER"/* ; do
-            PUBCOUNT=$PUBCOUNT + 1
+            let PUBCOUNT+=1
             ENCRYPTION_ARGS="${ENCRYPTION_ARGS} -f ${keyfile}"
           done
         fi
-        if [ -n "$ENCRYPTION_ARGS" ] ; then
-          ENCRYPTION_ARGS="--encrypt ${ENCRYPTION_ARGS}"
-        fi
-        echo "Encrypting archive with $PUBCOUNT extra public keys"
-      else
-        echo "CREATING SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
+        echo "Encrypting archive with servers public key and $PUBCOUNT extra public keys"
+        local SELF_ARGS=(--encrypt -r "${SECURITY_SERVER_ID}")
       fi
+    else
+      echo "CREATING SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
     fi
 
     tar --create -v --label "${TARBALL_LABEL}" \
         --exclude="tmp*.tmp" --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" \
         --exclude="/etc/xroad/gpghome/*"  ${BACKED_UP_PATHS} \
-    | gpg --homedir /etc/xroad/backupkeys/gpghome --sign ${ENCRYPTION_ARGS} --output ${BACKUP_FILENAME}
+    | gpg --homedir /etc/xroad/gpghome --sign "${SELF_ARGS[@]}" ${ENCRYPTION_ARGS} --output ${BACKUP_FILENAME}
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"

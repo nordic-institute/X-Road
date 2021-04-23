@@ -26,10 +26,10 @@ EOF
 
 get_proxy_prop() {
   # local.ini overrides keys
-  local value=$(crudini --get ~/etc/conf.d/local.ini proxy "$1" 2>/dev/null || echo EMPTYKEY)
+  local value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null || echo EMPTYKEY)
   if [ -n "$value" ]; then
     if [ $value = EMPTYKEY ]; then
-      local value=$(crudini --get ~/etc/conf.d/proxy.ini proxy "$1" 2>/dev/null || echo -n "$2")
+      local value=$(crudini --get /etc/xroad/conf.d/"$1" "$2" "$3" 2>/dev/null || echo -n "$4")
     fi
   fi
   echo $value
@@ -95,7 +95,9 @@ while getopts ":s:f:Sbh" opt ; do
 done
 
 ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encrypted" false)
+echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
 PUBKEYS_FOLDER=$(get_proxy_prop proxy.ini proxy "backup-public-key-path")
+echo "PUBKEYS_FOLDER=$PUBKEYS_FOLDER"
 
 check_user
 check_security_server_id
