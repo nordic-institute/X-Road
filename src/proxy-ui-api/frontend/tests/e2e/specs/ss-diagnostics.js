@@ -24,22 +24,24 @@
  * THE SOFTWARE.
  */
 
-const diagnosticsTab = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/diagnostics`,
-  selector:
-    '//div[.//a[contains(@class, "v-tab--active") and //span[@data-test="diagnostics-global-configuration"]]]//div[contains(@class, "base-full-width")]',
-  locateStrategy: 'xpath',
-  commands: [],
-  elements: {
-    globalConfiguration: {
-      selector: '//span[@data-test="diagnostics-global-configuration"]',
-      locateStrategy: 'xpath',
-    },
-    javaVersion: {
-      selector: '//*[@data-test="java-version"]',
-      locateStrategy: 'xpath',
-    },
+module.exports = {
+  tags: ['ss', 'diagnostics'],
+  'Dagnostics java version': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const diagnosticsTab = browser.page.tabs.diagnosticsTab();
+
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+    // Navigate to target page
+    mainPage.openDiagnosticsTab();
+    browser.waitForElementVisible(diagnosticsTab.elements.javaVersion);
+
+    browser.end();
   },
 };
-
-module.exports = diagnosticsTab;
