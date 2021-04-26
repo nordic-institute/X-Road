@@ -73,7 +73,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
 import org.niis.xroad.restapi.openapi.validator.ClientAddValidator;
-import org.niis.xroad.restapi.openapi.validator.LocalGroupAddValidator;
 import org.niis.xroad.restapi.openapi.validator.ServiceDescriptionAddValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
@@ -314,12 +313,6 @@ public class ClientsApiController implements ClientsApi {
                 .map(certificateDetailsConverter::convert)
                 .collect(toList());
         return new ResponseEntity<>(certificates, HttpStatus.OK);
-    }
-
-    @InitBinder("localGroupAdd")
-    @PreAuthorize("permitAll()")
-    protected void initLocalGroupAddBinder(WebDataBinder binder) {
-        binder.addValidators(new LocalGroupAddValidator());
     }
 
     @Override

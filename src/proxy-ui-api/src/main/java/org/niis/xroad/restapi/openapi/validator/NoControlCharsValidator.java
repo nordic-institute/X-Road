@@ -28,30 +28,12 @@ package org.niis.xroad.restapi.openapi.validator;
 
 import ee.ria.xroad.common.validation.StringValidationUtils;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-/**
- * Validator to check {@link EndpointUpdate} for control characters such as zero-width-space
- */
-@Slf4j
-public class EndpointUpdateValidator implements Validator {
-
-    private static final String PATH_FIELD_NAME = "path";
-
+public class NoControlCharsValidator implements ConstraintValidator<NoControlChars, String> {
     @Override
-    public boolean supports(Class<?> clazz) {
-        return EndpointUpdate.class.equals(clazz);
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        EndpointUpdate update = (EndpointUpdate) target;
-        if (StringValidationUtils.containsControlChars(update.getPath())) {
-            errors.rejectValue(PATH_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return value == null || !StringValidationUtils.containsControlChars(value);
     }
 }

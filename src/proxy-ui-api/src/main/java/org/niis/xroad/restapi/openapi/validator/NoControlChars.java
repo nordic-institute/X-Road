@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,33 +26,24 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.StringValidationUtils;
+import javax.validation.Constraint;
+import javax.validation.Payload;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-/**
- * Validator to check localgroup description (when editing a localgroup) for control characters
- * such as zero-width-space
- */
-@Slf4j
-public class LocalGroupDescriptionValidator implements Validator {
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    private static final String DESCRIPTION_FIELD_NAME = "description";
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return LocalGroupDescription.class.equals(clazz);
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        LocalGroupDescription localGroupDescription = (LocalGroupDescription) target;
-        if (StringValidationUtils.containsControlChars(localGroupDescription.getDescription())) {
-            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
-    }
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = NoControlCharsValidator.class)
+public @interface NoControlChars {
+    String message() default "must not contain control characters";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }
