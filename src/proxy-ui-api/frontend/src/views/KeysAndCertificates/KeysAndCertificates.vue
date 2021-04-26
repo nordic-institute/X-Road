@@ -24,10 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common xrd-sub-view-wrapper">
-    <div class="content">
+  <div class="xrd-sub-view-wrapper">
+    <v-container class="xrd-view-common mt-7">
       <router-view />
-    </div>
+    </v-container>
   </div>
 </template>
 
@@ -35,12 +35,3 @@
 import Vue from 'vue';
 export default Vue.extend({});
 </script>
-
-<style lang="scss" scoped>
-.content {
-  padding-left: 10px;
-  padding-right: 10px;
-  width: 100%;
-  max-width: 1620px;
-}
-</style>

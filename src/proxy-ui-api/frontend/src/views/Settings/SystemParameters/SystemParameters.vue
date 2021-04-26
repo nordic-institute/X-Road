@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="pt-6">
+  <div class="mt-3">
     <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
 
     <v-card flat class="xrd-card">
