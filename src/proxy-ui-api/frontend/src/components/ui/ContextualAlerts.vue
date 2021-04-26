@@ -67,8 +67,28 @@
                 {{ notification.errorObject }}
               </div>
 
+              <!-- Special case for pin code validation -->
+              <template v-if="errorCode(notification) === 'weak_pin'">
+                <div>
+                  {{
+                    $t(`error_code.${errorMetadata(notification)[0]}`) +
+                    `: ${errorMetadata(notification)[1]}`
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t(`error_code.${errorMetadata(notification)[2]}`) +
+                    `: ${errorMetadata(notification)[3]}`
+                  }}
+                </div>
+              </template>
+
               <!-- Show the error metadata if it exists -->
-              <div v-for="meta in errorMetadata(notification)" :key="meta">
+              <div
+                v-else
+                v-for="meta in errorMetadata(notification)"
+                :key="meta"
+              >
                 {{ meta }}
               </div>
 

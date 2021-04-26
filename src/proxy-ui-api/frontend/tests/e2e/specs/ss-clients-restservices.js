@@ -43,7 +43,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -144,7 +144,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -153,6 +153,7 @@ module.exports = {
     clientServices.openOperation('s1c1');
 
     // Verify tooltips
+    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
     browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
     browser.waitForElementVisible(operationDetails.elements.activeTooltip);
     browser.expect
@@ -170,6 +171,7 @@ module.exports = {
     browser.expect
       .element(operationDetails.elements.activeTooltip)
       .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
+    */
 
     // Verify cancel
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
@@ -222,7 +224,7 @@ module.exports = {
     browser.waitForElementVisible(sslCheckFail);
     browser.expect
       .element(sslCheckFail.elements.continueButton)
-      .to.be.visible.and.text.to.equal('CONTINUE');
+      .to.be.visible.and.text.to.equal('Continue');
     sslCheckFail.continue();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
@@ -296,7 +298,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -380,7 +382,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -461,7 +463,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -482,7 +484,6 @@ module.exports = {
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-
 
     // test cancel
     addEndpointPopup.enterPath('/noreq1');
@@ -527,8 +528,8 @@ module.exports = {
     addEndpointPopup.enterPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // verify sorting of added
     restEndpoints.openAddDialog();
@@ -589,7 +590,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -608,9 +609,7 @@ module.exports = {
     // Verify validation rules
     endpointPopup.enterPath('');
     // Verify there's an error message, something like 'The path field is required'
-    browser.waitForElementVisible(
-      endpointPopup.elements.requestPathMessage,
-    );
+    browser.waitForElementVisible(endpointPopup.elements.requestPathMessage);
 
     // test cancel
     endpointPopup.enterPath('/newreq1');
@@ -626,8 +625,8 @@ module.exports = {
     restEndpoints.openEndpoint('POST', '/testreq2');
     endpointPopup.enterPath('/testreq3');
     endpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint already exists'
-    mainPage.closeSnackbar();
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
+    mainPage.closeAlertMessage();
 
     // Verify edit
     endpointPopup.enterPath('/newreq1');
@@ -641,9 +640,7 @@ module.exports = {
     // Verify cancel delete
     restEndpoints.openEndpoint('POST', '/testreq3');
     endpointPopup.deleteEndpoint();
-    browser.waitForElementVisible(
-      '//div[@data-test="dialog-simple"]',
-    );
+    browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.cancelDelete();
     endpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
@@ -683,7 +680,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
@@ -730,9 +727,7 @@ module.exports = {
     browser.expect.element(restServiceDetails.elements.confirmDialogButton).to
       .not.be.enabled;
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
@@ -747,19 +742,13 @@ module.exports = {
 
     restServiceDetails.enterServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.codeMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
     restServiceDetails.enterServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
     restServiceDetails.enterServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
-    browser.waitForElementVisible(
-      restServiceDetails.elements.URLMessage,
-    );
+    browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
 
     // Verify cancel
     restServiceDetails.enterServiceUrl(
@@ -842,7 +831,7 @@ module.exports = {
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
-    clientsTab.openTestService();
+    clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);

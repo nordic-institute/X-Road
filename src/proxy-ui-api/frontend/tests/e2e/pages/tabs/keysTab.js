@@ -201,6 +201,7 @@ var addKeywizardCSRCommands = {
     return this;
   },
   selectUsageMethod: function (method) {
+    this.waitForElementVisible('@csrUsage');
     this.click('@csrUsage');
 
     this.api.pause(1000);
@@ -288,17 +289,17 @@ const keysTab = {
   elements: {
     signAndAuthKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="signAndAuthKeys"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "SIGN and AUTH Keys")]',
       locateStrategy: 'xpath',
     },
     APIKeysTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="apiKey"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "API Keys")]',
       locateStrategy: 'xpath',
     },
     securityServerTLSKeyTab: {
       selector:
-        '//a[@data-test="ssTlsCertificate"]',
+        '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "Security Server TLS Key")]',
       locateStrategy: 'xpath',
     },
     tokenName: {
@@ -562,7 +563,7 @@ const keysTab = {
         },
         csrUsage: {
           selector:
-            '//div[@role="button" and .//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]]',
+            '//div[contains(@class, "v-select__selections") and ./input[@data-test="csr-usage-select"]]',
           locateStrategy: 'xpath',
         },
         csrService: {
@@ -614,8 +615,10 @@ const keysTab = {
         },
       },
     },
-    generateKeyCsrWizardCsr: { // Generate csr for existing sign key. Page 1, CSR details
-      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
+    generateKeyCsrWizardCsr: {
+      // Generate csr for existing sign key. Page 1, CSR details
+      selector:
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardCSRCommands],
       elements: {
@@ -653,8 +656,10 @@ const keysTab = {
         },
       },
     },
-    generateKeyCsrWizardGenerate: { // Generate csr for existing sign key. Page 2, generate
-      selector: '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
+    generateKeyCsrWizardGenerate: {
+      // Generate csr for existing sign key. Page 2, generate
+      selector:
+        '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
       locateStrategy: 'xpath',
       commands: [addKeywizardGenerateCommands],
       elements: {
