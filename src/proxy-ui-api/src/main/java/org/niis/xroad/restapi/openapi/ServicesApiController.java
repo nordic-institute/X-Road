@@ -44,8 +44,6 @@ import org.niis.xroad.restapi.openapi.model.Service;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.restapi.openapi.model.ServiceUpdate;
-import org.niis.xroad.restapi.openapi.validator.EndpointValidator;
-import org.niis.xroad.restapi.openapi.validator.ServiceUpdateValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
@@ -62,8 +60,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collections;
@@ -94,18 +90,6 @@ public class ServicesApiController implements ServicesApi {
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
     private final ServiceClientSortingComparator serviceClientSortingComparator;
-
-    @InitBinder("serviceUpdate")
-    @PreAuthorize("permitAll()")
-    protected void initServiceDescriptionUpdateBinder(WebDataBinder binder) {
-        binder.addValidators(new ServiceUpdateValidator());
-    }
-
-    @InitBinder("endpoint")
-    @PreAuthorize("permitAll()")
-    protected void initEndpointUpdateBinder(WebDataBinder binder) {
-        binder.addValidators(new EndpointValidator());
-    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")

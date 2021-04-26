@@ -40,7 +40,6 @@ import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
-import org.niis.xroad.restapi.openapi.validator.EndpointUpdateValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
 import org.niis.xroad.restapi.service.EndpointAlreadyExistsException;
@@ -52,8 +51,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collections;
@@ -84,12 +81,6 @@ public class EndpointsApiController implements EndpointsApi {
     private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
-
-    @InitBinder("endpointUpdate")
-    @PreAuthorize("permitAll()")
-    protected void initEndpointUpdateBinder(WebDataBinder binder) {
-        binder.addValidators(new EndpointUpdateValidator());
-    }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT')")

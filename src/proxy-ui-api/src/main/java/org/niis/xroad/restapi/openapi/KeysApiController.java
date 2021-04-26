@@ -44,7 +44,6 @@ import org.niis.xroad.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.restapi.openapi.model.Key;
 import org.niis.xroad.restapi.openapi.model.KeyName;
 import org.niis.xroad.restapi.openapi.model.PossibleAction;
-import org.niis.xroad.restapi.openapi.validator.KeyNameValidator;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAuthorityNotFoundException;
 import org.niis.xroad.restapi.service.ClientNotFoundException;
@@ -63,8 +62,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.EnumSet;
@@ -246,9 +243,4 @@ public class KeysApiController implements KeysApi {
         return ApiUtil.createAttachmentResourceResponse(csrInfo.getCertRequest(), filename);
     }
 
-    @InitBinder("keyName")
-    @PreAuthorize("permitAll()")
-    protected void initKeyNameBinder(WebDataBinder binder) {
-        binder.addValidators(new KeyNameValidator());
-    }
 }
