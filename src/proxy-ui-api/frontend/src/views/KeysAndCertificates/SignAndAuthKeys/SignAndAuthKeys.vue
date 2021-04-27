@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper">
+  <div>
     <div class="title-and-search">
       <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
       <div>
@@ -210,11 +210,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-.wrapper {
-  margin-top: 20px;
-  width: 100%;
-}
-
 .title-and-search {
   display: flex;
   flex-direction: row;

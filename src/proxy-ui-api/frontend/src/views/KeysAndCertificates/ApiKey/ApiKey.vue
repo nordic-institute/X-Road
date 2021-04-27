@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper">
+  <div class="mt-3">
     <div class="title-row">
       <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
       <div>
@@ -118,11 +118,6 @@ export default Vue.extend({
 @import '../../../assets/detail-views';
 @import '../../../assets/tables';
 @import '../../../assets/colors';
-
-.wrapper {
-  margin-top: 20px;
-  width: 100%;
-}
 
 .keytable-header {
   font-weight: 500;

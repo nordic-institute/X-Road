@@ -380,7 +380,8 @@ module.exports = {
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
     const generateKeyCsrWizardCsr = keysTab.section.generateKeyCsrWizardCsr;
-    const generateKeysCsrWizardGenerate = keysTab.section.generateKeyCsrWizardGenerate;
+    const generateKeysCsrWizardGenerate =
+      keysTab.section.generateKeyCsrWizardGenerate;
     // Delete any csr files from test dir
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^sign_csr_/;
@@ -418,7 +419,10 @@ module.exports = {
     signAuthTab.generateSignCSRForKey('sign');
 
     browser.waitForElementVisible(generateKeyCsrWizardCsr);
-    browser.assert.containsText(generateKeyCsrWizardCsr.elements.csrUsage, 'SIGNING');
+    browser.assert.containsText(
+      generateKeyCsrWizardCsr.elements.csrUsage,
+      'SIGNING',
+    );
     browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
     generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('PEM');
@@ -443,7 +447,10 @@ module.exports = {
     signAuthTab.generateSignCSRForKey('sign');
 
     browser.waitForElementVisible(generateKeyCsrWizardCsr);
-    browser.assert.containsText(generateKeyCsrWizardCsr.elements.csrUsage, 'SIGNING');
+    browser.assert.containsText(
+      generateKeyCsrWizardCsr.elements.csrUsage,
+      'SIGNING',
+    );
     browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
     generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('PEM');
@@ -453,10 +460,11 @@ module.exports = {
     browser.waitForElementVisible(generateKeysCsrWizardGenerate);
     generateKeysCsrWizardGenerate.enterOrganization('TestOrg2');
 
-    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to.not.be
-      .enabled;
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to
+      .not.be.enabled;
     generateKeysCsrWizardGenerate.generateCSR();
-    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).enabled;
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton)
+      .enabled;
     generateKeysCsrWizardGenerate.close();
 
     // Verify that a request has been added
@@ -549,9 +557,9 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
-    const addKeyWizardGenerate = keysTab.section.addKeyWizardGenerate;
     const generateKeyCsrWizardCsr = keysTab.section.generateKeyCsrWizardCsr;
-    const generateKeysCsrWizardGenerate = keysTab.section.generateKeyCsrWizardGenerate;
+    const generateKeysCsrWizardGenerate =
+      keysTab.section.generateKeyCsrWizardGenerate;
 
     // Delete any csr files from test dir
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
@@ -626,7 +634,9 @@ module.exports = {
       generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
-    browser.waitForElementNotPresent(generateKeyCsrWizardCsr.elements.csrClient);
+    browser.waitForElementNotPresent(
+      generateKeyCsrWizardCsr.elements.csrClient,
+    );
     generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('DER');
 
@@ -636,10 +646,11 @@ module.exports = {
     generateKeysCsrWizardGenerate.enterOrganization('TestOrg3');
     generateKeysCsrWizardGenerate.enterServerDNS('foodns');
 
-    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to.not.be
-      .enabled;
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to
+      .not.be.enabled;
     generateKeysCsrWizardGenerate.generateCSR();
-    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).enabled;
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton)
+      .enabled;
     generateKeysCsrWizardGenerate.close();
 
     // Verify that a request has been added
