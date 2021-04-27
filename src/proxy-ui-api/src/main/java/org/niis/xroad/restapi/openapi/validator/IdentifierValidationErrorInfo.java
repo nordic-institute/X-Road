@@ -38,8 +38,14 @@ import java.util.stream.Collectors;
  * (error code, error message)
  */
 public enum IdentifierValidationErrorInfo {
-    IDENTIFIER("IdentifierChars", "must contain only identifier characters"),
-    CONTROL_CHAR("NoControlChars", "must not contain control characters");
+    COLON("NoColons", "must not contain colons"),
+    SEMICOLON("NoSemicolons", "must not contain semicolons"),
+    FORWARDSLASH("NoForwardslashes", "must not contain slashes"),
+    BACKSLASH("NoBackslashes", "must not contain backslashes"),
+    PERCENT("NoPercents", "must not contain percents"),
+    CONTROL_CHAR("NoControlChars", "must not contain control characters"),
+    IDENTIFIERS_CHAR("IdentifierChars", "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
+            + " control characters");
 
     @Getter
     private String errorCode;
