@@ -159,8 +159,7 @@ Package: xroad-opmonitor
 Conflicts: xroad-center
 Architecture: all
 Depends: ${misc:Depends}, xroad-base (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: xroad-database (=${binary:Version})
-Recommends: xroad-database-local (=${binary:Version})
+Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road operations monitoring daemon
  X-Road operations monitoring daemon
 
