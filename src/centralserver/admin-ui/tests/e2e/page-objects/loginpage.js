@@ -23,39 +23,53 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-////////////////////////////////////////////////////////////////
-// For authoring Nightwatch tests, see
-// https://nightwatchjs.org/guide
-//
-// For more information on working with page objects see:
-//   https://nightwatchjs.org/guide/working-with-page-objects/
-////////////////////////////////////////////////////////////////
+
+var loginCommands = {
+  clearUsername: function () {
+    this.clearValue('@usernameInput');
+    return this;
+  },
+  clearPassword: function () {
+    this.clearValue('@passwordInput');
+    return this;
+  },
+  enterUsername: function (username) {
+    this.setValue('@usernameInput', username);
+    return this;
+  },
+  enterPassword: function (password) {
+    this.setValue('@passwordInput', password);
+    return this;
+  },
+  signin: function () {
+    this.click('@loginButton');
+    return this;
+  },
+  signinDefaultUser: function () {
+    this.clearValue('@usernameInput');
+    this.clearValue('@passwordInput');
+    this.setValue('@usernameInput', this.api.globals.login_usr);
+    this.setValue('@passwordInput', this.api.globals.login_pwd);
+    this.click('@loginButton');
+    return this;
+  },
+};
 
 module.exports = {
-  beforeEach: (browser) => browser.init(),
-
-  'e2e tests using page objects': (browser) => {
-    const homepage = browser.page.homepage();
-    homepage.waitForElementVisible('@appContainer');
-
-    const app = homepage.section.app;
-    app.assert.elementCount('@logo', 1);
-    app.expect.section('@welcome').to.be.visible;
-    app.expect
-      .section('@headline')
-      .text.to.match(/^Welcome to Your Vue\.js (.*)App$/);
-
-    browser.end();
-  },
-
-  'verify if string "e2e-nightwatch" is within the cli plugin links': (
-    browser,
-  ) => {
-    const homepage = browser.page.homepage();
-    const welcomeSection = homepage.section.app.section.welcome;
-
-    welcomeSection.expect
-      .element('@cliPluginLinks')
-      .text.to.contain('e2e-nightwatch');
+  url: 'https://localhost:8080/#/login',
+  commands: [loginCommands],
+  elements: {
+    usernameInput: {
+      selector: '//input[@data-test="login-username-input"]',
+      locateStrategy: 'xpath',
+    },
+    passwordInput: {
+      selector: '//input[@data-test="login-password-input"]',
+      locateStrategy: 'xpath',
+    },
+    loginButton: {
+      selector: '//button[@data-test="login-button"]',
+      locateStrategy: 'xpath',
+    },
   },
 };

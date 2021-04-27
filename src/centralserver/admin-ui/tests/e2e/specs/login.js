@@ -23,21 +23,57 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-// For authoring Nightwatch tests, see
-// https://nightwatchjs.org/guide
+const login = (browser) => {
+  const frontPage = browser.page.loginpage();
+
+  frontPage
+    .clearUsername()
+    .clearPassword()
+    .enterUsername(browser.globals.login_usr)
+    .enterPassword(browser.globals.login_pwd)
+    .signin();
+}
 
 module.exports = {
-  'default e2e tests': (browser) => {
-    browser
-      .init()
-      .waitForElementVisible('#app')
-      .assert.elementPresent('.hello')
-      .assert.containsText('h1', 'Welcome to Your Vue.js + TypeScript App')
-      .assert.elementCount('img', 1)
-      .end();
-  },
+  tags: ['cs', 'login'],
+  'Security server failed login': (browser) => {
+    const frontPage = browser.page.loginpage();
 
-  'example e2e test using a custom command': (browser) => {
-    browser.openHomepage().assert.elementPresent('.hello').end();
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter invalid credentials
+    frontPage
+      .enterUsername(browser.globals.login_wrong_usr)
+      .enterPassword(browser.globals.login_wrong_pwd)
+      .signin();
+
+    // Verify there's an error message
+    browser.waitForElementVisible(
+      '//div[contains(@class, "v-messages__message")]',
+    );
+
+    browser.end();
+  },
+  'Security server passed login': (browser) => {
+    const frontPage = browser.page.loginpage();
+
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    login(browser);
+
+    // Verify successful login
+    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
+
+    // Test refresh
+    browser
+      .refresh()
+      .waitForElementVisible('//div[contains(@class, "server-name")]');
+
+    browser.end();
   },
 };
