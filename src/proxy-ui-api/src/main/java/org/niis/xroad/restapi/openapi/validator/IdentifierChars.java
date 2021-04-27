@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,41 +26,24 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.StringValidationUtils;
+import javax.validation.Constraint;
+import javax.validation.Payload;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
-import org.springframework.validation.Errors;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import java.util.Arrays;
-import java.util.Collection;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-@Slf4j
-public class ServiceDescriptionAddValidator extends AbstractIdentifierValidator {
-
-    private static final String URL_FIELD_NAME = "url";
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return ServiceDescriptionAdd.class.equals(clazz);
-    }
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        ServiceDescriptionAdd serviceDescriptionAdd = (ServiceDescriptionAdd) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("restServiceCode")
-                        .value(serviceDescriptionAdd.getRestServiceCode()).build());
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        super.validate(target, errors);
-        ServiceDescriptionAdd add = (ServiceDescriptionAdd) target;
-        if (StringValidationUtils.containsControlChars(add.getUrl())) {
-            errors.rejectValue(URL_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
-    }
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = IdentifierCharsValidator.class)
+public @interface IdentifierChars {
+    String message() default "should contain only identifier characters";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }

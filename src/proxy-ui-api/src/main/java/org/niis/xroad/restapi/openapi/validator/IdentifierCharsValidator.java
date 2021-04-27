@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,41 +26,19 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.StringValidationUtils;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
-import org.springframework.validation.Errors;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.util.EnumSet;
 
-@Slf4j
-public class ServiceDescriptionUpdateValidator extends AbstractIdentifierValidator {
-
-    private static final String URL_FIELD_NAME = "url";
-
+public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
     @Override
-    public boolean supports(Class<?> clazz) {
-        return ServiceDescriptionUpdate.class.equals(clazz);
-    }
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        ServiceDescriptionUpdate serviceDescriptionUpdate = (ServiceDescriptionUpdate) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("newRestServiceCode")
-                        .value(serviceDescriptionUpdate.getNewRestServiceCode()).build());
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        super.validate(target, errors);
-        ServiceDescriptionUpdate update = (ServiceDescriptionUpdate) target;
-        if (StringValidationUtils.containsControlChars(update.getUrl())) {
-            errors.rejectValue(URL_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
+        EnumSet<IdentifierValidationErrorInfo> validationErrors = IdentifierValidationErrorInfo.of(
+                validator.getValidationErrors(value));
+        return validationErrors.isEmpty();
     }
 }
