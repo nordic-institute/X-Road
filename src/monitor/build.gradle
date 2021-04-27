@@ -29,7 +29,7 @@ dependencies {
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 
     testImplementation project(':common-test')
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation "junit:junit:$junitVersion"
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'com.github.stefanbirkner:system-rules:1.19.0'
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
