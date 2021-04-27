@@ -46,7 +46,7 @@ public class Openapi3Anonymiser {
 
     public static final String SERVERS = "servers";
     public static final String URL = "url";
-    public static final String PLACEHOLDER = "\"http://example.org/xroad-example\"";
+    public static final String PLACEHOLDER = "http://example.org/xroad-example";
     private ObjectMapper objectMapper;
 
     public Openapi3Anonymiser(OpenapiDescriptionFiletype fileType) {
@@ -60,8 +60,16 @@ public class Openapi3Anonymiser {
 
     public void anonymise(InputStream input, CachingStream output) throws IOException {
         ObjectNode tree = (ObjectNode) objectMapper.readTree(input);
-        JsonNode data = parseObject(tree, false);
-        objectMapper.writeValue(output, data);
+        final JsonNode servers = tree.get(SERVERS);
+        if (servers != null && servers.isArray()) {
+            servers.forEach(server -> {
+                if (server.has(URL)) {
+                    ((ObjectNode) server).put(URL, PLACEHOLDER);
+                }
+            });
+        }
+        tree.set(SERVERS, servers);
+        objectMapper.writeValue(output, tree);
     }
 
     /*

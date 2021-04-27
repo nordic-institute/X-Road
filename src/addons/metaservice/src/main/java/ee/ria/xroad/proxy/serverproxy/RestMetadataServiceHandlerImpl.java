@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -60,8 +61,10 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -231,10 +234,15 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         }
 
         InputStream responseContent = response.getEntity().getContent();
-        OpenapiDescriptionFiletype filetype = getFileType(serviceDescriptionURL);
-        Openapi3Anonymiser anonymiser = new Openapi3Anonymiser(filetype);
+
         try {
+            OpenapiDescriptionFiletype filetype = getFileType(restResponse, serviceDescriptionURL);
+            Openapi3Anonymiser anonymiser = new Openapi3Anonymiser(filetype);
             anonymiser.anonymise(responseContent, restResponseBody);
+        } catch (MalformedURLException e) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    String.format("Failed determining file type from the service URL %s",
+                            serviceDescriptionURL));
         } catch (IOException e) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Failed overwriting origin URL for the openapi servers for %s",
@@ -251,8 +259,30 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     }
 
-    private OpenapiDescriptionFiletype getFileType(String serviceDescriptionURL) {
-        return serviceDescriptionURL.endsWith(".json")
+    private OpenapiDescriptionFiletype getFileType(RestResponse response, String serviceDescriptionURL)
+        throws MalformedURLException {
+        boolean isJson = false;
+        boolean isYaml = false;
+        List<Header> headers = response.getHeaders();
+        for (Header header : headers) {
+            if ("content-type".equalsIgnoreCase(header.getName())) {
+                String contentType = header.getValue();
+                if ("application/json".equals(contentType)) {
+                    isJson = true;
+                } else if ("application/x-yaml".equals(contentType)) {
+                    isYaml = true;
+                }
+            }
+        }
+
+        if (isJson) {
+            return OpenapiDescriptionFiletype.JSON;
+        } else if (isYaml) {
+            return OpenapiDescriptionFiletype.YAML;
+        }
+
+        URL url = new URL(serviceDescriptionURL);
+        return url.getPath().endsWith(".json")
                 ? OpenapiDescriptionFiletype.JSON : OpenapiDescriptionFiletype.YAML;
     }
 
