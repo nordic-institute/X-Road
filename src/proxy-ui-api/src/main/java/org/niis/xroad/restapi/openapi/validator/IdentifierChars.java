@@ -43,7 +43,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 @Retention(RUNTIME)
 @Constraint(validatedBy = IdentifierCharsValidator.class)
 public @interface IdentifierChars {
-    String message() default "should contain only identifier characters";
+    String message() default "must contain only identifier characters";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

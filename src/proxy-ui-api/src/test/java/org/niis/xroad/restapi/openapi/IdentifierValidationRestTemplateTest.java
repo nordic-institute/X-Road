@@ -306,23 +306,22 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         // member code with control char
         expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
-                Collections.singletonList(IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode()));
+                Collections.singletonList(IdentifierValidationErrorInfo.IDENTIFIER.getErrorCode()));
         assertAddClientFieldValidationErrorMessages(HAS_CONTROL_CHAR, "aa", expectedFieldValidationErrors);
 
         // member code with colon
         expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
-                Collections.singletonList(IdentifierValidationErrorInfo.COLON.getErrorCode()));
+                Collections.singletonList(IdentifierValidationErrorInfo.IDENTIFIER.getErrorCode()));
         assertAddClientFieldValidationErrorMessages(HAS_COLON, "aa", expectedFieldValidationErrors);
 
         // member code with colon and a backslash
         expectedFieldValidationErrors.put(FIELD_CLIENTADD_MEMBER_CODE,
-                Arrays.asList(IdentifierValidationErrorInfo.COLON.getErrorCode(),
-                        IdentifierValidationErrorInfo.BACKSLASH.getErrorCode()));
+                Collections.singletonList(IdentifierValidationErrorInfo.IDENTIFIER.getErrorCode()));
         assertAddClientFieldValidationErrorMessages(HAS_COLON + HAS_BACKSLASH, "aa", expectedFieldValidationErrors);
 
         // member code with colon and a backslash and subsystem code with percent
         expectedFieldValidationErrors.put(FIELD_CLIENTADD_SUBSYSTEM_CODE,
-                Collections.singletonList(IdentifierValidationErrorInfo.PERCENT.getErrorCode()));
+                Collections.singletonList(IdentifierValidationErrorInfo.IDENTIFIER.getErrorCode()));
         assertAddClientFieldValidationErrorMessages(HAS_COLON + HAS_BACKSLASH, HAS_PERCENT,
                 expectedFieldValidationErrors);
     }

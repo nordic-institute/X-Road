@@ -98,16 +98,14 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
             </constraint>
         </field>
     </bean>
-<!--
-    <bean class="ClientAdd" ignore-annotations="false">
-        <field name="client.memberCode">
+    <bean class="Client" ignore-annotations="false">
+        <field name="memberCode">
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
             </constraint>
         </field>
-        <field name="client.subsystemCode">
+        <field name="subsystemCode">
             <constraint annotation="org.niis.xroad.restapi.openapi.validator.IdentifierChars">
             </constraint>
         </field>
     </bean>
--->
 </constraint-mappings>

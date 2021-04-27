@@ -38,11 +38,7 @@ import java.util.stream.Collectors;
  * (error code, error message)
  */
 public enum IdentifierValidationErrorInfo {
-    COLON("NoColons", "must not contain colons"),
-    SEMICOLON("NoSemicolons", "must not contain semicolons"),
-    FORWARDSLASH("NoForwardslashes", "must not contain slashes"),
-    BACKSLASH("NoBackslashes", "must not contain backslashes"),
-    PERCENT("NoPercents", "must not contain percents"),
+    IDENTIFIER("IdentifierChars", "must contain only identifier characters"),
     CONTROL_CHAR("NoControlChars", "must not contain control characters");
 
     @Getter
