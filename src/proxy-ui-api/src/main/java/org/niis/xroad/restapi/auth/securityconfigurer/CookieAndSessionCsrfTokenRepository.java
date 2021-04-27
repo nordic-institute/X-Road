@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth.securityconfigurer;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;

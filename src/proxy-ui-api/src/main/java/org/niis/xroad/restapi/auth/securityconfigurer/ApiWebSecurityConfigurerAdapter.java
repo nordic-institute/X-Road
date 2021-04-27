@@ -23,10 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth.securityconfigurer;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import org.niis.xroad.securityserver.restapi.auth.ApiKeyAuthenticationManager;
-import org.niis.xroad.securityserver.restapi.auth.Http401AuthenticationEntryPoint;
+import org.niis.xroad.restapi.auth.ApiKeyAuthenticationManager;
+import org.niis.xroad.restapi.auth.Http401AuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

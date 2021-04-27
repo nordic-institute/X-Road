@@ -23,27 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.domain.Role;
-
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 
 /**
- * test role
+ * Static assets should be open to everyone
  */
-public class RoleTest {
+@Configuration
+@Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
+public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Test
-    public void test() {
-        Role role = Role.getForKey(3);
-        assertEquals("XROAD_SERVICE_ADMINISTRATOR", role.name());
-
-        try {
-            role = Role.getForKey(10);
-            fail("should throw exception");
-        } catch (Exception expected) { }
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .requestMatchers()
+                .antMatchers("/favicon.ico",
+                        "/",
+                        "/index.html",
+                        "/img/**",
+                        "/css/**",
+                        "/js/**",
+                        "/fonts/**")
+                .and()
+            .authorizeRequests()
+                .anyRequest()
+                .permitAll()
+                .and()
+            .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+            .csrf()
+                .disable()
+            .formLogin()
+                .disable();
     }
 }

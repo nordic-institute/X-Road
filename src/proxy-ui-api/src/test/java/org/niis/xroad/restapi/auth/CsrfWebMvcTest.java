@@ -23,14 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth;
+package org.niis.xroad.restapi.auth;
 
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.securityserver.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
+import org.niis.xroad.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
 import org.niis.xroad.securityserver.restapi.domain.Role;
 import org.niis.xroad.securityserver.restapi.openapi.model.User;
 import org.springframework.beans.factory.annotation.Autowired;

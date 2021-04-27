@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.devtools;
 
-import org.niis.xroad.securityserver.restapi.auth.GrantedAuthorityMapper;
+import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
 import org.niis.xroad.securityserver.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -43,8 +43,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import static org.niis.xroad.securityserver.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
-import static org.niis.xroad.securityserver.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
 
 /**
  * Development time authentication provider, which uses hard coded users

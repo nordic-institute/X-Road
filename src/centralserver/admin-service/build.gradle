@@ -111,6 +111,7 @@ dependencies {
     implementation project(':common-verifier')
     implementation project(':signer-protocol')
     implementation project(':common-ui')
+    implementation project(':common-rest-api')
 
 
     implementation('org.springframework.boot:spring-boot-starter-security')

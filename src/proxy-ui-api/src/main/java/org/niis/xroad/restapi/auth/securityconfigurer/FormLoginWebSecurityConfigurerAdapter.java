@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth.securityconfigurer;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.audit.AuditEventLoggingFacade;
@@ -52,7 +52,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-import static org.niis.xroad.securityserver.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
 
 /**
  * form login / session cookie authentication

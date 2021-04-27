@@ -23,43 +23,73 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth.securityconfigurer;
+package org.niis.xroad.restapi.auth.securityconfigurer;
 
+import org.niis.xroad.securityserver.restapi.controller.ApiKeysController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.csrf.LazyCsrfTokenRepository;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION;
 
 /**
- * Static assets should be open to everyone
+ * basic authentication configuration for managing api keys
+ * matching url /api/api-keys/**
  */
 @Configuration
-@Order(MultiAuthWebSecurityConfig.STATIC_ASSETS_SECURITY_ORDER)
-public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Order(MultiAuthWebSecurityConfig.API_KEY_MANAGEMENT_SECURITY_ORDER)
+public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    @Qualifier(KEY_MANAGEMENT_PAM_AUTHENTICATION)
+    private AuthenticationProvider authenticationProvider;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .requestMatchers()
-                .antMatchers("/favicon.ico",
-                        "/",
-                        "/index.html",
-                        "/img/**",
-                        "/css/**",
-                        "/js/**",
-                        "/fonts/**")
-                .and()
+            .antMatcher(ApiKeysController.API_KEYS_V1_PATH + "/**")
             .authorizeRequests()
                 .anyRequest()
-                .permitAll()
+                .authenticated()
                 .and()
             .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+                .and()
+            .httpBasic()
+                .and()
+            .anonymous()
+                .disable()
+            .headers()
+                .contentSecurityPolicy("default-src 'none'")
+                .and()
                 .and()
             .csrf()
-                .disable()
+                .requireCsrfProtectionMatcher(ManageApiKeysWebSecurityConfigurerAdapter::sessionExists)
+                .csrfTokenRepository(new LazyCsrfTokenRepository(new CookieAndSessionCsrfTokenRepository()))
+                .and()
             .formLogin()
                 .disable();
     }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder builder) throws Exception {
+        builder.authenticationProvider(authenticationProvider);
+    }
+
+    /**
+     * Check if an alive session exists
+     */
+    private static boolean sessionExists(HttpServletRequest request) {
+        return request.getSession(false) != null;
+    }
+
 }

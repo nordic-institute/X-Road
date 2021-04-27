@@ -23,51 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth;
+package org.niis.xroad.restapi.auth;
 
-import org.springframework.security.crypto.codec.Hex;
-import org.springframework.security.crypto.codec.Utf8;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-
 /**
- * Custom PasswordEncoder without salt, since Spring only offers ones
- * with salt. We do not need salt since we are not actually
- * encoding passwords, but random UUIDs.
+ * password related config
  */
-public final class SaltlessPasswordEncoder implements
-        PasswordEncoder {
+@Configuration
+public class PasswordEncoderConfig {
 
-    private static final int ITERATIONS = 1;
-    private static final String ALGORITHM = "SHA-256";
-
-    @Override
-    public String encode(CharSequence rawPassword) {
-        byte[] encoded = digest(Utf8.encode(rawPassword));
-        return String.valueOf(Hex.encode(encoded));
-    }
-
-    @Override
-    public boolean matches(CharSequence rawPassword, String encodedPassword) {
-        String encodedRaw = encode(rawPassword);
-        return encodedRaw.equals(encodedPassword);
-    }
-
-    private byte[] digest(byte[] value) {
-        MessageDigest messageDigest = createDigest(ALGORITHM);
-        for (int i = 0; i < ITERATIONS; i++) {
-            value = messageDigest.digest(value);
-        }
-        return value;
-    }
-
-    private MessageDigest createDigest(String algorithm) {
-        try {
-            return MessageDigest.getInstance(algorithm);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("No such hashing algorithm", e);
-        }
+    /**
+     * we use saltless SHA-256 instead of recommended and default BCrypt to guarantee that
+     * even with heavy REST API usage, hashing does consume large amount of resources.
+     * We are not encoding passwords, but random numbers / UUIDs, so
+     * dictionary attacks or other weaknesses of SHA-256 in relation to
+     * password encoding are not relevant.
+     * @return
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new SaltlessPasswordEncoder();
     }
 }

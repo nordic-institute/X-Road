@@ -23,36 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi;
+package org.niis.xroad.restapi.auth;
 
-import ee.ria.xroad.common.Version;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import org.niis.xroad.securityserver.restapi.service.VersionService;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
 
 /**
- * main spring boot application.
+ * AuthenticationEntryPoint that returns 401
  */
-@ServletComponentScan
-@SpringBootApplication(scanBasePackages = { "org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi" })
-@EnableCaching
-@EnableScheduling
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
+@Component
+@Slf4j
+public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private static final String APP_NAME = "xroad-proxy-ui-api";
+    @Autowired
+    @Qualifier("handlerExceptionResolver")
+    private HandlerExceptionResolver resolver;
 
     /**
-     * start application
+     * @inheritDoc
      */
-    public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME, VersionService.MIN_SUPPORTED_JAVA_VERSION,
-                VersionService.MAX_SUPPORTED_JAVA_VERSION);
-        SpringApplication.run(RestApiApplication.class, args
-        );
+    public void commence(HttpServletRequest request, HttpServletResponse response,
+                         AuthenticationException exception) throws IOException, ServletException {
+        if (log.isDebugEnabled()) {
+            log.debug("Pre-authenticated entry point called. Rejecting access");
+        }
+
+        resolver.resolveException(request, response, null, exception);
     }
 }

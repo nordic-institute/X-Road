@@ -23,48 +23,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth;
+package org.niis.xroad.restapi.auth;
 
-import org.junit.Test;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Component;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
- * test AuthenticationHeaderDecoder
+ * Helper for handling encoded authentication headers
  */
-public class AuthenticationHeaderDecoderTest {
+@Component
+public class AuthenticationHeaderDecoder {
 
-    @Test
-    public void decode() throws Exception {
-        AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
+    private static final String UPPERCASE_APIKEY_PREFIX = "X-ROAD-APIKEY TOKEN=";
 
-        String encoded = "X-Road-ApiKEy toKen=123";
-        assertEquals("123", decoder.decodeApiKey(encoded));
-
-        encoded = "X-Road-ApiKEy toKen=  123  \n ";
-        assertEquals("123", decoder.decodeApiKey(encoded));
-
-        String badEncoded = "Bearer 123";
-        try {
-            decoder.decodeApiKey(badEncoded);
-            fail("should have thrown exception");
-        } catch (AuthenticationException expected) {
+    /**
+     * Returns decoded api key from authorization header,
+     * or AuthenticationException if one was not found
+     * @param authenticationHeader
+     * @return
+     */
+    public String decodeApiKey(String authenticationHeader) throws AuthenticationException {
+        if (authenticationHeader == null
+                || authenticationHeader.toUpperCase().indexOf(UPPERCASE_APIKEY_PREFIX) != 0) {
+            throw new BadCredentialsException("Invalid X-Road-Apikey authorization header");
         }
-
-        badEncoded = "X-Road-ApiKEy token=         ";
-        try {
-            decoder.decodeApiKey(badEncoded);
-            fail("should have thrown exception");
-        } catch (AuthenticationException expected) {
+        String apiKey = authenticationHeader.substring(UPPERCASE_APIKEY_PREFIX.length());
+        if (StringUtils.isBlank(apiKey)) {
+            throw new BadCredentialsException("Missing api key from authorization header");
         }
-
-        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
-        try {
-            decoder.decodeApiKey(badEncoded);
-            fail("should have thrown exception");
-        } catch (AuthenticationException expected) {
-        }
+        return apiKey.trim();
     }
 }

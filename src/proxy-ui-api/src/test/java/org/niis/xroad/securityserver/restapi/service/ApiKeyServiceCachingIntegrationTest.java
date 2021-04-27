@@ -29,7 +29,7 @@ import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.niis.xroad.securityserver.restapi.auth.ApiKeyAuthenticationHelper;
+import org.niis.xroad.restapi.auth.ApiKeyAuthenticationHelper;
 import org.niis.xroad.securityserver.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.securityserver.restapi.domain.Role;
 import org.niis.xroad.securityserver.restapi.dto.PlaintextApiKeyDto;

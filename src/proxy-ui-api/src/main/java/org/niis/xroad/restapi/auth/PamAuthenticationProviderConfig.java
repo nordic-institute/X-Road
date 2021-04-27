@@ -22,7 +22,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth;
+package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.securityserver.restapi.config.audit.AuditEventLoggingFacade;
@@ -34,7 +34,7 @@ import org.springframework.context.annotation.Profile;
 
 import java.util.Arrays;
 
-import static org.niis.xroad.securityserver.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
+import static org.niis.xroad.restapi.auth.AuthenticationIpWhitelist.KEY_MANAGEMENT_API_WHITELIST;
 
 /**
  * PAM authentication provider configuration.

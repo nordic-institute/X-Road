@@ -43,7 +43,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
     implementation project(':common-ui')
-
+    implementation project(':common-rest-api')
 
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')

@@ -23,42 +23,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.auth;
+package org.niis.xroad.restapi.auth;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.junit.Test;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerExceptionResolver;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- * AuthenticationEntryPoint that returns 401
+ * test AuthenticationHeaderDecoder
  */
-@Component
-@Slf4j
-public class Http401AuthenticationEntryPoint implements AuthenticationEntryPoint {
+public class AuthenticationHeaderDecoderTest {
 
-    @Autowired
-    @Qualifier("handlerExceptionResolver")
-    private HandlerExceptionResolver resolver;
+    @Test
+    public void decode() throws Exception {
+        AuthenticationHeaderDecoder decoder = new AuthenticationHeaderDecoder();
 
-    /**
-     * @inheritDoc
-     */
-    public void commence(HttpServletRequest request, HttpServletResponse response,
-                         AuthenticationException exception) throws IOException, ServletException {
-        if (log.isDebugEnabled()) {
-            log.debug("Pre-authenticated entry point called. Rejecting access");
+        String encoded = "X-Road-ApiKEy toKen=123";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        encoded = "X-Road-ApiKEy toKen=  123  \n ";
+        assertEquals("123", decoder.decodeApiKey(encoded));
+
+        String badEncoded = "Bearer 123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
         }
 
-        resolver.resolveException(request, response, null, exception);
+        badEncoded = "X-Road-ApiKEy token=         ";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
+
+        badEncoded = "dsadsadasdasadsX-Road-ApiKEy token=123";
+        try {
+            decoder.decodeApiKey(badEncoded);
+            fail("should have thrown exception");
+        } catch (AuthenticationException expected) {
+        }
     }
 }
