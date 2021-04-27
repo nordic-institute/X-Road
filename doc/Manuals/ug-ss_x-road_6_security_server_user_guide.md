@@ -306,6 +306,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 23. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
 
+24. <a id="Ref_GnuPG" class="anchor"></a>\[GnuPG\] The GNU Privacy Guard, <https://gnupg.org>.
+
 ## 2 User Management
 
 
@@ -1774,8 +1776,46 @@ The X-Road software does not offer special tools for archiving the audit log. Th
 
 ## 13 Back up and Restore
 
+### 13.1 Back up archive encryption and verification
 
-### 13.1 Back up and Restore in the User Interface
+Starting from version 7.0 security server backups are signed and optionally encrypted. The GNU Privacy Guard \[[GnuPG](#Ref_GnuPG)\] 
+is used for encryption and signing. GPG keypair is generated during security server initialisation. In addition to generated
+key additional public keys can be used to encrypt backups. 
+
+### 13.2 Back up encryption configuration
+
+Back up encryption is initially turned off. To turn encryption on configuration must be overridden in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section.
+
+    [proxy]
+    backup-encrypted=false
+    backup-public-key-path=/etc/xroad/backupkeys
+
+Backups are always signed. To turn on backup encryption add or change the `backup-encrypted` key to true. If needed also 
+change the folder where additional backup encryption keys are stored. Default is `/etc/xroad/backupkeys`.
+
+Backup encryption keys folder must contain only GPG public key files. In addition to security servers public key backup
+archives are encrypted with all the keys in this folder. It is recommended to use at least one additional public key.
+Otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator
+to check that private keys used are sufficiently strong, there are no automatic checks. Additional keys for backup 
+encryption should be generated and stored outside security server in a secure environment.
+
+### 13.3 Verifying backup archive consistency
+
+Security server verifies consistency of backup archives automatically. It is also possible to check archives externally.
+For checking consistency security servers public key is needed. When backups are encrypted then a private key for archive
+encryption is also needed (GPG uses "sign then encrypt" scheme, so it is not possible to verify encrypted archives without
+decrypting them).
+
+To export security servers backup encryption public key use the following command
+
+    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+
+where `AA/GOV/TS1OWNER/TS1` is the security server id. 
+
+Resulting file (server-public-key.gpg) should then be exported from security server and imported to GPG keystore used
+for backup archive consistency checking.
+
+### 13.2 Back up and Restore in the User Interface
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
@@ -1797,14 +1837,19 @@ To **restore configuration**, follow these steps.
 
 2.  A popup notification shows after the restore whether the restoring was successful or not.
 
-If something goes wrong while restoring the configuration it is possible to revert back to the old configuration. Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
+If something goes wrong while restoring the configuration it is possible to revert back to the old configuration.
+Security Server stores so called pre-restore configuration automatically to `/var/lib/xroad/conf_prerestore_backup.tar`. Either move it to `/var/lib/xroad/backup/` folder and utilize the user interface to restore it or use the command line interaface described in the next chapter.
 
 To **delete a configuration backup file**, click **Delete** on the appropriate row in the configuration backup file list and then click **YES**.
 
-To **upload a configuration backup file** from the local file system to the security server, click **UPLOAD BACKUP**, select a file and click **YES**. The uploaded configuration file appears in the list of configuration files.
+To **upload a configuration backup file** from the local file system to the security server, click **UPLOAD BACKUP**,
+select a file and click **YES**. The uploaded configuration file appears in the list of configuration files. Bear in mind
+that only files signed with current security server encryption key can be restored via user interface. All other archives
+can be restored only from command line.
 
+As long as original keypair is intact no additional steps are needed even when backup encryption is turned on.
 
-### 13.2 Restore from the Command Line
+### 13.3 Restore from the Command Line
 
 To restore configuration from the command line, the following data must be available:
 
@@ -1819,20 +1864,28 @@ It is expected that the restore command is run by the xroad user.
 In order to restore configuration, the following command should be used:
 
     /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -s <security server ID> -f <path + filename>
+    -s <security server ID> -f <path + filename> [-P -N]
 
 For example (all on one line):
 
     /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
     -s AA/GOV/TS1OWNER/TS1 \
-    –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+    –f /var/lib/xroad/backup/conf_backup_20140703-110438.gpg
 
-If it is absolutely necessary to restore the system from a backup made on a different security server, the forced mode of the restore command can be used with the –F option. For example (all on one line):
+In case original backup encryption and siging key is lost additional parameters can be specified to skip decryption and/or
+signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to
+skip checking archive signature.
+
+If it is absolutely necessary to restore the system from a backup made on a different security server, the forced mode
+of the restore command can be used with the –F option together with unencrypted backup archive flags. For example (all on one line):
 
     /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh \
-    -F –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
+    -F -P –f /var/lib/xroad/backup/conf_backup_20140703-110438.tar
 
-### 13.3 Automatic Backups
+In case backup archives were encrypted they have to be first unencrypted in external safe environment and then securely
+transported to security server filesystem.
+
+### 13.4 Automatic Backups
 
 By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
 
