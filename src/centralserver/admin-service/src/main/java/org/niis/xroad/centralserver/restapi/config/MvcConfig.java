@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.admin.config;
+package org.niis.xroad.centralserver.restapi.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.CacheControl;
