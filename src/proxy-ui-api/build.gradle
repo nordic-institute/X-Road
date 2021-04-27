@@ -245,8 +245,8 @@ openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
     outputDir = "$buildDir/generated-sources/openapi".toString()
-    apiPackage = "org.niis.xroad.restapi.openapi"
-    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
+    modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
     systemProperties = [
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":
