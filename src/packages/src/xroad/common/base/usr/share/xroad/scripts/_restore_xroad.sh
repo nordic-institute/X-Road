@@ -15,8 +15,9 @@ PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
 PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
 RESTORE_DIR=/var/tmp/xroad/restore
-TEMP_TAR_DIR=/var/tmp/xroad
-TEMP_TAR_FILE=${TEMP_TAR_DIR}/decrypted_temporary.tar
+TEMP_GPG_DIR=/var/tmp/xroad
+TEMP_TAR_FILE=${TEMP_GPG_DIR}/decrypted_temporary.tar
+TEMP_GPG_STATUS=${TEMP_GPG_DIR}/gpg_status.tar
 
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
@@ -45,18 +46,34 @@ check_restore_options () {
 decrypt_tarball_if_encrypted () {
     if [[ $ENCRYPTED_BACKUP = true ]] ; then
       rm  -f ${TEMP_TAR_FILE}
-      mkdir -p ${TEMP_TAR_DIR}
+      mkdir -p ${TEMP_GPG_DIR}
       GPG_FILENAME=${BACKUP_FILENAME}
       BACKUP_FILENAME=${TEMP_TAR_FILE}
       if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
-        SKIPARG="--skip-verify"
+        VERIFYARG="--skip-verify"
+      else
+        VERIFYARG="--status-file $TEMP_GPG_STATUS"
       fi
 
       echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
       # gpg --decrypt can also handle files that are only signed!
-      gpg --homedir /etc/xroad/gpghome --decrypt --output ${BACKUP_FILENAME} ${SKIPARG} ${GPG_FILENAME}
+      gpg --homedir /etc/xroad/gpghome --decrypt --output ${BACKUP_FILENAME} ${VERIFYARG} ${GPG_FILENAME}
       if [ $? != 0 ] ; then
         die "Decrypting backup archive failed"
+      fi
+      # GPG happily decrypts encrypted files without signature and there is no way to force errors when file is not signed
+      # so we have to parse gpg output to make sure that signature was indeed verified
+      if [[ $SKIP_SIGNATURE_CHECK != true ]] ; then
+        while IFS=' ' read -r prefix status lineend
+        do
+          # see gnupg/doc/DETAILS
+          if [[ $status = GOODSIG ]] ; then
+            SIGNATURE_VERIFY_SUCCESS=true
+          fi
+        done < $TEMP_GPG_STATUS
+        if [[ $SIGNATURE_VERIFY_SUCCESS != true ]] ; then
+          die "Could not verify archive signature"
+        fi
       fi
     fi
 }
@@ -229,7 +246,7 @@ restore_database () {
 remove_tmp_files() {
   rm -f ${RESTORE_IN_PROGRESS_FILENAME}
   rm -rf ${RESTORE_DIR}
-  rm -rf ${TEMP_TAR_DIR}
+  rm -rf ${TEMP_GPG_DIR}
 }
 
 restart_services () {
