@@ -25,9 +25,9 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <div class="content xrd-view-common">
+    <v-container class="xrd-view-common mt-7">
       <router-view />
-    </div>
+    </v-container>
   </div>
 </template>
 
@@ -36,8 +36,3 @@ import Vue from 'vue';
 
 export default Vue.extend({});
 </script>
-<style lang="scss" scoped>
-.content {
-  width: 1000px;
-}
-</style>
