@@ -2,5 +2,8 @@
 
 invoke-rc.d --quiet xroad-proxy try-restart || true
 
-exit 0
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
 
+exit 0

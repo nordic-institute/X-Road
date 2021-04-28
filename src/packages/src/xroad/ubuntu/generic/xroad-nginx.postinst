@@ -12,5 +12,8 @@ if [ "$1" = configure ]; then
     chown -R xroad:xroad /etc/xroad/ssl
 fi
 
-exit 0
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
 
+exit 0

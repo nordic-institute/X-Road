@@ -1,6 +1,9 @@
 #!/bin/bash
 
+set -e
+
 if [ "$1" = "upgrade" ]; then
+
     if dpkg --compare-versions "$2" lt-nl "6.3"
     then
      for service in `initctl list | grep xroad | awk '{print $1}'`

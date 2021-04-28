@@ -63,7 +63,6 @@ if [ "$1" = configure ]; then
     test -d /etc/xroad/backup.d || mkdir -p /etc/xroad/backup.d
     chmod 0750 /etc/xroad/backup.d
     chown -R xroad:xroad /etc/xroad/backup.d
-
 fi
 
 if [ "$1" = triggered ]; then
@@ -84,4 +83,3 @@ if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-decon
 fi
 
 exit 0
-

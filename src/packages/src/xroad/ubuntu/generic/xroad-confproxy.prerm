@@ -1,0 +1,23 @@
+#!/bin/bash
+
+set -e
+
+if [ "$1" = "upgrade" ]; then
+  # upgrades are supported only from the previous two versions
+  if [[ "$2" == 7* ]]; then
+    installed_version_full=$(dpkg-query -W -f '${Version}' xroad-confproxy)
+    last_supported_version=$(echo "$installed_version_full" | awk -F. '{print $1"."($2+2)}')
+    incoming_version=$(echo "$2" | awk -F. '{print $1"."$2}')
+    if dpkg --compare-versions "$last_supported_version" lt-nl "$incoming_version"
+    then
+      echo "This package can be upgraded up to version $last_supported_version.x"
+      exit 1
+    fi
+  fi
+fi
+
+if [ "$1" = "failed-upgrade" ]; then
+  exit 1
+fi
+
+exit 0
