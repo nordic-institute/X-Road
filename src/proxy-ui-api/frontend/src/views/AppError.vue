@@ -23,12 +23,116 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <v-layout align-center justify-center column>oops, page not found</v-layout>
+  <div class="xrd-view-common">
+    <TabsBase />
+    <AlertsContainer />
+    <v-container>
+      <div class="xrd-view-title pt-6">{{ $t('404') }}</div>
+      <v-layout align-center justify-center column fill-height elevation-0>
+        <v-card flat class="xrd-card custom-card">
+          <v-card-title> </v-card-title>
+
+          <v-card-text>
+            <div class="content-wrap">
+              <v-img
+                :src="require('../assets/404.png')"
+                height="259"
+                width="665"
+              ></v-img>
+
+              <div class="unicorn-text">
+                {{ $t('404text') }}
+                <span class="unicorn-gradient">{{ $t('404textUnicorn') }}</span>
+              </div>
+              <xrd-button
+                test-data="error-404-button"
+                color="primary"
+                gradient
+                large
+                @click="home"
+                :min_width="401"
+                :width="401"
+                class="button"
+                rounded
+                >{{ $t('action.goToFront') }}</xrd-button
+              >
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-layout>
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import TabsBase from '@/components/layout/TabsBase.vue';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
-export default Vue.extend({});
+export default Vue.extend({
+  components: {
+    TabsBase,
+    AlertsContainer,
+  },
+  methods: {
+    home(): void {
+      this.$router.replace({
+        name: this.$store.getters.firstAllowedTab.to.name,
+      });
+    },
+  },
+});
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/shared';
+@import '~styles/colors';
+@import '~styles/tables';
+
+.xrd-view-common {
+  width: 100%;
+}
+
+.unicorn-text {
+  text-transform: uppercase;
+  color: $XRoad-Purple100;
+  width: 450px;
+  font-style: normal;
+  font-weight: 800;
+  font-size: 34.6667px;
+  line-height: 150%;
+  text-align: center;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-top: 60px;
+}
+
+.custom-card {
+  width: 100%;
+  margin-top: 40px;
+  margin-bottom: 30px;
+}
+
+.content-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.button {
+  width: 200px;
+  margin: 70px;
+}
+
+.unicorn-gradient {
+  background-color: #f3ec78;
+  background-image: linear-gradient(108deg, #e29ae6 5.28%, #663bdb 94.72%);
+  background-size: 100%;
+  -webkit-background-clip: text;
+  -moz-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -moz-text-fill-color: transparent;
+}
+</style>
