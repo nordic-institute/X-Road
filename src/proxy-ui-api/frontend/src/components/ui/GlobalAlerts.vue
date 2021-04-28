@@ -27,7 +27,7 @@
   <v-container
     v-if="isAuthenticated && !needsInitialization && hasAlerts"
     fluid
-    class="alerts-container"
+    class="alerts-container px-3"
   >
     <v-alert
       data-test="global-alert-global-configuration"
@@ -127,22 +127,22 @@ export default Vue.extend({
 @import '~styles/colors';
 
 .alerts-container {
-  width: 1000px;
   padding: 0;
 
   & > * {
-    margin-top: 0;
     margin-bottom: 4px;
     border-radius: 0;
   }
 
   & > :first-child {
-    margin-top: 4px;
+    margin-top: 8px;
   }
 }
 
 .alert {
   margin-top: 8px;
+  border: 2px solid $XRoad-WarmGrey30;
+  box-sizing: border-box;
   border-radius: 4px;
 }
 

@@ -24,14 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-layout
-    align-center
-    justify-center
-    column
-    fill-height
-    elevation-0
-    class="data-table-wrapper xrd-view-common"
-  >
+  <v-container class="xrd-view-common">
     <div class="table-toolbar pb-3 pt-5">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.main.clients') }}</div>
@@ -189,7 +182,7 @@
       @accept="registerAccepted(selectedClient)"
       :loading="registerClientLoading"
     />
-  </v-layout>
+  </v-container>
 </template>
 
 <script lang="ts">
