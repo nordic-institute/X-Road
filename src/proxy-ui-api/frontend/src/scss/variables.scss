@@ -24,8 +24,8 @@
  * THE SOFTWARE.
  */
 /* Overrides for Vuetify variables
-"Once installed, create a folder called sass, scss or styles in your src directory with 
-a file named variables.scss or variables.sass. The vuetify-loader will automatically 
+"Once installed, create a folder called sass, scss or styles in your src directory with
+a file named variables.scss or variables.sass. The vuetify-loader will automatically
 bootstrap your variables into Vue CLI’s compilation process, overwriting the framework defaults."
 https://vuetifyjs.com/en/features/sass-variables/#vue-cli-install
 
@@ -35,3 +35,8 @@ List of Vuetify SASS variables: https://vuetifyjs.com/en/api/vuetify/#sass-varia
 
 // Globals
 $body-font-family: "Open Sans", sans-serif;
+$container-max-widths: (
+  'md': 1600px, // containers are as wide as viewport even on smaller screens
+  'lg': 1600px,
+  'xl': 1600px
+);

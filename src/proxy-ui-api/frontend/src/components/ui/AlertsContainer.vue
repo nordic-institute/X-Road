@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="alerts-wrapper">
+  <v-container class="pa-0">
     <GlobalAlerts />
     <ContextualAlerts />
   </v-container>
@@ -42,10 +42,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style scoped lang="scss">
-.alerts-wrapper {
-  width: 1000px;
-  padding: 0;
-}
-</style>
