@@ -74,6 +74,9 @@ public class OperationalDataRecordsTest {
             + "\"requestSize\":344,"
             + "\"responseOutTs\":1619523069721,"
             + "\"succeeded\":true,"
+            + "\"messageUserId\": \"xrd\","
+            + "\"messageIssue\": \"issue\","
+            + "\"serviceVersion\": \"v1\","
             + "\"statusCode\":200}]}";
 
     /**
@@ -144,7 +147,10 @@ public class OperationalDataRecordsTest {
         assertEquals("ss1", record.getClientSecurityServerAddress());
         assertEquals(344L, record.getRequestSize().longValue());
         assertEquals(1619523069721L, record.getResponseOutTs().longValue());
-        assertTrue(record.getSucceeded());
+        assertEquals("issue", record.getMessageIssue());
+        assertEquals("xrd", record.getMessageUserId());
+        assertEquals("v1", record.getServiceVersion());
         assertEquals(200, record.getStatusCode().intValue());
+        assertTrue(record.getSucceeded());
     }
 }

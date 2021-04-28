@@ -138,14 +138,14 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 log.error("Unable to generate XML document");
             }
         } else {
-            final JsonGenerator jsonGenerator = new JsonFactory()
-                    .createGenerator(new PrintWriter(response.getOutputStream()));
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeStringField("type", ex.getFaultCode());
-            jsonGenerator.writeStringField("message", ex.getFaultString());
-            jsonGenerator.writeStringField("detail", ex.getFaultDetail());
-            jsonGenerator.writeEndObject();
-            jsonGenerator.close();
+            try (JsonGenerator jsonGenerator = new JsonFactory()
+                    .createGenerator(new PrintWriter(response.getOutputStream()))) {
+                jsonGenerator.writeStartObject();
+                jsonGenerator.writeStringField("type", ex.getFaultCode());
+                jsonGenerator.writeStringField("message", ex.getFaultString());
+                jsonGenerator.writeStringField("detail", ex.getFaultDetail());
+                jsonGenerator.writeEndObject();
+            }
         }
     }
 
