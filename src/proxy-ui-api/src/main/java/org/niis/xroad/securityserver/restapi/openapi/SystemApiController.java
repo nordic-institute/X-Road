@@ -34,8 +34,8 @@ import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
@@ -175,7 +175,8 @@ public class SystemApiController implements SystemApi {
         } catch (InvalidDistinguishedNameException e) {
             throw new BadRequestException(e);
         }
-        return ControllerUtil.createAttachmentResourceResponse(csrBytes, csrFilenameCreator.createInternalCsrFilename());
+        return ControllerUtil.createAttachmentResourceResponse(csrBytes,
+                csrFilenameCreator.createInternalCsrFilename());
     }
 
     @Override

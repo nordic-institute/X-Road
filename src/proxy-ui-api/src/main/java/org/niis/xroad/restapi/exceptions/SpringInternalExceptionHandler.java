@@ -29,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
-import org.niis.xroad.securityserver.restapi.config.LimitRequestSizesException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +39,10 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.util.Optional;
+
+import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
 /**
  * Handle Spring internal exceptions, which are not caught by {@link ApplicationExceptionHandler}.
@@ -70,8 +73,9 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
         auditEventLoggingFacade.auditLogFail(ex);
         log.error("exception caught", ex);
         ErrorInfo errorInfo = new ErrorInfo();
-        if (causedBySizeLimitExceeded(ex)) {
-            status = HttpStatus.PAYLOAD_TOO_LARGE;
+        Optional<Throwable> wrappedStatusCause = getWrappedStatusCarryingExceptionCause(ex);
+        if (wrappedStatusCause.isPresent()) {
+            status = getAnnotatedResponseStatus(wrappedStatusCause.get(), status);
         } else if (ex instanceof MethodArgumentNotValidException) {
             errorInfo.setError(validationErrorHelper.createError((MethodArgumentNotValidException) ex));
         }
@@ -80,11 +84,18 @@ public class SpringInternalExceptionHandler extends ResponseEntityExceptionHandl
                 status, request);
     }
 
-
     /**
-     * LimitRequestSizesException is typically wrapped in an HttpMessageNotReadableException
+     * Return possible WrappedStatusCarryingException cause (or Throwable itself), if any exist.
+     * If multiple, returns first match.
+     *
+     * Some Exceptions are wrapped in others, but should still control which HTTP status to use.
+     * These are marked with WrappedStatusCarryingException interface.
+     * One example is LimitRequestSizesException, which is typically wrapped in
+     * an HttpMessageNotReadableException
      */
-    private boolean causedBySizeLimitExceeded(Throwable t) {
-        return ExceptionUtils.indexOfThrowable(t, LimitRequestSizesException.class) != -1;
+    private Optional<Throwable> getWrappedStatusCarryingExceptionCause(Throwable t) {
+        return ExceptionUtils.getThrowableList(t).stream()
+                .filter(e -> e instanceof WrappedStatusCarryingException)
+                .findFirst();
     }
 }

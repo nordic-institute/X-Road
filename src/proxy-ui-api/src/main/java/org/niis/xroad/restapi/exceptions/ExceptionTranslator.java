@@ -27,18 +27,18 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
-import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetails;
+import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
 /**
  * Translate exceptions to ResponseEntities that contain the standard error object {@link ErrorInfo}
@@ -64,13 +64,7 @@ public class ExceptionTranslator {
      * @return
      */
     public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
-        HttpStatus status = defaultStatus;
-        ResponseStatus statusAnnotation = AnnotationUtils.findAnnotation(
-                e.getClass(), ResponseStatus.class);
-        if (statusAnnotation != null) {
-            // take status from exception annotation
-            status = statusAnnotation.value();
-        }
+        HttpStatus status = getAnnotatedResponseStatus(e, defaultStatus);
         ErrorInfo errorDto = new ErrorInfo();
         errorDto.setStatus(status.value());
         if (e instanceof DeviationAware) {

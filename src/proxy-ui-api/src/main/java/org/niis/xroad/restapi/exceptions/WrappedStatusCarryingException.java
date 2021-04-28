@@ -23,23 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
-
-import org.niis.xroad.restapi.exceptions.WrappedStatusCarryingException;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.io.IOException;
+package org.niis.xroad.restapi.exceptions;
 
 /**
- * Thrown when {@link LimitRequestSizesFilter} detects that request was too large.
- * Usually wrapped in another exception (HttpMessageNotReadableException), which
- * means ResponseStatus annotation does not translate to actual response status.
- * Here anyway, in case it would be thrown unwrapped.
+ * Marker interface for exceptions that carry HTTP status which should be reported to
+ * API client, but may be wrapped inside other exceptions.
+ * Error handler needs to dig these out to find the proper status code.
  */
-@ResponseStatus(value = HttpStatus.PAYLOAD_TOO_LARGE)
-public class LimitRequestSizesException extends IOException implements WrappedStatusCarryingException {
-    public LimitRequestSizesException(String s) {
-        super(s);
-    }
+public interface WrappedStatusCarryingException {
 }

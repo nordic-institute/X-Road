@@ -29,8 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
+import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -100,7 +100,8 @@ public class ApplicationExceptionHandler {
 
     /**
      * Check for nested SignerNotReachable exception when BeanCreationException is caught. This is needed because
-     * we are using request scoped beans (see {@link org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerConfig}) which can throw
+     * we are using request scoped beans (see
+     * {@link org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerConfig}) which can throw
      * BeanCreationException in runtime and wrap any causing exception inside therefore hiding the real exception.
      * This handler will force the error code of the SignerNotReachable to be propagated to the REST API response.
      *
