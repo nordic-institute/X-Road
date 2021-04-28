@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-sub-view-wrapper">
-    <div class="content xrd-view-common">
+    <v-container class="xrd-view-common mt-7">
       <v-flex mb-4 class="title-action">
         <div v-if="client" class="xrd-view-title mb-3">
           {{ client.subsystem_code }} ({{ $t('subsystem') }})
@@ -41,7 +41,7 @@
       </v-flex>
 
       <router-view />
-    </div>
+    </v-container>
   </div>
 </template>
 
@@ -111,9 +111,5 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-}
-.content {
-  width: 1000px;
-  margin-top: 30px;
 }
 </style>

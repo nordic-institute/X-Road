@@ -252,10 +252,7 @@ public class LogManager extends AbstractLogManager {
 
             log.error("Timestamping failed", e);
 
-            for (String tspUrl : ServerConf.getTspUrl()) {
-                statusMap.put(tspUrl,
-                        new DiagnosticsStatus(DiagnosticsUtils.getErrorCode(e), OffsetDateTime.now(), tspUrl));
-            }
+            putStatusMapFailures(e);
 
             throw e;
         } else {
@@ -330,14 +327,36 @@ public class LogManager extends AbstractLogManager {
     static TimestampRecord saveTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
         log.trace("saveTimestampRecord()");
 
-        statusMap.put(message.getUrl(),
-                new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now()));
+        putStatusMapSuccess(message.getUrl());
 
         TimestampRecord timestampRecord = createTimestampRecord(message);
         LogRecordManager.saveTimestampRecord(timestampRecord, message.getMessageRecords(), message.getHashChains());
 
         return timestampRecord;
     }
+
+    /**
+     * Put success state into statusMap (used for diagnostics) for a given TSA url
+     * @param url url of timestamper which stamped successfully
+     */
+    static void putStatusMapSuccess(String url) {
+        statusMap.put(url, new DiagnosticsStatus(DiagnosticsErrorCodes.RETURN_SUCCESS, OffsetDateTime.now()));
+    }
+
+    /**
+     * Put failure state into statusMap (used for diagnostics).
+     * Timestamping ({@link AbstractTimestampRequest} attempts to use all TSAs, and failure means that
+     * all were tried and failed, so all TSAs will be marked with failed status
+     * @param e exception which is used to determine diagnostics error code
+     */
+    static void putStatusMapFailures(Exception e) {
+        int errorCode = DiagnosticsUtils.getErrorCode(e);
+        for (String tspUrl : ServerConf.getTspUrl()) {
+            statusMap.put(tspUrl,
+                    new DiagnosticsStatus(errorCode, OffsetDateTime.now(), tspUrl));
+        }
+    }
+
 
     private static TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
         TimestampRecord timestampRecord = new TimestampRecord();
