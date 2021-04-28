@@ -37,8 +37,8 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
 
 @Slf4j
 @Service

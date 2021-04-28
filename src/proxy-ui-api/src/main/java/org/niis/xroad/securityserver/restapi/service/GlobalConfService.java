@@ -37,9 +37,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;

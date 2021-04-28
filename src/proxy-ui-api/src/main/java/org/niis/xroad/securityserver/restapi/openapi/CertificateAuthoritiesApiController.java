@@ -33,12 +33,15 @@ import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.CertificateAuthorityConverter;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.CsrSubjectFieldDescriptionConverter;
 import org.niis.xroad.securityserver.restapi.converter.KeyUsageTypeMapping;
 import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescription;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType;
@@ -62,7 +65,7 @@ import java.util.List;
  * certificate authorities api controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

@@ -251,11 +251,15 @@ openApiGenerate {
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : ""
+        models   : "",
+        generateSupportingFiles : "true",
+        supportingFiles: 'ApiUtil.java'
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true"
+        useTags      : "true",
+        generateSupportingFiles : "true",
+        supportingFiles: 'ApiUtil.java'
     ]
 }
 

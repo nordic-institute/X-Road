@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ import java.util.List;
  * controller for xroad instance identifiers
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class XroadInstancesApiController implements XroadInstancesApi {

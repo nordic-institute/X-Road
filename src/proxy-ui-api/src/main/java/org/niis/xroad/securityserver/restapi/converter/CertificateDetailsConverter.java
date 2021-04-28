@@ -32,8 +32,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;

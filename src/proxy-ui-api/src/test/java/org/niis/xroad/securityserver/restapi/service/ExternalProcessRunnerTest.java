@@ -32,7 +32,7 @@ import java.io.IOException;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_PROCESS_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_PROCESS_FAILED;
 
 public class ExternalProcessRunnerTest {
 

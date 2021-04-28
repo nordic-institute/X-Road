@@ -27,8 +27,11 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.converter.TokenInitStatusMapping;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
@@ -37,7 +40,6 @@ import org.niis.xroad.securityserver.restapi.openapi.validator.InitialServerConf
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -51,7 +53,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
  * Init (Security Server) controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

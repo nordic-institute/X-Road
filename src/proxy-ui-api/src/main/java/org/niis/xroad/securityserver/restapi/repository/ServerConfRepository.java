@@ -30,7 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.util.PersistenceUtils;
+import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.springframework.stereotype.Repository;
 
 /**

@@ -26,14 +26,14 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import org.apache.commons.io.IOUtils;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_RESOURCE_READ;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_RESOURCE_READ;
 
 /**
  * Resource utils

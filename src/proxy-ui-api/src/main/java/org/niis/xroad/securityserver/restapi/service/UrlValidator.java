@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 /**

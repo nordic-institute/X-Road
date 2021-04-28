@@ -25,9 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareException;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.exceptions.DeviationAwareException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.openapi.OpenApiException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 

@@ -25,7 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.NotFoundException;
 
 public class ServiceDescriptionNotFoundException extends NotFoundException {
 

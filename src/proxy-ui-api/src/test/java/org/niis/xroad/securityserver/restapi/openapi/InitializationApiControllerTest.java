@@ -26,12 +26,13 @@
 package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.service.WeakPinException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

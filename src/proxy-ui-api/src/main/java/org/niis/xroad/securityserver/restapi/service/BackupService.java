@@ -32,13 +32,14 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.BackupFile;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.repository.BackupRepository;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -54,8 +55,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_BACKUP_GENERATION_FAILED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_GENERATION_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 /**
  * Backups service.

@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
-import org.niis.xroad.securityserver.restapi.controller.ApiKeysController;
+import org.niis.xroad.restapi.controller.ApiKeysController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;

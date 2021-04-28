@@ -31,6 +31,7 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;

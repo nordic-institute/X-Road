@@ -31,10 +31,11 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.converter.Converters;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;

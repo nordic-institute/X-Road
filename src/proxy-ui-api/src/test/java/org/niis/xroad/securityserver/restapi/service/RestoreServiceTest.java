@@ -29,7 +29,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.File;

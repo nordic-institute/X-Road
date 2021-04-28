@@ -27,11 +27,12 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.domain.InvalidRoleNameException;
-import org.niis.xroad.securityserver.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.securityserver.restapi.domain.PublicApiKeyData;
-import org.niis.xroad.securityserver.restapi.domain.Role;
-import org.niis.xroad.securityserver.restapi.dto.PlaintextApiKeyDto;
+import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
+import org.niis.xroad.restapi.domain.InvalidRoleNameException;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.domain.PublicApiKeyData;
+import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 
 import java.util.Arrays;
 import java.util.List;

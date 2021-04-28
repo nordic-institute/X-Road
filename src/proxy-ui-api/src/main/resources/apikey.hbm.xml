@@ -5,11 +5,11 @@
 <hibernate-mapping package="org.niis.xroad.securityserver.restapi.domain">
 
     <typedef name="RoleEnum" class="org.hibernate.type.EnumType">
-        <param name="enumClass">org.niis.xroad.securityserver.restapi.domain.Role</param>
+        <param name="enumClass">org.niis.xroad.restapi.domain.Role</param>
         <param name="useNamed">true</param>
     </typedef>
 
-    <class name="org.niis.xroad.securityserver.restapi.domain.PersistentApiKeyType" table="APIKEY">
+    <class name="org.niis.xroad.restapi.domain.PersistentApiKeyType" table="APIKEY">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>

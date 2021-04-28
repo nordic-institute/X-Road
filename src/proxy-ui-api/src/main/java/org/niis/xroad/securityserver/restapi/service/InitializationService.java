@@ -34,12 +34,14 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,22 +52,22 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_SERVERCODE_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_SERVER_OWNER_EXISTS;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVERCODE_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_SERVER_ID_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INIT_UNREGISTERED_MEMBER;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVERCODE_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SERVER_OWNER_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_SOFTWARE_TOKEN_INITIALIZED;
 
 /**
  * service for initializing the security server

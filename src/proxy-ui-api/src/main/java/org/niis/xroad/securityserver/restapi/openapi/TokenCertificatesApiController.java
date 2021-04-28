@@ -29,10 +29,14 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.niis.xroad.securityserver.restapi.converter.PossibleActionConverter;
 import org.niis.xroad.securityserver.restapi.converter.TokenCertificateConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.PossibleAction;
@@ -50,7 +54,6 @@ import org.niis.xroad.securityserver.restapi.service.ManagementRequestSendingFai
 import org.niis.xroad.securityserver.restapi.service.PossibleActionEnum;
 import org.niis.xroad.securityserver.restapi.service.TokenCertificateService;
 import org.niis.xroad.securityserver.restapi.util.ResourceUtils;
-import org.niis.xroad.securityserver.restapi.util.SecurityHelper;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,7 +69,7 @@ import java.util.List;
  * certificates api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -128,7 +131,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new ConflictException(e);
         }
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
-        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
+        return ControllerUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
                 tokenCertificate.getCertificateDetails().getHash());
     }
 
@@ -182,7 +185,7 @@ public class TokenCertificatesApiController implements TokenCertificatesApi {
             throw new ResourceNotFoundException(e);
         }
         TokenCertificate tokenCertificate = tokenCertificateConverter.convert(certificate);
-        return ApiUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
+        return ControllerUtil.createCreatedResponse("/api/token-certificates/{hash}", tokenCertificate,
                 tokenCertificate.getCertificateDetails().getHash());
     }
 

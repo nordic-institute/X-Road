@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.service.ServiceException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
 /**
  * Thrown if something went wrong in WSDL validation.

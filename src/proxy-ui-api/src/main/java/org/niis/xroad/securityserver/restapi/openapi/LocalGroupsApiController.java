@@ -29,8 +29,12 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
@@ -40,7 +44,6 @@ import org.niis.xroad.securityserver.restapi.openapi.validator.LocalGroupDescrip
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupService;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -57,7 +60,7 @@ import java.util.List;
  * groups api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

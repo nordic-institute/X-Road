@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.wsdl;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.service.ExternalProcessRunner;
 import org.springframework.test.util.ReflectionTestUtils;
 

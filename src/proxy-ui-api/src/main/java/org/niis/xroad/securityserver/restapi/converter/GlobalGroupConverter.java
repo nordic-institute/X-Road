@@ -28,8 +28,9 @@ package org.niis.xroad.securityserver.restapi.converter;
 
 import ee.ria.xroad.common.identifier.GlobalGroupId;
 
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.converter.Converters;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;

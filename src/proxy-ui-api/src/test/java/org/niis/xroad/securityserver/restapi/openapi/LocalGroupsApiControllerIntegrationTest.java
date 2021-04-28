@@ -30,6 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.securityserver.restapi.openapi.model.Members;

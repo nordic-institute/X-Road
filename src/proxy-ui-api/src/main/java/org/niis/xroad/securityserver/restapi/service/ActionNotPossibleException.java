@@ -25,8 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
 /**
  * Thrown if attempted to do an action (e.g. DELETE) on an object,

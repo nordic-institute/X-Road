@@ -26,9 +26,9 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.securityserver.restapi.repository.ApiKeyRepository;
-import org.niis.xroad.securityserver.restapi.service.ApiKeyService;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.repository.ApiKeyRepository;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

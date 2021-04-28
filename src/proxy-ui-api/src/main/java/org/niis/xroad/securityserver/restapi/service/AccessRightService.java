@@ -41,14 +41,16 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.NotFoundException;
+import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,8 +67,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_ACCESSRIGHT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ACCESSRIGHT_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DUPLICATE_ACCESSRIGHT;
 
 /**
  * Service class for handling access rights.

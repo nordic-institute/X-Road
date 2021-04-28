@@ -31,7 +31,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionTypeWrapper;
 import org.niis.xroad.securityserver.restapi.service.ClientService;

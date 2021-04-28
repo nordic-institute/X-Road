@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSDL;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_WSDL;
 
 /**
  * Thrown if WSDL was invalid

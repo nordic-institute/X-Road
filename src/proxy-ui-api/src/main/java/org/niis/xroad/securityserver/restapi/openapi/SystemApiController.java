@@ -29,17 +29,19 @@ import ee.ria.xroad.common.conf.serverconf.model.TspType;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
 import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
@@ -65,14 +67,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_FILE_NOT_FOUND;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_FILE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
 
 /**
  * system api controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -92,7 +94,7 @@ public class SystemApiController implements SystemApi {
     public ResponseEntity<Resource> downloadSystemCertificate() {
         String filename = "certs.tar.gz";
         byte[] certificateTar = internalTlsCertificateService.exportInternalTlsCertificate();
-        return ApiUtil.createAttachmentResourceResponse(certificateTar, filename);
+        return ControllerUtil.createAttachmentResourceResponse(certificateTar, filename);
     }
 
     @Override
@@ -120,7 +122,7 @@ public class SystemApiController implements SystemApi {
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_INTERNAL_KEY_CERT_INTERRUPTED));
         }
-        return ApiUtil.createCreatedResponse("/api/system/certificate", null);
+        return ControllerUtil.createCreatedResponse("/api/system/certificate", null);
     }
 
     @Override
@@ -173,7 +175,7 @@ public class SystemApiController implements SystemApi {
         } catch (InvalidDistinguishedNameException e) {
             throw new BadRequestException(e);
         }
-        return ApiUtil.createAttachmentResourceResponse(csrBytes, csrFilenameCreator.createInternalCsrFilename());
+        return ControllerUtil.createAttachmentResourceResponse(csrBytes, csrFilenameCreator.createInternalCsrFilename());
     }
 
     @Override
@@ -211,7 +213,7 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('DOWNLOAD_ANCHOR')")
     public ResponseEntity<Resource> downloadAnchor() {
         try {
-            return ApiUtil.createAttachmentResourceResponse(systemService.readAnchorFile(),
+            return ControllerUtil.createAttachmentResourceResponse(systemService.readAnchorFile(),
                     systemService.getAnchorFilenameForDownload());
         } catch (AnchorNotFoundException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_ANCHOR_FILE_NOT_FOUND));
@@ -231,7 +233,7 @@ public class SystemApiController implements SystemApi {
                 | ConfigurationVerifier.ConfigurationVerificationException e) {
             throw new InternalServerErrorException(e);
         }
-        return ApiUtil.createCreatedResponse("/api/system/anchor", null);
+        return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
     }
 
     @Override
@@ -268,6 +270,6 @@ public class SystemApiController implements SystemApi {
         } catch (SystemService.AnchorAlreadyExistsException e) {
             throw new ConflictException(e);
         }
-        return ApiUtil.createCreatedResponse("/api/system/anchor", null);
+        return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
     }
 }

@@ -30,8 +30,9 @@ import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
 
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
 import org.niis.xroad.securityserver.restapi.repository.EndpointRepository;
 import org.springframework.security.access.prepost.PreAuthorize;

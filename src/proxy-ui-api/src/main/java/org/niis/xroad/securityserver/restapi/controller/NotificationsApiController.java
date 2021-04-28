@@ -29,11 +29,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.config.SessionTimeoutFilter;
 import org.niis.xroad.securityserver.restapi.converter.AlertDataConverter;
 import org.niis.xroad.securityserver.restapi.domain.AlertData;
 import org.niis.xroad.securityserver.restapi.dto.AlertStatus;
-import org.niis.xroad.securityserver.restapi.openapi.ApiUtil;
 import org.niis.xroad.securityserver.restapi.service.NotificationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -58,7 +58,7 @@ import javax.servlet.http.HttpSession;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class NotificationsApiController {
-    public static final String NOTIFICATIONS_API_V1_PATH = ApiUtil.API_V1_PREFIX + "/notifications";
+    public static final String NOTIFICATIONS_API_V1_PATH = ControllerUtil.API_V1_PREFIX + "/notifications";
 
     private final NotificationService notificationService;
     private final AlertDataConverter alertDataConverter;

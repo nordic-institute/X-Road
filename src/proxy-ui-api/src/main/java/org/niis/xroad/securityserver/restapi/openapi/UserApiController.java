@@ -27,8 +27,9 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.niis.xroad.securityserver.restapi.openapi.model.User;
-import org.niis.xroad.securityserver.restapi.util.UsernameHelper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -47,13 +48,13 @@ import java.util.stream.Collectors;
  * User controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class UserApiController implements UserApi {
 
-    public static final String USER_API_V1_PATH = ApiUtil.API_V1_PREFIX + "/user";
+    public static final String USER_API_V1_PATH = ControllerUtil.API_V1_PREFIX + "/user";
 
     private final UsernameHelper usernameHelper;
 

@@ -27,15 +27,17 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.dto.BackupFile;
-import org.niis.xroad.securityserver.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.securityserver.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InvalidBackupFileException;
 import org.niis.xroad.securityserver.restapi.service.ProcessFailedException;
 import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -58,8 +60,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_FILE_NOT_FOUND;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_PROCESS_FAILED;
 
 /**
  * Test BackupsApiController

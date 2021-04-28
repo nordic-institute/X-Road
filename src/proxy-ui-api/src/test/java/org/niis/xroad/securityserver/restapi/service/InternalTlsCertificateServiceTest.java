@@ -37,8 +37,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
 import org.niis.xroad.securityserver.restapi.util.CertificateTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -57,7 +57,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
 
 /**
  * test InternalTlsCertificateService

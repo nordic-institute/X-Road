@@ -33,8 +33,11 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.CsrFormatMapping;
 import org.niis.xroad.securityserver.restapi.converter.KeyConverter;
@@ -71,7 +74,7 @@ import java.util.List;
  * tokens controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -169,7 +172,7 @@ public class TokensApiController implements TokensApi {
         try {
             KeyInfo keyInfo = keyService.addKey(tokenId, keyLabel.getLabel());
             Key key = keyConverter.convert(keyInfo);
-            return ApiUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
+            return ControllerUtil.createCreatedResponse("/api/keys/{keyId}", key, key.getId());
         } catch (TokenNotFoundException e) {
             throw new ResourceNotFoundException(e);
         } catch (ActionNotPossibleException e) {

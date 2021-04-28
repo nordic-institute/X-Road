@@ -25,11 +25,12 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
 
 /**
  * If the provided pin code is too weak

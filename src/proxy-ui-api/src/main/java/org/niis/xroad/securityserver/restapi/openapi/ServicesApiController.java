@@ -31,8 +31,12 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.securityserver.restapi.converter.EndpointConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
@@ -56,7 +60,6 @@ import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceService;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,7 +75,7 @@ import java.util.Set;
  * services api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -210,6 +213,6 @@ public class ServicesApiController implements ServicesApi {
         } catch (ServiceDescriptionService.WrongServiceDescriptionTypeException e) {
             throw new BadRequestException(e);
         }
-        return ApiUtil.createCreatedResponse("/api/endpoints/{id}", ep, ep.getId());
+        return ControllerUtil.createCreatedResponse("/api/endpoints/{id}", ep, ep.getId());
     }
 }

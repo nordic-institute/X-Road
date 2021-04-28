@@ -34,9 +34,9 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.springframework.stereotype.Component;

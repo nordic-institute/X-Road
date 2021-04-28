@@ -27,7 +27,7 @@ package org.niis.xroad.restapi.auth;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.domain.Role;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.security.core.GrantedAuthority;
 
 import java.util.Collections;

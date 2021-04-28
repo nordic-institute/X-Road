@@ -29,9 +29,10 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.dto.BackupFile;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,9 +52,9 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INVALID_BACKUP_FILE;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_BACKUP_FILE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
 /**
  * Test BackupService

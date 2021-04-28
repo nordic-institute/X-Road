@@ -34,11 +34,11 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
 import org.niis.xroad.securityserver.restapi.repository.ClientRepository;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 

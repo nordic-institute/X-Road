@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.converter;
 import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.Assert.assertEquals;

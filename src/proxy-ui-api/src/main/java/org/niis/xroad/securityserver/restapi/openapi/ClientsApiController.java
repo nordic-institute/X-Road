@@ -37,10 +37,15 @@ import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.securityserver.restapi.converter.AccessRightConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
@@ -57,7 +62,6 @@ import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingC
 import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.AccessRight;
 import org.niis.xroad.securityserver.restapi.openapi.model.AccessRights;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
@@ -94,7 +98,6 @@ import org.niis.xroad.securityserver.restapi.service.ServiceClientService;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.service.ServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
@@ -117,15 +120,15 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
-import static org.niis.xroad.securityserver.restapi.openapi.ApiUtil.createCreatedResponse;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
+import static org.niis.xroad.restapi.openapi.ControllerUtil.createCreatedResponse;
 
 /**
  * clients api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -257,7 +260,8 @@ public class ClientsApiController implements ClientsApi {
             throw new ConflictException(e);
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(certificateType);
-        return ApiUtil.createCreatedResponse("/api/clients/{id}/tls-certificates/{hash}", certificateDetails, encodedId,
+        return ControllerUtil
+                .createCreatedResponse("/api/clients/{id}/tls-certificates/{hash}", certificateDetails, encodedId,
                 certificateDetails.getHash());
     }
 
@@ -323,7 +327,7 @@ public class ClientsApiController implements ClientsApi {
             throw new ResourceNotFoundException(e);
         }
         LocalGroup createdGroup = localGroupConverter.convert(localGroupType);
-        return ApiUtil.createCreatedResponse("/api/local-groups/{id}", createdGroup, localGroupType.getId());
+        return ControllerUtil.createCreatedResponse("/api/local-groups/{id}", createdGroup, localGroupType.getId());
     }
 
     @Override

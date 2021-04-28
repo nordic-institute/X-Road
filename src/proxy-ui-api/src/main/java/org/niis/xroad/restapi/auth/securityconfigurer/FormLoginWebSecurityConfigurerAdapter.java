@@ -26,9 +26,9 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventLoggingFacade;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.util.UsernameHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;

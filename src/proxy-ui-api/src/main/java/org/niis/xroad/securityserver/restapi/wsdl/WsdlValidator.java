@@ -29,7 +29,7 @@ import ee.ria.xroad.common.SystemProperties;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.service.ExternalProcessRunner;
 import org.niis.xroad.securityserver.restapi.service.ProcessFailedException;
 import org.niis.xroad.securityserver.restapi.service.ProcessNotExecutableException;
@@ -40,7 +40,7 @@ import org.springframework.util.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE;
 
 /**
  * WsdlValidator as done in X-Road addons: wsdlvalidator

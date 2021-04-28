@@ -25,9 +25,10 @@
  */
 package org.niis.xroad.securityserver.restapi.service;
 
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CHARACTERS_PIN;
 
 /**
  * If the provided pin code contains invalid characters

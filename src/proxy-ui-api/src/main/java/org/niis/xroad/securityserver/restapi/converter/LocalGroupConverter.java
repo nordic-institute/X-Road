@@ -31,11 +31,12 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.Converters;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.GroupMember;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;

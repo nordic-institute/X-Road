@@ -30,11 +30,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceDescriptionConverter;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.IgnoreWarnings;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
@@ -46,8 +51,6 @@ import org.niis.xroad.securityserver.restapi.service.InvalidServiceUrlException;
 import org.niis.xroad.securityserver.restapi.service.InvalidUrlException;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
@@ -62,13 +65,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 
 /**
  * service descriptions api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

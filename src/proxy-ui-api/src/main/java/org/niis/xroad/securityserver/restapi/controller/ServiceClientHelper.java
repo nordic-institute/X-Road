@@ -28,10 +28,10 @@ package org.niis.xroad.securityserver.restapi.controller;
 import ee.ria.xroad.common.identifier.XRoadId;
 
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientIdentifierDto;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
 import org.niis.xroad.securityserver.restapi.service.ServiceClientNotFoundException;

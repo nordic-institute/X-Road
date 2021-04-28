@@ -26,7 +26,7 @@
 package org.niis.xroad.securityserver.restapi.devtools;
 
 import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
-import org.niis.xroad.securityserver.restapi.domain.Role;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

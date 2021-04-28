@@ -32,15 +32,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
+import org.niis.xroad.restapi.converter.Converters;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.securityserver.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.ConnectionType;
 import org.niis.xroad.securityserver.restapi.util.ClientUtils;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;

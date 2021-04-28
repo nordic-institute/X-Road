@@ -29,6 +29,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.GlobalConfDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.OcspResponderDiagnosticConverter;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceDiagnosticConverter;
@@ -49,7 +50,7 @@ import java.util.List;
  * diagnostics api
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor

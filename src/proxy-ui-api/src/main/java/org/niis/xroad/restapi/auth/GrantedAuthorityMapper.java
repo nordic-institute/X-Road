@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.auth;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.domain.Role;
+import org.niis.xroad.restapi.domain.Role;
 import org.springframework.beans.factory.config.YamlMapFactoryBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.GrantedAuthority;

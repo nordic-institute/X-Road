@@ -32,7 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;

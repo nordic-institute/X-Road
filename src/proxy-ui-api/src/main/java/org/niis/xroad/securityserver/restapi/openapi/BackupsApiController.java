@@ -27,11 +27,16 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.dto.BackupFile;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.securityserver.restapi.service.BackupFileNotFoundException;
@@ -41,8 +46,6 @@ import org.niis.xroad.securityserver.restapi.service.InvalidFilenameException;
 import org.niis.xroad.securityserver.restapi.service.RestoreProcessFailedException;
 import org.niis.xroad.securityserver.restapi.service.RestoreService;
 import org.niis.xroad.securityserver.restapi.service.TokenService;
-import org.niis.xroad.securityserver.restapi.service.UnhandledWarningsException;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -54,14 +57,14 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
 
 /**
  * Backups controller
  */
 @Controller
-@RequestMapping(ApiUtil.API_V1_PREFIX)
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
@@ -101,7 +104,7 @@ public class BackupsApiController implements BackupsApi {
         } catch (BackupFileNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return ApiUtil.createAttachmentResourceResponse(backupFile, filename);
+        return ControllerUtil.createAttachmentResourceResponse(backupFile, filename);
     }
 
     @Override

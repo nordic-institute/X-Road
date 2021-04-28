@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi.util;
 
 import org.junit.Test;
+import org.niis.xroad.restapi.util.FormatUtils;
 
 import java.util.Date;
 

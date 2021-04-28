@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

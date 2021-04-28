@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.repository;
 import ee.ria.xroad.common.SystemProperties;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.springframework.stereotype.Repository;
 
 import java.io.File;

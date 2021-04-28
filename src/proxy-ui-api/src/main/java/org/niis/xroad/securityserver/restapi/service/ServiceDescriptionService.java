@@ -39,16 +39,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hibernate.Hibernate;
-import org.niis.xroad.securityserver.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.securityserver.restapi.config.audit.RestApiAuditProperty;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareRuntimeException;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
+import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
-import org.niis.xroad.securityserver.restapi.util.FormatUtils;
+import org.niis.xroad.securityserver.restapi.util.SecurityServerFormatUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
@@ -1115,7 +1118,7 @@ public class ServiceDescriptionService {
                 .flatMap(newService -> existingServices
                         .stream()
                         .filter(existingService -> FormatUtils.getServiceFullName(existingService)
-                                .equalsIgnoreCase(FormatUtils.getServiceFullName(newService))))
+                                .equalsIgnoreCase(SecurityServerFormatUtils.getServiceFullName(newService))))
                 .collect(Collectors.toSet());
 
         // throw error with service metadata if conflicted

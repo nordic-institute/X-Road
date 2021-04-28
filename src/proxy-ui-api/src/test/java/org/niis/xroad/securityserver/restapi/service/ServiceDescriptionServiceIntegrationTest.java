@@ -36,6 +36,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.niis.xroad.restapi.service.UnhandledWarningsException;
 import org.niis.xroad.securityserver.restapi.repository.ServiceDescriptionRepository;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
@@ -63,9 +64,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_ADDING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_DELETING_SERVICES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_WSDL_VALIDATION_WARNINGS;
 
 /**
  * test ServiceDescription service.

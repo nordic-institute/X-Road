@@ -33,7 +33,7 @@ import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAwareRuntimeException;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;

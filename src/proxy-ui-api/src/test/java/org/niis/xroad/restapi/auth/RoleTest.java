@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.auth;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.domain.Role;
+import org.niis.xroad.restapi.domain.Role;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.fail;

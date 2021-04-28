@@ -33,8 +33,8 @@ import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.service.ServiceException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -50,7 +50,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_PARSING;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_PARSING;
 
 /**
  * Parser for OpenAPI descriptions

@@ -25,9 +25,9 @@
  */
 package org.niis.xroad.securityserver.restapi.util;
 
-import org.niis.xroad.securityserver.restapi.exceptions.Deviation;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationAware;
-import org.niis.xroad.securityserver.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.restapi.exceptions.Deviation;
+import org.niis.xroad.restapi.exceptions.DeviationAware;
+import org.niis.xroad.restapi.exceptions.WarningDeviation;
 
 import java.util.Arrays;
 import java.util.Collection;

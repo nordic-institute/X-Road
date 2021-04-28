@@ -30,7 +30,7 @@ import ee.ria.xroad.common.util.TokenPinPolicy;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes;
+import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.securityserver.restapi.util.DeviationTestUtils;
 
 /**

@@ -26,8 +26,9 @@
 package org.niis.xroad.securityserver.restapi.controller;
 
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.domain.PersistentApiKeyType;
-import org.niis.xroad.securityserver.restapi.dto.PlaintextApiKeyDto;
+import org.niis.xroad.restapi.controller.ApiKeysController;
+import org.niis.xroad.restapi.domain.PersistentApiKeyType;
+import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.securityserver.restapi.openapi.AbstractApiControllerTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;

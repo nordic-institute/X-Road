@@ -27,8 +27,8 @@ package org.niis.xroad.securityserver.restapi.wsdl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.niis.xroad.securityserver.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.securityserver.restapi.service.ServiceException;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -69,7 +69,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.niis.xroad.securityserver.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLOAD_FAILED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_DOWNLOAD_FAILED;
 
 /**
  * Utils for WSDL parsing
