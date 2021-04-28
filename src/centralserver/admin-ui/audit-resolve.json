@@ -4,6 +4,14 @@
       "decision": "ignore",
       "madeAt": 1617877468983,
       "expiresAt": 1620469460423
+    },
+    "565|@vue/cli-service>ssri": {
+      "decision": "ignore",
+      "madeAt": 1619606818387
+    },
+    "565|@vue/cli-service>terser-webpack-plugin>cacache>ssri": {
+      "decision": "ignore",
+      "madeAt": 1619606818387
     }
   },
   "rules": {},
