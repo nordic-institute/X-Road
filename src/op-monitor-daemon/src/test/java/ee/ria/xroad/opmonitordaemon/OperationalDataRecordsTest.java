@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.opmonitoring.StoreOpMonitoringDataResponse;
 import ee.ria.xroad.common.util.JsonUtils;
 
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -36,6 +37,8 @@ import java.util.List;
 
 import static ee.ria.xroad.opmonitordaemon.OperationalDataTestUtil.OBJECT_READER;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -86,6 +89,25 @@ public class OperationalDataRecordsTest {
         recordList.add(new OperationalDataRecord());
 
         assertEquals("{\"records\":[{},{}]}", records.getPayload(OBJECT_WRITER));
+    }
+
+    @Test
+    public void deserializeErrorResponse() throws IOException {
+        String errorJson = "{\"errorMessage\": \"Error Message\"}";
+        //String json = "{\"status\":\"Error\", \"errorMessage\": \"Error Message\"}";
+        StoreOpMonitoringDataResponse response = OBJECT_READER
+                .readValue(errorJson, StoreOpMonitoringDataResponse.class);
+        assertEquals("Error", response.getStatus());
+        assertNotNull(response.getErrorMessage());
+    }
+
+    @Test
+    public void deserializeOkResponse() throws IOException {
+        String okJson = "{\"status\": \"OK\"}";
+        StoreOpMonitoringDataResponse response = OBJECT_READER
+                .readValue(okJson, StoreOpMonitoringDataResponse.class);
+        assertEquals("OK", response.getStatus());
+        assertNull(response.getErrorMessage());
     }
 
     /**

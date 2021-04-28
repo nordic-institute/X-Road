@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.opmonitoring;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -45,11 +46,13 @@ public class StoreOpMonitoringDataResponse {
     @JsonProperty("errorMessage")
     private String errorMessage;
 
+    @JsonCreator
     public StoreOpMonitoringDataResponse() {
         this.status = STATUS_OK;
     }
 
-    public StoreOpMonitoringDataResponse(String errorMessage) {
+    @JsonCreator
+    public StoreOpMonitoringDataResponse(@JsonProperty("errorMessage") String errorMessage) {
         this.status = STATUS_ERROR;
         this.errorMessage = errorMessage;
     }
