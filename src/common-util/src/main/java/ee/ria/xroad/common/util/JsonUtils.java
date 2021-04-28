@@ -57,6 +57,7 @@ public final class JsonUtils {
         objectMapperWithNulls.registerModule(new JavaTimeModule());
         objectMapperWithNulls.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
         objectMapperWithNulls.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        objectMapperWithNulls.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
         OBJECT_MAPPER_WITH_NULLS = objectMapperWithNulls;
 

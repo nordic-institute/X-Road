@@ -26,9 +26,11 @@
 package ee.ria.xroad.opmonitordaemon;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -44,6 +46,7 @@ import static ee.ria.xroad.common.opmonitoring.OpMonitoringData.SecurityServerTy
  */
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
 public class OperationalDataRecord {
 
     // The unique ID of the record in the database.
@@ -220,6 +223,7 @@ public class OperationalDataRecord {
 
     @Getter
     @Setter
+    @JsonProperty("xRequestId") // Jackson does not deserialize xRequestId without explicitly telling this
     private String xRequestId;
 
     @Getter

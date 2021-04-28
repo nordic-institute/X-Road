@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -54,7 +55,8 @@ class OperationalDataRecords {
     @JsonIgnore
     private Long nextRecordsFrom = null;
 
-    OperationalDataRecords(List<OperationalDataRecord> records) {
+    @JsonCreator
+    OperationalDataRecords(@JsonProperty("records") List<OperationalDataRecord> records) {
         this.records = records;
     }
 
