@@ -12,21 +12,28 @@
   notify: restart ssh
   when: ssh_password_authentication is defined
 
+- name: xroad group
+  group:
+    name: xroad
+    system: true
+
 - name: xroad user
   user:
     name: xroad
-    comment: "XRoad User"
+    comment: "X-Road system user"
     state: present
     shell: "/bin/bash"
+    group: "xroad"
+    system: true
     password: '*'
     createhome: "yes"
 
 - name: xroad ui user
   user:
     name: "{{ xroad_ui_user }}"
-    comment: "XRoad UI User"
+    comment: "X-Road admin user"
     state: present
-    shell: "/bin/false"
+    shell: "/usr/sbin/nologin"
     password: "{{ xroad_ui_user_password }}"
     createhome: "no"
 

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common">
+  <v-container class="xrd-view-common">
     <div class="inner-wrap">
       <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
       <v-layout align-center justify-center column fill-height elevation-0>
@@ -262,7 +262,7 @@
         </v-card>
       </v-layout>
     </div>
-  </div>
+  </v-container>
 </template>
 
 <script lang="ts">
@@ -358,21 +358,6 @@ export default Vue.extend({
 @import '~styles/shared';
 @import '~styles/colors';
 @import '~styles/tables';
-
-.xrd-view-common {
-  width: 100%;
-}
-
-.inner-wrap {
-  max-width: 1600px;
-  margin-left: auto;
-  margin-right: auto;
-
-  @media only screen and (max-width: 1630px) {
-    margin-left: 10px;
-    margin-right: 10px;
-  }
-}
 
 .xrd-card-text {
   padding-left: 0;
