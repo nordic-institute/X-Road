@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.util.CachingStream;
 
 import com.fasterxml.jackson.core.JsonFactory;
@@ -36,8 +37,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Iterator;
-import java.util.Map;
+
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
 /*
  * Class for parsing Openapi3 description and replacing strings in servers.url-node with anonymised value
@@ -60,6 +61,16 @@ public class Openapi3Anonymiser {
 
     public void anonymise(InputStream input, CachingStream output) throws IOException {
         ObjectNode tree = (ObjectNode) objectMapper.readTree(input);
+
+        final JsonNode openapiVersion = tree.get("openapi");
+
+        // Check openapi version
+        if (openapiVersion != null && !openapiVersion.toString().startsWith("\"3.")) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    String.format("Incompatible openapi version. Openapi version 3 or greater expected. "
+                            + "Given openapi document is of version %s", openapiVersion.toString()));
+        }
+
         final JsonNode servers = tree.get(SERVERS);
         if (servers != null && servers.isArray()) {
             servers.forEach(server -> {

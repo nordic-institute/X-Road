@@ -267,7 +267,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         for (Header header : headers) {
             if ("content-type".equalsIgnoreCase(header.getName())) {
                 String contentType = header.getValue();
-                if ("application/json".equals(contentType)) {
+                if (contentType.contains("application/json")) {
                     isJson = true;
                 } else if ("application/x-yaml".equals(contentType)) {
                     isYaml = true;

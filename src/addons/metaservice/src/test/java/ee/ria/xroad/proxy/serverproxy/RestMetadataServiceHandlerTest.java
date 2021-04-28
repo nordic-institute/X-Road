@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.serverproxy;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
@@ -89,10 +90,13 @@ public class RestMetadataServiceHandlerTest {
     private static final String EXPECTED_XR_INSTANCE = "EE";
     private static final String SUBSYSTEM_FOR_YAML_FILE = "YAMLSUBSYSTEM";
     private static final String SUBSYSTEM_FOR_JSON_FILE = "JSONSUBSYSTEM";
+    private static final String SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE = "UNSUPPORTEDYAMLFILE";
     private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", SUBSYSTEM_FOR_YAML_FILE);
     private static final ClientId SECONDARY_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
             "1234TEST_CLIENT", SUBSYSTEM_FOR_JSON_FILE);
+    private static final ClientId CLIENT_WITH_UNSUPPORTED_OPENAPI = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+            "1234TEST_CLIENT", SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE);
     private static final byte[] REQUEST_HASH = "foobar1234".getBytes();
     private static final int MOCK_SERVER_PORT = 9858;
 
@@ -139,6 +143,8 @@ public class RestMetadataServiceHandlerTest {
             public String getServiceDescriptionURL(ServiceId service) {
                 if (SUBSYSTEM_FOR_JSON_FILE.equals(service.getSubsystemCode())) {
                     return "http://localhost:9858/petstore.json";
+                } else if (SUBSYSTEM_FOR_UNSUPPORTED_YAML_FILE.equals(service.getSubsystemCode())) {
+                    return "http://localhost:9858/openapi_incompatible_version.yaml";
                 } else {
                     return "http://localhost:9858/petstore.yaml";
                 }
@@ -298,7 +304,6 @@ public class RestMetadataServiceHandlerTest {
 
         assertTrue(yaml.contains(Openapi3Anonymiser.PLACEHOLDER));
         assertEquals(StringUtils.countMatches(yaml, Openapi3Anonymiser.PLACEHOLDER), 1);
-
     }
 
     @Test
@@ -329,6 +334,27 @@ public class RestMetadataServiceHandlerTest {
 
         assertTrue(json.contains(Openapi3Anonymiser.PLACEHOLDER));
         assertEquals(2, StringUtils.countMatches(json, Openapi3Anonymiser.PLACEHOLDER));
+    }
+
+    @Test(expected = CodedException.class)
+    public void shouldDetectUnsupportedOpenapiVersion() throws Exception {
+        RestMetadataServiceHandlerImpl handlerToTest = new RestMetadataServiceHandlerImpl();
+        ProxyMessageDecoder mockDecoder = mock(ProxyMessageDecoder.class);
+        ProxyMessageEncoder mockEncoder = mock(ProxyMessageEncoder.class);
+
+        // Test for petstore.yaml parsing
+        ServiceId serviceId = ServiceId.create(CLIENT_WITH_UNSUPPORTED_OPENAPI, GET_OPENAPI);
+
+        RestRequest mockRestRequest = mock(RestRequest.class);
+        when(mockRestRequest.getQuery()).thenReturn("serviceCode=yaml");
+        when(mockRestRequest.getServiceId()).thenReturn(serviceId);
+        when(mockRestRequest.getVerb()).thenReturn(RestRequest.Verb.GET);
+        when(mockRestRequest.getClientId()).thenReturn(CLIENT_WITH_UNSUPPORTED_OPENAPI);
+        when(mockRestRequest.getHash()).thenReturn(REQUEST_HASH);
+        when(mockProxyMessage.getRest()).thenReturn(mockRestRequest);
+
+        handlerToTest.startHandling(mockRequest, mockProxyMessage, mockDecoder, mockEncoder, httpClientMock,
+                httpClientMock, mock(OpMonitoringData.class));
     }
 
 }
