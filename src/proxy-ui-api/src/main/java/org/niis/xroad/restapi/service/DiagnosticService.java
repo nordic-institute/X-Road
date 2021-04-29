@@ -51,6 +51,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -87,7 +88,9 @@ public class DiagnosticService {
                 SystemProperties.getSignerAdminPort());
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
                 JsonUtils.getObjectMapperCopy());
-        converter.getSupportedMediaTypes().add(MediaType.APPLICATION_OCTET_STREAM);
+        List<MediaType> mediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
+        mediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
+        converter.setSupportedMediaTypes(mediaTypes);
         this.restTemplate = restTemplateBuilder
                 .setConnectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
                 .setReadTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
