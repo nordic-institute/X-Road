@@ -29,26 +29,25 @@ EOF
 
 execute_restore () {
   if [ -x ${COMMON_RESTORE_SCRIPT} ] ; then
-    local args="-t security -f ${BACKUP_FILENAME}"
-    if [ -n ${FORCE_RESTORE} ] && [[ ${FORCE_RESTORE} = true ]] ; then
-      args="${args} -F"
+    local args=(-t security -f "${BACKUP_FILENAME}")
+    if [[ -n ${FORCE_RESTORE} ]] && [[ ${FORCE_RESTORE} = true ]] ; then
+      args+=(-F)
     else
-      args="${args} -s ${SECURITY_SERVER_ID}"
+      args+=(-s "${SECURITY_SERVER_ID}")
       if [[ $USE_BASE_64 = true ]] ; then
-        args="${args} -b"
+        args+=(-b)
       fi
     fi
-    if [ -n ${SKIP_REMOVAL} ] && [[ ${SKIP_REMOVAL} = true ]] ; then
-      args="${args} -R"
+    if [[ -n ${SKIP_REMOVAL} ]] && [[ ${SKIP_REMOVAL} = true ]] ; then
+      args+=(-R)
     fi
     if [[ $PLAIN_BACKUP != true ]] ; then
-      args="${args} -E"
+      args+=(-E)
     fi
     if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
-      args="${args} -N"
+      args+=(-N)
     fi
-    sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
-    if [ $? -ne 0 ] ; then
+    if ! sudo -u root ${COMMON_RESTORE_SCRIPT} "${args[@]}" 2>&1 ; then
       echo "Failed to restore the configuration of the X-Road security server"
       exit 1
     fi

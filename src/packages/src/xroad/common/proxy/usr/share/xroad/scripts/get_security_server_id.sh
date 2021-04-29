@@ -6,7 +6,7 @@ HOST=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection
 PORT=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f2)
 
 export PGPASSWORD=${PW}
-psql -t -A -F / -h ${HOST:-localhost} -p ${PORT:-5432} -d serverconf -U ${USER:-serverconf} -c \
+psql -t -A -F / -h "${HOST:-localhost}" -p "${PORT:-5432}" -d serverconf -U "${USER:-serverconf}" -c \
 "select identifier.xroadinstance, identifier.memberclass, identifier.membercode, serverconf.servercode\
  from serverconf\
  inner join client on serverconf.owner=client.id\

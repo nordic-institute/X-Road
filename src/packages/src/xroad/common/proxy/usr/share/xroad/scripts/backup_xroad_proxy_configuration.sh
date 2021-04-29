@@ -24,36 +24,24 @@ OPTIONS:
 EOF
 }
 
-get_proxy_prop() {
-  # local.ini overrides keys
-  local value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null || echo EMPTYKEY)
-  if [ -n "$value" ]; then
-    if [ $value = EMPTYKEY ]; then
-      local value=$(crudini --get /etc/xroad/conf.d/"$1" "$2" "$3" 2>/dev/null || echo -n "$4")
-    fi
-  fi
-  echo $value
-}
-
 execute_backup () {
   if [ -x $COMMON_BACKUP_SCRIPT ] ; then
-    local args="-t security -s $SECURITY_SERVER_ID -f $BACKUP_FILENAME"
+    local args=(-t security -s "$SECURITY_SERVER_ID" -f "$BACKUP_FILENAME")
     if [[ $USE_BASE_64 = true ]] ; then
-      args="${args} -b"
+      args+=(-b)
     fi
     if [[ $SKIP_DB_BACKUP = true ]] ; then
-      args="${args} -S"
+      args+=(-S)
     fi
     if [[ $ENCRYPT_BACKUP = true ]] ; then
-      args="${args} -E encrypt"
+      args+=(-E encrypt)
     else
-      args="${args} -E signonly"
+      args+=(-E signonly)
     fi
     if [ -n "$PUBKEYS_FOLDER" ]; then
-      args="${args} -k $PUBKEYS_FOLDER"
+      args+=(-k "$PUBKEYS_FOLDER")
     fi
-    ${COMMON_BACKUP_SCRIPT} ${args}
-    if [ $? -ne 0 ] ; then
+    if ! ${COMMON_BACKUP_SCRIPT} "${args[@]}" ; then
       echo "Failed to back up the configuration of the X-Road security server"
       exit 1
     fi

@@ -78,7 +78,7 @@ case "$1" in
   db_stop
 
   # generate gpg keypair when needed - directory does not exist and server is initialised
-  if [ ! -d /etc/xroaqd/gpghome ] ; then
+  if [ ! -d /etc/xroaq/gpghome ] ; then
     ID=$(source /usr/share/xroad/scripts/get_security_server_id.sh)
     if [[ -n "${ID}" ]] ; then
       /usr/share/xroad/scripts/generate_gpg_keypair.sh ${ID}

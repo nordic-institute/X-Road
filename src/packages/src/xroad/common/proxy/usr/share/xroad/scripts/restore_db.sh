@@ -59,10 +59,10 @@ pgrestore() {
   # no --clean for force restore
   if [[ $FORCE_RESTORE == true ]] ; then
     PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
-      pg_restore --single-transaction -d "$db_database" --schema=$db_schema $dump_file
+      pg_restore --single-transaction -d "$db_database" --schema="$db_schema" "$dump_file"
   else
     PGHOST="$db_addr" PGPORT="$db_port" PGUSER="$db_admin_user" PGPASSWORD="$db_admin_password" \
-      pg_restore --single-transaction --clean -d "$db_database" --schema=$db_schema $dump_file
+      pg_restore --single-transaction --clean -d "$db_database" --schema="$db_schema" "$dump_file"
   fi
 }
 
@@ -101,7 +101,7 @@ WHERE usename='$db_user' and datname='$db_database' and pid <> pg_backend_pid();
 EOF
 } | psql_dbuser || true
 
-cd /usr/share/xroad/db/
+cd /usr/share/xroad/db/ || abort "Could not change current directory to /usr/share/xroad/db"
 
 context="--contexts=user"
 if [[ "$db_conn_user" != "$db_admin_user" ]]; then
