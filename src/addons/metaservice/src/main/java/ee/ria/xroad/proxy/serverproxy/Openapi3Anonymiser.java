@@ -53,18 +53,18 @@ public class Openapi3Anonymiser {
             new ObjectMapper(new YAMLFactory()).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
     public void anonymiseJson(InputStream input, CachingStream output) throws IOException {
-        ObjectNode tree = (ObjectNode) JSONMAPPER.readTree(input);
+        JsonNode tree = JSONMAPPER.readTree(input);
         handleAnonymising(tree);
         JSONMAPPER.writeValue(output, tree);
     }
 
     public void anonymiseYaml(InputStream input, CachingStream output) throws IOException {
-        ObjectNode tree = (ObjectNode) YAMLMAPPER.readTree(input);
+        JsonNode tree = YAMLMAPPER.readTree(input);
         handleAnonymising(tree);
         YAMLMAPPER.writeValue(output, tree);
     }
 
-    private void handleAnonymising(ObjectNode tree) {
+    private void handleAnonymising(JsonNode tree) {
         final JsonNode openapiVersion = tree.get("openapi");
 
         // Check openapi version
