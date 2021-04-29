@@ -48,20 +48,23 @@ public class Openapi3Anonymiser {
     public static final String SERVERS = "servers";
     public static final String URL = "url";
     public static final String PLACEHOLDER = "http://example.org/xroad-example";
-    private ObjectMapper objectMapper;
+    private static final ObjectMapper JSONMAPPER = new ObjectMapper(new JsonFactory());
+    private static final ObjectMapper YAMLMAPPER =
+            new ObjectMapper(new YAMLFactory()).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
-    public Openapi3Anonymiser(OpenapiDescriptionFiletype fileType) {
-        if (OpenapiDescriptionFiletype.JSON.equals(fileType)) {
-            objectMapper = new ObjectMapper(new JsonFactory());
-        } else {
-            objectMapper = new ObjectMapper(new YAMLFactory());
-            objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        }
+    public void anonymiseJson(InputStream input, CachingStream output) throws IOException {
+        ObjectNode tree = (ObjectNode) JSONMAPPER.readTree(input);
+        handleAnonymising(tree);
+        JSONMAPPER.writeValue(output, tree);
     }
 
-    public void anonymise(InputStream input, CachingStream output) throws IOException {
-        ObjectNode tree = (ObjectNode) objectMapper.readTree(input);
+    public void anonymiseYaml(InputStream input, CachingStream output) throws IOException {
+        ObjectNode tree = (ObjectNode) YAMLMAPPER.readTree(input);
+        handleAnonymising(tree);
+        YAMLMAPPER.writeValue(output, tree);
+    }
 
+    private void handleAnonymising(ObjectNode tree) {
         final JsonNode openapiVersion = tree.get("openapi");
 
         // Check openapi version
@@ -79,7 +82,5 @@ public class Openapi3Anonymiser {
                 }
             });
         }
-        tree.set(SERVERS, servers);
-        objectMapper.writeValue(output, tree);
     }
 }

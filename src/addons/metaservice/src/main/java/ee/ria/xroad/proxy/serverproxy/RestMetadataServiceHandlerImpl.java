@@ -61,10 +61,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
@@ -224,7 +222,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         // ServerMessageProcessor uses the same method to pass the ServiceId to CustomSSLSocketFactory
         httpContext.setAttribute(ServiceId.class.getName(), targetServiceId);
 
-        HttpResponse response = client.execute(new HttpGet(new URI(serviceDescriptionURL)), httpContext);
+        URI uri = new URI(serviceDescriptionURL);
+        HttpResponse response = client.execute(new HttpGet(uri), httpContext);
         StatusLine statusLine = response.getStatusLine();
 
         if (HttpStatus.SC_OK != statusLine.getStatusCode()) {
@@ -236,13 +235,13 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         InputStream responseContent = response.getEntity().getContent();
 
         try {
-            OpenapiDescriptionFiletype filetype = getFileType(restResponse, serviceDescriptionURL);
-            Openapi3Anonymiser anonymiser = new Openapi3Anonymiser(filetype);
-            anonymiser.anonymise(responseContent, restResponseBody);
-        } catch (MalformedURLException e) {
-            throw new CodedException(X_INTERNAL_ERROR,
-                    String.format("Failed determining file type from the service URL %s",
-                            serviceDescriptionURL));
+            OpenapiDescriptionFiletype filetype = getFileType(response, uri);
+            Openapi3Anonymiser anonymiser = new Openapi3Anonymiser();
+            if (OpenapiDescriptionFiletype.JSON.equals(filetype)) {
+                anonymiser.anonymiseJson(responseContent, restResponseBody);
+            } else {
+                anonymiser.anonymiseYaml(responseContent, restResponseBody);
+            }
         } catch (IOException e) {
             throw new CodedException(X_INTERNAL_ERROR,
                     String.format("Failed overwriting origin URL for the openapi servers for %s",
@@ -259,19 +258,16 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     }
 
-    private OpenapiDescriptionFiletype getFileType(RestResponse response, String serviceDescriptionURL)
-        throws MalformedURLException {
+    private OpenapiDescriptionFiletype getFileType(HttpResponse response, URI uri) {
         boolean isJson = false;
         boolean isYaml = false;
-        List<Header> headers = response.getHeaders();
-        for (Header header : headers) {
-            if ("content-type".equalsIgnoreCase(header.getName())) {
-                String contentType = header.getValue();
-                if (contentType.contains("application/json")) {
-                    isJson = true;
-                } else if ("application/x-yaml".equals(contentType)) {
-                    isYaml = true;
-                }
+        Header[] contentTypeHeaders = response.getHeaders("content-type");
+        for (Header header : contentTypeHeaders) {
+            String contentType = header.getValue();
+            if (contentType.contains("application/json")) {
+                isJson = true;
+            } else if ("application/x-yaml".equals(contentType)) {
+                isYaml = true;
             }
         }
 
@@ -281,8 +277,7 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             return OpenapiDescriptionFiletype.YAML;
         }
 
-        URL url = new URL(serviceDescriptionURL);
-        return url.getPath().endsWith(".json")
+        return uri.getPath().endsWith(".json")
                 ? OpenapiDescriptionFiletype.JSON : OpenapiDescriptionFiletype.YAML;
     }
 
