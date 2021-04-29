@@ -31,6 +31,7 @@ import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.JsonUtils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
@@ -50,7 +51,6 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -67,6 +67,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 1000;
     private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
     private final RestTemplate restTemplate;
     private final String diagnosticsGlobalconfUrl;
@@ -78,19 +79,19 @@ public class DiagnosticService {
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
             @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
             RestTemplateBuilder restTemplateBuilder) {
-
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
-        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-        converter.setSupportedMediaTypes(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
+                JsonUtils.getObjectMapperCopy());
+        converter.getSupportedMediaTypes().add(MediaType.APPLICATION_OCTET_STREAM);
         this.restTemplate = restTemplateBuilder
-                .setConnectTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
+                .setConnectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
                 .setReadTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
-                .additionalMessageConverters(converter)
+                .messageConverters(converter)
                 .build();
     }
 

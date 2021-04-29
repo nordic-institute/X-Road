@@ -71,6 +71,17 @@ public final class JsonUtils {
     }
 
     /**
+     * <strong>Get a copy of the static {@link #OBJECT_MAPPER} instance</strong> e.g. when you need to provide it for
+     * some other context such as MappingJackson2HttpMessageConverter. For basic de/serialization needs,
+     * please use {@link #getObjectReader()}, {@link #getObjectWriter()} or {@link #getObjectWriter(boolean)} instead
+     *
+     * @return Jackson ObjectMapper instance with custom deserializer.
+     */
+    public static ObjectMapper getObjectMapperCopy() {
+        return OBJECT_MAPPER.copy();
+    }
+
+    /**
      * Get Jackson ObjectReader with custom deserializer.
      *
      * @return Jackson ObjectReader instance with custom deserializer.

@@ -31,12 +31,12 @@ import ee.ria.xroad.common.conf.globalconf.AuthKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.message.RestMessage;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
+import ee.ria.xroad.common.util.JsonUtils;
 import ee.ria.xroad.common.util.MimeUtils;
 import ee.ria.xroad.common.util.XmlUtils;
 import ee.ria.xroad.proxy.conf.KeyConf;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.HttpClient;
@@ -138,8 +138,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
                 log.error("Unable to generate XML document");
             }
         } else {
-            try (JsonGenerator jsonGenerator = new JsonFactory()
-                    .createGenerator(new PrintWriter(response.getOutputStream()))) {
+            try (JsonGenerator jsonGenerator = JsonUtils.getObjectWriter()
+                    .getFactory().createGenerator(new PrintWriter(response.getOutputStream()))) {
                 jsonGenerator.writeStartObject();
                 jsonGenerator.writeStringField("type", ex.getFaultCode());
                 jsonGenerator.writeStringField("message", ex.getFaultString());
