@@ -193,7 +193,7 @@ module.exports = {
     localGroupPopup.selectMember('REST-UI-TEST:ORG:2908758-4:Management');
     localGroupPopup.cancelAddMembersDialog();
 
-    browser.assert.not.elementPresent(
+    browser.waitForElementNotVisible(
       '//span[contains(@class, "headline") and @data-test="add-members-dialog-title"]',
     );
     browser.waitForElementVisible(localGroupPopup);

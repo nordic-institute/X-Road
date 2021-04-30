@@ -944,7 +944,7 @@ module.exports = {
       },
     },
     certificatePopup: {
-      selector: '//div[contains(@class, "certificate-details-wrapper")]',
+      '//div[contains(@class,"xrd-view-common") and .//*[contains(@class, "identifier-wrap") and contains(text(), "Certificate")]]', //TODO: Needs data-test
       locateStrategy: 'xpath',
       commands: [certificatePopupCommands],
       elements: {
