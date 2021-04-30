@@ -37,7 +37,8 @@ import ee.ria.xroad.common.util.TimeUtils;
 import akka.actor.ActorRef;
 import akka.actor.Cancellable;
 import akka.actor.Props;
-import com.google.gson.Gson;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -79,7 +80,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
     private static final int CLIENT_SOCKET_TIMEOUT_MILLISECONDS = TimeUtils.secondsToMillis(
             OpMonitoringSystemProperties.getOpMonitorBufferSocketTimeoutSeconds());
 
-    private static final Gson GSON = JsonUtils.getSerializer();
+    private static final ObjectWriter OBJECT_WRITER = JsonUtils.getObjectWriter();
 
     private Cancellable tick;
 
@@ -109,6 +110,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
     /**
      * Constructor.
+     *
      * @throws Exception if an error occurs
      */
     public OpMonitoringBuffer() throws Exception {
@@ -161,7 +163,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
         return !buffer.isEmpty() && processedBufferIndices.isEmpty();
     }
 
-    private String prepareMonitoringMessage() {
+    private String prepareMonitoringMessage() throws JsonProcessingException {
         StoreOpMonitoringDataRequest request = new StoreOpMonitoringDataRequest();
 
         for (Map.Entry<Long, OpMonitoringData> entry : buffer.entrySet()) {
@@ -175,7 +177,7 @@ public class OpMonitoringBuffer extends AbstractOpMonitoringBuffer {
 
         log.debug("Op monitoring buffer records count: {}", buffer.size());
 
-        return GSON.toJson(request);
+        return OBJECT_WRITER.writeValueAsString(request);
     }
 
     @Override

@@ -27,121 +27,113 @@ package ee.ria.xroad.common.util;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.TypeAdapter;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectReader;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 import java.io.IOException;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-import java.lang.reflect.Type;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * This class contains various json related utility methods.
  */
 public final class JsonUtils {
 
-    private static final Gson GSON;
-    private static final Gson GSON_WITH_NULLS;
+    private static final ObjectMapper OBJECT_MAPPER;
+    private static final ObjectMapper OBJECT_MAPPER_WITH_NULLS;
 
     static {
-        GsonBuilder builder = new GsonBuilder();
-        builder.disableHtmlEscaping();
-        builder.registerTypeAdapter(ClientId.class, new ClientIdSerializer());
-        builder.registerTypeAdapter(OffsetDateTime.class, new OffsetDateTimeAdapter());
-        builder.setExclusionStrategies(new ExclusionStrategy() {
-            @Override
-            public boolean shouldSkipField(FieldAttributes f) {
-                return f.getAnnotation(Exclude.class) != null;
-            }
+        ObjectMapper objectMapperWithNulls = new ObjectMapper();
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(ClientId.class, new ClientIdSerializer());
+        objectMapperWithNulls.registerModule(module);
+        objectMapperWithNulls.registerModule(new JavaTimeModule());
+        objectMapperWithNulls.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        objectMapperWithNulls.disable(DeserializationFeature.ADJUST_DATES_TO_CONTEXT_TIME_ZONE);
+        objectMapperWithNulls.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-            @Override
-            public boolean shouldSkipClass(Class<?> clazz) {
-                return false;
-            }
-        });
-        GSON = builder.create();
-        builder.serializeNulls();
-        GSON_WITH_NULLS = builder.create();
+        OBJECT_MAPPER_WITH_NULLS = objectMapperWithNulls;
+
+        ObjectMapper objectMapperWithoutNulls = objectMapperWithNulls.copy();
+        objectMapperWithoutNulls.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        OBJECT_MAPPER = objectMapperWithoutNulls;
     }
 
     private JsonUtils() {
     }
 
     /**
-     * Get Gson with custom serializer.
+     * <strong>Get a copy of the static {@link #OBJECT_MAPPER} instance</strong> e.g. when you need to provide it for
+     * some other context such as MappingJackson2HttpMessageConverter. For basic de/serialization needs,
+     * please use {@link #getObjectReader()}, {@link #getObjectWriter()} or {@link #getObjectWriter(boolean)} instead
+     *
+     * @return Jackson ObjectMapper instance with custom deserializer.
+     */
+    public static ObjectMapper getObjectMapperCopy() {
+        return OBJECT_MAPPER.copy();
+    }
+
+    /**
+     * Get Jackson ObjectReader with custom deserializer.
+     *
+     * @return Jackson ObjectReader instance with custom deserializer.
+     */
+    public static ObjectReader getObjectReader() {
+        return OBJECT_MAPPER.reader();
+    }
+
+    /**
+     * Get Jackson ObjectWriter with custom serializer.
      * Default serializer does not serialize nulls
-     * @return Gson instance with custom serializer.
+     *
+     * @return Jackson ObjectWriter instance with custom serializer.
      */
-    public static Gson getSerializer() {
-        return GSON;
+    public static ObjectWriter getObjectWriter() {
+        return OBJECT_MAPPER.writer();
     }
 
     /**
-     * Get Gson with custom serializer.
+     * Get Jackson ObjectWriter with custom serializer.
+     *
      * @param serializeNulls if null values should be serialized
-     * @return Gson instance with custom serializer.
+     * @return Jackson ObjectWriter instance with custom serializer.
      */
-    public static Gson getSerializer(boolean serializeNulls) {
+    public static ObjectWriter getObjectWriter(boolean serializeNulls) {
         if (serializeNulls) {
-            return GSON_WITH_NULLS;
+            return OBJECT_MAPPER_WITH_NULLS.writer();
         }
-        return GSON;
+        return OBJECT_MAPPER.writer();
     }
 
-    private static class ClientIdSerializer implements JsonSerializer<ClientId> {
-        @Override
-        public JsonElement serialize(ClientId src, Type typeOfSrc,
-                JsonSerializationContext context) {
-            JsonObject o = new JsonObject();
-            o.addProperty("xRoadInstance", src.getXRoadInstance());
-            o.addProperty("memberClass", src.getMemberClass());
-            o.addProperty("memberCode", src.getMemberCode());
+    private static class ClientIdSerializer extends StdSerializer<ClientId> {
+        protected ClientIdSerializer() {
+            this(null);
+        }
 
-            if (src.getSubsystemCode() != null) {
-                o.addProperty("subsystemCode", src.getSubsystemCode());
+        protected ClientIdSerializer(Class<ClientId> t) {
+            super(t);
+        }
+
+        @Override
+        public void serialize(ClientId value, JsonGenerator gen,
+                SerializerProvider serializers) throws IOException {
+            gen.writeStartObject();
+            gen.writeStringField("xRoadInstance", value.getXRoadInstance());
+            gen.writeStringField("memberClass", value.getMemberClass());
+            gen.writeStringField("memberCode", value.getMemberCode());
+
+            if (value.getSubsystemCode() != null) {
+                gen.writeStringField("subsystemCode", value.getSubsystemCode());
             }
-
-            return o;
+            gen.writeEndObject();
         }
     }
-
-    /**
-     * Annotation to exclude fields from serialization/deserialization.
-     */
-    @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
-    public @interface Exclude {
-    }
-
-    private static class OffsetDateTimeAdapter extends TypeAdapter<OffsetDateTime> {
-
-        @Override
-        public void write(JsonWriter out, OffsetDateTime value) throws IOException {
-            out.value(value == null ? null : value.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
-        }
-
-        @Override
-        public OffsetDateTime read(JsonReader in) throws IOException {
-            if (in.peek().equals(JsonToken.NULL)) {
-                in.nextNull();
-                return null;
-            }
-            return OffsetDateTime.parse(in.nextString());
-        }
-    }
-
 }

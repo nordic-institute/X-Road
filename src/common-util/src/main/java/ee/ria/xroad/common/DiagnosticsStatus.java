@@ -25,7 +25,10 @@
  */
 package ee.ria.xroad.common;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -37,6 +40,8 @@ import java.time.OffsetDateTime;
  */
 @Getter
 @ToString
+@NoArgsConstructor(force = true, access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 public class DiagnosticsStatus implements Serializable {
     private int returnCode;
     private OffsetDateTime prevUpdate;

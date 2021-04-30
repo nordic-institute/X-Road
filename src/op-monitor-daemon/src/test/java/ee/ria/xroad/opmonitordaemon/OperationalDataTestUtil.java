@@ -30,7 +30,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.google.gson.Gson;
+import com.fasterxml.jackson.databind.ObjectReader;
 import org.hibernate.query.Query;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ import static ee.ria.xroad.opmonitordaemon.OperationalDataRecordManager.storeRec
 // Utilities for the various levels of tests against
 // OperationalMonitoringRecord that use the HSQLDB in-memory database.
 final class OperationalDataTestUtil {
-    static final Gson GSON = JsonUtils.getSerializer();
+    static final ObjectReader OBJECT_READER = JsonUtils.getObjectReader();
 
     private OperationalDataTestUtil() { }
 
@@ -128,7 +128,7 @@ final class OperationalDataTestUtil {
         OperationalDataRecord record;
 
         for (int i = 0; i < count; i++) {
-            record = GSON.fromJson(formatFullOperationalDataAsJson(),
+            record = OBJECT_READER.readValue(formatFullOperationalDataAsJson(),
                     OperationalDataRecord.class);
             record.setMonitoringDataTs(monitoringDataTs);
 
@@ -140,7 +140,7 @@ final class OperationalDataTestUtil {
 
     static void storeFullOperationalDataRecord(long monitoringDataTs,
             ClientId client, ClientId serviceProvider) throws Exception {
-        OperationalDataRecord record = GSON.fromJson(
+        OperationalDataRecord record = OBJECT_READER.readValue(
                 formatFullOperationalDataAsJson(), OperationalDataRecord.class);
 
         record.setMonitoringDataTs(monitoringDataTs);

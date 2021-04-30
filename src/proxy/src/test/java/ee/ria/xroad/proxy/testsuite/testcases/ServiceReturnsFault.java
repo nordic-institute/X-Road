@@ -58,7 +58,7 @@ public class ServiceReturnsFault extends MessageTestCase {
             @Override
             public void handle(String target, Request baseRequest,
                     HttpServletRequest request, HttpServletResponse response)
-                        throws IOException {
+                    throws IOException {
                 response.setContentType(MimeTypes.TEXT_XML);
                 response.setStatus(
                         HttpServletResponse.SC_INTERNAL_SERVER_ERROR);

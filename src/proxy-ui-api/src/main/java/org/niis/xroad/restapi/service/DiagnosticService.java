@@ -25,35 +25,37 @@
  */
 package org.niis.xroad.restapi.service;
 
+import ee.ria.xroad.common.CertificationServiceDiagnostics;
+import ee.ria.xroad.common.CertificationServiceStatus;
 import ee.ria.xroad.common.DiagnosticsStatus;
+import ee.ria.xroad.common.OcspResponderStatus;
 import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.util.JsonUtils;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
 import org.niis.xroad.restapi.dto.OcspResponderDiagnosticsStatus;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.IOException;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
@@ -66,7 +68,9 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_
 @Transactional
 @PreAuthorize("isAuthenticated()")
 public class DiagnosticService {
+    private static final int HTTP_CONNECT_TIMEOUT_MS = 1000;
     private static final int HTTP_CLIENT_TIMEOUT_MS = 60000;
+    private final RestTemplate restTemplate;
     private final String diagnosticsGlobalconfUrl;
     private final String diagnosticsTimestampingServicesUrl;
     private final String diagnosticsOcspRespondersUrl;
@@ -74,14 +78,24 @@ public class DiagnosticService {
     @Autowired
     public DiagnosticService(@Value("${url.diagnostics-globalconf}") String diagnosticsGlobalconfUrl,
             @Value("${url.diagnostics-timestamping-services}") String diagnosticsTimestampingServicesUrl,
-            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl) {
-
+            @Value("${url.diagnostics-ocsp-responders}") String diagnosticsOcspRespondersUrl,
+            RestTemplateBuilder restTemplateBuilder) {
         this.diagnosticsGlobalconfUrl = String.format(diagnosticsGlobalconfUrl,
                 SystemProperties.getConfigurationClientAdminPort());
         this.diagnosticsTimestampingServicesUrl = String.format(diagnosticsTimestampingServicesUrl,
                 PortNumbers.ADMIN_PORT);
         this.diagnosticsOcspRespondersUrl = String.format(diagnosticsOcspRespondersUrl,
                 SystemProperties.getSignerAdminPort());
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(
+                JsonUtils.getObjectMapperCopy());
+        List<MediaType> mediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
+        mediaTypes.add(MediaType.APPLICATION_OCTET_STREAM);
+        converter.setSupportedMediaTypes(mediaTypes);
+        this.restTemplate = restTemplateBuilder
+                .setConnectTimeout(Duration.ofMillis(HTTP_CONNECT_TIMEOUT_MS))
+                .setReadTimeout(Duration.ofMillis(HTTP_CLIENT_TIMEOUT_MS))
+                .messageConverters(converter)
+                .build();
     }
 
     /**
@@ -91,8 +105,10 @@ public class DiagnosticService {
      */
     public DiagnosticsStatus queryGlobalConfStatus() {
         try {
-            JsonObject json = sendGetRequest(diagnosticsGlobalconfUrl);
-            return JsonUtils.getSerializer().fromJson(json, DiagnosticsStatus.class);
+            ResponseEntity<DiagnosticsStatus> response = sendGetRequest(diagnosticsGlobalconfUrl,
+                    DiagnosticsStatus.class);
+
+            return response.getBody();
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -106,9 +122,16 @@ public class DiagnosticService {
     public List<DiagnosticsStatus> queryTimestampingStatus() {
         log.info("Query timestamper status");
         try {
-            JsonObject json = sendGetRequest(diagnosticsTimestampingServicesUrl);
-            return json.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
-                    .map(this::parseTimestampingStatus).collect(Collectors.toList());
+            ResponseEntity<TimestampingStatusResponse> response = sendGetRequest(diagnosticsTimestampingServicesUrl,
+                    TimestampingStatusResponse.class);
+
+            return Objects.requireNonNull(response.getBody())
+                    .entrySet().stream()
+                    .map(diagnosticsStatusEntry -> {
+                        DiagnosticsStatus diagnosticsStatus = diagnosticsStatusEntry.getValue();
+                        diagnosticsStatus.setDescription(diagnosticsStatusEntry.getKey());
+                        return diagnosticsStatus;
+                    }).collect(Collectors.toList());
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -122,10 +145,15 @@ public class DiagnosticService {
     public List<OcspResponderDiagnosticsStatus> queryOcspResponderStatus() {
         log.info("Query OCSP status");
         try {
-            JsonObject json = sendGetRequest(diagnosticsOcspRespondersUrl);
-            JsonObject certificationServiceStatusMap = json.getAsJsonObject("certificationServiceStatusMap");
-            return certificationServiceStatusMap.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
-                    .map(this::parseOcspResponderDiagnosticsStatus).collect(Collectors.toList());
+            ResponseEntity<CertificationServiceDiagnostics> response = sendGetRequest(diagnosticsOcspRespondersUrl,
+                    CertificationServiceDiagnostics.class);
+
+            return Objects.requireNonNull(response.getBody())
+                    .getCertificationServiceStatusMap()
+                    .entrySet()
+                    .stream()
+                    .map(this::parseOcspResponderDiagnosticsStatus)
+                    .collect(Collectors.toList());
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }
@@ -135,44 +163,24 @@ public class DiagnosticService {
      * Send HTTP GET request to the given address (http://localhost:{port}/{path}).
      *
      * @param address
-     * @return
+     * @return ResponseEntity with the provided type
      * @throws DiagnosticRequestException if sending a diagnostics requests fails or an error is returned
      */
-    private JsonObject sendGetRequest(String address) throws DiagnosticRequestException {
-        HttpGet request = new HttpGet(address);
-        RequestConfig config = RequestConfig.custom()
-                .setConnectTimeout(HTTP_CLIENT_TIMEOUT_MS)
-                .setConnectionRequestTimeout(HTTP_CLIENT_TIMEOUT_MS)
-                .setSocketTimeout(HTTP_CLIENT_TIMEOUT_MS).build();
+    private <T> ResponseEntity<T> sendGetRequest(String address, Class<T> clazz) throws DiagnosticRequestException {
+        try {
+            ResponseEntity<T> response = restTemplate.getForEntity(address, clazz);
 
-        try (CloseableHttpClient httpClient = HttpClientBuilder.create().setDefaultRequestConfig(config).build();
-                CloseableHttpResponse response = httpClient.execute(request)) {
-            HttpEntity resEntity = response.getEntity();
-
-            if (response.getStatusLine().getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR.value()
-                    || resEntity == null) {
+            if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR
+                    || response.getBody() == null) {
                 log.error("unable to get a response");
                 throw new DiagnosticRequestException();
             }
-            String responseStr = IOUtils.toString(resEntity.getContent(), "UTF-8");
-            return JsonParser.parseString(responseStr).getAsJsonObject();
-        } catch (IOException ioe) {
+
+            return response;
+        } catch (RestClientException e) {
             log.error("unable to connect to admin port (" + address + ")");
             throw new DiagnosticRequestException();
         }
-    }
-
-    /**
-     * Parse DiagnosticsStatus representing a timestamping service diagnostics status
-     *
-     * @param entry
-     * @return
-     */
-    private DiagnosticsStatus parseTimestampingStatus(Map.Entry<String, JsonElement> entry) {
-        DiagnosticsStatus diagnosticsStatus =
-                JsonUtils.getSerializer().fromJson(entry.getValue(), DiagnosticsStatus.class);
-        diagnosticsStatus.setDescription(entry.getKey());
-        return diagnosticsStatus;
     }
 
     /**
@@ -183,28 +191,21 @@ public class DiagnosticService {
      * @return
      */
     private OcspResponderDiagnosticsStatus parseOcspResponderDiagnosticsStatus(
-            Map.Entry<String, JsonElement> entry) {
-        JsonObject ca = entry.getValue().getAsJsonObject();
-        OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(
-                ca.get("name").getAsString());
-        JsonObject ocspResponderStatusMap = ca.get("ocspResponderStatusMap").getAsJsonObject();
-        List<DiagnosticsStatus> statuses = ocspResponderStatusMap.entrySet().stream()
-                .filter(e -> e.getValue() instanceof JsonObject)
-                .map(this::parseOcspResponderStatus)
+            Map.Entry<String, CertificationServiceStatus> entry) {
+        CertificationServiceStatus ca = entry.getValue();
+        OcspResponderDiagnosticsStatus status = new OcspResponderDiagnosticsStatus(ca.getName());
+        Map<String, OcspResponderStatus> ocspResponderStatusMap = ca.getOcspResponderStatusMap();
+        List<DiagnosticsStatus> statuses = ocspResponderStatusMap.values().stream()
+                .map(ocspResponderStatus -> {
+                    DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(ocspResponderStatus.getStatus(),
+                            ocspResponderStatus.getPrevUpdate(), ocspResponderStatus.getNextUpdate());
+                    diagnosticsStatus.setDescription(ocspResponderStatus.getUrl());
+                    return diagnosticsStatus;
+                })
                 .collect(Collectors.toList());
         status.setOcspResponderStatusMap(statuses);
-        return status;
-    }
 
-    private DiagnosticsStatus parseOcspResponderStatus(Map.Entry<String, JsonElement> entry) {
-        JsonObject json = entry.getValue().getAsJsonObject();
-        // Parse "prevUpdate" and "nextUpdate" properties
-        DiagnosticsStatus temp = JsonUtils.getSerializer().fromJson(json, DiagnosticsStatus.class);
-        // Create a new update using parsed values and return it as a result
-        DiagnosticsStatus diagnosticsStatus = new DiagnosticsStatus(json.get("status").getAsInt(),
-                temp.getPrevUpdate(), temp.getNextUpdate());
-        diagnosticsStatus.setDescription(json.get("url").getAsString());
-        return diagnosticsStatus;
+        return status;
     }
 
     /**
@@ -214,5 +215,8 @@ public class DiagnosticService {
         public DiagnosticRequestException() {
             super(new ErrorDeviation(ERROR_DIAGNOSTIC_REQUEST_FAILED));
         }
+    }
+
+    private static class TimestampingStatusResponse extends HashMap<String, DiagnosticsStatus> {
     }
 }

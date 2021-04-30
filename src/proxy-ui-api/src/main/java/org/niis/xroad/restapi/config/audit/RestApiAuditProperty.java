@@ -26,7 +26,6 @@ package org.niis.xroad.restapi.config.audit;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.common.base.CaseFormat;
-import com.google.gson.annotations.JsonAdapter;
 
 /**
  * Enumeration for data properties that are audit logged.
@@ -35,7 +34,6 @@ import com.google.gson.annotations.JsonAdapter;
  * For example CLIENT_IDENTIFIER -> clientIdentifier.
  * JSON serialized using {@link #getPropertyName()}
  */
-@JsonAdapter(RestApiAuditPropertyJsonAdapter.class) // changes how direct properties are JSON serialized
 public enum RestApiAuditProperty {
 
     USER, // only when not available via UsernameHelper, e.g. when form login fails
@@ -112,6 +110,7 @@ public enum RestApiAuditProperty {
      * Gets logged property name for the enum value.
      * Returns enum name converted to lower camel case.
      * For example CLIENT_IDENTIFIER -> clientIdentifier
+     *
      * @return
      */
     @JsonValue

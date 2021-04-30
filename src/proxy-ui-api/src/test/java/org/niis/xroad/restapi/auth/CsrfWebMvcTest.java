@@ -25,7 +25,8 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import com.google.gson.Gson;
+import ee.ria.xroad.common.util.JsonUtils;
+
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,9 +76,9 @@ public class CsrfWebMvcTest {
     public static final String XSRF_COOKIE = "XSRF-TOKEN";
     public static final String CSRF_PARAM = "_csrf";
 
-    private String username = "xroad-user";
-    private String tokenValue = "token";
-    private CsrfToken csrfToken = new DefaultCsrfToken(XSRF_HEADER, CSRF_PARAM, tokenValue);
+    private final String username = "xroad-user";
+    private final String tokenValue = "token";
+    private final CsrfToken csrfToken = new DefaultCsrfToken(XSRF_HEADER, CSRF_PARAM, tokenValue);
     private List<String> userPermissions;
 
     @Autowired
@@ -137,7 +138,7 @@ public class CsrfWebMvcTest {
                 .username(username)
                 .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
-        String expectedUserJsonString = new Gson().toJson(expectedUser);
+        String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
                 .header(XSRF_HEADER, tokenValue)
@@ -194,7 +195,7 @@ public class CsrfWebMvcTest {
                 .username(username)
                 .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
-        String expectedUserJsonString = new Gson().toJson(expectedUser);
+        String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user");
         mockMvc.perform(mockRequest)
                 .andDo(print())

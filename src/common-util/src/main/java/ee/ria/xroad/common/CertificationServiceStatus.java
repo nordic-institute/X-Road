@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
 import java.io.Serializable;
@@ -36,12 +38,14 @@ import java.util.Map;
  */
 public class CertificationServiceStatus implements Serializable {
 
+    @Getter
     private final String name;
 
     @Getter
     private Map<String, OcspResponderStatus> ocspResponderStatusMap;
 
-    public CertificationServiceStatus(String name) {
+    @JsonCreator
+    public CertificationServiceStatus(@JsonProperty("name") String name) {
         this.name = name;
         ocspResponderStatusMap = new HashMap<>();
     }
