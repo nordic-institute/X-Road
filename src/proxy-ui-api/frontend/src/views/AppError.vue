@@ -89,7 +89,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/shared';
 @import '~styles/colors';
-@import '~styles/tables';
 
 .xrd-view-common {
   width: 100%;
