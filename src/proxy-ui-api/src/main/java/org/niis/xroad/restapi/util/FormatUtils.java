@@ -56,8 +56,8 @@ public final class FormatUtils {
     // Criteria for a valid backup file name:
     // 1) cannot start with "."
     // 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
-    // 3) must end with ".tar" or ".gpg"
-    private static final Pattern BACKUP_FILENAME_PATTERN = Pattern.compile("^(?!\\.)[\\w\\.\\-]+\\.(tar|gpg)$");
+    // 3) must end with ".gpg"
+    private static final Pattern BACKUP_FILENAME_PATTERN = Pattern.compile("^(?!\\.)[\\w\\.\\-]+\\.gpg$");
 
     private FormatUtils() {
         // noop
