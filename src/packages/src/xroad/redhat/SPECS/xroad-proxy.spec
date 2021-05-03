@@ -187,7 +187,7 @@ fi
 
 if [ $1 -gt 1 ]; then
   # upgrade, generate gpg keypair when needed
-  if [ ! -d /etc/xroaq/gpghome ] ; then
+  if [ ! -d /etc/xroad/gpghome ] ; then
     ID=$(source /usr/share/xroad/scripts/get_security_server_id.sh)
     if [[ -n "${ID}" ]] ; then
       /usr/share/xroad/scripts/generate_gpg_keypair.sh ${ID}
