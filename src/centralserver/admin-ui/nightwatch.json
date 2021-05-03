@@ -1,0 +1,52 @@
+{
+  "src_folders" : ["./tests/e2e/specs"],
+  "output_folder" : "./tests/e2e/reports",
+  "page_objects_path" : "./tests/e2e/page-objects",
+  "custom_assertions_path" : "",
+  "globals_path" : "./tests/e2e/globals.js",
+  "live_output" : false,
+  "parallel_process_delay" : 10,
+  "disable_colors": false,
+  "test_workers" : false,
+  "test_settings" : {
+    "screenshots" : {
+      "enabled" : true,
+      "on_failure" : true,
+      "on_error" : true,
+      "path" : "./tests/e2e/screenshots"
+    },
+    "default": {
+      "use_xpath": true,
+      "globals" : {
+        "login_usr" : "xrd",
+        "login_pwd" : "secret",
+        "login_wrong_usr" : "foo",
+        "login_wrong_pwd" : "bar",
+        "login_security_officer" : "xrd-sec",
+        "login_registration_officer" : "xrd-reg",
+        "login_service_administrator" : "xrd-ser",
+        "login_system_administrator" : "xrd-sys",
+        "login_securityserver_observer" : "xrd-obs",
+        "logout_timeout_ms" : 60000,
+        "e2etest_testdata" : "/../testdata"
+      }
+    },
+    "chrome": {
+      "desiredCapabilities" : {
+        "browserName" : "chrome",
+        "javascriptEnabled" : true,
+        "acceptSslCerts" : true,
+        "acceptInsecureCerts": true,
+        "chromeOptions" : {
+          "w3c": false,
+          "prefs" : {
+            "download": {
+            }
+          },
+          "args" : ["--window-size=1280,900"]
+        }
+      }
+    }
+  }
+}
+
