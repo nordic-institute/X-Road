@@ -76,6 +76,7 @@ import static ee.ria.xroad.common.metadata.MetadataRequests.ALLOWED_METHODS;
 import static ee.ria.xroad.common.metadata.MetadataRequests.GET_OPENAPI;
 import static ee.ria.xroad.common.metadata.MetadataRequests.LIST_METHODS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -302,8 +303,9 @@ public class RestMetadataServiceHandlerTest {
                 .lines()
                 .collect(Collectors.joining("\n"));
 
-        assertTrue(yaml.contains(Openapi3Anonymiser.PLACEHOLDER));
-        assertEquals(StringUtils.countMatches(yaml, Openapi3Anonymiser.PLACEHOLDER), 1);
+        assertFalse(yaml.contains("http://petstore.swagger.io/v1/cats"));
+        assertTrue(yaml.contains("/v1/cats"));
+        assertEquals(StringUtils.countMatches(yaml, "/v1/cats"), 1);
     }
 
     @Test
@@ -332,8 +334,9 @@ public class RestMetadataServiceHandlerTest {
                 .lines()
                 .collect(Collectors.joining("\n"));
 
-        assertTrue(json.contains(Openapi3Anonymiser.PLACEHOLDER));
-        assertEquals(2, StringUtils.countMatches(json, Openapi3Anonymiser.PLACEHOLDER));
+        assertFalse(json.contains("https://petstore.swagger.io/v2"));
+        assertTrue(json.contains("\"/v2\""));
+        assertTrue(json.contains("https://{username}.petstore.swagger.io:{port}/{basePath}"));
     }
 
     @Test(expected = CodedException.class)

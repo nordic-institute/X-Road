@@ -37,6 +37,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 
@@ -47,7 +49,6 @@ public class Openapi3Anonymiser {
 
     public static final String SERVERS = "servers";
     public static final String URL = "url";
-    public static final String PLACEHOLDER = "http://example.org/xroad-example";
     private static final ObjectMapper JSONMAPPER = new ObjectMapper(new JsonFactory());
     private static final ObjectMapper YAMLMAPPER =
             new ObjectMapper(new YAMLFactory()).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
@@ -64,6 +65,11 @@ public class Openapi3Anonymiser {
         YAMLMAPPER.writeValue(output, tree);
     }
 
+    /*
+     * Find servers.url section in the openapi3 specification.
+     * if the url does not contain variables then replace the url with the path part of the url
+     * if the url does contain variables then it is left as is
+     */
     private void handleAnonymising(JsonNode tree) {
         final JsonNode openapiVersion = tree.get("openapi");
 
@@ -77,10 +83,23 @@ public class Openapi3Anonymiser {
         final JsonNode servers = tree.get(SERVERS);
         if (servers != null && servers.isArray()) {
             servers.forEach(server -> {
-                if (server.has(URL)) {
-                    ((ObjectNode) server).put(URL, PLACEHOLDER);
+                if (server.has(URL) && !urlContainsVariables(server.get(URL))) {
+                    String url = server.get(URL).textValue();
+                    try {
+                        URI uri = new URI(url);
+                        ((ObjectNode) server).put(URL, uri.getPath());
+                    } catch (URISyntaxException e) {
+                        throw new CodedException(X_INTERNAL_ERROR,
+                                String.format("Can't parse url string: %s", url));
+                    }
                 }
             });
         }
+    }
+
+    // Return true if the url contains '{' and '}' meaning there's a variable in the url
+    private boolean urlContainsVariables(JsonNode url) {
+        String jsonString = url.toString();
+        return jsonString.contains("{") && jsonString.contains("}");
     }
 }
