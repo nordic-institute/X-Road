@@ -2,7 +2,7 @@
 <!DOCTYPE hibernate-mapping PUBLIC
     "-//Hibernate/Hibernate Mapping DTD//EN"
     "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
-<hibernate-mapping package="org.niis.xroad.securityserver.restapi.domain">
+<hibernate-mapping package="org.niis.xroad.restapi.domain">
 
     <typedef name="RoleEnum" class="org.hibernate.type.EnumType">
         <param name="enumClass">org.niis.xroad.restapi.domain.Role</param>

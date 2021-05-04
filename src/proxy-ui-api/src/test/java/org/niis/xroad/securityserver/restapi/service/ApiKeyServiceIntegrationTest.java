@@ -26,10 +26,10 @@
 package org.niis.xroad.securityserver.restapi.service;
 
 import org.junit.Test;
-import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.restapi.domain.InvalidRoleNameException;
 import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.Role;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;

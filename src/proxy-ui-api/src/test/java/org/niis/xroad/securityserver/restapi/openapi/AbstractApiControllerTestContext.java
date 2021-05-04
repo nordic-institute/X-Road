@@ -27,14 +27,14 @@ package org.niis.xroad.securityserver.restapi.openapi;
 
 import org.junit.After;
 import org.junit.Before;
+import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
+import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
+import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.restapi.config.audit.MockableAuditEventLoggingFacade;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
-import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.securityserver.restapi.repository.InternalTlsCertificateRepository;
-import org.niis.xroad.restapi.service.ApiKeyService;
 import org.niis.xroad.securityserver.restapi.service.BackupService;
 import org.niis.xroad.securityserver.restapi.service.CertificateAuthorityService;
 import org.niis.xroad.securityserver.restapi.service.ClientService;

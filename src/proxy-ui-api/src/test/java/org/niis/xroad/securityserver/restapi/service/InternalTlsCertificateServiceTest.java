@@ -28,6 +28,7 @@ package org.niis.xroad.securityserver.restapi.service;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
@@ -192,6 +193,7 @@ public class InternalTlsCertificateServiceTest {
     public void importInternalTlsCertificate() throws Exception {
         prepareTlsImportForTesting();
         byte[] certFileData = CertificateTestUtils.getMockCertificateBytes();
+        log.info("certFileData {}", certFileData);
         try {
             internalTlsCertificateService.importInternalTlsCertificate(certFileData);
         } catch (Exception e) {

@@ -257,9 +257,7 @@ openApiGenerate {
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true",
-        generateSupportingFiles : "true",
-        supportingFiles: 'ApiUtil.java'
+        useTags      : "true"
     ]
 }
 

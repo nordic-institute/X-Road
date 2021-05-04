@@ -47,6 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GrantedAuthorityMapper {
 
+    // TO DO: inject
     private static final String YAML_PERMISSIONS_RESOURCE = "permissions.yml";
 
     private Map<Role, Set<String>> rolesToPermissions;

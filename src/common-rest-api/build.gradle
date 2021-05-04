@@ -1,4 +1,9 @@
 buildscript {
+    ext {
+        // currently duplicate with proxy-ui-api build.gradle, probably should fix
+        openapiGeneratorVersion = '4.2.1'
+        swaggerParserVersion = '2.0.21'
+    }
     repositories {
         mavenCentral()
     }
@@ -7,10 +12,18 @@ buildscript {
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
+    id 'org.openapi.generator' version "$openapiGeneratorVersion"
+    id 'org.niis.xroad.oasvalidatorplugin'
 }
 
 ext {
     set('springCloudVersion', "Hoxton.SR10")
+}
+
+sourceSets {
+    main {
+        java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
+    }
 }
 
 dependencyManagement {
@@ -20,6 +33,11 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation project(':common-util')
+    implementation project(':signer-protocol')
+    implementation project(':serverconf')
+
+    implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
@@ -27,6 +45,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     implementation('org.kohsuke:libpam4j:1.11')
+    implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
+    implementation('io.swagger:swagger-annotations:1.6.2')
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
@@ -37,3 +57,67 @@ dependencies {
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
 }
+
+bootJar {
+    enabled = false
+}
+
+jar {
+    enabled = true
+}
+
+openApiGenerate {
+    generatorName = "spring"
+    inputSpec = "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
+    outputDir = "$buildDir/generated-sources/openapi".toString()
+    apiPackage = "org.niis.xroad.restapi.openapi"
+    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    systemProperties = [
+            modelDocs: "false",
+            apis     : "false",
+            models   : "", // must use empty strings instead of "true":
+            // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
+            generateSupportingFiles : "false"
+    ]
+    configOptions = [
+            interfaceOnly: "true",
+            useTags      : "true"
+    ]
+}
+
+// Fix up to date check
+tasks.openApiGenerate {
+    inputs.files(openApiGenerate.inputSpec)
+    outputs.dir(openApiGenerate.outputDir)
+}
+
+compileJava.dependsOn tasks.openApiGenerate
+
+// set license format to ignore generated java sources
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+}
+
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
+    source = fileTree('src/main/java')
+    check = true
+}
+
+licenseFormatMain.enabled = false
+licenseMain.enabled = false
+
+licenseFormat.dependsOn licenseFormatJava
+licenseTest.dependsOn licenseTestJava
+
+apiValidationParameters.apiDefinitionPaths = [
+        "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
+]
+
+validateApiDefinitions {
+    inputs.files("src/main/resources/common-openapi-definition.yaml")
+    outputs.upToDateWhen { true }
+}
+
+tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
+
+

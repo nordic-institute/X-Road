@@ -34,8 +34,8 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
-import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
+import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.io.ClassPathResource;
