@@ -21,7 +21,9 @@
       dest: "{{ postgresql_data_dir }}/recovery.conf"
       owner: postgres
       group: postgres
-  when: ansible_distribution_release == "bionic"
+  when: >
+    ansible_distribution_release == "bionic" or 
+    (ansible_distribution == "RedHat" and (ansible_distribution_major_version == "7" or ansible_distribution_major_version == "8"))
 
 # recovery.conf is no longer supported in PostgreSQL12
 # see https://www.2ndquadrant.com/en/blog/replication-configuration-changes-in-postgresql-12/
