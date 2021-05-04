@@ -325,6 +325,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **DSL** - Domain Specific Language
 
+**GPG / GnuPG** - The GNU Privacy Guard
+
 **HTTP** - Hypertext Transfer Protocol  
 
 **HTTPS** - Hypertext Transfer Protocol Secure
@@ -346,3 +348,4 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 **SDK** - Software Development Kit
 
 **SOAP** - Simple Object Access Protocol  
+

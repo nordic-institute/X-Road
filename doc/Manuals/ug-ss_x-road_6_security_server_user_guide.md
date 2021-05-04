@@ -1794,17 +1794,23 @@ Backups are always signed. To turn on backup encryption add or change the `backu
 change the folder where additional backup encryption keys are stored. Default is `/etc/xroad/backupkeys`.
 
 Backup encryption keys folder must contain only GPG public key files. In addition to security servers public key backup
-archives are encrypted with all the keys in this folder. It is recommended to use at least one additional public key.
-Otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator
+archives are encrypted with all the keys in this folder. It is recommended to use at least one additional public key,
+otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator
 to check that private keys used are sufficiently strong, there are no automatic checks. Additional keys for backup 
 encryption should be generated and stored outside security server in a secure environment.
 
 ### 13.3 Verifying backup archive consistency
 
 Security server verifies consistency of backup archives automatically. It is also possible to check archives externally.
-For checking consistency security servers public key is needed. When backups are encrypted then a private key for archive
-encryption is also needed (GPG uses "sign then encrypt" scheme, so it is not possible to verify encrypted archives without
+For checking consistency security servers public key is needed. When backups are encrypted then a private key for decrypting
+archive is also needed (GPG uses "sign then encrypt" scheme, so it is not possible to verify encrypted archives without
 decrypting them).
+
+Automatic backup verification is only possible when original security server keypair is available. Should keypair on
+the security server be lost for whatever reason, automatic verification is no longer possible. It is recommended to
+export backup encryption public key and import it into separate secure environment. If backups are encrypted security
+server public key should be imported to keyrings holding additional encryption keys, so that backups can be decrypted
+and verified in these separate environemnts.
 
 To export security servers backup encryption public key use the following command
 

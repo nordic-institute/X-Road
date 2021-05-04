@@ -458,6 +458,39 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
+### 3.4 Configuring configuration backup encryption
+
+It is possible to automatically encrypt security server configuration backups. Security server use The GNU Privacy Guard (https://www.gnupg.org)
+for backup encryption and verification.
+Back up encryption is initially turned off. To turn encryption on configuration must be overridden in the file
+`/etc/xroad/conf.d/local.ini`, in the `[proxy]` section. (Add or edit this section)
+
+    [proxy]
+    backup-encrypted=true
+    backup-public-key-path=/etc/xroad/backupkeys
+
+To turn backup encryption on change key backup-encrypted to true. If needed directory for additional encryption keys
+can also changed by modifying key backup-public-key-path.
+
+Before turning backup encryption on it is strongly recommended to copy additional GPG public keys to backup public key
+folder. All these keys are used to encrypt backups so that ANY of these keys can decrypt backups. This is useful both
+for verifying encrypted backups consistency and decrypting backups in case security servers original key gets lost for
+whatever reason. Do not place any other files into backup keys folder, otherwise backing up configuration will fail.
+
+To externally verify backup archives consistency security servers backup encryption public key has to be exported and
+imported into external GPG keyring. Note that this can be done only after security server has been initialised - the key
+is generated during initialisation.
+
+To export security servers backup encryption public key use the following command
+
+    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+
+where AA/GOV/TS1OWNER/TS1 is the security server id.
+
+The key can then be moved to other computer and imported to GPG keyring with
+
+    gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+
 
 ## 4 Installation Error handling
 

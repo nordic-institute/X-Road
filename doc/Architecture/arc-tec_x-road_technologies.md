@@ -92,7 +92,8 @@ Table 1. Technology matrix of the X-Road
  Node 12                            | X                   |                    |                         |  
  Typescript                         | X                   |                    |                         |  
  OpenAPI 3                          | X                   |                    |                         |  
- Embedded Tomcat 9                  | X                   |                    |                         |  
+ Embedded Tomcat 9                  | X                   |                    |                         |
+ GNU Privacy Guard                  | X                   |                    |                         |
 
 See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 
@@ -180,6 +181,7 @@ Table 4. Technology matrix of the security server
  Typescript                     |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
  OpenAPI 3                      |            |           |                    |                  |                       |              |                          | X                           | X            |             |                                      |                                   |      
  Embedded Tomcat 9              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+ GNU Privacy Guard              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
 
 See [[ARC-SS]](#ARC-SS) for the security server details.
 
