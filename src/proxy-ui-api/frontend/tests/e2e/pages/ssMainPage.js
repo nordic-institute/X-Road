@@ -74,6 +74,26 @@ var navigateCommands = {
 
     return this;
   },
+  updateWSDLFileTo: function (newfile) {
+    var sshScript;
+    const { exec } = require('child_process');
+
+    // remove protocol and port data from globals.testdata
+    sshScript = `ssh ${this.api.globals.testdata
+      .split(':')[1]
+      .substring(2)} "cp ${this.api.globals.testfiles_path}/${newfile} ${
+      this.api.globals.testfiles_path
+    }/testserviceX.wsdl"`;
+
+    exec(sshScript, (err, stdout, stderr) => {
+      if (stderr) {
+        console.log('SSH error, stderr: ' + stderr);
+        console.log('SSH error, script: ' + sshScript);
+      }
+    });
+
+    return this;
+  },
 };
 
 var clientInfoCommands = {
@@ -314,9 +334,19 @@ var clientServicesCommands = {
   openOperation: function (op) {
     this.api.click(
       this.selector +
-        '//td[@data-test="service-link" and contains(text(),"' +
-        op +
-        '")]',
+        `//td[@data-test="service-link" and contains(text(),"${op}")]`,
+    );
+    return this;
+  },
+  verifyServiceSSL: function (service, status) {
+    this.api.waitForElementVisible(
+      `//tr[.//td[@data-test="service-link" and contains(text(), "${service}")]]//*[contains(@class, "mdi-lock") and contains(@style, "${status}")]`,
+    );
+    return this;
+  },
+  verifyServiceURL: function (service, url) {
+    this.api.waitForElementVisible(
+      `//tr[.//td[@data-test="service-link" and contains(text(), "${service}")]]//*[contains(text(), "${url}")]`,
     );
     return this;
   },
@@ -1039,6 +1069,16 @@ module.exports = {
         },
         warningCancelButton: {
           selector: '//button[.//*[contains(text(), "Cancel")]]',
+          locateStrategy: 'xpath',
+        },
+        addedServices: {
+          selector:
+            '//div[contains(@class, "dlg-warning-header") and contains(text(), "Adding services:")]/following-sibling::div',
+          locateStrategy: 'xpath',
+        },
+        deletedServices: {
+          selector:
+            '//div[contains(@class, "dlg-warning-header") and contains(text(), "Deleting services:")]/following-sibling::div',
           locateStrategy: 'xpath',
         },
       },
