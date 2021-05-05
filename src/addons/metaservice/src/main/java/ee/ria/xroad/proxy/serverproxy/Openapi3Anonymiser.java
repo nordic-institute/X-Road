@@ -83,8 +83,8 @@ public class Openapi3Anonymiser {
         final JsonNode servers = tree.get(SERVERS);
         if (servers != null && servers.isArray()) {
             servers.forEach(server -> {
-                if (server.has(URL) && !urlContainsVariables(server.get(URL))) {
-                    String url = server.get(URL).textValue();
+                final String url = server.has("url") ? server.get("url").textValue() : null;
+                if (url != null && !urlContainsVariables(url)) {
                     try {
                         URI uri = new URI(url);
                         ((ObjectNode) server).put(URL, uri.getPath());
@@ -98,8 +98,7 @@ public class Openapi3Anonymiser {
     }
 
     // Return true if the url contains '{' and '}' meaning there's a variable in the url
-    private boolean urlContainsVariables(JsonNode url) {
-        String jsonString = url.toString();
-        return jsonString.contains("{") && jsonString.contains("}");
+    private boolean urlContainsVariables(String url) {
+        return url.contains("{") && url.contains("}");
     }
 }

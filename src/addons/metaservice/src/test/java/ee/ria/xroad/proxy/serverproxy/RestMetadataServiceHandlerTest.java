@@ -306,6 +306,11 @@ public class RestMetadataServiceHandlerTest {
         assertFalse(yaml.contains("http://petstore.swagger.io/v1/cats"));
         assertTrue(yaml.contains("/v1/cats"));
         assertEquals(StringUtils.countMatches(yaml, "/v1/cats"), 1);
+        assertTrue(yaml.contains("null"));
+        assertTrue(yaml.contains("- \"this\""));
+        assertTrue(yaml.contains("- \"should\""));
+        assertTrue(yaml.contains("- \"be\""));
+        assertTrue(yaml.contains("- \"a string\""));
     }
 
     @Test

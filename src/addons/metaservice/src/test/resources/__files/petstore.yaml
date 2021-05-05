@@ -6,6 +6,8 @@ info:
     name: MIT
 servers:
   - url: http://petstore.swagger.io/v1/cats
+  - url: null
+  - url: ["this", "should", "be", "a string"]
 paths:
   /pets:
     get:
