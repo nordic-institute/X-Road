@@ -24,20 +24,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
-      <router-view />
-    </v-container>
-  </div>
+  <xrd-button
+    :min_width="50"
+    text
+    :outlined="false"
+    class="xrd-table-button"
+    data-test="backup-restore"
+    >{{ $t('action.restore') }}
+  </xrd-button>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
-export default Vue.extend({});
+export default Vue.extend({
+  name: 'RestoreBackupButton',
+});
 </script>
+
 <style lang="scss" scoped>
-.content {
-  width: 1000px;
-}
+@import '../../../assets/tables';
 </style>

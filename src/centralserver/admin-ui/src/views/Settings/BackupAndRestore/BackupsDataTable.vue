@@ -24,20 +24,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
-      <router-view />
-    </v-container>
-  </div>
+  <v-card flat class="pb-3">
+    <table class="xrd-table">
+      <thead>
+        <tr>
+          <th>{{ $t('name') }}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <template v-if="backups && backups.length > 0">
+        <tbody>
+          <tr v-bind:key="'Backup file 1'">
+            <td>Backup file 1</td>
+            <td>
+              <div class="d-flex justify-end">
+                <xrd-button
+                  :min_width="50"
+                  text
+                  :outlined="false"
+                  class="xrd-table-button"
+                  data-test="backup-download"
+                  >{{ $t('action.download') }}
+                </xrd-button>
+                <restore-backup-button
+                />
+                <delete-backup-button
+                />
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </template>
+    </table>
+  </v-card>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
+import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
 
-export default Vue.extend({});
+export default Vue.extend({
+  components: {
+    DeleteBackupButton,
+    RestoreBackupButton,
+  },
+});
 </script>
+
 <style lang="scss" scoped>
-.content {
-  width: 1000px;
-}
+@import '~styles/colors';
+@import '~styles/tables';
 </style>

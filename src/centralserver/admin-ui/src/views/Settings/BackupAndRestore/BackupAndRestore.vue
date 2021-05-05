@@ -24,20 +24,55 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
-      <router-view />
-    </v-container>
+  <div class="xrd-view-common">
+    <div class="table-toolbar mt-0 pl-0">
+      <div class="xrd-title-search">
+        <div class="xrd-view-title">
+          {{ $t('tab.settings.backupAndRestore') }}
+        </div>
+        <xrd-search v-model="search" />
+      </div>
+      <div>
+        <xrd-button
+          color="primary"
+          outlined
+          data-test="backup-create-configuration"
+        >
+          <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
+          >{{ $t('backup.backupConfiguration.button') }}
+        </xrd-button>
+        <xrd-file-upload accepts="">
+          <xrd-button
+            color="primary"
+            class="button-spacing"
+            data-test="backup-upload"
+          >
+            <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+
+            {{ $t('backup.uploadBackup.button') }}
+          </xrd-button>
+        </xrd-file-upload>
+      </div>
+    </div>
+    <BackupsDataTable />
   </div>
 </template>
 
 <script lang="ts">
+/**
+ * View for 'backup and restore' tab
+ */
 import Vue from 'vue';
+import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 
-export default Vue.extend({});
+export default Vue.extend({
+  components: {
+    BackupsDataTable,
+  },
+  data: () => {
+    return {
+      search: '',
+    };
+  },
+});
 </script>
-<style lang="scss" scoped>
-.content {
-  width: 1000px;
-}
-</style>

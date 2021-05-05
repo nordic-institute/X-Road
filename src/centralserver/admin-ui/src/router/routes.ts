@@ -49,6 +49,7 @@ import MemberDetails from '@/views/Members/Member/Details/MemberDetails.vue';
 import PageNavigation from '@/components/layout/PageNavigation.vue';
 import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
+import BackupAndRestore from "@/views/Settings/BackupAndRestore/BackupAndRestore.vue";
 
 const routes: RouteConfig[] = [
   {
@@ -85,7 +86,7 @@ const routes: RouteConfig[] = [
           {
             name: RouteName.BackupAndRestore,
             path: 'backup',
-            component: MockSubview,
+            component: BackupAndRestore,
             props: true,
             meta: { permissions: [Permissions.MOCK_PERMISSION1] },
           },
