@@ -12,6 +12,7 @@ dependencies {
 
     implementation "org.eclipse.jetty:jetty-xml:$jettyVersion"
     implementation "xerces:xercesImpl:$xercesVersion"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${project.property('jackson.version')}"
 
     testImplementation project(':common-test')
     testImplementation project(path: ':common-util', configuration: 'testArtifacts')
