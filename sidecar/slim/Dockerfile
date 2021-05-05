@@ -1,5 +1,5 @@
 FROM ubuntu:bionic
-ARG VERSION=6.25.0
+ARG VERSION=6.26.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
