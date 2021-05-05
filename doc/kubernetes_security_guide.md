@@ -150,7 +150,7 @@ Alternatively, if we don't want to include all the environment variables in a si
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:6.25.0
+    image: niis/xroad-security-server-sidecar:6.26.0
     imagePullPolicy: "Always"
     env:
     - name: XROAD_TOKEN_PIN
@@ -578,7 +578,7 @@ To specify a CPU request for a container, include the `resources:requests` field
 [...]
 containers:
   - name: security-server-sidecar
-    image: niis/xroad-security-server-sidecar:6.25.0
+    image: niis/xroad-security-server-sidecar:6.26.0
     imagePullPolicy: "Always"
     resources:
       limits:

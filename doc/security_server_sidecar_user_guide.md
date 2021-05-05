@@ -8,6 +8,7 @@
  24.12.2020 | 1.1     | Add description of features of different image versions         | Petteri Kivimäki
  21.01.2021 | 1.2     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
  10.02.2021 | 1.3     | Modify description of different supported platforms             | Raul Martinez Lopez
+ 06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
 
 ## Table of Contents
 
@@ -74,7 +75,7 @@ See <https://docs.docker.com/develop/develop-images/build_enhancements/> for mor
 
 ### 2.2 X-Road Security Server Sidecar images
 
-The Security Server Sidecar has four different images with alternative configurations. Each Security Server version number (e.g., 6.24.0, 6.25.0, etc.) has its own set of images.
+The Security Server Sidecar has four different images with alternative configurations.
 
 **Image**                                                | **Description**
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
@@ -185,7 +186,7 @@ The script `setup_security_server_sidecar.sh` will:
 1. Create a Docker bridge-type network called xroad-network to provide container-to-container communication.
 2. Build xroad-sidecar-security-server-image performing the following configuration steps:
 
-    * Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.23.0 or later).
+    * Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.26.0 or later).
     * Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
     * Removes the default admin username (to be re-generated in the initial configuration script).
     * Removes the generated internal and proxy-ui-api certificates (to be re-generated in the initial configuration script).
@@ -303,7 +304,7 @@ To change the database host, you need to:
 
     If other components like `message_log` or `op_monitor` are also configured in the `etc/xroad/db.properties` file to use an external database, you must change their properties in the same way as in the example above.
 
-4. If you are using a version up to 6.24.0, you must update the admin users by editing `etc/xroad.properties` file and replace the admin users and passwords with the new ones:
+4. If you are using a version up to 6.26.0, you must update the admin users by editing `etc/xroad.properties` file and replace the admin users and passwords with the new ones:
 
     ```bash
     [...]
