@@ -307,10 +307,12 @@ public class RestMetadataServiceHandlerTest {
         assertTrue(yaml.contains("/v1/cats"));
         assertEquals(StringUtils.countMatches(yaml, "/v1/cats"), 1);
         assertTrue(yaml.contains("null"));
+        assertEquals(StringUtils.countMatches(yaml, "null"), 2);
         assertTrue(yaml.contains("- \"this\""));
         assertTrue(yaml.contains("- \"should\""));
         assertTrue(yaml.contains("- \"be\""));
         assertTrue(yaml.contains("- \"a string\""));
+        assertTrue(yaml.contains("- url: \"\""));
     }
 
     @Test
