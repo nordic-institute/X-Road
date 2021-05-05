@@ -1,12 +1,23 @@
 ---
-- name: install packages
-  apt:
-    name: "{{ items }}"
-    state: present
-  vars:
-    items:
-      - postgresql
-      - postgresql-contrib
+- name: configure remote database
+  block:
+    - name: install remote database package
+      apt:
+        name: "xroad-database-remote"
+        state: latest
+
+    - name: xroad.properties template
+      template:
+        src: "xroad.properties"
+        dest: "/etc/xroad.properties"
+        owner: "root"
+        group: "root"
+        mode: 0600
+        force: no
+
+  when: (database_admin_password is defined) and (database_admin_password != "")
+  tags:
+    - install-xroad-ss-packages
 
 - name: debconf xroad-proxy
   debconf:
@@ -21,13 +32,6 @@
     - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
     - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
-    
-- name: create xroad properties file
-  copy:
-    content: "postgres.connection.password = {{ database_admin_password }}"
-    dest: /etc/xroad.properties
-    mode: 0600
-  when: (database_admin_password is defined) and (database_admin_password != "")
 
 - name: install xroad security server packages
   apt:
@@ -40,7 +44,7 @@
 - name: install op-monitoring
   package: name=xroad-addon-opmonitoring state=latest
   when: (xroad_install_opmonitoring is defined) and (xroad_install_opmonitoring)
-      
+
 - name: install hwtokens
   package: name=xroad-addon-hwtokens state=latest
   when: (xroad_install_hwtokens is defined) and (xroad_install_hwtokens)

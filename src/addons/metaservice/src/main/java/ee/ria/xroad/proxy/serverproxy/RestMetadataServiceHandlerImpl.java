@@ -45,7 +45,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.PropertyNamingStrategy;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.NameValuePair;
@@ -60,6 +60,7 @@ import org.apache.http.protocol.HttpContext;
 import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.Charset;
@@ -221,8 +222,8 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
         // ServerMessageProcessor uses the same method to pass the ServiceId to CustomSSLSocketFactory
         httpContext.setAttribute(ServiceId.class.getName(), targetServiceId);
 
-        HttpResponse response = client.execute(new HttpGet(new URI(serviceDescriptionURL)), httpContext);
-
+        URI uri = new URI(serviceDescriptionURL);
+        HttpResponse response = client.execute(new HttpGet(uri), httpContext);
         StatusLine statusLine = response.getStatusLine();
 
         if (HttpStatus.SC_OK != statusLine.getStatusCode()) {
@@ -231,7 +232,21 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
                             serviceDescriptionURL, statusLine.getStatusCode(), statusLine.getReasonPhrase()));
         }
 
-        IOUtils.copy(response.getEntity().getContent(), restResponseBody);
+        InputStream responseContent = response.getEntity().getContent();
+
+        try {
+            OpenapiDescriptionFiletype filetype = getFileType(response, uri);
+            Openapi3Anonymiser anonymiser = new Openapi3Anonymiser();
+            if (OpenapiDescriptionFiletype.JSON.equals(filetype)) {
+                anonymiser.anonymiseJson(responseContent, restResponseBody);
+            } else {
+                anonymiser.anonymiseYaml(responseContent, restResponseBody);
+            }
+        } catch (IOException e) {
+            throw new CodedException(X_INTERNAL_ERROR,
+                    String.format("Failed overwriting origin URL for the openapi servers for %s",
+                            serviceDescriptionURL));
+        }
 
         if (response.containsHeader(MimeUtils.HEADER_CONTENT_TYPE)) {
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
@@ -240,6 +255,30 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
             restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE,
                     DEFAULT_GETOPENAPI_CONTENT_TYPE));
         }
+
+    }
+
+    private OpenapiDescriptionFiletype getFileType(HttpResponse response, URI uri) {
+        boolean isJson = false;
+        boolean isYaml = false;
+        Header[] contentTypeHeaders = response.getHeaders("content-type");
+        for (Header header : contentTypeHeaders) {
+            String contentType = header.getValue();
+            if (contentType.contains("application/json")) {
+                isJson = true;
+            } else if ("application/x-yaml".equals(contentType)) {
+                isYaml = true;
+            }
+        }
+
+        if (isJson) {
+            return OpenapiDescriptionFiletype.JSON;
+        } else if (isYaml) {
+            return OpenapiDescriptionFiletype.YAML;
+        }
+
+        return uri.getPath().endsWith(".json")
+                ? OpenapiDescriptionFiletype.JSON : OpenapiDescriptionFiletype.YAML;
     }
 
     @Override
