@@ -30,38 +30,36 @@
     <AlertsContainer />
     <v-container>
       <div class="xrd-view-title pt-6">{{ $t('404') }}</div>
-      <v-layout align-center justify-center column fill-height elevation-0>
-        <v-card flat class="xrd-card custom-card">
-          <v-card-title> </v-card-title>
+      <v-card flat class="xrd-card custom-card">
+        <v-card-text>
+          <div class="content-wrap">
+            <v-img
+              :src="require('../assets/404.png')"
+              width="100%"
+              height="auto"
+              max-height="259"
+              max-width="665"
+            ></v-img>
 
-          <v-card-text>
-            <div class="content-wrap">
-              <v-img
-                :src="require('../assets/404.png')"
-                height="259"
-                width="665"
-              ></v-img>
-
-              <div class="unicorn-text">
-                {{ $t('404text') }}
-                <span class="unicorn-gradient">{{ $t('404textUnicorn') }}</span>
-              </div>
-              <xrd-button
-                test-data="error-404-button"
-                color="primary"
-                gradient
-                large
-                @click="home"
-                :min_width="401"
-                :width="401"
-                class="button"
-                rounded
-                >{{ $t('action.goToFront') }}</xrd-button
-              >
+            <div class="unicorn-text">
+              {{ $t('404text') }}
+              <span class="unicorn-gradient">{{ $t('404textUnicorn') }}</span>
             </div>
-          </v-card-text>
-        </v-card>
-      </v-layout>
+            <xrd-button
+              test-data="error-404-button"
+              color="primary"
+              gradient
+              large
+              @click="home"
+              :min_width="401"
+              :width="401"
+              class="button"
+              rounded
+              >{{ $t('action.goToFront') }}</xrd-button
+            >
+          </div>
+        </v-card-text>
+      </v-card>
     </v-container>
   </div>
 </template>
