@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common">
+  <div>
     <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">
@@ -44,7 +44,7 @@
         <xrd-file-upload accepts="">
           <xrd-button
             color="primary"
-            class="button-spacing"
+            class="ml-5"
             data-test="backup-upload"
           >
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
@@ -76,3 +76,6 @@ export default Vue.extend({
   },
 });
 </script>
+<style lang="scss">
+@import '~styles/tables';
+</style>

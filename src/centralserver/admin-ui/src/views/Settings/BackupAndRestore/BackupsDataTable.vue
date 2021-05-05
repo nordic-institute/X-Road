@@ -25,17 +25,17 @@
  -->
 <template>
   <v-card flat class="pb-3">
-    <table class="xrd-table">
+    <xrd-table>
       <thead>
         <tr>
           <th>{{ $t('name') }}</th>
           <th></th>
         </tr>
       </thead>
-      <template v-if="backups && backups.length > 0">
+      <template>
         <tbody>
-          <tr v-bind:key="'Backup file 1'">
-            <td>Backup file 1</td>
+          <tr v-bind:key="'conf_backup_20210505-105548.tar'">
+            <td>conf_backup_20210505-105548.tar</td>
             <td>
               <div class="d-flex justify-end">
                 <xrd-button
@@ -46,16 +46,31 @@
                   data-test="backup-download"
                   >{{ $t('action.download') }}
                 </xrd-button>
-                <restore-backup-button
-                />
-                <delete-backup-button
-                />
+                <restore-backup-button />
+                <delete-backup-button />
+              </div>
+            </td>
+          </tr>
+          <tr v-bind:key="'conf_backup_20210404-092511.tar'">
+            <td>conf_backup_20210404-092511.tar</td>
+            <td>
+              <div class="d-flex justify-end">
+                <xrd-button
+                  :min_width="50"
+                  text
+                  :outlined="false"
+                  class="xrd-table-button"
+                  data-test="backup-download"
+                  >{{ $t('action.download') }}
+                </xrd-button>
+                <restore-backup-button />
+                <delete-backup-button />
               </div>
             </td>
           </tr>
         </tbody>
       </template>
-    </table>
+    </xrd-table>
   </v-card>
 </template>
 
@@ -71,8 +86,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/tables';
-</style>
