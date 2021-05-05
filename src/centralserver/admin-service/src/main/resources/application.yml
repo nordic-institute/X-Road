@@ -2,6 +2,8 @@
 # test runtime has a separate application.properties
 spring:
   jpa:
+    mapping-resources: apikey.hbm.xml
+    open-in-view: false
     hibernate:
       ddl-auto: none
       show-sql: true
@@ -12,3 +14,9 @@ spring:
         dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
   profiles:
     include: nontest
+  jackson:
+    default-property-inclusion: NON_NULL
+
+cache:
+  simple:
+    ttl: 60

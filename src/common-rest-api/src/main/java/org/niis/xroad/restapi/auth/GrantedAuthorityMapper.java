@@ -108,7 +108,9 @@ public class GrantedAuthorityMapper {
     private Set<SimpleGrantedAuthority> getPermissionGrants(Collection<Role> roles) {
         Set<String> permissions = new HashSet<>();
         for (Role role: roles) {
-            permissions.addAll(rolesToPermissions.get(role));
+            if (rolesToPermissions.containsKey(role)) {
+                permissions.addAll(rolesToPermissions.get(role));
+            }
         }
         return permissions
                 .stream()
