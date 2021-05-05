@@ -23,22 +23,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.centralserver.restapi.config;
 
 import ee.ria.xroad.common.SystemPropertiesLoader;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_NODE;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY;
-import static ee.ria.xroad.common.SystemProperties.CONF_FILE_PROXY_UI_API;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
 import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
 
 /**
- * Helper wrapper which makes sure system properties are initialized
+ * Helper wrapper which makes sure correct system properties are initialized (only once)
  */
-public final class SystemPropertiesInitializer {
-    private SystemPropertiesInitializer() {
+public final class CentralServerSystemPropertiesInitializer {
+    private CentralServerSystemPropertiesInitializer() {
     }
     private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
 
@@ -48,10 +46,8 @@ public final class SystemPropertiesInitializer {
     public static synchronized void initialize() {
         if (!XROAD_PROPERTIES_INITIALIZED.get()) {
             SystemPropertiesLoader.create().withCommonAndLocal()
-                    .with(CONF_FILE_PROXY)
-                    .with(CONF_FILE_PROXY_UI_API)
+                    .with(CONF_FILE_CENTER)
                     .with(CONF_FILE_SIGNER)
-                    .with(CONF_FILE_NODE)
                     .load();
             XROAD_PROPERTIES_INITIALIZED.set(true);
         }

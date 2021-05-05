@@ -70,7 +70,7 @@ public abstract class PropertyFileReadingEnvironmentPostProcessor implements Env
         // we read properties from file only if not testing
         if (environment.acceptsProfiles(Profiles.of("nontest"))) {
             // called twice since IntelliJ tests load the class twice
-            SystemPropertiesInitializer.initialize();
+            SecurityServerSystemPropertiesInitializer.initialize();
             try {
                 Properties originalProperties = new Properties();
 

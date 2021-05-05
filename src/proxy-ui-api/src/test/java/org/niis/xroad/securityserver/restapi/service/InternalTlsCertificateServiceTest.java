@@ -193,7 +193,6 @@ public class InternalTlsCertificateServiceTest {
     public void importInternalTlsCertificate() throws Exception {
         prepareTlsImportForTesting();
         byte[] certFileData = CertificateTestUtils.getMockCertificateBytes();
-        log.info("certFileData {}", certFileData);
         try {
             internalTlsCertificateService.importInternalTlsCertificate(certFileData);
         } catch (Exception e) {

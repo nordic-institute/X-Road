@@ -1,0 +1,14 @@
+# shared properties for dev/prod runtime
+# test runtime has a separate application.properties
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+  profiles:
+    include: nontest

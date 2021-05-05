@@ -49,7 +49,7 @@ public class PropertyFileReadingHibernateCustomizer implements HibernateProperti
     @Override
     public void customize(Map<String, Object> hibernateProperties) {
         // called twice since IntelliJ tests load the class twice
-        SystemPropertiesInitializer.initialize();
+        SecurityServerSystemPropertiesInitializer.initialize();
         Properties dbProperties = new Properties();
 
         try (FileInputStream dbPropertiesStream = new FileInputStream(SystemProperties.getDatabasePropertiesFile())) {
