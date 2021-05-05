@@ -25,48 +25,25 @@
  -->
 <template>
   <div>
-    <table class="xrd-table">
+    <table class="xrd-table keys-table">
       <thead>
         <tr>
-          <th>{{ $t(title) }}</th>
-          <th>{{ $t('keys.id') }}</th>
-          <th>{{ $t('keys.ocsp') }}</th>
-          <th>{{ $t('keys.expires') }}</th>
-          <th>{{ $t('keys.status') }}</th>
-          <th></th>
+          <th class="title-col">{{ $t(title) }}</th>
+          <th class="id-col">{{ $t('keys.id') }}</th>
+          <th class="ocsp-col">{{ $t('keys.ocsp') }}</th>
+          <th class="expiration-col">{{ $t('keys.expires') }}</th>
+          <th class="status-col">{{ $t('keys.status') }}</th>
+          <th class="action-col"></th>
         </tr>
       </thead>
 
       <tbody v-for="key in keys" v-bind:key="key.id">
-        <tr>
-          <td>
-            <div class="name-wrap">
-              <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
-              <div class="clickable-link" @click="keyClick(key)">
-                {{ key.name }}
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="id-wrap">
-              <div class="clickable-link" @click="keyClick(key)">
-                {{ key.id }}
-              </div>
-            </div>
-          </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="align-right">
-            <xrd-button
-              v-if="canCreateCsr"
-              class="table-button-fix"
-              :disabled="disableGenerateCsr(key)"
-              @click="generateCsr(key)"
-              >{{ $t('keys.generateCsr') }}</xrd-button
-            >
-          </td>
-        </tr>
+        <KeyRow
+          :tokenLoggedIn="tokenLoggedIn"
+          :tokenKey="key"
+          @generate-csr="generateCsr(key)"
+          @key-click="keyClick(key)"
+        />
 
         <CertificateRow
           v-for="cert in key.certificates"
@@ -79,6 +56,8 @@
               <xrd-button
                 v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                 class="table-button-fix"
+                :outlined="false"
+                text
                 @click="importCert(cert.certificate_details.hash)"
                 >{{ $t('keys.importCert') }}</xrd-button
               >
@@ -100,12 +79,14 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
+import KeyRow from './KeyRow.vue';
 import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
 import { Permissions, RouteName } from '@/global';
 import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
 
 export default Vue.extend({
   components: {
+    KeyRow,
     CertificateRow,
   },
   props: {
@@ -179,20 +160,10 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
-}
+@import '~styles/tables';
 
-.clickable {
-  cursor: pointer;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
-  height: 100%;
+.keys-table {
+  margin-top: 20px;
 }
 
 .table-button-fix {
@@ -200,11 +171,19 @@ export default Vue.extend({
   margin-right: 0;
 }
 
+.td-align-right {
+  text-align: right;
+}
+
+.td-name {
+  text-align: center;
+  vertical-align: middle;
+}
 .name-wrap {
   display: flex;
   flex-direction: row;
   align-items: center;
-
+  margin-left: 2.7rem;
   i.v-icon.mdi-file-document-outline {
     margin-left: 42px;
   }
@@ -218,7 +197,10 @@ export default Vue.extend({
   width: 100%;
 }
 
-.align-right {
-  text-align: right;
+.ocsp-col,
+.expiration-col,
+.status-col,
+.action-col {
+  width: 10%;
 }
 </style>
