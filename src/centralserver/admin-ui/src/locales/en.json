@@ -82,6 +82,15 @@
     }
   },
   "backup": {
+    "action": {
+      "restore": {
+        "dialog": {
+          "restoringTitle": "Restoring from backup in progress",
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to restore from {file}?"
+        }
+      }
+    },
     "backupConfiguration": {
       "button": "Back up config."
     },

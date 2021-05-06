@@ -41,6 +41,32 @@
       @cancel="showConfirmation = false"
       @accept="restoreBackup"
     />
+    <xrd-simple-dialog
+      :show-progress-bar="restoring"
+      :hide-save-button="true"
+      :dialog="showRestoringDialog"
+      cancel-button-text="action.close"
+      title="backup.action.restore.dialog.restoringTitle"
+      @cancel="showRestoringDialog = false"
+    >
+      <template v-slot:content>
+        <v-sheet class="pa-3 overflow-y-auto" height="15rem" rounded outlined>
+          CHECKING THE LABEL OF THE TAR ARCHIVE
+          security_XROAD_7.1_CS/ORG/1111/SS1 RESTORING CONFIGURATION FROM
+          /var/lib/xroad/backup/conf_backup_20210506-062914.tar CLEARING SHARED
+          MEMORY STOPPING REGISTERED SERVICES initctl stop xroad-confclient
+          initctl stop xroad-signer initctl stop xroad-monitor initctl stop
+          xroad-proxy initctl stop xroad-opmonitor CREATING PRE-RESTORE BACKUP
+          Creating database dump to /var/lib/xroad/dbdump.dat Creating
+          pre-restore backup archive to
+          /var/lib/xroad/conf_prerestore_backup.tar:
+          security_XROAD_7.1_CS/ORG/1111/SS1 tar: Removing leading `/' from
+          member names /etc/xroad/jetty/xroad.mod
+          /etc/xroad/jetty/contexts-admin/proxy-ui.xml
+          /etc/xroad/jetty/ocsp-responder.xml /etc/xroad/jetty/serverproxy.xml
+        </v-sheet>
+      </template>
+    </xrd-simple-dialog>
   </xrd-button>
 </template>
 
@@ -52,17 +78,19 @@ export default Vue.extend({
   data() {
     return {
       showConfirmation: false as boolean,
+      showRestoringDialog: false as boolean,
       restoring: false as boolean,
     };
   },
   methods: {
     async restoreBackup() {
+      this.showRestoringDialog = true;
       this.restoring = true;
+      this.showConfirmation = false;
       await new Promise<void>((res) => {
-        setTimeout(() => res(), 1000);
+        setTimeout(() => res(), 3000);
       });
       this.restoring = false;
-      this.showConfirmation = false;
       // show success snackbar
     },
   },
