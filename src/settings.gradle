@@ -15,6 +15,7 @@ include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
 include "common-op-monitoring"
+include "common-rest-api"
 
 // Main projects
 include "proxy"
