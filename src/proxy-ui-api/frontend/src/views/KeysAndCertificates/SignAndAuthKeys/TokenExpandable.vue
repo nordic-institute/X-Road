@@ -449,17 +449,17 @@ export default Vue.extend({
     text-decoration: none;
   }
 
-  & .inactive {
+  &.inactive {
     color: $XRoad-Black50;
     text-decoration-color: $XRoad-Black50;
   }
 
-  & .unavailable {
+  &.unavailable {
     color: $XRoad-Error;
     text-decoration-color: $XRoad-Error;
   }
 
-  & .unsaved {
+  &.unsaved {
     color: $XRoad-Error;
     text-decoration-color: $XRoad-Error;
   }
