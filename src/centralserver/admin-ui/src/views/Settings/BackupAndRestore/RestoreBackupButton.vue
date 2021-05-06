@@ -30,7 +30,17 @@
     :outlined="false"
     class="xrd-table-button"
     data-test="backup-restore"
+    @click="showConfirmation = true"
     >{{ $t('action.restore') }}
+    <xrd-confirm-dialog
+      :dialog="showConfirmation"
+      :loading="restoring"
+      title="backup.action.restore.dialog.title"
+      text="backup.action.restore.dialog.confirmation"
+      :data="{ file: 'conf_backup_20210505-105548.tar' }"
+      @cancel="showConfirmation = false"
+      @accept="restoreBackup"
+    />
   </xrd-button>
 </template>
 
@@ -39,6 +49,23 @@ import Vue from 'vue';
 
 export default Vue.extend({
   name: 'RestoreBackupButton',
+  data() {
+    return {
+      showConfirmation: false as boolean,
+      restoring: false as boolean,
+    };
+  },
+  methods: {
+    async restoreBackup() {
+      this.restoring = true;
+      await new Promise<void>((res) => {
+        setTimeout(() => res(), 1000);
+      });
+      this.restoring = false;
+      this.showConfirmation = false;
+      // show success snackbar
+    },
+  },
 });
 </script>
 

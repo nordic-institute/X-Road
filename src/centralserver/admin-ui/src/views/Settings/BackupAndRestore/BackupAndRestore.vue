@@ -36,15 +36,23 @@
         <xrd-button
           color="primary"
           outlined
+          :loading="creatingBackup"
           data-test="backup-create-configuration"
+          @click="createBackup"
         >
           <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
           >{{ $t('backup.backupConfiguration.button') }}
         </xrd-button>
-        <xrd-file-upload accepts="">
+        <xrd-file-upload
+          accepts=".tar"
+          @file-changed="onFileUploaded"
+          v-slot="{ upload }"
+        >
           <xrd-button
             color="primary"
+            :loading="uploadingBackup"
             class="ml-5"
+            @click="upload"
             data-test="backup-upload"
           >
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
@@ -52,6 +60,17 @@
             {{ $t('backup.uploadBackup.button') }}
           </xrd-button>
         </xrd-file-upload>
+        <xrd-confirm-dialog
+          v-if="uploadedFile !== null"
+          :dialog="needsConfirmation"
+          title="backup.uploadBackup.confirmationDialog.title"
+          data-test="backup-upload-confirm-overwrite-dialog"
+          text="backup.uploadBackup.confirmationDialog.confirmation"
+          :data="{ name: uploadedFile.name }"
+          :loading="uploadingBackup"
+          @cancel="needsConfirmation = false"
+          @accept="overwriteBackup"
+        />
       </div>
     </div>
     <BackupsDataTable />
@@ -64,15 +83,44 @@
  */
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
+import { FileUploadResult } from '@niis/shared-ui';
 
 export default Vue.extend({
   components: {
     BackupsDataTable,
   },
-  data: () => {
+  data() {
     return {
-      search: '',
+      search: '' as string,
+      creatingBackup: false,
+      uploadingBackup: false,
+      needsConfirmation: false,
+      uploadedFile: null as File | null,
     };
+  },
+  methods: {
+    async createBackup() {
+      this.creatingBackup = true;
+      await new Promise<void>((res) => {
+        setTimeout(() => res(), 1000);
+      });
+      this.creatingBackup = false;
+    },
+    async onFileUploaded(result: FileUploadResult) {
+      this.uploadingBackup = true;
+      this.uploadedFile = new File([], 'file name');
+      await new Promise<void>((res) => {
+        setTimeout(() => res(), 1000);
+      });
+      this.uploadingBackup = false;
+    },
+    async overwriteBackup() {
+      this.uploadingBackup = true;
+      await new Promise<void>((res) => {
+        setTimeout(() => res(), 1000);
+      });
+      this.uploadingBackup = false;
+    },
   },
 });
 </script>
