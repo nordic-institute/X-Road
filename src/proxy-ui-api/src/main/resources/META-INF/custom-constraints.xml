@@ -108,4 +108,10 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
             </constraint>
         </field>
     </bean>
+    <bean class="ServiceDescriptionDisabledNotice" ignore-annotations="false">
+        <field name="disabledNotice">
+            <constraint annotation="org.niis.xroad.restapi.openapi.validator.NoControlChars">
+            </constraint>
+        </field>
+    </bean>
 </constraint-mappings>
