@@ -26,18 +26,14 @@
 <template>
   <div>
     <table class="xrd-table keys-table">
-      <thead>
-        <tr>
-          <th class="title-col">{{ $t(title) }}</th>
-          <th class="id-col">{{ $t('keys.id') }}</th>
-          <th class="ocsp-col">{{ $t('keys.ocsp') }}</th>
-          <th class="expiration-col">{{ $t('keys.expires') }}</th>
-          <th class="status-col">{{ $t('keys.status') }}</th>
-          <th class="action-col"></th>
-        </tr>
-      </thead>
+      <KeysTableThead
+        :title="title"
+        :sortDirection="sortDirection"
+        :selectedSort="selectedSort"
+        @set-sort="setSort"
+      />
 
-      <tbody v-for="key in keys" v-bind:key="key.id">
+      <tbody v-for="key in sortedKeys" v-bind:key="key.id">
         <KeyRow
           :tokenLoggedIn="tokenLoggedIn"
           :tokenKey="key"
@@ -80,18 +76,26 @@
  */
 import Vue from 'vue';
 import KeyRow from './KeyRow.vue';
-import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
-import { Permissions, RouteName } from '@/global';
-import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
-
+import CertificateRow from './CertificateRow.vue';
+import KeysTableThead from './KeysTableThead.vue';
+import {
+  Key,
+  PossibleAction,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
+import { Permissions, RouteName, KeysSortColumn } from '@/global';
+import * as Sorting from '@/util/sorting';
+import { Prop } from 'vue/types/options';
 export default Vue.extend({
   components: {
     KeyRow,
     CertificateRow,
+    KeysTableThead,
   },
   props: {
     keys: {
-      type: Array,
+      type: Array as Prop<Key[]>,
       required: true,
     },
     title: {
@@ -106,7 +110,15 @@ export default Vue.extend({
       required: true,
     },
   },
+
   computed: {
+    sortedKeys(): Key[] {
+      return Sorting.keyArraySort(
+        this.keys,
+        this.selectedSort,
+        this.sortDirection,
+      );
+    },
     canCreateCsr(): boolean {
       return (
         this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
@@ -118,7 +130,27 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
   },
+
+  data() {
+    return {
+      registerDialog: false,
+      confirmDeleteCsr: false,
+      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
+      selectedKey: undefined as Key | undefined,
+      sortDirection: false,
+      selectedSort: KeysSortColumn.NAME,
+    };
+  },
+
   methods: {
+    setSort(sort: KeysSortColumn): void {
+      if (sort === this.selectedSort) {
+        this.sortDirection = !this.sortDirection;
+      }
+
+      this.selectedSort = sort;
+    },
     disableGenerateCsr(key: Key): boolean {
       if (!this.tokenLoggedIn) {
         return true;
@@ -133,27 +165,18 @@ export default Vue.extend({
 
       return true;
     },
-    importCert(hash: string): void {
-      this.$emit('import-cert-by-hash', hash);
-    },
-    certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$router.push({
-        name: RouteName.Certificate,
-        params: {
-          hash: cert.certificate_details.hash,
-          usage: key.usage ?? 'undefined',
-        },
-      });
-    },
+
     keyClick(key: Key): void {
       this.$emit('key-click', key);
+    },
+    certificateClick(cert: TokenCertificate, key: Key): void {
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(key: Key): void {
       this.$emit('generate-csr', key);
     },
-    fetchData(): void {
-      // Fetch tokens from backend
-      this.$emit('refresh-list');
+    importCert(hash: string): void {
+      this.$emit('import-cert-by-hash', hash);
     },
   },
 });
@@ -169,38 +192,5 @@ export default Vue.extend({
 .table-button-fix {
   margin-left: auto;
   margin-right: 0;
-}
-
-.td-align-right {
-  text-align: right;
-}
-
-.td-name {
-  text-align: center;
-  vertical-align: middle;
-}
-.name-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  margin-left: 2.7rem;
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
-}
-
-.id-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  align-items: center;
-  width: 100%;
-}
-
-.ocsp-col,
-.expiration-col,
-.status-col,
-.action-col {
-  width: 10%;
 }
 </style>
