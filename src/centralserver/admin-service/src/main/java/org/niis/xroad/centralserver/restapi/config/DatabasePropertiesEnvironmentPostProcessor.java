@@ -43,7 +43,8 @@ import java.util.Properties;
 
 /**
  * Load datasource properties from db.properties file.
- * Probably a temporary solution, does not support full CS db.properties featureset.
+ * Just a temporary solution, does not support full CS db.properties featureset.
+ * Do a proper implementation (with unit tests) in a separate ticket.
  *
  * PropertyFileReadingEnvironmentPostProcessor does not suit CS db.properties without changes,
  * there is no simple 1:1 mapping from db.properties property to spring config property
@@ -51,7 +52,7 @@ import java.util.Properties;
  * - maybe we should consider changing CS db.properties syntax to follow SS db.properties style?
  *
  * If db.properties format is kept, this should be improved to fully replicate db_conf_parser.rb features
- * (secondary_hosts, etc), and proper tests added - a separate ticket for this would be proper.
+ * (secondary_hosts, etc).
  */
 @Slf4j
 @Profile("nontest")
@@ -62,17 +63,18 @@ public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPo
     private static final String HOST_DB_PROPERTY = "host";
     private static final String PORT_DB_PROPERTY = "port";
     private static final String DATABASE_DB_PROPERTY = "database";
+    private static final String SCHEMA_DB_PROPERTY = "schema";
+    private static final String USERNAME_DB_PROPERTY = "username";
+    private static final String PUBLIC_SCHEMA = "public";
     private static final String DEFAULT_HOST = "localhost";
     private static final String DEFAULT_PORT = "5432";
     private static final String CONNECTION_URL_PREFIX = "jdbc:postgresql://";
     private static final String SPRING_DATASOURCE_URL = "spring.datasource.url";
-
+    private static final String SPRING_SCHEMA = "spring.datasource.hikari.data-source-properties.currentSchema";
     static {
         final HashMap<String, String> tmp = new HashMap<>();
-        tmp.put("username", "spring.datasource.username");
+        tmp.put(USERNAME_DB_PROPERTY, "spring.datasource.username");
         tmp.put("password", "spring.datasource.password");
-        tmp.put("schema",
-                "spring.datasource.hikari.data-source-properties.currentSchema");
         SIMPLE_DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES = Collections.unmodifiableMap(tmp);
         // url = jdbc:postgresql://<host>:<port>/<database>
     }
@@ -91,6 +93,15 @@ public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPo
 
     String mapToSpringPropertyName(String originalPropertyName) {
         return SIMPLE_DB_PROPERTY_NAMES_TO_SPRING_PROPERTIES.get(originalPropertyName);
+    }
+
+    private String createSchemaProperty(Properties dbProperties) {
+        String schema = dbProperties.getProperty(SCHEMA_DB_PROPERTY,
+                dbProperties.getProperty(USERNAME_DB_PROPERTY));
+        if (!PUBLIC_SCHEMA.equals(schema)) {
+            schema = schema + "," + PUBLIC_SCHEMA;
+        }
+        return schema;
     }
 
     private String createConnectionUrl(Properties dbProperties) {
@@ -135,6 +146,9 @@ public class DatabasePropertiesEnvironmentPostProcessor implements EnvironmentPo
 
                 // connection url
                 springPropertiesMap.put(SPRING_DATASOURCE_URL, createConnectionUrl(originalProperties));
+
+                // schema
+                springPropertiesMap.put(SPRING_SCHEMA, createSchemaProperty(originalProperties));
 
                 environment.getPropertySources().addFirst(new MapPropertySource(
                         getPropertySourceName(), springPropertiesMap));

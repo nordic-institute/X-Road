@@ -7,5 +7,7 @@
 
     <include file="centerui/000-ensure-supported-version.xml"/>
     <include file="centerui/001-baseline.xml"/>
+    <include file="centerui/002-hibernate-sequence.xml"/>
+    <include file="centerui/003-apikeys.xml"/>
 
 </databaseChangeLog>
