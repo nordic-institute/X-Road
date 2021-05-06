@@ -26,6 +26,7 @@
 <template>
   <div>
     <xrd-file-upload
+      v-if="showUploadAnchor"
       accepts=".xml"
       @file-changed="onUploadFileChanged"
       v-slot="{ upload }"
@@ -35,7 +36,6 @@
         outlined
         @click="upload"
         :loading="previewing"
-        :requires-permission="permissions.UPLOAD_ANCHOR"
         class="ml-5"
       >
         <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
@@ -146,6 +146,11 @@ export default Vue.extend({
     initMode: {
       type: Boolean,
       default: false,
+    },
+  },
+  computed: {
+    showUploadAnchor(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPLOAD_ANCHOR);
     },
   },
   data() {

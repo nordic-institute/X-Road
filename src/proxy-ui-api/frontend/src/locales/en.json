@@ -336,7 +336,8 @@
     "next": "Next",
     "submit": "Submit",
     "finish": "Finish",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "goToFront": "Got to front page"
   },
   "keys": {
     "token": "Token:",
@@ -731,6 +732,9 @@
   "warning": "Warning",
   "id": "ID",
   "count": "Amount of same errors:",
+  "404": "404 - page not found",
+  "404text": "Seems like you found the",
+  "404textUnicorn": "unicorn",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."

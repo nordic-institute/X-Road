@@ -138,6 +138,14 @@ subprojects {
         }
     }
 
+    test {
+        if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+            //workaround for JDK-8156584
+            systemProperty("java.security.properties",
+                "${project.rootDir}/config/workaround-jdk-8156584-security.properties");
+        }
+    }
+
     task buildall(dependsOn: [build, ':center-ui:warble', ':center-service:warble']) {
         description = "Builds all that can be built (even the slow tasks)"
     }
