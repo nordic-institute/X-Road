@@ -236,3 +236,12 @@ export enum Colors {
   Success10 = '#e6f8f1',
   Background = '#e5e5e5',
 }
+
+// Keys sort columns for keys and certificates view
+export enum KeysSortColumn {
+  NAME = 'NAME',
+  ID = 'ID',
+  OCSP = 'OCSP',
+  EXPIRATION = 'EXPIRATION',
+  STATUS = 'STATUS',
+}
