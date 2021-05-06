@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,40 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.proxy.serverproxy;
 
-/*
-Startpoint of the Vue application. 
-Sets up plugins and 3rd party components that the app uses.
-Creates a new Vue instance with the Vue function.
-Initialises the app root component.
-*/
-import Vue from 'vue';
-import axios from 'axios';
-import Router from 'vue-router';
-import SharedComponents from '@niis/shared-ui';
-Vue.use(SharedComponents); // This must be done before importing Vuetify
-import vuetify from './plugins/vuetify';
-import './plugins/vee-validate';
-import './filters';
-import App from './App.vue';
-import router from './router';
-import store from './store';
-import '@fontsource/open-sans/800.css';
-import '@fontsource/open-sans/700.css';
-import '@fontsource/open-sans';
-import i18n from './i18n';
-
-Vue.config.productionTip = false;
-
-axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
-axios.defaults.headers.get.Accepts = 'application/json';
-
-Vue.use(Router);
-
-new Vue({
-  router,
-  store,
-  i18n,
-  vuetify,
-  render: (h) => h(App),
-}).$mount('#app');
+public enum OpenapiDescriptionFiletype {
+    JSON, YAML
+}
