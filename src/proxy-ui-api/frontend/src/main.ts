@@ -41,6 +41,8 @@ import './filters';
 import App from './App.vue';
 import router from './router';
 import store from './store';
+import '@fontsource/open-sans/800.css';
+import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
 import i18n from './i18n';
 
