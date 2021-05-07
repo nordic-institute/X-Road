@@ -28,14 +28,18 @@ package org.niis.xroad.centralserver.restapi.controller;
 
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.Version;
+import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping(ControllerUtil.API_V1_PREFIX)
+@PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {
     @Override
+    @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<Version> systemVersion() {
         return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
     }
