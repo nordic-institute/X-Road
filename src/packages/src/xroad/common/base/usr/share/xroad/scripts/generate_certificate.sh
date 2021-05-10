@@ -103,9 +103,9 @@ fi
 
 if [[ -n $ALT ]]
 then
-  OPENSSL_EXT="-extensions ${NAME}_alt"
+  OPENSSL_EXT=(-extensions "${NAME}"_alt)
 else
-  OPENSSL_EXT="-extensions ${NAME}"
+  OPENSSL_EXT=(-extensions "${NAME}")
 fi
 export ALT
 
@@ -117,7 +117,7 @@ fi
 echo "$SUBJECT"  "$OPENSSL_SUBJ"
 
 
-openssl req -new -x509 -days 7300 -nodes -out "${DIR}"/"${NAME}".crt -keyout "${DIR}"/"${NAME}".key  -config "${CONF_DIR}"/openssl.cnf  "${OPENSSL_SUBJ[@]}"  "${OPENSSL_EXT}"
+openssl req -new -x509 -days 7300 -nodes -out "${DIR}"/"${NAME}".crt -keyout "${DIR}"/"${NAME}".key  -config "${CONF_DIR}"/openssl.cnf  "${OPENSSL_SUBJ[@]}"  "${OPENSSL_EXT[@]}"
 
 if [[ "$?" != 0 ]]
 then

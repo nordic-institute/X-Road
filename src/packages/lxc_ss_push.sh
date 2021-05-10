@@ -25,6 +25,7 @@ lxc file push $PROXYSCRIPTDIR/autobackup_xroad_proxy_configuration.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/backup_db.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/backup_xroad_proxy_configuration.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/get_security_server_id.sh $TARGET
+lxc file push $PROXYSCRIPTDIR/read_db_properties.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/restore_db.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/restore_xroad_proxy_configuration.sh $TARGET
 lxc file push $PROXYSCRIPTDIR/setup_serverconf_db.sh $TARGET
