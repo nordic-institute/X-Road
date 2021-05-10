@@ -25,7 +25,7 @@
  -->
 <template>
   <tr>
-    <td>
+    <td colspan="5">
       <div class="name-wrap-top">
         <i class="icon-Key key-icon" />
         <div class="clickable-link identifier-wrap" @click="keyClick">
@@ -36,7 +36,6 @@
         </div>
       </div>
     </td>
-    <td colspan="4"></td>
     <td class="td-align-right">
       <xrd-button
         v-if="showGenerateCsr"
@@ -126,17 +125,11 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
-}
 
-.clickable {
-  cursor: pointer;
-}
-
-.no-border {
-  border-bottom-width: 0 !important;
+.xrd-table {
+  td {
+    padding-left: 50px;
+  }
 }
 
 .table-button-fix {
@@ -162,10 +155,6 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
 }
 
 .name-wrap-top {

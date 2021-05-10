@@ -27,7 +27,6 @@
   <div>
     <table class="xrd-table keys-table">
       <KeysTableThead
-        :title="title"
         :sortDirection="sortDirection"
         :selectedSort="selectedSort"
         @set-sort="setSort"
@@ -185,10 +184,6 @@ export default Vue.extend({
       type: Array as Prop<Key[]>,
       required: true,
     },
-    title: {
-      type: String,
-      required: true,
-    },
     tokenLoggedIn: {
       type: Boolean,
     },
@@ -313,6 +308,13 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
+
+.xrd-table {
+  td {
+    padding-left: 30px;
+  }
+}
+
 .cert-icon {
   color: $XRoad-WarmGrey100;
   margin-right: 20px;
@@ -320,11 +322,6 @@ export default Vue.extend({
 
 .keys-table {
   margin-top: 0px;
-
-  th {
-    font-weight: 700;
-    color: $XRoad-Black100;
-  }
 }
 
 .table-button-fix {
@@ -346,9 +343,5 @@ export default Vue.extend({
   flex-direction: row;
   align-items: center;
   margin-left: 2.7rem;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
 }
 </style>
