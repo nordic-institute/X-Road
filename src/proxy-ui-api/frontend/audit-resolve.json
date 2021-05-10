@@ -2,8 +2,7 @@
   "decisions": {
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1617876084448,
-      "expiresAt": 1620468075030
+      "madeAt": 1617876084448
     },
     "565|@vue/cli-service>ssri": {
       "decision": "ignore",
