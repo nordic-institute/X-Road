@@ -49,12 +49,13 @@
 // View for a token
 import Vue from 'vue';
 import { Colors } from '@/global';
-import { TokenCertificate, CertificateStatus } from '@/openapi-types';
+import { CertificateStatus, Key, TokenCertificate } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   props: {
     keys: {
-      type: Array,
+      type: Array as Prop<Key[]>,
       required: true,
     },
     title: {
@@ -70,7 +71,7 @@ export default Vue.extend({
     errorCount(): number {
       let errors = 0;
 
-      this.keys.forEach((key: any) => {
+      this.keys.forEach((key: Key) => {
         key.certificates.forEach((cert: TokenCertificate) => {
           if (cert.status === CertificateStatus.GLOBAL_ERROR) {
             errors++;
@@ -91,7 +92,7 @@ export default Vue.extend({
   },
   methods: {
     countStates(): void {
-      this.keys.forEach((key: any) => {
+      this.keys.forEach((key: Key) => {
         key.certificates.forEach((cert: TokenCertificate) => {
           if (cert.status === CertificateStatus.GLOBAL_ERROR) {
             this.errors++;
