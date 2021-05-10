@@ -27,13 +27,13 @@
   <div>
     <table class="xrd-table keys-table">
       <KeysTableThead
-        :title="title"
         :sortDirection="sortDirection"
         :selectedSort="selectedSort"
         @set-sort="setSort"
       />
 
       <tbody v-for="key in sortedKeys" v-bind:key="key.id">
+        <!-- Key -->
         <KeyRow
           :tokenLoggedIn="tokenLoggedIn"
           :tokenKey="key"
@@ -41,6 +41,7 @@
           @key-click="keyClick(key)"
         />
 
+        <!-- Certificate -->
         <CertificateRow
           v-for="cert in key.certificates"
           v-bind:key="cert.id"
@@ -84,7 +85,7 @@ import {
   TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
-import { Permissions, RouteName, KeysSortColumn } from '@/global';
+import { Permissions, KeysSortColumn } from '@/global';
 import * as Sorting from '@/util/sorting';
 import { Prop } from 'vue/types/options';
 export default Vue.extend({
@@ -96,10 +97,6 @@ export default Vue.extend({
   props: {
     keys: {
       type: Array as Prop<Key[]>,
-      required: true,
-    },
-    title: {
-      type: String,
       required: true,
     },
     tokenLoggedIn: {

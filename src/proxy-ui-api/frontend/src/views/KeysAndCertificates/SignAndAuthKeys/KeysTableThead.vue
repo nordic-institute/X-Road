@@ -33,7 +33,7 @@
         @mouseleave="hoverName = false"
       >
         <div class="header-title">
-          <div>{{ $t(title) }}</div>
+          <div>{{ $t('name') }}</div>
           <sort-button
             :arrowState="sortDirection"
             :active="hoverName"
@@ -124,10 +124,6 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-    title: {
-      type: String,
-      required: true,
-    },
     selectedSort: {
       type: String,
       required: true,
@@ -156,10 +152,13 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.title-col {
-  width: 30%;
-  cursor: pointer;
-  user-select: none;
+.xrd-table {
+  .title-col {
+    width: 30%;
+    cursor: pointer;
+    user-select: none;
+    padding-left: 40px;
+  }
 }
 
 .id-col {

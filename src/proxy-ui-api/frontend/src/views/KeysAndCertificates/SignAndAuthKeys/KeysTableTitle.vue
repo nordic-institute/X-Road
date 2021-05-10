@@ -25,8 +25,8 @@
  -->
 <template>
   <div class="table-title" :class="{ 'table-closed': !arrowState }">
-    <div class="title-text">
-      <v-btn icon :color="colors.WarmGrey100" @click="arrowClick">
+    <div class="title-text" @click="arrowClick">
+      <v-btn icon :color="colors.WarmGrey100">
         <v-icon v-if="arrowState">icon-Sorting-arrow</v-icon>
         <v-icon v-else class="arrow-degree">icon-Sorting-arrow</v-icon>
       </v-btn>
@@ -138,6 +138,10 @@ export default Vue.extend({
   justify-content: space-between;
   height: 100%;
   align-items: center;
+
+  .title-text {
+    cursor: pointer;
+  }
 }
 
 .table-closed {

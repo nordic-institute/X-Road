@@ -31,6 +31,25 @@
     :isOpen="isExpanded(token.id)"
     :color="tokenStatusColor"
   >
+    <template v-slot:link>
+      <div
+        class="clickable-link identifier-wrap"
+        @click="tokenNameClick()"
+        data-test="token-name"
+      >
+        <span
+          class="token-status-indicator token-name"
+          v-bind:class="tokenStatusClass"
+        >
+          {{ $t('keys.token') }} {{ token.name }}
+        </span>
+
+        <v-btn icon @click="tokenClick(token)" color="primary">
+          <v-icon class="button-icon">icon-Edit</v-icon>
+        </v-btn>
+      </div>
+    </template>
+
     <template v-slot:action>
       <div class="action-slot-wrapper">
         <template v-if="canActivateToken">
@@ -53,25 +72,6 @@
             @token-login="login()"
           />
         </template>
-      </div>
-    </template>
-
-    <template v-slot:link>
-      <div
-        class="clickable-link identifier-wrap"
-        @click="tokenClick(token)"
-        data-test="token-name"
-      >
-        <span
-          class="token-status-indicator token-name"
-          v-bind:class="tokenStatusClass"
-        >
-          {{ $t('keys.token') }} {{ token.name }}
-        </span>
-
-        <v-btn icon @click="tokenClick(token)" color="primary">
-          <v-icon class="button-icon">icon-Edit</v-icon>
-        </v-btn>
       </div>
     </template>
 
@@ -118,7 +118,6 @@
           <keys-table
             v-if="authKeysOpen"
             :keys="getAuthKeys(token.keys)"
-            title="keys.authKeyCert"
             :tokenLoggedIn="token.logged_in"
             :tokenType="token.type"
             @key-click="keyClick"
@@ -142,7 +141,6 @@
             class="keys-table"
             v-if="signKeysOpen"
             :keys="getSignKeys(token.keys)"
-            title="keys.signKeyCert"
             :tokenLoggedIn="token.logged_in"
             :tokenType="token.type"
             @key-click="keyClick"
@@ -164,7 +162,6 @@
           <unknown-keys-table
             v-if="unknownKeysOpen"
             :keys="getOtherKeys(token.keys)"
-            title="keys.unknown"
             :tokenLoggedIn="token.logged_in"
             :tokenType="token.type"
             @key-click="keyClick"
@@ -319,6 +316,15 @@ export default Vue.extend({
     logout(): void {
       this.$store.dispatch('setSelectedToken', this.token);
       this.$emit('token-logout');
+    },
+
+    tokenNameClick(): void {
+      if (this.isExpanded(this.token.id)) {
+        this.descClose(this.token.id);
+        return;
+      }
+
+      this.descOpen(this.token.id);
     },
 
     tokenClick(token: Token): void {
