@@ -761,7 +761,7 @@
       "csrFormat": "CSR Format"
     },
     "keys": {
-      "friendlyName": "Friendly name"
+      "name": "Name"
     },
     "addClient": {
       "memberClass": "Member class",

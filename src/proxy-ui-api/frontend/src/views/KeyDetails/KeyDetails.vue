@@ -57,16 +57,16 @@
         <div>
           <ValidationProvider
             rules="required"
-            name="keys.friendlyName"
+            name="keys.name"
             v-slot="{ errors }"
             class="validation-provider"
           >
             <v-text-field
               v-model="key.name"
               class="code-input key-name"
-              name="keys.friendlyName"
+              name="keys.name"
               type="text"
-              :label="$t('fields.keys.friendlyName')"
+              :label="$t('fields.keys.name')"
               outlined
               :maxlength="255"
               :error-messages="errors"

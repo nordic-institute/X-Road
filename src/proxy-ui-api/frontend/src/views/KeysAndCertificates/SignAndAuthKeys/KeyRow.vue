@@ -25,7 +25,7 @@
  -->
 <template>
   <tr>
-    <td colspan="5">
+    <td>
       <div class="name-wrap-top">
         <i class="icon-Key key-icon" />
         <div class="clickable-link identifier-wrap" @click="keyClick">
@@ -36,6 +36,7 @@
         </div>
       </div>
     </td>
+    <td colspan="4"></td>
     <td class="td-align-right">
       <xrd-button
         v-if="showGenerateCsr"
