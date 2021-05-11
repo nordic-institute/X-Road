@@ -52,7 +52,7 @@ pgrestore() {
 
 if [[ $FORCE_RESTORE == true ]] ; then
   { cat <<EOF
-     DROP SCHEMA IF EXISTS $db_schema CASCADE;
+     DROP SCHEMA IF EXISTS "$db_schema" CASCADE;
 EOF
   } | psql_adminuser || abort "Restoring database failed. Could not drop schema."
 fi
@@ -67,7 +67,7 @@ BEGIN
           WHERE schema_name = '$db_schema'
       )
     THEN
-      EXECUTE 'CREATE SCHEMA $db_schema';
+      EXECUTE 'CREATE SCHEMA "$db_schema"';
     END IF;
 END
 \$\$;
