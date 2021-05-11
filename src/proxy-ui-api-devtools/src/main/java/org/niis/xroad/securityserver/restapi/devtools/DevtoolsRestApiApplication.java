@@ -33,8 +33,8 @@ import org.springframework.cache.annotation.EnableCaching;
 /**
  * devtools -enabled main spring boot application.
  */
-@ServletComponentScan(basePackages = {"org.niis.xroad.restapi"})
-@SpringBootApplication(scanBasePackages = {"org.niis.xroad.restapi"})
+@ServletComponentScan(basePackages = { "org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi" })
+@SpringBootApplication(scanBasePackages = { "org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi" })
 @EnableCaching
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class DevtoolsRestApiApplication {
