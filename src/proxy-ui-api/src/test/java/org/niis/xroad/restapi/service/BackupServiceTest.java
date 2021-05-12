@@ -25,8 +25,6 @@
  */
 package org.niis.xroad.restapi.service;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
@@ -36,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,7 +48,6 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_BACKUP_FILE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_FILENAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_FILE_ALREADY_EXISTS;
 
@@ -74,19 +70,17 @@ public class BackupServiceTest extends AbstractServiceTestContext {
 
     private static final String BASE_DIR = "/tmp/backups/";
 
-    private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";
+    private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.gpg";
 
     private static final String BACKUP_FILE_1_CREATED_AT = "2020-02-19T03:15:02.451Z";
 
     private static final Long BACKUP_FILE_1_CREATED_AT_MILLIS = 1582082102451L;
 
-    private static final String BACKUP_FILE_2_NAME = "ss-automatic-backup-2020_02_12_031502.tar";
+    private static final String BACKUP_FILE_2_NAME = "ss-automatic-backup-2020_02_12_031502.gpg";
 
     private static final String BACKUP_FILE_2_CREATED_AT = "2020-02-12T03:15:02.684Z";
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
-
-    private static final String VALID_TAR_LABEL = "security_XROAD-6.24.0_TESTSS";
 
     private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "content".getBytes());
 
@@ -187,7 +181,7 @@ public class BackupServiceTest extends AbstractServiceTestContext {
     @Test
     public void uploadBackup() throws UnhandledWarningsException, InvalidBackupFileException, IOException,
             InvalidFilenameException {
-        MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, VALID_TAR_LABEL);
+        MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
 
         when(backupRepository.fileExists(BACKUP_FILE_1_NAME)).thenReturn(false);
         when(backupRepository.writeBackupFile(BACKUP_FILE_1_NAME, multipartFile.getBytes())).thenReturn(
@@ -198,22 +192,6 @@ public class BackupServiceTest extends AbstractServiceTestContext {
 
         assertEquals(BACKUP_FILE_1_NAME, backupFile.getFilename());
         assertEquals(BACKUP_FILE_1_CREATED_AT, backupFile.getCreatedAt().toString());
-    }
-
-    @Test
-    public void uploadBackupInvalidTarLabel() throws UnhandledWarningsException, IOException,
-            InvalidFilenameException {
-        MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, "invalid_label");
-
-        when(backupRepository.fileExists(BACKUP_FILE_1_NAME)).thenReturn(false);
-
-        try {
-            backupService.uploadBackup(true, multipartFile.getOriginalFilename(),
-                    multipartFile.getBytes());
-            fail("should throw InvalidBackupFileException");
-        } catch (InvalidBackupFileException expected) {
-            assertEquals(ERROR_INVALID_BACKUP_FILE, expected.getErrorDeviation().getCode());
-        }
     }
 
     @Test
@@ -231,7 +209,7 @@ public class BackupServiceTest extends AbstractServiceTestContext {
     @Test
     public void uploadBackupFileAlreadyExistsNoOverwrite() throws InvalidFilenameException,
             InvalidBackupFileException, IOException {
-        MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, VALID_TAR_LABEL);
+        MultipartFile multipartFile = createMultipartFile(BACKUP_FILE_1_NAME);
         when(backupRepository.fileExists(any(String.class))).thenReturn(true);
         try {
             backupService.uploadBackup(false, multipartFile.getOriginalFilename(),
@@ -242,30 +220,8 @@ public class BackupServiceTest extends AbstractServiceTestContext {
         }
     }
 
-    @Test
-    public void uploadBackupFileInvalidBackupFileOverwriteExisting() throws InvalidFilenameException,
-            UnhandledWarningsException, IOException {
-        MultipartFile multipartFile = createMultipartFileWithTar(BACKUP_FILE_1_NAME, "invalid");
-        when(backupRepository.fileExists(any(String.class))).thenReturn(true);
-        try {
-            backupService.uploadBackup(true, multipartFile.getOriginalFilename(),
-                    multipartFile.getBytes());
-            fail("should throw InvalidBackupFileException");
-        } catch (InvalidBackupFileException expected) {
-            assertEquals(ERROR_INVALID_BACKUP_FILE, expected.getErrorDeviation().getCode());
-        }
-    }
-
-    private MultipartFile createMultipartFileWithTar(String filename, String tarLabel) throws IOException {
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                TarArchiveOutputStream taos = new TarArchiveOutputStream(baos)) {
-            TarArchiveEntry tarEntry = new TarArchiveEntry(tarLabel);
-
-            taos.putArchiveEntry(tarEntry);
-            taos.closeArchiveEntry();
-
-            return new MockMultipartFile(filename, filename, "multipart/form-data", baos.toByteArray());
-        }
+    private MultipartFile createMultipartFile(String filename) throws IOException {
+        return new MockMultipartFile(filename, filename, "multipart/form-data", "void".getBytes());
     }
 
     private void mockExternalProcessRunnerFail() {
