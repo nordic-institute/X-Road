@@ -191,7 +191,7 @@ if [ $1 -gt 1 ]; then
   if [ ! -d /etc/xroad/gpghome ] ; then
     ID=$(source /usr/share/xroad/scripts/get_security_server_id.sh)
     if [[ -n "${ID}" ]] ; then
-      /usr/share/xroad/scripts/generate_gpg_keypair.sh ${ID}
+      /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
     fi
   fi
 fi
