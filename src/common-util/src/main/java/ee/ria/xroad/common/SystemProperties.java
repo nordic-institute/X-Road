@@ -278,10 +278,6 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
-    private static final String PROXY_BACKUP_ENCRYPTED = PREFIX + "proxy.backup-encrypted";
-
-    private static final String PROXY_BACKUP_PUBLIC_KEY_PATH = PREFIX + "proxy.backup-public-key-path";
-
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";

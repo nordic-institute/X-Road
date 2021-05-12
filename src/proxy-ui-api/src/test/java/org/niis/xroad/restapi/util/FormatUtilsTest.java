@@ -66,14 +66,14 @@ public class FormatUtilsTest {
 
     @Test
     public void invalidBackupFilename() {
-        assertFalse(FormatUtils.isValidBackupFilename("/b.gpg"));
-        assertFalse(FormatUtils.isValidBackupFilename("../b.gpg"));
-        assertFalse(FormatUtils.isValidBackupFilename("a/b.gpg"));
+        assertFalse(FormatUtils.isValidBackupFilename("/b.tar"));
+        assertFalse(FormatUtils.isValidBackupFilename("../b.tar"));
+        assertFalse(FormatUtils.isValidBackupFilename("a/b.tar"));
     }
 
     @Test
     public void validBackupFilename() {
-        assertTrue(FormatUtils.isValidBackupFilename("b.gpg"));
+        assertTrue(FormatUtils.isValidBackupFilename("b.tar"));
     }
 
     @Test

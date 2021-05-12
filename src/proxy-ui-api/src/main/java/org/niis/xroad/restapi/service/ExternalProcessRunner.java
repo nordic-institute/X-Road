@@ -159,7 +159,7 @@ public class ExternalProcessRunner {
 
     @Data
     @AllArgsConstructor
-    public static class ProcessResult {
+    public class ProcessResult {
         private String commandWithArgs;
         private int exitCode;
         private List<String> processOutput;

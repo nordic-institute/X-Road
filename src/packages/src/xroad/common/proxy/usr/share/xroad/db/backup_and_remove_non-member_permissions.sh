@@ -9,7 +9,7 @@ then
     echo -e "No instance identifier found, skipping backup"
 else
     echo -e "Creating backup before removing non-subsystem accessrights related objects.\nBackup can be found: $filename"
-    su - xroad -c sh -c "/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh -E -s \"${instance}\" -f \"${filename}\""
+    su - xroad -c sh -c "/usr/share/xroad/scripts/backup_xroad_proxy_configuration.sh -s \"${instance}\" -f \"${filename}\""
 
     if [[ $? -ne 0 ]]
     then

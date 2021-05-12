@@ -5,7 +5,7 @@
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
 COMMON_BACKUP_SCRIPT=/usr/share/xroad/scripts/_backup_xroad.sh
-THIS_FILE=$(pwd)/$0
+THIS_FILE=$(pwd)/$0 
 
 usage () {
 cat << EOF
@@ -20,28 +20,20 @@ OPTIONS:
     -s ID of the security server.
     -f Absolute path of the resulting tar archive.
     -S Skip database backup
-    -E encrypt backup
 EOF
 }
 
 execute_backup () {
   if [ -x $COMMON_BACKUP_SCRIPT ] ; then
-    local args=(-t security -s "$SECURITY_SERVER_ID" -f "$BACKUP_FILENAME")
+    local args="-t security -s $SECURITY_SERVER_ID -f $BACKUP_FILENAME"
     if [[ $USE_BASE_64 = true ]] ; then
-      args+=(-b)
+      args="${args} -b"
     fi
     if [[ $SKIP_DB_BACKUP = true ]] ; then
-      args+=(-S)
+      args="${args} -S"
     fi
-    if [[ $ENCRYPT_BACKUP = true ]] ; then
-      args+=(-E encrypt)
-    else
-      args+=(-E signonly)
-    fi
-    if [ -n "$PUBKEYS_FOLDER" ]; then
-      args+=(-k "$PUBKEYS_FOLDER")
-    fi
-    if ! ${COMMON_BACKUP_SCRIPT} "${args[@]}" ; then
+    ${COMMON_BACKUP_SCRIPT} ${args}
+    if [ $? -ne 0 ] ; then
       echo "Failed to back up the configuration of the X-Road security server"
       exit 1
     fi
@@ -81,11 +73,6 @@ while getopts ":s:f:Sbh" opt ; do
       ;;
   esac
 done
-
-ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encrypted" false)
-echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
-PUBKEYS_FOLDER=$(get_proxy_prop proxy.ini proxy "backup-public-key-path")
-echo "PUBKEYS_FOLDER=$PUBKEYS_FOLDER"
 
 check_user
 check_security_server_id

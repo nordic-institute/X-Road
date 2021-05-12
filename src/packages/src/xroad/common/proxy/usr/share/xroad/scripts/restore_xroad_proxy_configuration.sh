@@ -10,7 +10,7 @@ THIS_FILE=$(pwd)/$0
 usage () {
 cat << EOF
 
-Usage: $0 -s <security server ID> -f <path of tar archive> [-F] [-P] [-N] [-R]
+Usage: $0 -s <security server ID> -f <path of tar archive> [-F] [-R]
 
 Restore the configuration (files and database) of the X-Road security server
 from a tar archive.
@@ -21,33 +21,26 @@ OPTIONS:
     -s ID of the security server. Mandatory if -F is not used.
     -f Absolute path of the tar archive to be used for restoration. Mandatory.
     -F Force restoration, taking only the type of server into account.
-    -P Backup archive is in unencrypted TAR format NOT in GPG format (not encrypted nor signed).
-    -N Skip GPG signature verification
     -R Skip removal of old files and just copy the backup on top of the existing configuration.
 EOF
 }
 
 execute_restore () {
   if [ -x ${COMMON_RESTORE_SCRIPT} ] ; then
-    local args=(-t security -f "${BACKUP_FILENAME}")
-    if [[ -n ${FORCE_RESTORE} ]] && [[ ${FORCE_RESTORE} = true ]] ; then
-      args+=(-F)
+    local args="-t security -f ${BACKUP_FILENAME}"
+    if [ -n ${FORCE_RESTORE} ] && [[ ${FORCE_RESTORE} = true ]] ; then
+      args="${args} -F"
     else
-      args+=(-s "${SECURITY_SERVER_ID}")
+      args="${args} -s ${SECURITY_SERVER_ID}"
       if [[ $USE_BASE_64 = true ]] ; then
-        args+=(-b)
+        args="${args} -b"
       fi
     fi
-    if [[ -n ${SKIP_REMOVAL} ]] && [[ ${SKIP_REMOVAL} = true ]] ; then
-      args+=(-R)
+    if [ -n ${SKIP_REMOVAL} ] && [[ ${SKIP_REMOVAL} = true ]] ; then
+      args="${args} -R"
     fi
-    if [[ $PLAIN_BACKUP != true ]] ; then
-      args+=(-E)
-    fi
-    if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
-      args+=(-N)
-    fi
-    if ! sudo -u root ${COMMON_RESTORE_SCRIPT} "${args[@]}" 2>&1 ; then
+    sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
+    if [ $? -ne 0 ] ; then
       echo "Failed to restore the configuration of the X-Road security server"
       exit 1
     fi
@@ -57,7 +50,7 @@ execute_restore () {
   fi
 }
 
-while getopts ":RFs:f:bhPN" opt ; do
+while getopts ":RFs:f:bh" opt ; do
   case $opt in
     h)
       usage
@@ -77,12 +70,6 @@ while getopts ":RFs:f:bhPN" opt ; do
       ;;
     b)
       USE_BASE_64=true
-      ;;
-    P)
-      PLAIN_BACKUP=true
-      ;;
-    N)
-      SKIP_SIGNATURE_CHECK=true
       ;;
     \?)
       echo "Invalid option $OPTARG"

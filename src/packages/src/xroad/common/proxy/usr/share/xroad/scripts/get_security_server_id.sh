@@ -1,14 +1,9 @@
 #!/bin/bash
 
-source /usr/share/xroad/scripts/read_db_properties.sh
-read_serverconf_database_properties /etc/xroad/db.properties
+PW=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.password)
+USER=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.username)
+HOST=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f1)
+PORT=$(crudini --get /etc/xroad/db.properties '' serverconf.hibernate.connection.url | cut -d '/' -f 3 | cut -d ':' -f2)
 
-PGPASSWORD="$db_password" \
-psql -t -A -F / -h "${db_addr}" -p "${db_port}" -d "${db_database}" -U "${db_user}" <<EOF
-select id.xroadinstance, id.memberclass, id.membercode, s.servercode
-from "${db_schema}".serverconf s
-join "${db_schema}".client c on s.owner=c.id
-join "${db_schema}".identifier id on c.identifier=id.id
-where id.xroadinstance IS NOT NULL AND id.memberclass IS NOT NULL AND
-id.membercode IS NOT NULL AND s.servercode IS NOT NULL;
-EOF
+export PGPASSWORD=${PW}
+psql -t -A -F / -h ${HOST:-localhost} -p ${PORT:-5432} -d serverconf -U ${USER:-serverconf} -c "select identifier.xroadinstance, identifier.memberclass, identifier.membercode, serverconf.servercode from serverconf inner join client on serverconf.owner=client.id inner join identifier on client.identifier=identifier.id;"

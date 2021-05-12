@@ -40,8 +40,6 @@ import org.niis.xroad.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.restapi.facade.SignerProxyFacade;
 
-import java.util.ArrayList;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -97,13 +95,11 @@ public class InitializationServiceTest {
     private AuditDataHelper auditDataHelper;
     @Mock
     private TokenPinValidator tokenPinValidator;
-    @Mock
-    private ExternalProcessRunner externalProcessRunner;
 
     private InitializationService initializationService;
 
     @Before
-    public void setup() throws ProcessFailedException, InterruptedException, ProcessNotExecutableException {
+    public void setup() {
         when(systemService.isAnchorImported()).thenReturn(true);
         when(serverConfService.isServerCodeInitialized()).thenReturn(true);
         when(serverConfService.isServerOwnerInitialized()).thenReturn(true);
@@ -112,11 +108,8 @@ public class InitializationServiceTest {
         when(serverConfService.getOrCreateServerConf()).thenReturn(new ServerConfType());
         when(serverConfService.getSecurityServerOwnerId()).thenReturn(CLIENT);
         when(tokenService.getSoftwareTokenInitStatus()).thenReturn(TokenInitStatusInfo.INITIALIZED);
-        when(externalProcessRunner.executeAndThrowOnFailure(any(), any())).thenReturn(
-                new ExternalProcessRunner.ProcessResult("mockCmd", 0, new ArrayList<String>()));
         initializationService = new InitializationService(systemService, serverConfService,
-                tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator,
-                externalProcessRunner);
+                tokenService, globalConfFacade, clientService, signerProxyFacade, auditDataHelper, tokenPinValidator);
     }
 
     @Test
