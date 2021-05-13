@@ -1,4 +1,4 @@
-FROM ubuntu:bionic
+FROM ubuntu:focal
 ARG VERSION=6.26.0
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -20,7 +20,7 @@ RUN apt-get -qq update \
   && apt-get -qq install postgresql postgresql-contrib \
   && apt-get -qq clean
 
-ARG DIST=bionic-$VERSION
+ARG DIST=focal-$VERSION
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
 ARG COMPONENT=main
@@ -31,7 +31,7 @@ ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && apt-key add '/tmp/repokey.gpg'
 
-RUN pg_ctlcluster 10 main start \
+RUN pg_ctlcluster 12 main start \
   && apt-get -qq update \
   && apt-get -qq install \
     xroad-proxy \
@@ -53,7 +53,7 @@ RUN pg_ctlcluster 10 main start \
     -c "DROP DATABASE \"op-monitor\";" \
     -c "DROP USER opmonitor;" \
     -c "DROP USER opmonitor_admin;"'\
-  && pg_ctlcluster 10 main stop \
+  && pg_ctlcluster 12 main stop \
   && userdel -r xrd
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback.xml files/variables-logback.properties /etc/xroad/conf.d/

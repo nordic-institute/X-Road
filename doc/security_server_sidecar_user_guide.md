@@ -131,7 +131,6 @@ Minimum recommended Docker engine configuration to run the Security Server Sidec
 
 * CPUs: 2
 * Memory: 2 GiB
-* Swap: 1 GiB
 * Disk space: 2 GiB
 * If the Security Server is separated from other networks by a firewall and/or NAT, you need to allow the necessary connections to and from the Security Server (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
 * If the Security Server has a private IP address, you must create a corresponding NAT record in the firewall (**reference data: 1.18**).
@@ -213,6 +212,8 @@ The script `setup_security_server_sidecar.sh` will:
 
     Note (2): It is strongly recommended to configure the Security Server Sidecar container to use volumes and external database to persist information outside the Security Server Sidecar container in a production environment. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
 
+    Note (3): The installation in a test or development environment requires a free swap memory space of at least 1 GiB.
+
 ##### 2.6.2.1 Security Server Sidecar Slim
 
 The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring. To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`.
@@ -271,7 +272,7 @@ The Security Server Sidecar provides the option to configure an external databas
     docker inspect <container_name>
     ```
 
-The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL version 10).
+The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL versions 10 and 12).
 
 #### 2.7.1 Reconfigure external database address after initialization
 
@@ -342,16 +343,16 @@ It is possible to configure the Security Server Sidecar to use volume support fo
 To add volume support, you have to add the volume mapping parameters to the docker run command inside the `setup_security_server_sidecar.sh` script as shown below:
 
 ```bash
-docker run ... -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main ...
+docker run ... -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/12/main ...
 ```
 
 For example:
 
 ```bash
-docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
+docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/12/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
 ```
 
-This will allow us to create the sidecar-config and sidecar-config-db directories on the host and mount them onto the /etc/xroad and /var/lib/postgresql/10/main config directories respectively in the container.
+This will allow us to create the sidecar-config and sidecar-config-db directories on the host and mount them onto the /etc/xroad and /var/lib/postgresql/12/main config directories respectively in the container.
 
 #### 2.9.1 Store sensitive information in volumes
 
