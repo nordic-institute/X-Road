@@ -83,6 +83,8 @@ case "$1" in
     if [[ -n "${ID}" ]] ; then
       /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
     fi
+    # always fix gpghome ownership
+    chown -R xroad:xroad /etc/xroad/gpghome
   fi
 
   invoke-rc.d --quiet rsyslog try-restart || true
