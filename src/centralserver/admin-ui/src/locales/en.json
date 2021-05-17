@@ -1,4 +1,41 @@
 {
+  "action": {
+    "addSubsystem": "Add subsystem",
+    "addClient": "Add client",
+    "addMember": "Add member",
+    "search": "Search",
+    "add": "Add",
+    "copyId": "Copy ID",
+    "export": "Export",
+    "emptySearch": "Your search for {msg} found no results.",
+    "noData": "No data",
+    "ok": "Ok",
+    "close": "Close",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "delete": "Delete",
+    "download": "Download",
+    "upload": "Upload",
+    "remove": "Remove",
+    "removeAll": "Remove All",
+    "register": "Register",
+    "restore": "Restore",
+    "unregister": "Unregister",
+    "save": "Save",
+    "confirm": "Confirm",
+    "continue": "Continue",
+    "activate": "Activate",
+    "deactivate": "Disable",
+    "previous": "Previous",
+    "done": "Done",
+    "next": "Next",
+    "submit": "Submit",
+    "finish": "Finish",
+    "searching": "Searching..."
+  },
   "global": {
     "subsystem": "Subsystem",
     "memberName": "Member name",
@@ -44,6 +81,23 @@
       "backupAndRestore": "Backup And Restore"
     }
   },
+  "backup": {
+    "action": {
+      "restore": {
+        "dialog": {
+          "restoringTitle": "Restoring from backup in progress",
+          "title": "Are you sure?",
+          "confirmation": "Are you sure you want to restore from {file}?"
+        }
+      }
+    },
+    "backupConfiguration": {
+      "button": "Back up config."
+    },
+    "uploadBackup": {
+      "button": "Upload backup"
+    }
+  },
   "fields": {
     "password": "Password",
     "username": "Username"
@@ -83,6 +137,5 @@
         "showOnlyWaiting": "Show only waiting requests"
       }
     }
-
   }
 }

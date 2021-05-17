@@ -33,6 +33,11 @@
     :scrollable="scrollable"
   >
     <v-card class="xrd-card" data-test="dialog-simple">
+      <v-progress-linear
+        height="10"
+        v-if="showProgressBar"
+        :indeterminate="true"
+      ></v-progress-linear>
       <v-card-title>
         <slot name="title">
           <span data-test="dialog-title">{{ $t(title) }}</span>
@@ -62,6 +67,7 @@
           {{ $t(cancelButtonText) }}
         </xrd-button>
         <xrd-button
+          v-if="!hideSaveButton"
           data-test="dialog-save-button"
           :disabled="disableSaveButton"
           :loading="loading"
@@ -104,6 +110,11 @@ export default Vue.extend({
     disableSave: {
       type: Boolean,
     },
+    // Hide save button
+    hideSaveButton: {
+      type: Boolean,
+      default: false,
+    },
     cancelButtonText: {
       type: String,
       default: 'action.cancel',
@@ -123,6 +134,11 @@ export default Vue.extend({
     },
     // Set save button loading spinner
     loading: {
+      type: Boolean,
+      default: false,
+    },
+    // Show indeterminate progress bar at the top
+    showProgressBar: {
       type: Boolean,
       default: false,
     },

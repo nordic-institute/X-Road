@@ -24,30 +24,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common content">
-    <slot></slot>
-  </div>
+  <xrd-button
+    :min_width="50"
+    text
+    :outlined="false"
+    class="xrd-table-button"
+    data-test="backup-delete"
+    >{{ $t('action.delete') }}
+  </xrd-button>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
-/**
- * View wrapper component for the main content area.
- */
-export default Vue.extend({});
+export default Vue.extend({
+  name: 'DeleteBackupButton',
+});
 </script>
 
-<style scoped lang="scss">
-.content {
-  margin-top: 40px;
-  width: 100%;
-  max-width: 1600px;
-  padding-right: 92px;
-  padding-left: 92px;
-
-  @media only screen and (max-width: 920px) {
-    padding-left: 0px;
-  }
-}
+<style lang="scss" scoped>
+@import '../../../assets/tables';
 </style>

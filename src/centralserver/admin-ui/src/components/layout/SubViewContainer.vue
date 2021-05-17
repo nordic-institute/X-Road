@@ -24,18 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
-    <router-view />
-  </sub-view-container>
+  <div class="xrd-sub-view-wrapper">
+    <v-container class="xrd-view-common mt-7">
+      <slot></slot>
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 
-export default Vue.extend({
-  components: {
-    SubViewContainer,
-  },
-});
+/**
+ * View wrapper component for sub views. See Settings.vue for example
+ */
+export default Vue.extend({});
 </script>

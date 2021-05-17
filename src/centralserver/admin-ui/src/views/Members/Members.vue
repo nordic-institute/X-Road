@@ -25,20 +25,20 @@
  -->
 
 <template>
-  <main-content-area>
+  <sub-view-container>
     <router-view></router-view>
-  </main-content-area>
+  </sub-view-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import MainContentArea from '@/components/layout/MainContentArea.vue';
+import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 
 /**
  * Members main view wrapping content all from 'Members' main tab
  */
 export default Vue.extend({
-  components: { MainContentArea },
+  components: { SubViewContainer },
 });
 </script>
 
