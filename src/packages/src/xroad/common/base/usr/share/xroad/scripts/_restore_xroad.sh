@@ -14,6 +14,11 @@ source /usr/share/xroad/scripts/_backup_restore_common.sh
 PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
 PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
+RESTORE_DIR=/var/tmp/xroad/restore
+TEMP_GPG_DIR=/var/tmp/xroad
+TEMP_TAR_FILE=${TEMP_GPG_DIR}/decrypted_temporary.tar
+TEMP_GPG_STATUS=${TEMP_GPG_DIR}/gpg_status.tar
+
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
 
@@ -21,9 +26,9 @@ THIS_FILE=$(pwd)/$0
 XROAD_SERVICES=
 
 acquire_lock () {
-    [ "${FLOCKER}" != "$0" ] && exec env FLOCKER="$0" flock -n $RESTORE_LOCK_FILENAME "$0" "$@" || true
-
-    trap "rm -f ${RESTORE_IN_PROGRESS_FILENAME}" EXIT
+    if [ "${FLOCKER}" != "$0" ] ; then
+      exec env FLOCKER="$0" flock -n $RESTORE_LOCK_FILENAME "$0" "$@"
+    fi
     touch "${RESTORE_IN_PROGRESS_FILENAME}"
 }
 
@@ -40,6 +45,40 @@ check_restore_options () {
   fi
 }
 
+decrypt_tarball_if_encrypted () {
+    if [[ $ENCRYPTED_BACKUP = true ]] ; then
+      rm  -f ${TEMP_TAR_FILE}
+      mkdir -p ${TEMP_GPG_DIR}
+      GPG_FILENAME=${BACKUP_FILENAME}
+      BACKUP_FILENAME=${TEMP_TAR_FILE}
+      if [[ $SKIP_SIGNATURE_CHECK = true ]] ; then
+        VERIFYARG=("--skip-verify")
+      else
+        VERIFYARG=("--status-file" "${TEMP_GPG_STATUS}")
+      fi
+
+      echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
+      # gpg --decrypt can also handle files that are only signed!
+      if ! gpg --homedir /etc/xroad/gpghome --decrypt --output "${BACKUP_FILENAME}" "${VERIFYARG[@]}" "${GPG_FILENAME}" ; then
+        die "Decrypting backup archive failed"
+      fi
+      # GPG happily decrypts encrypted files without signature and there is no way to force errors when file is not signed
+      # so we have to parse gpg output to make sure that signature was indeed verified
+      if [[ $SKIP_SIGNATURE_CHECK != true ]] ; then
+        while IFS=' ' read -r prefix status lineend
+        do
+          # see gnupg/doc/DETAILS
+          if [[ $status = GOODSIG ]] ; then
+            SIGNATURE_VERIFY_SUCCESS=true
+          fi
+        done < $TEMP_GPG_STATUS
+        if [[ $SIGNATURE_VERIFY_SUCCESS != true ]] ; then
+          die "Could not verify archive signature"
+        fi
+      fi
+    fi
+}
+
 check_tarball_label () {
   # Expecting the value has been validated and the error message has been given in
   # wrapper scripts.
@@ -47,13 +86,13 @@ check_tarball_label () {
   if [[ $FORCE_RESTORE = true ]] ; then
     # In forced mode, the restore script can be run on blank systems as long as
     # the type of server matches that in the tarball label.
-    local existing_label=$(tar tf ${BACKUP_FILENAME} | head -1)
+    local existing_label
+    existing_label=$(tar tf ${BACKUP_FILENAME} | head -1)
     if [[ ${existing_label} != ${SERVER_TYPE}* ]] ; then
       die "The beginning of the label does not contain the correct server type"
     fi
   else
-    tar --test-label --file ${BACKUP_FILENAME} --label "${TARBALL_LABEL}"
-    if [ $? -ne 0 ] ; then
+    if ! tar --test-label --file "${BACKUP_FILENAME}" --label "${TARBALL_LABEL}" ; then
       die "The expected label (${TARBALL_LABEL}) and the actual label of the" \
           "tarball ${BACKUP_FILENAME} do not match. Aborting restore!"
     fi
@@ -86,8 +125,8 @@ stop_services () {
   select_commands
   for entry in "/etc/xroad/backup.d/"* ; do
     if  [[ -f ${entry} ]] ; then
-      servicename=`basename "$entry" | sed 's/.*_//'`
-      echo ${STOP_CMD} "${servicename}"
+      servicename=$(basename "$entry" | sed 's/.*_//')
+      echo "${STOP_CMD}" "${servicename}"
       ${STOP_CMD} "${servicename}"
     fi
   done
@@ -96,12 +135,13 @@ stop_services () {
 create_pre_restore_backup () {
   echo "CREATING PRE-RESTORE BACKUP"
   # we will run this through eval to get a multi-line list
-  local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' -not -path '/etc/xroad/services/*.conf' -type f; find /etc/nginx/ -name \"*xroad*\""
+  local backed_up_files_cmd="find /etc/xroad -not -path '/etc/xroad/postgresql/*' \
+    -not -path '/etc/xroad/services/*.conf' -not -path '/etc/xroad/gpghome/*' -type f; \
+    find /etc/nginx/ -name \"*xroad*\""
 
-  if [ -x ${DATABASE_BACKUP_SCRIPT} ] ; then
+  if [ -x "${DATABASE_BACKUP_SCRIPT}" ] ; then
     echo "Creating database dump to ${PRE_RESTORE_DATABASE_DUMP_FILENAME}"
-    ${DATABASE_BACKUP_SCRIPT} ${PRE_RESTORE_DATABASE_DUMP_FILENAME}
-    if [ $? -ne 0 ] ; then
+    if ! ${DATABASE_BACKUP_SCRIPT} "${PRE_RESTORE_DATABASE_DUMP_FILENAME}" ; then
       # allow force restore even when schema does not exist
       if [[ $FORCE_RESTORE == true ]] ; then
         echo "Ignoring pre restore db backup errors"
@@ -116,12 +156,11 @@ create_pre_restore_backup () {
         "doing pre-restore backup"
   fi
 
-  CONF_FILE_LIST=$(eval ${backed_up_files_cmd})
+  CONF_FILE_LIST=$(eval "${backed_up_files_cmd}")
 
   echo "Creating pre-restore backup archive to ${PRE_RESTORE_TARBALL_FILENAME}:"
-  tar --create -v \
-    --label "${TARBALL_LABEL}" --file ${PRE_RESTORE_TARBALL_FILENAME} -T  <(echo "${CONF_FILE_LIST}")
-  if [ $? != 0 ] ; then
+  if ! tar --create -v \
+    --label "${TARBALL_LABEL}" --file ${PRE_RESTORE_TARBALL_FILENAME} -T  <(echo "${CONF_FILE_LIST}") ; then
     die "Creating pre-restore backup archive to ${PRE_RESTORE_TARBALL_FILENAME} failed"
   fi
 }
@@ -129,8 +168,7 @@ create_pre_restore_backup () {
 remove_old_existing_files () {
   if [[ $SKIP_REMOVAL != true ]] ; then
     echo "Removing old existing files"
-    echo "$CONF_FILE_LIST" | xargs -I {} rm {}
-    if [ $? -ne 0 ] ; then
+    if ! echo "$CONF_FILE_LIST" | xargs -I {} rm {} ; then
       die "Failed to remove files before restore"
     fi
   else
@@ -139,7 +177,6 @@ remove_old_existing_files () {
 }
 
 setup_tmp_restore_dir() {
-  RESTORE_DIR=/var/tmp/xroad/restore
   rm -rf ${RESTORE_DIR}
   mkdir -p ${RESTORE_DIR}
 }
@@ -147,8 +184,9 @@ setup_tmp_restore_dir() {
 extract_to_tmp_restore_dir () {
   # Restore to temporary directory and fix permissions before copying
   # etc/xroad is always included in the backup, etc/nginx only when backup is for CS
-  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} --exclude="*.conf" etc/xroad || die "Extracting etc/xroad failed"
+  tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} --exclude="services/*.conf" --exclude="gpghome/*" etc/xroad || die "Extracting etc/xroad failed"
   if tar -tf ${BACKUP_FILENAME} etc/nginx >/dev/null 2>&1; then
+    echo "Extracting tar archive to etc/nginx"
     tar xfv ${BACKUP_FILENAME} -C ${RESTORE_DIR} etc/nginx || die "Extracting etc/nginx failed"
   else
     echo "No etc/nginx in backup"
@@ -165,7 +203,7 @@ extract_to_tmp_restore_dir () {
       cp /etc/xroad/db.properties ${RESTORE_DIR}/etc/xroad/db.properties
   fi
   chown -R xroad:xroad ${RESTORE_DIR}/*
-  # reset permissions of all files to fixec, "safe" values
+  # reset permissions of all files to fixed, "safe" values
   chmod -R a-x,o=,u=rwX,g=rX "$RESTORE_DIR"
 }
 
@@ -203,8 +241,10 @@ restore_database () {
   fi
 }
 
-remove_tmp_restore_dir() {
+remove_tmp_files() {
+  rm -f ${RESTORE_IN_PROGRESS_FILENAME}
   rm -rf ${RESTORE_DIR}
+  rm -rf ${TEMP_GPG_DIR}
 }
 
 restart_services () {
@@ -212,14 +252,14 @@ restart_services () {
   files=("/etc/xroad/backup.d/"*)
   for ((i=${#files[@]}-1; i>=0; i--)); do
     if  [[ -f ${files[$i]} ]] ; then
-      servicename=`basename "${files[$i]}" | sed 's/.*_//'`
-      echo ${START_CMD} "${servicename}"
+      servicename=$(basename "${files[$i]}" | sed 's/.*_//')
+      echo "${START_CMD}" "${servicename}"
       ${START_CMD} "${servicename}"
     fi
   done
 }
 
-while getopts ":RFSt:i:s:n:f:b" opt ; do
+while getopts ":RFSt:i:s:n:f:bEN" opt ; do
   case ${opt} in
     R)
       SKIP_REMOVAL=true
@@ -248,6 +288,12 @@ while getopts ":RFSt:i:s:n:f:b" opt ; do
     b)
       USE_BASE_64=true
       ;;
+    E)
+      ENCRYPTED_BACKUP=true
+      ;;
+    N)
+      SKIP_SIGNATURE_CHECK=true
+      ;;
     \?)
       echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
       exit 2
@@ -258,8 +304,11 @@ while getopts ":RFSt:i:s:n:f:b" opt ; do
   esac
 done
 
+trap remove_tmp_files EXIT
+
 acquire_lock "$@"
 check_server_type
+decrypt_tarball_if_encrypted
 check_is_correct_tarball
 check_restore_options
 make_tarball_label
@@ -272,7 +321,6 @@ extract_to_tmp_restore_dir
 remove_old_existing_files
 restore_configuration_files
 restore_database
-remove_tmp_restore_dir
 restart_services
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

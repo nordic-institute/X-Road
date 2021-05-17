@@ -23,28 +23,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
+package ee.ria.xroad.proxy.serverproxy;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.ServiceDescriptionUpdate;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-@Slf4j
-public class ServiceDescriptionUpdateValidator extends AbstractIdentifierValidator {
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return ServiceDescriptionUpdate.class.equals(clazz);
-    }
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        ServiceDescriptionUpdate serviceDescriptionUpdate = (ServiceDescriptionUpdate) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("newRestServiceCode")
-                        .value(serviceDescriptionUpdate.getNewRestServiceCode()).build());
-    }
+public enum OpenapiDescriptionFiletype {
+    JSON, YAML
 }

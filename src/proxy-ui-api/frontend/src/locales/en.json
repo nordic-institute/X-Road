@@ -336,7 +336,8 @@
     "next": "Next",
     "submit": "Submit",
     "finish": "Finish",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "goToFront": "Got to front page"
   },
   "keys": {
     "token": "Token:",
@@ -729,6 +730,9 @@
   "warning": "Warning",
   "id": "ID",
   "count": "Amount of same errors:",
+  "404": "404 - page not found",
+  "404text": "Seems like you found the",
+  "404textUnicorn": "unicorn",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
@@ -848,7 +852,7 @@
         "ERROR_CODE_OCSP_FAILED": "Unable to fetch response from the OCSP responder",
         "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
         "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
-        "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED" : "Unable to verify the OCSP response",
+        "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "Unable to verify the OCSP response",
         "UNKNOWN": "Unknown"
       }
     }
@@ -864,6 +868,8 @@
     "resource_read_failed": "Failed to read resource",
     "invalid_cert": "Invalid certificate",
     "generate_backup_interrupted": "Backup generation interrupted",
+    "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
+    "gpg_key_generation_failed": "GPG keypair generation failed",
     "backup_restore_interrupted": "Backup restore interrupted",
     "backup_generation_failed": "Backup generation failed",
     "wsdl_validator_interrupted": "WSDL validator interrupted",

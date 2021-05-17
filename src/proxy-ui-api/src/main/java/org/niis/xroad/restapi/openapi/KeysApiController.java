@@ -242,5 +242,5 @@ public class KeysApiController implements KeysApi {
 
         return ApiUtil.createAttachmentResourceResponse(csrInfo.getCertRequest(), filename);
     }
-}
 
+}
