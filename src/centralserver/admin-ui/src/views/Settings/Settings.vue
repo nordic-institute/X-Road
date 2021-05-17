@@ -24,20 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
-      <router-view />
-    </v-container>
-  </div>
+  <sub-view-container>
+    <router-view />
+  </sub-view-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 
-export default Vue.extend({});
+export default Vue.extend({
+  components: {
+    SubViewContainer,
+  },
+});
 </script>
-<style lang="scss" scoped>
-.content {
-  width: 1000px;
-}
-</style>

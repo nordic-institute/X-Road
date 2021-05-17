@@ -24,8 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common content">
-    <slot></slot>
+  <div class="xrd-sub-view-wrapper">
+    <v-container class="xrd-view-common mt-7">
+      <slot></slot>
+    </v-container>
   </div>
 </template>
 
@@ -33,21 +35,7 @@
 import Vue from 'vue';
 
 /**
- * View wrapper component for the main content area.
+ * View wrapper component for sub views. See Settings.vue for example
  */
 export default Vue.extend({});
 </script>
-
-<style scoped lang="scss">
-.content {
-  margin-top: 40px;
-  width: 100%;
-  max-width: 1600px;
-  padding-right: 92px;
-  padding-left: 92px;
-
-  @media only screen and (max-width: 920px) {
-    padding-left: 0px;
-  }
-}
-</style>
