@@ -68,7 +68,7 @@ public class EncodedIdentifierValidator {
         if (SpringFirewallValidationRules.containsSemicolon(s)) {
             errors.add(ValidationError.SEMICOLON);
         }
-        if (SpringFirewallValidationRules.containsControlChars(s)) {
+        if (StringValidationUtils.containsControlChars(s)) {
             errors.add(ValidationError.CONTROL_CHAR);
         }
         return errors;

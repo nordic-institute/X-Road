@@ -72,9 +72,6 @@ import org.niis.xroad.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.restapi.openapi.model.ServiceType;
 import org.niis.xroad.restapi.openapi.model.TokenCertificate;
-import org.niis.xroad.restapi.openapi.validator.ClientAddValidator;
-import org.niis.xroad.restapi.openapi.validator.LocalGroupAddValidator;
-import org.niis.xroad.restapi.openapi.validator.ServiceDescriptionAddValidator;
 import org.niis.xroad.restapi.service.AccessRightService;
 import org.niis.xroad.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.restapi.service.CertificateAlreadyExistsException;
@@ -102,8 +99,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
@@ -316,12 +311,6 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
-    @InitBinder("localGroupAdd")
-    @PreAuthorize("permitAll()")
-    protected void initLocalGroupAddBinder(WebDataBinder binder) {
-        binder.addValidators(new LocalGroupAddValidator());
-    }
-
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
     @AuditEventMethod(event = ADD_LOCAL_GROUP)
@@ -448,18 +437,6 @@ public class ClientsApiController implements ClientsApi {
         List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
         Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
-    }
-
-    @InitBinder("clientAdd")
-    @PreAuthorize("permitAll()")
-    protected void initClientAddBinder(WebDataBinder binder) {
-        binder.addValidators(new ClientAddValidator());
-    }
-
-    @InitBinder("serviceDescriptionAdd")
-    @PreAuthorize("permitAll()")
-    protected void initServiceDescriptionAddBinder(WebDataBinder binder) {
-        binder.addValidators(new ServiceDescriptionAddValidator());
     }
 
     /**

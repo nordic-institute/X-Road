@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,26 +26,19 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.ServiceDescriptionAdd;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
-import java.util.Arrays;
-import java.util.Collection;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-@Slf4j
-public class ServiceDescriptionAddValidator extends AbstractIdentifierValidator {
+import java.util.EnumSet;
 
+public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
     @Override
-    public boolean supports(Class<?> clazz) {
-        return ServiceDescriptionAdd.class.equals(clazz);
-    }
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        ServiceDescriptionAdd serviceDescriptionAdd = (ServiceDescriptionAdd) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("restServiceCode")
-                        .value(serviceDescriptionAdd.getRestServiceCode()).build());
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
+        EnumSet<IdentifierValidationErrorInfo> validationErrors = IdentifierValidationErrorInfo.of(
+                validator.getValidationErrors(value));
+        return validationErrors.isEmpty();
     }
 }

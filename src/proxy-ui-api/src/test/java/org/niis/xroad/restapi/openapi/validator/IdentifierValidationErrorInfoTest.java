@@ -34,15 +34,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Defensive programming type of test:
- * ensure that {@link IdentifierValidationErrorInfo} and
- * {@link ValidationError}
- * enums are in sync (contain same values)
+ * Ensure that {@link IdentifierValidationErrorInfo} contains all {@link ValidationError}
+ * enums
  */
 public class IdentifierValidationErrorInfoTest {
 
@@ -54,8 +51,6 @@ public class IdentifierValidationErrorInfoTest {
         Set<String> validationErrorNames = Stream.of(
                 ValidationError.values())
                 .map(Enum::name).collect(Collectors.toSet());
-        assertEquals(identifierValidationErrorInfoNames.size(),
-                validationErrorNames.size());
         assertTrue(identifierValidationErrorInfoNames.containsAll(validationErrorNames));
     }
 
@@ -69,7 +64,11 @@ public class IdentifierValidationErrorInfoTest {
     @Test
     public void ofEnumSet() {
         assertTrue(IdentifierValidationErrorInfo.of(EnumSet.noneOf(ValidationError.class)).isEmpty());
-        assertTrue(IdentifierValidationErrorInfo.of(EnumSet.allOf(ValidationError.class))
-                .containsAll(EnumSet.allOf(IdentifierValidationErrorInfo.class)));
+        EnumSet<IdentifierValidationErrorInfo> identifierValidationErrorInfos =
+                EnumSet.allOf(IdentifierValidationErrorInfo.class);
+        EnumSet<ValidationError> validationErrors = EnumSet.allOf(ValidationError.class);
+        for (ValidationError error: validationErrors) {
+            assertTrue(identifierValidationErrorInfos.contains(IdentifierValidationErrorInfo.of(error)));
+        }
     }
 }

@@ -43,7 +43,9 @@ public enum IdentifierValidationErrorInfo {
     FORWARDSLASH("NoForwardslashes", "must not contain slashes"),
     BACKSLASH("NoBackslashes", "must not contain backslashes"),
     PERCENT("NoPercents", "must not contain percents"),
-    CONTROL_CHAR("NoControlChars", "must not contain control characters");
+    CONTROL_CHAR("NoControlChars", "must not contain control characters"),
+    IDENTIFIERS_CHAR("IdentifierChars", "identifiers are not allowed to contain colon, semicolon, slashes, percent, or"
+            + " control characters");
 
     @Getter
     private String errorCode;
