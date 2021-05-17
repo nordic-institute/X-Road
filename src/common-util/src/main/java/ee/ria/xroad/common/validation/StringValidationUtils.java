@@ -23,35 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import com.google.common.base.CharMatcher;
 
 /**
- * Validator to check localgroup description (when editing a localgroup) for control characters
- * such as zero-width-space
+ * Validation utilities for strings
  */
-@Slf4j
-public class LocalGroupDescriptionValidator implements Validator {
+public final class StringValidationUtils {
 
-    private static final String DESCRIPTION_FIELD_NAME = "description";
+    //byte order mark / zero-width no-break space
+    private static final char FORBIDDEN_BOM = '\ufeff';
 
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return LocalGroupDescription.class.equals(clazz);
-    }
+    //zero-width space
+    private static final char FORBIDDEN_ZWSP = '\u200b';
 
-    @Override
-    public void validate(Object target, Errors errors) {
-        LocalGroupDescription localGroupDescription = (LocalGroupDescription) target;
-        if (SpringFirewallValidationRules.containsControlChars(localGroupDescription.getDescription())) {
-            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
+    private StringValidationUtils() { }
+
+    /**
+     * checks if the string contains ISO control characters or zero-width spaces
+     */
+    public static boolean containsControlChars(String s) {
+        return CharMatcher.javaIsoControl().matchesAnyOf(s) || s.indexOf(FORBIDDEN_BOM) >= 0
+                || s.indexOf(FORBIDDEN_ZWSP) >= 0;
     }
 }

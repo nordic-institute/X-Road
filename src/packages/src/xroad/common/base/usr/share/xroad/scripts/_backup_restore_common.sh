@@ -1,10 +1,13 @@
-#/bin/bash
+#!/bin/bash
 # Helper functions and common variables for the backup and restore scripts of X-Road.
 
 # XXX Don't change this file name without a reason -- that will break backwards compatibilty
 # with existing tarballs because the restore scripts expect to find a file with this
 # name after unpacking the tarball.
 umask 027
+
+set -o pipefail
+
 DATABASE_DUMP_FILENAME="/var/lib/xroad/dbdump.dat"
 
 DATABASE_BACKUP_SCRIPT="/usr/share/xroad/scripts/backup_db.sh"
@@ -34,7 +37,7 @@ check_instance_id () {
     exit 2
   fi
   if [[ $USE_BASE_64 = true ]] ; then
-    INSTANCE_ID=$(echo $INSTANCE_ID | base64 --decode)
+    INSTANCE_ID=$(echo "$INSTANCE_ID" | base64 --decode)
   fi
 }
 
@@ -44,7 +47,7 @@ check_central_ha_node_name () {
     node_name=$(crudini --get /etc/xroad/local.ini 'center' 'ha-node-name')
   fi
   if [[ $USE_BASE_64 = true ]] ; then
-    CENTRAL_SERVER_HA_NODE_NAME=$(echo $CENTRAL_SERVER_HA_NODE_NAME | base64 --decode)
+    CENTRAL_SERVER_HA_NODE_NAME=$(echo "$CENTRAL_SERVER_HA_NODE_NAME" | base64 --decode)
   fi
   if [[ -z $FORCE_RESTORE && -n $node_name ]]; then
     if [[ "$node_name" != "$CENTRAL_SERVER_HA_NODE_NAME" ]]; then
@@ -62,7 +65,7 @@ check_security_server_id () {
     exit 2
   fi
   if [[ $USE_BASE_64 = true ]] ; then
-    SECURITY_SERVER_ID=$(echo $SECURITY_SERVER_ID | base64 --decode)
+    SECURITY_SERVER_ID=$(echo "$SECURITY_SERVER_ID" | base64 --decode)
   fi
 }
 
@@ -73,7 +76,7 @@ check_backup_file_name () {
     exit 2
   fi
   if [[ $USE_BASE_64 = true ]] ; then
-    BACKUP_FILENAME=$(echo $BACKUP_FILENAME | base64 --decode)
+    BACKUP_FILENAME=$(echo "$BACKUP_FILENAME" | base64 --decode)
   fi
 }
 
@@ -114,7 +117,15 @@ make_tarball_label () {
 }
 
 has_command () {
-    command -v $1 &>/dev/null
+    command -v "$1" &>/dev/null
+}
+
+get_proxy_prop() {
+  local value
+  if ! value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null); then
+    value=$(crudini --get /etc/xroad/conf.d/"$1" "$2" "$3" 2>/dev/null || echo "$4")
+  fi
+  echo "$value"
 }
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh
