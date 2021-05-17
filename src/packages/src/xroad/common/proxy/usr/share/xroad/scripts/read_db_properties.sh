@@ -2,16 +2,26 @@
 
 get_db_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 
+# parse serverconf database properties
+# returns values in the following variables
+#  db_addr
+#  db_port
+#  db_database
+#  db_schema
+#  db_conn_user
+#  db_user
+#  db_password
 read_serverconf_database_properties() {
   local db_properties=$1
-
+  local db_url
   local db_host="127.0.0.1:5432"
-  local db_conn_user="$(get_db_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
-  db_user="${db_conn_user%%@*}"
-  db_schema=$(get_db_prop ${db_properties} 'serverconf.hibernate.hikari.dataSource.currentSchema' "${db_user},public")
+
+  db_conn_user=$(get_db_prop "${db_properties}" 'serverconf.hibernate.connection.username' 'serverconf')
+  db_user=${db_conn_user%%@*}
+  db_schema=$(get_db_prop "${db_properties}" 'serverconf.hibernate.hikari.dataSource.currentSchema' "${db_user},public")
   db_schema=${db_schema%%,*}
-  db_password="$(get_db_prop ${db_properties} 'serverconf.hibernate.connection.password' "serverconf")"
-  local db_url="$(get_db_prop ${db_properties} 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")"
+  db_password=$(get_db_prop "${db_properties}" 'serverconf.hibernate.connection.password' "serverconf")
+  db_url=$(get_db_prop "${db_properties}" 'serverconf.hibernate.connection.url' "jdbc:postgresql://$db_host/serverconf")
   db_database=serverconf
 
   local pat='^jdbc:postgresql://([^/]*)($|/([^\?]*)(.*)$)'
