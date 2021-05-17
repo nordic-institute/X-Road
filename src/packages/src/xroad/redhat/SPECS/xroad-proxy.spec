@@ -194,6 +194,8 @@ if [ $1 -gt 1 ]; then
       /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
     fi
   fi
+  # always fix gpghome ownership
+  chown -R xroad:xroad /etc/xroad/gpghome
 fi
 
 #parameters:
