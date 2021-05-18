@@ -9,13 +9,14 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
-    "screenshots" : {
-      "enabled" : true,
-      "on_failure" : true,
-      "on_error" : true,
-      "path" : "./tests/e2e/screenshots"
-    },
+    
     "default": {
+      "screenshots" : {
+        "enabled" : true,
+        "on_failure" : true,
+        "on_error" : true,
+        "path" : "./tests/e2e/screenshots"
+      },
       "use_xpath": true,
       "globals" : {
         "login_usr" : "xrd",
