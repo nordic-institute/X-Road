@@ -103,9 +103,9 @@ fi
 
 if [[ -n $ALT ]]
 then
-  OPENSSL_EXT="-extensions ${NAME}_alt"
+  OPENSSL_EXT=(-extensions "${NAME}"_alt)
 else
-  OPENSSL_EXT="-extensions ${NAME}"
+  OPENSSL_EXT=(-extensions "${NAME}")
 fi
 export ALT
 
@@ -114,10 +114,10 @@ then
   OPENSSL_SUBJ=(-subj "${SUBJECT}")
 fi
 
-echo $SUBJECT  $OPENSSL_SUBJ
+echo "$SUBJECT"  "$OPENSSL_SUBJ"
 
 
-openssl req -new -x509 -days 7300 -nodes -out ${DIR}/${NAME}.crt -keyout ${DIR}/${NAME}.key  -config ${CONF_DIR}/openssl.cnf  "${OPENSSL_SUBJ[@]}"  ${OPENSSL_EXT}
+openssl req -new -x509 -days 7300 -nodes -out "${DIR}"/"${NAME}".crt -keyout "${DIR}"/"${NAME}".key  -config "${CONF_DIR}"/openssl.cnf  "${OPENSSL_SUBJ[@]}"  "${OPENSSL_EXT[@]}"
 
 if [[ "$?" != 0 ]]
 then
@@ -127,7 +127,7 @@ fi
 
 if [[ -n $P12 ]]
 then
-   openssl pkcs12 -export -in ${DIR}/${NAME}.crt -inkey ${DIR}/${NAME}.key -name "${NAME}" -out ${DIR}/${NAME}.p12 -passout pass:${NAME}
+   openssl pkcs12 -export -in "${DIR}"/"${NAME}".crt -inkey "${DIR}"/"${NAME}".key -name "${NAME}" -out "${DIR}"/"${NAME}".p12 -passout pass:"${NAME}"
    if [[ "$?" != 0 ]]
    then
       exit 10
@@ -135,5 +135,5 @@ then
 
 fi
 
-chmod -f 660 ${DIR}/${NAME}.*
-chown -f xroad:xroad ${DIR}/${NAME}.*
+chmod -f 660 "${DIR}"/"${NAME}".*
+chown -f xroad:xroad "${DIR}"/"${NAME}".*
