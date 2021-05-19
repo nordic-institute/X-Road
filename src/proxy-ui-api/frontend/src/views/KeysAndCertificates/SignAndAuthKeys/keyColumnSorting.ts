@@ -201,17 +201,10 @@ export const sortKeysById = (keys: Key[], sortDirection: boolean): Key[] => {
   const temp = sortCertificatesForKeys(keys, sortDirection, 'owner_id');
 
   temp.forEach((key: Key) => {
-    if (key.certificate_signing_requests) {
-      if (sortDirection) {
-        key.certificate_signing_requests = sortRequestsAsc(
-          key.certificate_signing_requests,
-        );
-      } else {
-        key.certificate_signing_requests = sortRequestsAsc(
-          key.certificate_signing_requests,
-        ).reverse();
-      }
-    }
+    const sortedRequests = sortRequestsAsc(key.certificate_signing_requests);
+    key.certificate_signing_requests = sortDirection
+      ? sortedRequests
+      : sortedRequests.reverse();
   });
 
   return temp;
