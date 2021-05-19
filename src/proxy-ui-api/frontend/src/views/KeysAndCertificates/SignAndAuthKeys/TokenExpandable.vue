@@ -44,7 +44,12 @@
           {{ $t('keys.token') }} {{ token.name }}
         </span>
 
-        <v-btn icon @click="tokenClick(token)" color="primary">
+        <v-btn
+          icon
+          @click="tokenClick(token)"
+          color="primary"
+          data-test="token-icon-button"
+        >
           <v-icon class="button-icon">icon-Edit</v-icon>
         </v-btn>
       </div>

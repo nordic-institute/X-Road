@@ -55,6 +55,7 @@
                 class="table-button-fix"
                 :outlined="false"
                 text
+                data-test="import-from-token-button"
                 @click="importCert(cert.certificate_details.hash)"
                 >{{ $t('keys.importCert') }}</xrd-button
               >
