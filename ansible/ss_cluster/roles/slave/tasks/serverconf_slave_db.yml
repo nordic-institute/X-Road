@@ -15,13 +15,21 @@
       chdir: "{{ postgresql_data_dir }}"
       creates: "{{ postgresql_data_dir }}/recovery.conf"
 
+- name: test postgres version
+  become_user: postgres
+  become: yes
+  shell: |
+    psql --no-align --tuples-only -c "SELECT current_setting('server_version_num');"
+  register: postgres_version
+  tags: test_postgres_version
+
 - name: install recovery conf
   template:
       src: "recovery.conf.j2"
       dest: "{{ postgresql_data_dir }}/recovery.conf"
       owner: postgres
       group: postgres
-  when: ansible_distribution_release == "bionic"
+  when: postgres_version.stdout | int < 120000
 
 # recovery.conf is no longer supported in PostgreSQL12
 # see https://www.2ndquadrant.com/en/blog/replication-configuration-changes-in-postgresql-12/
@@ -32,7 +40,7 @@
     mode: '0600'
     owner: postgres
     group: postgres
-  when: ansible_distribution_release == "focal"
+  when: postgres_version.stdout | int >= 120000
 
 - name: configure slave database
   lineinfile:
