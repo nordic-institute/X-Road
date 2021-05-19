@@ -48,11 +48,13 @@ import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
+import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
 import org.niis.xroad.securityserver.restapi.service.ConfigurationDownloadException;
 import org.niis.xroad.securityserver.restapi.service.ConfigurationVerifier;
 import org.niis.xroad.securityserver.restapi.service.InternalTlsCertificateService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCertificateException;
 import org.niis.xroad.securityserver.restapi.service.InvalidDistinguishedNameException;
+import org.niis.xroad.securityserver.restapi.service.KeyNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.SystemService;
 import org.niis.xroad.securityserver.restapi.service.TimestampingServiceNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.VersionService;
@@ -192,7 +194,7 @@ public class SystemApiController implements SystemApi {
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = internalTlsCertificateService.importInternalTlsCertificate(certificateBytes);
-        } catch (InvalidCertificateException e) {
+        } catch (InvalidCertificateException | KeyNotFoundException | CertificateAlreadyExistsException e) {
             throw new BadRequestException(e);
         }
         CertificateDetails certificateDetails = certificateDetailsConverter.convert(x509Certificate);
