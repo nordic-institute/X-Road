@@ -51,7 +51,6 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Objects;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
 
@@ -211,15 +210,7 @@ public class InternalTlsCertificateService {
      */
     private void verifyInternalCertImportability(X509Certificate newCert) throws KeyNotFoundException,
             CertificateAlreadyExistsException {
-        InternalSSLKey internalSSLKey = null;
-        try {
-            internalSSLKey = InternalSSLKey.load();
-        } catch (Exception e) {
-            log.error("Failed to load the internal TLS key", e);
-            throw new DeviationAwareRuntimeException("cannot load internal TLS key", e,
-                    new ErrorDeviation(LOAD_INTERNAL_TLS_KEY_FAILED));
-        }
-        X509Certificate internalCert = Objects.requireNonNull(internalSSLKey).getCertChain()[0];
+        X509Certificate internalCert = getInternalTlsCertificate();
         PublicKey internalPublicKey = internalCert.getPublicKey();
         PublicKey newCertPublicKey = newCert.getPublicKey();
         if (!internalPublicKey.equals(newCertPublicKey)) {
