@@ -49,25 +49,15 @@ export const keyArraySort = (
 ): Key[] => {
   switch (sortType) {
     case KeysSortColumn.NAME:
-      return sortDirection ? sortKeysByNameAsc(keys) : sortKeysByNameDesc(keys);
+      return sortKeysByName(keys, sortDirection);
     case KeysSortColumn.ID:
       return sortKeysById(keys, sortDirection);
     case KeysSortColumn.OCSP:
-      return sortCertificatesForKeys(
-        keys,
-        sortDirection,
-        sortCertsByOcspAsc,
-        sortCertsByOcspDesc,
-      );
+      return sortCertificatesForKeys(keys, sortDirection, 'ocsp_status');
     case KeysSortColumn.EXPIRATION:
       return sortKeysByDate(keys, sortDirection);
     case KeysSortColumn.STATUS:
-      return sortCertificatesForKeys(
-        keys,
-        sortDirection,
-        sortCertsByStatusAsc,
-        sortCertsByStatusDesc,
-      );
+      return sortCertificatesForKeys(keys, sortDirection, 'status');
     default:
       break;
   }
@@ -75,10 +65,12 @@ export const keyArraySort = (
 };
 
 /**
- * Sort keys by name Ascending
+ * Sort array of keys by name ascending
  */
-export const sortKeysByNameAsc = (keys: Key[]): Key[] => {
-  const temp = keys.sort((a: Key, b: Key) => {
+export const sortKeysArrayByName = (keys: Key[]): Key[] => {
+  return keys.sort((a: Key, b: Key) => {
+    // Value that is shown as name in the UI can be a 'name' or 'id'
+    // Check if they exist and which one to compare
     let aComparable;
     let bComparable;
 
@@ -96,42 +88,23 @@ export const sortKeysByNameAsc = (keys: Key[]): Key[] => {
 
     return aComparable.localeCompare(bComparable);
   });
-
-  temp.forEach((key: Key) => {
-    if (key.certificates) {
-      key.certificates = sortCertsByNameAsc(key.certificates);
-    }
-  });
-
-  return temp;
 };
 
 /**
- * Sort keys by name Descending
+ * Sort keys by name Ascending
  */
-export const sortKeysByNameDesc = (keys: Key[]): Key[] => {
-  const temp = keys.sort((b: Key, a: Key) => {
-    let aComparable;
-    let bComparable;
+export const sortKeysByName = (keys: Key[], sortDirection: boolean): Key[] => {
+  let temp = sortKeysArrayByName(keys);
 
-    if (a.name && a.name !== '') {
-      aComparable = a.name;
-    } else {
-      aComparable = a.id;
-    }
-
-    if (b.name && b.name !== '') {
-      bComparable = b.name;
-    } else {
-      bComparable = b.id;
-    }
-
-    return aComparable.localeCompare(bComparable);
-  });
+  if (!sortDirection) {
+    temp = temp.reverse();
+  }
 
   temp.forEach((key: Key) => {
     if (key.certificates) {
-      key.certificates = sortCertsByNameDesc(key.certificates);
+      sortDirection
+        ? (key.certificates = sortCertsByNameAsc(key.certificates))
+        : (key.certificates = sortCertsByNameAsc(key.certificates).reverse());
     }
   });
 
@@ -154,67 +127,29 @@ export const sortCertsByNameAsc = (
 };
 
 /**
- * Sort certificates by name Descending
- */
-export const sortCertsByNameDesc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((b: TokenCertificate, a: TokenCertificate) => {
-    return (
-      a.certificate_details.issuer_common_name + a.certificate_details.serial
-    ).localeCompare(
-      b.certificate_details.issuer_common_name + b.certificate_details.serial,
-    );
-  });
-};
-
-// Type for certificate sorting functions
-type CertificateSortFnType = (keys: TokenCertificate[]) => TokenCertificate[];
-
-/**
  * Sort certificates using given functions
  */
 export const sortCertificatesForKeys = (
   keys: Key[],
   sortDirection: boolean,
-  sortAsc: CertificateSortFnType,
-  sortDesc: CertificateSortFnType,
+  sortingValue: string,
 ): Key[] => {
   const temp = keys;
 
   temp.forEach((key: Key) => {
     if (key.certificates) {
       if (sortDirection) {
-        key.certificates = sortAsc(key.certificates);
+        key.certificates = sortCertsAsc(key.certificates, sortingValue);
       } else {
-        key.certificates = sortDesc(key.certificates);
+        key.certificates = sortCertsAsc(
+          key.certificates,
+          sortingValue,
+        ).reverse();
       }
     }
   });
 
   return temp;
-};
-
-/**
- * Sort certificates by OCSP Ascending
- */
-export const sortCertsByOcspAsc: CertificateSortFnType = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
-    return a.ocsp_status.localeCompare(b.ocsp_status);
-  });
-};
-
-/**
- * Sort certificates by OCSP Descending
- */
-export const sortCertsByOcspDesc: CertificateSortFnType = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
-    return b.ocsp_status.localeCompare(a.ocsp_status);
-  });
 };
 
 /**
@@ -228,7 +163,7 @@ export const sortKeysByDate = (keys: Key[], sortDirection: boolean): Key[] => {
       if (sortDirection) {
         key.certificates = sortCertsByDateAsc(key.certificates);
       } else {
-        key.certificates = sortCertsByDateDesc(key.certificates);
+        key.certificates = sortCertsByDateAsc(key.certificates).reverse();
       }
     }
   });
@@ -236,73 +171,25 @@ export const sortKeysByDate = (keys: Key[], sortDirection: boolean): Key[] => {
   return temp;
 };
 
+export const sortCertsAsc = (
+  certs: TokenCertificate[],
+  sortingValue: string,
+): TokenCertificate[] => {
+  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
+    return (a as any)[sortingValue].localeCompare((b as any)[sortingValue]);
+  });
+};
+
 /**
  * Sort certificates by date Ascending
  */
-export const sortCertsByDateAsc: CertificateSortFnType = (
+export const sortCertsByDateAsc = (
   certs: TokenCertificate[],
 ): TokenCertificate[] => {
   return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
     return a.certificate_details.not_after.localeCompare(
       b.certificate_details.not_after,
     );
-  });
-};
-
-/**
- * Sort certificates by date Descending
- */
-export const sortCertsByDateDesc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((b: TokenCertificate, a: TokenCertificate) => {
-    return a.certificate_details.not_after.localeCompare(
-      b.certificate_details.not_after,
-    );
-  });
-};
-
-/**
- * Sort certificates by id Ascendign
- */
-export const sortCertsByIdAsc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
-    return a.owner_id.localeCompare(b.owner_id);
-  });
-};
-
-/**
- * Sort certificates by id Descending
- */
-export const sortCertsByIdDesc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
-    return b.owner_id.localeCompare(a.owner_id);
-  });
-};
-
-/**
- * Sort certificates by status Ascendign
- */
-export const sortCertsByStatusAsc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
-    return a.status.localeCompare(b.status);
-  });
-};
-
-/**
- * Sort certificates by status Descending
- */
-export const sortCertsByStatusDesc = (
-  certs: TokenCertificate[],
-): TokenCertificate[] => {
-  return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
-    return b.status.localeCompare(a.status);
   });
 };
 
@@ -310,12 +197,7 @@ export const sortCertsByStatusDesc = (
  * Sort keys including certificates and csr:s by id
  */
 export const sortKeysById = (keys: Key[], sortDirection: boolean): Key[] => {
-  const temp = sortCertificatesForKeys(
-    keys,
-    sortDirection,
-    sortCertsByIdAsc,
-    sortCertsByIdDesc,
-  );
+  const temp = sortCertificatesForKeys(keys, sortDirection, 'owner_id');
 
   temp.forEach((key: Key) => {
     if (key.certificate_signing_requests) {
@@ -324,9 +206,9 @@ export const sortKeysById = (keys: Key[], sortDirection: boolean): Key[] => {
           key.certificate_signing_requests,
         );
       } else {
-        key.certificate_signing_requests = sortRequestsDesc(
+        key.certificate_signing_requests = sortRequestsAsc(
           key.certificate_signing_requests,
-        );
+        ).reverse();
       }
     }
   });
@@ -343,19 +225,6 @@ export const sortRequestsAsc = (
   return certs.sort(
     (a: TokenCertificateSigningRequest, b: TokenCertificateSigningRequest) => {
       return a.id.localeCompare(b.id);
-    },
-  );
-};
-
-/**
- * Sort CSR:s by id Descending
- */
-export const sortRequestsDesc = (
-  certs: TokenCertificateSigningRequest[],
-): TokenCertificateSigningRequest[] => {
-  return certs.sort(
-    (a: TokenCertificateSigningRequest, b: TokenCertificateSigningRequest) => {
-      return b.id.localeCompare(a.id);
     },
   );
 };

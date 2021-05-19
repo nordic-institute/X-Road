@@ -98,7 +98,11 @@ const keysUnsorted: any[] = [
 describe('sorting functions', () => {
   // REST URL can be http or https
   it('Sorting of keys, certificates and CSR:s', () => {
-    let sortedKeys = Sorting.sortKeysByNameAsc(keysUnsorted);
+    let sortedKeys = Sorting.keyArraySort(
+      keysUnsorted,
+      KeysSortColumn.NAME,
+      true,
+    );
 
     sortedKeys = Sorting.keyArraySort(keysUnsorted, KeysSortColumn.NAME, true);
     expect(sortedKeys[0].id).toEqual('0');
