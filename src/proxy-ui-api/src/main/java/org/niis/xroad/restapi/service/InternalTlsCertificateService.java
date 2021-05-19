@@ -48,8 +48,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
 
@@ -62,6 +64,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GE
 @PreAuthorize("isAuthenticated()")
 public class InternalTlsCertificateService {
     public static final String IMPORT_INTERNAL_CERT_FAILED = "import_internal_cert_failed";
+    public static final String LOAD_INTERNAL_TLS_KEY_FAILED = "load_internal_tls_key_failed";
 
     private static final String CERT_PEM_FILENAME = "./cert.pem";
     private static final String CERT_CER_FILENAME = "./cert.cer";
@@ -106,6 +109,7 @@ public class InternalTlsCertificateService {
      * two files:
      * - cert.pem PEM encoded certificate
      * - cert.cer DER encoded certificate
+     *
      * @return byte array that contains the exported certs.tar.gz
      */
     public byte[] exportInternalTlsCertificate() {
@@ -147,6 +151,7 @@ public class InternalTlsCertificateService {
     /**
      * Generates a new TLS key and certificate for internal use for the current Security Server. A runtime
      * exception will be thrown if the generation is interrupted or otherwise unable to be executed.
+     *
      * @throws InterruptedException if the thread running the key generator is interrupted. <b>The interrupted thread
      * has already been handled with so you can choose to ignore this exception if you so please.</b>
      */
@@ -168,11 +173,13 @@ public class InternalTlsCertificateService {
 
     /**
      * Imports a new internal TLS certificate.
+     *
      * @param certificateBytes
      * @return X509Certificate
      * @throws InvalidCertificateException
      */
-    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException {
+    public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException,
+            KeyNotFoundException, CertificateAlreadyExistsException {
         X509Certificate x509Certificate = null;
         try {
             x509Certificate = CryptoUtils.readCertificate(certificateBytes);
@@ -180,17 +187,45 @@ public class InternalTlsCertificateService {
             throw new InvalidCertificateException("cannot convert bytes to certificate", e);
         }
         auditDataHelper.putCertificateHash(x509Certificate);
+        verifyInternalCertImportability(x509Certificate);
         try {
             CertUtils.writePemToFile(certificateBytes, internalCertPath);
             CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
         } catch (Exception e) {
             log.error("Failed to import internal TLS cert", e);
-            throw new DeviationAwareRuntimeException("cannot import internal tls cert", e,
+            throw new DeviationAwareRuntimeException("cannot import internal TLS cert", e,
                     new ErrorDeviation(IMPORT_INTERNAL_CERT_FAILED));
         }
 
         clearCacheService.executeClearConfigurationCache();
 
         return x509Certificate;
+    }
+
+    /**
+     * Verifies that the cert matches the internal TLS key and that the cert is not already imported
+     *
+     * @param newCert the cert to be imported
+     * @throws KeyNotFoundException if the public key of the cert does not match
+     * @throws CertificateAlreadyExistsException if the certificate has already been imported
+     */
+    private void verifyInternalCertImportability(X509Certificate newCert) throws KeyNotFoundException,
+            CertificateAlreadyExistsException {
+        InternalSSLKey internalSSLKey = null;
+        try {
+            internalSSLKey = InternalSSLKey.load();
+        } catch (Exception e) {
+            log.error("Failed to load the internal TLS key", e);
+            throw new DeviationAwareRuntimeException("cannot load internal TLS key", e,
+                    new ErrorDeviation(LOAD_INTERNAL_TLS_KEY_FAILED));
+        }
+        X509Certificate internalCert = Objects.requireNonNull(internalSSLKey).getCertChain()[0];
+        PublicKey internalPublicKey = internalCert.getPublicKey();
+        PublicKey newCertPublicKey = newCert.getPublicKey();
+        if (!internalPublicKey.equals(newCertPublicKey)) {
+            throw new KeyNotFoundException("The imported cert does not match the internal TLS key");
+        } else if (internalCert.equals(newCert)) {
+            throw new CertificateAlreadyExistsException("The imported cert already exists");
+        }
     }
 }
