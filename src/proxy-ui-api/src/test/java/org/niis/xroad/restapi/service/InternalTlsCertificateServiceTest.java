@@ -135,6 +135,7 @@ public class InternalTlsCertificateServiceTest {
 
     /**
      * read a tar.gz, return each file in a map: filename -> bytes
+     *
      * @param tarBytes
      * @return
      */
@@ -191,12 +192,26 @@ public class InternalTlsCertificateServiceTest {
     @Test
     public void importInternalTlsCertificate() throws Exception {
         prepareTlsImportForTesting();
-        byte[] certFileData = CertificateTestUtils.getMockCertificateBytes();
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("internal-new.crt");
         try {
-            internalTlsCertificateService.importInternalTlsCertificate(certFileData);
+            internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
         } catch (Exception e) {
             fail("should not throw exceptions");
         }
+    }
+
+    @Test(expected = CertificateAlreadyExistsException.class)
+    public void importDuplicateInternalTlsCertificate() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("internal.crt");
+        internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
+    }
+
+    @Test(expected = KeyNotFoundException.class)
+    public void importInternalTlsCertificateWrongKey() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("google-cert.pem");
+        internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
     }
 
     @Test(expected = InvalidCertificateException.class)
@@ -208,6 +223,7 @@ public class InternalTlsCertificateServiceTest {
 
     /**
      * Creates a random temp folder structure to mimic the real xroad conf path
+     *
      * @throws Exception
      */
     private void prepareTlsImportForTesting() throws Exception {

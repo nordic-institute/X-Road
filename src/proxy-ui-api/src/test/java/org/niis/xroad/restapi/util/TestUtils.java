@@ -46,6 +46,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,6 +54,7 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -128,6 +130,7 @@ public final class TestUtils {
 
     public static final File ANCHOR_FILE = TestUtils.getTestResourceFile("internal-configuration-anchor.xml");
     public static final String ANCHOR_HASH = "B37E02C0B310497C05D938A8C4446DFA80722F97123852BA8BF20D57";
+    public static final String INTERNAL_CERT_CN = "5e18422580b8";
 
     // key has all roles in data.sql
     public static final String API_KEY_HEADER_VALUE = "X-Road-apikey token=d56e1ca7-4134-4ed4-8030-5f330bdb602a";
@@ -143,13 +146,13 @@ public final class TestUtils {
     public static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(
             "XRD2", "GOV", "M4", "owner");
 
-
     private TestUtils() {
         // noop
     }
 
     /**
      * Returns a new ClientId with given params
+     *
      * @param instance
      * @param memberClass
      * @param memberCode
@@ -162,6 +165,7 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId "FI:GOV:M1:SS1"
+     *
      * @return ClientId
      */
     public static ClientId getM1Ss1ClientId() {
@@ -170,6 +174,7 @@ public final class TestUtils {
 
     /**
      * Returns a new ClientId "FI:GOV:M1:SS2"
+     *
      * @return ClientId
      */
     public static ClientId getM1Ss2ClientId() {
@@ -179,6 +184,7 @@ public final class TestUtils {
     /**
      * Returns a new ClientId which has been built from encoded client id string,
      * such as "FI:GOV:M1:SS1"
+     *
      * @param encodedId
      * @return
      */
@@ -188,6 +194,7 @@ public final class TestUtils {
 
     /**
      * Returns a new MemberInfo with given parameters
+     *
      * @param instance
      * @param memberClass
      * @param memberCode
@@ -201,6 +208,7 @@ public final class TestUtils {
 
     /**
      * Returns a new GlobalGroupInfo object
+     *
      * @param instance
      * @param groupCode
      * @return
@@ -211,6 +219,7 @@ public final class TestUtils {
 
     /**
      * Finds warning with matching code, or returns null
+     *
      * @param code
      * @param warningDeviations
      * @return
@@ -228,6 +237,7 @@ public final class TestUtils {
     /**
      * assert that path <code>http://http://localhost</code> + endpointPathEnd
      * exists in header <code>Location</code> (true for our integration tests)
+     *
      * @param endpointPath for example "/api/service-descriptions/12"
      * @param response
      */
@@ -235,10 +245,12 @@ public final class TestUtils {
         assertEquals(Collections.singletonList(TEST_API_URL + endpointPath),
                 response.getHeaders().get("Location"));
     }
+
     private static final String TEST_API_URL = "http://localhost";
 
     /**
      * assert that request does not have <code>Location</code> headers
+     *
      * @param response
      */
     public static void assertMissingLocationHeader(ResponseEntity response) {
@@ -252,6 +264,7 @@ public final class TestUtils {
 
     /**
      * Add Authentication header for API key with all roles
+     *
      * @param testRestTemplate
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate) {
@@ -260,6 +273,7 @@ public final class TestUtils {
 
     /**
      * Add Authentication header for specific API key
+     *
      * @param testRestTemplate
      * @param apiKeyToken API key token
      */
@@ -276,6 +290,7 @@ public final class TestUtils {
 
     /**
      * Creates a new TspType using the given url and name
+     *
      * @param url
      * @param name
      * @return
@@ -289,6 +304,7 @@ public final class TestUtils {
 
     /**
      * Creates a new ApprovedTSAType with the given url and name
+     *
      * @param url
      * @param name
      * @return
@@ -302,6 +318,7 @@ public final class TestUtils {
 
     /**
      * Creates a new TimestampingService using the given url and name
+     *
      * @param url
      * @param name
      * @return
@@ -315,6 +332,7 @@ public final class TestUtils {
 
     /**
      * Returns a file from classpath
+     *
      * @param pathToFile
      * @return
      */
@@ -327,6 +345,19 @@ public final class TestUtils {
         }
         assertNotNull(resource);
         return resource;
+    }
+
+    public static byte[] getTestResourceFileAsBytes(String pathToFile) {
+        File file = getTestResourceFile(pathToFile);
+        byte[] fileBytes = null;
+        try {
+            fileBytes = Files.readAllBytes(file.toPath());
+        } catch (IOException e) {
+            fail("could not read test resource file");
+        }
+        assertNotNull(fileBytes);
+        assertTrue(fileBytes.length > 0);
+        return fileBytes;
     }
 
     public static void mockServletRequestAttributes() {
