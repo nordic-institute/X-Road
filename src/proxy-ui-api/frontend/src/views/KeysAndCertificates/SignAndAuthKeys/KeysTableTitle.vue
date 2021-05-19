@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="table-title" :class="{ 'table-closed': !arrowState }">
-    <div class="title-text" @click="arrowClick">
+    <div class="title-text" @click="arrowClick" data-test="key-title-sort">
       <v-btn icon :color="colors.WarmGrey100">
         <v-icon v-if="arrowState">icon-Sorting-arrow</v-icon>
         <v-icon v-else class="arrow-degree">icon-Sorting-arrow</v-icon>
