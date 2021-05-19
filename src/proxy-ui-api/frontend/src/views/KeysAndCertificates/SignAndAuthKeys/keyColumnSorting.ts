@@ -176,6 +176,7 @@ export const sortCertsAsc = (
   sortingValue: string,
 ): TokenCertificate[] => {
   return certs.sort((a: TokenCertificate, b: TokenCertificate) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return (a as any)[sortingValue].localeCompare((b as any)[sortingValue]);
   });
 };
