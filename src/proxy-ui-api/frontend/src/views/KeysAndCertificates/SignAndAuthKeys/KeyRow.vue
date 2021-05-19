@@ -25,7 +25,7 @@
  -->
 <template>
   <tr>
-    <td>
+    <td class="pl-8">
       <div class="name-wrap-top">
         <i class="icon-Key key-icon" />
         <div class="clickable-link identifier-wrap" @click="keyClick">
@@ -126,12 +126,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-.xrd-table {
-  td {
-    padding-left: 50px;
-  }
-}
 
 .table-button-fix {
   margin-left: auto;

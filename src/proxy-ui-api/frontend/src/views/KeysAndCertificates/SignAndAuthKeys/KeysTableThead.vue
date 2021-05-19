@@ -118,7 +118,7 @@
 import Vue from 'vue';
 import SortButton from './SortButton.vue';
 import { Colors } from '@/global';
-import { KeysSortColumn } from '@/global';
+import { KeysSortColumn } from './keyColumnSorting';
 
 export default Vue.extend({
   components: {

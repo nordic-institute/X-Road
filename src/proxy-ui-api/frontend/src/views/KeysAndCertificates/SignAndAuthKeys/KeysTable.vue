@@ -165,10 +165,11 @@ import {
   TokenCertificateSigningRequest,
   TokenType,
 } from '@/openapi-types';
-import { Permissions, KeysSortColumn } from '@/global';
+import { Permissions } from '@/global';
+import { KeysSortColumn } from './keyColumnSorting';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import * as Sorting from '@/util/sorting';
+import * as Sorting from './keyColumnSorting';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
@@ -308,12 +309,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.xrd-table {
-  td {
-    padding-left: 30px;
-  }
-}
-
 .cert-icon {
   color: $XRoad-WarmGrey100;
   margin-right: 20px;
@@ -332,7 +327,8 @@ export default Vue.extend({
   text-align: right;
 }
 
-.td-name {
+td.td-name {
+  padding-left: 30px;
   text-align: center;
   vertical-align: middle;
 }

@@ -228,25 +228,10 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.GENERATE_KEY);
     },
 
-    tokenInactive(): boolean {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-      return status === TokenUIStatus.Inactive;
-    },
-
-    tokenUnavailable(): boolean {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-      return status === TokenUIStatus.Unavailable;
-    },
-
-    tokenUnsaved(): boolean {
-      const status: TokenUIStatus = getTokenUIStatus(this.token.status);
-      return status === TokenUIStatus.Unsaved;
-    },
-
     tokenLabelKey(): string {
       const status: TokenUIStatus = getTokenUIStatus(this.token.status);
 
-      if (this.tokenInactive) {
+      if (status === TokenUIStatus.Inactive) {
         return 'keys.tokenStatus.inactive';
       } else if (status === TokenUIStatus.Unavailable) {
         return 'keys.tokenStatus.unavailable';
@@ -324,12 +309,9 @@ export default Vue.extend({
     },
 
     tokenNameClick(): void {
-      if (this.isExpanded(this.token.id)) {
-        this.descClose(this.token.id);
-        return;
-      }
-
-      this.descOpen(this.token.id);
+      this.isExpanded(this.token.id)
+        ? this.descClose(this.token.id)
+        : this.descOpen(this.token.id);
     },
 
     tokenClick(token: Token): void {

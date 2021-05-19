@@ -86,8 +86,9 @@ import {
   TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
-import { Permissions, KeysSortColumn } from '@/global';
-import * as Sorting from '@/util/sorting';
+import { Permissions } from '@/global';
+import { KeysSortColumn } from './keyColumnSorting';
+import * as Sorting from './keyColumnSorting';
 import { Prop } from 'vue/types/options';
 export default Vue.extend({
   components: {
