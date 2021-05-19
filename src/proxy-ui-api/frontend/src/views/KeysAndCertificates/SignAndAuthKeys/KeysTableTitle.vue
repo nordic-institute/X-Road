@@ -35,7 +35,7 @@
     </div>
     <div class="status-wrap">
       <div v-if="errors > 0" class="errors">
-        <v-icon color="red">icon-Error</v-icon> {{ errorCount }}
+        <v-icon color="red">icon-Error</v-icon> {{ errors }}
         {{ $t('keys.globalErrors') }}
       </div>
       <div v-else-if="registered === certificateCount" class="registered">
@@ -67,21 +67,7 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {
-    errorCount(): number {
-      let errors = 0;
-
-      this.keys.forEach((key: Key) => {
-        key.certificates.forEach((cert: TokenCertificate) => {
-          if (cert.status === CertificateStatus.GLOBAL_ERROR) {
-            errors++;
-          }
-        });
-      });
-
-      return errors;
-    },
-  },
+  computed: {},
   data() {
     return {
       errors: 0,
@@ -92,8 +78,10 @@ export default Vue.extend({
   },
   methods: {
     countStates(): void {
-      this.keys.forEach((key: Key) => {
-        key.certificates.forEach((cert: TokenCertificate) => {
+      // Count the amounts of the different Certificate states
+      this.keys
+        .flatMap((key: Key) => key.certificates)
+        .forEach((cert: TokenCertificate) => {
           if (cert.status === CertificateStatus.GLOBAL_ERROR) {
             this.errors++;
           } else if (cert.status === CertificateStatus.REGISTERED) {
@@ -101,7 +89,6 @@ export default Vue.extend({
           }
           this.certificateCount++;
         });
-      });
     },
     arrowClick(): void {
       this.$emit('click');
