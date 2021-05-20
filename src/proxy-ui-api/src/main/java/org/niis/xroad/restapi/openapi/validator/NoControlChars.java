@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,32 +26,24 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.InitialServerConf;
+import javax.validation.Constraint;
+import javax.validation.Payload;
 
-import java.util.Arrays;
-import java.util.Collection;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-@Slf4j
-public class InitialServerConfValidator extends AbstractIdentifierValidator {
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return InitialServerConf.class.equals(clazz);
-    }
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        InitialServerConf initialServerConf = (InitialServerConf) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("securityServerCode")
-                        .value(initialServerConf.getSecurityServerCode()).build(),
-                ValidatedField.builder()
-                        .fieldName("ownerMemberClass")
-                        .value(initialServerConf.getOwnerMemberClass()).build(),
-                ValidatedField.builder()
-                        .fieldName("ownerMemberCode")
-                        .value(initialServerConf.getOwnerMemberCode()).build());
-    }
+@Documented
+@Target({METHOD, FIELD, PARAMETER})
+@Retention(RUNTIME)
+@Constraint(validatedBy = NoControlCharsValidator.class)
+public @interface NoControlChars {
+    String message() default "must not contain control characters";
+    Class<?>[] groups() default {};
+    Class<? extends Payload>[] payload() default {};
 }

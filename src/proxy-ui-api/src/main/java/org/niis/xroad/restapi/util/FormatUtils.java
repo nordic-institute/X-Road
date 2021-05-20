@@ -54,8 +54,10 @@ public final class FormatUtils {
     public static final String URL_HOST_REGEX = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.)*"
             + "([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9])$";
     // Criteria for a valid backup file name:
-    // 1) cannot start with ".", 2) must contain one or more word characters ([a-zA-Z_0-9.-]), 3) must end with ".tar"
-    private static final String BACKUP_FILENAME_PATTERN = "^(?!\\.)[\\w\\.\\-]+\\.tar$";
+    // 1) cannot start with "."
+    // 2) must contain one or more word characters ([a-zA-Z_0-9.-]),
+    // 3) must end with ".gpg"
+    private static final Pattern BACKUP_FILENAME_PATTERN = Pattern.compile("^(?!\\.)[\\w\\.\\-]+\\.gpg$");
 
     private FormatUtils() {
         // noop
@@ -214,7 +216,7 @@ public final class FormatUtils {
      * @return
      */
     public static boolean isValidBackupFilename(String filename) {
-        return Pattern.compile(BACKUP_FILENAME_PATTERN).matcher(filename).matches();
+        return BACKUP_FILENAME_PATTERN.matcher(filename).matches();
     }
 
     /**

@@ -25,7 +25,7 @@
  -->
 <template>
   <v-footer class="footer">
-    <v-layout align-left justify-left class="footer-inner">
+    <v-container>
       <v-row>
         <v-col cols="6" sm="3" class="pt-6">
           <v-img
@@ -99,7 +99,7 @@
           </v-row>
         </v-col>
       </v-row>
-    </v-layout>
+    </v-container>
   </v-footer>
 </template>
 
@@ -125,13 +125,6 @@ $text-color: $XRoad-Black100;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.footer-inner {
-  max-width: 1000px;
-  width: 100%;
-  margin-left: 0;
-  margin-right: 0;
 }
 
 .footer-title {

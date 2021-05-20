@@ -29,6 +29,7 @@
     <div class="tabs-wrap">
       <v-tabs
         v-model="tab"
+        optional
         class="main-tabs"
         color="black"
         height="56px"

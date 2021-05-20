@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-view-common">
-    <div class="table-toolbar mt-2 pl-0">
+    <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}
@@ -45,7 +45,7 @@
           >{{ $t('backup.backupConfiguration.button') }}
         </xrd-button>
         <xrd-file-upload
-          accepts=".tar"
+          accepts=".gpg"
           @file-changed="onFileUploaded"
           v-slot="{ upload }"
         >

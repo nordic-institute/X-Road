@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '2.7.1'
-    id 'org.owasp.dependencycheck' version '6.0.5'
+    id 'org.owasp.dependencycheck' version '6.1.6'
     id 'jacoco'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
@@ -135,6 +135,14 @@ subprojects {
     tasks.withType(JavaExec) {
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
+        }
+    }
+
+    test {
+        if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+            //workaround for JDK-8156584
+            systemProperty("java.security.properties",
+                "${project.rootDir}/config/workaround-jdk-8156584-security.properties");
         }
     }
 

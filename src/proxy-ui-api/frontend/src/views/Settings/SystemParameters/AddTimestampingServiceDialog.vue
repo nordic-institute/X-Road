@@ -36,7 +36,6 @@
         outlined
         @click="click"
         :disabled="selectableTimestampingServices.length === 0"
-        :requires-permission="permissions.ADD_TSP"
       >
         <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}

@@ -34,6 +34,7 @@ java_import Java::ee.ria.xroad.common.message.SoapFault
 java_import Java::ee.ria.xroad.common.ErrorCodes
 java_import Java::ee.ria.xroad.common.CodedException
 java_import Java::ee.ria.xroad.common.validation.SpringFirewallValidationRules
+java_import Java::ee.ria.xroad.common.validation.StringValidationUtils
 
 class ManagementRequestController < ApplicationController
 
@@ -128,7 +129,7 @@ class ManagementRequestController < ApplicationController
           SpringFirewallValidationRules::containsColon(id) ||
           SpringFirewallValidationRules::containsForwardslash(id) ||
           SpringFirewallValidationRules::containsBackslash(id) ||
-          SpringFirewallValidationRules::containsControlChars(id)
+          StringValidationUtils::containsControlChars(id)
         raise I18n.t("request.invalid_identifier", :id => id)
       end
     end

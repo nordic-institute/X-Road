@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,33 +26,14 @@
  */
 package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.StringValidationUtils;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-/**
- * Validator to check localgroup description (when editing a localgroup) for control characters
- * such as zero-width-space
- */
-@Slf4j
-public class LocalGroupDescriptionValidator implements Validator {
-
-    private static final String DESCRIPTION_FIELD_NAME = "description";
-
+public class NoControlCharsValidator implements ConstraintValidator<NoControlChars, String> {
     @Override
-    public boolean supports(Class<?> clazz) {
-        return LocalGroupDescription.class.equals(clazz);
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        LocalGroupDescription localGroupDescription = (LocalGroupDescription) target;
-        if (SpringFirewallValidationRules.containsControlChars(localGroupDescription.getDescription())) {
-            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        return value == null || !StringValidationUtils.containsControlChars(value);
     }
 }
