@@ -1,5 +1,5 @@
 {
-  "src_folders" : ["./tests/e2e/specs"],
+  "src_folders" : ["./tests/e2e/specs", "./tests/e2e/utils"],
   "output_folder" : "./tests/e2e/reports",
   "page_objects_path" : "./tests/e2e/pages",
   "custom_assertions_path" : "",

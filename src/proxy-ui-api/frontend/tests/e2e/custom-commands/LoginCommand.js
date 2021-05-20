@@ -24,39 +24,16 @@
  * THE SOFTWARE.
  */
 
-module.exports = {
-  tags: ['ss', 'login'],
-  'Security server failed login': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-
-    // Open SUT and check that page is loaded
+module.exports = class LoginCommand {
+  async command() {
+    const frontPage = this.api.page.ssFrontPage();
     frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter invalid credentials
+    this.api.waitForElementVisible('//*[@id="app"]');
     frontPage
-      .enterUsername(browser.globals.login_wrong_usr)
-      .enterPassword(browser.globals.login_wrong_pwd)
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(this.api.globals.login_usr)
+      .enterPassword(this.api.globals.login_pwd)
       .signin();
-
-    // Verify there's an error message
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
-
-    browser.end();
-  },
-  'Security server passed login': (browser) => {
-    browser.LoginCommand();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    // Test refresh
-    browser
-      .refresh()
-      .waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    browser.end();
-  },
-};
+  }
+}
