@@ -30,8 +30,6 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.dto.BackupFile;
 import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
@@ -43,9 +41,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
@@ -73,6 +69,7 @@ public class BackupService {
     @Setter
     @Value("${script.generate-backup.path}")
     private String generateBackupScriptPath;
+
     private static final String BACKUP_FILENAME_DATE_TIME_FORMAT = "yyyyMMdd-HHmmss";
 
     /**
@@ -174,9 +171,6 @@ public class BackupService {
             throw new UnhandledWarningsException(new WarningDeviation(WARNING_FILE_ALREADY_EXISTS, filename));
         }
 
-        if (!isValidTarFile(fileBytes)) {
-            throw new InvalidBackupFileException("backup file is not a valid tar file (" + filename + ")");
-        }
         OffsetDateTime createdAt = backupRepository.writeBackupFile(filename, fileBytes);
         BackupFile backupFile = new BackupFile(filename);
         backupFile.setCreatedAt(createdAt);
@@ -216,33 +210,12 @@ public class BackupService {
      */
     public String generateBackupFileName() {
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(BACKUP_FILENAME_DATE_TIME_FORMAT);
-        return "conf_backup_" + LocalDateTime.now().format(dtf) + ".tar";
+        return "conf_backup_" + LocalDateTime.now().format(dtf) + ".gpg";
     }
 
     private String getFileNotFoundExceptionMessage(String filename) {
         StringBuilder sb = new StringBuilder();
         sb.append("Backup file with name ").append(filename).append(" not found");
         return sb.toString();
-    }
-
-    /**
-     * Validate that the given bytes represent a tar file. In addition, validate that
-     * the first entry of the tar file begins with a label that is included in the
-     * Security Server backups.
-     * @param fileBytes
-     * @return
-     */
-    private boolean isValidTarFile(byte[] fileBytes) {
-        try (TarArchiveInputStream tarIn = new TarArchiveInputStream(new ByteArrayInputStream(fileBytes))) {
-            TarArchiveEntry entry = (TarArchiveEntry) tarIn.getNextEntry();
-            // The first entry of a valid Security Server backup tar file contains:
-            // "security_${XROAD_VERSION_LABEL}_${SECURITY_SERVER_ID}"
-            if (entry == null || !entry.getName().startsWith("security_")) {
-                return false;
-            }
-            return true;
-        } catch (IOException ioe) {
-            return false;
-        }
     }
 }

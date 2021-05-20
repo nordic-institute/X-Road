@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.restapi.openapi.model.Endpoint;
 import org.niis.xroad.restapi.openapi.model.EndpointUpdate;
+import org.niis.xroad.restapi.openapi.model.EndpointUpdate.MethodEnum;
 import org.niis.xroad.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.restapi.openapi.model.ServiceClients;
@@ -42,6 +43,8 @@ import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
+
+import javax.validation.ConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -134,18 +137,17 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         endpointsApiController.updateEndpoint("10", pathAndMethod);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = ConstraintViolationException.class)
     @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
     public void updateEndpointWithEmptyPathString() {
-        EndpointUpdate pathAndMethod = new EndpointUpdate();
-        pathAndMethod.setPath("");
+        EndpointUpdate pathAndMethod = new EndpointUpdate().method(MethodEnum.GET);
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = ConstraintViolationException.class)
     @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
-    public void updateEndpointWithEmptyPathAndMethod() {
-        EndpointUpdate pathAndMethod = new EndpointUpdate();
+    public void updateEndpointWithEmptyMethod() {
+        EndpointUpdate pathAndMethod = new EndpointUpdate().path("/foo").method(null);
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 

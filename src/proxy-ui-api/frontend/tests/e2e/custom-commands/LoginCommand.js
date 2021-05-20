@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,35 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
-
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.openapi.model.LocalGroupDescription;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
-
-/**
- * Validator to check localgroup description (when editing a localgroup) for control characters
- * such as zero-width-space
- */
-@Slf4j
-public class LocalGroupDescriptionValidator implements Validator {
-
-    private static final String DESCRIPTION_FIELD_NAME = "description";
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return LocalGroupDescription.class.equals(clazz);
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        LocalGroupDescription localGroupDescription = (LocalGroupDescription) target;
-        if (SpringFirewallValidationRules.containsControlChars(localGroupDescription.getDescription())) {
-            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
-    }
+module.exports = class LoginCommand {
+  async command() {
+    const frontPage = this.api.page.ssFrontPage();
+    frontPage.navigate();
+    this.api.waitForElementVisible('//*[@id="app"]');
+    frontPage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(this.api.globals.login_usr)
+      .enterPassword(this.api.globals.login_pwd)
+      .signin();
+  }
 }
