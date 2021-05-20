@@ -58,7 +58,6 @@ public class RestoreServiceTest extends AbstractServiceTestContext {
     @Before
     public void setup() throws Exception {
         restoreService.setConfigurationRestoreScriptPath(ExternalProcessRunnerTest.MOCK_SUCCESS_SCRIPT);
-        restoreService.setConfigurationRestoreScriptArgs(ExternalProcessRunnerTest.SCRIPT_ARGS);
         File tempBackupFile = tempFolder.newFile(tempBackupFilename);
         when(backupRepository.getConfigurationBackupPath()).thenReturn(tempBackupFile.getParent() + File.separator);
         notificationService = new NotificationService(globalConfFacade, tokenService) {

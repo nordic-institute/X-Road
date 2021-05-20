@@ -868,6 +868,8 @@
     "resource_read_failed": "Failed to read resource",
     "invalid_cert": "Invalid certificate",
     "generate_backup_interrupted": "Backup generation interrupted",
+    "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
+    "gpg_key_generation_failed": "GPG keypair generation failed",
     "backup_restore_interrupted": "Backup restore interrupted",
     "backup_generation_failed": "Backup generation failed",
     "wsdl_validator_interrupted": "WSDL validator interrupted",

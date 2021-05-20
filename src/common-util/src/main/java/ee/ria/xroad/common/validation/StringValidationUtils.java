@@ -23,31 +23,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
+package ee.ria.xroad.common.validation;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.openapi.model.ClientAdd;
+import com.google.common.base.CharMatcher;
 
-import java.util.Arrays;
-import java.util.Collection;
+/**
+ * Validation utilities for strings
+ */
+public final class StringValidationUtils {
 
-@Slf4j
-public class ClientAddValidator extends AbstractIdentifierValidator {
+    //byte order mark / zero-width no-break space
+    private static final char FORBIDDEN_BOM = '\ufeff';
 
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return ClientAdd.class.equals(clazz);
-    }
+    //zero-width space
+    private static final char FORBIDDEN_ZWSP = '\u200b';
 
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        ClientAdd clientAdd = (ClientAdd) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("client.memberCode")
-                        .value(clientAdd.getClient().getMemberCode()).build(),
-                ValidatedField.builder()
-                        .fieldName("client.subsystemCode")
-                        .value(clientAdd.getClient().getSubsystemCode()).build());
+    private StringValidationUtils() { }
+
+    /**
+     * checks if the string contains ISO control characters or zero-width spaces
+     */
+    public static boolean containsControlChars(String s) {
+        return CharMatcher.javaIsoControl().matchesAnyOf(s) || s.indexOf(FORBIDDEN_BOM) >= 0
+                || s.indexOf(FORBIDDEN_ZWSP) >= 0;
     }
 }

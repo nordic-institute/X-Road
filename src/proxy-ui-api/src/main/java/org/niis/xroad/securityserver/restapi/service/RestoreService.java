@@ -54,9 +54,6 @@ public class RestoreService {
     @Setter
     @Value("${script.restore-configuration.path}")
     private String configurationRestoreScriptPath;
-    @Setter
-    @Value("${script.restore-configuration.args}")
-    private String configurationRestoreScriptArgs;
 
     private final ExternalProcessRunner externalProcessRunner;
     private final CurrentSecurityServerId currentSecurityServerId;
@@ -120,6 +117,8 @@ public class RestoreService {
         SecurityServerId securityServerId = currentSecurityServerId.getServerId();
         String encodedOwner = FormatUtils.encodeStringToBase64(securityServerId.toShortString());
         String encodedBackupPath = FormatUtils.encodeStringToBase64(backupFilePath);
+
+        String configurationRestoreScriptArgs = "-b -s %s -f %s";
         String argumentsString = String
                 .format(configurationRestoreScriptArgs, encodedOwner, encodedBackupPath)
                 .trim();

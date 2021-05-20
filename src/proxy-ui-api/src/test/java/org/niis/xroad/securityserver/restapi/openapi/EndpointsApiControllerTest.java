@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
+import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate.MethodEnum;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClients;
@@ -44,6 +45,8 @@ import org.niis.xroad.securityserver.restapi.service.ClientService;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
+
+import javax.validation.ConstraintViolationException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +57,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.getClientId;
 
 public class EndpointsApiControllerTest extends AbstractApiControllerTestContext {
 
@@ -119,7 +123,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @Test
     @WithMockUser(authorities = { "DELETE_ENDPOINT" })
     public void deleteEndpoint() {
-        ClientType client = clientService.getLocalClient(TestUtils.getClientId("FI", "GOV", "M2", "SS6"));
+        ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         int aclCount = client.getAcl().size();
         endpointsApiController.deleteEndpoint("11");
         assertTrue(client.getEndpoint().stream().noneMatch(ep -> ep.getId().equals(11L)));
@@ -135,18 +139,17 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         endpointsApiController.updateEndpoint("10", pathAndMethod);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = ConstraintViolationException.class)
     @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
     public void updateEndpointWithEmptyPathString() {
-        EndpointUpdate pathAndMethod = new EndpointUpdate();
-        pathAndMethod.setPath("");
+        EndpointUpdate pathAndMethod = new EndpointUpdate().method(MethodEnum.GET);
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = ConstraintViolationException.class)
     @WithMockUser(authorities = { "EDIT_OPENAPI3_ENDPOINT" })
-    public void updateEndpointWithEmptyPathAndMethod() {
-        EndpointUpdate pathAndMethod = new EndpointUpdate();
+    public void updateEndpointWithEmptyMethod() {
+        EndpointUpdate pathAndMethod = new EndpointUpdate().path("/foo").method(null);
         endpointsApiController.updateEndpoint("12", pathAndMethod);
     }
 
@@ -158,7 +161,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         pathAndMethod.setPath("/test");
         endpointsApiController.updateEndpoint("12", pathAndMethod);
 
-        ClientType client = clientService.getLocalClient(TestUtils.getClientId("FI", "GOV", "M2", "SS6"));
+        ClientType client = clientService.getLocalClient(getClientId("FI", "GOV", "M2", "SS6"));
         EndpointType endpointType = client.getEndpoint().stream().filter(ep -> ep.getId().equals(12L))
                 .findFirst().get();
 

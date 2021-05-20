@@ -72,19 +72,19 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Autowired
     BackupsApiController backupsApiController;
 
-    private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.tar";
+    private static final String BACKUP_FILE_1_NAME = "ss-automatic-backup-2020_02_19_031502.gpg";
 
     private static final String BACKUP_FILE_1_CREATED_AT = "2020-02-19T03:15:02.451Z";
 
     private static final Long BACKUP_FILE_1_CREATED_AT_MILLIS = 1582082102451L;
 
-    private static final String BACKUP_FILE_2_NAME = "ss-automatic-backup-2020_02_12_031502.tar";
+    private static final String BACKUP_FILE_2_NAME = "ss-automatic-backup-2020_02_12_031502.gpg";
 
     private static final String BACKUP_FILE_2_CREATED_AT = "2020-02-12T03:15:02.684Z";
 
     private static final Long BACKUP_FILE_2_CREATED_AT_MILLIS = 1581477302684L;
 
-    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "test.tar",
+    private final MockMultipartFile mockMultipartFile = new MockMultipartFile("test", "test.gpg",
             "multipart/form-data", "content".getBytes());
 
     @Before
@@ -149,7 +149,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void deleteNonExistingBackup() throws BackupFileNotFoundException {
-        String filename = "test_file.tar";
+        String filename = "test_file.gpg";
 
         Mockito.doThrow(new BackupFileNotFoundException("")).when(backupService).deleteBackup(filename);
 
@@ -229,7 +229,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void uploadBackupWithInvalidFilename() throws Exception {
-        MockMultipartFile mockMultipartWithInvalidName = new MockMultipartFile("test", "/test.tar",
+        MockMultipartFile mockMultipartWithInvalidName = new MockMultipartFile("test", "/test.gpg",
                 "multipart/form-data", "content".getBytes());
         try {
             ResponseEntity<Backup> response = backupsApiController.uploadBackup(true,

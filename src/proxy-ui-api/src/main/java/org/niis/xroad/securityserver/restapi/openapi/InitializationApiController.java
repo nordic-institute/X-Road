@@ -28,7 +28,7 @@ package org.niis.xroad.securityserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.service.UnhandledWarningsException;
@@ -36,7 +36,6 @@ import org.niis.xroad.securityserver.restapi.converter.TokenInitStatusMapping;
 import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitializationStatus;
-import org.niis.xroad.securityserver.restapi.openapi.validator.InitialServerConfValidator;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.InitializationService;
 import org.niis.xroad.securityserver.restapi.service.InvalidCharactersException;
@@ -45,9 +44,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.INIT_SERVER_CONFIGURATION;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_INTERRUPTED;
 
 /**
  * Init (Security Server) controller
@@ -74,15 +74,9 @@ public class InitializationApiController implements InitializationApi {
         return new ResponseEntity<>(initializationStatus, HttpStatus.OK);
     }
 
-    @InitBinder("initialServerConf")
-    @PreAuthorize("permitAll()")
-    protected void initInitialServerConfBinder(WebDataBinder binder) {
-        binder.addValidators(new InitialServerConfValidator());
-    }
-
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    @AuditEventMethod(event = RestApiAuditEvent.INIT_SERVER_CONFIGURATION)
+    @AuditEventMethod(event = INIT_SERVER_CONFIGURATION)
     public synchronized ResponseEntity<Void> initSecurityServer(InitialServerConf initialServerConf) {
         String securityServerCode = initialServerConf.getSecurityServerCode();
         String ownerMemberClass = initialServerConf.getOwnerMemberClass();
@@ -99,7 +93,10 @@ public class InitializationApiController implements InitializationApi {
             throw new BadRequestException(e);
         } catch (InitializationService.SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GPG_KEY_GENERATION_INTERRUPTED));
         }
+
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
 }

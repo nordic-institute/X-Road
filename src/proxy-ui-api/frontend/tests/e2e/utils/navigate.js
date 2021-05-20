@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,43 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.validation;
 
-/**
- * Encapsulates validation logic that is copied from Spring firewall internal methods and
- * variables
+/*
+ * This file contains logic for user navigating
+ *
+ *
  */
-public final class SpringFirewallValidationRules {
-    private SpringFirewallValidationRules() {
-    }
 
-    private static final char FORBIDDEN_PERCENT = '%';
 
-    private static final char FORBIDDEN_COLON = ':';
+const toRestoreAndBackup = (browser) => {
+  const mainPage = browser.page.ssMainPage();
+  const settingsTab = mainPage.section.settingsTab;
 
-    private static final char FORBIDDEN_SEMICOLON = ';';
+  const backupButton =
+    settingsTab.section.backupAndRestoreTab.elements.backupButton;
 
-    private static final char FORBIDDEN_FORWARDSLASH = '/';
-
-    private static final char FORBIDDEN_BACKSLASH = '\\';
-
-    public static boolean containsPercent(String s) {
-        return s.indexOf(FORBIDDEN_PERCENT) >= 0;
-    }
-
-    public static boolean containsColon(String s) {
-        return s.indexOf(FORBIDDEN_COLON) >= 0;
-    }
-
-    public static boolean containsSemicolon(String s) {
-        return s.indexOf(FORBIDDEN_SEMICOLON) >= 0;
-    }
-
-    public static boolean containsForwardslash(String s) {
-        return s.indexOf(FORBIDDEN_FORWARDSLASH) >= 0;
-    }
-
-    public static boolean containsBackslash(String s) {
-        return s.indexOf(FORBIDDEN_BACKSLASH) >= 0;
-    }
+  mainPage.openSettingsTab();
+  browser.waitForElementVisible(settingsTab);
+  settingsTab.openBackupAndRestore();
+  browser.waitForElementVisible(backupButton);
 }
+
+module.exports = {
+  toRestoreAndBackup
+};

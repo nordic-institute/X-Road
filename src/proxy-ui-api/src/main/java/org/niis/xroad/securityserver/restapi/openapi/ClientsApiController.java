@@ -39,8 +39,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -78,9 +76,6 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionAdd;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceType;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokenCertificate;
-import org.niis.xroad.securityserver.restapi.openapi.validator.ClientAddValidator;
-import org.niis.xroad.securityserver.restapi.openapi.validator.LocalGroupAddValidator;
-import org.niis.xroad.securityserver.restapi.openapi.validator.ServiceDescriptionAddValidator;
 import org.niis.xroad.securityserver.restapi.service.AccessRightService;
 import org.niis.xroad.securityserver.restapi.service.ActionNotPossibleException;
 import org.niis.xroad.securityserver.restapi.service.CertificateAlreadyExistsException;
@@ -107,8 +102,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
@@ -120,6 +113,22 @@ import java.util.Optional;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toList;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_CLIENT_ACCESS_RIGHTS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_SERVICE_DESCRIPTION;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_ORPHANS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REGISTER_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SEND_OWNER_CHANGE_REQ;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.SET_CONNECTION_TYPE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.UNREGISTER_CLIENT;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.DISABLED;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.REFRESHED_DATE;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.UPLOAD_FILE_NAME;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_CERT;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WSDL_VALIDATOR_INTERRUPTED;
 import static org.niis.xroad.restapi.openapi.ControllerUtil.createCreatedResponse;
@@ -219,7 +228,7 @@ public class ClientsApiController implements ClientsApi {
      */
     @PreAuthorize("hasAuthority('EDIT_CLIENT_INTERNAL_CONNECTION_TYPE')")
     @Override
-    @AuditEventMethod(event = RestApiAuditEvent.SET_CONNECTION_TYPE)
+    @AuditEventMethod(event = SET_CONNECTION_TYPE)
     public ResponseEntity<Client> updateClient(String encodedId, ConnectionTypeWrapper connectionTypeWrapper) {
         if (connectionTypeWrapper == null || connectionTypeWrapper.getConnectionType() == null) {
             throw new BadRequestException();
@@ -239,13 +248,13 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT_INTERNAL_CERT')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_CLIENT_INTERNAL_CERT)
+    @AuditEventMethod(event = ADD_CLIENT_INTERNAL_CERT)
     public ResponseEntity<CertificateDetails> addClientTlsCertificate(String encodedId,
             Resource body) {
         // there's no filename since we only get a binary application/octet-stream.
         // Have audit log anyway (null behaves as no-op) in case different content type is added later
         String filename = body.getFilename();
-        auditDataHelper.put(RestApiAuditProperty.UPLOAD_FILE_NAME, filename);
+        auditDataHelper.put(UPLOAD_FILE_NAME, filename);
 
         byte[] certificateBytes = ResourceUtils.springResourceToBytesOrThrowBadRequest(body);
         ClientId clientId = clientConverter.convertId(encodedId);
@@ -266,7 +275,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_CLIENT_INTERNAL_CERT')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_CLIENT_INTERNAL_CERT)
+    @AuditEventMethod(event = DELETE_CLIENT_INTERNAL_CERT)
     public ResponseEntity<Void> deleteClientTlsCertificate(String encodedId, String hash) {
         ClientId clientId = clientConverter.convertId(encodedId);
         try {
@@ -305,15 +314,9 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
-    @InitBinder("localGroupAdd")
-    @PreAuthorize("permitAll()")
-    protected void initLocalGroupAddBinder(WebDataBinder binder) {
-        binder.addValidators(new LocalGroupAddValidator());
-    }
-
     @Override
     @PreAuthorize("hasAuthority('ADD_LOCAL_GROUP')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_LOCAL_GROUP)
+    @AuditEventMethod(event = ADD_LOCAL_GROUP)
     public ResponseEntity<LocalGroup> addClientLocalGroup(String id, LocalGroupAdd localGroupAdd) {
         ClientType clientType = getClientType(id);
         LocalGroupType localGroupType = null;
@@ -351,7 +354,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_SERVICE_DESCRIPTION)
+    @AuditEventMethod(event = ADD_SERVICE_DESCRIPTION)
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
         ClientId clientId = clientConverter.convertId(id);
@@ -411,8 +414,8 @@ public class ClientsApiController implements ClientsApi {
         ServiceDescription addedServiceDescription = serviceDescriptionConverter.convert(
                 addedServiceDescriptionType);
 
-        auditDataHelper.put(RestApiAuditProperty.DISABLED, addedServiceDescription.getDisabled());
-        auditDataHelper.putDateTime(RestApiAuditProperty.REFRESHED_DATE, addedServiceDescription.getRefreshedAt());
+        auditDataHelper.put(DISABLED, addedServiceDescription.getDisabled());
+        auditDataHelper.putDateTime(REFRESHED_DATE, addedServiceDescription.getRefreshedAt());
 
         return createCreatedResponse("/api/service-descriptions/{id}", addedServiceDescription,
                 addedServiceDescription.getId());
@@ -439,25 +442,13 @@ public class ClientsApiController implements ClientsApi {
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
-    @InitBinder("clientAdd")
-    @PreAuthorize("permitAll()")
-    protected void initClientAddBinder(WebDataBinder binder) {
-        binder.addValidators(new ClientAddValidator());
-    }
-
-    @InitBinder("serviceDescriptionAdd")
-    @PreAuthorize("permitAll()")
-    protected void initServiceDescriptionAddBinder(WebDataBinder binder) {
-        binder.addValidators(new ServiceDescriptionAddValidator());
-    }
-
     /**
      * This method is synchronized (like client add in old Ruby implementation)
      * to prevent a problem with two threads both creating "first" additional members.
      */
     @Override
     @PreAuthorize("hasAuthority('ADD_CLIENT')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_CLIENT)
+    @AuditEventMethod(event = ADD_CLIENT)
     public synchronized ResponseEntity<Client> addClient(ClientAdd clientAdd) {
         boolean ignoreWarnings = clientAdd.getIgnoreWarnings();
         IsAuthentication isAuthentication = null;
@@ -486,7 +477,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_CLIENT')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_CLIENT)
+    @AuditEventMethod(event = DELETE_CLIENT)
     public ResponseEntity<Void> deleteClient(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -501,7 +492,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_CLIENT')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_ORPHANS)
+    @AuditEventMethod(event = DELETE_ORPHANS)
     public ResponseEntity<Void> deleteOrphans(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -529,7 +520,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_CLIENT_REG_REQ')")
-    @AuditEventMethod(event = RestApiAuditEvent.REGISTER_CLIENT)
+    @AuditEventMethod(event = REGISTER_CLIENT)
     public ResponseEntity<Void> registerClient(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -547,7 +538,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_CLIENT_DEL_REQ')")
-    @AuditEventMethod(event = RestApiAuditEvent.UNREGISTER_CLIENT)
+    @AuditEventMethod(event = UNREGISTER_CLIENT)
     public ResponseEntity<Void> unregisterClient(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -563,7 +554,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('SEND_OWNER_CHANGE_REQ')")
-    @AuditEventMethod(event = RestApiAuditEvent.SEND_OWNER_CHANGE_REQ)
+    @AuditEventMethod(event = SEND_OWNER_CHANGE_REQ)
     public ResponseEntity<Void> changeOwner(String encodedClientId) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         try {
@@ -631,7 +622,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_SERVICE_CLIENT_ACCESS_RIGHTS)
+    @AuditEventMethod(event = ADD_SERVICE_CLIENT_ACCESS_RIGHTS)
     public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
@@ -654,7 +645,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
-    @AuditEventMethod(event = RestApiAuditEvent.REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS)
+    @AuditEventMethod(event = REMOVE_SERVICE_CLIENT_ACCESS_RIGHTS)
     public ResponseEntity<Void> deleteServiceClientAccessRights(String encodedClientId,
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);

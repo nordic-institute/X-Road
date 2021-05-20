@@ -30,7 +30,6 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
-import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
@@ -40,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescription;
 import org.niis.xroad.securityserver.restapi.openapi.model.Members;
-import org.niis.xroad.securityserver.restapi.openapi.validator.LocalGroupDescriptionValidator;
 import org.niis.xroad.securityserver.restapi.service.ClientNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.LocalGroupService;
@@ -48,13 +46,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GROUP_MEMBERS;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_LOCAL_GROUP;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_LOCAL_GROUP_DESC;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL_GROUP_MEMBERS;
 
 /**
  * groups api
@@ -77,15 +78,9 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         return new ResponseEntity<>(localGroupConverter.convert(localGroupType), HttpStatus.OK);
     }
 
-    @InitBinder("localGroupDescription")
-    @PreAuthorize("permitAll()")
-    protected void initLocalGroupDescriptionBinder(WebDataBinder binder) {
-        binder.addValidators(new LocalGroupDescriptionValidator());
-    }
-
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_DESC')")
-    @AuditEventMethod(event = RestApiAuditEvent.EDIT_LOCAL_GROUP_DESC)
+    @AuditEventMethod(event = EDIT_LOCAL_GROUP_DESC)
     public ResponseEntity<LocalGroup> updateLocalGroup(String groupIdString,
             LocalGroupDescription localGroupDescription) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
@@ -101,7 +96,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    @AuditEventMethod(event = RestApiAuditEvent.ADD_LOCAL_GROUP_MEMBERS)
+    @AuditEventMethod(event = ADD_LOCAL_GROUP_MEMBERS)
     public ResponseEntity<Members> addLocalGroupMember(String groupIdString, Members members) {
         if (members == null || members.getItems() == null || members.getItems().size() < 1) {
             throw new BadRequestException("missing member id");
@@ -122,7 +117,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_LOCAL_GROUP')")
-    @AuditEventMethod(event = RestApiAuditEvent.DELETE_LOCAL_GROUP)
+    @AuditEventMethod(event = DELETE_LOCAL_GROUP)
     public ResponseEntity<Void> deleteLocalGroup(String groupIdString) {
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         try {
@@ -137,7 +132,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_LOCAL_GROUP_MEMBERS')")
-    @AuditEventMethod(event = RestApiAuditEvent.REMOVE_LOCAL_GROUP_MEMBERS)
+    @AuditEventMethod(event = REMOVE_LOCAL_GROUP_MEMBERS)
     public ResponseEntity<Void> deleteLocalGroupMember(String groupIdString, Members members) {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         try {

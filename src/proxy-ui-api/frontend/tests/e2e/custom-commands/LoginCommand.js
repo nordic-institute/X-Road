@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,28 +23,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.openapi.validator;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescriptionUpdate;
-
-import java.util.Arrays;
-import java.util.Collection;
-
-@Slf4j
-public class ServiceDescriptionUpdateValidator extends AbstractIdentifierValidator {
-
-    @Override
-    public boolean supports(Class<?> clazz) {
-        return ServiceDescriptionUpdate.class.equals(clazz);
-    }
-
-    @Override
-    Collection<ValidatedField> getValidatedFields(Object target) {
-        ServiceDescriptionUpdate serviceDescriptionUpdate = (ServiceDescriptionUpdate) target;
-        return Arrays.asList(
-                ValidatedField.builder()
-                        .fieldName("newRestServiceCode")
-                        .value(serviceDescriptionUpdate.getNewRestServiceCode()).build());
-    }
+module.exports = class LoginCommand {
+  async command() {
+    const frontPage = this.api.page.ssFrontPage();
+    frontPage.navigate();
+    this.api.waitForElementVisible('//*[@id="app"]');
+    frontPage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(this.api.globals.login_usr)
+      .enterPassword(this.api.globals.login_pwd)
+      .signin();
+  }
 }

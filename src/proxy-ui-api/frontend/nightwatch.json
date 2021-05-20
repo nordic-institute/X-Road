@@ -1,5 +1,5 @@
 {
-  "src_folders" : ["./tests/e2e/specs"],
+  "src_folders" : ["./tests/e2e/specs", "./tests/e2e/utils"],
   "output_folder" : "./tests/e2e/reports",
   "page_objects_path" : "./tests/e2e/pages",
   "custom_assertions_path" : "",
@@ -9,13 +9,14 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
-    "screenshots" : {
-      "enabled" : true,
-      "on_failure" : true,
-      "on_error" : true,
-      "path" : "./tests/e2e/screenshots"
-    },
+    
     "default": {
+      "screenshots" : {
+        "enabled" : true,
+        "on_failure" : true,
+        "on_error" : true,
+        "path" : "./tests/e2e/screenshots"
+      },
       "use_xpath": true,
       "globals" : {
         "login_usr" : "xrd",

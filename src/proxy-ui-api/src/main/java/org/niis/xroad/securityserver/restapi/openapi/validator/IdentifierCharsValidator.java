@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,37 +26,19 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi.validator;
 
-import ee.ria.xroad.common.validation.SpringFirewallValidationRules;
+import ee.ria.xroad.common.validation.EncodedIdentifierValidator;
 
-import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
-import org.springframework.validation.Errors;
-import org.springframework.validation.Validator;
+import javax.validation.ConstraintValidator;
+import javax.validation.ConstraintValidatorContext;
 
-/**
- * Validator to check localgroup (when adding new localgroup) for control characters such as zero-width-space
- */
-@Slf4j
-public class LocalGroupAddValidator implements Validator {
+import java.util.EnumSet;
 
-    private static final String CODE_FIELD_NAME = "code";
-    private static final String DESCRIPTION_FIELD_NAME = "description";
-
+public class IdentifierCharsValidator implements ConstraintValidator<IdentifierChars, String> {
     @Override
-    public boolean supports(Class<?> clazz) {
-        return LocalGroupAdd.class.equals(clazz);
-    }
-
-    @Override
-    public void validate(Object target, Errors errors) {
-        LocalGroupAdd localGroupAdd = (LocalGroupAdd) target;
-        if (SpringFirewallValidationRules.containsControlChars(localGroupAdd.getCode())) {
-            errors.rejectValue(CODE_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
-        if (SpringFirewallValidationRules.containsControlChars(localGroupAdd.getDescription())) {
-            errors.rejectValue(DESCRIPTION_FIELD_NAME, IdentifierValidationErrorInfo.CONTROL_CHAR.getErrorCode(), null,
-                    IdentifierValidationErrorInfo.CONTROL_CHAR.getDefaultMessage());
-        }
+    public boolean isValid(String value, ConstraintValidatorContext context) {
+        EncodedIdentifierValidator validator = new EncodedIdentifierValidator();
+        EnumSet<IdentifierValidationErrorInfo> validationErrors = IdentifierValidationErrorInfo.of(
+                validator.getValidationErrors(value));
+        return validationErrors.isEmpty();
     }
 }

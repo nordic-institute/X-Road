@@ -45,7 +45,7 @@
           >{{ $t('backup.backupConfiguration.button') }}
         </xrd-button>
         <xrd-file-upload
-          accepts=".tar"
+          accepts=".gpg"
           @file-changed="onFileUploaded"
           v-slot="{ upload }"
         >

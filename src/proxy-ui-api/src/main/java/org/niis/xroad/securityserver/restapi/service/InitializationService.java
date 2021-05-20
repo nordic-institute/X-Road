@@ -33,9 +33,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.TokenPinPolicy;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
-import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
+import org.niis.xroad.restapi.exceptions.DeviationAwareRuntimeException;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
@@ -44,14 +45,19 @@ import org.niis.xroad.securityserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.securityserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.facade.SignerProxyFacade;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.OWNER_IDENTIFIER;
+import static org.niis.xroad.restapi.config.audit.RestApiAuditProperty.SERVER_CODE;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GPG_KEY_GENERATION_FAILED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED;
@@ -86,6 +92,14 @@ public class InitializationService {
     private final SignerProxyFacade signerProxyFacade;
     private final AuditDataHelper auditDataHelper;
     private final TokenPinValidator tokenPinValidator;
+    private final ExternalProcessRunner externalProcessRunner;
+
+    @Setter
+    @Value("${script.generate-gpg-keypair.path}")
+    private String generateKeypairScriptPath;
+    @Setter
+    @Value("${gpgkeys.gpghome}")
+    private String gpgHome;
 
     /**
      * Check the whole init status of the Security Server. The init status consists of the following:
@@ -138,7 +152,7 @@ public class InitializationService {
     public void initialize(String securityServerCode, String ownerMemberClass, String ownerMemberCode,
             String softwareTokenPin, boolean ignoreWarnings) throws AnchorNotFoundException, WeakPinException,
             UnhandledWarningsException, InvalidCharactersException, SoftwareTokenInitException,
-            InvalidInitParamsException, ServerAlreadyFullyInitializedException {
+            InvalidInitParamsException, ServerAlreadyFullyInitializedException, InterruptedException {
         if (!systemService.isAnchorImported()) {
             throw new AnchorNotFoundException("Configuration anchor was not found.");
         }
@@ -157,16 +171,26 @@ public class InitializationService {
         } else {
             ownerClientId = ClientId.create(instanceIdentifier, ownerMemberClass, ownerMemberCode);
         }
-        auditDataHelper.put(RestApiAuditProperty.OWNER_IDENTIFIER, ownerClientId);
-        auditDataHelper.put(RestApiAuditProperty.SERVER_CODE, securityServerCode);
+        auditDataHelper.put(OWNER_IDENTIFIER, ownerClientId);
+        auditDataHelper.put(SERVER_CODE, securityServerCode);
         if (!ignoreWarnings) {
             checkForWarnings(ownerClientId, securityServerCode);
         }
+
+        // Both software token initialisation and GPG key generation are non transactional
+        // when second one fails server server moves to unusable state
+
         // --- Start the init ---
         ServerConfType serverConf = createInitialServerConf(ownerClientId, securityServerCode);
         if (!isSoftwareTokenInitialized) {
             initializeSoftwareToken(softwareTokenPin);
         }
+
+        // the same algorithm is used in get_security_server_id.sh script
+        String keyRealName = ownerClientId.getXRoadInstance() + "/" + ownerClientId.getMemberClass() + "/"
+                + ownerClientId.getMemberCode() + "/" + serverConf.getServerCode();
+        generateGPGKeyPair(keyRealName);
+
         serverConfService.saveOrUpdate(serverConf);
     }
 
@@ -353,6 +377,25 @@ public class InitializationService {
             localClient.setIsAuthentication(IsAuthentication.SSLAUTH.name());
         }
         return localClient;
+    }
+
+    private void generateGPGKeyPair(String nameReal) throws InterruptedException {
+        String[] args = new String[] {gpgHome, nameReal};
+
+        try {
+            log.info("Generationg GPG keypair with command '"
+                    + generateKeypairScriptPath + " " + Arrays.toString(args) + "'");
+
+            ExternalProcessRunner.ProcessResult processResult = externalProcessRunner
+                    .executeAndThrowOnFailure(generateKeypairScriptPath, args);
+
+            log.info(" --- Generate GPG keypair script console output - START --- ");
+            log.info(String.join("\n", processResult.getProcessOutput()));
+            log.info(" --- Generate GPG keypair script console output - END --- ");
+        } catch (ProcessNotExecutableException | ProcessFailedException e) {
+            throw new DeviationAwareRuntimeException(e, new ErrorDeviation(ERROR_GPG_KEY_GENERATION_FAILED));
+        }
+        // todo check the keypair is really created? how?
     }
 
     /**
