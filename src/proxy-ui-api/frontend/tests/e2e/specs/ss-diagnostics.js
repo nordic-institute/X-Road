@@ -45,7 +45,7 @@ module.exports = {
     browser
       .waitForElementVisible(diagnosticsTab.elements.javaVersion)
       .getText(diagnosticsTab.elements.javaVersion, function (javaVersion) {
-        assert(typeof javaVersion.value == 'string', 'is not a string');
+        assert(typeof javaVersion.value === 'string', 'is not a string');
         assert(
           !isNaN(javaVersion.value) && !isNaN(parseFloat(javaVersion.value)),
           'value is not number',
