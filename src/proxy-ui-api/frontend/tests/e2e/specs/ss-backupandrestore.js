@@ -101,9 +101,8 @@ const createBackup = async (browser) => {
     'xpath',
     mainPage.elements.snackBarMessage,
   );
-  const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-    ' ',
-  )[1];
+  const createdBackupFileName =
+    createdBackupFileNameTextObject.value.split(' ')[1];
   console.log('Created backup: ', createdBackupFileName);
   mainPage.closeSnackbar();
 
@@ -112,38 +111,37 @@ const createBackup = async (browser) => {
 
 module.exports = {
   tags: ['ss', 'backupandrestore'],
-  'Security server backups can be created, listed, filtered and removed': async (
-    browser,
-  ) => {
-    const mainPage = browser.page.ssMainPage();
-    const settingsTab = mainPage.section.settingsTab;
-    const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
-    const deleteBackupConfirmationDialog =
-      backupAndRestoreTab.section.deleteBackupConfirmationDialog;
+  'Security server backups can be created, listed, filtered and removed':
+    async (browser) => {
+      const mainPage = browser.page.ssMainPage();
+      const settingsTab = mainPage.section.settingsTab;
+      const backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
+      const deleteBackupConfirmationDialog =
+        backupAndRestoreTab.section.deleteBackupConfirmationDialog;
 
-    navigateToBackupAndRestorePage(browser);
+      navigateToBackupAndRestorePage(browser);
 
-    const createdBackupFileName = await createBackup(browser);
+      const createdBackupFileName = await createBackup(browser);
 
-    // Filtering backup list with the name of created backup there should be only one backup in the list
-    backupAndRestoreTab.enterFilterInput(createdBackupFileName);
-    browser.expect
-      .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
-      .count.to.equal(1);
-    backupAndRestoreTab.clearFilterInput();
+      // Filtering backup list with the name of created backup there should be only one backup in the list
+      backupAndRestoreTab.enterFilterInput(createdBackupFileName);
+      browser.expect
+        .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
+        .count.to.equal(1);
+      backupAndRestoreTab.clearFilterInput();
 
-    // Delete created backup (click cancel first time)
-    browser.waitForElementVisible(
-      `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
-    );
-    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
-    browser.waitForElementVisible(deleteBackupConfirmationDialog);
-    deleteBackupConfirmationDialog.cancel();
-    browser.waitForElementNotPresent(deleteBackupConfirmationDialog);
+      // Delete created backup (click cancel first time)
+      browser.waitForElementVisible(
+        `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
+      );
+      backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
+      browser.waitForElementVisible(deleteBackupConfirmationDialog);
+      deleteBackupConfirmationDialog.cancel();
+      browser.waitForElementNotPresent(deleteBackupConfirmationDialog);
 
-    deleteBackup(browser, createdBackupFileName);
-    browser.end();
-  },
+      deleteBackup(browser, createdBackupFileName);
+      browser.end();
+    },
 
   'Download and import backup': async (browser) => {
     const mainPage = browser.page.ssMainPage();
