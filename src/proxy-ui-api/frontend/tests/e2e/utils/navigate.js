@@ -24,39 +24,26 @@
  * THE SOFTWARE.
  */
 
+/*
+ * This file contains logic for user navigating
+ *
+ *
+ */
+
+
+const toRestoreAndBackup = (browser) => {
+  const mainPage = browser.page.ssMainPage();
+  const settingsTab = mainPage.section.settingsTab;
+
+  const backupButton =
+    settingsTab.section.backupAndRestoreTab.elements.backupButton;
+
+  mainPage.openSettingsTab();
+  browser.waitForElementVisible(settingsTab);
+  settingsTab.openBackupAndRestore();
+  browser.waitForElementVisible(backupButton);
+}
+
 module.exports = {
-  tags: ['ss', 'login'],
-  'Security server failed login': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter invalid credentials
-    frontPage
-      .enterUsername(browser.globals.login_wrong_usr)
-      .enterPassword(browser.globals.login_wrong_pwd)
-      .signin();
-
-    // Verify there's an error message
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
-
-    browser.end();
-  },
-  'Security server passed login': (browser) => {
-    browser.LoginCommand();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    // Test refresh
-    browser
-      .refresh()
-      .waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    browser.end();
-  },
+  toRestoreAndBackup
 };

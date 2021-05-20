@@ -61,7 +61,7 @@ create_backup_tarball () {
         --exclude="/etc/xroad/postgresql" \
         --exclude="/etc/xroad/gpghome"  \
         "${BACKED_UP_PATHS[@]}" \
-    | gpg --homedir /etc/xroad/gpghome --sign "${SELF_ARGS[@]}" "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
+    | gpg --batch --no-tty --homedir /etc/xroad/gpghome --sign "${SELF_ARGS[@]}" "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"

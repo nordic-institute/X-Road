@@ -59,7 +59,7 @@ decrypt_tarball_if_encrypted () {
 
       echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
       # gpg --decrypt can also handle files that are only signed!
-      if ! gpg --homedir /etc/xroad/gpghome --decrypt --output "${BACKUP_FILENAME}" "${VERIFYARG[@]}" "${GPG_FILENAME}" ; then
+      if ! gpg --batch --no-tty --homedir /etc/xroad/gpghome --decrypt --output "${BACKUP_FILENAME}" "${VERIFYARG[@]}" "${GPG_FILENAME}" ; then
         die "Decrypting backup archive failed"
       fi
       # GPG happily decrypts encrypted files without signature and there is no way to force errors when file is not signed
