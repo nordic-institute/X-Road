@@ -93,5 +93,8 @@ cache:
   simple:
     ttl: 60
 
+common-module-endpoints:
+  base-path: /api/v1
+
 gpgkeys:
   gpghome: /etc/xroad/gpghome

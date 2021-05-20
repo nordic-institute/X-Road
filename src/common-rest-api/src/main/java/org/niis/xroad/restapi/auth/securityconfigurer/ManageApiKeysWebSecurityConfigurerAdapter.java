@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
-import org.niis.xroad.restapi.controller.ApiKeysController;
+import org.niis.xroad.restapi.controller.CommonModuleEndpointPaths;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
@@ -52,10 +52,13 @@ public class ManageApiKeysWebSecurityConfigurerAdapter extends WebSecurityConfig
     @Qualifier(PamAuthenticationProvider.KEY_MANAGEMENT_PAM_AUTHENTICATION)
     private AuthenticationProvider authenticationProvider;
 
+    @Autowired
+    private CommonModuleEndpointPaths commonModuleEndpointPaths;
+
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .antMatcher(ApiKeysController.API_KEYS_V1_PATH + "/**")
+            .antMatcher(commonModuleEndpointPaths.getApiKeysPath() + "/**")
             .authorizeRequests()
                 .anyRequest()
                 .authenticated()

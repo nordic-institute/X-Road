@@ -35,7 +35,6 @@ import org.niis.xroad.restapi.domain.PersistentApiKeyType;
 import org.niis.xroad.restapi.domain.PublicApiKeyData;
 import org.niis.xroad.restapi.dto.PlaintextApiKeyDto;
 import org.niis.xroad.restapi.openapi.BadRequestException;
-import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.http.HttpStatus;
@@ -58,13 +57,11 @@ import java.util.List;
  * Controller for rest apis for api key operations
  */
 @RestController
-@RequestMapping(ApiKeysController.API_KEYS_V1_PATH)
+@RequestMapping("#{commonModuleEndpointPaths.apiKeysPath}")
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class ApiKeysController {
-
-    public static final String API_KEYS_V1_PATH = ControllerUtil.API_V1_PREFIX + "/api-keys";
 
     private final ApiKeyService apiKeyService;
     private final PublicApiKeyDataConverter publicApiKeyDataConverter;
