@@ -26,20 +26,21 @@
 
 var assert = require('assert');
 
+let mainPage;
+
 module.exports = {
   tags: ['ss', 'diagnostics'],
+  before: function (browser) {
+    mainPage = browser.page.ssMainPage();
+    browser.LoginCommand();
+  },
+
+  after: function (browser) {
+    browser.end();
+  },
+
   'Field JavaVersion contains numeric data': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
     const diagnosticsTab = browser.page.tabs.diagnosticsTab();
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
     // Navigate to target page
     mainPage.openDiagnosticsTab();
     browser
