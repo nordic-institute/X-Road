@@ -57,6 +57,7 @@ import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
 import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
+import NoPermission from '@/views/NoPermission.vue';
 import { RouteConfig } from 'vue-router';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import Service from '@/views/Service/Service.vue';
@@ -491,6 +492,11 @@ const routes: RouteConfig[] = [
     path: '/login',
     name: RouteName.Login,
     component: AppLogin,
+  },
+  {
+    path: '/permission',
+    name: RouteName.NoPermission,
+    component: NoPermission,
   },
   {
     path: '*',
