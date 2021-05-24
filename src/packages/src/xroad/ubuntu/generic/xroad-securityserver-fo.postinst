@@ -1,7 +1,0 @@
-#!/bin/bash
-
-if [ "$1" = abort-upgrade ]; then
-  exit 0
-fi
-
-exit 0

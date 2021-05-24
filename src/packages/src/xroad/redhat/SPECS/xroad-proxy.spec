@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -119,24 +120,8 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
-%pre
-version_lt () {
-    newest=$( ( echo "$1"; echo "$2" ) | sort -V | tail -n1)
-    [ "$1" != "$newest" ]
-}
-if [ $1 -gt 1 ] ; then
-    # upgrade
-    installed_version_full=$(rpm -q xroad-proxy --queryformat="%{VERSION}-%{RELEASE}")
-    incoming_version_full=$(echo "%{version}-%{release}")
-    if [[ "$incoming_version_full" == 7* ]]; then
-        last_supported_version=$(echo "$installed_version_full" | awk -F. '{print $1"."($2+2)}')
-        incoming_version=$(echo "$incoming_version_full" | awk -F. '{print $1"."$2}')
-        if version_lt $last_supported_version $incoming_version ; then
-          echo "This package can be upgraded up to version $last_supported_version.x"
-          exit 1
-        fi
-    fi
-fi
+%pre -p /bin/bash
+%upgrade_check
 
 if [ $1 -gt 1 ] ; then
     # upgrade

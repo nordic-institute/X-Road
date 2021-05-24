@@ -2,6 +2,7 @@
 set -e
 
 VERSION=7.0.0
+LAST_SUPPORTED_VERSION=6.26.0
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
@@ -21,8 +22,6 @@ cd "$DIR"
 
 mkdir -p build/xroad/redhat
 cp -a src/xroad/redhat build/xroad
-mkdir -p build/xroad-jetty9
-cp -a src/xroad-jetty9/redhat build/xroad-jetty9/
 
 if [[ -z "$SNAPSHOT" ]]; then
   macro_snapshot=()
@@ -34,6 +33,7 @@ fi
 
 ROOT=${DIR}/build/xroad/redhat
 rpmbuild \
+    --define "last_supported_version $LAST_SUPPORTED_VERSION" \
     --define "xroad_version $VERSION" \
     --define "rel $RELEASE" \
     "${macro_snapshot[@]}" \
@@ -42,17 +42,3 @@ rpmbuild \
     --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
     --define "_binary_payload $compress" \
     -"${CMD}" "${ROOT}/SPECS/"${FILES}
-
-# build jetty rpms
-ROOT="${DIR}/build/xroad-jetty9/redhat"
-./download_jetty.sh
-rpmbuild \
-    --define "xroad_version $VERSION" \
-    --define "jetty $DIR/build/jetty9" \
-    --define "rel $RELEASE" \
-    "${macro_snapshot[@]}" \
-    --define "_topdir $ROOT" \
-    --define "srcdir $DIR/src/xroad-jetty9" \
-    --define "_rpmdir ${DIR}/build/rhel/%{rhel}" \
-    --define "_binary_payload $compress" \
-    -bb "$ROOT/SPECS/"${FILES}

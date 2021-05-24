@@ -1,4 +1,10 @@
 #!/bin/bash
+if [ "$1" = "upgrade" ]; then
+  if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
+    echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
+    exit 1
+  fi
+fi
 
 if [ "$1" = "upgrade" ];
   then
