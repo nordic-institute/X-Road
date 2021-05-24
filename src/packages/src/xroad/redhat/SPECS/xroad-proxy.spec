@@ -189,13 +189,13 @@ fi
 if [ $1 -gt 1 ]; then
   # upgrade, generate gpg keypair when needed
   if [ ! -d /etc/xroad/gpghome ] ; then
-    ID=$(source /usr/share/xroad/scripts/get_security_server_id.sh)
+    ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
     if [[ -n "${ID}" ]] ; then
       /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
     fi
   fi
   # always fix gpghome ownership
-  chown -R xroad:xroad /etc/xroad/gpghome
+  [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
 fi
 
 #parameters:

@@ -6,24 +6,11 @@
 
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
-doesFirstFileExist(){
-    test -e "$1"
-}
+shopt -s nullglob
+BACKED_UP_PATHS=(/etc/xroad/ /etc/nginx/conf.d/*xroad*.conf /etc/nginx/sites-enabled/*xroad*)
+shopt -u nullglob
 
-BACKED_UP_PATHS=("/etc/xroad/")
-# only backup /etc/nginx/conf.d/*xroad*.conf and /etc/nginx/sites-enabled/*xroad* if such files exist
-# this is to adapt to both SS and CS backups, when SS does not have nginx configuration
-if doesFirstFileExist /etc/nginx/conf.d/*xroad*.conf
-then
-    BACKED_UP_PATHS+=("/etc/nginx/conf.d/*xroad*.conf")
-fi
-
-if doesFirstFileExist /etc/nginx/sites-enabled/*xroad*
-then
-    BACKED_UP_PATHS+=("/etc/nginx/sites-enabled/*xroad*")
-fi
-
-THIS_FILE=$(pwd)/$0
+THIS_FILE="$(pwd)/$0"
 
 die () {
     echo >&2 "$@"
@@ -69,9 +56,12 @@ create_backup_tarball () {
     fi
 
     tar --create -v --label "${TARBALL_LABEL}" \
-        --exclude="tmp*.tmp" --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" \
-        --exclude="/etc/xroad/gpghome"  "${BACKED_UP_PATHS[@]}" \
-    | gpg --homedir /etc/xroad/gpghome --sign "${SELF_ARGS[@]}" "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
+        --exclude="tmp*.tmp" \
+        --exclude="/etc/xroad/services/*.conf" \
+        --exclude="/etc/xroad/postgresql" \
+        --exclude="/etc/xroad/gpghome"  \
+        "${BACKED_UP_PATHS[@]}" \
+    | gpg --batch --no-tty --homedir /etc/xroad/gpghome --sign "${SELF_ARGS[@]}" "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"

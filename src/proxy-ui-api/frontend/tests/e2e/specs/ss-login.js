@@ -47,19 +47,7 @@ module.exports = {
     browser.end();
   },
   'Security server passed login': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    browser.LoginCommand();
 
     // Verify successful login
     browser.waitForElementVisible('//div[contains(@class, "server-name")]');

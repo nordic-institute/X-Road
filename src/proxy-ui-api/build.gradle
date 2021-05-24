@@ -43,6 +43,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
     implementation project(':common-ui')
+    implementation project(':common-rest-api')
 
 
     implementation('org.springframework.boot:spring-boot-starter-security')
@@ -58,6 +59,7 @@ dependencies {
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
     implementation('io.swagger:swagger-annotations:1.6.2')
 
+    testImplementation project(':common-util')
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
@@ -245,13 +247,15 @@ openApiGenerate {
     generatorName = "spring"
     inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
     outputDir = "$buildDir/generated-sources/openapi".toString()
-    apiPackage = "org.niis.xroad.restapi.openapi"
-    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
+    modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
     systemProperties = [
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : ""
+        models   : "",
+        generateSupportingFiles : "true",
+        supportingFiles: 'ApiUtil.java'
     ]
     configOptions = [
         interfaceOnly: "true",
