@@ -95,7 +95,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
   - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
   - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
-  - [4.6 This package can be upgraded up to version 7.x.x](#46-this-package-can-be-upgraded-up-to-version-7xx)
+  - [4.6 ERROR: Upgrade supported from version X.Y.Z or newer](#46-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
 - [Annex B Default Database Users](#annex-b-default-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -556,13 +556,13 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
 
-### 4.6 This package can be upgraded up to version 7.x.x
+### 4.6 ERROR: Upgrade supported from version X.Y.Z or newer
 
 The following error message may come up during the security server upgrade.
 
-`This package can be upgraded up to version 7.x.x`
+`ERROR: Upgrade supported from version X.Y.Z or newer`
 
-The security server can only be upgraded by one or two minor versions in a single step. Otherwise, the above error occurs. The fix is to upgrade the security server to the target version step by step.
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the security server to the target version step by step.
 
 For example, the following security server packages are currently installed.
 
@@ -596,7 +596,7 @@ Now trying to upgrade the security server packages directly will produce the fol
 root@test-ss:~# apt-get upgrade xroad-securityserver
 ...
 Preparing to unpack .../0-xroad-securityserver_7.3.0-1.ubuntu18.04_all.deb ...
-This package can be upgraded up to version 7.2.x
+ERROR: Upgrade supported from version 7.1.0 or newer.
 ```
 
 The fix is to upgrade the security server in two separate steps. First, upgrade to 7.1.x with the following command.

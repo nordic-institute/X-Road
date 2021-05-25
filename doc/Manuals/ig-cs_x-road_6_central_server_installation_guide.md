@@ -78,7 +78,7 @@ Doc. ID: IG-CS
   - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
   - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
   - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
-  - [5.5 This package can be upgraded up to version 7.x.x](#55-this-package-can-be-upgraded-up-to-version-7xx)
+  - [5.5 Upgrade supported from version X.Y.Z or newer](#55-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -468,13 +468,13 @@ The interrupted installation can be finished using
 
 `sudo apt-get -f install`
 
-### 5.5 This package can be upgraded up to version 7.x.x
+### 5.5 Upgrade supported from version X.Y.Z or newer
 
 The following error message may come up during the central server upgrade.
 
-`This package can be upgraded up to version 7.x.x`
+`Upgrade supported from version X.Y.Z or newer`
 
-The central server can only be upgraded by one or two minor versions in a single step. Otherwise, the above error occurs. The fix is to upgrade the central server to the target version step by step.
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the central server to the target version step by step.
 
 For example, the following central server packages are currently installed.
 
@@ -505,7 +505,7 @@ Now trying to upgrade the central server packages directly will produce the foll
 root@test-cs:~# apt-get upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu18.04_all.deb ...
-This package can be upgraded up to version 7.2.x
+ERROR: Upgrade supported from version 7.1.0 or newer
 ```
 
 The fix is to upgrade the central server in two separate steps. First, upgrade to 7.1.x with the following command.

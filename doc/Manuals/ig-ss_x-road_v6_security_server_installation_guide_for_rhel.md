@@ -67,7 +67,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
 - [4 Installation Error handling](#4-installation-error-handling)
-  - [4.1 This package can be upgraded up to version 7.x.x](#41-this-package-can-be-upgraded-up-to-version-7xx)
+  - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -405,13 +405,13 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 ## 4 Installation Error handling
 
-### 4.1 This package can be upgraded up to version 7.x.x
+### 4.1 ERROR: Upgrade supported from version X.Y.Z or newer.
 
 The following error message may come up during the security server upgrade.
 
-`This package can be upgraded up to version 7.x.x`
+`ERROR: Upgrade supported from version X.Y.Z or newer.`
 
-The security server can only be upgraded by one or two minor versions in a single step. Otherwise, the above error occurs. The fix is to upgrade the security server to the target version step by step.
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the security server to the target version step by step.
 
 For example, the following security server packages are currently installed.
 
@@ -447,7 +447,7 @@ Now trying to upgrade the central server packages directly will produce the foll
 ```
 [root@rh1 ~]# yum upgrade xroad-securityserver
 ...
-This package can be upgraded up to version 7.2.x
+ERROR: Upgrade supported from version 7.1.0 or newer.
 error: %pre(xroad-securityserver-7.3.0-1.el7.noarch) scriptlet failed, exit status 1
 Error in PREIN scriptlet in rpm package xroad-securityserver-7.3.0-1.el7.noarch
 ```
