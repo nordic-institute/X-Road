@@ -657,6 +657,22 @@
     "1700|@storybook/addon-essentials>@storybook/addon-docs>@mdx-js/mdx>remark-parse>trim": {
       "decision": "ignore",
       "madeAt": 1620718185355
+    },
+    "1745|@vue/cli-service>webpack-dev-server>bonjour>multicast-dns>dns-packet": {
+      "decision": "ignore",
+      "madeAt": 1621951731394
+    },
+    "1747|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>react-dev-utils>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1621951743252
+    },
+    "1747|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>react-dev-utils>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1621951743252
+    },
+    "1747|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>react-dev-utils>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1621951743252
     }
   },
   "rules": {},

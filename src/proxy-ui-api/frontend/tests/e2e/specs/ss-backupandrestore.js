@@ -38,51 +38,50 @@ let mainPage,
 
 module.exports = {
   tags: ['ss', 'backupandrestore'],
-  before: function(browser) {
-
+  before: function (browser) {
     // Page object variable declarations
     mainPage = browser.page.ssMainPage();
     settingsTab = mainPage.section.settingsTab;
     backupAndRestoreTab = settingsTab.section.backupAndRestoreTab;
-    deleteBackupConfirmationDialog = backupAndRestoreTab.section.deleteBackupConfirmationDialog;
-    backupFileAlreadyExistsDialog = backupAndRestoreTab.section.backupFileAlreadyExistsDialog;
+    deleteBackupConfirmationDialog =
+      backupAndRestoreTab.section.deleteBackupConfirmationDialog;
+    backupFileAlreadyExistsDialog =
+      backupAndRestoreTab.section.backupFileAlreadyExistsDialog;
     restoreConfirmationDialog =
       backupAndRestoreTab.section.restoreConfirmationDialog;
 
     // Navigate to backup and restore page when browser is started
     browser.LoginCommand();
     navigate.toRestoreAndBackup(browser);
-
   },
   after: (browser) => {
     browser.end();
   },
-  'Security server backups can be created, listed, filtered and removed': async (
-    browser,
-  ) => {
+  'Security server backups can be created, listed, filtered and removed':
+    async (browser) => {
+      const createdBackupFileName = await backupAndRestore.createBackup(
+        browser,
+      );
 
-    const createdBackupFileName = await backupAndRestore.createBackup(browser);
+      // Filtering backup list with the name of created backup there should be only one backup in the list
+      backupAndRestoreTab.enterFilterInput(createdBackupFileName);
+      browser.expect
+        .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
+        .count.to.equal(1);
+      backupAndRestoreTab.clearFilterInput();
 
-    // Filtering backup list with the name of created backup there should be only one backup in the list
-    backupAndRestoreTab.enterFilterInput(createdBackupFileName);
-    browser.expect
-      .elements('//table[contains(@class, "xrd-table")]/tbody/tr')
-      .count.to.equal(1);
-    backupAndRestoreTab.clearFilterInput();
+      // Delete created backup (click cancel first time)
+      browser.waitForElementVisible(
+        `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
+      );
+      backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
+      browser.waitForElementVisible(deleteBackupConfirmationDialog);
+      deleteBackupConfirmationDialog.cancel();
+      browser.waitForElementNotPresent(deleteBackupConfirmationDialog);
 
-    // Delete created backup (click cancel first time)
-    browser.waitForElementVisible(
-      `//table[contains(@class, "xrd-table")]//td[text() = "${createdBackupFileName}"]/following-sibling::td//button[@data-test="backup-delete"]`,
-    );
-    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName);
-    browser.waitForElementVisible(deleteBackupConfirmationDialog);
-    deleteBackupConfirmationDialog.cancel();
-    browser.waitForElementNotPresent(deleteBackupConfirmationDialog);
-
-    backupAndRestore.deleteBackup(browser, createdBackupFileName);
-  },
+      backupAndRestore.deleteBackup(browser, createdBackupFileName);
+    },
   'Download and import backup': async (browser) => {
-
     // delete existing backups from test dir
     const testDataDir = __dirname + browser.globals.e2etest_testdata + '/';
     const regex = /^conf_backup/;
@@ -106,15 +105,19 @@ module.exports = {
     );
 
     // Import the created backup from local filesystem (first cancel the operation)
-    backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName)
+    backupAndRestoreTab
+      .addBackupToInput(testDataDir + createdBackupFileName)
       .waitForElementVisible(backupFileAlreadyExistsDialog);
 
-    backupFileAlreadyExistsDialog.cancel()
+    backupFileAlreadyExistsDialog
+      .cancel()
       .waitForElementNotPresent(backupFileAlreadyExistsDialog);
 
-    backupAndRestoreTab.addBackupToInput(testDataDir + createdBackupFileName)
+    backupAndRestoreTab
+      .addBackupToInput(testDataDir + createdBackupFileName)
       .waitForElementVisible(backupFileAlreadyExistsDialog);
-    backupFileAlreadyExistsDialog.confirm()
+    backupFileAlreadyExistsDialog
+      .confirm()
       .waitForElementVisible(mainPage.elements.snackBarMessage);
 
     browser.assert.containsText(
@@ -122,7 +125,8 @@ module.exports = {
       `${createdBackupFileName}`,
     );
 
-    mainPage.closeSnackbar()
+    mainPage
+      .closeSnackbar()
       .waitForElementNotPresent(backupFileAlreadyExistsDialog);
 
     // Remove created backup from local filesystem
@@ -134,21 +138,24 @@ module.exports = {
     browser.waitForElementVisible(
       `//table[contains(@class, "xrd-table")]//tr//td[text() = "${createdBackupFileName}"]`,
     );
-    backupAndRestoreTab.clickDeleteForBackup(createdBackupFileName)
+    backupAndRestoreTab
+      .clickDeleteForBackup(createdBackupFileName)
       .waitForElementVisible(deleteBackupConfirmationDialog);
-    deleteBackupConfirmationDialog.cancel()
+    deleteBackupConfirmationDialog
+      .cancel()
       .waitForElementNotPresent(deleteBackupConfirmationDialog);
 
     backupAndRestore.deleteBackup(browser, createdBackupFileName);
   },
   'Restore backup': async (browser) => {
-
     const createdBackupFileName = await backupAndRestore.createBackup(browser);
 
     // Click restore for created backup and close the dialog
-    backupAndRestoreTab.clickRestoreForBackup(createdBackupFileName)
+    backupAndRestoreTab
+      .clickRestoreForBackup(createdBackupFileName)
       .waitForElementVisible(restoreConfirmationDialog);
-    restoreConfirmationDialog.cancel()
+    restoreConfirmationDialog
+      .cancel()
       .waitForElementNotPresent(restoreConfirmationDialog);
 
     // Not doing actual restore
