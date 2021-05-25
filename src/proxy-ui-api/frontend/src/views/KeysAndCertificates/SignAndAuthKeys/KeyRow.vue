@@ -25,7 +25,7 @@
  -->
 <template>
   <tr>
-    <td>
+    <td class="pl-8">
       <div class="name-wrap-top">
         <i class="icon-Key key-icon" />
         <div class="clickable-link identifier-wrap" @click="keyClick">
@@ -57,7 +57,12 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
+import {
+  Key,
+  PossibleAction,
+  TokenCertificate,
+  KeyUsageType,
+} from '@/openapi-types';
 import { Permissions } from '@/global';
 export default Vue.extend({
   props: {
@@ -72,14 +77,20 @@ export default Vue.extend({
   computed: {
     showGenerateCsr(): boolean {
       // Check if the user has permission to see generate csr action
-      if (this.tokenKey.usage === 'AUTHENTICATION') {
+      if (this.tokenKey.usage === KeyUsageType.AUTHENTICATION) {
         return this.$store.getters.hasPermission(
           Permissions.GENERATE_AUTH_CERT_REQ,
         );
+      } else if (this.tokenKey.usage === KeyUsageType.SIGNING) {
+        return this.$store.getters.hasPermission(
+          Permissions.GENERATE_SIGN_CERT_REQ,
+        );
       }
-      // If key usage is not auth then it has to be sign
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_SIGN_CERT_REQ,
+
+      // If key doesn't have a usage type it is in the "unknown" category. Then any permission is fine.
+      return (
+        this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
+        this.$store.getters.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
       );
     },
 
@@ -115,18 +126,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
-}
-
-.clickable {
-  cursor: pointer;
-}
-
-.no-border {
-  border-bottom-width: 0 !important;
-}
 
 .table-button-fix {
   margin-left: auto;
@@ -151,10 +150,6 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
 }
 
 .name-wrap-top {

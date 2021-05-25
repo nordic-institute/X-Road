@@ -39,6 +39,7 @@ export type IconsId =
   | 'Declined'
   | 'Download'
   | 'Dropdown-open'
+  | 'Edit'
   | 'Error-notification'
   | 'Error'
   | 'Folder-outline'
@@ -71,6 +72,7 @@ export type IconsKey =
   | 'Declined'
   | 'Download'
   | 'DropdownOpen'
+  | 'Edit'
   | 'ErrorNotification'
   | 'Error'
   | 'FolderOutline'
@@ -103,6 +105,7 @@ export enum Icons {
   Declined = 'Declined',
   Download = 'Download',
   DropdownOpen = 'Dropdown-open',
+  Edit = 'Edit',
   ErrorNotification = 'Error-notification',
   Error = 'Error',
   FolderOutline = 'Folder-outline',
@@ -136,20 +139,21 @@ export const ICONS_CODEPOINTS: { [key in Icons]: string } = {
   [Icons.Declined]: '61708',
   [Icons.Download]: '61709',
   [Icons.DropdownOpen]: '61710',
-  [Icons.ErrorNotification]: '61711',
-  [Icons.Error]: '61712',
-  [Icons.FolderOutline]: '61713',
-  [Icons.Folder]: '61714',
-  [Icons.Import]: '61715',
-  [Icons.InProgress]: '61716',
-  [Icons.Key]: '61717',
-  [Icons.Menu]: '61718',
-  [Icons.Plus]: '61719',
-  [Icons.Search]: '61720',
-  [Icons.SecurityServer]: '61721',
-  [Icons.SortingArrow]: '61722',
-  [Icons.TableBackup]: '61723',
-  [Icons.Tooltip]: '61724',
-  [Icons.Upload]: '61725',
-  [Icons.Warning]: '61726',
+  [Icons.Edit]: '61711',
+  [Icons.ErrorNotification]: '61712',
+  [Icons.Error]: '61713',
+  [Icons.FolderOutline]: '61714',
+  [Icons.Folder]: '61715',
+  [Icons.Import]: '61716',
+  [Icons.InProgress]: '61717',
+  [Icons.Key]: '61718',
+  [Icons.Menu]: '61719',
+  [Icons.Plus]: '61720',
+  [Icons.Search]: '61721',
+  [Icons.SecurityServer]: '61722',
+  [Icons.SortingArrow]: '61723',
+  [Icons.TableBackup]: '61724',
+  [Icons.Tooltip]: '61725',
+  [Icons.Upload]: '61726',
+  [Icons.Warning]: '61727',
 };

@@ -93,9 +93,9 @@ export default Vue.extend({
     },
     clear(): void {
       this.url = '';
-      (this.$refs.serviceUrl as InstanceType<
-        typeof ValidationProvider
-      >).reset();
+      (
+        this.$refs.serviceUrl as InstanceType<typeof ValidationProvider>
+      ).reset();
     },
   },
 });

@@ -153,13 +153,16 @@ export default Vue.extend({
 
       // If owner member is not already set up add it
       if (!this.isServerOwnerInitialized) {
-        this.requestPayload.owner_member_class = this.$store.getters.initServerMemberClass;
-        this.requestPayload.owner_member_code = this.$store.getters.initServerMemberCode;
+        this.requestPayload.owner_member_class =
+          this.$store.getters.initServerMemberClass;
+        this.requestPayload.owner_member_code =
+          this.$store.getters.initServerMemberCode;
       }
 
       // Add security code if it's not already set up
       if (!this.isServerCodeInitialized) {
-        this.requestPayload.security_server_code = this.$store.getters.initServerSSCode;
+        this.requestPayload.security_server_code =
+          this.$store.getters.initServerSSCode;
       }
 
       this.initServer(this.requestPayload);
