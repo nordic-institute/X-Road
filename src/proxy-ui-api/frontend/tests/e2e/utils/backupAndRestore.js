@@ -51,7 +51,6 @@ const deleteBackup = (browser, backupFilename) => {
     `${backupFilename}`,
   );
   mainPage.closeSnackbar();
-
 };
 
 /**
@@ -76,9 +75,8 @@ const createBackup = async (browser) => {
     'xpath',
     mainPage.elements.snackBarMessage,
   );
-  const createdBackupFileName = createdBackupFileNameTextObject.value.split(
-    ' ',
-  )[1];
+  const createdBackupFileName =
+    createdBackupFileNameTextObject.value.split(' ')[1];
 
   console.log('Created backup: ', createdBackupFileName);
   mainPage.closeSnackbar();
@@ -86,7 +84,6 @@ const createBackup = async (browser) => {
 };
 
 module.exports = {
-  deleteBackup, createBackup
-}
-
-
+  deleteBackup,
+  createBackup,
+};
