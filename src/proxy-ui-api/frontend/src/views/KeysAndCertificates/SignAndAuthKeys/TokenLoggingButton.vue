@@ -31,7 +31,6 @@
       v-if="!token.logged_in"
       :outlined="false"
       text
-      :color="styles.color"
       :disabled="!token.available"
       @click="confirmLogin()"
       data-test="token-login-button"
@@ -39,12 +38,10 @@
     </xrd-button>
 
     <xrd-button
-      active-class="'test'"
       min-width="120px"
       :outlined="false"
       text
       v-if="token.logged_in"
-      :color="styles.color"
       @click="confirmLogout()"
       data-test="token-logout-button"
       >{{ $t('keys.logOut') }}
@@ -56,15 +53,6 @@
 import Vue from 'vue';
 import { Token } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import {
-  getTokenUIStatus,
-  TokenUIStatus,
-} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
-
-interface ButtonStyles {
-  class: string;
-  color: string;
-}
 
 export default Vue.extend({
   props: {
@@ -73,14 +61,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  data: function () {
-    return {
-      styles: {
-        color: 'primary',
-        class: '',
-      } as ButtonStyles,
-    };
-  },
   methods: {
     confirmLogout(): void {
       this.$emit('token-logout');
@@ -88,24 +68,6 @@ export default Vue.extend({
     confirmLogin(): void {
       this.$emit('token-login');
     },
-    getButtonStyles(token: Token): void {
-      const status: TokenUIStatus = getTokenUIStatus(token.status);
-
-      if (status === TokenUIStatus.Available) {
-        this.styles.color = 'primary';
-      } else if (status === TokenUIStatus.Active) {
-        this.styles.color = 'primary';
-      } else if (status === TokenUIStatus.Unavailable) {
-        this.styles.color = 'error';
-      } else if (status === TokenUIStatus.Unsaved) {
-        this.styles.color = 'error';
-      } else if (status === TokenUIStatus.Inactive) {
-        this.styles.color = 'grey';
-      }
-    },
-  },
-  created() {
-    this.getButtonStyles(this.token);
   },
 });
 </script>

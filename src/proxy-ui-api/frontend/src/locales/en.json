@@ -341,8 +341,8 @@
   },
   "keys": {
     "token": "Token:",
-    "authKeyCert": "AUTH Key and Certificate",
-    "signKeyCert": "SIGN Key and Certificate",
+    "authKeyCert": "AUTH Keys and Certificates",
+    "signKeyCert": "SIGN Keys and Certificates",
     "id": "ID",
     "ocsp": "OCSP",
     "expires": "Expires",
@@ -402,6 +402,8 @@
     "certMarkedForDeletion": "Certificate marked for deletion",
     "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
     "authNotSupported": "Auth. key not supported",
+    "noIssues": "No issues",
+    "globalErrors": "Global errors",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -759,7 +761,7 @@
       "csrFormat": "CSR Format"
     },
     "keys": {
-      "friendlyName": "Friendly name"
+      "name": "Name"
     },
     "addClient": {
       "memberClass": "Member class",

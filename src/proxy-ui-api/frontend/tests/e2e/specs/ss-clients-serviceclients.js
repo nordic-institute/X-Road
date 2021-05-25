@@ -25,13 +25,8 @@
  */
 
 const navigateToServiceClientsTab = (pages) => {
-  const {
-    browser,
-    mainPage,
-    clientInfo,
-    clientsTab,
-    serviceClientsPage,
-  } = pages;
+  const { browser, mainPage, clientInfo, clientsTab, serviceClientsPage } =
+    pages;
 
   mainPage.openClientsTab();
   browser.waitForElementVisible(clientsTab);
@@ -50,7 +45,8 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
+    const serviceClientDetails =
+      browser.page.serviceClients.serviceClientDetails();
     const pages = {
       browser,
       frontPage,
@@ -98,7 +94,8 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
+    const serviceClientDetails =
+      browser.page.serviceClients.serviceClientDetails();
     const addServicesPopup = serviceClientDetails.section.addServicesPopup;
     const pages = {
       browser,
@@ -184,7 +181,8 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
+    const serviceClientDetails =
+      browser.page.serviceClients.serviceClientDetails();
     const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
     const removeAllAccessRightsPopup =
       mainPage.section.removeAllAccessRightsPopup;
@@ -252,249 +250,263 @@ module.exports = {
 
     browser.end();
   },
-  'Security server service clients list shows wsdl service with access rights': (
-    browser,
-  ) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
+  'Security server service clients list shows wsdl service with access rights':
+    (browser) => {
+      const frontPage = browser.page.ssFrontPage();
+      const mainPage = browser.page.ssMainPage();
+      const serviceClientsPage =
+        browser.page.serviceClients.serviceClientsPage();
 
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const operationDetails = mainPage.section.wsdlOperationDetails;
-    const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-    const serviceDetails = mainPage.section.serviceDetails;
-    const clientServices = clientInfo.section.services;
+      const clientsTab = mainPage.section.clientsTab;
+      const clientInfo = mainPage.section.clientInfo;
+      const operationDetails = mainPage.section.wsdlOperationDetails;
+      const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
+      const serviceDetails = mainPage.section.serviceDetails;
+      const clientServices = clientInfo.section.services;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
+      // Open SUT and check that page is loaded
+      frontPage.navigate();
+      browser.waitForElementVisible('//*[@id="app"]');
 
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
+      // Enter valid credentials
+      frontPage.signinDefaultUser();
 
-    // Navigate to service clients -tab
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+      // Navigate to service clients -tab
+      mainPage.openClientsTab();
+      browser.waitForElementVisible(clientsTab);
+      clientsTab.openClient('TestService');
+      browser.waitForElementVisible(clientInfo);
+      browser.expect.element(clientInfo.elements.serviceClientsTab).to.be
+        .visible;
+      clientInfo.openServiceClientsTab();
+      browser.waitForElementVisible(
+        serviceClientsPage.section.serviceClientsTab,
+      );
 
-    // Verify buttons are visible
-    browser.expect.element(serviceClientsPage.elements.addServiceClientButton)
-      .to.be.visible;
-    browser.expect.element(serviceClientsPage.elements.unregisterButton).to.be
-      .visible;
+      // Verify buttons are visible
+      browser.expect.element(serviceClientsPage.elements.addServiceClientButton)
+        .to.be.visible;
+      browser.expect.element(serviceClientsPage.elements.unregisterButton).to.be
+        .visible;
 
-    // Add wsdl
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(
-      browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
-    );
-    clientServices.confirmAddDialog();
-    browser.assert.containsText(
-      clientServices.elements.serviceDescription,
-      browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
-    );
-    mainPage.closeSnackbar();
+      // Add wsdl
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.openAddWSDL();
+      clientServices.enterServiceUrl(
+        browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+      );
+      clientServices.confirmAddDialog();
+      browser.assert.containsText(
+        clientServices.elements.serviceDescription,
+        browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+      );
+      mainPage.closeSnackbar();
 
-    // Add access right to wsdl service
-    clientServices.expandServiceDetails();
-    clientServices.openOperation('testOp1');
-    browser.waitForElementVisible(operationDetails);
-    operationDetails.openAddAccessRights();
-    browser.waitForElementVisible(addSubjectsPopup);
-    addSubjectsPopup.startSearch();
-    addSubjectsPopup.selectSubject('TestOrg');
-    addSubjectsPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-    mainPage.closeSnackbar();
-    operationDetails.close();
+      // Add access right to wsdl service
+      clientServices.expandServiceDetails();
+      clientServices.openOperation('testOp1');
+      browser.waitForElementVisible(operationDetails);
+      operationDetails.openAddAccessRights();
+      browser.waitForElementVisible(addSubjectsPopup);
+      addSubjectsPopup.startSearch();
+      addSubjectsPopup.selectSubject('TestOrg');
+      addSubjectsPopup.addSelected();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
+      mainPage.closeSnackbar();
+      operationDetails.close();
 
-    // Verify SOAP service client when it has access permissions
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      // Verify SOAP service client when it has access permissions
+      frontPage.navigate();
+      browser.waitForElementVisible('//*[@id="app"]');
+      mainPage.openClientsTab();
+      browser.waitForElementVisible(clientsTab);
+      clientsTab.openClient('TestService');
+      browser.waitForElementVisible(clientInfo);
+      clientInfo.openServiceClientsTab();
+      browser.waitForElementVisible(
+        serviceClientsPage.section.serviceClientsTab,
+      );
+      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
 
-    // Remove WSDL service description
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openServiceDetails();
-    browser.waitForElementVisible(serviceDetails);
-    serviceDetails.deleteService();
-    serviceDetails.confirmDelete();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-    mainPage.closeSnackbar();
+      // Remove WSDL service description
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.openServiceDetails();
+      browser.waitForElementVisible(serviceDetails);
+      serviceDetails.deleteService();
+      serviceDetails.confirmDelete();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
+      mainPage.closeSnackbar();
 
-    browser.end();
-  },
-  'Security server service clients list shows rest service with service level access right': (
-    browser,
-  ) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const endpointAccessRightsPage = browser.page.endpoints.accessRightsPage();
+      browser.end();
+    },
+  'Security server service clients list shows rest service with service level access right':
+    (browser) => {
+      const frontPage = browser.page.ssFrontPage();
+      const mainPage = browser.page.ssMainPage();
+      const serviceClientsPage =
+        browser.page.serviceClients.serviceClientsPage();
+      const endpointAccessRightsPage =
+        browser.page.endpoints.accessRightsPage();
 
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const restOperationDetails = mainPage.section.restOperationDetails;
-    const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-    const restEndpoints = mainPage.section.restServiceEndpoints;
-    const clientServices = clientInfo.section.services;
-    const addEndpointPopup = mainPage.section.addEndpointPopup;
-    const addEndpointAccessRightPopup =
-      endpointAccessRightsPage.section.addSubjectsPopup;
-    const removeAllAccessRightsPopup =
-      mainPage.section.removeAllAccessRightsPopup;
-    const serviceDetails = mainPage.section.restServiceDetails;
+      const clientsTab = mainPage.section.clientsTab;
+      const clientInfo = mainPage.section.clientInfo;
+      const restOperationDetails = mainPage.section.restOperationDetails;
+      const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
+      const restEndpoints = mainPage.section.restServiceEndpoints;
+      const clientServices = clientInfo.section.services;
+      const addEndpointPopup = mainPage.section.addEndpointPopup;
+      const addEndpointAccessRightPopup =
+        endpointAccessRightsPage.section.addSubjectsPopup;
+      const removeAllAccessRightsPopup =
+        mainPage.section.removeAllAccessRightsPopup;
+      const serviceDetails = mainPage.section.restServiceDetails;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
+      // Open SUT and check that page is loaded
+      frontPage.navigate();
+      browser.waitForElementVisible('//*[@id="app"]');
 
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
+      // Enter valid credentials
+      frontPage.signinDefaultUser();
 
-    // Navigate to service clients -tab
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
+      // Navigate to service clients -tab
+      mainPage.openClientsTab();
+      browser.waitForElementVisible(clientsTab);
+      clientsTab.openClient('TestService');
+      browser.waitForElementVisible(clientInfo);
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
 
-    // Add first rest service to be used
-    clientServices.openAddREST();
-    clientServices.enterServiceUrl(
-      browser.globals.testdata + '/' + browser.globals.rest_url_1,
-    );
-    clientServices.selectRESTPath();
-    clientServices.enterServiceCode('s1c1');
-    clientServices.confirmAddDialog();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
-    mainPage.closeSnackbar();
+      // Add first rest service to be used
+      clientServices.openAddREST();
+      clientServices.enterServiceUrl(
+        browser.globals.testdata + '/' + browser.globals.rest_url_1,
+      );
+      clientServices.selectRESTPath();
+      clientServices.enterServiceCode('s1c1');
+      clientServices.confirmAddDialog();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
+      mainPage.closeSnackbar();
 
-    // Add service level access right for rest
-    clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
-    browser.waitForElementVisible(restOperationDetails);
-    restOperationDetails.openAddAccessRights();
-    browser.waitForElementVisible(addSubjectsPopup);
-    addSubjectsPopup.startSearch();
-    addSubjectsPopup.selectSubject('TestOrg');
-    addSubjectsPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-    mainPage.closeSnackbar();
-    restOperationDetails.close();
+      // Add service level access right for rest
+      clientServices.expandServiceDetails();
+      clientServices.openOperation('s1c1');
+      browser.waitForElementVisible(restOperationDetails);
+      restOperationDetails.openAddAccessRights();
+      browser.waitForElementVisible(addSubjectsPopup);
+      addSubjectsPopup.startSearch();
+      addSubjectsPopup.selectSubject('TestOrg');
+      addSubjectsPopup.addSelected();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
+      mainPage.closeSnackbar();
+      restOperationDetails.close();
 
-    // Verify REST service client when it has access permissions
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      // Verify REST service client when it has access permissions
+      frontPage.navigate();
+      browser.waitForElementVisible('//*[@id="app"]');
+      mainPage.openClientsTab();
+      browser.waitForElementVisible(clientsTab);
+      clientsTab.openClient('TestService');
+      browser.waitForElementVisible(clientInfo);
+      clientInfo.openServiceClientsTab();
+      browser.waitForElementVisible(
+        serviceClientsPage.section.serviceClientsTab,
+      );
+      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
 
-    // Add endpoint for the rest service
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.expandServiceDetails();
-    clientServices.openOperation('s1c1');
-    browser.waitForElementVisible(restOperationDetails);
-    restOperationDetails.openEndpointsTab();
-    browser.waitForElementVisible(restEndpoints);
-    restEndpoints.openAddDialog();
-    browser.waitForElementVisible(addEndpointPopup);
-    addEndpointPopup.enterPath('/test');
-    addEndpointPopup.selectRequestMethod('POST');
-    addEndpointPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-    mainPage.closeSnackbar();
-    browser.waitForElementVisible(restEndpoints);
-    restEndpoints.close();
+      // Add endpoint for the rest service
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.expandServiceDetails();
+      clientServices.openOperation('s1c1');
+      browser.waitForElementVisible(restOperationDetails);
+      restOperationDetails.openEndpointsTab();
+      browser.waitForElementVisible(restEndpoints);
+      restEndpoints.openAddDialog();
+      browser.waitForElementVisible(addEndpointPopup);
+      addEndpointPopup.enterPath('/test');
+      addEndpointPopup.selectRequestMethod('POST');
+      addEndpointPopup.addSelected();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
+      mainPage.closeSnackbar();
+      browser.waitForElementVisible(restEndpoints);
+      restEndpoints.close();
 
-    // Verify REST service client when it has access permissions and endpoint without access permission
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      // Verify REST service client when it has access permissions and endpoint without access permission
+      clientInfo.openServiceClientsTab();
+      browser.waitForElementVisible(
+        serviceClientsPage.section.serviceClientsTab,
+      );
+      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
 
-    // Add access right for the endpoint
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openOperation('s1c1');
-    browser.waitForElementVisible(restOperationDetails);
-    restOperationDetails.openEndpointsTab();
-    browser.waitForElementVisible(restEndpoints);
-    restEndpoints.openEndpointAccessRights('POST', '/test');
-    endpointAccessRightsPage.verifyAccessRightsPage('/test');
-    endpointAccessRightsPage.openAddSubjectsDialog();
-    browser.waitForElementVisible(addEndpointAccessRightPopup);
+      // Add access right for the endpoint
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.openOperation('s1c1');
+      browser.waitForElementVisible(restOperationDetails);
+      restOperationDetails.openEndpointsTab();
+      browser.waitForElementVisible(restEndpoints);
+      restEndpoints.openEndpointAccessRights('POST', '/test');
+      endpointAccessRightsPage.verifyAccessRightsPage('/test');
+      endpointAccessRightsPage.openAddSubjectsDialog();
+      browser.waitForElementVisible(addEndpointAccessRightPopup);
 
-    addEndpointAccessRightPopup.startSearch();
-    addEndpointAccessRightPopup.selectSubject('TestOrg');
-    addEndpointAccessRightPopup.addSelected();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-    mainPage.closeSnackbar();
-    endpointAccessRightsPage.close();
-    browser.waitForElementVisible(restEndpoints);
-    restEndpoints.close();
+      addEndpointAccessRightPopup.startSearch();
+      addEndpointAccessRightPopup.selectSubject('TestOrg');
+      addEndpointAccessRightPopup.addSelected();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
+      mainPage.closeSnackbar();
+      endpointAccessRightsPage.close();
+      browser.waitForElementVisible(restEndpoints);
+      restEndpoints.close();
 
-    // Verify REST service client when it has access permissions and endpoint with access permission
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      // Verify REST service client when it has access permissions and endpoint with access permission
+      clientInfo.openServiceClientsTab();
+      browser.waitForElementVisible(
+        serviceClientsPage.section.serviceClientsTab,
+      );
+      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
 
-    // Remove service level access rights from the REST service
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openOperation('s1c1');
-    browser.waitForElementVisible(restOperationDetails);
-    restOperationDetails.removeAllAccessRights();
-    browser.waitForElementVisible(removeAllAccessRightsPopup);
-    removeAllAccessRightsPopup.confirm();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
-    mainPage.closeSnackbar();
+      // Remove service level access rights from the REST service
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.openOperation('s1c1');
+      browser.waitForElementVisible(restOperationDetails);
+      restOperationDetails.removeAllAccessRights();
+      browser.waitForElementVisible(removeAllAccessRightsPopup);
+      removeAllAccessRightsPopup.confirm();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
+      mainPage.closeSnackbar();
 
-    // Verify service client doesn't exist when REST service has only endpoint level access rights
-    restOperationDetails.close();
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServiceClientsTab();
-    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.expect
-      .elements('//tr[@data-test="open-access-rights"]')
-      .count.to.equal(0);
+      // Verify service client doesn't exist when REST service has only endpoint level access rights
+      restOperationDetails.close();
+      frontPage.navigate();
+      browser.waitForElementVisible('//*[@id="app"]');
+      mainPage.openClientsTab();
+      browser.waitForElementVisible(clientsTab);
+      clientsTab.openClient('TestService');
+      browser.waitForElementVisible(clientInfo);
+      clientInfo.openServiceClientsTab();
+      browser.waitForElementVisible(
+        serviceClientsPage.section.serviceClientsTab,
+      );
+      browser.expect
+        .elements('//tr[@data-test="open-access-rights"]')
+        .count.to.equal(0);
 
-    // Remove REST service description
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-    clientServices.openServiceDetails();
-    browser.waitForElementVisible(serviceDetails);
-    serviceDetails.deleteService();
-    serviceDetails.confirmDelete();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-    mainPage.closeSnackbar();
+      // Remove REST service description
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.openServiceDetails();
+      browser.waitForElementVisible(serviceDetails);
+      serviceDetails.deleteService();
+      serviceDetails.confirmDelete();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
+      mainPage.closeSnackbar();
 
-    browser.end();
-  },
+      browser.end();
+    },
   'Security server service client view filtering': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
