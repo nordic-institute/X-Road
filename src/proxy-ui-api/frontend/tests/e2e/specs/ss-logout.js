@@ -24,51 +24,31 @@
  * THE SOFTWARE.
  */
 
+
 module.exports = {
   tags: ['ss', 'logout'],
-  'Security server logout': (browser) => {
+  before: function (browser) {
     const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-
-    // Navigate to app and check that the browser has loaded the page
     frontPage.navigate();
+
     browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    // Logout and verify
-    mainPage.logout();
-    browser.waitForElementVisible(frontPage.elements.usernameInput);
-
+  },
+  beforeEach: function (browser) {
+    browser.LoginCommand();
+  },
+  after(browser) {
     browser.end();
   },
-  'Security server timeout logout': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+
+  'Security server logout': (browser) => {
     const mainPage = browser.page.ssMainPage();
+    const frontPage = browser.page.ssFrontPage();
+    mainPage.logout();
+    browser.waitForElementVisible(frontPage.elements.usernameInput);
+  },
 
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
+  'Security server timeout logout': (browser) => {
+    const mainPage = browser.page.ssMainPage();
     // Wait for the timeout message to appear
     browser.waitForElementVisible(
       mainPage.elements.sessionExpiredPopupOkButton,
@@ -76,8 +56,6 @@ module.exports = {
       1000,
     );
     mainPage.closeSessionExpiredPopup();
-
-    browser.waitForElementVisible('//*[@id="username"]');
-    browser.end();
+    browser.waitForElementVisible(frontPage.elements.usernameInput);
   },
 };
