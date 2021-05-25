@@ -104,7 +104,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     } else {
       // This route is not allowed
       next({
-        name: RouteName.NoPermission,
+        name: RouteName.Forbidden,
       });
     }
     return;

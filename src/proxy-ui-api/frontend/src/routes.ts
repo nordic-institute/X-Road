@@ -57,7 +57,7 @@ import KeysAndCertificates from '@/views/KeysAndCertificates/KeysAndCertificates
 import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertificatesTabs.vue';
 import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
 import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
-import NoPermission from '@/views/NoPermission.vue';
+import AppForbidden from '@/views/AppForbidden.vue';
 import { RouteConfig } from 'vue-router';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import Service from '@/views/Service/Service.vue';
@@ -494,9 +494,9 @@ const routes: RouteConfig[] = [
     component: AppLogin,
   },
   {
-    path: '/permission',
-    name: RouteName.NoPermission,
-    component: NoPermission,
+    path: '/forbidden',
+    name: RouteName.Forbidden,
+    component: AppForbidden,
   },
   {
     path: '*',

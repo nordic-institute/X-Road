@@ -731,8 +731,8 @@
   "id": "ID",
   "count": "Amount of same errors:",
   "403": {
-    "topTitle": "403 – Permission denied",
-    "mainTitle": "Error 403 – Permission denied",
+    "topTitle": "Forbidden",
+    "mainTitle": "Permission denied",
     "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
     "goBack": "Go back"
   },

@@ -40,7 +40,7 @@ export enum RouteName {
   ClientTlsCertificate = 'client-tls-certificate',
   MemberDetails = 'member-details',
   MemberServers = 'member-servers',
-  NoPermission = 'no-permission',
+  Forbidden = 'forbidden',
   SubsystemDetails = 'subs-details',
   SubsystemServers = 'subs-servers',
   SubsystemLocalGroups = 'subs-local-groups',
