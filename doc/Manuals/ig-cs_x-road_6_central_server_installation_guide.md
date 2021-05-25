@@ -470,33 +470,33 @@ The interrupted installation can be finished using
 
 ### 5.5 This package can be upgraded up to version 7.x.x
 
-It's possible that the following error message comes up during the central server upgrade.
+The following error message may come up during the central server upgrade.
 
 `This package can be upgraded up to version 7.x.x`
 
-The central server can only be upgraded one or two minor versions in a single step, otherwise the above error occurs. The fix is to upgrade the central server to the target version step by step.
+The central server can only be upgraded by one or two minor versions in a single step. Otherwise, the above error occurs. The fix is to upgrade the central server to the target version step by step.
 
 For example, the following central server packages are currently installed.
 
 ```
 root@test-cs:~# dpkg -l | grep xroad
-ii  xroad-base                      7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 amd64        X-Road base components
-ii  xroad-center                    7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 all          X-Road central server
-ii  xroad-centralserver             7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 all          X-Road central server
-ii  xroad-centralserver-monitoring  7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 all          Monitoring client configuration for X-Road central
-ii  xroad-confclient                7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 amd64        X-Road configuration client components
-ii  xroad-database-local            7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 all          Meta-package for X-Road local database dependencies
-ii  xroad-jetty9                    7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 all          Jetty9 for X-Road purposes
-ii  xroad-nginx                     7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 amd64        X-Road nginx component
-ii  xroad-signer                    7.0.0-0.20210518101436git2ce7deb.ubuntu18.04 amd64        X-Road signer component
+ii  xroad-base                      7.0.0-1.ubuntu18.04 amd64        X-Road base components
+ii  xroad-center                    7.0.0-1.ubuntu18.04 all          X-Road central server
+ii  xroad-centralserver             7.0.0-1.ubuntu18.04 all          X-Road central server
+ii  xroad-centralserver-monitoring  7.0.0-1.ubuntu18.04 all          Monitoring client configuration for X-Road central
+ii  xroad-confclient                7.0.0-1.ubuntu18.04 amd64        X-Road configuration client components
+ii  xroad-database-local            7.0.0-1.ubuntu18.04 all          Meta-package for X-Road local database dependencies
+ii  xroad-jetty9                    7.0.0-1.ubuntu18.04 all          Jetty9 for X-Road purposes
+ii  xroad-nginx                     7.0.0-1.ubuntu18.04 amd64        X-Road nginx component
+ii  xroad-signer                    7.0.0-1.ubuntu18.04 amd64        X-Road signer component
 ```
 
 The following packages are available in the repository.
 
 ```
 root@test-cs:~# apt-cache madison xroad-centralserver
-xroad-centralserver | 7.3.0-0.20210518130325gitc1ecc89.ubuntu18.04 | file:/xroad  Packages
-xroad-centralserver | 7.1.0-0.20210518125551git4c60709.ubuntu18.04 | file:/xroad  Packages
+xroad-centralserver | 7.3.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
+xroad-centralserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
 ```
 
 Now trying to upgrade the central server packages directly will produce the following error.
@@ -504,17 +504,19 @@ Now trying to upgrade the central server packages directly will produce the foll
 ```
 root@test-cs:~# apt-get upgrade xroad-centralserver
 ...
-Preparing to unpack .../xroad-centralserver_7.3.0-0.20210518130325gitc1ecc89.ubuntu18.04_all.deb ...
+Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu18.04_all.deb ...
 This package can be upgraded up to version 7.2.x
 ```
 
-The fix is to upgrade the central server in two separate steps. First upgrade to 7.1.x with the following command.
+The fix is to upgrade the central server in two separate steps. First, upgrade to 7.1.x with the following command.
 
 ```
-apt install xroad-base=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-center=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-centralserver=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-centralserver-monitoring=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-confclient=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-database-local=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-jetty9=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-nginx=7.1.0-0.20210518125551git4c60709.ubuntu18.04 xroad-signer=7.1.0-0.20210518125551git4c60709.ubuntu18.04
+apt install xroad-base=7.1.0-1.ubuntu18.04 xroad-center=7.1.0-1.ubuntu18.04 xroad-centralserver=7.1.0-1.ubuntu18.04 xroad-centralserver-monitoring=7.1.0-1.ubuntu18.04 xroad-confclient=7.1.0-1.ubuntu18.04 xroad-database-local=7.1.0-1.ubuntu18.04 xroad-jetty9=7.1.0-1.ubuntu18.04 xroad-nginx=7.1.0-1.ubuntu18.04 xroad-signer=7.1.0-1.ubuntu18.04
 ```
 
-Finally we can upgrade to our target version 7.3.x as follows.
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://artifactory.niis.org/xroad-release-deb bionic-7.1.0 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
+
+Finally, we can upgrade to our target version 7.3.x as follows.
 
 ```
 apt upgrade xroad-centralserver
