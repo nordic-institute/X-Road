@@ -24,7 +24,6 @@
  * THE SOFTWARE.
  */
 
-
 module.exports = {
   tags: ['ss', 'logout'],
   before: function (browser) {
@@ -49,6 +48,7 @@ module.exports = {
 
   'Security server timeout logout': (browser) => {
     const mainPage = browser.page.ssMainPage();
+    const frontPage = browser.page.ssFrontPage();
     // Wait for the timeout message to appear
     browser.waitForElementVisible(
       mainPage.elements.sessionExpiredPopupOkButton,
