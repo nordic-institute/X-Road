@@ -445,6 +445,10 @@
     "1693|@vue/cli-service>postcss-loader>postcss": {
       "decision": "ignore",
       "madeAt": 1620721432242
+    },
+    "1745|@vue/cli-service>webpack-dev-server>bonjour>multicast-dns>dns-packet": {
+      "decision": "ignore",
+      "madeAt": 1622035883699
     }
   },
   "rules": {},
