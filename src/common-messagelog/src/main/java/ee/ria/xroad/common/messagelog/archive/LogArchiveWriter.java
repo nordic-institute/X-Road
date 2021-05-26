@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -36,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
+import java.util.Objects;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -63,8 +63,14 @@ public class LogArchiveWriter implements Closeable {
 
     private Path archiveTmp;
 
+    private final GroupingStrategy groupingStrategy =
+            GroupingStrategy.valueOf(MessageLogProperties.getArchiveGrouping());
+
+    private Grouping grouping;
+
     /**
      * Creates new LogArchiveWriter
+     *
      * @param outputPath  directory where the log archive is created.
      * @param archiveBase interface to archive database.
      */
@@ -86,20 +92,29 @@ public class LogArchiveWriter implements Closeable {
 
     /**
      * Write a message log record.
+     *
      * @param logRecord the log record
      * @return true if the a archive file was rotated
      * @throws Exception in case of any errors
      */
-    public boolean write(LogRecord logRecord) throws Exception {
+    public boolean write(MessageRecord logRecord) throws Exception {
         if (logRecord == null) {
             throw new IllegalArgumentException("log record must not be null");
         }
 
         if (log.isTraceEnabled()) log.trace("write({})", logRecord.getId());
+        boolean rotated = false;
 
-        if (logRecord instanceof MessageRecord) {
-            logArchiveCache.add((MessageRecord)logRecord);
+        if (grouping == null) {
+            grouping = groupingStrategy.forRecord(logRecord);
+        } else {
+            if (!grouping.includes(logRecord)) {
+                rotate();
+                grouping = groupingStrategy.forRecord(logRecord);
+                rotated = true;
+            }
         }
+        logArchiveCache.add(logRecord);
 
         archiveBase.markRecordArchived(logRecord);
 
@@ -107,7 +122,7 @@ public class LogArchiveWriter implements Closeable {
             rotate();
             return true;
         }
-        return false;
+        return rotated;
     }
 
     @Override
@@ -130,7 +145,10 @@ public class LogArchiveWriter implements Closeable {
     }
 
     protected String getArchiveFilename(String random) {
-        return String.format("mlog-%s-%s-%s.zip",
+        final String groupName = escape(grouping.name());
+
+        return String.format("mlog-%s%s-%s-%s.zip",
+                groupName == "" ? "" : groupName + "-",
                 simpleDateFormat.format(logArchiveCache.getStartTime()),
                 simpleDateFormat.format(logArchiveCache.getEndTime()),
                 random);
@@ -185,5 +203,112 @@ public class LogArchiveWriter implements Closeable {
     private static void atomicMove(Path source, Path destination)
             throws IOException {
         Files.move(source, destination, REPLACE_EXISTING, ATOMIC_MOVE);
+    }
+
+    private String escape(String s) {
+        return s.replaceAll("[\\00\\\\<>/:|*?\\p{gc=Cc}]", "_");
+    }
+}
+
+enum GroupingStrategy {
+    NONE {
+        @Override
+        Grouping forRecord(MessageRecord record) {
+            return NONE_GROUPING;
+        }
+    },
+    BY_MEMBER {
+        @Override
+        Grouping forRecord(MessageRecord record) {
+            return new MemberGrouping(record);
+        }
+    },
+    BY_SUBSYSTEM {
+        @Override
+        Grouping forRecord(MessageRecord record) {
+            return new SubsystemGrouping(record);
+        }
+    };
+
+    abstract Grouping forRecord(MessageRecord record);
+
+    private static final Grouping NONE_GROUPING = new Grouping() {
+        @Override
+        public boolean includes(MessageRecord record) {
+            return true;
+        }
+
+        @Override
+        public String name() {
+            return "";
+        }
+    };
+}
+
+interface Grouping {
+    boolean includes(MessageRecord record);
+
+    String name();
+}
+
+final class SubsystemGrouping implements Grouping {
+    private final String memberClass;
+    private final String memberCode;
+    private final String subsystemCode;
+
+    SubsystemGrouping(MessageRecord record) {
+        this.memberClass = record.getMemberClass();
+        this.memberCode = record.getMemberCode();
+        this.subsystemCode = record.getSubsystemCode();
+    }
+
+    /**
+     * checks if the record belongs to this record group
+     */
+    @Override
+    public boolean includes(MessageRecord record) {
+        return Objects.equals(memberClass, record.getMemberClass())
+                && Objects.equals(memberCode, record.getMemberCode())
+                && Objects.equals(subsystemCode, record.getSubsystemCode());
+
+    }
+
+    public String name() {
+        StringBuilder b = new StringBuilder();
+        b.append(memberClass);
+        b.append("-");
+        b.append(memberCode);
+        if (subsystemCode != null) {
+            b.append("-");
+            b.append(subsystemCode);
+        }
+        return b.toString();
+    }
+}
+
+final class MemberGrouping implements Grouping {
+    private final String memberClass;
+    private final String memberCode;
+
+    MemberGrouping(MessageRecord record) {
+        this.memberClass = record.getMemberClass();
+        this.memberCode = record.getMemberCode();
+    }
+
+    /**
+     * checks if the record belongs to this record group
+     */
+    @Override
+    public boolean includes(MessageRecord record) {
+        return Objects.equals(memberClass, record.getMemberClass())
+                && Objects.equals(memberCode, record.getMemberCode());
+    }
+
+    public String name() {
+        StringBuilder b = new StringBuilder();
+        b.append(memberClass);
+        b.append("-");
+        b.append(memberCode);
+        return b.toString();
     }
 }

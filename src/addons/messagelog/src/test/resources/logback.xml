@@ -17,6 +17,8 @@
         </encoder>
     </appender>
 
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+
     <logger name="ee.ria.xroad" level="DEBUG" />
     <logger name="ee.ria.xroad.proxy.messagelog" level="TRACE" />
 

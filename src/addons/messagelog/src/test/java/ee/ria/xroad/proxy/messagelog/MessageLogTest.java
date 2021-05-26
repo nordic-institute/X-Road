@@ -571,7 +571,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     private String getArchiveFilePath() {
         File outputDir = new File("build");
 
-        FileFilter fileFilter = new RegexFileFilter("^mlog-\\d+-\\d+-.\\w+\\.zip$");
+        FileFilter fileFilter = new RegexFileFilter("^mlog-.*?-\\d+-\\d+-.\\w+\\.zip$");
 
         File[] files = outputDir.listFiles(fileFilter);
 

@@ -122,6 +122,12 @@ public final class MessageLogProperties {
     /** is truncating body in logging allowed **/
     private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
 
+    /** log archive grouping strategy, one of
+     *  NONE, BY_MEMBER, BY_SUBSYSTEM
+     **/
+    private static final String ARCHIVE_GROUPING = PREFIX + "archive-grouping";
+
+
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
     public static final int SECOND_COMPONENT = 1;
@@ -373,4 +379,7 @@ public final class MessageLogProperties {
         return toReturn;
     }
 
+    public static String getArchiveGrouping() {
+        return System.getProperty(ARCHIVE_GROUPING, "NONE");
+    }
 }

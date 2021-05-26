@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
-import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
@@ -40,6 +39,7 @@ import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
+import org.hibernate.query.Query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -51,6 +51,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -83,9 +85,10 @@ public class LogArchiver extends UntypedAbstractActor {
 
         if (START_ARCHIVING.equals(message)) {
             try {
-                Long maxTimestampId = doInTransaction(session -> getMaxTimestampId(session));
-                if (maxTimestampId != null) {
-                    while (handleArchive(maxTimestampId)) {
+                Long maxRecordId = doInTransaction(session -> getMaxRecordId(session));
+                if (maxRecordId != null) {
+                    while (handleArchive(maxRecordId)) {
+                        // body intentionally empty
                     }
                 }
             } catch (Exception ex) {
@@ -96,59 +99,65 @@ public class LogArchiver extends UntypedAbstractActor {
         }
     }
 
-    private boolean handleArchive(long maxTimestampId) throws Exception {
+    private void markArchived(Session session, List<Long> recordIds) {
+        session
+                .createQuery(
+                        "UPDATE AbstractLogRecord r SET r.archived = true WHERE r.id in (?1)")
+                .setParameter(1, recordIds)
+                .executeUpdate();
+
+    }
+
+    private boolean handleArchive(long maxRecordId) throws Exception {
         return doInTransaction(session -> {
-            final List<TimestampRecord> batch =
-                    getNonArchivedTimestampRecords(session, MAX_RECORDS_IN_BATCH, maxTimestampId);
-
-            if (batch.isEmpty()) {
-                log.info("No records to be archived at this time");
-                return false;
-            }
-
             long start = System.currentTimeMillis();
             int recordsArchived = 0;
             final int limit = getArchiveTransactionBatchSize();
             log.info("Archiving log records...");
 
+            final String archiveTransferCommand = getArchiveTransferCommand();
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
-                for (TimestampRecord ts : batch) {
-
-                    try (Stream<MessageRecord> records = getNonArchivedMessageRecords(session, ts.getId())) {
-                        recordsArchived += records.peek(record -> {
-                            try {
-                                if (archiveWriter.write(record)) {
-                                    runTransferCommand(getArchiveTransferCommand());
-                                }
-                                //evict record from persistence context to avoid running out of memory
-                                session.detach(record);
-                            } catch (Exception e) {
-                                throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+                List<Long> recordIds = new ArrayList<>(100);
+                try (Stream<MessageRecord> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
+                    for (Iterator<MessageRecord> it = records.iterator(); it.hasNext();) {
+                        try {
+                            MessageRecord record = it.next();
+                            recordIds.add(record.getId());
+                            if (archiveWriter.write(record)) {
+                                runTransferCommand(archiveTransferCommand);
                             }
-                        }).count();
+                            //evict record from persistence context to avoid running out of memory
+                            session.detach(record);
+                            recordsArchived++;
 
-                        archiveWriter.write(ts);
-                        recordsArchived++;
-                        session.flush();
-                        session.detach(ts);
-                    }
+                            if (recordsArchived % 100 == 0) {
+                                markArchived(session, recordIds);
+                                recordIds.clear();
+                            }
 
-                    if (recordsArchived >= limit) {
-                        log.info("Archived {} log records in {} ms", recordsArchived,
-                                System.currentTimeMillis() - start);
-                        return true;
+                        } catch (Exception e) {
+                            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+                        }
                     }
+                    session.flush();
+                }
+                if (recordsArchived > 0) {
+                    if (recordIds.size() > 0) {
+                        markArchived(session, recordIds);
+                        recordIds.clear();
+                    }
+                    archiveTimestampRecords(session);
                 }
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
             } finally {
-                runTransferCommand(getArchiveTransferCommand());
+                if (recordsArchived > 0) {
+                    runTransferCommand(archiveTransferCommand);
+                    log.info("Archived {} log records in {} ms", recordsArchived, System.currentTimeMillis() - start);
+                }
             }
-
-            log.info("Archived {} log records in {} ms", recordsArchived, System.currentTimeMillis() - start);
-
             //try to continue if the batch was full (there might be more)
-            return batch.size() == MAX_RECORDS_IN_BATCH;
+            return recordsArchived == limit;
         });
     }
 
@@ -171,42 +180,43 @@ public class LogArchiver extends UntypedAbstractActor {
         return archivePath;
     }
 
-    protected List<TimestampRecord> getNonArchivedTimestampRecords(Session session, int maxRecordsToGet,
-            long maxTimestampId) {
-
-        final CriteriaBuilder cb = session.getCriteriaBuilder();
-        final CriteriaQuery<TimestampRecord> query = cb.createQuery(TimestampRecord.class);
-        final Root<TimestampRecord> t = query.from(TimestampRecord.class);
-
-        query.select(t).where(cb.and(
-                cb.isFalse(t.get(PROPERTY_NAME_ARCHIVED))),
-                cb.le(t.get("id"), maxTimestampId)).orderBy(cb.asc(t.get("id")));
-
-        return session.createQuery(query).setMaxResults(maxRecordsToGet).getResultList();
+    protected int archiveTimestampRecords(Session session) {
+        final Query query = session
+                .createQuery("UPDATE TimestampRecord t SET t.archived = true WHERE t.archived = false AND NOT EXISTS ("
+                        + "SELECT 0 FROM MessageRecord m WHERE m.archived = false and t.id = m.timestampRecord)");
+        return query.executeUpdate();
     }
 
-    protected Long getMaxTimestampId(Session session) {
+    protected Long getMaxRecordId(Session session) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<Long> query = cb.createQuery(Long.class);
-        final Root<TimestampRecord> t = query.from(TimestampRecord.class);
+        final Root<MessageRecord> t = query.from(MessageRecord.class);
 
-        query.select(cb.max(t.get("id"))).where(cb.isFalse(t.get(PROPERTY_NAME_ARCHIVED)));
+        query.select(cb.max(t.get("id")))
+                .where(cb.and(
+                        cb.isNotNull(t.get("timestampRecord")),
+                        cb.isFalse(t.get(PROPERTY_NAME_ARCHIVED))));
         return session.createQuery(query).uniqueResult();
     }
 
-    protected Stream<MessageRecord> getNonArchivedMessageRecords(Session session, Long timestampRecordNumber) {
+    protected Stream<MessageRecord> getNonArchivedMessageRecords(Session session, Long maxId, int limit) {
         final CriteriaBuilder cb = session.getCriteriaBuilder();
         final CriteriaQuery<MessageRecord> query = cb.createQuery(MessageRecord.class);
         final Root<MessageRecord> m = query.from(MessageRecord.class);
 
         query.select(m).where(cb.and(
+                cb.isNotNull(m.get("timestampRecord")),
                 cb.isFalse(m.get(PROPERTY_NAME_ARCHIVED)),
-                cb.equal(m.get("timestampRecord").get("id"), timestampRecordNumber)
-        ));
+                cb.lessThanOrEqualTo(m.get("id"), maxId)))
+                .orderBy(
+                        cb.asc(m.get("memberClass")),
+                        cb.asc(m.get("memberCode")),
+                        cb.asc(m.get("subsystemCode")),
+                        cb.asc(m.get("id")));
 
         return session
                 .createQuery(query)
-                .setFetchSize(MAX_RECORDS_IN_ARCHIVE)
+                .setMaxResults(limit)
                 .setReadOnly(true)
                 .getResultStream();
     }
@@ -271,13 +281,7 @@ public class LogArchiver extends UntypedAbstractActor {
 
         @Override
         public void markRecordArchived(LogRecord logRecord) {
-            if (logRecord instanceof TimestampRecord) {
-                logRecord.setArchived(true);
-                session.createQuery(
-                        "UPDATE MessageRecord m set m.archived = true where m.timestampRecord = ?1")
-                        .setParameter(1, logRecord)
-                        .executeUpdate();
-            }
+            logRecord.setArchived(true);
         }
 
         @Override
