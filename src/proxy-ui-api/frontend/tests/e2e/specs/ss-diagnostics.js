@@ -24,22 +24,33 @@
  * THE SOFTWARE.
  */
 
-const diagnosticsTab = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/diagnostics`,
-  selector:
-    '//div[.//a[contains(@class, "v-tab--active") and //span[@data-test="diagnostics-global-configuration"]]]//div[contains(@class, "base-full-width")]',
-  locateStrategy: 'xpath',
-  commands: [],
-  elements: {
-    globalConfiguration: {
-      selector: '//span[@data-test="diagnostics-global-configuration"]',
-      locateStrategy: 'xpath',
-    },
-    javaVersion: {
-      selector: '//*[@data-test="java-version"]',
-      locateStrategy: 'xpath',
-    },
+var assert = require('assert');
+
+let mainPage;
+
+module.exports = {
+  tags: ['ss', 'diagnostics'],
+  before: function (browser) {
+    mainPage = browser.page.ssMainPage();
+    browser.LoginCommand();
+  },
+
+  after: function (browser) {
+    browser.end();
+  },
+
+  'Field JavaVersion contains numeric data': (browser) => {
+    const diagnosticsTab = browser.page.tabs.diagnosticsTab();
+    // Navigate to target page
+    mainPage.openDiagnosticsTab();
+    browser
+      .waitForElementVisible(diagnosticsTab.elements.javaVersion)
+      .getText(diagnosticsTab.elements.javaVersion, function (javaVersion) {
+        assert(typeof javaVersion.value === 'string', 'is not a string');
+        assert(
+          !isNaN(javaVersion.value) && !isNaN(parseFloat(javaVersion.value)),
+          'value is not number',
+        );
+      });
   },
 };
-
-module.exports = diagnosticsTab;
