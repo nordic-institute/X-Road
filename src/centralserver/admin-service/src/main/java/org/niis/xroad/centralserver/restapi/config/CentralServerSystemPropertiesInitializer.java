@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,19 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.admin.controller;
+package org.niis.xroad.centralserver.restapi.config;
 
-import org.niis.xroad.centralserver.openapi.SystemApi;
-import org.niis.xroad.centralserver.openapi.model.Version;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import ee.ria.xroad.common.SystemPropertiesLoader;
 
-@RestController
-@RequestMapping("/api/v1")
-public class SystemApiController implements SystemApi {
-    @Override
-    public ResponseEntity<Version> systemVersion() {
-        return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_CENTER;
+import static ee.ria.xroad.common.SystemProperties.CONF_FILE_SIGNER;
+
+/**
+ * Helper wrapper which makes sure correct system properties are initialized (only once)
+ */
+public final class CentralServerSystemPropertiesInitializer {
+    private CentralServerSystemPropertiesInitializer() {
+    }
+    private static final AtomicBoolean XROAD_PROPERTIES_INITIALIZED = new AtomicBoolean(false);
+
+    /**
+     * initialize, if not yet initialized
+     */
+    public static synchronized void initialize() {
+        if (!XROAD_PROPERTIES_INITIALIZED.get()) {
+            SystemPropertiesLoader.create().withCommonAndLocal()
+                    .with(CONF_FILE_CENTER)
+                    .with(CONF_FILE_SIGNER)
+                    .load();
+            XROAD_PROPERTIES_INITIALIZED.set(true);
+        }
     }
 }

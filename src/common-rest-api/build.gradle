@@ -1,5 +1,3 @@
-import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
-
 buildscript {
     ext {
         // currently duplicate with proxy-ui-api build.gradle, probably should fix
@@ -15,6 +13,7 @@ plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'org.openapi.generator' version "$openapiGeneratorVersion"
+    id 'org.niis.xroad.oasvalidatorplugin'
 }
 
 ext {
@@ -26,8 +25,6 @@ sourceSets {
         java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
     }
 }
-
-apply plugin: Oas3ValidatorGradlePlugin
 
 dependencyManagement {
     imports {

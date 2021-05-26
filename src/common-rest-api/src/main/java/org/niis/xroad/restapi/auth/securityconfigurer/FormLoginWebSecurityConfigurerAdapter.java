@@ -26,7 +26,6 @@
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.util.UsernameHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +51,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.FORM_LOGOUT;
 
 /**
@@ -67,7 +67,7 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     public static final String LOGIN_URL = "/login";
 
     @Autowired
-    @Qualifier(PamAuthenticationProvider.FORM_LOGIN_PAM_AUTHENTICATION)
+    @Qualifier(FORM_LOGIN_PAM_AUTHENTICATION)
     private AuthenticationProvider authenticationProvider;
 
     @Autowired

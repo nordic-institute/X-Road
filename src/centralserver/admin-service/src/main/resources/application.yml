@@ -1,0 +1,25 @@
+# shared properties for dev/prod runtime
+# test runtime has a separate application.properties
+spring:
+  jpa:
+    mapping-resources: apikey.hbm.xml
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+      show-sql: true
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
+  profiles:
+    include: nontest
+  jackson:
+    default-property-inclusion: NON_NULL
+
+cache:
+  simple:
+    ttl: 60
+
+common-module-endpoints:
+  base-path: /api/v1
