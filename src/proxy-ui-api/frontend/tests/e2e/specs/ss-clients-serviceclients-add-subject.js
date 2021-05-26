@@ -28,8 +28,10 @@ const getPages = (browser) => {
   const frontPage = browser.page.ssFrontPage();
   const mainPage = browser.page.ssMainPage();
   const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-  const addSubjectMemberStepPage = browser.page.serviceClients.addSubjectMemberStepPage();
-  const addSubjectServiceStepPage = browser.page.serviceClients.addSubjectServiceStepPage();
+  const addSubjectMemberStepPage =
+    browser.page.serviceClients.addSubjectMemberStepPage();
+  const addSubjectServiceStepPage =
+    browser.page.serviceClients.addSubjectServiceStepPage();
   const clientInfo = mainPage.section.clientInfo;
   return {
     browser,
@@ -148,134 +150,132 @@ const navigateToAddSubjectDialogServicePage = (pages) => {
 
 module.exports = {
   tags: ['ss', 'clients', 'serviceclients', 'addserviceclient'],
-  'Security server service clients Add Subject dialog filter and select subjects': (
-    browser,
-  ) => {
-    const pages = getPages(browser);
-    const {
-      serviceClientsPage,
-      addSubjectMemberStepPage,
-      addSubjectServiceStepPage,
-    } = pages;
-    signinToClientsTab(pages);
-    // Setup services to proceed in the dialog
-    setupServices(pages);
-    navigateToAddSubjectDialog(pages);
-    // Check that we land on the first step (selecting the subject)
-    addSubjectMemberStepPage.assertWizardFirstPage();
-    addSubjectMemberStepPage.cancel();
-    browser.expect.element(
-      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
-    ).to.be.visible;
-    serviceClientsPage.openAddServiceClient();
-    browser.waitForElementVisible(
-      addSubjectMemberStepPage.elements.addSubjectWizardHeader,
-    );
+  'Security server service clients Add Subject dialog filter and select subjects':
+    (browser) => {
+      const pages = getPages(browser);
+      const {
+        serviceClientsPage,
+        addSubjectMemberStepPage,
+        addSubjectServiceStepPage,
+      } = pages;
+      signinToClientsTab(pages);
+      // Setup services to proceed in the dialog
+      setupServices(pages);
+      navigateToAddSubjectDialog(pages);
+      // Check that we land on the first step (selecting the subject)
+      addSubjectMemberStepPage.assertWizardFirstPage();
+      addSubjectMemberStepPage.cancel();
+      browser.expect.element(
+        '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
+      ).to.be.visible;
+      serviceClientsPage.openAddServiceClient();
+      browser.waitForElementVisible(
+        addSubjectMemberStepPage.elements.addSubjectWizardHeader,
+      );
 
-    // Check that all subjects exist
-    addSubjectMemberStepPage
-      .verifySubjectListRow(1, '1122')
-      .verifySubjectListRow(2, 'bac')
-      .verifySubjectListRow(3, '2233')
-      .verifySubjectListRow(4, 'abb')
-      .verifySubjectListRow(5, 'cbb')
-      .verifySubjectListRow(6, '1212')
-      .verifySubjectListRow(7, 'security-server-owners')
-      .verifySubjectListRow(8, 'TestClient')
-      .verifySubjectListRow(9, 'TestService')
-      .verifySubjectListRow(10, 'Management');
-    // Filter subjects in Add Subjects dialog
-    addSubjectMemberStepPage
-      .setFilter('TestSe')
-      .verifyVisibleId('TestService')
-      .verifyNotPresentId('1122')
-      .verifyNotPresentId('bac')
-      .verifyNotPresentId('2233')
-      .verifyNotPresentId('abb')
-      .verifyNotPresentId('cbb')
-      .verifyNotPresentId('1212')
-      .verifyNotPresentId('security-server-owners')
-      .verifyNotPresentId('TestClient')
-      .verifyNotPresentId('Management');
-    // Clear filtering
-    addSubjectMemberStepPage
-      .setFilter('')
-      .verifySubjectListRow(1, '1122')
-      .verifySubjectListRow(2, 'bac')
-      .verifySubjectListRow(3, '2233')
-      .verifySubjectListRow(4, 'abb')
-      .verifySubjectListRow(5, 'cbb')
-      .verifySubjectListRow(6, '1212')
-      .verifySubjectListRow(7, 'security-server-owners')
-      .verifySubjectListRow(8, 'TestClient')
-      .verifySubjectListRow(9, 'TestService')
-      .verifySubjectListRow(10, 'Management');
-    addSubjectMemberStepPage.assertNextButtonDisabled();
-    addSubjectMemberStepPage.assertSelectedSubjectsCount(0);
-    addSubjectMemberStepPage.selectSubject('TestService');
-    addSubjectMemberStepPage.assertNextButtonEnabled();
-    addSubjectMemberStepPage.assertSelectedSubjectsCount(1);
-    addSubjectMemberStepPage.selectSubject('TestClient');
-    addSubjectMemberStepPage.assertNextButtonEnabled();
-    addSubjectMemberStepPage.assertSelectedSubjectsCount(1);
-    addSubjectMemberStepPage.clickNext();
-    // Check that we land on the second step (selecting the services)
-    addSubjectServiceStepPage.assertWizardSecondPage();
-    // Test cancel on second page
-    addSubjectServiceStepPage.cancel();
-    browser.waitForElementVisible(
-      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
-    );
-    browser.end();
-  },
-  'Security server service clients Add Subject service page filter and select services': (
-    browser,
-  ) => {
-    const pages = getPages(browser);
-    const {
-      addSubjectMemberStepPage,
-      addSubjectServiceStepPage,
-      mainPage,
-      serviceClientsPage,
-    } = pages;
-    signinToClientsTab(pages);
-    navigateToAddSubjectDialogServicePage(pages);
-    addSubjectServiceStepPage.assertWizardSecondPage().clickPreviousButton();
-    addSubjectMemberStepPage
-      .assertWizardFirstPage()
-      .selectSubject('TestClient')
-      .clickNext();
-    addSubjectServiceStepPage
-      .assertWizardSecondPage()
-      .verifyServiceListRow(1, 'testOp1')
-      .verifyServiceListRow(2, 'testOpA');
-    addSubjectServiceStepPage
-      .setFilter('1')
-      .verifyVisibleService('testOp1')
-      .verifyNotPresentService('testOpA');
-    addSubjectServiceStepPage
-      .setFilter('')
-      .verifyServiceListRow(1, 'testOp1')
-      .verifyServiceListRow(2, 'testOpA');
-    addSubjectServiceStepPage.assertAddSelectedButtonDisabled();
-    addSubjectServiceStepPage.selectService('testOp1');
-    addSubjectServiceStepPage.assertSelectedServicesCount(1);
-    addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
-    addSubjectServiceStepPage.selectService('testOpA');
-    addSubjectServiceStepPage.assertSelectedServicesCount(2);
-    addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
-    addSubjectServiceStepPage.clickAddSelectedButton();
-    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
-    browser.waitForElementVisible(
-      '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
-    );
-    browser.waitForElementVisible(
-      '//table[contains(@class, "service-clients-table")]//td[contains(text(), "TestClient")]',
-    );
-    serviceClientsPage.openAddServiceClient();
-    addSubjectMemberStepPage.verifyDisabledId('TestClient');
-    // Remove the added service description
-    clearServices(pages);
-    browser.end();
-  },
+      // Check that all subjects exist
+      addSubjectMemberStepPage
+        .verifySubjectListRow(1, '1122')
+        .verifySubjectListRow(2, 'bac')
+        .verifySubjectListRow(3, '2233')
+        .verifySubjectListRow(4, 'abb')
+        .verifySubjectListRow(5, 'cbb')
+        .verifySubjectListRow(6, '1212')
+        .verifySubjectListRow(7, 'security-server-owners')
+        .verifySubjectListRow(8, 'TestClient')
+        .verifySubjectListRow(9, 'TestService')
+        .verifySubjectListRow(10, 'Management');
+      // Filter subjects in Add Subjects dialog
+      addSubjectMemberStepPage
+        .setFilter('TestSe')
+        .verifyVisibleId('TestService')
+        .verifyNotPresentId('1122')
+        .verifyNotPresentId('bac')
+        .verifyNotPresentId('2233')
+        .verifyNotPresentId('abb')
+        .verifyNotPresentId('cbb')
+        .verifyNotPresentId('1212')
+        .verifyNotPresentId('security-server-owners')
+        .verifyNotPresentId('TestClient')
+        .verifyNotPresentId('Management');
+      // Clear filtering
+      addSubjectMemberStepPage
+        .setFilter('')
+        .verifySubjectListRow(1, '1122')
+        .verifySubjectListRow(2, 'bac')
+        .verifySubjectListRow(3, '2233')
+        .verifySubjectListRow(4, 'abb')
+        .verifySubjectListRow(5, 'cbb')
+        .verifySubjectListRow(6, '1212')
+        .verifySubjectListRow(7, 'security-server-owners')
+        .verifySubjectListRow(8, 'TestClient')
+        .verifySubjectListRow(9, 'TestService')
+        .verifySubjectListRow(10, 'Management');
+      addSubjectMemberStepPage.assertNextButtonDisabled();
+      addSubjectMemberStepPage.assertSelectedSubjectsCount(0);
+      addSubjectMemberStepPage.selectSubject('TestService');
+      addSubjectMemberStepPage.assertNextButtonEnabled();
+      addSubjectMemberStepPage.assertSelectedSubjectsCount(1);
+      addSubjectMemberStepPage.selectSubject('TestClient');
+      addSubjectMemberStepPage.assertNextButtonEnabled();
+      addSubjectMemberStepPage.assertSelectedSubjectsCount(1);
+      addSubjectMemberStepPage.clickNext();
+      // Check that we land on the second step (selecting the services)
+      addSubjectServiceStepPage.assertWizardSecondPage();
+      // Test cancel on second page
+      addSubjectServiceStepPage.cancel();
+      browser.waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
+      );
+      browser.end();
+    },
+  'Security server service clients Add Subject service page filter and select services':
+    (browser) => {
+      const pages = getPages(browser);
+      const {
+        addSubjectMemberStepPage,
+        addSubjectServiceStepPage,
+        mainPage,
+        serviceClientsPage,
+      } = pages;
+      signinToClientsTab(pages);
+      navigateToAddSubjectDialogServicePage(pages);
+      addSubjectServiceStepPage.assertWizardSecondPage().clickPreviousButton();
+      addSubjectMemberStepPage
+        .assertWizardFirstPage()
+        .selectSubject('TestClient')
+        .clickNext();
+      addSubjectServiceStepPage
+        .assertWizardSecondPage()
+        .verifyServiceListRow(1, 'testOp1')
+        .verifyServiceListRow(2, 'testOpA');
+      addSubjectServiceStepPage
+        .setFilter('1')
+        .verifyVisibleService('testOp1')
+        .verifyNotPresentService('testOpA');
+      addSubjectServiceStepPage
+        .setFilter('')
+        .verifyServiceListRow(1, 'testOp1')
+        .verifyServiceListRow(2, 'testOpA');
+      addSubjectServiceStepPage.assertAddSelectedButtonDisabled();
+      addSubjectServiceStepPage.selectService('testOp1');
+      addSubjectServiceStepPage.assertSelectedServicesCount(1);
+      addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
+      addSubjectServiceStepPage.selectService('testOpA');
+      addSubjectServiceStepPage.assertSelectedServicesCount(2);
+      addSubjectServiceStepPage.assertAddSelectedButtonEnabled();
+      addSubjectServiceStepPage.clickAddSelectedButton();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
+      browser.waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
+      );
+      browser.waitForElementVisible(
+        '//table[contains(@class, "service-clients-table")]//td[contains(text(), "TestClient")]',
+      );
+      serviceClientsPage.openAddServiceClient();
+      addSubjectMemberStepPage.verifyDisabledId('TestClient');
+      // Remove the added service description
+      clearServices(pages);
+      browser.end();
+    },
 };

@@ -24,38 +24,60 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="label">
-    {{ $t(labelText) }}
-    <xrd-help-iconcon v-if="helpText" :text="$t(helpText)" />
+  <div class="ml-1">
+    <v-icon v-if="arrowState" class="arrow-down" :color="iconColor"
+      >icon-Sorting-arrow</v-icon
+    >
+    <v-icon v-else class="arrow-up" :color="iconColor"
+      >icon-Sorting-arrow</v-icon
+    >
   </div>
 </template>
 
 <script lang="ts">
 /**
- * Label and help icon that can be used with inputs
+ * Component for sorting icon (up and down)
  */
 import Vue from 'vue';
+import { Colors } from '@/global';
 
 export default Vue.extend({
   props: {
-    labelText: {
-      type: String,
+    arrowState: {
+      type: Boolean,
       required: true,
     },
-    helpText: {
-      type: String,
-      required: false,
+    active: {
+      type: Boolean,
+      required: true,
+    },
+    selected: {
+      type: Boolean,
+      required: true,
+    },
+  },
+  computed: {
+    iconColor(): string {
+      // Determine the icon color
+      if (this.selected) {
+        return Colors.Black100;
+      }
+      if (this.active) {
+        return Colors.Black30;
+      }
+      return 'transparent'; // Hidden
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-.label {
-  width: 230px;
-  min-width: 230px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
+.arrow-up {
+  transform: rotate(-180deg) translateY(-4px);
+  transition-duration: 0s;
+}
+.arrow-down {
+  transition-duration: 0s;
+  transform: translateY(-4px);
 }
 </style>

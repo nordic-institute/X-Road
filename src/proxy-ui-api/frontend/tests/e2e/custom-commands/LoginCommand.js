@@ -36,4 +36,4 @@ module.exports = class LoginCommand {
       .enterPassword(this.api.globals.login_pwd)
       .signin();
   }
-}
+};

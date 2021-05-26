@@ -24,25 +24,33 @@
  * THE SOFTWARE.
  */
 
-/*
- * This file contains logic for user navigating
- *
- *
- */
+var assert = require('assert');
 
-const toRestoreAndBackup = (browser) => {
-  const mainPage = browser.page.ssMainPage();
-  const settingsTab = mainPage.section.settingsTab;
-
-  const backupButton =
-    settingsTab.section.backupAndRestoreTab.elements.backupButton;
-
-  mainPage.openSettingsTab();
-  browser.waitForElementVisible(settingsTab);
-  settingsTab.openBackupAndRestore();
-  browser.waitForElementVisible(backupButton);
-};
+let mainPage;
 
 module.exports = {
-  toRestoreAndBackup,
+  tags: ['ss', 'diagnostics'],
+  before: function (browser) {
+    mainPage = browser.page.ssMainPage();
+    browser.LoginCommand();
+  },
+
+  after: function (browser) {
+    browser.end();
+  },
+
+  'Field JavaVersion contains numeric data': (browser) => {
+    const diagnosticsTab = browser.page.tabs.diagnosticsTab();
+    // Navigate to target page
+    mainPage.openDiagnosticsTab();
+    browser
+      .waitForElementVisible(diagnosticsTab.elements.javaVersion)
+      .getText(diagnosticsTab.elements.javaVersion, function (javaVersion) {
+        assert(typeof javaVersion.value === 'string', 'is not a string');
+        assert(
+          !isNaN(javaVersion.value) && !isNaN(parseFloat(javaVersion.value)),
+          'value is not number',
+        );
+      });
+  },
 };

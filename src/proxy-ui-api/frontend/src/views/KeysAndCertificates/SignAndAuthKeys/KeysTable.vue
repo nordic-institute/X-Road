@@ -26,20 +26,15 @@
 <template>
   <div>
     <table class="xrd-table keys-table">
-      <thead>
-        <tr>
-          <th class="title-col">{{ $t(title) }}</th>
-          <th class="id-col">{{ $t('keys.id') }}</th>
-          <th class="ocsp-col">{{ $t('keys.ocsp') }}</th>
-          <th class="expiration-col">{{ $t('keys.expires') }}</th>
-          <th class="status-col">{{ $t('keys.status') }}</th>
-          <th class="action-col"></th>
-        </tr>
-      </thead>
+      <KeysTableThead
+        :sortDirection="sortDirection"
+        :selectedSort="selectedSort"
+        @set-sort="setSort"
+      />
 
-      <tbody v-for="key in keys" v-bind:key="key.id">
+      <tbody v-for="key in sortedKeys" v-bind:key="key.id">
         <!-- SOFTWARE token table body -->
-        <template v-if="tokenType === 'SOFTWARE'">
+        <template v-if="tokenType === tokenTypes.SOFTWARE">
           <KeyRow
             :tokenLoggedIn="tokenLoggedIn"
             :tokenKey="key"
@@ -117,7 +112,7 @@
           >
             <td class="td-name">
               <div class="name-wrap">
-                <i class="icon-Certificate icon" />
+                <i class="icon-Certificate cert-icon" />
                 <div>{{ $t('keys.request') }}</div>
               </div>
             </td>
@@ -163,30 +158,30 @@ import Vue from 'vue';
 import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import KeyRow from './KeyRow.vue';
 import CertificateRow from './CertificateRow.vue';
+import KeysTableThead from './KeysTableThead.vue';
 import {
   Key,
-  KeyUsageType,
   TokenCertificate,
   TokenCertificateSigningRequest,
+  TokenType,
 } from '@/openapi-types';
 import { Permissions } from '@/global';
+import { KeysSortColumn } from './keyColumnSorting';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import * as Sorting from './keyColumnSorting';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   components: {
     RegisterCertificateDialog,
     KeyRow,
     CertificateRow,
+    KeysTableThead,
   },
-
   props: {
     keys: {
-      type: Array,
-      required: true,
-    },
-    title: {
-      type: String,
+      type: Array as Prop<Key[]>,
       required: true,
     },
     tokenLoggedIn: {
@@ -197,17 +192,14 @@ export default Vue.extend({
       required: true,
     },
   },
-  data() {
-    return {
-      registerDialog: false,
-      confirmDeleteCsr: false,
-      usageTypes: KeyUsageType,
-      selectedCert: undefined as TokenCertificate | undefined,
-      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
-      selectedKey: undefined as Key | undefined,
-    };
-  },
   computed: {
+    sortedKeys(): Key[] {
+      return Sorting.keyArraySort(
+        this.keys,
+        this.selectedSort,
+        this.sortDirection,
+      );
+    },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
       return this.$store.getters.hasPermission(Permissions.IMPORT_SIGN_CERT);
@@ -220,7 +212,28 @@ export default Vue.extend({
       );
     },
   },
+  data() {
+    return {
+      registerDialog: false,
+      confirmDeleteCsr: false,
+      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
+      selectedKey: undefined as Key | undefined,
+      sortDirection: false,
+      selectedSort: KeysSortColumn.NAME,
+      tokenTypes: TokenType,
+    };
+  },
+
   methods: {
+    setSort(sort: KeysSortColumn): void {
+      // Set sort column and direction
+      if (sort === this.selectedSort) {
+        this.sortDirection = !this.sortDirection;
+      }
+
+      this.selectedSort = sort;
+    },
     canDeleteCsr(key: Key): boolean {
       // Decide if the user can delete CSR based on the key usage type and permissions
       if (key.usage === 'AUTHENTICATION') {
@@ -295,13 +308,14 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-.icon {
+
+.cert-icon {
   color: $XRoad-WarmGrey100;
   margin-right: 20px;
 }
 
 .keys-table {
-  margin-top: 20px;
+  margin-top: 0px;
 }
 
 .table-button-fix {
@@ -313,7 +327,8 @@ export default Vue.extend({
   text-align: right;
 }
 
-.td-name {
+td.td-name {
+  padding-left: 30px;
   text-align: center;
   vertical-align: middle;
 }
@@ -323,18 +338,5 @@ export default Vue.extend({
   flex-direction: row;
   align-items: center;
   margin-left: 2.7rem;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
-}
-.title-col {
-  width: 30%;
-}
-.ocsp-col,
-.expiration-col,
-.status-col,
-.action-col {
-  width: 10%;
 }
 </style>
