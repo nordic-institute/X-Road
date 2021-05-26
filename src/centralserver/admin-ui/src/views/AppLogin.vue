@@ -116,13 +116,15 @@
 import Vue, { VueConstructor } from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
-export default (Vue as VueConstructor<
-  Vue & {
-    $refs: {
-      form: InstanceType<typeof ValidationObserver>;
-    };
-  }
->).extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        form: InstanceType<typeof ValidationObserver>;
+      };
+    }
+  >
+).extend({
   name: 'login',
   components: {
     ValidationProvider,
