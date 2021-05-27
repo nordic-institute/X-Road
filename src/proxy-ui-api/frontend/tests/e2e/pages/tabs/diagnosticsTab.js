@@ -35,6 +35,10 @@ const diagnosticsTab = {
       selector: '//span[@data-test="diagnostics-global-configuration"]',
       locateStrategy: 'xpath',
     },
+    javaVersion: {
+      selector: '//*[@data-test="java-version"]',
+      locateStrategy: 'xpath',
+    },
   },
 };
 

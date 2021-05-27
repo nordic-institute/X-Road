@@ -108,5 +108,6 @@ export default Vue.extend({
   color: $XRoad-WarmGrey100;
   margin-left: 2px;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 </style>

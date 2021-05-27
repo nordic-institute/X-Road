@@ -120,9 +120,9 @@ export default Vue.extend({
             error.response.status === 400 &&
             error.response.data.error.code === 'pin_incorrect'
           ) {
-            (this.$refs.tokenPin as InstanceType<
-              typeof ValidationProvider
-            >).setErrors([this.$t('keys.incorrectPin') as string]);
+            (
+              this.$refs.tokenPin as InstanceType<typeof ValidationProvider>
+            ).setErrors([this.$t('keys.incorrectPin') as string]);
           }
 
           this.$store.dispatch('showError', error);

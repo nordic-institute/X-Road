@@ -116,13 +116,15 @@ import { RouteName, Permissions } from '@/global';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
-export default (Vue as VueConstructor<
-  Vue & {
-    $refs: {
-      form: InstanceType<typeof ValidationObserver>;
-    };
-  }
->).extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        form: InstanceType<typeof ValidationObserver>;
+      };
+    }
+  >
+).extend({
   name: 'login',
   components: {
     ValidationProvider,

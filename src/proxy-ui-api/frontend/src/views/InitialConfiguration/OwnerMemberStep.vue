@@ -132,13 +132,15 @@ import Vue, { VueConstructor } from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 
-export default (Vue as VueConstructor<
-  Vue & {
-    $refs: {
-      memberCodeVP: InstanceType<typeof ValidationProvider>;
-    };
-  }
->).extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        memberCodeVP: InstanceType<typeof ValidationProvider>;
+      };
+    }
+  >
+).extend({
   components: {
     ValidationObserver,
     ValidationProvider,
