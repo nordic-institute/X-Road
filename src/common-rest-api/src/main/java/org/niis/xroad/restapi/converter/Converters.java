@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.converter;
 /**
  * Shared constants and methods for converters
  */
-@SuppressWarnings("checkstyle:InterfaceIsType")
+@SuppressWarnings({"checkstyle:InterfaceIsType", "java:S1214"})
 public interface Converters {
     /**
      * Separator char for different types of encoded ids: client id,

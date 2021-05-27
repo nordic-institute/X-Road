@@ -69,6 +69,10 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_LOCAL_GROUP
 @RequiredArgsConstructor
 public class LocalGroupService {
 
+    public static final String LOCAL_GROUP_WITH_ID = "LocalGroup with id ";
+    public static final String NOT_FOUND = " not found";
+    public static final String CLIENT_WITH_ID = "client with id ";
+
     private final LocalGroupRepository localGroupRepository;
     private final ClientRepository clientRepository;
     private final ClientService clientService;
@@ -97,7 +101,7 @@ public class LocalGroupService {
         LocalGroupType localGroupType = getLocalGroup(groupId);
 
         if (localGroupType == null) {
-            throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
+            throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
         }
         auditLog(localGroupType, description);
 
@@ -145,7 +149,7 @@ public class LocalGroupService {
 
         ClientType clientType = clientRepository.getClient(id);
         if (clientType == null) {
-            throw new ClientNotFoundException("client with id " + id + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + id + NOT_FOUND);
         }
         Optional<LocalGroupType> existingLocalGroupType = clientType.getLocalGroup().stream()
                 .filter(localGroupType -> localGroupType.getGroupCode().equals(
@@ -170,7 +174,7 @@ public class LocalGroupService {
             LocalGroupNotFoundException, LocalGroupMemberNotFoundException {
         LocalGroupType localGroupType = getLocalGroup(groupId);
         if (localGroupType == null) {
-            throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
+            throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
         }
 
         auditLog(memberIds, localGroupType);
@@ -179,8 +183,8 @@ public class LocalGroupService {
         for (ClientId memberId: memberIds) {
             Optional<ClientType> foundMember = clientService.findByClientId(memberId);
             if (!foundMember.isPresent()) {
-                throw new LocalGroupMemberNotFoundException("client with id "
-                        + memberId.toShortString() + " not found");
+                throw new LocalGroupMemberNotFoundException(CLIENT_WITH_ID
+                        + memberId.toShortString() + NOT_FOUND);
             }
             ClientId clientIdToBeAdded = foundMember.get().getIdentifier();
             boolean isAdded = localGroupType.getGroupMember().stream()
@@ -210,7 +214,7 @@ public class LocalGroupService {
         LocalGroupType existingLocalGroupType = getLocalGroup(groupId);
 
         if (existingLocalGroupType == null) {
-            throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
+            throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
         }
         auditLog(existingLocalGroupType, existingLocalGroupType.getDescription());
 
@@ -284,7 +288,7 @@ public class LocalGroupService {
         for (Long groupId : localGroupIds) {
             LocalGroupType localGroup = localGroupRepository.getLocalGroup(groupId); // no need to batch
             if (localGroup == null) {
-                throw new LocalGroupNotFoundException("LocalGroup with id " + groupId + " not found");
+                throw new LocalGroupNotFoundException(LOCAL_GROUP_WITH_ID + groupId + NOT_FOUND);
             }
             localGroupXRoadIds.add(LocalGroupId.create(localGroup.getGroupCode()));
         }

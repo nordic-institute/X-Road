@@ -49,6 +49,8 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 @Slf4j
 public class ApplicationExceptionHandler {
 
+    public static final String EXCEPTION_CAUGHT = "exception caught";
+
     @Autowired
     private ExceptionTranslator exceptionTranslator;
 
@@ -64,7 +66,7 @@ public class ApplicationExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
         auditEventLoggingFacade.auditLogFail(e);
-        log.error("exception caught", e);
+        log.error(EXCEPTION_CAUGHT, e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -81,7 +83,7 @@ public class ApplicationExceptionHandler {
                 RestApiAuditEvent.API_KEY_AUTHENTICATION, RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY)) {
             auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.UNSPECIFIED_AUTHENTICATION, e);
         }
-        log.error("exception caught", e);
+        log.error(EXCEPTION_CAUGHT, e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
 
@@ -94,7 +96,7 @@ public class ApplicationExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
         auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.UNSPECIFIED_ACCESS_CHECK, e);
-        log.error("exception caught", e);
+        log.error(EXCEPTION_CAUGHT, e);
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
     }
 
@@ -111,7 +113,7 @@ public class ApplicationExceptionHandler {
     @ExceptionHandler(BeanCreationException.class)
     public ResponseEntity<ErrorInfo> exception(BeanCreationException beanCreationException) {
         auditEventLoggingFacade.auditLogFail(beanCreationException);
-        log.error("exception caught", beanCreationException);
+        log.error(EXCEPTION_CAUGHT, beanCreationException);
         Exception exception = beanCreationException;
         int indexOfSignerException = ExceptionUtils
                 .indexOfThrowable(beanCreationException, SignerNotReachableException.class);

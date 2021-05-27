@@ -53,6 +53,8 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEME
 @Profile("devtools-test-auth")
 public class DevelopmentUserDetailsAuthenticationConfiguration {
 
+    public static final String PASSWORD = "password";
+
     @Autowired
     private GrantedAuthorityMapper grantedAuthorityMapper;
 
@@ -73,48 +75,48 @@ public class DevelopmentUserDetailsAuthenticationConfiguration {
         Collection<UserDetails> users = new ArrayList<>();
         users.add(User.withDefaultPasswordEncoder()
                 .username("security-officer")
-                .password("password")
+                .password(PASSWORD)
                 .authorities(grantedAuthorityMapper.getAuthorities(
                         Collections.singletonList(Role.XROAD_SECURITY_OFFICER)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("registration-officer")
-                .password("password")
+                .password(PASSWORD)
                 .authorities(grantedAuthorityMapper.getAuthorities(
                         Collections.singletonList(Role.XROAD_REGISTRATION_OFFICER)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("service-admin")
-                .password("password")
+                .password(PASSWORD)
                 .authorities(grantedAuthorityMapper.getAuthorities(
                         Collections.singletonList(Role.XROAD_SERVICE_ADMINISTRATOR)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("system-admin")
-                .password("password")
+                .password(PASSWORD)
                 .authorities(grantedAuthorityMapper.getAuthorities(
                         Collections.singletonList(Role.XROAD_SYSTEM_ADMINISTRATOR)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("observer")
-                .password("password")
+                .password(PASSWORD)
                 .authorities(grantedAuthorityMapper.getAuthorities(
                         Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER)))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("full-admin")
-                .password("password")
+                .password(PASSWORD)
                 .authorities(grantedAuthorityMapper.getAuthorities(Arrays.asList(Role.values())))
                 .build());
 
         users.add(User.withDefaultPasswordEncoder()
                 .username("roleless")
-                .password("password")
+                .password(PASSWORD)
                 .roles("NON_EXISTING_ROLE")
                 .build());
 

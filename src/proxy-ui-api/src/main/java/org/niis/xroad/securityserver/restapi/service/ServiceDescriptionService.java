@@ -98,6 +98,7 @@ public class ServiceDescriptionService {
     public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
 
     public static final String CLIENT_WITH_ID = "Client with id";
+    public static final String NOT_FOUND = " not found";
 
     private final ServiceDescriptionRepository serviceDescriptionRepository;
     private final ClientService clientService;
@@ -160,7 +161,7 @@ public class ServiceDescriptionService {
     private ServiceDescriptionNotFoundException createServiceDescriptionNotFoundException(long serviceDescriptionId) {
         return new ServiceDescriptionNotFoundException("Service description with id "
                 + serviceDescriptionId
-                + " not found");
+                + NOT_FOUND);
     }
 
     /**
@@ -227,7 +228,7 @@ public class ServiceDescriptionService {
             WsdlUrlAlreadyExistsException, InterruptedException, InvalidServiceUrlException {
         ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
         }
 
         WsdlProcessingResult wsdlProcessingResult = processWsdl(client, url, null);
@@ -346,7 +347,7 @@ public class ServiceDescriptionService {
 
         ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
         }
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,
@@ -461,7 +462,7 @@ public class ServiceDescriptionService {
 
         ClientType client = clientService.getLocalClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException(CLIENT_WITH_ID + " " + clientId.toShortString() + NOT_FOUND);
         }
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptionOfType(client, url,

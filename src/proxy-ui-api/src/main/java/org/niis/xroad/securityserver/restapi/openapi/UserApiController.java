@@ -55,6 +55,7 @@ import java.util.stream.Collectors;
 public class UserApiController implements UserApi {
 
     public static final String USER_API_V1_PATH = ControllerUtil.API_V1_PREFIX + "/user";
+    public static final String ROLE_PREFIX = "ROLE_";
 
     private final UsernameHelper usernameHelper;
 
@@ -68,8 +69,8 @@ public class UserApiController implements UserApi {
         User user = new User();
         user.setUsername(usernameHelper.getUsername());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        user.setPermissions(new ArrayList<>(getAuthorities(authentication, name -> !name.startsWith("ROLE_"))));
-        user.setRoles(new ArrayList<>(getAuthorities(authentication, name -> name.startsWith("ROLE_"))));
+        user.setPermissions(new ArrayList<>(getAuthorities(authentication, name -> !name.startsWith(ROLE_PREFIX))));
+        user.setRoles(new ArrayList<>(getAuthorities(authentication, name -> name.startsWith(ROLE_PREFIX))));
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
@@ -82,7 +83,7 @@ public class UserApiController implements UserApi {
     @GetMapping(value = USER_API_V1_PATH + "/roles")
     public ResponseEntity<Set<String>> getRoles(Authentication authentication) {
         return new ResponseEntity<>(
-                getAuthorities(authentication, name -> name.startsWith("ROLE_")),
+                getAuthorities(authentication, name -> name.startsWith(ROLE_PREFIX)),
                 HttpStatus.OK);
     }
 
@@ -95,7 +96,7 @@ public class UserApiController implements UserApi {
     @GetMapping(value = USER_API_V1_PATH + "/permissions")
     public ResponseEntity<Set<String>> getPermissions(Authentication authentication) {
         return new ResponseEntity<>(
-                getAuthorities(authentication, name -> !name.startsWith("ROLE_")),
+                getAuthorities(authentication, name -> !name.startsWith(ROLE_PREFIX)),
                 HttpStatus.OK);
     }
 

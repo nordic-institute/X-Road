@@ -64,6 +64,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.WARNING_INTERNAL_
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class ServiceService {
+    public static final String NOT_FOUND = " not found";
     private final ClientRepository clientRepository;
     private final UrlValidator urlValidator;
     private final AuditDataHelper auditDataHelper;
@@ -84,7 +85,7 @@ public class ServiceService {
             ServiceNotFoundException {
         ClientType client = clientRepository.getClient(clientId);
         if (client == null) {
-            throw new ClientNotFoundException("Client " + clientId.toShortString() + " not found");
+            throw new ClientNotFoundException("Client " + clientId.toShortString() + NOT_FOUND);
         }
 
         ServiceType serviceType = getServiceFromClient(client, fullServiceCode);
@@ -109,7 +110,7 @@ public class ServiceService {
                 .filter(serviceType -> FormatUtils.getServiceFullName(serviceType).equals(fullServiceCode))
                 .findFirst();
         return foundService.orElseThrow(() -> new ServiceNotFoundException("Service "
-                + fullServiceCode + " not found"));
+                + fullServiceCode + NOT_FOUND));
     }
 
     /**
@@ -149,7 +150,7 @@ public class ServiceService {
         ServiceType serviceType = getService(clientId, fullServiceCode);
 
         if (serviceType == null) {
-            throw new ServiceNotFoundException("Service " + fullServiceCode + " not found");
+            throw new ServiceNotFoundException("Service " + fullServiceCode + NOT_FOUND);
         }
 
         if (sslAuth && !ignoreWarnings) {

@@ -77,6 +77,7 @@ public class ExampleJpaTest {
     }
 
     @Test
+    @SuppressWarnings("squid:S2699") // false positive: test asserts that expected exception is thrown
     public void testThatConstraintsWork() {
         // null conf_id is allowed
         jdbcTemplate.update("INSERT INTO CLIENT (id, conf_id, identifier)"

@@ -83,7 +83,6 @@ public class LocalGroupServiceIntegrationTest extends AbstractServiceIntegration
         LocalGroupType localGroupType = localGroupService.getLocalGroup(GROUP_ID);
         try {
             localGroupService.addLocalGroup(id, localGroupType);
-            localGroupService.addLocalGroup(id, localGroupType);
             fail("should have thrown DuplicateLocalGroupCodeException");
         } catch (LocalGroupService.DuplicateLocalGroupCodeException expected) {
         }

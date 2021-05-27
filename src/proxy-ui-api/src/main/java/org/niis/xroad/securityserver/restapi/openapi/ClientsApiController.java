@@ -355,6 +355,8 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAnyAuthority('ADD_WSDL', 'ADD_OPENAPI3')")
     @AuditEventMethod(event = ADD_SERVICE_DESCRIPTION)
+    @SuppressWarnings({"java:S3776"}) // won't fix: too high cognitive complexity.
+    // should be fixed when this method is updated next.
     public ResponseEntity<ServiceDescription> addClientServiceDescription(String id,
             ServiceDescriptionAdd serviceDescription) {
         ClientId clientId = clientConverter.convertId(id);

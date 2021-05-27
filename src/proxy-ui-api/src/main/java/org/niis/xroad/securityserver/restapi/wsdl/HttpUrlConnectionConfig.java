@@ -70,6 +70,7 @@ final class HttpUrlConnectionConfig {
         }
     }
 
+    @SuppressWarnings("java:S4830") // Won't fix: Works as designed ("Server certificates should be verified")
     static class NoopTrustManager implements X509TrustManager {
         @Override
         public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {

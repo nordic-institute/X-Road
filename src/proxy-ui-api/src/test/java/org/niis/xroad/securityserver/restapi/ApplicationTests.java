@@ -37,6 +37,7 @@ public class ApplicationTests extends AbstractFacadeMockingTestContext {
      * test that spring context loads
      */
     @Test
+    @SuppressWarnings("squid:S2699") // false positive: test asserts that context loads without exceptions
     public void contextLoads() {
     }
 

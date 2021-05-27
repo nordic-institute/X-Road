@@ -354,12 +354,16 @@ public final class WsdlParser {
                         }
 
                         @Override
+                        @SuppressWarnings("java:S4830") // Won't fix: Works as designed
+                        // ("Server certificates should be verified")
                         public void checkClientTrusted(
                                 X509Certificate[] certs, String authType) {
                             // never called as used by client
                         }
 
                         @Override
+                        @SuppressWarnings("java:S4830") // Won't fix: Works as designed
+                        // ("Server certificates should be verified")
                         public void checkServerTrusted(
                                 X509Certificate[] certs, String authType) {
                             // trust all
