@@ -448,7 +448,7 @@
     },
     "1745|@vue/cli-service>webpack-dev-server>bonjour>multicast-dns>dns-packet": {
       "decision": "ignore",
-      "madeAt": 1621951441384
+      "madeAt": 1622035883699
     }
   },
   "rules": {},

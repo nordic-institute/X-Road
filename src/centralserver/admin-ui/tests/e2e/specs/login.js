@@ -32,7 +32,7 @@ const login = (browser) => {
     .enterUsername(browser.globals.login_usr)
     .enterPassword(browser.globals.login_pwd)
     .signin();
-}
+};
 
 module.exports = {
   tags: ['cs', 'login'],

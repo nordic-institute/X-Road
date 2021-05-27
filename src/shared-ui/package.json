@@ -19,13 +19,13 @@
   "types": "src/lib.d.ts",
   "dependencies": {
     "@mdi/font": "~5.9.55",
-    "core-js": "^3.6.5",
+    "core-js": "^3.9.1",
     "@fontsource/open-sans": "~4.3.0",
-    "vue": "^2.6.11",
+    "vue": "^2.6.12",
+    "vue-router": "^3.5.1",
     "vue-i18n": "~8.24.4",
-    "vue-router": "^3.2.0",
     "vuetify": "^2.4.3",
-    "vuex": "^3.4.0"
+    "vuex": "^3.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.11.6",
@@ -42,7 +42,7 @@
     "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-plugin-unit-jest": "~4.5.0",
     "@vue/cli-plugin-vuex": "~4.5.0",
-    "@vue/cli-service": "~4.5.0",
+    "@vue/cli-service": "^4.5.13",
     "@vue/eslint-config-prettier": "^6.0.0",
     "@vue/eslint-config-typescript": "~7.0.0",
     "@vue/test-utils": "^1.0.3",

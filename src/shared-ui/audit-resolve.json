@@ -660,19 +660,19 @@
     },
     "1745|@vue/cli-service>webpack-dev-server>bonjour>multicast-dns>dns-packet": {
       "decision": "ignore",
-      "madeAt": 1621951731394
+      "madeAt": 1622015185203
     },
     "1747|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>react-dev-utils>browserslist": {
       "decision": "ignore",
-      "madeAt": 1621951743252
+      "madeAt": 1622015188211
     },
     "1747|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>react-dev-utils>browserslist": {
       "decision": "ignore",
-      "madeAt": 1621951743252
+      "madeAt": 1622015188211
     },
     "1747|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>react-dev-utils>browserslist": {
       "decision": "ignore",
-      "madeAt": 1621951743252
+      "madeAt": 1622015188211
     }
   },
   "rules": {},
