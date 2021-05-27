@@ -15,14 +15,14 @@ PRE_RESTORE_DATABASE_DUMP_FILENAME=${DATABASE_DUMP_FILENAME}
 PRE_RESTORE_TARBALL_FILENAME="/var/lib/xroad/conf_prerestore_backup.tar"
 
 RESTORE_DIR=/var/tmp/xroad/restore
-TEMP_GPG_DIR=/var/tmp/xroad
+TEMP_GPG_DIR=/var/tmp/xroad/gpgtmp
 TEMP_TAR_FILE=${TEMP_GPG_DIR}/decrypted_temporary.tar
 TEMP_GPG_STATUS=${TEMP_GPG_DIR}/gpg_status.tar
 
 RESTORE_LOCK_FILENAME="/var/lib/xroad/restore_lock"
 RESTORE_IN_PROGRESS_FILENAME="/var/lib/xroad/restore_in_progress"
 
-THIS_FILE=$(pwd)/$0
+THIS_FILE="$(pwd)/$0"
 XROAD_SERVICES=
 
 acquire_lock () {
@@ -59,7 +59,7 @@ decrypt_tarball_if_encrypted () {
 
       echo "Exctracting encrypted tarball to ${BACKUP_FILENAME}"
       # gpg --decrypt can also handle files that are only signed!
-      if ! gpg --homedir /etc/xroad/gpghome --decrypt --output "${BACKUP_FILENAME}" "${VERIFYARG[@]}" "${GPG_FILENAME}" ; then
+      if ! gpg --batch --no-tty --homedir /etc/xroad/gpghome --decrypt --output "${BACKUP_FILENAME}" "${VERIFYARG[@]}" "${GPG_FILENAME}" ; then
         die "Decrypting backup archive failed"
       fi
       # GPG happily decrypts encrypted files without signature and there is no way to force errors when file is not signed
@@ -242,9 +242,9 @@ restore_database () {
 }
 
 remove_tmp_files() {
-  rm -f ${RESTORE_IN_PROGRESS_FILENAME}
-  rm -rf ${RESTORE_DIR}
-  rm -rf ${TEMP_GPG_DIR}
+  rm -f "${RESTORE_IN_PROGRESS_FILENAME}"
+  rm -rf "${RESTORE_DIR}"
+  rm -rf "${TEMP_GPG_DIR}"
 }
 
 restart_services () {

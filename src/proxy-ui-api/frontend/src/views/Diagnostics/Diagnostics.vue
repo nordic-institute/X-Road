@@ -387,7 +387,7 @@ export default Vue.extend({
 }
 
 .level-column {
-  @media only screen and (min-width: 1500px) {
+  @media only screen and (min-width: 1200px) {
     width: 20%;
   }
 }

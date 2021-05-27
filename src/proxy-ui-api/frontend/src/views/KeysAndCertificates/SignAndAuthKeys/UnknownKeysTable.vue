@@ -25,49 +25,23 @@
  -->
 <template>
   <div>
-    <table class="xrd-table">
-      <thead>
-        <tr>
-          <th>{{ $t(title) }}</th>
-          <th>{{ $t('keys.id') }}</th>
-          <th>{{ $t('keys.ocsp') }}</th>
-          <th>{{ $t('keys.expires') }}</th>
-          <th>{{ $t('keys.status') }}</th>
-          <th></th>
-        </tr>
-      </thead>
+    <table class="xrd-table keys-table">
+      <KeysTableThead
+        :sortDirection="sortDirection"
+        :selectedSort="selectedSort"
+        @set-sort="setSort"
+      />
 
-      <tbody v-for="key in keys" v-bind:key="key.id">
-        <tr>
-          <td>
-            <div class="name-wrap">
-              <i class="icon-xrd_key icon clickable" @click="keyClick(key)"></i>
-              <div class="clickable-link" @click="keyClick(key)">
-                {{ key.name }}
-              </div>
-            </div>
-          </td>
-          <td>
-            <div class="id-wrap">
-              <div class="clickable-link" @click="keyClick(key)">
-                {{ key.id }}
-              </div>
-            </div>
-          </td>
-          <td></td>
-          <td></td>
-          <td></td>
-          <td class="align-right">
-            <xrd-button
-              v-if="canCreateCsr"
-              class="table-button-fix"
-              :disabled="disableGenerateCsr(key)"
-              @click="generateCsr(key)"
-              >{{ $t('keys.generateCsr') }}</xrd-button
-            >
-          </td>
-        </tr>
+      <tbody v-for="key in sortedKeys" v-bind:key="key.id">
+        <!-- Key -->
+        <KeyRow
+          :tokenLoggedIn="tokenLoggedIn"
+          :tokenKey="key"
+          @generate-csr="generateCsr(key)"
+          @key-click="keyClick(key)"
+        />
 
+        <!-- Certificate -->
         <CertificateRow
           v-for="cert in key.certificates"
           v-bind:key="cert.id"
@@ -79,6 +53,9 @@
               <xrd-button
                 v-if="cert.possible_actions.includes('IMPORT_FROM_TOKEN')"
                 class="table-button-fix"
+                :outlined="false"
+                text
+                data-test="import-from-token-button"
                 @click="importCert(cert.certificate_details.hash)"
                 >{{ $t('keys.importCert') }}</xrd-button
               >
@@ -100,21 +77,28 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
-import { Permissions, RouteName } from '@/global';
-import CertificateRow from '@/views/KeysAndCertificates/SignAndAuthKeys/CertificateRow.vue';
-
+import KeyRow from './KeyRow.vue';
+import CertificateRow from './CertificateRow.vue';
+import KeysTableThead from './KeysTableThead.vue';
+import {
+  Key,
+  PossibleAction,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
+import { Permissions } from '@/global';
+import { KeysSortColumn } from './keyColumnSorting';
+import * as Sorting from './keyColumnSorting';
+import { Prop } from 'vue/types/options';
 export default Vue.extend({
   components: {
+    KeyRow,
     CertificateRow,
+    KeysTableThead,
   },
   props: {
     keys: {
-      type: Array,
-      required: true,
-    },
-    title: {
-      type: String,
+      type: Array as Prop<Key[]>,
       required: true,
     },
     tokenLoggedIn: {
@@ -125,7 +109,15 @@ export default Vue.extend({
       required: true,
     },
   },
+
   computed: {
+    sortedKeys(): Key[] {
+      return Sorting.keyArraySort(
+        this.keys,
+        this.selectedSort,
+        this.sortDirection,
+      );
+    },
     canCreateCsr(): boolean {
       return (
         this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
@@ -137,7 +129,27 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
   },
+
+  data() {
+    return {
+      registerDialog: false,
+      confirmDeleteCsr: false,
+      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
+      selectedKey: undefined as Key | undefined,
+      sortDirection: false,
+      selectedSort: KeysSortColumn.NAME,
+    };
+  },
+
   methods: {
+    setSort(sort: KeysSortColumn): void {
+      if (sort === this.selectedSort) {
+        this.sortDirection = !this.sortDirection;
+      }
+
+      this.selectedSort = sort;
+    },
     disableGenerateCsr(key: Key): boolean {
       if (!this.tokenLoggedIn) {
         return true;
@@ -152,73 +164,32 @@ export default Vue.extend({
 
       return true;
     },
-    importCert(hash: string): void {
-      this.$emit('import-cert-by-hash', hash);
-    },
-    certificateClick(cert: TokenCertificate, key: Key): void {
-      this.$router.push({
-        name: RouteName.Certificate,
-        params: {
-          hash: cert.certificate_details.hash,
-          usage: key.usage ?? 'undefined',
-        },
-      });
-    },
+
     keyClick(key: Key): void {
       this.$emit('key-click', key);
+    },
+    certificateClick(cert: TokenCertificate, key: Key): void {
+      this.$emit('certificate-click', { cert, key });
     },
     generateCsr(key: Key): void {
       this.$emit('generate-csr', key);
     },
-    fetchData(): void {
-      // Fetch tokens from backend
-      this.$emit('refresh-list');
+    importCert(hash: string): void {
+      this.$emit('import-cert-by-hash', hash);
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
-}
+@import '~styles/tables';
 
-.clickable {
-  cursor: pointer;
-}
-
-.clickable-link {
-  text-decoration: underline;
-  cursor: pointer;
-  height: 100%;
+.keys-table {
+  margin-top: 20px;
 }
 
 .table-button-fix {
   margin-left: auto;
   margin-right: 0;
-}
-
-.name-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
-}
-
-.id-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  align-items: center;
-  width: 100%;
-}
-
-.align-right {
-  text-align: right;
 }
 </style>

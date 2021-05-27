@@ -87,17 +87,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
-  color: $XRoad-Purple100;
-}
-
-.clickable {
-  cursor: pointer;
-  color: $XRoad-Purple100;
-}
+@import '~styles/tables';
 
 .td-align-right {
   text-align: right;
@@ -118,10 +108,6 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-  margin-left: 2.7rem;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
+  margin-left: 57px;
 }
 </style>
