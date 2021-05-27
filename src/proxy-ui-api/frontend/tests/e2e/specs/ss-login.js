@@ -55,13 +55,5 @@ module.exports = {
       .loginErrorMessageIsShown();
 
   },
-  'Empty password is rejected': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    frontPage
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('')
-      .signin()
-      .loginErrorMessageIsShown();
-  },
 
 };
