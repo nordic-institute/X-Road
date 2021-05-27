@@ -25,15 +25,19 @@
  */
 
 module.exports = class LoginCommand {
-  async command() {
+  async command(
+    username = this.api.globals.login_usr,
+    password = this.api.globals.login_pwd,
+  ) {
+    console.log(username, password)
     const frontPage = this.api.page.ssFrontPage();
     frontPage.navigate();
     this.api.waitForElementVisible('//*[@id="app"]');
     frontPage
       .clearUsername()
       .clearPassword()
-      .enterUsername(this.api.globals.login_usr)
-      .enterPassword(this.api.globals.login_pwd)
+      .enterUsername(this.username)
+      .enterPassword(this.password)
       .signin();
   }
-}
+};

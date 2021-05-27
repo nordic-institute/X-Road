@@ -26,12 +26,6 @@
 
 module.exports = {
   tags: ['ss', 'logout'],
-  before: function (browser) {
-    const frontPage = browser.page.ssFrontPage();
-    frontPage.navigate();
-
-    browser.waitForElementVisible('//*[@id="app"]');
-  },
   beforeEach: function (browser) {
     browser.LoginCommand();
   },

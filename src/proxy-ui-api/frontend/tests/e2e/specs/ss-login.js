@@ -28,7 +28,6 @@ module.exports = {
   before: function (browser) {
     const frontPage = browser.page.ssFrontPage();
     frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
   },
 
   afterEach: function (browser) {
@@ -44,7 +43,6 @@ module.exports = {
       .enterPassword(browser.globals.login_pwd)
       .signin()
       .loginErrorMessageIsShown();
-
   },
   'Wrong password is rejected': (browser) => {
     const frontPage = browser.page.ssFrontPage();
@@ -53,7 +51,5 @@ module.exports = {
       .enterPassword('invalid')
       .signin()
       .loginErrorMessageIsShown();
-
   },
-
 };
