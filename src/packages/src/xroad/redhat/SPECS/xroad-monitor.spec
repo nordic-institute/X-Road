@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -55,6 +56,9 @@ rm -rf %{buildroot}
 %{jlib}/monitor-1.0.jar
 %{jlib}/monitor.jar
 %attr(754,root,xroad) /usr/share/xroad/bin/%{name}
+
+%pre -p /bin/bash
+%upgrade_check
 
 %post
 %systemd_post xroad-monitor.service

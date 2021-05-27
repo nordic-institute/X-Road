@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -57,7 +58,8 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 /etc/nginx/conf.d/xroad-securing.conf
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
 
 %verifyscript
 
