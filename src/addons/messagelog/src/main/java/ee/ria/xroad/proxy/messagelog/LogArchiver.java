@@ -29,13 +29,13 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.archive.ArchiveDigest;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveBase;
 import ee.ria.xroad.common.messagelog.archive.LogArchiveWriter;
 
 import akka.actor.UntypedAbstractActor;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
@@ -43,6 +43,7 @@ import org.hibernate.query.Query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
 
 import java.io.IOException;
@@ -54,13 +55,13 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransactionBatchSize;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveTransferCommand;
 import static ee.ria.xroad.proxy.messagelog.MessageLogDatabaseCtx.doInTransaction;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-
 
 /**
  * Reads all non-archived time-stamped records from the database, writes them
@@ -91,6 +92,7 @@ public class LogArchiver extends UntypedAbstractActor {
                         // body intentionally empty
                     }
                 }
+                onArchivingDone();
             } catch (Exception ex) {
                 log.error("Failed to archive log records", ex);
             }
@@ -100,12 +102,9 @@ public class LogArchiver extends UntypedAbstractActor {
     }
 
     private void markArchived(Session session, List<Long> recordIds) {
-        session
-                .createQuery(
-                        "UPDATE AbstractLogRecord r SET r.archived = true WHERE r.id in (?1)")
+        session.createQuery("UPDATE AbstractLogRecord r SET r.archived = true WHERE r.id in (?1)")
                 .setParameter(1, recordIds)
                 .executeUpdate();
-
     }
 
     private boolean handleArchive(long maxRecordId) throws Exception {
@@ -146,7 +145,7 @@ public class LogArchiver extends UntypedAbstractActor {
                         markArchived(session, recordIds);
                         recordIds.clear();
                     }
-                    archiveTimestampRecords(session);
+                    markTimestampRecordsArchived(session);
                 }
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
@@ -164,7 +163,7 @@ public class LogArchiver extends UntypedAbstractActor {
     private LogArchiveWriter createLogArchiveWriter(Session session) {
         return new LogArchiveWriter(
                 getArchivePath(),
-                this.new HibernateLogArchiveBase(session)
+                new HibernateLogArchiveBase(session)
         );
     }
 
@@ -180,10 +179,14 @@ public class LogArchiver extends UntypedAbstractActor {
         return archivePath;
     }
 
-    protected int archiveTimestampRecords(Session session) {
+    protected int markTimestampRecordsArchived(Session session) {
         final Query query = session
-                .createQuery("UPDATE TimestampRecord t SET t.archived = true WHERE t.archived = false AND NOT EXISTS ("
-                        + "SELECT 0 FROM MessageRecord m WHERE m.archived = false and t.id = m.timestampRecord)");
+                .createQuery(""
+                        + "UPDATE TimestampRecord t SET t.archived = true "
+                        + "WHERE t.archived = false AND NOT EXISTS ("
+                        + "SELECT 0 FROM MessageRecord m "
+                        + "WHERE m.archived = false and t.id = m.timestampRecord)"
+                );
         return query.executeUpdate();
     }
 
@@ -221,13 +224,8 @@ public class LogArchiver extends UntypedAbstractActor {
                 .getResultStream();
     }
 
-    protected void markArchiveCreated(final DigestEntry lastArchive,
-            final Session session) throws Exception {
-        if (lastArchive != null) {
-            log.debug("Digest entry will be saved here...");
-            session.createQuery("delete from " + DigestEntry.class.getName()).executeUpdate();
-            session.save(lastArchive);
-        }
+    protected void onArchivingDone() {
+        //hook for testing
     }
 
     private static void runTransferCommand(String transferCommand) {
@@ -269,14 +267,19 @@ public class LogArchiver extends UntypedAbstractActor {
         }
     }
 
-    @Value
-    private class HibernateLogArchiveBase implements LogArchiveBase {
+    private static class HibernateLogArchiveBase implements LogArchiveBase {
 
-        private Session session;
+        HibernateLogArchiveBase(Session session) {
+            this.session = session;
+        }
+
+        private final Session session;
 
         @Override
-        public void markArchiveCreated(DigestEntry lastArchive) throws Exception {
-            LogArchiver.this.markArchiveCreated(lastArchive, session);
+        public void markArchiveCreated(String entryName, DigestEntry lastArchive) {
+            ArchiveDigest digest = findArchiveDigest(entryName).orElse(new ArchiveDigest());
+            digest.setDigestEntry(lastArchive);
+            session.saveOrUpdate(digest);
         }
 
         @Override
@@ -285,18 +288,30 @@ public class LogArchiver extends UntypedAbstractActor {
         }
 
         @Override
-        public DigestEntry loadLastArchive() {
-            List<DigestEntry> lastArchiveEntries =
-                    session
-                            .createQuery(
-                                    "select new " + DigestEntry.class.getName()
-                                            + "(d.digest, d.fileName) from DigestEntry d", DigestEntry.class
-                            )
-                            .setMaxResults(1)
-                            .list();
+        public DigestEntry loadLastArchive(String groupName) {
+            return findArchiveDigest(groupName)
+                    .map(ArchiveDigest::getDigestEntry)
+                    .orElse(DigestEntry.empty());
+        }
 
-            return lastArchiveEntries.isEmpty()
-                    ? DigestEntry.empty() : lastArchiveEntries.get(0);
+        protected Optional<ArchiveDigest> findArchiveDigest(String groupName) {
+            final CriteriaBuilder cb = session.getCriteriaBuilder();
+            final CriteriaQuery<ArchiveDigest> query = cb.createQuery(ArchiveDigest.class);
+            final Root<ArchiveDigest> archiveDigest = query.from(ArchiveDigest.class);
+            final Expression<String> name = archiveDigest.get("groupName");
+
+            query.select(archiveDigest);
+            if (groupName == null) {
+                query.where(cb.isNull(name));
+            } else {
+                query.where(cb.equal(name, groupName));
+            }
+
+            return session.createQuery(query)
+                    .setMaxResults(1)
+                    .list()
+                    .stream()
+                    .findFirst();
         }
     }
 }

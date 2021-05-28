@@ -3,7 +3,7 @@
                    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
-    <changeSet author="NIIS" id="8-timestamping-index" dbms="postgresql">
+    <changeSet author="niis" id="8-timestamping-index">
         <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists indexName="IX_LOGRECORD_GROUPING"/>
@@ -12,11 +12,16 @@
         <createIndex tableName="logrecord" indexName="IX_LOGRECORD_GROUPING">
             <column name="memberclass"/>
             <column name="membercode"/>
-            <column name="subsystem"/>
+            <column name="subsystemcode"/>
             <column name="id"/>
         </createIndex>
-        <modifySql>
+        <modifySql dbms="postgresql">
             <append value=" where discriminator = 'm' and archived = false and timestamprecord is not null"/>
         </modifySql>
+    </changeSet>
+    <changeSet author="niis" id="archive-digest-group-name">
+        <addColumn tableName="LAST_ARCHIVE_DIGEST">
+            <column name="groupname" type="VARCHAR(255)"/>
+        </addColumn>
     </changeSet>
 </databaseChangeLog>

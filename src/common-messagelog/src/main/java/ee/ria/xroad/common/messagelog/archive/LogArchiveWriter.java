@@ -35,7 +35,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.SimpleDateFormat;
-import java.util.Objects;
 
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -63,8 +62,7 @@ public class LogArchiveWriter implements Closeable {
 
     private Path archiveTmp;
 
-    private final GroupingStrategy groupingStrategy =
-            GroupingStrategy.valueOf(MessageLogProperties.getArchiveGrouping());
+    private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
 
     private Grouping grouping;
 
@@ -78,10 +76,7 @@ public class LogArchiveWriter implements Closeable {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
 
-        this.linkingInfoBuilder = new LinkingInfoBuilder(
-                MessageLogProperties.getHashAlg(),
-                archiveBase
-        );
+        this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
 
         this.logArchiveCache = new LogArchiveCache(
                 () -> randomAlphanumeric(RANDOM_LENGTH),
@@ -107,10 +102,12 @@ public class LogArchiveWriter implements Closeable {
 
         if (grouping == null) {
             grouping = groupingStrategy.forRecord(logRecord);
+            linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
         } else {
             if (!grouping.includes(logRecord)) {
                 rotate();
                 grouping = groupingStrategy.forRecord(logRecord);
+                linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
                 rotated = true;
             }
         }
@@ -147,8 +144,8 @@ public class LogArchiveWriter implements Closeable {
     protected String getArchiveFilename(String random) {
         final String groupName = escape(grouping.name());
 
-        return String.format("mlog-%s%s-%s-%s.zip",
-                groupName == "" ? "" : groupName + "-",
+        return String.format("mlog-%.200s%s-%s-%.16s.zip",
+                groupName == null ? "" : groupName + "-",
                 simpleDateFormat.format(logArchiveCache.getStartTime()),
                 simpleDateFormat.format(logArchiveCache.getEndTime()),
                 random);
@@ -167,24 +164,12 @@ public class LogArchiveWriter implements Closeable {
         Path archiveFile = getUniqueArchiveFilename();
         archiveTmp = logArchiveCache.getArchiveFile();
         atomicMove(archiveTmp, archiveFile);
-        setArchivedInDatabase(archiveFile.getFileName().toString());
-        linkingInfoBuilder.afterArchiveSaved();
+        final DigestEntry digestEntry = new DigestEntry(linkingInfoBuilder.getLastDigest(),
+                archiveFile.getFileName().toString());
+        archiveBase.markArchiveCreated(grouping.name(), digestEntry);
+        linkingInfoBuilder.reset(digestEntry);
         archiveTmp = null;
         log.info("Created archive file {}", archiveFile);
-    }
-
-    private void setArchivedInDatabase(String archiveFilename)
-            throws IOException {
-        try {
-            archiveBase.markArchiveCreated(
-                    new DigestEntry(
-                            linkingInfoBuilder.getCreatedArchiveLastDigest(),
-                            archiveFilename
-                    )
-            );
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
     }
 
     private Path getUniqueArchiveFilename() {
@@ -200,115 +185,12 @@ public class LogArchiveWriter implements Closeable {
         return archive;
     }
 
-    private static void atomicMove(Path source, Path destination)
-            throws IOException {
+    private static void atomicMove(Path source, Path destination) throws IOException {
         Files.move(source, destination, REPLACE_EXISTING, ATOMIC_MOVE);
     }
 
     private String escape(String s) {
-        return s.replaceAll("[\\00\\\\<>/:|*?\\p{gc=Cc}]", "_");
+        return s == null ? null : s.replaceAll("[\\00\\\\<>/:|*?\\p{gc=Cc}]", "_");
     }
 }
 
-enum GroupingStrategy {
-    NONE {
-        @Override
-        Grouping forRecord(MessageRecord record) {
-            return NONE_GROUPING;
-        }
-    },
-    BY_MEMBER {
-        @Override
-        Grouping forRecord(MessageRecord record) {
-            return new MemberGrouping(record);
-        }
-    },
-    BY_SUBSYSTEM {
-        @Override
-        Grouping forRecord(MessageRecord record) {
-            return new SubsystemGrouping(record);
-        }
-    };
-
-    abstract Grouping forRecord(MessageRecord record);
-
-    private static final Grouping NONE_GROUPING = new Grouping() {
-        @Override
-        public boolean includes(MessageRecord record) {
-            return true;
-        }
-
-        @Override
-        public String name() {
-            return "";
-        }
-    };
-}
-
-interface Grouping {
-    boolean includes(MessageRecord record);
-
-    String name();
-}
-
-final class SubsystemGrouping implements Grouping {
-    private final String memberClass;
-    private final String memberCode;
-    private final String subsystemCode;
-
-    SubsystemGrouping(MessageRecord record) {
-        this.memberClass = record.getMemberClass();
-        this.memberCode = record.getMemberCode();
-        this.subsystemCode = record.getSubsystemCode();
-    }
-
-    /**
-     * checks if the record belongs to this record group
-     */
-    @Override
-    public boolean includes(MessageRecord record) {
-        return Objects.equals(memberClass, record.getMemberClass())
-                && Objects.equals(memberCode, record.getMemberCode())
-                && Objects.equals(subsystemCode, record.getSubsystemCode());
-
-    }
-
-    public String name() {
-        StringBuilder b = new StringBuilder();
-        b.append(memberClass);
-        b.append("-");
-        b.append(memberCode);
-        if (subsystemCode != null) {
-            b.append("-");
-            b.append(subsystemCode);
-        }
-        return b.toString();
-    }
-}
-
-final class MemberGrouping implements Grouping {
-    private final String memberClass;
-    private final String memberCode;
-
-    MemberGrouping(MessageRecord record) {
-        this.memberClass = record.getMemberClass();
-        this.memberCode = record.getMemberCode();
-    }
-
-    /**
-     * checks if the record belongs to this record group
-     */
-    @Override
-    public boolean includes(MessageRecord record) {
-        return Objects.equals(memberClass, record.getMemberClass())
-                && Objects.equals(memberCode, record.getMemberCode());
-    }
-
-    public String name() {
-        StringBuilder b = new StringBuilder();
-        b.append(memberClass);
-        b.append("-");
-        b.append(memberCode);
-        return b.toString();
-    }
-}

@@ -35,7 +35,9 @@ import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.messagelog.archive.ArchiveDigest;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
+import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JobManager;
@@ -436,6 +438,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
 
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/");
+        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.BY_SUBSYSTEM.name());
 
         initForTest();
         testSetUp();
@@ -456,10 +459,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
     @SneakyThrows
     private void initLastHashStep() {
         DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
-
+        ArchiveDigest digest = new ArchiveDigest();
+        digest.setGroupName("BUSINESS-consumer");
+        digest.setDigestEntry(lastArchive);
         doInTransaction(session -> {
             session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
-            session.save(lastArchive);
+            session.save(digest);
 
             return null;
         });
@@ -501,7 +506,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
 
     private String getLastEntryDeleteQuery() {
-        return "delete from " + DigestEntry.class.getName();
+        return "delete from " + ArchiveDigest.class.getName();
     }
 
     private void assertArchiveHashChain() throws Exception {
@@ -564,14 +569,15 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private static String getLastDigestQuery() {
-        return "select new java.lang.String(d.digest) from DigestEntry d where d.digest is not null";
+        return "select new java.lang.String(d.digestEntry.digest) "
+                + "from ArchiveDigest d where d.digestEntry.digest is not null";
     }
 
     @SneakyThrows
     private String getArchiveFilePath() {
         File outputDir = new File("build");
 
-        FileFilter fileFilter = new RegexFileFilter("^mlog-.*?-\\d+-\\d+-.\\w+\\.zip$");
+        FileFilter fileFilter = new RegexFileFilter("^mlog.*-\\d+-\\d+-.\\w+\\.zip$");
 
         File[] files = outputDir.listFiles(fileFilter);
 

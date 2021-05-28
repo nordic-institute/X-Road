@@ -34,11 +34,11 @@ import lombok.Getter;
 @Getter
 @EqualsAndHashCode
 public class DigestEntry {
-    private Long id;
     private String digest;
     private String fileName;
 
-    protected DigestEntry() { }
+    protected DigestEntry() {
+    }
 
     public DigestEntry(String digest, String fileName) {
         this.digest = digest;
