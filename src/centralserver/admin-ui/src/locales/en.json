@@ -100,7 +100,13 @@
   },
   "fields": {
     "password": "Password",
-    "username": "Username"
+    "username": "Username",
+    "init": {
+      "identifier": "Instance Identifier",
+      "address": "Central Server Address",
+      "pin": "PIN",
+      "repeatPin": "Repeat PIN"
+    }
   },
   "members": {
     "header": "Members",
@@ -136,6 +142,22 @@
         "status": "Status",
         "showOnlyWaiting": "Show only waiting requests"
       }
+    }
+  },
+  "init": {
+    "initialConfiguration": "Initial Configuration",
+    "csIdentification": "Central Server Identification",
+    "softwareToken": "Software Token",
+    "instanceIdentifier": {
+      "info": "X-Road instance code, uniquely identifies this X-Road instance."
+    },
+    "address": {
+      "info": "Central server’s public DNS name or external IP address. Used for inbound connections from the external network to the central server."
+    },
+    "pin": {
+      "info": "PIN for accessing software token.",
+      "repeat": "Repeat PIN",
+      "pinMatchError": "Password confirmation does not match"
     }
   }
 }
