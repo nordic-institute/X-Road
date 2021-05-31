@@ -39,7 +39,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { StoreTypes, RouteName } from '@/global';
 
 export default Vue.extend({

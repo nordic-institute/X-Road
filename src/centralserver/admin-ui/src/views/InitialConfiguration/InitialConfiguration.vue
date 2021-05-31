@@ -134,7 +134,6 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import i18n from '@/i18n';
 import { StoreTypes } from '@/global';
@@ -150,13 +149,15 @@ extend('password', {
   message: PASSWORD_MATCH_ERROR,
 });
 
-export default (Vue as VueConstructor<
-  Vue & {
-    $refs: {
-      memberCodeVP: InstanceType<typeof ValidationProvider>;
-    };
-  }
->).extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        memberCodeVP: InstanceType<typeof ValidationProvider>;
+      };
+    }
+  >
+).extend({
   components: {
     ValidationObserver,
     ValidationProvider,

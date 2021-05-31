@@ -25,7 +25,7 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '@/global';
-import { Notification, NotificationAction, ActionError } from '@/ui-types';
+import { Notification, ActionError } from '@/ui-types';
 import { StoreTypes } from '@/global';
 
 export interface State {
@@ -188,7 +188,10 @@ export const mutations: MutationTree<State> = {
     );
   },
 
-  [StoreTypes.mutations.SET_ERROR_ACTION](state: State, val: ActionError): void {
+  [StoreTypes.mutations.SET_ERROR_ACTION](
+    state: State,
+    val: ActionError,
+  ): void {
     const notification = createEmptyNotification(-1);
     notification.action = val.action;
     notification.errorMessageCode = val.errorMessageCode;

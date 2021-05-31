@@ -65,10 +65,8 @@ export interface Notification {
   action?: NotificationAction;
 }
 
-// Notification with an action is called with this 
+// Notification with an action is called with this
 export interface ActionError {
   errorMessageCode?: string;
   action?: NotificationAction;
 }
-
-
