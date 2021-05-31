@@ -148,6 +148,7 @@
     "initialConfiguration": "Initial Configuration",
     "csIdentification": "Central Server Identification",
     "softwareToken": "Software Token",
+    "notification": "The Central Server initialized! Now continue with the full configuration.",
     "instanceIdentifier": {
       "info": "X-Road instance code, uniquely identifies this X-Road instance."
     },

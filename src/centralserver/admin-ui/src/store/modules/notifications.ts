@@ -25,7 +25,7 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '@/global';
-import { Notification } from '@/ui-types';
+import { Notification, NotificationAction, ActionError } from '@/ui-types';
 import { StoreTypes } from '@/global';
 
 export interface State {
@@ -186,6 +186,13 @@ export const mutations: MutationTree<State> = {
     state.errorNotifications = state.errorNotifications.filter(
       (item: Notification) => item.timeAdded !== id,
     );
+  },
+
+  [StoreTypes.mutations.SET_ERROR_ACTION](state: State, val: ActionError): void {
+    const notification = createEmptyNotification(-1);
+    notification.action = val.action;
+    notification.errorMessageCode = val.errorMessageCode;
+    addErrorNotification(state, notification);
   },
 
   [StoreTypes.mutations.SET_CONTINUE_INIT](state: State, val: boolean): void {

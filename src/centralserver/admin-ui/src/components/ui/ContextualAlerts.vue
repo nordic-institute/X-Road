@@ -40,9 +40,11 @@
         border="left"
         colored-border
         class="alert"
-        icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
+          <div class="mr-4">
+            <v-icon color="red">icon-Error-notification</v-icon>
+          </div>
           <div class="row-wrapper">
             <!-- Show localised text by id -->
             <div v-if="notification.errorMessageCode">
@@ -118,7 +120,20 @@
             >{{ $t('action.copyId') }}</xrd-button
           >
 
-          <div class="buttons">
+          <!-- Handle possible action -->
+          <div v-if="notification.action" class="buttons">
+            <xrd-button
+              text
+              color="primary"
+              data-test="action-icon-snackbar"
+              @click="routeAction(notification)"
+            >
+              <v-icon dark>{{ notification.action.icon }}</v-icon>
+              {{ $t(notification.action.text) }}
+            </xrd-button>
+          </div>
+
+          <div class="close-button">
             <v-btn
               icon
               color="primary"
@@ -187,13 +202,22 @@ export default Vue.extend({
       );
     },
     closeError(id: number): void {
-      this.$store.commit('deleteNotification', id);
+      this.$store.commit(StoreTypes.mutations.DELETE_NOTIFICATION, id);
     },
     copyId(notification: Notification): void {
       const id = this.errorId(notification);
       if (id) {
         toClipboard(id);
       }
+    },
+
+    routeAction(notification: Notification): void {
+      if (notification.action) {
+        this.$router.push({
+          name: notification.action.route,
+        });
+      }
+      this.closeError(notification.timeAdded);
     },
   },
 });
@@ -218,9 +242,10 @@ export default Vue.extend({
     .row-wrapper-top {
       display: flex;
       flex-direction: row;
-      justify-content: space-between;
+      justify-content: flex-start;
       align-items: center;
     }
+
     .row-wrapper {
       display: flex;
       flex-direction: column;
@@ -235,10 +260,10 @@ export default Vue.extend({
       margin-right: auto;
     }
 
-    .buttons {
+    .close-button {
       height: 100%;
-      display: flex;
-      flex-direction: row;
+      margin-left: auto;
+      margin-right: 5px;
     }
 
     .scrollable {
