@@ -28,9 +28,7 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '@/global';
 import { StoreTypes } from '@/global';
-import {
-  Version,
-} from '@/openapi-types';
+import { Version } from '@/openapi-types';
 
 export interface State {
   authenticated: boolean;
@@ -143,8 +141,6 @@ export const actions: ActionTree<State, RootState> = {
         }
       });
   },
-
-
 
   async [StoreTypes.actions.FETCH_SERVER_VERSION]({ commit }) {
     return axios

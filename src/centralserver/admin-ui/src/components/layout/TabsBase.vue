@@ -52,7 +52,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Tab } from '@/ui-types';
-import { mainTabs, RouteName } from '@/global';
+import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 
