@@ -3,6 +3,17 @@
       that:
           - "{{ ( ansible_distribution | lower ) in ['ubuntu','redhat','centos'] }}"
 
+- name: test postgres version
+  become_user: postgres
+  become: yes
+  shell: |
+    psql --no-align --tuples-only -c "SELECT current_setting('server_version_num');"
+  register: postgres_version
+
+- set_fact:
+    postgresql_version_num_full: "{{ (postgres_version.stdout) | int }}"
+    postgresql_major_version: "{{ (postgres_version.stdout[:-4]) | int }}"
+
 - name: ensure that acl utilities is installed
   # see https://docs.ansible.com/ansible/become.html#becoming-an-unprivileged-user 
   package:
