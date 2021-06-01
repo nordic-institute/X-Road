@@ -88,6 +88,7 @@ Doc. ID: UG-SS
  22.10.2020 | 2.53    | Added reference to management REST API's OpenAPI description | Petteri Kivimäki
  01.12.2020 | 2.54    | Added endpoint for getting one API key to [19.1.2 Listing API keys](#1912-listing-api-keys) | Janne Mattila
  25.02.2020 | 2.55    | Added information to find X-Road ID from conf backup file in chapter [13.2 Restore from the Command Line](#132-restore-from-the-command-line) | Karl Talumäe
+ 31.05.2021 | 2.56    | Added information about backup archive contents and encryption | Andres Allkivi
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -174,10 +175,14 @@ Doc. ID: UG-SS
 - [12 Audit Log](#12-audit-log)
   - [12.1 Changing the Configuration of the Audit Log](#121-changing-the-configuration-of-the-audit-log)
   - [12.2 Archiving the Audit Log](#122-archiving-the-audit-log)
-- [13 Back up and Restore](#13-back-up-and-restore)
-  - [13.1 Back up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
-  - [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
-  - [13.3 Automatic Backups](#133-automatic-backups)
+- [13 Backing up and Restoring Configuration](#13-backing-up-and-restoring-configuration)
+  - [13.1 Contents of configuration backup archive](#131-contents-of-configuration-backup-archive)
+  - [13.2 Backup archive encryption and verification](#132-backup-archive-encryption-and-verification)
+  - [13.3 Backup encryption configuration](#133-backup-encryption-configuration)
+  - [13.4 Verifying backup archive consistency](#134-verifying-backup-archive-consistency)
+  - [13.5 Backing up and Restoring using User Interface](#135-backing-up-and-restoring-using-user-interface)
+  - [13.6 Restoring from the Command Line](#136-restoring-from-the-command-line)
+  - [13.7 Automatic Backups](#137-automatic-backups)
 - [14 Diagnostics](#14-diagnostics)
   - [14.1 Examine security server services status information](#141-examine-security-server-services-status-information)
 - [15 Operational Monitoring](#15-operational-monitoring)
@@ -1774,15 +1779,30 @@ In order to save hard disk space and avoid loss of the audit log records during 
 The X-Road software does not offer special tools for archiving the audit log. The *rsyslog* can be configured to redirect the audit log to an external location.
 
 
-## 13 Back up and Restore
+## 13 Backing up and Restoring Configuration
 
-### 13.1 Back up archive encryption and verification
+It is possible to back up and later restore security server configuration.
+
+### 13.1 Contents of configuration backup archive
+
+Backup archive contains
+- copy of serverconf database
+- user modifiable configuration files
+- TLS keys and certificates (both internal and ui certificate)
+- database credentials
+
+Note that backups contain information that must be kept secret (especially TLS keys and database credentials).
+In other words leaking this information could easily lead to full compromise of security server.
+It is therefore highly recommended that backup archives are encrypted and stored securely. Should the information still 
+leak for whatever reason the security server should be considered as compromised and reinstalled from scratch.
+
+### 13.2 Backup archive encryption and verification
 
 Starting from version 7.0 security server backups are signed and optionally encrypted. The GNU Privacy Guard \[[GnuPG](#Ref_GnuPG)\] 
 is used for encryption and signing. GPG keypair is generated during security server initialisation. In addition to generated
 key additional public keys can be used to encrypt backups. 
 
-### 13.2 Back up encryption configuration
+### 13.3 Backup encryption configuration
 
 Back up encryption is initially turned off. To turn encryption on configuration must be overridden in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section.
 
@@ -1799,7 +1819,7 @@ otherwise the backups will be unusable in case security servers private key is l
 to check that private keys used are sufficiently strong, there are no automatic checks. Additional keys for backup 
 encryption should be generated and stored outside security server in a secure environment.
 
-### 13.3 Verifying backup archive consistency
+### 13.4 Verifying backup archive consistency
 
 Security server verifies consistency of backup archives automatically. It is also possible to check archives externally.
 For checking consistency security servers public key is needed. When backups are encrypted then a private key for decrypting
@@ -1821,7 +1841,7 @@ where `AA/GOV/TS1OWNER/TS1` is the security server id.
 Resulting file (server-public-key.gpg) should then be exported from security server and imported to GPG keystore used
 for backup archive consistency checking.
 
-### 13.2 Back up and Restore in the User Interface
+### 13.5 Backing up and Restoring using User Interface
 
 **Access rights:** [System Administrator](#xroad-system-administrator)
 
@@ -1855,7 +1875,7 @@ can be restored only from command line.
 
 As long as original keypair is intact no additional steps are needed even when backup encryption is turned on.
 
-### 13.3 Restore from the Command Line
+### 13.6 Restoring from the Command Line
 
 To restore configuration from the command line, the following data must be available:
 
@@ -1891,7 +1911,7 @@ of the restore command can be used with the –F option together with unencrypte
 In case backup archives were encrypted they have to be first unencrypted in external safe environment and then securely
 transported to security server filesystem.
 
-### 13.4 Automatic Backups
+### 13.7 Automatic Backups
 
 By default the Security Server backs up its configuration automatically once every day. Backups older than 30 days are automatically removed from the server. If needed, the automatic backup policies can be adjusted by editing the `/etc/cron.d/xroad-proxy` file.
 
