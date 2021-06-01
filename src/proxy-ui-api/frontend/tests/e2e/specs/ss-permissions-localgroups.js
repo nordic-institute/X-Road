@@ -26,33 +26,6 @@
 
 module.exports = {
   tags: ['ss', 'localgroups', 'permissions'],
-  'Local groups system administrator role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_system_administrator)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_system_administrator);
-
-    // System admin should be in keys and certs view and not see clients tab
-    browser.waitForElementVisible(keysTab);
-    browser.waitForElementNotPresent(clientsTab);
-
-    browser.end();
-  },
   'Local groups security officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
