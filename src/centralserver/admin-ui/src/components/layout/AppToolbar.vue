@@ -53,7 +53,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName, Colors } from '@/global';
+import { Colors } from '@/global';
 
 export default Vue.extend({
   name: 'toolbar',
@@ -69,28 +69,6 @@ export default Vue.extend({
     return {
       colors: Colors,
     };
-  },
-  methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
-    },
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
-    },
   },
 });
 </script>

@@ -28,11 +28,15 @@ import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '@/global';
 import { StoreTypes } from '@/global';
+import {
+  Version,
+} from '@/openapi-types';
 
 export interface State {
   authenticated: boolean;
   isSessionAlive: boolean | undefined;
   username: string;
+  serverVersion: Version | undefined;
 }
 
 export const getDefaultState = (): State => {
@@ -40,6 +44,7 @@ export const getDefaultState = (): State => {
     authenticated: false,
     isSessionAlive: undefined,
     username: '',
+    serverVersion: undefined,
   };
 };
 
@@ -70,6 +75,9 @@ export const mutations: MutationTree<State> = {
   },
   [StoreTypes.mutations.SET_USERNAME]: (state, username: string) => {
     state.username = username;
+  },
+  [StoreTypes.mutations.SET_SERVER_VERSION]: (state, version: Version) => {
+    state.serverVersion = version;
   },
 };
 
@@ -133,6 +141,17 @@ export const actions: ActionTree<State, RootState> = {
           // Reload the browser page to clean up the memory
           location.reload();
         }
+      });
+  },
+
+
+
+  async [StoreTypes.actions.FETCH_SERVER_VERSION]({ commit }) {
+    return axios
+      .get<Version>('/system/version')
+      .then((resp) => commit('setSecurityServerVersion', resp.data))
+      .catch((error) => {
+        throw error;
       });
   },
 

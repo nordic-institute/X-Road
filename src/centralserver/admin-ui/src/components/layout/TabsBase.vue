@@ -72,12 +72,6 @@ export default Vue.extend({
       return mainTabs;
     },
   },
-  methods: {
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
-    },
-  },
 });
 </script>
 
