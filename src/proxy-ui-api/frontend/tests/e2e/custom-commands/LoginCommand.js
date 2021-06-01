@@ -30,6 +30,7 @@ module.exports = class LoginCommand {
     password = this.api.globals.login_pwd,
   ) {
     const frontPage = this.api.page.ssFrontPage();
+    const mainPage = this.api.page.ssMainPage();
     frontPage.navigate();
     this.api.waitForElementVisible('//*[@id="app"]');
     frontPage
@@ -38,5 +39,7 @@ module.exports = class LoginCommand {
       .enterUsername(username)
       .enterPassword(password)
       .signin();
+    // Check that correct username is displayed on topbar
+    mainPage.verifyCurrentUser(username);
   }
 };
