@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # produce .elX dist tag on both centos and redhat
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
@@ -30,3 +31,9 @@ This is meta package of X-Road security server
 
 %files
 
+%pre -p /bin/bash
+%upgrade_check
+
+%post
+
+%changelog

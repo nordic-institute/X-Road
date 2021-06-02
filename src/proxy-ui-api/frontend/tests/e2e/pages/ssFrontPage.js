@@ -45,6 +45,10 @@ var loginCommands = {
     this.click('@loginButton');
     return this;
   },
+  loginErrorMessageIsShown: function () {
+    this.assert.visible('@LoginError');
+    return this;
+  },
   signinDefaultUser: function () {
     this.clearValue2('@usernameInput');
     this.clearValue2('@passwordInput');
@@ -68,6 +72,10 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     loginButton: {
+      selector: '//button[@id="submit-button"]',
+      locateStrategy: 'xpath',
+    },
+    LoginError: {
       selector: '//button[@id="submit-button"]',
       locateStrategy: 'xpath',
     },

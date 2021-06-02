@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.33  
+Version: 2.34  
 Doc. ID: IG-SS
 
 ---
@@ -57,6 +57,7 @@ Doc. ID: IG-SS
  04.02.2021 | 2.31    | Minor updates. | Ilkka Seppälä
  13.04.2021 | 2.32    | Update minimum requirements in section [2.2 Reference data](#22-reference-data) | Petteri Kivimäki
  16.04.2021 | 2.33    | Update remote database installation instructions                | Jarkko Hyöty
+ 18.05.2021 | 2.34    | Update error handling section | Ilkka Seppälä
 
 ## License
 
@@ -67,42 +68,44 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2 Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-    * [2.2.1 Network Diagram](#221-network-diagram)
-  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Setup Package Repository](#25-setup-package-repository)
-  * [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  * [2.7 Security Server Installation](#27-security-server-installation)
-  * [2.8 Post-Installation Checks](#28-post-installation-checks)
-  * [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
-  * [2.10 Installing the Support for Environmental Monitoring](#210-installing-the-support-for-environmental-monitoring)
-* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Reference Data](#32-reference-data)
-  * [3.3 Configuration](#33-configuration)
-* [4 Installation Error handling](#4-installation-error-handling)
-  * [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
-  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
-  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  * [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
-  * [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
-* [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-* [Annex B Default Database Users](#annex-b-default-database-users)
-* [Annex C Deployment Options](#annex-c-deployment-options)
-  * [C.1 General](#c1-general)
-  * [C.2 Local Database](#c2-local-database)
-  * [C.3 Remote Database](#c3-remote-database)
-  * [C.4 High Availability Setup](#c4-high-availability-setup)
-  * [C.5 Load Balancing Setup](#c5-load-balancing-setup)
-  * [C.6 Summary](#c6-summary)
-* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2 Installation](#2-installation)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  - [2.2 Reference Data](#22-reference-data)
+    - [2.2.1 Network Diagram](#221-network-diagram)
+  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.7 Security Server Installation](#27-security-server-installation)
+  - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
+  - [2.10 Installing the Support for Environmental Monitoring](#210-installing-the-support-for-environmental-monitoring)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  - [3.1 Prerequisites](#31-prerequisites)
+  - [3.2 Reference Data](#32-reference-data)
+  - [3.3 Configuration](#33-configuration)
+- [4 Installation Error handling](#4-installation-error-handling)
+  - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
+  - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+  - [4.6 ERROR: Upgrade supported from version X.Y.Z or newer](#46-error-upgrade-supported-from-version-xyz-or-newer)
+- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+- [Annex B Default Database Users](#annex-b-default-database-users)
+- [Annex C Deployment Options](#annex-c-deployment-options)
+  - [C.1 General](#c1-general)
+  - [C.2 Local Database](#c2-local-database)
+  - [C.3 Remote Database](#c3-remote-database)
+  - [C.4 High Availability Setup](#c4-high-availability-setup)
+  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  - [C.6 Summary](#c6-summary)
+- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -552,6 +555,63 @@ Sometimes, after using `sudo apt-get upgrade` command, some of the packages are 
 `apt-get upgrade` command doesn’t install new packages - in this particular case new packages `xroad-monitor` and `xroad-addon-proxymonitor` installation is needed for upgrade of `xroad-securityserver` package.
 
 To be sure that packages are installed correctly please use `sudo apt upgrade` or `sudo apt full-upgrade` commands.
+
+### 4.6 ERROR: Upgrade supported from version X.Y.Z or newer
+
+The following error message may come up during the security server upgrade.
+
+`ERROR: Upgrade supported from version X.Y.Z or newer`
+
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the security server to the target version step by step.
+
+For example, the following security server packages are currently installed.
+
+```
+root@test-ss:~# dpkg -l | grep xroad
+ii  xroad-addon-messagelog          7.0.0-1.ubuntu18.04 all          X-Road AddOn: messagelog
+ii  xroad-addon-metaservices        7.0.0-1.ubuntu18.04 all          X-Road AddOn: metaservices
+ii  xroad-addon-proxymonitor        7.0.0-1.ubuntu18.04 all          X-Road AddOn: proxy monitoring metaservice
+ii  xroad-addon-wsdlvalidator       7.0.0-1.ubuntu18.04 all          X-Road AddOn: wsdlvalidator
+ii  xroad-base                      7.0.0-1.ubuntu18.04 amd64        X-Road base components
+ii  xroad-confclient                7.0.0-1.ubuntu18.04 amd64        X-Road configuration client components
+ii  xroad-database-local            7.0.0-1.ubuntu18.04 all          Meta-package for X-Road local database dependencies
+ii  xroad-monitor                   7.0.0-1.ubuntu18.04 all          X-Road monitoring service
+ii  xroad-proxy                     7.0.0-1.ubuntu18.04 all          X-Road security server
+ii  xroad-proxy-ui-api              7.0.0-1.ubuntu18.04 all          X-Road proxy UI REST API
+ii  xroad-securityserver            7.0.0-1.ubuntu18.04 all          X-Road security server
+ii  xroad-signer                    7.0.0-1.ubuntu18.04 amd64        X-Road signer component
+```
+
+The following packages are available in the repository.
+
+```
+root@test-ss:~# apt-cache madison xroad-securityserver
+xroad-securityserver | 7.3.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
+xroad-securityserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
+```
+
+Now trying to upgrade the security server packages directly will produce the following error.
+
+```
+root@test-ss:~# apt-get upgrade xroad-securityserver
+...
+Preparing to unpack .../0-xroad-securityserver_7.3.0-1.ubuntu18.04_all.deb ...
+ERROR: Upgrade supported from version 7.1.0 or newer.
+```
+
+The fix is to upgrade the security server in two separate steps. First, upgrade to 7.1.x with the following command.
+
+```
+apt install xroad-securityserver=7.1.0-1.ubuntu18.04 xroad-proxy=7.1.0-1.ubuntu18.04 xroad-monitor=7.1.0-1.ubuntu18.04 xroad-addon-metaservices=7.1.0-1.ubuntu18.04 xroad-addon-messagelog=7.1.0-1.ubuntu18.04 xroad-addon-proxymonitor=7.1.0-1.ubuntu18.04 xroad-addon-wsdlvalidator=7.1.0-1.ubuntu18.04 xroad-proxy-ui-api=7.1.0-1.ubuntu18.04 xroad-confclient=7.1.0-1.ubuntu18.04 xroad-signer=7.1.0-1.ubuntu18.04 xroad-database-local=7.1.0-1.ubuntu18.04 xroad-base=7.1.0-1.ubuntu18.04
+```
+
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://artifactory.niis.org/xroad-release-deb bionic-7.1.0 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
+
+Finally, we can upgrade to our target version 7.3.x as follows.
+
+```
+apt upgrade xroad-securityserver
+```
 
 
 ## Annex A Security Server Default Database Properties

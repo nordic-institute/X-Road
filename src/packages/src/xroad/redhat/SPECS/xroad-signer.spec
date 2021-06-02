@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -89,7 +90,8 @@ rm -rf %{buildroot}
 %attr(754,root,xroad) /usr/share/xroad/bin/xroad-signer
 %attr(644,root,root) %{_unitdir}/xroad-signer.service
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
 
 %verifyscript
 

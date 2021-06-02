@@ -3,6 +3,8 @@
   file:
     path: "/xroad/"
     state: absent
+  tags:
+    - clean-local-repo
 
 - name: Copy bionic DEB packages (Ubuntu)
   become: yes
@@ -20,6 +22,6 @@
 
 - name: Scan new packages
   become: yes
-  shell: "dpkg-scanpackages . >Packages"
+  shell: "dpkg-scanpackages -m . >Packages"
   args:
     chdir: /xroad

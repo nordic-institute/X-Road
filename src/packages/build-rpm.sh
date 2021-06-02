@@ -2,6 +2,7 @@
 set -e
 
 VERSION=7.1.0
+LAST_SUPPORTED_VERSION=6.26.0
 
 if [[ $1 == "-release" ]] ; then
   RELEASE=1
@@ -32,6 +33,7 @@ fi
 
 ROOT=${DIR}/build/xroad/redhat
 rpmbuild \
+    --define "last_supported_version $LAST_SUPPORTED_VERSION" \
     --define "xroad_version $VERSION" \
     --define "rel $RELEASE" \
     "${macro_snapshot[@]}" \

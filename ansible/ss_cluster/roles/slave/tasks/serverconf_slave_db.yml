@@ -21,7 +21,7 @@
       dest: "{{ postgresql_data_dir }}/recovery.conf"
       owner: postgres
       group: postgres
-  when: ansible_distribution_release == "bionic"
+  when: postgresql_major_version | int < 12
 
 # recovery.conf is no longer supported in PostgreSQL12
 # see https://www.2ndquadrant.com/en/blog/replication-configuration-changes-in-postgresql-12/
@@ -32,7 +32,7 @@
     mode: '0600'
     owner: postgres
     group: postgres
-  when: ansible_distribution_release == "focal"
+  when: postgresql_major_version | int >= 12
 
 - name: configure slave database
   lineinfile:
@@ -64,7 +64,7 @@
       state: "{{ item.state | default('present') }}"
   with_items:
       - {option: 'primary_conninfo', value: "'host={{ master_host }} port={{ serverconf_db_port }} user={{ nodename }} sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'"}
-  when: ansible_distribution_release == "focal"
+  when: postgresql_major_version | int >= 12
 
 # this is needed if the slave is ever promoted to master
 - name: enable replication connections
