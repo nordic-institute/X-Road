@@ -23,52 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 module.exports = {
   tags: ['ss', 'login'],
-  'Security server failed login': (browser) => {
+  before: function (browser) {
     const frontPage = browser.page.ssFrontPage();
-
-    // Open SUT and check that page is loaded
     frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
+  },
 
-    // Enter invalid credentials
-    frontPage
-      .enterUsername(browser.globals.login_wrong_usr)
-      .enterPassword(browser.globals.login_wrong_pwd)
-      .signin();
-
-    // Verify there's an error message
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
-
+  afterEach: function (browser) {
+    browser.refresh();
+  },
+  after: function (browser) {
     browser.end();
   },
-  'Security server passed login': (browser) => {
+  'Wrong username is rejected': (browser) => {
     const frontPage = browser.page.ssFrontPage();
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
     frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
+      .enterUsername('invalid')
       .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    // Test refresh
-    browser
-      .refresh()
-      .waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    browser.end();
+      .signin()
+      .loginErrorMessageIsShown();
+  },
+  'Wrong password is rejected': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    frontPage
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword('invalid')
+      .signin()
+      .loginErrorMessageIsShown();
   },
 };

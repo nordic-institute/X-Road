@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -78,6 +79,7 @@ rm -rf %{buildroot}
 %config /etc/xroad/conf.d/proxy.ini
 %config /etc/xroad/conf.d/override-rhel-proxy.ini
 %config /etc/xroad/conf.d/proxy-logback.xml
+
 %dir /etc/xroad/jetty
 %config /etc/xroad/jetty/clientproxy.xml
 %config /etc/xroad/jetty/serverproxy.xml
@@ -113,11 +115,14 @@ rm -rf %{buildroot}
 /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/autobackup_xroad_proxy_configuration.sh
 /usr/share/xroad/scripts/get_security_server_id.sh
+/usr/share/xroad/scripts/read_db_properties.sh
 %doc /usr/share/doc/%{name}/LICENSE.txt
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
+
 if [ $1 -gt 1 ] ; then
     # upgrade
     # remove the previous port forwarding rules (if any)
@@ -182,6 +187,18 @@ if [ $1 -gt 1 ]; then
         bash /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh >>/var/log/xroad/proxy-install.log
     fi
     rm -rf %{_localstatedir}/lib/rpm-state/%{name}
+fi
+
+if [ $1 -gt 1 ]; then
+  # upgrade, generate gpg keypair when needed
+  if [ ! -d /etc/xroad/gpghome ] ; then
+    ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
+    if [[ -n "${ID}" ]] ; then
+      /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+    fi
+  fi
+  # always fix gpghome ownership
+  [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
 fi
 
 #parameters:

@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # produce .elX dist tag on both centos and redhat
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
@@ -37,6 +38,9 @@ rm -rf %{buildroot}
 %defattr(750,root,xroad,751)
 /usr/share/xroad/autologin
 %attr(664,root,root) %{_unitdir}/%{name}.service
+
+%pre -p /bin/bash
+%upgrade_check
 
 %post
 if [[ "$1" -eq 1 && -e /etc/aux-xroad-autologin ]]; then

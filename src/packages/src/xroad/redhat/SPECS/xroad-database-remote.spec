@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # produce .elX dist tag on both centos and redhat
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
@@ -25,5 +26,8 @@ This is meta package for remote database dependencies
 %install
 
 %files
+
+%pre -p /bin/bash
+%upgrade_check
 
 %post

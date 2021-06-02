@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -89,6 +90,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/postgresql-*.jar
 /usr/share/xroad/scripts/_backup_xroad.sh
 /usr/share/xroad/scripts/generate_certificate.sh
+/usr/share/xroad/scripts/generate_gpg_keypair.sh
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
@@ -100,7 +102,9 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
+
 if ! getent passwd xroad > /dev/null; then
 useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
 fi

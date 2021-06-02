@@ -15,6 +15,7 @@ include "signer-protocol"
 include "serverconf"
 include "monitoring-conf"
 include "common-op-monitoring"
+include "common-rest-api"
 
 // Main projects
 include "proxy"
@@ -43,7 +44,12 @@ include "common-test"
 include "addons:hwtoken"
 include "addons:messagelog"
 include "addons:metaservice"
-include "addons:proxymonitor:common"
-include "addons:proxymonitor:metaservice"
+
+include "addons:proxymonitor-common"
+project(":addons:proxymonitor-common").projectDir = file('addons/proxymonitor/common')
+
+include "addons:proxymonitor-metaservice"
+project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonitor/metaservice')
+
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"

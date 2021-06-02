@@ -8,6 +8,8 @@
   file:
     path: "/xroad/"
     state: absent
+  tags:
+    - clean-local-repo
 
 - name: Copy RPM packages (RHEL)
   copy:
@@ -16,4 +18,3 @@
 
 - name: Create local package repository (RHEL)
   command: createrepo /xroad/
-

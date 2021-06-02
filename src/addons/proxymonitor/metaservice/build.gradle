@@ -24,7 +24,7 @@ dependencies {
 
     implementation project(':monitor-common')
     implementation project(':monitoring-conf')
-    implementation project(':addons:proxymonitor:common')
+    implementation project(':addons:proxymonitor-common')
 
     implementation 'com.google.guava:guava:29.0-jre'
 
@@ -63,11 +63,10 @@ jar {
 }
 
 shadowJar {
-    archiveBaseName = "proxymonitor-metaservice"
     archiveClassifier = ''
     exclude('**/module-info.class')
     dependencies {
-        include(project(':addons:proxymonitor:common'))
+        include(project(':addons:proxymonitor-common'))
         include(project(':monitor-common'))
         include(project(':monitoring-conf'))
     }

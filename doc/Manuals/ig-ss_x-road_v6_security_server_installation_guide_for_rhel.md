@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.14  
+Version: 1.15  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -31,6 +31,7 @@ Doc. ID: IG-SS-RHEL
  16.09.2020 | 1.12    | Describe deployment options and database customization options. | Ilkka Seppälä
  29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
  16.04.2021 | 1.14    | Update remote database installation instructions                | Jarkko Hyöty
+ 18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
 
 ## License
 
@@ -42,38 +43,41 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2 Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-    * [2.2.1 Network Diagram](#221-network-diagram)
-  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Setup Package Repository](#25-setup-package-repository)
-  * [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  * [2.7 Security Server Installation](#27-security-server-installation)
-    * [2.7.1 Configure Proxy Ports](#271-configure-proxy-ports)
-    * [2.7.2 Start Security Server](#272-start-security-server)
-  * [2.8 Post-Installation Checks](#28-post-installation-checks)
-  * [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
-  * [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
-* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Reference Data](#32-reference-data)
-  * [3.3 Configuration](#33-configuration)
-* [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-* [Annex B Database Users](#annex-b-database-users)
-* [Annex C Deployment Options](#annex-c-deployment-options)
-  * [C.1 General](#c1-general)
-  * [C.2 Local Database](#c2-local-database)
-  * [C.3 Remote Database](#c3-remote-database)
-  * [C.4 High Availability Setup](#c4-high-availability-setup)
-  * [C.5 Load Balancing Setup](#c5-load-balancing-setup)
-  * [C.6 Summary](#c6-summary)
-* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2 Installation](#2-installation)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  - [2.2 Reference Data](#22-reference-data)
+    - [2.2.1 Network Diagram](#221-network-diagram)
+  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.7 Security Server Installation](#27-security-server-installation)
+    - [2.7.1 Configure Proxy Ports](#271-configure-proxy-ports)
+    - [2.7.2 Start Security Server](#272-start-security-server)
+  - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  - [3.1 Prerequisites](#31-prerequisites)
+  - [3.2 Reference Data](#32-reference-data)
+  - [3.3 Configuration](#33-configuration)
+- [4 Installation Error handling](#4-installation-error-handling)
+  - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
+- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+- [Annex B Database Users](#annex-b-database-users)
+- [Annex C Deployment Options](#annex-c-deployment-options)
+  - [C.1 General](#c1-general)
+  - [C.2 Local Database](#c2-local-database)
+  - [C.3 Remote Database](#c3-remote-database)
+  - [C.4 High Availability Setup](#c4-high-availability-setup)
+  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  - [C.6 Summary](#c6-summary)
+- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -399,6 +403,68 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
+## 4 Installation Error handling
+
+### 4.1 ERROR: Upgrade supported from version X.Y.Z or newer.
+
+The following error message may come up during the security server upgrade.
+
+`ERROR: Upgrade supported from version X.Y.Z or newer.`
+
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the security server to the target version step by step.
+
+For example, the following security server packages are currently installed.
+
+```
+[root@rh1 ~]# yum list installed | grep xroad
+xroad-addon-messagelog.x86_64      7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-addon-metaservices.x86_64    7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-addon-proxymonitor.x86_64    7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-addon-wsdlvalidator.x86_64   7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-base.x86_64                  7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-confclient.x86_64            7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-database-local.noarch        7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-monitor.x86_64               7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-proxy.x86_64                 7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-proxy-ui-api.x86_64          7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-securityserver.noarch        7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-signer.x86_64                7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+```
+
+The following packages are available in the repository.
+
+```
+[root@rh1 ~]# yum --showduplicates list xroad-securityserver
+Installed Packages
+xroad-securityserver.noarch                                                                        7.0.0-1.el7                                                                         @artifactory.niis.org_xroad-release-rpm_rhel_7_current
+Available Packages
+xroad-securityserver.noarch                                                                        7.1.0-1.el7                                                                         artifactory.niis.org_xroad-release-rpm_rhel_7_current
+xroad-securityserver.noarch                                                                        7.3.0-1.el7                                                                         artifactory.niis.org_xroad-release-rpm_rhel_7_current
+```
+
+Now trying to upgrade the central server packages directly will produce the following error.
+
+```
+[root@rh1 ~]# yum upgrade xroad-securityserver
+...
+ERROR: Upgrade supported from version 7.1.0 or newer.
+error: %pre(xroad-securityserver-7.3.0-1.el7.noarch) scriptlet failed, exit status 1
+Error in PREIN scriptlet in rpm package xroad-securityserver-7.3.0-1.el7.noarch
+```
+
+The fix is to upgrade the security server in two separate steps. First, upgrade to 7.1.x with the following command.
+
+```
+yum install xroad-securityserver-7.1.0-1.el7 xroad-addon-messagelog-7.1.0-1.el7 xroad-addon-metaservices-7.1.0-1.el7 xroad-addon-proxymonitor-7.1.0-1.el7 xroad-addon-wsdlvalidator-7.1.0-1.el7 xroad-base-7.1.0-1.el7 xroad-confclient-7.1.0-1.el7 xroad-database-local-7.1.0-1.el7 xroad-monitor-7.1.0-1.el7 xroad-proxy-7.1.0-1.el7 xroad-proxy-ui-api-7.1.0-1.el7 xroad-securityserver-7.1.0-1.el7 xroad-signer-7.1.0-1.el7
+```
+
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `https://artifactory.niis.org/xroad-release-rpm/rhel/7/7.1.0` and then use the `yum update xroad-securityserver` command.
+
+Finally, we can upgrade to our target version 7.3.x as follows.
+
+```
+yum update xroad-securityserver
+```
 
 ## Annex A Security Server Default Database Properties
 

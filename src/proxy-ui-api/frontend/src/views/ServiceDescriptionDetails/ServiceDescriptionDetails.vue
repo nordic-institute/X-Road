@@ -249,7 +249,8 @@ export default Vue.extend({
         this.serviceDescriptionUpdate.type === this.serviceType.REST ||
         this.serviceDescriptionUpdate.type === this.serviceType.OPENAPI3
       ) {
-        this.serviceDescriptionUpdate.rest_service_code = this.initialServiceCode;
+        this.serviceDescriptionUpdate.rest_service_code =
+          this.initialServiceCode;
         this.serviceDescriptionUpdate.new_rest_service_code =
           this.serviceDescriptionUpdate.rest_service_code !==
           this.currentServiceCode

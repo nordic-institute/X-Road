@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -75,7 +76,8 @@ rm -rf %{buildroot}
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-confclient
 %attr(644,root,root) %{_unitdir}/xroad-confclient.service
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
 
 %verifyscript
 

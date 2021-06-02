@@ -5,7 +5,11 @@ info:
   license:
     name: MIT
 servers:
-  - url: http://petstore.swagger.io/v1
+  - url: http://petstore.swagger.io/v1/cats
+  - url: null
+  - url:
+  - url: ""
+  - url: ["this", "should", "be", "a string"]
 paths:
   /pets:
     get:
@@ -30,7 +34,7 @@ paths:
               schema:
                 type: string
           content:
-            application/json:    
+            application/json:
               schema:
                 $ref: "#/components/schemas/Pets"
         default:
