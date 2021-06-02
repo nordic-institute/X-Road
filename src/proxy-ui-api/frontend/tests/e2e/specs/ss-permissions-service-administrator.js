@@ -67,7 +67,6 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
   },
 
-
   'Can not add clients': (browser) => {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
@@ -113,6 +112,8 @@ module.exports = {
     // Service administrator should see local groups list
     mainPage.openClientsTab();
     clientsTab.openClient('TestService');
+    // TODO This following locator is directly written to project, since it fails create proper locator when polling
+    //  for 'clientLocalGroups', figure out why
     browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
     browser.waitForElementVisible(clientLocalGroups);
 
