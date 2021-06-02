@@ -25,7 +25,7 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-system-administrator', 'permissions', 'WIP'],
+  tags: ['ss', 'xroad-system-administrator', 'permissions'],
 
   before: function (browser) {
     browser.LoginCommand(browser.globals.login_system_administrator, browser.globals.login_pwd);

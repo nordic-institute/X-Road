@@ -25,41 +25,118 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-service-administrator', 'permissions'],
-  'Security server service administrator role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+  // TODO This test is not self contained yet, fix it figuring out beforeEach and afterEach structure
+
+  tags: ['ss', 'xroad-service-administrator', 'permissions', 'WIP'],
+  before: function (browser) {
+    browser.LoginCommand(browser.globals.login_service_administrator, browser.globals.login_pwd);
+  },
+
+  after: function (browser) {
+    browser.end();
+  },
+  'Can not see Keys-tab': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = mainPage.section.keysTab;
+
+    browser.waitForElementNotPresent(keysTab);
+  },
+
+  'Can not see diagnostics-tab': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const diagnosticsTab = mainPage.section.diagnosticsTab;
+
+    browser.waitForElementNotPresent(diagnosticsTab);
+  },
+
+  'Can not see Settings-tab': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const settingsTab = mainPage.section.settingsTab;
+
+    browser.waitForElementNotPresent(settingsTab);
+  },
+
+  'Can see functions under Clients-tab': (browser) => {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const settingsTab = mainPage.section.settingsTab;
     const searchField = mainPage.section.clientsTab.elements.searchField;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_service_administrator)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_service_administrator);
-
-    // clients
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
-
-    browser.waitForElementNotPresent(keysTab);
-    browser.waitForElementNotPresent(diagnosticsTab);
-    browser.waitForElementNotPresent(settingsTab);
-
-    browser.end();
   },
+
+
+  'Can not add clients': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+
+    // Service administrator should not see add client button
+    browser.waitForElementVisible(clientsTab);
+    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+  },
+  'Can see client details': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+
+    // Service administrator should see clients details
+    clientsTab.openClient('TestGov');
+    browser.waitForElementVisible(clientInfo);
+
+    browser
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
+  },
+
+  'Should see local groups list, group members and edit buttons': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+    const clientLocalGroups = clientInfo.section.localGroups;
+    const localGroupPopup = mainPage.section.localGroupPopup;
+
+    // Service administrator should see local groups list
+    mainPage.openClientsTab();
+    clientsTab.openClient('TestService');
+    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.waitForElementVisible(clientLocalGroups);
+
+    // Service administrator should see add local groups button
+    browser.waitForElementVisible(clientLocalGroups.elements.addGroupButton);
+
+    //  Service administrator should see local groups members and edit buttons
+    clientLocalGroups.openDetails('bac');
+    browser.assert.containsText(
+      localGroupPopup.elements.groupIdentifier,
+      'bac',
+    );
+
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupAddMembersButton,
+    );
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupRemoveAllButton,
+    );
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupTestComRemoveButton,
+    );
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupDeleteButton,
+    );
+  }
 };
