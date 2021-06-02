@@ -27,7 +27,7 @@
 module.exports = {
   // TODO This test is not self contained yet, fix it figuring out beforeEach and afterEach structure
 
-  tags: ['ss', 'xroad-service-administrator', 'permissions', 'WIP'],
+  tags: ['ss', 'xroad-service-administrator', 'permissions'],
   before: function (browser) {
     browser.LoginCommand(browser.globals.login_service_administrator, browser.globals.login_pwd);
   },

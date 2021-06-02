@@ -25,7 +25,7 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-securityserver-observer', 'permissions', 'WIP'],
+  tags: ['ss', 'xroad-securityserver-observer', 'permissions',],
 
   before: function (browser) {
     browser.LoginCommand(browser.globals.login_securityserver_observer, browser.globals.login_pwd);
