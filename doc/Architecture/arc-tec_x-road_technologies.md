@@ -2,7 +2,7 @@
 
 **Technical Specification**
 
-Version: 1.5<br/>
+Version: 1.6<br/>
 15.09.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
@@ -19,6 +19,7 @@ Doc. ID: ARC-TEC
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
  12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
  15.09.2020 | 1.5     | Updated to match security server REST API architecture      | Janne Mattila
+ 02.06.2021 | 1.6     | Backup encryption related updates                           | Andres Allkivi
 
 ## Table of Contents
 
