@@ -111,57 +111,6 @@ module.exports = {
 
     browser.end();
   },
-  'Security server clients list service administrator role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_service_administrator)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_service_administrator);
-
-    // Security officer should see clients list
-    mainPage.openClientsTab();
-
-    // Service administrator should not see add client button
-    browser.waitForElementVisible(clientsTab);
-    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
-
-    // Service administrator should see clients details
-    clientsTab.openClient('TestGov');
-    browser.waitForElementVisible(clientInfo);
-
-    browser
-      .waitForElementVisible(
-        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
-      )
-      .waitForElementVisible(
-        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
-      )
-      .waitForElementVisible(
-        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
-      )
-      .waitForElementVisible(
-        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
-      )
-      .waitForElementVisible(
-        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
-      );
-
-    browser.end();
-  },
   'Security server clients list security server observer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
