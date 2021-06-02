@@ -673,6 +673,42 @@
     "1747|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>react-dev-utils>browserslist": {
       "decision": "ignore",
       "madeAt": 1621951743252
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-service>webpack-bundle-analyzer>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
+    },
+    "1748|@vue/cli-service>webpack-dev-server>ws": {
+      "decision": "ignore",
+      "madeAt": 1622635628195
     }
   },
   "rules": {},
