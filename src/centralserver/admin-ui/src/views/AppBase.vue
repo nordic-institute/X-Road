@@ -71,7 +71,7 @@ export default Vue.extend({
   },
   computed: {
     showDialog(): boolean {
-      return this.$store.getters.isSessionAlive === false;
+      return this.$store.getters[StoreTypes.getters.IS_SESSION_ALIVE] === false;
     },
   },
   created() {

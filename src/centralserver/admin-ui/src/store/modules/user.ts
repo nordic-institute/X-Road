@@ -94,8 +94,8 @@ export const actions: ActionTree<State, RootState> = {
       data,
     })
       .then(() => {
-        commit('authUser');
-        commit('setSessionAlive', true);
+        commit(StoreTypes.mutations.AUTH_USER);
+        commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
       })
       .catch((error) => {
         throw error;
@@ -106,10 +106,13 @@ export const actions: ActionTree<State, RootState> = {
     return axios
       .get('/notifications/session-status')
       .then((res) => {
-        commit('setSessionAlive', res?.data?.valid ?? false);
+        commit(
+          StoreTypes.mutations.SET_SESSION_ALIVE,
+          res?.data?.valid ?? false,
+        );
       })
       .catch(() => {
-        commit('setSessionAlive', false);
+        commit(StoreTypes.mutations.SET_SESSION_ALIVE, false);
       });
   },
 
@@ -145,7 +148,9 @@ export const actions: ActionTree<State, RootState> = {
   async [StoreTypes.actions.FETCH_SERVER_VERSION]({ commit }) {
     return axios
       .get<Version>('/system/version')
-      .then((resp) => commit('setSecurityServerVersion', resp.data))
+      .then((resp) =>
+        commit(StoreTypes.mutations.SET_SERVER_VERSION, resp.data),
+      )
       .catch((error) => {
         throw error;
       });

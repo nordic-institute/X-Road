@@ -28,7 +28,7 @@
     <app-icon />
     <div class="tabs-wrap">
       <v-tabs
-        v-model="tab"
+        v-model="currentTab"
         class="main-tabs"
         color="black"
         height="56px"
@@ -40,7 +40,7 @@
           color="primary"
           class="xrd-main-tabs-slider"
         ></v-tabs-slider>
-        <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
+        <v-tab v-for="tab in allowedTabs" :key="tab.key" :to="tab.to">{{
           $t(tab.name)
         }}</v-tab>
       </v-tabs>
@@ -63,7 +63,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: undefined as undefined | Tab,
+      currentTab: undefined as undefined | Tab,
     };
   },
   computed: {

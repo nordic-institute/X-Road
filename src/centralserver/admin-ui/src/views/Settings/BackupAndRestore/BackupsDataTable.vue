@@ -32,44 +32,42 @@
           <th></th>
         </tr>
       </thead>
-      <template>
-        <tbody>
-          <tr v-bind:key="'conf_backup_20210505-105548.tar'">
-            <td>conf_backup_20210505-105548.tar</td>
-            <td>
-              <div class="d-flex justify-end">
-                <xrd-button
-                  :min_width="50"
-                  text
-                  :outlined="false"
-                  class="xrd-table-button"
-                  data-test="backup-download"
-                  >{{ $t('action.download') }}
-                </xrd-button>
-                <restore-backup-button />
-                <delete-backup-button />
-              </div>
-            </td>
-          </tr>
-          <tr v-bind:key="'conf_backup_20210404-092511.tar'">
-            <td>conf_backup_20210404-092511.tar</td>
-            <td>
-              <div class="d-flex justify-end">
-                <xrd-button
-                  :min_width="50"
-                  text
-                  :outlined="false"
-                  class="xrd-table-button"
-                  data-test="backup-download"
-                  >{{ $t('action.download') }}
-                </xrd-button>
-                <restore-backup-button />
-                <delete-backup-button />
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </template>
+      <tbody>
+        <tr :key="'conf_backup_20210505-105548.tar'">
+          <td>conf_backup_20210505-105548.tar</td>
+          <td>
+            <div class="d-flex justify-end">
+              <xrd-button
+                :min_width="50"
+                text
+                :outlined="false"
+                class="xrd-table-button"
+                data-test="backup-download"
+                >{{ $t('action.download') }}
+              </xrd-button>
+              <restore-backup-button />
+              <delete-backup-button />
+            </div>
+          </td>
+        </tr>
+        <tr :key="'conf_backup_20210404-092511.tar'">
+          <td>conf_backup_20210404-092511.tar</td>
+          <td>
+            <div class="d-flex justify-end">
+              <xrd-button
+                :min_width="50"
+                text
+                :outlined="false"
+                class="xrd-table-button"
+                data-test="backup-download"
+                >{{ $t('action.download') }}
+              </xrd-button>
+              <restore-backup-button />
+              <delete-backup-button />
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </xrd-table>
   </v-card>
 </template>

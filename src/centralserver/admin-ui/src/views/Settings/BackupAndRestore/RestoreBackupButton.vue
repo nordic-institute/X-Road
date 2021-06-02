@@ -49,7 +49,7 @@
       title="backup.action.restore.dialog.restoringTitle"
       @cancel="showRestoringDialog = false"
     >
-      <template v-slot:content>
+      <template #content>
         <v-sheet class="pa-3 overflow-y-auto" height="15rem" rounded outlined>
           CHECKING THE LABEL OF THE TAR ARCHIVE
           security_XROAD_7.1_CS/ORG/1111/SS1 RESTORING CONFIGURATION FROM
