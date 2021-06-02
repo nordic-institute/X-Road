@@ -9,9 +9,6 @@ spring:
       show-sql: true
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    properties:
-      hibernate:
-        dialect: ee.ria.xroad.common.db.CustomPostgreSQLDialect
   profiles:
     include: nontest
   jackson:
@@ -23,3 +20,19 @@ cache:
 
 common-module-endpoints:
   base-path: /api/v1
+
+server:
+  port: 4000
+  ssl:
+    key-store: /etc/xroad/ssl/internal.p12
+    key-store-password: internal
+    enabled: true
+    ciphers: TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    protocol: TLS
+    enabled-protocols: TLSv1.2
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain,application/javascript,text/css,image/jpeg
+
+logging:
+  config: file:/etc/xroad/conf.d/centralserver-admin-service-logback.xml
