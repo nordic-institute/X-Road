@@ -1,6 +1,7 @@
 ../../../../src/xroad/common/center/usr/* usr/
 ../../../../src/xroad/common/center/etc/* etc/
 ../../../../src/xroad/default-configuration/center.ini etc/xroad/conf.d
+../../../../src/xroad/default-configuration/centralserver-admin-service-logback.xml etc/xroad/conf.d/
 ../../../../src/xroad/default-configuration/override-signer.ini etc/xroad/conf.d
 ../../../../src/xroad/default-configuration/managementservices.wsdl var/lib/xroad/public
 ../../../../src/xroad/default-configuration/rsyslog.d/* etc/rsyslog.d/
