@@ -699,6 +699,102 @@
     "1748|@vue/cli-service>webpack-dev-server>ws": {
       "decision": "ignore",
       "madeAt": 1622715136037
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>autoprefixer>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss-modules-local-by-default>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss-modules-values>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss-modules-extract-imports>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss-modules-local-by-default>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss-modules-scope>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>css-loader>postcss-modules-values>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>postcss-flexbugs-fixes>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>postcss-loader>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1747|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>react-dev-utils>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1622744146724
+    },
+    "1693|@storybook/vue>@storybook/core>autoprefixer>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss-modules-local-by-default>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss-modules-values>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss-modules-extract-imports>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss-modules-local-by-default>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss-modules-scope>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>css-loader>postcss-modules-values>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>postcss-flexbugs-fixes>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1693|@storybook/vue>@storybook/core>postcss-loader>postcss": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
+    },
+    "1747|@storybook/vue>@storybook/core>react-dev-utils>browserslist": {
+      "decision": "ignore",
+      "madeAt": 1622744149620
     }
   },
   "rules": {},
