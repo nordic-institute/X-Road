@@ -337,7 +337,7 @@
     "submit": "Submit",
     "finish": "Finish",
     "searching": "Searching...",
-    "goToFront": "Got to front page"
+    "goToFront": "Go to the front page"
   },
   "keys": {
     "token": "Token:",
@@ -732,6 +732,12 @@
   "warning": "Warning",
   "id": "ID",
   "count": "Amount of same errors:",
+  "403": {
+    "topTitle": "Forbidden",
+    "mainTitle": "Permission denied",
+    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "goBack": "Go back"
+  },
   "404": "404 - page not found",
   "404text": "Seems like you found the",
   "404textUnicorn": "unicorn",
