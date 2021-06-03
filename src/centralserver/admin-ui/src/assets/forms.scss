@@ -23,50 +23,71 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/*
- TypeScript typings that are used in UI, but not in backend.
- These are not in openapi definitions.
-*/
-import { Location } from 'vue-router';
 
-// Interface for Tab data
-export interface Tab {
-  key: string;
-  name: string;
-  to: Location; // Same type as https://router.vuejs.org/api/#to
-  permissions?: string[];
+@import "~styles/colors";
+
+// Card looking outer wrap for the form
+.form-view-wrap {
+  width: 100%;
+  max-width: 1280px;
+  background-color: $XRoad-White100;
+  margin: 40px;
+  margin-top: 30px;
+  box-shadow: $XRoad-DefaultShadow;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
 }
 
-// The result of the FileUpload components fileChanged event
-export type FileUploadResult = {
-  buffer: ArrayBuffer;
-  file: File;
-};
-
-// Action info for notification. In practise the "action" is navigtion to a given route.
-export interface NotificationAction {
-  icon: string;
-  text: string;
-  route: string;
+// Centered container on a form "card"
+.form-content-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-// Data for snackbar notification
-export interface Notification {
-  timeAdded: number;
-  timeout: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject?: any;
-  errorMessageCode?: string;
-  errorMessageRaw?: string;
-  successMessageCode?: string;
-  successMessageRaw?: string;
-  show: boolean;
-  count: number;
-  action?: NotificationAction;
+// Row to contain info and the input
+.form-row-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: 60px;
+  width: 840px;
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  // children
+  > * {
+    &:first-child {
+      margin-right: 15px;
+    }
+
+    &:last-child {
+      margin-left: 15px;
+    }
+  }
 }
 
-// Notification with an action is called with this
-export interface ActionError {
-  errorMessageCode?: string;
-  action?: NotificationAction;
+.form-input {
+  width: 405px;
+}
+
+// Button area on the bottom of a "card"
+.button-footer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
+  padding-right: 24px;
+  padding-left: 24px;
+  border-radius: 0px 0px 4px 4px;
+
+  // children
+  > * {
+    &:not(:last-child) {
+      margin-right: 20px;
+    }
+  }
 }

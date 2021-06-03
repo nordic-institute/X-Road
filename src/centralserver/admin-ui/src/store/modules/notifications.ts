@@ -25,18 +25,20 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '@/global';
-import { Notification } from '@/ui-types';
+import { Notification, ActionError } from '@/ui-types';
 import { StoreTypes } from '@/global';
 
 export interface State {
   errorNotifications: Notification[];
   successNotifications: Notification[];
+  continueInitialisation: boolean;
 }
 
 const getDefaultState = () => {
   return {
     errorNotifications: [],
     successNotifications: [],
+    continueInitialisation: false,
   };
 };
 
@@ -125,6 +127,9 @@ export const getters: GetterTree<State, RootState> = {
   [StoreTypes.getters.ERROR_NOTIFICATIONS](state: State): Notification[] {
     return state.errorNotifications;
   },
+  [StoreTypes.getters.CONTINUE_INIT](state: State): boolean {
+    return state.continueInitialisation;
+  },
 };
 
 export const mutations: MutationTree<State> = {
@@ -182,6 +187,20 @@ export const mutations: MutationTree<State> = {
       (item: Notification) => item.timeAdded !== id,
     );
   },
+
+  [StoreTypes.mutations.SET_ERROR_ACTION](
+    state: State,
+    val: ActionError,
+  ): void {
+    const notification = createEmptyNotification(-1);
+    notification.action = val.action;
+    notification.errorMessageCode = val.errorMessageCode;
+    addErrorNotification(state, notification);
+  },
+
+  [StoreTypes.mutations.SET_CONTINUE_INIT](state: State, val: boolean): void {
+    state.continueInitialisation = val;
+  },
 };
 
 export const actions: ActionTree<State, RootState> = {
@@ -220,7 +239,7 @@ export const actions: ActionTree<State, RootState> = {
     // Show error using the error object
     // Don't show errors when the errorcode is 401 which is usually because of session expiring
     if (errorObject?.response?.status !== 401) {
-      commit('setErrorObject', errorObject);
+      commit(StoreTypes.mutations.SET_ERROR_OBJECT, errorObject);
     }
   },
 };

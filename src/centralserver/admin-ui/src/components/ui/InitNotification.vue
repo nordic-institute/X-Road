@@ -24,32 +24,85 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid class="pa-0">
-    <div><GlobalNotification /></div>
-    <div class="alerts-wrapper"></div>
-    <GlobalAlerts />
-    <ContextualAlerts />
+  <v-container fluid class="notification-container">
+    <div
+      v-if="showNotification"
+      class="init-notification"
+      data-test="continue-init-notification"
+    >
+      <div class="left-block">
+        <v-icon class="xrd-large-button-icon notification-icon"
+          >icon-Checked</v-icon
+        >
+        <span class="alert-text">{{ $t('init.notification') }}</span>
+      </div>
+
+      <xrd-button
+        color="primary"
+        outlined
+        data-test="notification-button"
+        @click="continueInit"
+      >
+        {{ $t('action.continue') }}
+      </xrd-button>
+    </div>
   </v-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import ContextualAlerts from './ContextualAlerts.vue';
-import GlobalAlerts from './GlobalAlerts.vue';
-import GlobalNotification from './InitNotification.vue';
+import { mapGetters } from 'vuex';
+import { StoreTypes } from '@/global';
 
 export default Vue.extend({
-  components: {
-    ContextualAlerts,
-    GlobalAlerts,
-    GlobalNotification,
+  name: 'InitNotification',
+  computed: {
+    ...mapGetters({ showNotification: StoreTypes.getters.CONTINUE_INIT }),
+  },
+  methods: {
+    continueInit(): void {
+      this.$store.commit(StoreTypes.mutations.SET_CONTINUE_INIT, false);
+    },
   },
 });
 </script>
 
 <style scoped lang="scss">
-.alerts-wrapper {
-  width: 1000px;
+@import '~styles/colors';
+
+.notification-icon {
+  color: $XRoad-Success100;
+  margin-right: 25px;
+}
+
+.notification-container {
+  width: 100%;
   padding: 0;
+
+  .alert-text {
+    color: $XRoad-Black100;
+    display: block;
+  }
+
+  .init-notification {
+    background-color: $XRoad-Success10;
+    height: 80px;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-left: 80px;
+    padding-right: 40px;
+    font-style: normal;
+    font-weight: bold;
+    font-size: 18px;
+
+    .left-block {
+      display: flex;
+      flex-direction: row;
+      justify-content: flex-start;
+      align-items: center;
+    }
+  }
 }
 </style>

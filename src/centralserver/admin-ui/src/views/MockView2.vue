@@ -26,5 +26,33 @@
 <template>
   <div class="about">
     <h1>Mock view 2</h1>
+    <xrd-button
+      color="primary"
+      outlined
+      data-test="notification-button"
+      @click="mockAction"
+    >
+      {{ $t('action.continue') }}
+    </xrd-button>
   </div>
 </template>
+
+<script lang="ts">
+import Vue from 'vue';
+import { StoreTypes, RouteName } from '@/global';
+
+export default Vue.extend({
+  methods: {
+    mockAction(): void {
+      this.$store.commit(StoreTypes.mutations.SET_ERROR_ACTION, {
+        errorMessageCode: 'footer.software.versionPrefix',
+        action: {
+          icon: 'icon-Key',
+          text: 'footer.software.title',
+          route: RouteName.TrustServices,
+        },
+      });
+    },
+  },
+});
+</script>

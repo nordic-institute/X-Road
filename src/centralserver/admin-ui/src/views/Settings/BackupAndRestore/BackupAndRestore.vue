@@ -106,6 +106,8 @@ export default Vue.extend({
       });
       this.creatingBackup = false;
     },
+    // This linter disable can be removed when actually implementing the function
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     async onFileUploaded(result: FileUploadResult) {
       this.uploadingBackup = true;
       this.uploadedFile = new File([], 'file name');

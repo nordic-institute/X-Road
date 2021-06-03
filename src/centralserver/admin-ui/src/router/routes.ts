@@ -51,6 +51,8 @@ import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
 
+import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
+
 const routes: RouteConfig[] = [
   {
     path: '/',
@@ -154,7 +156,7 @@ const routes: RouteConfig[] = [
         name: RouteName.TrustServices,
         path: '/trust-services',
         components: {
-          default: MockView1,
+          default: InitialConfiguration, // Mock for demo
           top: TabsBase,
           alerts: AlertsContainer,
         },
