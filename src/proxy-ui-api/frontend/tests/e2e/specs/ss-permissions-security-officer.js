@@ -30,6 +30,10 @@ module.exports = {
     browser.LoginCommand(browser.globals.login_security_officer, browser.globals.login_pwd);
   },
 
+  after: function (browser) {
+    browser.end();
+  },
+
   'Can not add clients': (browser) => {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
