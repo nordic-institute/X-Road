@@ -1,454 +1,480 @@
 {
   "decisions": {
+    "1748|@vue/cli-plugin-unit-jest>jest-environment-jsdom-fifteen>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714800515
+    },
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1617876084448
-    },
-    "565|@vue/cli-service>ssri": {
-      "decision": "ignore",
-      "madeAt": 1618929368946,
-      "expiresAt": 1621521358992
-    },
-    "565|@vue/cli-service>terser-webpack-plugin>cacache>ssri": {
-      "decision": "ignore",
-      "madeAt": 1618929368946,
-      "expiresAt": 1621521358992
+      "madeAt": 1622714803261
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432241
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432241
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>css-declaration-sorter>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432241
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>cssnano-util-raw-cache>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432241
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>cssnano-util-raw-cache>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>cssnano-util-raw-cache>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809361
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-calc>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-calc>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-calc>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-colormin>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-colormin>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-colormin>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-convert-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-convert-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-convert-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-discard-comments>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-discard-comments>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-discard-comments>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-discard-duplicates>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-discard-duplicates>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-discard-duplicates>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-discard-empty>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-discard-empty>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-discard-empty>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-discard-overridden>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-discard-overridden>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-discard-overridden>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-merge-longhand>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-merge-longhand>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-rules>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-merge-rules>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-merge-rules>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-minify-font-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-minify-font-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-minify-font-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-minify-gradients>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-minify-gradients>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-minify-gradients>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-minify-params>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-minify-params>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-minify-params>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-minify-selectors>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-minify-selectors>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-minify-selectors>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-charset>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-charset>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-charset>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-display-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-display-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-display-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-positions>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-positions>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-positions>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-repeat-style>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-repeat-style>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-repeat-style>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-string>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-string>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-string>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-timing-functions>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-timing-functions>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-timing-functions>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-unicode>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-unicode>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-unicode>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-url>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-url>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-url>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-whitespace>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-whitespace>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-whitespace>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-ordered-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-ordered-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-ordered-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-reduce-initial>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-reduce-initial>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-reduce-initial>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-reduce-transforms>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-reduce-transforms>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-reduce-transforms>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-svgo>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-svgo>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-svgo>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-unique-selectors>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>cssnano-preset-default>postcss-unique-selectors>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-unique-selectors>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>cssnano>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@intervolga/optimize-cssnano-plugin>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>@vue/component-compiler-utils>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>vue-loader>@vue/component-compiler-utils>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>autoprefixer>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>icss-utils>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss-modules-local-by-default>icss-utils>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss-modules-values>icss-utils>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss-modules-extract-imports>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss-modules-local-by-default>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss-modules-scope>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>css-loader>postcss-modules-values>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
     "1693|@vue/cli-service>postcss-loader>postcss": {
       "decision": "ignore",
-      "madeAt": 1620721432242
+      "madeAt": 1622714809362
     },
-    "1745|@vue/cli-service>webpack-dev-server>bonjour>multicast-dns>dns-packet": {
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
       "decision": "ignore",
-      "madeAt": 1621951441384
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-jsdom>jsdom>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-service>webpack-bundle-analyzer>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
+    },
+    "1748|@vue/cli-service>webpack-dev-server>ws": {
+      "decision": "ignore",
+      "madeAt": 1622714812232
     }
   },
   "rules": {},
