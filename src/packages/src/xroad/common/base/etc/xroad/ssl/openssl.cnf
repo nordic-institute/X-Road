@@ -35,12 +35,12 @@ extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=$ENV::ALT
 
 [ proxy-ui-api ]
-basicConstraints=critical,CA:FALSE
+basicConstraints=critical,CA:TRUE
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature
 extendedKeyUsage=serverAuth,clientAuth
 
 [ proxy-ui-api_alt ]
-basicConstraints=critical,CA:FALSE
+basicConstraints=critical,CA:TRUE
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature
 extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=$ENV::ALT
