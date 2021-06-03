@@ -27,40 +27,6 @@
 module.exports = {
   tags: ['ss', 'clients', 'permissions'],
 
-  'Security server clients list security officer role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_security_officer)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_security_officer);
-
-    // Security officer should see clients list
-    mainPage.openClientsTab();
-
-    // Security officer should not see add client button
-    browser.waitForElementVisible(clientsTab);
-    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
-
-    // Security officer should not see clients details
-    clientsTab.openClient('TestGov');
-    browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
-
-    browser.end();
-  },
   'Security server clients list registration officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();

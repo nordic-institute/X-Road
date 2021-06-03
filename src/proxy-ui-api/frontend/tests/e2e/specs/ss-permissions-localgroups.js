@@ -26,36 +26,6 @@
 
 module.exports = {
   tags: ['ss', 'localgroups', 'permissions'],
-  'Local groups security officer role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_security_officer)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_security_officer);
-
-    // Security officer should see clients list
-    mainPage.openClientsTab();
-
-    // Security officer should not see clients details and thus not local groups
-    clientsTab.openClient('TestGov');
-    browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
-
-    browser.end();
-  },
   'Local groups registration officer role': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();

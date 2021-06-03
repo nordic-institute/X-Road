@@ -26,44 +26,29 @@
 
 module.exports = {
   tags: ['ss', 'xroad-security-officer', 'permissions'],
-  'Security server security officer role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+  before: function (browser) {
+    browser.LoginCommand(browser.globals.login_security_officer, browser.globals.login_pwd);
+  },
+
+  'Can not add clients': (browser) => {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const settingsTab = mainPage.section.settingsTab;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
     const searchField = mainPage.section.clientsTab.elements.searchField;
-    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
-    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
-    const anchorDownloadButton =
-      backupAndRestoreTab.elements.anchorDownloadButton;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_security_officer)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_security_officer);
-
-    // clients
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+  },
 
-    // keys and certs
+  'Can not see API-keys': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = mainPage.section.keysTab;
+    const tokenName = mainPage.section.keysTab.elements.tokenName;
+    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
+    const generateKeyButton =
+      mainPage.section.keysTab.elements.generateKeyButton;
+
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -71,16 +56,41 @@ module.exports = {
     browser.waitForElementNotPresent(APIKeysTab);
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementVisible(generateKeyButton);
+  },
 
-    // settings
+  'Can not do backup and restore': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const settingsTab = mainPage.section.settingsTab;
+    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
+    const anchorDownloadButton =
+      backupAndRestoreTab.elements.anchorDownloadButton;
+
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
     browser.waitForElementVisible(anchorDownloadButton);
     browser.waitForElementNotPresent(backupAndRestoreTab);
-
-    browser.waitForElementNotPresent(diagnosticsTab);
-
-    browser.end();
   },
-};
+
+  'Can not see diagnostics-tab': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const diagnosticsTab = mainPage.section.diagnosticsTab;
+    browser.waitForElementNotPresent(diagnosticsTab);
+  },
+  'Can not see client details': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+
+    // Security officer should see clients list
+    mainPage.openClientsTab();
+    // Security officer should not see add client button
+    browser.waitForElementVisible(clientsTab);
+    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+
+    // Security officer should not see clients details
+    clientsTab.openClient('TestGov');
+    browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
+  },
+}
+
