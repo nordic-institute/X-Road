@@ -36,12 +36,12 @@ subjectAltName=$ENV::ALT
 
 [ proxy-ui-api ]
 basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature
+keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
 extendedKeyUsage=serverAuth,clientAuth
 
 [ proxy-ui-api_alt ]
 basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature
+keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
 extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=$ENV::ALT
 
