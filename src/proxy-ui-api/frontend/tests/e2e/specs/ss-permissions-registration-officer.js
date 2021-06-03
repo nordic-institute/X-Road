@@ -26,41 +26,29 @@
 
 module.exports = {
   tags: ['ss', 'xroad-registration-officer', 'permissions'],
-  'Security server registration officer role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+  before: function (browser) {
+    browser.LoginCommand(browser.globals.login_registration_officer, browser.globals.login_pwd);
+  },
+
+  'Can add clients': (browser) => {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const settingsTab = mainPage.section.settingsTab;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
     const searchField = mainPage.section.clientsTab.elements.searchField;
-    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_registration_officer)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    mainPage.verifyCurrentUser(browser.globals.login_registration_officer);
-
-    // clients
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementVisible(clientsTab.elements.addClientButton);
+  },
 
-    // keys and certs
+  'Can see keys and certs': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = mainPage.section.keysTab;
+    const tokenName = mainPage.section.keysTab.elements.tokenName;
+    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
+    const generateKeyButton =
+      mainPage.section.keysTab.elements.generateKeyButton;
+
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -69,10 +57,50 @@ module.exports = {
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementNotPresent(generateKeyButton);
     browser.waitForElementVisible(keysTab.elements.exportCertButton);
+  },
 
+  'Can not see diagnostics': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const diagnosticsTab = mainPage.section.diagnosticsTab;
     browser.waitForElementNotPresent(diagnosticsTab);
-    browser.waitForElementNotPresent(settingsTab);
+  },
 
-    browser.end();
+  'Can not see settings': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const settingsTab = mainPage.section.settingsTab;
+
+    browser.waitForElementNotPresent(settingsTab);
+  },
+  'Should see client details': (browser) => {
+    const mainPage = browser.page.ssMainPage();
+    const clientsTab = mainPage.section.clientsTab;
+    const clientInfo = mainPage.section.clientInfo;
+
+    // Registration officer should see clients list
+    mainPage.openClientsTab();
+
+    // Registration officer should see add client button
+    browser.waitForElementVisible(clientsTab.elements.addClientButton);
+
+    // Registration officer should see clients details
+    clientsTab.openClient('TestGov');
+    browser.waitForElementVisible(clientInfo);
+
+    browser
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
   },
 };
