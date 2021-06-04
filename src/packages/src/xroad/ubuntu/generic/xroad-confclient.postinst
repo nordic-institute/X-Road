@@ -5,4 +5,10 @@ if [ "$1" = configure ]; then
     chmod 0440 /etc/xroad/backup.d/??_xroad-confclient
 fi
 
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
 #DEBHELPER#
+
+exit 0

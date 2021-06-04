@@ -24,60 +24,11 @@
  * THE SOFTWARE.
  */
 
-var loginCommands = {
-  clearUsername: function () {
-    this.clearValue2('@usernameInput');
-    return this;
-  },
-  clearPassword: function () {
-    this.clearValue2('@passwordInput');
-    return this;
-  },
-  enterUsername: function (username) {
-    this.setValue('@usernameInput', username);
-    return this;
-  },
-  enterPassword: function (password) {
-    this.setValue('@passwordInput', password);
-    return this;
-  },
-  signin: function () {
-    this.click('@loginButton');
-    return this;
-  },
-  loginErrorMessageIsShown: function () {
-    this.assert.visible('@LoginError');
-    return this;
-  },
-  signinDefaultUser: function () {
-    this.clearValue2('@usernameInput');
-    this.clearValue2('@passwordInput');
-    this.setValue('@usernameInput', this.api.globals.login_usr);
-    this.setValue('@passwordInput', this.api.globals.login_pwd);
-    this.click('@loginButton');
-    return this;
-  },
-};
+module.exports = class PauseExecution {
+  async command() {
+    console.log('/nPausing execution, CTRL-C to break');
+    //TODO might want figure out a way to make this resumeable
+    this.api.pause(10000000);
+  }
+}
 
-module.exports = {
-  url: process.env.VUE_DEV_SERVER_URL,
-  commands: [loginCommands],
-  elements: {
-    usernameInput: {
-      selector: '//input[@id="username"]',
-      locateStrategy: 'xpath',
-    },
-    passwordInput: {
-      selector: '//input[@id="password"]',
-      locateStrategy: 'xpath',
-    },
-    loginButton: {
-      selector: '//button[@id="submit-button"]',
-      locateStrategy: 'xpath',
-    },
-    LoginError: {
-      selector: '//button[@id="submit-button"]',
-      locateStrategy: 'xpath',
-    },
-  },
-};

@@ -8,7 +8,7 @@ xroad-lxd-cs ansible_connection=lxd
 
 #certification authority, time stamping authority and ocsp service server for testing purposes (ubuntu)
 [ca_servers]
-xroad-lxd-cs ansible_connection=lxd
+xroad-lxd-ca ansible_connection=lxd
 
 #security servers (ubuntu lxd containers)
 [ss_servers]

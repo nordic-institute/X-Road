@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
-  && apt-get -qq install sudo ca-certificates gnupg supervisor net-tools locales openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget \
+  && apt-get -qq install sudo ca-certificates gnupg supervisor net-tools locales openjdk-11-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \

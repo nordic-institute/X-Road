@@ -8,4 +8,8 @@ if [[ "$1" == 'configure' && -z "$2" ]]; then
   invoke-rc.d --quiet xroad-proxy-ui-api try-restart || true
 fi
 
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
 exit 0

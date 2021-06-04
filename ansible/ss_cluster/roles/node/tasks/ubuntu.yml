@@ -1,25 +1,15 @@
 ---
-- name: check postgresql version
-  become: yes
-  become_user: postgres
-  command: psql -tqAc "show server_version"
-  register: postgresql_version_output
-
-- set_fact:
-    postgresql_version: "{{ postgresql_version_output.stdout | regex_replace('^(\\d+).*$','\\1') }}"
-  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
-
 - name: create the database
   become: yes
   become_user: postgres
-  command: pg_createcluster -p "{{ serverconf_db_port }}" "{{ postgresql_version }}" serverconf
+  command: pg_createcluster -p "{{ serverconf_db_port }}" "{{ postgresql_major_version }}" serverconf
   args:
-    creates: "/var/lib/postgresql/{{ postgresql_version }}/serverconf"
+    creates: "/var/lib/postgresql/{{ postgresql_major_version }}/serverconf"
 
 - set_fact:
-    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_version }}/serverconf"
-    postgresql_config_dir: "/etc/postgresql/{{ postgresql_version }}/serverconf"
+    postgresql_data_dir: "/var/lib/postgresql/{{ postgresql_major_version }}/serverconf"
+    postgresql_config_dir: "/etc/postgresql/{{ postgresql_major_version }}/serverconf"
 
 - set_fact:
-    postgresql_serverconf_service: "postgresql@{{ postgresql_version }}-serverconf"
+    postgresql_serverconf_service: "postgresql@{{ postgresql_major_version }}-serverconf"
   when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"

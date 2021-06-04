@@ -56,6 +56,10 @@ if [ "$1" = configure ]; then
 
 fi
 
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
 #DEBHELPER#
 
 exit 0

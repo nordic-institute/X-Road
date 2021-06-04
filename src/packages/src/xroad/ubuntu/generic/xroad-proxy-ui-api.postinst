@@ -34,6 +34,10 @@ case "$1" in
  ;;
 esac
 
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
 #DEBHELPER#
 
 exit 0

@@ -25,15 +25,21 @@
  */
 
 module.exports = class LoginCommand {
-  async command() {
+  async command(
+    username = this.api.globals.login_usr,
+    password = this.api.globals.login_pwd,
+  ) {
     const frontPage = this.api.page.ssFrontPage();
+    const mainPage = this.api.page.ssMainPage();
     frontPage.navigate();
     this.api.waitForElementVisible('//*[@id="app"]');
     frontPage
       .clearUsername()
       .clearPassword()
-      .enterUsername(this.api.globals.login_usr)
-      .enterPassword(this.api.globals.login_pwd)
+      .enterUsername(username)
+      .enterPassword(password)
       .signin();
+    // Check that correct username is displayed on topbar
+    mainPage.verifyCurrentUser(username);
   }
-};
+}

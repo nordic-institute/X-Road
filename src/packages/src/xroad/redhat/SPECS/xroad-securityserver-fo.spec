@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # produce .elX dist tag on both centos and redhat
 %define dist %(/usr/lib/rpm/redhat/dist.sh)
 
@@ -31,5 +32,7 @@ cp -p %{srcdir}/default-configuration/override-securityserver-fo.ini %{buildroot
 %defattr(-,xroad,xroad,-)
 %config /etc/xroad/conf.d/override-securityserver-fo.ini
 
-%post
+%pre -p /bin/bash
+%upgrade_check
 
+%post
