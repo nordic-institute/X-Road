@@ -45,7 +45,6 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
 import akka.actor.Props;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.After;
@@ -438,7 +437,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
 
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/");
-        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.BY_SUBSYSTEM.name());
+        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
 
         initForTest();
         testSetUp();
@@ -456,12 +455,9 @@ public class MessageLogTest extends AbstractMessageLogTest {
         TestTimestamperWorker.failNextTimestamping(false);
     }
 
-    @SneakyThrows
-    private void initLastHashStep() {
+    private void initLastHashStep() throws Exception {
         DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
-        ArchiveDigest digest = new ArchiveDigest();
-        digest.setGroupName("BUSINESS-consumer");
-        digest.setDigestEntry(lastArchive);
+        ArchiveDigest digest = new ArchiveDigest("BUSINESS-consumer", lastArchive);
         doInTransaction(session -> {
             session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
             session.save(digest);
@@ -573,7 +569,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
                 + "from ArchiveDigest d where d.digestEntry.digest is not null";
     }
 
-    @SneakyThrows
     private String getArchiveFilePath() {
         File outputDir = new File("build");
 
@@ -655,6 +650,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
          * assertTaskQueueSize(3);
          * startTimestamping();
          *
+         *
          * Now if TimestamperJob starts somewhere before startTimestamping (which
          * is a likely outcome with the default initial delay of 1 sec) the results
          * will not be what the test expects.
@@ -686,7 +682,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         @Override
         protected Props getArchiverImpl() {
-            return Props.create(TestLogArchiver.class, Paths.get("build"), Paths.get("build/tmp"));
+            return Props.create(TestLogArchiver.class, Paths.get("build"));
         }
 
         @Override

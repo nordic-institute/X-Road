@@ -35,13 +35,13 @@ public enum GroupingStrategy {
             return NO_GROUPING;
         }
     },
-    BY_MEMBER {
+    MEMBER {
         @Override
         Grouping forRecord(MessageRecord record) {
             return new MemberGrouping(record);
         }
     },
-    BY_SUBSYSTEM {
+    SUBSYSTEM {
         @Override
         Grouping forRecord(MessageRecord record) {
             return new SubsystemGrouping(record);

@@ -30,9 +30,23 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
 public class ArchiveDigest {
     private Long id;
     private String groupName;
+    @Setter
     private DigestEntry digestEntry;
+
+    protected ArchiveDigest() {
+        //for JPA
+    }
+
+    public ArchiveDigest(String groupName) {
+        this(groupName, null);
+    }
+
+    public ArchiveDigest(String groupName, DigestEntry digestEntry) {
+        this.id = null;
+        this.groupName = groupName;
+        this.digestEntry = digestEntry;
+    }
 }

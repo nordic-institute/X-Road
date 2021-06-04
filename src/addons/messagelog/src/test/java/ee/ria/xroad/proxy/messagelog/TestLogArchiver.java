@@ -33,8 +33,8 @@ class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogArchiver(Path arhivePath, Path workingPath) {
-        super(arhivePath, workingPath);
+    TestLogArchiver(Path archivePath) {
+        super(archivePath);
     }
 
     public static void waitForArchiveSuccessful() throws Exception {

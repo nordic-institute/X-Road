@@ -97,7 +97,7 @@ public final class MessageLogProperties {
     public static final String ARCHIVE_TRANSFER_COMMAND = PREFIX + "archive-transfer-command";
 
     /** log archive grouping strategy, one of
-     *  NONE, BY_MEMBER, BY_SUBSYSTEM
+     *  none, member, subsystem
      **/
     public static final String ARCHIVE_GROUPING = PREFIX + "archive-grouping";
 
@@ -246,7 +246,8 @@ public final class MessageLogProperties {
     }
 
     public static GroupingStrategy getArchiveGrouping() {
-        return GroupingStrategy.valueOf(System.getProperty(ARCHIVE_GROUPING, GroupingStrategy.NONE.name()));
+        return GroupingStrategy.valueOf(
+                System.getProperty(ARCHIVE_GROUPING, GroupingStrategy.NONE.name()).toUpperCase());
     }
 
     private static int getInt(String value, int defaultValue) {

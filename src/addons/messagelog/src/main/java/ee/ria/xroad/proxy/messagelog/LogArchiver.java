@@ -71,14 +71,11 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 @RequiredArgsConstructor
 public class LogArchiver extends UntypedAbstractActor {
 
-    private static final int MAX_RECORDS_IN_ARCHIVE = 10;
-    private static final int MAX_RECORDS_IN_BATCH = 360;
     private static final String PROPERTY_NAME_ARCHIVED = "archived";
 
     public static final String START_ARCHIVING = "doArchive";
 
     private final Path archivePath;
-    private final Path workingPath;
 
     @Override
     public void onReceive(Object message) {
@@ -138,7 +135,6 @@ public class LogArchiver extends UntypedAbstractActor {
                             throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
                         }
                     }
-                    session.flush();
                 }
                 if (recordsArchived > 0) {
                     if (recordIds.size() > 0) {
@@ -147,6 +143,7 @@ public class LogArchiver extends UntypedAbstractActor {
                     }
                     markTimestampRecordsArchived(session);
                 }
+                session.flush();
             } catch (Exception e) {
                 throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
             } finally {
@@ -276,8 +273,8 @@ public class LogArchiver extends UntypedAbstractActor {
         private final Session session;
 
         @Override
-        public void markArchiveCreated(String entryName, DigestEntry lastArchive) {
-            ArchiveDigest digest = findArchiveDigest(entryName).orElse(new ArchiveDigest());
+        public void markArchiveCreated(String groupName, DigestEntry lastArchive) {
+            ArchiveDigest digest = findArchiveDigest(groupName).orElse(new ArchiveDigest(groupName));
             digest.setDigestEntry(lastArchive);
             session.saveOrUpdate(digest);
         }
