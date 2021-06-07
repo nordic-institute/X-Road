@@ -24,22 +24,11 @@
  * THE SOFTWARE.
  */
 
-module.exports = class LoginCommand {
-  async command(
-    username = this.api.globals.login_usr,
-    password = this.api.globals.login_pwd,
-  ) {
-    const frontPage = this.api.page.ssFrontPage();
-    const mainPage = this.api.page.ssMainPage();
-    frontPage.navigate();
-    this.api.waitForElementVisible('//*[@id="app"]');
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(username)
-      .enterPassword(password)
-      .signin();
-    // Check that correct username is displayed on topbar
-    mainPage.verifyCurrentUser(username);
+module.exports = class PauseExecution {
+  async command() {
+    console.log('/nPausing execution, CTRL-C to break');
+    //TODO might want figure out a way to make this resumeable
+    this.api.pause(10000000);
   }
 }
+
