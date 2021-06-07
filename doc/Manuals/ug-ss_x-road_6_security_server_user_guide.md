@@ -175,7 +175,7 @@ Doc. ID: UG-SS
 - [12 Audit Log](#12-audit-log)
   - [12.1 Changing the Configuration of the Audit Log](#121-changing-the-configuration-of-the-audit-log)
   - [12.2 Archiving the Audit Log](#122-archiving-the-audit-log)
-- [13 Backing up and Restoring Configuration](#13-backing-up-and-restoring-configuration)
+- [13 Back up and Restore](#13-back-up-and-restore)
   - [13.1 Back Up and Restore in the User Interface](#131-back-up-and-restore-in-the-user-interface)
   - [13.2 Restore from the Command Line](#132-restore-from-the-command-line)
   - [13.3 Automatic Backups](#133-automatic-backups)
@@ -1779,22 +1779,26 @@ The X-Road software does not offer special tools for archiving the audit log. Th
 
 ## 13 Back up and restore
 
-It is possible to back up and later restore security server configuration.
+It is possible to back up and later restore security server configuration. A backup archive file contains the
+following configuration:
 
-Backup archive contains
 - copy of serverconf database
 - user modifiable configuration files
-- TLS keys and certificates (both internal and ui certificate)
-- database credentials
+- keys and certificates
+  - security server's auth key and certificate
+  - members' sign keys and certificates (that are stored in soft token)
+  - security server's internal TLS key and certificate
+  - security server's UI key and certificate
+- database credentials.
 
-Note that backups contain information that must be kept secret (especially TLS keys and database credentials).
-In other words leaking this information could easily lead to full compromise of security server.
-It is therefore highly recommended that backup archives are encrypted and stored securely. Should the information still
-leak for whatever reason the security server should be considered as compromised and reinstalled from scratch.
+Backups contain sensitive information that must be kept secret (for example, private keys and database credentials).
+In other words, leaking this information could easily lead to full compromise of security server. Therefore, it is
+highly recommended that backup archives are encrypted and stored securely. Should the information still leak for whatever
+reason the security server should be considered as compromised and reinstalled from scratch.
 
-Starting from version 7.0 security server backups are signed and optionally encrypted. The GNU Privacy Guard \[[GnuPG](#Ref_GnuPG)\]
-is used for encryption and signing. GPG keypair is generated during security server initialisation. In addition to generated
-key additional public keys can be used to encrypt backups.
+Security server backups are signed and optionally encrypted. The GNU Privacy Guard [GnuPG] is used for encryption and signing.
+Security server's backup encryption key is generated during security server initialisation. In addition to the
+automatically generated backup encryption key, additional public keys can be used to encrypt backups.
 
 ### 13.1 Back up and Restore in the User Interface
 
@@ -1874,14 +1878,16 @@ automatically removed from the server. If needed, the automatic backup policies 
 
 ### 13.4 Backup Encryption Configuration
 
-Back up encryption is initially turned off. To turn encryption on configuration must be overridden in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section.
+Backups are always signed, but backup encryption is initially turned off. To turn encryption on, please override the
+default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
     [proxy]
     backup-encrypted=false
     backup-public-key-path=/etc/xroad/backupkeys
 
-Backups are always signed. To turn on backup encryption add or change the `backup-encrypted` key to true. If needed also 
-change the folder where additional backup encryption keys are stored. Default is `/etc/xroad/backupkeys`.
+To turn backup encryption on, please change the `backup-encrypted` property value to true. By default, additional
+encryption keys are stored in the `/etc/xroad/backupkeys` directory. The default directory can be changed by modifying
+the `backup-public-key-path` property value.
 
 Backup encryption keys folder must contain only GPG public key files. In addition to security servers public key backup
 archives are encrypted with all the keys in this folder. It is recommended to use at least one additional public key,
@@ -1896,32 +1902,38 @@ key being exported) using this command:
 
 Resulting file `backupadmin.publickey` should be moved to security server and copied to backup encryption keys folder.
 Transfer of the public key does not have to be secure but administrator has to make sure that file is not changed during
-transfer, for example validating file hash.
+transfer, for example validating file hash. 
+
+Public keys have to be readable by xroad user. This can be done using these commands:
+
+    chown xroad:xroad backupadmin.publickey
+    chmod ug=r, o= backupadmin.publickey
 
 Private keys corresponding to additional backup encryption public keys must be handled safely and kept in secret. Any of
 them can be used to decrypt backups and thus mount attacks on the security servers.
 
 ### 13.5 Verifying Backup Archive Consistency
 
-Security server verifies consistency of backup archives automatically. It is also possible to check archives externally.
-For checking consistency security servers public key is needed. When backups are encrypted then a private key for decrypting
-archive is also needed (GPG uses "sign then encrypt" scheme, so it is not possible to verify encrypted archives without
-decrypting them).
+During restore security server verifies consistency of backup archives automatically, archives are not checked during upload.
+Also, it is possible to verify the consistency of the archives externally. For verifying the consistency externally,
+security server's public key is needed. When backups are encrypted, then a private key for decrypting archive is also needed.
+GPG uses "sign then encrypt" scheme, so it is not possible to verify encrypted archives without decrypting them.
 
-Automatic backup verification is only possible when original security server keypair is available. Should keypair on
-the security server be lost for whatever reason, automatic verification is no longer possible. It is recommended to
-export backup encryption public key and import it into separate secure environment. If backups are encrypted security
-server public key should be imported to keyrings holding additional encryption keys, so that backups can be decrypted
-and verified in these separate environemnts.
+Automatic backup verification is only possible when original security server keypair is available. Should keypair on the
+security server be lost for whatever reason, automatic verification is no longer possible. Therefore, it is recommended
+to export backup encryption public key and import it into separate secure environment. If backups are encrypted,
+security server public key should be imported to keyrings holding additional encryption keys, so that backups can be
+decrypted and verified in these separate environments.
 
 To export security servers backup encryption public key use the following command:
 
-    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>
 
-where `AA/GOV/TS1OWNER/TS1` is the security server id. 
+where <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode> is the security server id,
+for example, AA/GOV/TS1OWNER/TS1
 
 Resulting file (server-public-key.gpg) should then be exported from security server and imported to GPG keystore used
-for backup archive consistency checking.
+for backup archive consistency verification.
 
 ## 14 Diagnostics
 

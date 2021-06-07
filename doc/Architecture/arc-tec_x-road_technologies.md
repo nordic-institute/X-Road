@@ -3,7 +3,7 @@
 **Technical Specification**
 
 Version: 1.6<br/>
-15.09.2020
+02.06.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
