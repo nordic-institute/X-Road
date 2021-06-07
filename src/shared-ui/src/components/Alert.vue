@@ -27,7 +27,7 @@
 <template>
   <div class="px-3">
     <!-- Error -->
-    <v-container fluid class="alerts-container px-3" v-if="show">
+    <v-container v-if="show" fluid class="alerts-container px-3">
       <v-alert
         data-test="contextual-modal-alert"
         color="red"
