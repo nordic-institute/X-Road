@@ -29,7 +29,7 @@
     "axios": "^0.21.1",
     "core-js": "~3.13.1",
     "vee-validate": "3.4.8",
-    "vue": "~2.6.12",
+    "vue": "2.6.12",
     "vue-i18n": "~8.24.3",
     "vue-router": "~3.5.1",
     "vuetify": "^2.4.8",
@@ -63,7 +63,7 @@
     "sass-loader": "~10.1.1",
     "typescript": "4.3.2",
     "vue-cli-plugin-vuetify": "~2.4.1",
-    "vue-template-compiler": "~2.6.12",
+    "vue-template-compiler": "2.6.12",
     "vuetify-loader": "~1.7.1"
   }
 }
