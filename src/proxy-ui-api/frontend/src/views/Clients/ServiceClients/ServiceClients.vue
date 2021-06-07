@@ -40,9 +40,9 @@
       <xrd-button
         v-if="showAddSubjects"
         color="primary"
-        @click="addServiceClient"
         data-test="add-service-client"
         class="ma-0 elevation-0"
+        @click="addServiceClient"
         ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
         >{{ $t('serviceClients.addServiceClient') }}
       </xrd-button>
@@ -59,10 +59,10 @@
         <template v-if="serviceClients.length > 0">
           <tbody>
             <tr
-              v-for="sc in this.filteredServiceClients()"
-              v-bind:key="sc.id"
-              @click="showAccessRights(sc.id)"
+              v-for="sc in filteredServiceClients()"
+              :key="sc.id"
               data-test="open-access-rights"
+              @click="showAccessRights(sc.id)"
             >
               <td class="identifier-wrap clickable-link">{{ sc.name }}</td>
               <td class="identifier-wrap">{{ sc.id }}</td>
@@ -103,6 +103,9 @@ export default Vue.extend({
       );
     },
   },
+  created() {
+    this.fetchServiceClients();
+  },
   methods: {
     fetchServiceClients() {
       api
@@ -130,9 +133,6 @@ export default Vue.extend({
         `/subsystem/${this.id}/serviceclients/${serviceClientId}`,
       );
     },
-  },
-  created() {
-    this.fetchServiceClients();
   },
 });
 </script>

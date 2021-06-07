@@ -33,18 +33,18 @@
     <td class="text-right">
       <xrd-button
         v-if="canEdit"
-        @click="openEditDialog"
         text
         :disabled="removingApiKey"
         :data-test="`api-key-row-${apiKey.id}-edit-button`"
+        @click="openEditDialog"
         >{{ $t('apiKey.table.action.edit.button') }}</xrd-button
       >
       <xrd-simple-dialog
         :dialog="showEditDialog"
-        @save="save"
-        @cancel="showEditDialog = false"
         save-button-text="action.save"
         :disable-save="selectedRoles.length === 0"
+        @save="save"
+        @cancel="showEditDialog = false"
       >
         <span
           slot="title"
@@ -62,7 +62,7 @@
               {{ $t('apiKey.table.action.edit.dialog.message') }}
             </v-col>
           </v-row>
-          <v-row no-gutters v-for="role in roles" :key="role">
+          <v-row v-for="role in roles" :key="role" no-gutters>
             <v-col class="checkbox-wrapper">
               <v-checkbox
                 v-model="selectedRoles"
@@ -112,14 +112,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {
-    canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
-    },
-    canRevoke(): boolean {
-      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
-    },
-  },
   data() {
     return {
       confirmRevoke: false,
@@ -129,6 +121,14 @@ export default Vue.extend({
       roles: Roles,
       selectedRoles: [...this.apiKey.roles] as string[],
     };
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+    },
+    canRevoke(): boolean {
+      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
+    },
   },
   methods: {
     translateRoles(roles: string[]): string[] {

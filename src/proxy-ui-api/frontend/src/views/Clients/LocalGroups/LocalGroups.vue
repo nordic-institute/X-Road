@@ -39,8 +39,8 @@
 
       <xrd-button
         v-if="showAddGroup"
-        @click="addGroup"
         data-test="add-local-group-button"
+        @click="addGroup"
         ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('localGroups.addGroup') }}</xrd-button
       >
@@ -55,7 +55,7 @@
           <th>{{ $t('localGroups.updated') }}</th>
         </tr>
         <template v-if="groups && groups.length > 0">
-          <tr v-for="group in filtered()" v-bind:key="group.code">
+          <tr v-for="group in filtered()" :key="group.code">
             <td class="identifier-wrap">
               <span class="cert-name" @click="viewGroup(group)">{{
                 group.code
@@ -70,8 +70,8 @@
     </v-card>
 
     <newGroupDialog
-      :dialog="addGroupDialog"
       :id="id"
+      :dialog="addGroupDialog"
       @cancel="closeDialog()"
       @group-added="groupAdded()"
     />

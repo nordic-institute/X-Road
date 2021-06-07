@@ -27,23 +27,23 @@
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
+        <div v-for="item in csrForm" :key="item.id" class="row-wrap">
           <div class="label">
             {{ $t('certificateProfile.' + item.label_key) }}
           </div>
 
           <div>
             <ValidationProvider
+              v-slot="{ errors }"
               :name="item.id"
               :rules="item.required && 'required'"
-              v-slot="{ errors }"
             >
               <v-text-field
+                v-model="item.default_value"
                 class="form-input"
                 :name="item.id"
                 type="text"
                 outlined
-                v-model="item.default_value"
                 :disabled="item.read_only"
                 :error-messages="errors"
                 data-test="dynamic-csr-input"
@@ -55,9 +55,9 @@
         <div class="generate-row">
           <div>{{ $t('csr.saveInfo') }}</div>
           <xrd-button
-            @click="generateCsr"
             :disabled="invalid || !disableDone"
             data-test="generate-csr-button"
+            @click="generateCsr"
             >{{ $t('csr.generateCsr') }}</xrd-button
           >
         </div>
@@ -65,24 +65,24 @@
       <div class="button-footer">
         <xrd-button
           outlined
-          @click="cancel"
           :disabled="!disableDone"
           data-test="cancel-button"
+          @click="cancel"
           >{{ $t('action.cancel') }}</xrd-button
         >
 
         <xrd-button
-          @click="previous"
           outlined
           class="previous-button"
           data-test="previous-button"
           :disabled="!disableDone"
+          @click="previous"
           >{{ $t('action.previous') }}</xrd-button
         >
         <xrd-button
-          @click="done"
           :disabled="disableDone"
           data-test="save-button"
+          @click="done"
           >{{ $t(saveButtonText) }}</xrd-button
         >
       </div>
@@ -111,13 +111,13 @@ export default Vue.extend({
       default: false,
     },
   },
-  computed: {
-    ...mapGetters(['csrForm']),
-  },
   data() {
     return {
       disableDone: true,
     };
+  },
+  computed: {
+    ...mapGetters(['csrForm']),
   },
   methods: {
     cancel(): void {

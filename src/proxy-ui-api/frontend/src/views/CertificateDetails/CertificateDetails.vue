@@ -27,37 +27,37 @@
   <div class="certificate-details-wrapper xrd-default-shadow">
     <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
-      <div class="details-view-tools" v-if="certificate">
+      <div v-if="certificate" class="details-view-tools">
         <xrd-button
           v-if="showActivate"
           class="button-spacing"
           outlined
-          @click="activateCertificate(certificate.certificate_details.hash)"
           data-test="activate-button"
+          @click="activateCertificate(certificate.certificate_details.hash)"
           >{{ $t('action.activate') }}</xrd-button
         >
         <xrd-button
           v-if="showDisable"
           class="button-spacing"
           outlined
-          @click="deactivateCertificate(certificate.certificate_details.hash)"
           data-test="deactivate-button"
+          @click="deactivateCertificate(certificate.certificate_details.hash)"
           >{{ $t('action.deactivate') }}</xrd-button
         >
         <xrd-button
           v-if="showUnregister"
           class="button-spacing"
           outlined
-          @click="confirmUnregisterCertificate = true"
           data-test="unregister-button"
+          @click="confirmUnregisterCertificate = true"
           >{{ $t('action.unregister') }}</xrd-button
         >
         <xrd-button
           v-if="showDelete"
           class="button-spacing"
           outlined
-          @click="showConfirmDelete()"
           data-test="delete-button"
+          @click="showConfirmDelete()"
         >
           <v-icon class="xrd-large-button-icon">icon-Declined</v-icon>
 
@@ -94,7 +94,7 @@
     <!-- Confirm dialog for unregister error handling -->
     <UnregisterErrorDialog
       v-if="unregisterErrorResponse"
-      :errorResponse="unregisterErrorResponse"
+      :error-response="unregisterErrorResponse"
       :dialog="confirmUnregisterError"
       @cancel="confirmUnregisterError = false"
       @accept="markForDeletion()"
@@ -131,7 +131,7 @@ export default Vue.extend({
     },
     usage: {
       type: String,
-      required: false,
+      default: undefined,
     },
   },
   data() {
@@ -216,6 +216,9 @@ export default Vue.extend({
 
       return false;
     },
+  },
+  created() {
+    this.fetchData(this.hash);
   },
 
   methods: {
@@ -335,9 +338,6 @@ export default Vue.extend({
           this.confirmUnregisterError = false;
         });
     },
-  },
-  created() {
-    this.fetchData(this.hash);
   },
 });
 </script>

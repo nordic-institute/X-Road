@@ -29,7 +29,7 @@
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
-        <i @click="cancel()" data-test="x-close-button"></i>
+        <i data-test="x-close-button" @click="cancel()"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px" class="elevation-0">
@@ -56,7 +56,7 @@
               </tr>
             </thead>
             <tbody v-if="selectableClients && selectableClients.length > 0">
-              <tr v-for="member in filteredMembers()" v-bind:key="member.id">
+              <tr v-for="member in filteredMembers()" :key="member.id">
                 <td class="checkbox-column">
                   <div class="checkbox-wrap">
                     <v-radio :key="member.id" :value="member"></v-radio>
@@ -80,15 +80,15 @@
         <xrd-button
           class="button-margin"
           outlined
-          @click="cancel()"
           data-test="cancel-button"
+          @click="cancel()"
           >{{ $t('action.cancel') }}</xrd-button
         >
 
         <xrd-button
           :disabled="!selectedMember"
-          @click="save()"
           data-test="save-button"
+          @click="save()"
           >{{ $t('localGroup.addSelected') }}</xrd-button
         >
       </v-card-actions>

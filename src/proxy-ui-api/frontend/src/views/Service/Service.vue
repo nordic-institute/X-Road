@@ -27,13 +27,13 @@
   <div class="xrd-tab-max-width main-wrap">
     <xrd-sub-view-title
       :title="service.full_service_code"
-      @close="close"
       class="sub-view-title-spacing"
+      @close="close"
     />
 
     <v-tabs
       v-if="$route.query.descriptionType !== serviceTypeEnum.WSDL"
-      v-model="tab"
+      v-model="currentTab"
       background-color="#F4F3F6"
       class="xrd-tabs"
       color="primary"
@@ -45,7 +45,7 @@
       ></v-tabs-slider>
       <v-tab
         v-for="tab in tabs"
-        v-bind:key="tab.key"
+        :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
         >{{ $t(tab.name) }}</v-tab
@@ -53,9 +53,9 @@
     </v-tabs>
 
     <router-view
-      v-on:update-service="fetchData"
       service="service"
       class="sub-view-spacing"
+      @update-service="fetchData"
     />
   </div>
 </template>
@@ -82,7 +82,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: null,
+      currentTab: undefined as undefined | Tab,
       serviceTypeEnum: ServiceTypeEnum,
     };
   },
@@ -118,6 +118,10 @@ export default Vue.extend({
     },
   },
 
+  created() {
+    this.fetchData(this.serviceId);
+  },
+
   methods: {
     fetchData(serviceId: string): void {
       api
@@ -146,10 +150,6 @@ export default Vue.extend({
         params: { id: this.clientId },
       });
     },
-  },
-
-  created() {
-    this.fetchData(this.serviceId);
   },
 });
 </script>

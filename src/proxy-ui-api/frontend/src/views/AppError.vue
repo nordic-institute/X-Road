@@ -50,11 +50,11 @@
               color="primary"
               gradient
               large
-              @click="home"
               :min_width="401"
               :width="401"
               class="button"
               rounded
+              @click="home"
               >{{ $t('action.goToFront') }}</xrd-button
             >
           </div>

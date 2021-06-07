@@ -44,8 +44,8 @@
         </v-col>
         <v-col cols="8">
           <v-text-field
-            autofocus
             v-model="distinguishedName"
+            autofocus
             outlined
             data-text="generate-internal-csr-distinguished-name-field"
             :placeholder="
@@ -74,17 +74,17 @@
     </v-container>
     <div class="button-footer">
       <xrd-button
-        @click="back"
         :disabled="csrGenerated || generatingCsr"
         outlined
         data-test="generate-internal-csr-cancel-button"
+        @click="back"
         >{{ $t('ssTlsCertificate.generateInternalCsr.cancel') }}</xrd-button
       >
 
       <xrd-button
-        @click="back"
         :disabled="!csrGenerated"
         data-test="generate-internal-csr-done-button"
+        @click="back"
         >{{ $t('ssTlsCertificate.generateInternalCsr.done') }}</xrd-button
       >
     </div>
