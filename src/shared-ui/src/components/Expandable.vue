@@ -32,16 +32,16 @@
           fab
           icon
           small
-          @click="clicked"
           class="no-hover"
-          v-bind:disabled="isDisabled"
-          v-bind:style="{ color }"
+          :disabled="isDisabled"
+          :style="{ color }"
+          @click="clicked"
         >
           <v-icon v-if="isOpen" color="primary">mdi-chevron-down</v-icon>
           <v-icon v-else color="primary">mdi-chevron-right</v-icon>
         </v-btn>
       </div>
-      <div v-bind:class="{ 'text--disabled': isDisabled }">
+      <div :class="{ 'text--disabled': isDisabled }">
         <slot name="link"></slot>
       </div>
 
@@ -52,7 +52,7 @@
     </div>
     <div
       v-if="isOpen"
-      v-bind:class="['exp-content-wrap', { 'v-input--disabled': isDisabled }]"
+      :class="['exp-content-wrap', { 'v-input--disabled': isDisabled }]"
     >
       <slot name="content"></slot>
     </div>
@@ -66,7 +66,7 @@ import Vue from 'vue';
  * Expandable can be clicked open and has slots for a link and ans action
  */
 export default Vue.extend({
-  name: 'expandable',
+  name: 'Expandable',
   props: {
     isOpen: {
       type: Boolean,
