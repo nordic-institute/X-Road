@@ -79,10 +79,12 @@
 
 import Vue from 'vue';
 import CloseButton from '@/components/CloseButton.vue';
+import XrdButton from '@/components/Button.vue';
 
 export default Vue.extend({
   components: {
     CloseButton,
+    XrdButton,
   },
   props: {
     // Title of the dialog
