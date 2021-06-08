@@ -738,4 +738,118 @@ module.exports = {
 
     browser.end();
   },
+  'Security server import authkey': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = browser.page.tabs.keysTab();
+    const signAuthTab = keysTab.section.signAuthKeysTab;
+
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+    // Navigate to target page
+    mainPage.openKeysTab();
+    keysTab.openSignAndAuthKeys();
+    browser.waitForElementVisible(signAuthTab);
+
+    signAuthTab.toggleExpandToken();
+    browser.waitForElementNotPresent(signAuthTab.elements.initializedAuthCert)
+
+    // Test wrong type of file
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_csr);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
+    mainPage.closeAlertMessage();
+
+    // Test wrong server cert
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_cert);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
+    mainPage.closeAlertMessage();
+
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_auth_cert);
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
+    mainPage.closeSnackbar();
+
+    // Verify status of new certificate
+    browser.waitForElementVisible('//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]');
+
+    browser.click(signAuthTab.elements.initializedAuthCert);
+
+    // Verify that the correct crt was imported
+    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road import")]]');
+
+    browser.end();
+  },
+  'Security server import signkey': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = browser.page.tabs.keysTab();
+    const signAuthTab = keysTab.section.signAuthKeysTab;
+
+    var initialCerts;
+
+    // Open SUT and check that page is loaded
+    frontPage.navigate();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+    // Navigate to target page
+    mainPage.openKeysTab();
+    keysTab.openSignAndAuthKeys();
+    browser.waitForElementVisible(signAuthTab);
+
+    signAuthTab.toggleExpandToken();
+
+    // Get number of inital registered sign keys
+    browser.elements(
+      'xpath',
+      '//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]]',
+      function (result) {
+        initialCerts = result.value.length;
+      },
+    );
+    // Test wrong type of file
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_csr);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
+    mainPage.closeAlertMessage();
+
+    // Test wrong server cert
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_cert);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
+    mainPage.closeAlertMessage();
+
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_sign_cert);
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
+    mainPage.closeSnackbar();
+
+
+    // Verify that a certificate has been added with the correct status
+    browser.perform(function () {
+      browser.waitForElementVisible(
+        '(//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]])[' +
+          (initialCerts + 1) +
+          ']',
+      );
+    });
+
+    // Open imported certificate
+    browser.perform(function () {
+      browser.click(
+        '(//tr[.//div[contains(@class, "status-text") and contains(text(), "Registered")]]//div[contains(@class, "clickable-link")])[' +
+          (initialCerts + 1) +
+          ']',
+      );
+    });
+
+
+    // Verify that the correct crt was imported
+    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road Import")]]');
+
+    browser.end();
+  },
 };
