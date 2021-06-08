@@ -475,6 +475,58 @@
     "1748|@vue/cli-service>webpack-dev-server>ws": {
       "decision": "ignore",
       "madeAt": 1622714812232
+    },
+    "1751|@vue/cli-plugin-babel>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-plugin-eslint>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-plugin-typescript>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-service>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-plugin-eslint>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-plugin-typescript>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-service>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-service>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1751|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1623150284616
+    },
+    "1754|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>css-what": {
+      "decision": "ignore",
+      "madeAt": 1623150286791
+    },
+    "1754|@vue/cli-service>cssnano>cssnano-preset-default>postcss-svgo>svgo>css-select>css-what": {
+      "decision": "ignore",
+      "madeAt": 1623150286791
+    },
+    "1754|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-svgo>svgo>css-select>css-what": {
+      "decision": "ignore",
+      "madeAt": 1623150286791
+    },
+    "1754|@vue/cli-service>html-webpack-plugin>pretty-error>renderkid>css-select>css-what": {
+      "decision": "ignore",
+      "madeAt": 1623150286791
     }
   },
   "rules": {},
