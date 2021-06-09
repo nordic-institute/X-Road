@@ -883,6 +883,22 @@
     "1754|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-svgo>svgo>css-select>css-what": {
       "decision": "ignore",
       "madeAt": 1623150887993
+    },
+    "1755|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-normalize-url>normalize-url": {
+      "decision": "ignore",
+      "madeAt": 1623230434630
+    },
+    "1755|@vue/cli-service>cssnano>cssnano-preset-default>postcss-normalize-url>normalize-url": {
+      "decision": "ignore",
+      "madeAt": 1623230434630
+    },
+    "1755|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano-preset-default>postcss-normalize-url>normalize-url": {
+      "decision": "ignore",
+      "madeAt": 1623230434630
+    },
+    "1755|@vue/cli-service>mini-css-extract-plugin>normalize-url": {
+      "decision": "ignore",
+      "madeAt": 1623230434630
     }
   },
   "rules": {},
