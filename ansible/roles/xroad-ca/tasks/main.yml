@@ -11,6 +11,7 @@
       update_cache: yes
   vars:
     items:
+      - "python"
       - "acl"
       - "nginx-light"
       - "openssl"
