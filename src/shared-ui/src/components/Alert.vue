@@ -33,7 +33,7 @@
         color="red"
         border="left"
         colored-border
-        class="mb-2"
+        class="alert mb-2"
         icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">

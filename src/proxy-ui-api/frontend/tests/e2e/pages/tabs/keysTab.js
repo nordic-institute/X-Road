@@ -56,6 +56,13 @@ var signAuthKeysTabCommands = {
     this.click('@logoutButton');
     return this;
   },
+  importCert: function (certfile) {
+    this.api.setValue(
+      '//input[@type="file"]',
+      require('path').resolve(__dirname + certfile),
+    );
+    return this;
+  },
   openAddKeyWizard: function () {
     this.click('@addTokenKeyButton');
     return this;
@@ -391,6 +398,11 @@ const keysTab = {
         signCertIcon: {
           selector:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//i[contains(@class, "icon-xrd_certificate")]',
+          locateStrategy: 'xpath',
+        },
+        initializedAuthCert: {
+          selector:
+            '//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]',
           locateStrategy: 'xpath',
         },
       },
