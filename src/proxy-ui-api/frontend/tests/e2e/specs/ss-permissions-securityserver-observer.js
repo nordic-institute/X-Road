@@ -24,10 +24,39 @@
  * THE SOFTWARE.
  */
 
+// Tabs
+let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab;
+
+// Other
+let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton, createAPIKeyButton, localGroupPopup,
+  clientLocalGroups, globalConfiguration;
+
+
 module.exports = {
-  tags: ['ss', 'xroad-securityserver-observer', 'permissions',],
+  tags: ['ss', 'xroad-securityserver-observer', 'permissions'],
 
   before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    keysTab = mainPage.section.keysTab;
+    settingsTab = mainPage.section.settingsTab;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+    backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
+
+    createAPIKeyButton = mainPage.section.keysTab.elements.createAPIKeyButton;
+    generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    anchorDownloadButton = backupAndRestoreTab.elements.anchorDownloadButton;
+
+    tokenName = mainPage.section.keysTab.elements.tokenName;
+    searchField = mainPage.section.clientsTab.elements.searchField;
+    clientInfo = mainPage.section.clientInfo;
+    clientLocalGroups = clientInfo.section.localGroups;
+    localGroupPopup = mainPage.section.localGroupPopup;
+    globalConfiguration =
+      mainPage.section.diagnosticsTab.elements.globalConfiguration;
+
+    // Test starts here...
     browser.LoginCommand(browser.globals.login_securityserver_observer, browser.globals.login_pwd);
   },
 
@@ -35,13 +64,7 @@ module.exports = {
     browser.end();
   },
 
-
   'Can not add clients': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
-
-
     // clients
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
@@ -49,16 +72,7 @@ module.exports = {
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
   },
 
-
   'Can not add keys': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
-    const createAPIKeyButton =
-      mainPage.section.keysTab.elements.createAPIKeyButton;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
-
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -70,11 +84,6 @@ module.exports = {
   },
 
   'Can see functions in diagnostics': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const globalConfiguration =
-      mainPage.section.diagnosticsTab.elements.globalConfiguration;
-
     // diagnostics
     mainPage.openDiagnosticsTab();
     browser.waitForElementVisible(diagnosticsTab);
@@ -82,11 +91,6 @@ module.exports = {
   },
 
   'Can see functions in settingsettings': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const settingsTab = mainPage.section.settingsTab;
-    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
-    const anchorDownloadButton = backupAndRestoreTab.elements.anchorDownloadButton;
-
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
@@ -94,10 +98,6 @@ module.exports = {
     browser.waitForElementNotPresent(backupAndRestoreTab);
   },
   'Should be able to see clients details': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-
     // Security server observer should see clients details
     mainPage.openClientsTab();
     clientsTab.openClient('TestGov');
@@ -121,12 +121,6 @@ module.exports = {
       );
   },
   'should see local groups list': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientLocalGroups = clientInfo.section.localGroups;
-    const localGroupPopup = mainPage.section.localGroupPopup;
-
     mainPage.openClientsTab();
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling

@@ -23,10 +23,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+let frontPage;
+
 module.exports = {
   tags: ['ss', 'login'],
   before: function (browser) {
-    const frontPage = browser.page.ssFrontPage();
+    frontPage = browser.page.ssFrontPage();
+
     frontPage.navigate();
   },
 
@@ -37,7 +41,6 @@ module.exports = {
     browser.end();
   },
   'Wrong username is rejected': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
     frontPage
       .enterUsername('invalid')
       .enterPassword(browser.globals.login_pwd)
@@ -45,7 +48,6 @@ module.exports = {
       .loginErrorMessageIsShown();
   },
   'Wrong password is rejected': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
     frontPage
       .enterUsername(browser.globals.login_usr)
       .enterPassword('invalid')
