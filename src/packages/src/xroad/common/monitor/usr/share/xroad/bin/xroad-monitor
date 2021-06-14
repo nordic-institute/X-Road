@@ -1,4 +1,4 @@
 #!/bin/bash
 . /etc/xroad/services/monitor.conf
-exec java ${MONITOR_PARAMS} ${XROAD_PARAMS} -cp ${CP} ee.ria.xroad.monitor.MonitorMain
+exec java ${XROAD_PARAMS} ${MONITOR_PARAMS} -cp "${CP}" ee.ria.xroad.monitor.MonitorMain
 
