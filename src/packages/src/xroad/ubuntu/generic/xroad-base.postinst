@@ -42,7 +42,7 @@ if [ "$1" = configure ]; then
     chown xroad:xroad /var/tmp/xroad
 
     #local overrides
-    test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
+    test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
     test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 
     test -d /etc/xroad/conf.d || mkdir -p -m 0750 /etc/xroad/conf.d && chown xroad:xroad /etc/xroad/conf.d

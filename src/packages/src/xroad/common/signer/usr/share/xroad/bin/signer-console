@@ -12,4 +12,4 @@ if [[ -t 0 && -x /usr/bin/rlwrap ]]; then
   cmd="/usr/bin/rlwrap $cmd"
 fi
 
-exec $cmd ${SIGNER_CONSOLE_PARAMS} ${XROAD_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar "$@"
+exec $cmd ${XROAD_PARAMS} ${SIGNER_CONSOLE_PARAMS} -jar /usr/share/xroad/jlib/signer-console.jar "$@"
