@@ -3,7 +3,7 @@
   fail:
     msg: "This playbook only supports Ubuntu"
   when: ansible_os_family != "Debian"
-  
+
 - name: install required packages
   apt:
       name: "{{ items }}"
@@ -11,7 +11,7 @@
       update_cache: yes
   vars:
     items:
-      - "python"
+      - "python3"
       - "acl"
       - "nginx-light"
       - "openssl"
@@ -39,27 +39,18 @@
 
 - name: copy root user directories
   copy:
-    src: "common-files/{{ item }}"
+    src: "files/{{ item }}"
     dest: /
     group: "root"
     owner: "root"
   with_items:
     - "etc"
     - "usr"
-
-- name: copy root user directories for ubuntu
-  copy:
-    src: "ubuntu-files/{{ item }}"
-    dest: /
-    group: "root"
-    owner: "root"
-  with_items:
     - "lib"
-  when: ansible_distribution_release == "bionic" or ansible_distribution_release == "focal"
 
 - name: copy ca group directories
   copy:
-    src: "common-files/{{ item }}"
+    src: "files/{{ item }}"
     dest: /home
     group: "ca"
     owner: "ca"
@@ -76,7 +67,7 @@
     - "sign-sign"
     - "ca-revoke"
 
-- name: set file permissions 2
+- name: set file permissions for CA
   file:
     mode: 0740
     path: "/home/ca/CA/{{ item }}"
@@ -89,7 +80,7 @@
     - "ca.py"
     - "sign_req.sh"
 
-- name: set file permissions 3
+- name: set file permissions for TSA
   file:
     mode: 0664
     path: "/home/ca/TSA/{{ item }}"
@@ -136,6 +127,10 @@
   file:
     path: /etc/nginx/sites-enabled/ocsp.nginx
     state: absent
+
+- name: refresh systemd
+  systemd:
+    daemon_reload: yes
 
 - name: restart nginx
   service:
