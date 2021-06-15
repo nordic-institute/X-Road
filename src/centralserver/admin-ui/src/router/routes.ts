@@ -53,6 +53,12 @@ import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore
 
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 
+import GlobalConfiguration from '@/views/GlobalConfiguration/GlobalConfiguration.vue';
+import GlobalConfigurationTabs from '@/views/GlobalConfiguration/GlobalConfigurationTabs.vue';
+import ExternalConfiguration from '@/views/GlobalConfiguration/ExternalConfiguration/ExternalConfiguration.vue';
+import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfiguration/InternalConfiguration.vue';
+import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
+
 const routes: RouteConfig[] = [
   {
     path: '/',
@@ -178,10 +184,38 @@ const routes: RouteConfig[] = [
         name: RouteName.GlobalConfiguration,
         path: '/global-configuration',
         components: {
-          default: MockView1,
+          default: GlobalConfiguration,
           top: TabsBase,
+          subTabs: GlobalConfigurationTabs,
           alerts: AlertsContainer,
         },
+        props: {
+          subTabs: true,
+        },
+        children: [
+          {
+            name: RouteName.InternalConfiguration,
+            path: '',
+            component: InternalConfiguration,
+            props: true,
+            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+          },
+          {
+            name: RouteName.ExternalConfiguration,
+            path: 'external-configuration',
+            component: ExternalConfiguration,
+            props: true,
+            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+          },
+          {
+            name: RouteName.TrustedAnchors,
+            path: 'trusted-anchors',
+            component: TrustedAnchors,
+            props: true,
+            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+          },
+        ],
+
         meta: { permissions: [Permissions.MOCK_PERMISSION1] },
       },
     ],

@@ -23,61 +23,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import { TokenStatus } from '@/mock-openapi-types';
 
-@import "./colors";
+// This enum type is aimed for styling token login/logout button
+export enum TokenUIStatus {
+  Available = 'Available',
+  Active = 'Active',
+  Inactive = 'Inactive',
+  Unavailable = 'Unavailable',
+  Unsaved = 'Unsaved',
+}
 
-.xrd-table {
-  width: 100%;
-  margin-top: 10px;
-  border-collapse: collapse;
-
-  td {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
+export const getTokenUIStatus = (status: TokenStatus): TokenUIStatus => {
+  if (
+    status === TokenStatus.USER_PIN_INCORRECT ||
+    status === TokenStatus.USER_PIN_INVALID ||
+    status === TokenStatus.USER_PIN_COUNT_LOW ||
+    status === TokenStatus.USER_PIN_FINAL_TRY
+  ) {
+    return TokenUIStatus.Available;
+  } else if (status === TokenStatus.OK) {
+    return TokenUIStatus.Active;
+  } else if (
+    status === TokenStatus.USER_PIN_EXPIRED ||
+    status === TokenStatus.USER_PIN_LOCKED
+  ) {
+    return TokenUIStatus.Unavailable;
+  } else if (status === TokenStatus.NOT_INITIALIZED) {
+    return TokenUIStatus.Unsaved;
   }
-  th {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-    text-align: left;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: $XRoad-WarmGrey100;
-  }
-
-  &.xrd-table-highlightable tbody tr:hover {
-    cursor: pointer;
-    background-color: $XRoad-Purple10;
-  }
-}
-
-.table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
-}
-
-// v7 Some of the subviews use this for "dialog" look
-.main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-  font-size: $XRoad-DefaultFontSize;
-}
-
-// v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
-.footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  border-radius: 0 0 4px 4px;
-  padding: 16px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
+  return TokenUIStatus.Inactive;
+};
