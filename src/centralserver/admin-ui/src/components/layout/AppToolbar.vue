@@ -33,12 +33,12 @@
     height="32"
     max-height="32"
   >
-    <div class="auth-container" v-if="isAuthenticated">
+    <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">X-ROAD CENTRAL SERVER</div>
       <div
+        v-show="currentSecurityServer.id"
         class="server-name"
         data-test="app-toolbar-server-name"
-        v-show="currentSecurityServer.id"
       >
         {{
           `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
@@ -56,7 +56,12 @@ import Vue from 'vue';
 import { RouteName, Colors } from '@/global';
 
 export default Vue.extend({
-  name: 'toolbar',
+  name: 'Toolbar',
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
   computed: {
     currentSecurityServer(): string {
       return 'Hello CS';
@@ -64,11 +69,6 @@ export default Vue.extend({
     isAuthenticated(): boolean {
       return true;
     },
-  },
-  data() {
-    return {
-      colors: Colors,
-    };
   },
   methods: {
     home(): void {
