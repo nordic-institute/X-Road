@@ -33,6 +33,8 @@ import Vuex, { StoreOptions } from 'vuex';
 import { module as notifications } from './modules/notifications';
 import { RootState } from '@/global';
 import { module as user } from './modules/user';
+import { module as tokens } from './modules/tokens';
+
 import VuexPersistence from 'vuex-persist';
 
 Vue.use(Vuex);
@@ -49,6 +51,7 @@ const store: StoreOptions<RootState> = {
   modules: {
     notifications,
     user,
+    tokens,
   },
   plugins: [vuexLocal.plugin],
 };
