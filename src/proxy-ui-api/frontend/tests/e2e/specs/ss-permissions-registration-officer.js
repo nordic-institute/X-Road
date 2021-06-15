@@ -28,7 +28,7 @@ let mainPage, clientsTab, searchField, keysTab, diagnosticsTab, tokenName, APIKe
   clientInfo;
 
 module.exports = {
-  tags: ['ss', 'xroad-registration-officer', 'permissions', 'WIP'],
+  tags: ['ss', 'xroad-registration-officer', 'permissions'],
   before: function (browser) {
     // Populate pageObjects for whole test suite
     mainPage = browser.page.ssMainPage();
