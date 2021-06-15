@@ -35,8 +35,8 @@ RUN pg_ctlcluster 10 main start \
 # back up read-only config (for volume support)
 RUN mkdir -p /root/etc/xroad \
   && cp -a /etc/xroad/* /root/etc/xroad/ \
-  && rm /root/etc/xroad/services/local.conf \
-     /root/etc/xroad/conf.d/local.ini \
+  && rm /root/etc/xroad/services/local.conf ||: \
+  && rm /root/etc/xroad/conf.d/local.ini \
      /root/etc/xroad/devices.ini \
      /root/etc/xroad/db.properties \
   && dpkg-query --showformat='${Version}' --show xroad-center >/root/VERSION \
