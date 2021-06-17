@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="about">
+  <div>
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">Signing Keys</div>

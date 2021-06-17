@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="about">
+  <div>
     <!-- Internal configuration -->
     <div class="header-row">
       <div class="title-search">

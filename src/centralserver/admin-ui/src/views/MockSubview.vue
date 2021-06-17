@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="about">
+  <div>
     <h1>Mock subview</h1>
   </div>
 </template>
