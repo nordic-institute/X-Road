@@ -2,6 +2,6 @@
 
 mkdir -p build
 
-cp -r ../../ansible/roles/xroad-ca/common-files/etc ./build/
-cp -r ../../ansible/roles/xroad-ca/common-files/home ./build/
+cp -r ../../ansible/roles/xroad-ca/files/etc ./build/
+cp -r ../../ansible/roles/xroad-ca/files/home ./build/
 cp -r ./files ./build/

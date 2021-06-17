@@ -77,7 +77,6 @@ rm -rf %{buildroot}
 %dir /var/lib/xroad
 %dir /var/lib/xroad/backup
 %config /etc/xroad/services/global.conf
-%config(noreplace) /etc/xroad/services/local.properties
 %config /etc/xroad/conf.d/common.ini
 %config /etc/xroad/ssl/openssl.cnf
 
@@ -153,7 +152,7 @@ chmod 1750 /var/tmp/xroad
 chown xroad:xroad /var/tmp/xroad
 
 #local overrides
-test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
+test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
 test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*

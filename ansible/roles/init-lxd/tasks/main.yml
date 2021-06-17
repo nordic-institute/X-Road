@@ -33,9 +33,3 @@
   tags:
     - centos-container-init
 
-- name: Install Python2 in container if necessary
-  delegate_to: "{{item}}"
-  raw: >
-    dpkg-query -f '${Status}' -W python python-minimal | grep -q 'ok installed' ||
-    apt-get -qq update && apt-get -qq install python
-  with_inventory_hostnames: all:!lxd_servers:!centos_ss

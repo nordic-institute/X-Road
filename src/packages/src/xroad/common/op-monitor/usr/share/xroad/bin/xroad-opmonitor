@@ -1,3 +1,3 @@
 #!/bin/bash
 . /etc/xroad/services/opmonitor.conf
-exec java ${OPMON_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain
+exec java ${XROAD_PARAMS} ${OPMON_PARAMS} -cp "${CP}${ADDON_CP}" ${ADDON_PARAMS} ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain
