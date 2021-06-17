@@ -28,11 +28,11 @@
     <xrd-sub-view-title
       class="view-title"
       :title="$t('csr.generateCsr')"
-      :showClose="false"
+      :show-close="false"
     />
     <v-stepper
-      :alt-labels="true"
       v-model="currentStep"
+      :alt-labels="true"
       class="stepper noshadow"
     >
       <v-stepper-header class="noshadow">
@@ -49,9 +49,9 @@
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <WizardPageCsrDetails
+            :show-previous-button="false"
             @cancel="cancel"
             @done="save"
-            :showPreviousButton="false"
           />
         </v-stepper-content>
         <!-- Step 2 -->
@@ -82,16 +82,28 @@ export default Vue.extend({
     keyId: {
       type: String,
       required: true,
+      default: undefined,
     },
     tokenType: {
       type: String,
       required: false,
+      default: undefined,
     },
   },
   data() {
     return {
       currentStep: 1,
     };
+  },
+  created() {
+    this.$store.commit('storeKeyId', this.keyId);
+    this.$store.dispatch('setCsrTokenType', this.tokenType);
+    this.fetchKeyData();
+    this.fetchCertificateAuthorities();
+  },
+  beforeDestroy() {
+    // Clear the vuex store
+    this.$store.dispatch('resetCsrState');
   },
   methods: {
     save(): void {
@@ -117,16 +129,6 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
-  },
-  created() {
-    this.$store.commit('storeKeyId', this.keyId);
-    this.$store.dispatch('setCsrTokenType', this.tokenType);
-    this.fetchKeyData();
-    this.fetchCertificateAuthorities();
-  },
-  beforeDestroy() {
-    // Clear the vuex store
-    this.$store.dispatch('resetCsrState');
   },
 });
 </script>

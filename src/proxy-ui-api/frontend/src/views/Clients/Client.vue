@@ -38,8 +38,8 @@
           <MakeOwnerButton
             v-if="showMakeOwner"
             :id="id"
-            @done="fetchClient"
             class="first-button"
+            @done="fetchClient"
           />
           <DeleteClientButton v-if="showDelete" :id="id" />
           <UnregisterClientButton

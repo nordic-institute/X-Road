@@ -55,6 +55,9 @@ export default Vue.extend({
       certificate: undefined as CertificateDetails | undefined,
     };
   },
+  created() {
+    this.fetchData();
+  },
   methods: {
     close(): void {
       this.$router.go(-1);
@@ -69,9 +72,6 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         });
     },
-  },
-  created() {
-    this.fetchData();
   },
 });
 </script>

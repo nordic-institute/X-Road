@@ -27,36 +27,36 @@
   <div>
     <table class="xrd-table keys-table">
       <KeysTableThead
-        :sortDirection="sortDirection"
-        :selectedSort="selectedSort"
+        :sort-direction="sortDirection"
+        :selected-sort="selectedSort"
         @set-sort="setSort"
       />
 
-      <tbody v-for="key in sortedKeys" v-bind:key="key.id">
+      <tbody v-for="key in sortedKeys" :key="key.id">
         <!-- SOFTWARE token table body -->
         <template v-if="tokenType === tokenTypes.SOFTWARE">
           <KeyRow
-            :tokenLoggedIn="tokenLoggedIn"
-            :tokenKey="key"
+            :token-logged-in="tokenLoggedIn"
+            :token-key="key"
             @generate-csr="generateCsr(key)"
             @key-click="keyClick(key)"
           />
 
           <CertificateRow
             v-for="cert in key.certificates"
-            v-bind:key="cert.id"
+            :key="cert.id"
             :cert="cert"
             @certificate-click="certificateClick(cert, key)"
           >
             <div slot="certificateAction">
               <xrd-button
-                class="table-button-fix test-register"
-                :outlined="false"
-                text
                 v-if="
                   showRegisterCertButton &&
                   cert.possible_actions.includes('REGISTER')
                 "
+                class="table-button-fix test-register"
+                :outlined="false"
+                text
                 @click="showRegisterCertDialog(cert)"
                 >{{ $t('action.register') }}</xrd-button
               >
@@ -67,15 +67,15 @@
         <!-- HARDWARE token table body -->
         <template v-if="tokenType === 'HARDWARE'">
           <KeyRow
-            :tokenLoggedIn="tokenLoggedIn"
-            :tokenKey="key"
+            :token-logged-in="tokenLoggedIn"
+            :token-key="key"
             @generate-csr="generateCsr(key)"
             @key-click="keyClick(key)"
           />
 
           <CertificateRow
             v-for="cert in key.certificates"
-            v-bind:key="cert.id"
+            :key="cert.id"
             :cert="cert"
             @certificate-click="certificateClick(cert, key)"
           >
@@ -106,10 +106,7 @@
             key.certificate_signing_requests.length > 0
           "
         >
-          <tr
-            v-for="req in key.certificate_signing_requests"
-            v-bind:key="req.id"
-          >
+          <tr v-for="req in key.certificate_signing_requests" :key="req.id">
             <td class="td-name">
               <div class="name-wrap">
                 <i class="icon-Certificate cert-icon" />
@@ -119,12 +116,12 @@
             <td colspan="4">{{ req.id }}</td>
             <td class="td-align-right">
               <xrd-button
-                class="table-button-fix"
-                :outlined="false"
-                text
                 v-if="
                   req.possible_actions.includes('DELETE') && canDeleteCsr(key)
                 "
+                class="table-button-fix"
+                :outlined="false"
+                text
                 @click="showDeleteCsrDialog(req, key)"
                 >{{ $t('keys.deleteCsr') }}</xrd-button
               >
@@ -192,6 +189,18 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      registerDialog: false,
+      confirmDeleteCsr: false,
+      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
+      selectedKey: undefined as Key | undefined,
+      sortDirection: false,
+      selectedSort: KeysSortColumn.NAME,
+      tokenTypes: TokenType,
+    };
+  },
   computed: {
     sortedKeys(): Key[] {
       return Sorting.keyArraySort(
@@ -211,18 +220,6 @@ export default Vue.extend({
         Permissions.SEND_AUTH_CERT_REG_REQ,
       );
     },
-  },
-  data() {
-    return {
-      registerDialog: false,
-      confirmDeleteCsr: false,
-      selectedCert: undefined as TokenCertificate | undefined,
-      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
-      selectedKey: undefined as Key | undefined,
-      sortDirection: false,
-      selectedSort: KeysSortColumn.NAME,
-      tokenTypes: TokenType,
-    };
   },
 
   methods: {

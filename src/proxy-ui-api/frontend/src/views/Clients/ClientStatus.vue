@@ -37,6 +37,7 @@ export default Vue.extend({
   props: {
     status: {
       type: String,
+      default: undefined,
     },
   },
 

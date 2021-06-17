@@ -38,7 +38,7 @@
     height="40"
     rounded
     class="large-button"
-    v-bind:class="{ gradient: showGradient }"
+    :class="{ gradient: showGradient }"
     @click="click"
   >
     <slot></slot>
@@ -52,7 +52,7 @@ import Vue from 'vue';
  * Wrapper for vuetify button with x-road look
  * */
 export default Vue.extend({
-  name: 'xrd-button',
+  name: 'XrdButton',
   props: {
     outlined: {
       type: Boolean,

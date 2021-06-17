@@ -68,10 +68,12 @@ export default Vue.extend({
     // Source for help image
     imageSrc: {
       type: String,
+      default: undefined,
     },
     // Help text
     text: {
       type: String,
+      default: undefined,
     },
   },
 

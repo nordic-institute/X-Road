@@ -28,14 +28,14 @@
     <xrd-sub-view-title
       class="view-title"
       :title="$t('wizard.addMemberTitle')"
-      @close="cancel()"
       data-test="wizard-title"
-      :showClose="false"
+      :show-close="false"
+      @close="cancel()"
     />
 
     <v-stepper
-      :alt-labels="true"
       v-model="currentStep"
+      :alt-labels="true"
       class="stepper noshadow"
     >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
@@ -122,19 +122,19 @@
         <!-- Step 4 -->
         <v-stepper-content :step="csrDetailsPageNumber">
           <CsrDetailsPageLocked
+            save-button-text="action.next"
             @cancel="cancel"
             @previous="currentStep--"
             @done="csrDetailsReady"
-            saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 5 -->
         <v-stepper-content :step="csrGeneratePageNumber">
           <GenerateCsrPage
+            save-button-text="action.next"
             @cancel="cancel"
             @previous="currentStep--"
             @done="currentStep++"
-            saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 6 -->
@@ -251,6 +251,25 @@ export default Vue.extend({
       return 6;
     },
   },
+  created() {
+    // Set up the CSR part with Sign mode
+    this.$store.dispatch('setupSignKey');
+    this.fetchCertificateAuthorities();
+
+    // this.$store.dispatch('fetchXroadInstances');
+    this.$store.dispatch('fetchMemberClassesForCurrentInstance');
+
+    // Store the reserved member info to vuex
+    this.$store.commit('storeReservedMember', {
+      instanceId: this.instanceId,
+      memberClass: this.memberClass,
+      memberCode: this.memberCode,
+    });
+  },
+  beforeDestroy() {
+    this.$store.dispatch('resetAddClientState');
+    this.$store.dispatch('resetCsrState');
+  },
 
   methods: {
     cancel(): void {
@@ -282,25 +301,6 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
-  },
-  created() {
-    // Set up the CSR part with Sign mode
-    this.$store.dispatch('setupSignKey');
-    this.fetchCertificateAuthorities();
-
-    // this.$store.dispatch('fetchXroadInstances');
-    this.$store.dispatch('fetchMemberClassesForCurrentInstance');
-
-    // Store the reserved member info to vuex
-    this.$store.commit('storeReservedMember', {
-      instanceId: this.instanceId,
-      memberClass: this.memberClass,
-      memberCode: this.memberCode,
-    });
-  },
-  beforeDestroy() {
-    this.$store.dispatch('resetAddClientState');
-    this.$store.dispatch('resetCsrState');
   },
 });
 </script>

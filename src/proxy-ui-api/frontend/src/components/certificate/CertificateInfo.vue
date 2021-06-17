@@ -25,51 +25,59 @@
  -->
 <template>
   <div>
-    <certificate-line childKey="version" :sourceObject="certificate" />
-    <certificate-line childKey="serial" :sourceObject="certificate" />
+    <certificate-line child-key="version" :source-object="certificate" />
+    <certificate-line child-key="serial" :source-object="certificate" />
     <certificate-line
-      childKey="signature_algorithm"
-      :sourceObject="certificate"
+      child-key="signature_algorithm"
+      :source-object="certificate"
     />
     <certificate-line
-      childKey="issuer_distinguished_name"
-      :sourceObject="certificate"
+      child-key="issuer_distinguished_name"
+      :source-object="certificate"
     />
-    <certificate-line childKey="not_before" :sourceObject="certificate" date />
-    <certificate-line childKey="not_after" :sourceObject="certificate" date />
     <certificate-line
-      childKey="subject_distinguished_name"
-      :sourceObject="certificate"
+      child-key="not_before"
+      :source-object="certificate"
+      date
+    />
+    <certificate-line child-key="not_after" :source-object="certificate" date />
+    <certificate-line
+      child-key="subject_distinguished_name"
+      :source-object="certificate"
     />
 
     <certificate-line
-      childKey="public_key_algorithm"
-      :sourceObject="certificate"
+      child-key="public_key_algorithm"
+      :source-object="certificate"
     />
     <certificate-line
-      childKey="rsa_public_key_modulus"
+      child-key="rsa_public_key_modulus"
       :label="$t('cert.rsaModulus')"
-      :sourceObject="certificate"
+      :source-object="certificate"
       chunk
     />
 
     <certificate-line
-      childKey="rsa_public_key_exponent"
+      child-key="rsa_public_key_exponent"
       :label="$t('cert.rsaExp')"
-      :sourceObject="certificate"
+      :source-object="certificate"
     />
 
-    <certificate-line childKey="state" :sourceObject="certificate" />
+    <certificate-line child-key="state" :source-object="certificate" />
     <certificate-line
-      childKey="key_usages"
-      arrayType
-      :sourceObject="certificate"
+      child-key="key_usages"
+      array-type
+      :source-object="certificate"
     />
     <certificate-line
-      childKey="subject_alternative_names"
-      :sourceObject="certificate"
+      child-key="subject_alternative_names"
+      :source-object="certificate"
     />
-    <certificate-line childKey="signature" :sourceObject="certificate" chunk />
+    <certificate-line
+      child-key="signature"
+      :source-object="certificate"
+      chunk
+    />
   </div>
 </template>
 

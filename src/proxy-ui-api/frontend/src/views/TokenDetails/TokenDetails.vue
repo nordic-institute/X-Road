@@ -44,9 +44,9 @@
           <v-col>
             <v-row no-gutters>
               <ValidationProvider
+                v-slot="{ errors }"
                 rules="required"
                 name="token.friendlyName"
-                v-slot="{ errors }"
                 class="validation-provider"
               >
                 <v-text-field
@@ -60,38 +60,38 @@
                   :error-messages="errors"
                   :loading="loading"
                   :disabled="!(hasEditPermission && canEditName())"
-                  @input="isFriendlyNameFieldDirty = true"
                   data-test="token-friendly-name"
                   autofocus
+                  @input="isFriendlyNameFieldDirty = true"
                 ></v-text-field>
               </ValidationProvider>
             </v-row>
             <v-row v-if="isSoftwareToken() && canUpdatePin" no-gutters>
               <xrd-expandable
                 class="expandable"
+                :is-open="isChangePinOpen"
+                :is-disabled="!isTokenLoggedIn()"
+                data-test="token-open-pin-change-button"
                 @open="toggleChangePinOpen"
                 @close="toggleChangePinOpen"
-                :isOpen="isChangePinOpen"
-                :isDisabled="!isTokenLoggedIn()"
-                data-test="token-open-pin-change-button"
               >
-                <template v-slot:link>
+                <template #link>
                   <div
                     :class="isTokenLoggedIn() && 'pointer'"
-                    @click="toggleChangePinOpen"
                     data-test="token-open-pin-change-link"
+                    @click="toggleChangePinOpen"
                   >
                     <span class="font-weight-black">{{
                       $t('token.changePin')
                     }}</span>
                   </div>
                 </template>
-                <template v-slot:content>
+                <template #content>
                   <v-row no-gutters>
                     <ValidationProvider
+                      v-slot="{ errors }"
                       rules="required"
                       name="token.oldPin"
-                      v-slot="{ errors }"
                       class="validation-provider"
                     >
                       <v-text-field
@@ -110,9 +110,9 @@
                   </v-row>
                   <v-row no-gutters>
                     <ValidationProvider
+                      v-slot="{ errors }"
                       rules="required|confirmed:confirm"
                       name="token.newPin"
-                      v-slot="{ errors }"
                       class="validation-provider"
                     >
                       <v-text-field
@@ -131,10 +131,10 @@
                   </v-row>
                   <v-row no-gutters>
                     <ValidationProvider
+                      v-slot="{ errors }"
                       rules="required"
                       vid="confirm"
                       name="token.newPinConfirm"
-                      v-slot="{ errors }"
                       class="validation-provider"
                     >
                       <v-text-field
@@ -158,14 +158,14 @@
         </v-row>
       </div>
       <div class="footer-button-wrap">
-        <xrd-button @click="close()" outlined data-test="token-details-cancel"
+        <xrd-button outlined data-test="token-details-cancel" @click="close()"
           >{{ $t('action.cancel') }}
         </xrd-button>
         <xrd-button
           :loading="saveBusy"
-          @click="save()"
           :disabled="!dirty || invalid"
           data-test="token-details-save"
+          @click="save()"
           >{{ $t('action.save') }}
         </xrd-button>
       </div>
@@ -200,16 +200,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {
-    hasEditPermission(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_TOKEN_FRIENDLY_NAME,
-      );
-    },
-    canUpdatePin(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_TOKEN_PIN);
-    },
-  },
   data() {
     return {
       saveBusy: false,
@@ -220,6 +210,19 @@ export default Vue.extend({
       isFriendlyNameFieldDirty: false,
       newPinConfirm: '',
     };
+  },
+  computed: {
+    hasEditPermission(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_TOKEN_FRIENDLY_NAME,
+      );
+    },
+    canUpdatePin(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_TOKEN_PIN);
+    },
+  },
+  created() {
+    this.fetchData();
   },
   methods: {
     close(): void {
@@ -297,9 +300,6 @@ export default Vue.extend({
       this.tokenPinUpdate.new_pin = '';
       this.newPinConfirm = '';
     },
-  },
-  created() {
-    this.fetchData();
   },
 });
 </script>

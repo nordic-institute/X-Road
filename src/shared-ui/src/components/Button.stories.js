@@ -24,11 +24,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Button from './Button.vue';
+import XrdButton from './Button.vue';
 
 export default {
   title: 'X-Road/Button',
-  component: Button,
+  component: XrdButton,
   argTypes: {
     outlined: { control: 'boolean' },
     disabled: { control: 'boolean' },
@@ -42,7 +42,7 @@ export default {
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { Button },
+  components: { XrdButton },
   template: '<xrd-button @click="click" v-bind="$props">{{label}}</xrd-button>',
 });
 
