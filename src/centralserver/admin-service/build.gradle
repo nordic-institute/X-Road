@@ -63,7 +63,8 @@ openApiGenerate {
     configOptions = [
         interfaceOnly: "true",
         useTags      : "true",
-        generateSupportingFiles: "false",
+        generateSupportingFiles : "true",
+        supportingFiles: 'ApiUtil.java',
         skipDefaultInterface: "true"
     ]
 }
