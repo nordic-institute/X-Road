@@ -86,10 +86,10 @@
                 <template v-else>
                   <ul>
                     <li
-                      v-for="errorCode in validationError.errorCodes"
-                      :key="`${validationError.field}.${errorCode}`"
+                      v-for="errCode in validationError.errorCodes"
+                      :key="`${validationError.field}.${errCode}`"
                     >
-                      {{ $t(`validationError.${errorCode}`) }}
+                      {{ $t(`validationError.${errCode}`) }}
                     </li>
                   </ul>
                 </template>

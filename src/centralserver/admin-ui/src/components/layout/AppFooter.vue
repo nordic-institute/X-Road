@@ -105,7 +105,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
-  name: 'app-footer',
+  name: 'AppFooter',
 });
 </script>
 

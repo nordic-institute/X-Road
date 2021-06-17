@@ -26,8 +26,8 @@
 <template>
   <div class="drop-menu">
     <v-menu bottom right>
-      <template v-slot:activator="{ on }">
-        <v-btn text v-on="on" class="no-uppercase" data-test="username-button">
+      <template #activator="{ on }">
+        <v-btn text class="no-uppercase" data-test="username-button" v-on="on">
           {{ username }}
           <v-icon>mdi-chevron-down</v-icon>
         </v-btn>
@@ -59,7 +59,7 @@ export default Vue.extend({
   },
   methods: {
     logout(): void {
-      this.$store.dispatch('logout');
+      this.$store.dispatch(StoreTypes.actions.LOGOUT);
       this.$router.replace({ name: RouteName.Login });
     },
   },

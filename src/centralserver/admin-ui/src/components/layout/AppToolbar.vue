@@ -33,12 +33,12 @@
     height="32"
     max-height="32"
   >
-    <div class="auth-container" v-if="isAuthenticated">
+    <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">X-ROAD CENTRAL SERVER</div>
       <div
+        v-show="currentSecurityServer.id"
         class="server-name"
         data-test="app-toolbar-server-name"
-        v-show="currentSecurityServer.id"
       >
         {{
           `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
@@ -53,43 +53,21 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName, Colors } from '@/global';
+import { Colors } from '@/global';
 
 export default Vue.extend({
-  name: 'toolbar',
+  name: 'Toolbar',
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
   computed: {
     currentSecurityServer(): string {
       return 'Hello CS';
     },
     isAuthenticated(): boolean {
       return true;
-    },
-  },
-  data() {
-    return {
-      colors: Colors,
-    };
-  },
-  methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
-    },
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
     },
   },
 });

@@ -3,7 +3,7 @@ const path = require('path');
 
 module.exports = {
   devServer: {
-    proxy: process.env.PROXY_ADDRESS || 'https://localhost:4100',
+    proxy: process.env.PROXY_ADDRESS || 'https://localhost:4000',
     host: 'localhost',
     https: true,
   },

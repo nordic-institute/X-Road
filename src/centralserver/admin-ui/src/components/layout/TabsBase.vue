@@ -28,7 +28,7 @@
     <app-icon />
     <div class="tabs-wrap">
       <v-tabs
-        v-model="tab"
+        v-model="currentTab"
         class="main-tabs"
         color="black"
         height="56px"
@@ -40,7 +40,7 @@
           color="primary"
           class="xrd-main-tabs-slider"
         ></v-tabs-slider>
-        <v-tab v-for="tab in allowedTabs" v-bind:key="tab.key" :to="tab.to">{{
+        <v-tab v-for="tab in allowedTabs" :key="tab.key" :to="tab.to">{{
           $t(tab.name)
         }}</v-tab>
       </v-tabs>
@@ -52,7 +52,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Tab } from '@/ui-types';
-import { mainTabs, RouteName } from '@/global';
+import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 
@@ -63,19 +63,13 @@ export default Vue.extend({
   },
   data() {
     return {
-      tab: undefined as undefined | Tab,
+      currentTab: undefined as undefined | Tab,
     };
   },
   computed: {
     allowedTabs(): Tab[] {
       // Filter not allowed tas in store
       return mainTabs;
-    },
-  },
-  methods: {
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
     },
   },
 });

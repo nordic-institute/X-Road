@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service serve",
     "build": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service build",
-    "generate-types": "openapi --input ../admin-service/src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
+    "generate-types": "openapi --input ../admin-service/src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore true --client fetch",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
@@ -15,12 +15,12 @@
     "license-add": "license-check-and-add add -f license-check-and-add-config.json"
   },
   "dependencies": {
-    "@fontsource/open-sans": "~4.3.0",
+    "@fontsource/open-sans": "~4.4.5",
     "@niis/shared-ui": "file:../../shared-ui/niis-shared-ui-0.1.0.tgz",
     "axios": "^0.21.1",
-    "core-js": "~3.13.0",
-    "vee-validate": "3.4.6",
-    "vue": "~2.6.12",
+    "core-js": "~3.14.0",
+    "vee-validate": "3.4.9",
+    "vue": "2.6.12",
     "vue-i18n": "~8.24.0",
     "vue-router": "~3.5.1",
     "vuetify": "~2.5.1",
@@ -31,8 +31,8 @@
   "devDependencies": {
     "@mdi/font": "~5.9.55",
     "@types/jest": "~26.0.8",
-    "@typescript-eslint/eslint-plugin": "~4.25.0",
-    "@typescript-eslint/parser": "~4.25.0",
+    "@typescript-eslint/eslint-plugin": "~4.26.1",
+    "@typescript-eslint/parser": "~4.26.1",
     "@vue/cli-plugin-babel": "~4.5.3",
     "@vue/cli-plugin-e2e-nightwatch": "~4.5.3",
     "@vue/cli-plugin-eslint": "~4.5.3",
@@ -45,16 +45,16 @@
     "chromedriver": "^89.0.0",
     "eslint": "~6.8.0",
     "eslint-plugin-prettier": "~3.4.0",
-    "eslint-plugin-vue": "~7.9.0",
+    "eslint-plugin-vue": "~7.10.0",
     "license-check-and-add": "~4.0.2",
-    "npm-audit-resolver": "2.3.0",
+    "npm-audit-resolver": "2.3.1",
     "openapi-typescript-codegen": "^0.9.3",
     "prettier": "~2.3.0",
     "sass": "~1.32.6",
     "sass-loader": "~10.1.1",
-    "typescript": "4.2.4",
+    "typescript": "4.3.2",
     "vue-cli-plugin-vuetify": "~2.4.0",
-    "vue-template-compiler": "~2.6.12",
+    "vue-template-compiler": "2.6.12",
     "vuetify-loader": "~1.7.1"
   }
 }

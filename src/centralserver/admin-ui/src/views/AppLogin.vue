@@ -52,38 +52,38 @@
             <v-form>
               <ValidationObserver ref="form">
                 <ValidationProvider
+                  v-slot="{ errors }"
                   name="username"
                   rules="required"
-                  v-slot="{ errors }"
                 >
                   <v-text-field
                     id="username"
+                    v-model="username"
                     name="username"
                     data-test="login-username-input"
                     outlined
                     :label="$t('fields.username')"
                     :error-messages="errors"
                     type="text"
-                    v-model="username"
-                    @keyup.enter="submit"
                     autofocus
+                    @keyup.enter="submit"
                   ></v-text-field>
                 </ValidationProvider>
 
                 <ValidationProvider
+                  v-slot="{ errors }"
                   name="password"
                   rules="required"
-                  v-slot="{ errors }"
                 >
                   <v-text-field
                     id="password"
+                    v-model="password"
                     name="password"
                     data-test="login-password-input"
                     outlined
                     :label="$t('fields.password')"
                     :error-messages="errors"
                     type="password"
-                    v-model="password"
                     @keyup.enter="submit"
                   ></v-text-field>
                 </ValidationProvider>
@@ -98,11 +98,11 @@
               block
               large
               data-test="login-button"
-              @click="submit"
               :min_width="120"
               rounded
               :disabled="isDisabled"
               :loading="loading"
+              @click="submit"
               >{{ $t('login.logIn') }}</xrd-button
             >
           </v-card-actions>
@@ -115,6 +115,7 @@
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { RouteName, StoreTypes } from '@/global';
 
 export default (
   Vue as VueConstructor<
@@ -125,7 +126,7 @@ export default (
     }
   >
 ).extend({
-  name: 'login',
+  name: 'Login',
   components: {
     ValidationProvider,
     ValidationObserver,
@@ -151,27 +152,76 @@ export default (
   },
   methods: {
     async submit() {
-      // Validate inputs
+      // Clear error notifications when route is changed
+      this.$store.commit(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
 
+      // Validate inputs
       const isValid = await this.$refs.form.validate();
 
       if (!isValid) {
         return;
       }
 
+      const loginData = {
+        username: this.username,
+        password: this.password,
+      };
+
+      this.$refs.form.reset();
+      this.loading = true;
+
+      this.$store.dispatch(StoreTypes.actions.LOGIN, loginData).then(
+        () => {
+          // Auth ok. Start phase 2 (fetch user data and current security server info).
+          this.fetchUserData();
+          this.fetchServerVersion();
+        },
+        (error) => {
+          // Display invalid username/password error in inputs
+          if (error?.response?.status === 401) {
+            // Clear inputs
+            this.username = '';
+            this.password = '';
+            this.$refs.form.reset();
+
+            // The whole view needs to be rendered so the "required" rule doesn't block
+            // "wrong unsername or password" error in inputs
+            this.$nextTick(() => {
+              // Set inputs to error state
+              this.$refs.form.setErrors({
+                username: [''],
+                password: [this.$t('login.errorMsg401') as string],
+              });
+            });
+          }
+          this.$store.dispatch(
+            StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE,
+            'login.generalError',
+          );
+          // Clear loading state
+          this.loading = false;
+        },
+      );
+    },
+    fetchUserData() {
+      // do something later
       this.$refs.form.reset();
       this.loading = true;
 
       this.$router.replace({
-        name: 'base',
+        name: RouteName.Members,
       });
-    },
-    fetchUserData() {
-      // do something later
     },
 
     fetchInitializationData() {
       // do something later
+    },
+    async fetchServerVersion() {
+      this.$store
+        .dispatch(StoreTypes.actions.FETCH_SERVER_VERSION)
+        .catch((error) =>
+          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
+        );
     },
   },
 });

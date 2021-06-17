@@ -23,14 +23,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router from 'vue-router';
+import Router, { NavigationGuardNext, Route } from 'vue-router';
 import { sync } from 'vuex-router-sync';
 import store from '@/store';
 import routes from './routes';
+import { RouteName, StoreTypes } from '@/global';
 
 // Create the router
 const router = new Router({
   routes: routes,
+});
+
+router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
+  // Going to login
+  if (to.name === RouteName.Login) {
+    next();
+    return;
+  }
+
+  // Clear error notifications when the route is changed
+  store.commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
+
+  // User is allowed to access any other view than login only after authenticated information has been fetched
+  // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
+  // user to be redirected to a view that contains api calls (s)he is not allowed.
+  if (
+    store.getters[StoreTypes.getters.IS_SESSION_ALIVE] &&
+    store.getters[StoreTypes.getters.IS_AUTHENTICATED]
+  ) {
+    // Server is not initialized
+    /*
+    Check initialisation status here
+    */
+
+    next();
+    /*
+    Check permissions here 
+    */
+    return;
+  } else {
+    next({
+      name: RouteName.Login,
+    });
+  }
 });
 
 sync(store, router);

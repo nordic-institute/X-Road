@@ -32,21 +32,21 @@
         <div class="form-sub-title">{{ $t('init.csIdentification') }}</div>
         <div class="form-row-wrap">
           <xrd-form-label
-            :labelText="$t('fields.init.identifier')"
-            :helpText="$t('init.instanceIdentifier.info')"
+            :label-text="$t('fields.init.identifier')"
+            :help-text="$t('init.instanceIdentifier.info')"
           />
 
           <ValidationProvider
-            name="init.identifier"
-            rules="required"
             v-slot="{ errors }"
             ref="memberCodeVP"
+            name="init.identifier"
+            rules="required"
           >
             <v-text-field
+              v-model="instanceIdentifier"
               class="form-input"
               type="text"
               :error-messages="errors"
-              v-model="instanceIdentifier"
               outlined
               autofocus
               data-test="instance-identifier--input"
@@ -56,21 +56,21 @@
 
         <div class="form-row-wrap">
           <xrd-form-label
-            :labelText="$t('fields.init.address')"
-            :helpText="$t('init.address.info')"
+            :label-text="$t('fields.init.address')"
+            :help-text="$t('init.address.info')"
           />
 
           <ValidationProvider
-            name="init.address"
-            rules="required"
             v-slot="{ errors }"
             ref="memberCodeVP"
+            name="init.address"
+            rules="required"
           >
             <v-text-field
+              v-model="address"
               class="form-input"
               type="text"
               :error-messages="errors"
-              v-model="address"
               outlined
               data-test="address-input"
             ></v-text-field>
@@ -79,21 +79,21 @@
         <div class="form-sub-title">{{ $t('init.softwareToken') }}</div>
         <div class="form-row-wrap">
           <xrd-form-label
-            :labelText="$t('fields.init.pin')"
-            :helpText="$t('init.pin.info')"
+            :label-text="$t('fields.init.pin')"
+            :help-text="$t('init.pin.info')"
           />
 
           <ValidationProvider
+            v-slot="{ errors }"
             name="init.pin"
             rules="required|password:@init.confirmPin"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="pin"
               class="form-input"
               type="text"
               name="init.pin"
               :error-messages="errors"
-              v-model="pin"
               outlined
               data-test="pin-input"
             ></v-text-field>
@@ -101,19 +101,19 @@
         </div>
 
         <div class="form-row-wrap">
-          <xrd-form-label :labelText="$t('fields.init.repeatPin')" />
+          <xrd-form-label :label-text="$t('fields.init.repeatPin')" />
 
           <ValidationProvider
+            v-slot="{ errors }"
             name="init.confirmPin"
             rules="required"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="pinConfirm"
               class="form-input"
               type="text"
               name="init.confirmPin"
               :error-messages="errors"
-              v-model="pinConfirm"
               outlined
               data-test="confirm-pin-input"
             ></v-text-field>
@@ -123,8 +123,8 @@
       <div class="button-footer">
         <xrd-button
           :disabled="invalid"
-          @click="submit"
           data-test="submit-button"
+          @click="submit"
           >{{ $t('action.submit') }}</xrd-button
         >
       </div>

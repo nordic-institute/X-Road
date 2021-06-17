@@ -44,16 +44,16 @@
           >{{ $t('backup.backupConfiguration.button') }}
         </xrd-button>
         <xrd-file-upload
+          v-slot="{ upload }"
           accepts=".tar"
           @file-changed="onFileUploaded"
-          v-slot="{ upload }"
         >
           <xrd-button
             color="primary"
             :loading="uploadingBackup"
             class="ml-5"
-            @click="upload"
             data-test="backup-upload"
+            @click="upload"
           >
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
 
