@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from BaseHTTPServer import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler
 import subprocess
 import tempfile
 import sys
@@ -8,16 +8,16 @@ import sys
 class OCSPHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
-        length = int(self.headers.getheader('content-length', 0))
+        length = int(self.headers.get('content-length', 0))
 
         if length > 100000:
             self.send_error(400)
             return
-        if self.headers.getheader('content-type', "").lower() != "application/ocsp-request":
+        if self.headers.get('content-type', "").lower() != "application/ocsp-request":
             self.send_error(400)
             return
 
-        expect = self.headers.getheader('expect', "")
+        expect = self.headers.get('expect', "")
         if expect.lower() == "100-continue":
             self.send_response(100)
             self.end_headers()
@@ -51,7 +51,7 @@ class OCSPHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
 if __name__ == '__main__':
-    from BaseHTTPServer import HTTPServer
+    from http.server import HTTPServer
     server = HTTPServer(('localhost', 8889), OCSPHandler)
-    print 'Starting server...'
+    print('Starting server...')
     server.serve_forever()
