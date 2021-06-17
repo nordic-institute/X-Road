@@ -101,7 +101,6 @@ export enum RouteName {
   SecurityServers = 'security-servers',
   ManagementRequests = 'management-requests',
   TrustServices = 'trust-services',
-  GlobalConfiguration = 'global-configuration',
   Settings = 'settings',
   GlobalResources = 'global-resources',
   SystemSettings = 'system-settings',
@@ -140,7 +139,7 @@ export const mainTabs: Tab[] = [
     name: 'tab.main.trustServices',
   },
   {
-    to: { name: RouteName.GlobalConfiguration },
+    to: { name: RouteName.InternalConfiguration },
     key: 'globalConfiguration',
     name: 'tab.main.globalConfiguration',
   },

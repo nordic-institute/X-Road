@@ -181,7 +181,6 @@ const routes: RouteConfig[] = [
       },
 
       {
-        name: RouteName.GlobalConfiguration,
         path: '/global-configuration',
         components: {
           default: GlobalConfiguration,
