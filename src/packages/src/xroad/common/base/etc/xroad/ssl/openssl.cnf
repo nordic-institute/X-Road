@@ -24,14 +24,12 @@ commonName          = Common Name (e.g. server FQDN or YOUR name)
 commonName_max      = 64
 
 [ nginx ]
-basicConstraints=critical,CA:FALSE
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature
-extendedKeyUsage=serverAuth,clientAuth
+basicConstraints=critical,CA:TRUE,pathlen:0
+keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
 
 [ nginx_alt ]
-basicConstraints=critical,CA:FALSE
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature
-extendedKeyUsage=serverAuth,clientAuth
+basicConstraints=critical,CA:TRUE,pathlen:0
+keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
 subjectAltName=$ENV::ALT
 
 [ proxy-ui-api ]
@@ -46,23 +44,19 @@ subjectAltName=$ENV::ALT
 [ internal ]
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-extendedKeyUsage=serverAuth,clientAuth
 
 [ internal_alt ]
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=$ENV::ALT
 
 [ opmonitor ]
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-extendedKeyUsage=serverAuth,clientAuth
 
 [ opmonitor_alt ]
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-extendedKeyUsage=serverAuth,clientAuth
 subjectAltName=$ENV::ALT
 
 ####################################################################
