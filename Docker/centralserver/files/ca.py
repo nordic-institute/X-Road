@@ -1,41 +1,45 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from BaseHTTPServer import BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import subprocess
 import tempfile
 import cgi
-import time
+import os
+import sys
 
 class CAHandler(BaseHTTPRequestHandler):
 
-    form_html = \
-        '''
-        <html>
-        <body>
-        <form method="POST" enctype="multipart/form-data" action="sign">
-        <fieldset>
-        <legend>TestCA: CSR signing</legend>
+    FORM_HTML = '''\
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Test CA</title>
+  </head>
+  <body>
+    <form method="POST" enctype="multipart/form-data" action="sign">
+      <fieldset>
+        <legend>Test CA: CSR signing</legend>
         <div>
-        <label style="display:inline-block; width:4em" for="csr">CSR</label>
-        <input name="certreq" type="file" id="csr">
+          <label style="display:inline-block; width:4em" for="csr">CSR</label>
+          <input name="certreq" type="file" id="csr">
         </div>
         <div>
-        <label style="display:inline-block; width:4em">Type</label>
-        <input type="radio" name="type" id="sign" value="sign">
-        <label for="sign">Sign</label>
-        <input type="radio" name="type" id="auth" value="auth">
-        <label for="auth">Auth</label>
-        <input type="radio" name="type" id="auto" value="auto" checked>
-        <label for="auto">Autodetect from file name</label>
+          <label style="display:inline-block; width:4em">Type</label>
+          <input type="radio" name="type" id="sign" value="sign">
+          <label for="sign">Sign</label>
+          <input type="radio" name="type" id="auth" value="auth">
+          <label for="auth">Auth</label>
+          <input type="radio" name="type" id="auto" value="auto" checked>
+          <label for="auto">Autodetect from file name</label>
         </div>
         <div>
-        <input type="submit" value="Sign" style="margin-top:1em"/>
-        </div>
-        </fieldset>
-        </form>
-        </html>
-        </body>
-        '''
+          <input type="submit" value="Sign" style="margin-top:1em"/>
+         </div>
+      </fieldset>
+    </form>
+  </body>
+</html>
+'''.encode()
 
     def do_GET(self):
         if self.path == "/favicon.ico":
@@ -45,12 +49,12 @@ class CAHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-Type', 'text/html; charset=utf-8')
         self.end_headers()
-        self.wfile.write(self.form_html.encode())
+        self.wfile.write(self.FORM_HTML)
 
     def do_POST(self):
         cgi.maxlen = 10000
 
-        expect = self.headers.getheader('expect', "")
+        expect = self.headers.get('expect', "")
         if expect.lower() == "100-continue":
             self.send_response(100)
             self.end_headers()
@@ -80,24 +84,28 @@ class CAHandler(BaseHTTPRequestHandler):
                 t = tempfile.NamedTemporaryFile()
                 t.write(req_item.file.read())
                 t.flush()
-                p = subprocess.Popen(["bash", "/home/ca/CA/sign_req.sh", sign_type, t.name], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                p = subprocess.Popen(["bash", "/home/ca/CA/sign_req.sh", sign_type, t.name],
+                                     stdout=subprocess.PIPE,
+                                     stderr=subprocess.PIPE)
                 (out, err) = p.communicate()
                 t.close()
                 p.wait()
                 if p.returncode == 0:
+                    crtname = os.path.splitext(req_item.filename)[0].replace("_csr_", "_crt_")
                     self.send_response(200, 'OK')
                     self.send_header('Content-Type', 'application/octet-stream')
                     self.send_header('Content-Disposition',
-                                     'attachment; filename="{}-crt.pem"'.format(sign_type))
+                                     'attachment; filename="{}.pem"'.format(crtname))
                     self.send_header('Content-Length', len(out))
                     self.end_headers()
                     self.wfile.write(out)
                 else:
-                    print err
+                    err = err.decode()
+                    print(err, file=sys.stderr)
                     self.send_response(500)
                     self.send_header("Content-Type", 'text/html; charset="utf-8"')
                     self.end_headers()
-                    self.wfile.write("<html><body>Error:<pre>{}</pre></body></html>".format(err.encode()))
+                    self.wfile.write("<html><body>Error:<pre>{}</pre></body></html>".format(err).encode())
                 return
             finally:
                 t.close()
@@ -107,8 +115,6 @@ class CAHandler(BaseHTTPRequestHandler):
         return
 
 if __name__ == '__main__':
-    from BaseHTTPServer import HTTPServer
     server = HTTPServer(('0.0.0.0', 9998), CAHandler)
-    print 'Starting server...'
+    print('Starting server...')
     server.serve_forever()
-
