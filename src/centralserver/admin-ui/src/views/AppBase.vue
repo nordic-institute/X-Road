@@ -60,7 +60,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName } from '@/global';
+import { RouteName, StoreTypes } from '@/global';
 
 export default Vue.extend({
   data() {
@@ -71,7 +71,7 @@ export default Vue.extend({
   },
   computed: {
     showDialog(): boolean {
-      return this.$store.getters.isSessionAlive === false;
+      return this.$store.getters[StoreTypes.getters.IS_SESSION_ALIVE] === false;
     },
   },
   created() {
@@ -82,7 +82,7 @@ export default Vue.extend({
       // Do polling
     },
     logout(): void {
-      this.$store.dispatch('logout');
+      this.$store.dispatch(StoreTypes.actions.LOGOUT);
       this.$router.replace({ name: RouteName.Login });
     },
   },

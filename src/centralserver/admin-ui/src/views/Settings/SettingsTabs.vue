@@ -45,7 +45,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      currentTab: null,
+      currentTab: undefined as undefined | Tab,
     };
   },
   computed: {

@@ -59,7 +59,7 @@ export default Vue.extend({
   },
   methods: {
     logout(): void {
-      this.$store.dispatch('logout');
+      this.$store.dispatch(StoreTypes.actions.LOGOUT);
       this.$router.replace({ name: RouteName.Login });
     },
   },

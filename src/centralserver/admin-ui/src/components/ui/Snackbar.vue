@@ -73,7 +73,6 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
-      StoreTypes,
     };
   },
   computed: {

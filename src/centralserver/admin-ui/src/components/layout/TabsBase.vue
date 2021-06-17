@@ -52,7 +52,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Tab } from '@/ui-types';
-import { mainTabs, RouteName } from '@/global';
+import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 
@@ -70,12 +70,6 @@ export default Vue.extend({
     allowedTabs(): Tab[] {
       // Filter not allowed tas in store
       return mainTabs;
-    },
-  },
-  methods: {
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
     },
   },
 });

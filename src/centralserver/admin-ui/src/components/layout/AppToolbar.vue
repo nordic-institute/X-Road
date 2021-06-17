@@ -53,7 +53,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName, Colors } from '@/global';
+import { Colors } from '@/global';
 
 export default Vue.extend({
   name: 'Toolbar',
@@ -86,10 +86,6 @@ export default Vue.extend({
             throw err;
           }
         });
-    },
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
     },
   },
 });
