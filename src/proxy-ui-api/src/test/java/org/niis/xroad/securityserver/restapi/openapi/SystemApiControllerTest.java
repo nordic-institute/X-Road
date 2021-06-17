@@ -71,6 +71,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.securityserver.restapi.util.TestUtils.ANCHOR_FILE;
+import static org.niis.xroad.securityserver.restapi.util.TestUtils.INTERNAL_CERT_CN;
 
 /**
  * test system api
@@ -152,7 +153,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
         CertificateDetails certificate =
                 systemApiController.getSystemCertificate().getBody();
-        assertEquals("xroad2-lxd-ss1", certificate.getIssuerCommonName());
+        assertEquals(INTERNAL_CERT_CN, certificate.getIssuerCommonName());
     }
 
     @Test

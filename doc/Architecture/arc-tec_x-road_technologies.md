@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.5<br/>
-15.09.2020
+Version: 1.6<br/>
+02.06.2020
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -19,6 +19,7 @@ Doc. ID: ARC-TEC
  11.09.2019 | 1.3     | Remove Ubuntu 14.04 support                                 | Jarkko Hyöty
  12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
  15.09.2020 | 1.5     | Updated to match security server REST API architecture      | Janne Mattila
+ 02.06.2021 | 1.6     | Backup encryption related updates                           | Andres Allkivi
 
 ## Table of Contents
 
@@ -92,7 +93,8 @@ Table 1. Technology matrix of the X-Road
  Node 12                            | X                   |                    |                         |  
  Typescript                         | X                   |                    |                         |  
  OpenAPI 3                          | X                   |                    |                         |  
- Embedded Tomcat 9                  | X                   |                    |                         |  
+ Embedded Tomcat 9                  | X                   |                    |                         |
+ GNU Privacy Guard                  | X                   |                    |                         |
 
 See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 
@@ -180,6 +182,7 @@ Table 4. Technology matrix of the security server
  Typescript                     |            |           |                    |                  |                       |              |                          | X                           |              |             |                                      |                                   |
  OpenAPI 3                      |            |           |                    |                  |                       |              |                          | X                           | X            |             |                                      |                                   |      
  Embedded Tomcat 9              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+ GNU Privacy Guard              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
 
 See [[ARC-SS]](#ARC-SS) for the security server details.
 
