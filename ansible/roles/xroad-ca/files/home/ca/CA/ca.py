@@ -1,10 +1,11 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, HTTPServer
 import subprocess
 import tempfile
 import cgi
 import os
+import sys
 
 class CAHandler(BaseHTTPRequestHandler):
 
@@ -53,7 +54,7 @@ class CAHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         cgi.maxlen = 10000
 
-        expect = self.headers.getheader('expect', "")
+        expect = self.headers.get('expect', "")
         if expect.lower() == "100-continue":
             self.send_response(100)
             self.end_headers()
@@ -99,11 +100,12 @@ class CAHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(out)
                 else:
-                    print err
+                    err = err.decode()
+                    print(err, file=sys.stderr)
                     self.send_response(500)
                     self.send_header("Content-Type", 'text/html; charset="utf-8"')
                     self.end_headers()
-                    self.wfile.write("<html><body>Error:<pre>{}</pre></body></html>".format(err.encode()))
+                    self.wfile.write("<html><body>Error:<pre>{}</pre></body></html>".format(err).encode())
                 return
             finally:
                 t.close()
@@ -114,5 +116,5 @@ class CAHandler(BaseHTTPRequestHandler):
 
 if __name__ == '__main__':
     server = HTTPServer(('localhost', 9998), CAHandler)
-    print 'Starting server...'
+    print('Starting server...')
     server.serve_forever()
