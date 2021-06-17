@@ -70,6 +70,24 @@ export default Vue.extend({
       return true;
     },
   },
+  methods: {
+    home(): void {
+      this.$router
+        .replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
+        })
+        .catch((err) => {
+          // Ignore the error regarding navigating to the same path
+          if (err.name === 'NavigationDuplicated') {
+            // eslint-disable-next-line no-console
+            console.info('Duplicate navigation');
+          } else {
+            // Throw for any other errors
+            throw err;
+          }
+        });
+    },
+  },
 });
 </script>
 

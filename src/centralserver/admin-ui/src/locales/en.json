@@ -61,6 +61,14 @@
       "licenceInfo": "Licence info"
     }
   },
+  "keys": {
+    "logOut": "Log out",
+    "logIn": "Log in",
+    "addKey": "Add key",
+    "token": "Token:",
+    "signKey": "Sign key",
+    "created": "Created"
+  },
   "login": {
     "logIn": "Log in",
     "logOut": "Log out",
@@ -79,6 +87,11 @@
     "settings": {
       "systemSettings": "System Settings",
       "backupAndRestore": "Backup And Restore"
+    },
+    "globalConf": {
+      "internalConf": "Internal Configuration",
+      "externalConf": "External Configuration",
+      "trustedAnchors": "Trusted Anchor"
     }
   },
   "backup": {
@@ -160,5 +173,10 @@
       "repeat": "Repeat PIN",
       "pinMatchError": "Password confirmation does not match"
     }
+  },
+  "globalConf": {
+    "globalConf": "Global Configuration",
+    "internalConf": "Internal Configuration",
+    "trustedAnchors": "Trusted Anchor"
   }
 }

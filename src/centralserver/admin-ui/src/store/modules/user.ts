@@ -26,8 +26,7 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '@/global';
-import { StoreTypes } from '@/global';
+import { RootState, StoreTypes } from '@/global';
 import { Version } from '@/openapi-types';
 
 export interface State {
@@ -58,6 +57,9 @@ export const userGetters: GetterTree<State, RootState> = {
   },
   [StoreTypes.getters.USERNAME](state) {
     return state.username;
+  },
+  [StoreTypes.getters.HAS_PERMISSION](state, value: string) {
+    return true; // Mock. Until there is a real permission system.
   },
 };
 

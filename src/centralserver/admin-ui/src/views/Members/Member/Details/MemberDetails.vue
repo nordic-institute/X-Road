@@ -141,7 +141,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '../../../../assets/colors';
+@import '~styles/colors';
 
 .card-title {
   font-size: 12px;
