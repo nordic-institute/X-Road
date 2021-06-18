@@ -24,9 +24,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-const path = require('path')
-const rootPath = path.resolve(__dirname, '../')
-const VuetifyLoaderPlugin = require('vuetify-loader/lib/plugin');
+const path = require('path');
+
 module.exports = {
   "stories": [
     "../src/**/*.stories.mdx",
@@ -46,7 +45,7 @@ module.exports = {
     config.resolve.alias['@'] = path.resolve(__dirname, '..', 'src');
 
     config.module.rules.push({
-     test: /\.s(c|a)ss$/,
+      test: /\.s(c|a)ss$/,
       use: ['style-loader', 'css-loader', 'sass-loader'],
       include: path.resolve(__dirname, '../'),
     });
