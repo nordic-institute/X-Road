@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="about">
+  <div>
     <h1>Mock view 2</h1>
     <xrd-button
       color="primary"

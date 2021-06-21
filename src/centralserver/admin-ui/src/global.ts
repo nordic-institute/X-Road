@@ -41,6 +41,13 @@ export const StoreTypes = {
     SUCCESS_NOTIFICATIONS: 'SUCCESS_NOTIFICATIONS',
     ERROR_NOTIFICATIONS: 'ERROR_NOTIFICATIONS',
     CONTINUE_INIT: 'CONTINUE_INIT',
+    // Permissions - mock at this point
+    HAS_PERMISSION: 'HAS_PERMISSION', // This is a mock
+    // Tokens
+    TOKENS: 'TOKENS',
+    TOKEN_EXPANDED: 'TOKEN_EXPANDED',
+    SORTED_TOKENS: 'SORTED_TOKENS',
+    SELECTED_TOKEN: 'SELECTED_TOKEN',
   },
   mutations: {
     // User
@@ -60,6 +67,11 @@ export const StoreTypes = {
     DELETE_SUCCESS_NOTIFICATION: 'DELETE_SUCCESS_NOTIFICATION',
     DELETE_NOTIFICATION: 'DELETE_NOTIFICATION',
     SET_CONTINUE_INIT: 'SHOW_CONTINUE_INIT',
+    // Tokens
+    SET_TOKEN_HIDDEN: 'SET_TOKEN_HIDDEN',
+    SET_TOKEN_EXPANDED: 'SET_TOKEN_EXPANDED',
+    SET_TOKENS: 'SET_TOKENS',
+    SET_SELECTED_TOKEN: 'SET_SELECTED_TOKEN',
   },
   actions: {
     // User
@@ -89,7 +101,6 @@ export enum RouteName {
   SecurityServers = 'security-servers',
   ManagementRequests = 'management-requests',
   TrustServices = 'trust-services',
-  GlobalConfiguration = 'global-configuration',
   Settings = 'settings',
   GlobalResources = 'global-resources',
   SystemSettings = 'system-settings',
@@ -128,7 +139,7 @@ export const mainTabs: Tab[] = [
     name: 'tab.main.trustServices',
   },
   {
-    to: { name: RouteName.GlobalConfiguration },
+    to: { name: RouteName.InternalConfiguration },
     key: 'globalConfiguration',
     name: 'tab.main.globalConfiguration',
   },

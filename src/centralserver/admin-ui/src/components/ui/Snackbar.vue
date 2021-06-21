@@ -28,7 +28,7 @@
     <!-- Success -->
     <transition name="fade">
       <v-snackbar
-        v-for="notification in [StoreTypes.getters.SUCCESS_NOTIFICATIONS]"
+        v-for="notification in successNotifications"
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="success-snackbar"
@@ -73,11 +73,12 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
-      StoreTypes,
     };
   },
   computed: {
-    ...mapGetters([StoreTypes.getters.SUCCESS_NOTIFICATIONS]),
+    ...mapGetters({
+      successNotifications: StoreTypes.getters.SUCCESS_NOTIFICATIONS,
+    }),
   },
   methods: {
     closeSuccess(id: number): void {
