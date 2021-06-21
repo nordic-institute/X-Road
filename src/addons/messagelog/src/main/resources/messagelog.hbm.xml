@@ -44,13 +44,15 @@
 
     </class>
 
-    <class name="ee.ria.xroad.common.messagelog.archive.DigestEntry" table="LAST_ARCHIVE_DIGEST">
+    <class name="ee.ria.xroad.common.messagelog.archive.ArchiveDigest" table="LAST_ARCHIVE_DIGEST">
         <id name="id" type="long" access="field">
             <generator class="native"/>
         </id>
-
-        <property name="digest" access="field" type="text"/>
-        <property name="fileName" access="field" type="string"/>
+        <property name="groupName" access="field" type="string"/>
+        <component name="digestEntry" class="ee.ria.xroad.common.messagelog.archive.DigestEntry">
+            <property name="digest" access="field" type="text"/>
+            <property name="fileName" access="field" type="string"/>
+        </component>
     </class>
 
     <!--
