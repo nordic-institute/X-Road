@@ -23,39 +23,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-module.exports = {
-  tags: ['cs', 'login'],
-  before(browser) {
-    const frontPage = browser.page.loginpage();
-    frontPage.navigate();
-  },
 
-  afterEach(browser) {
-    browser.refresh();
+const membersCommands = {
+  membersViewIsVisible() {
+    this.assert.visible('@membersView');
+    return this;
   },
-  after(browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    const login = browser.page.loginpage();
-    login
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signin()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    const login = browser.page.loginpage();
-    login
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signin()
-      .loginErrorMessageIsShown();
-  },
-  'Login succeeds': (browser) => {
-    const login = browser.page.loginpage();
-    const members = browser.page.memberspage();
-    login.signinDefaultUser();
-    members.membersViewIsVisible();
+};
+
+module.exports = {
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/members`,
+  commands: [membersCommands],
+  elements: {
+    membersView: {
+      selector: '//div[@data-test="members-view"]',
+      locateStrategy: 'xpath',
+    },
   },
 };
