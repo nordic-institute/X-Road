@@ -25,8 +25,6 @@
  -->
 <template>
   <v-container fluid class="pa-0">
-    <div><GlobalNotification /></div>
-    <div class="alerts-wrapper"></div>
     <GlobalAlerts />
     <ContextualAlerts />
   </v-container>
@@ -42,7 +40,6 @@ export default Vue.extend({
   components: {
     ContextualAlerts,
     GlobalAlerts,
-    GlobalNotification,
   },
 });
 </script>

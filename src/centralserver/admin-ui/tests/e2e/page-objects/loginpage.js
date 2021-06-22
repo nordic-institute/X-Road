@@ -24,28 +24,32 @@
  * THE SOFTWARE.
  */
 
-var loginCommands = {
-  clearUsername: function () {
+const loginCommands = {
+  clearUsername() {
     this.clearValue('@usernameInput');
     return this;
   },
-  clearPassword: function () {
+  clearPassword() {
     this.clearValue('@passwordInput');
     return this;
   },
-  enterUsername: function (username) {
+  enterUsername(username) {
     this.setValue('@usernameInput', username);
     return this;
   },
-  enterPassword: function (password) {
+  enterPassword(password) {
     this.setValue('@passwordInput', password);
     return this;
   },
-  signin: function () {
+  signin() {
     this.click('@loginButton');
     return this;
   },
-  signinDefaultUser: function () {
+  loginErrorMessageIsShown() {
+    this.assert.visible('@loginError');
+    return this;
+  },
+  signinDefaultUser() {
     this.clearValue('@usernameInput');
     this.clearValue('@passwordInput');
     this.setValue('@usernameInput', this.api.globals.login_usr);
@@ -56,7 +60,7 @@ var loginCommands = {
 };
 
 module.exports = {
-  url: 'https://localhost:8080/#/login',
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/login`,
   commands: [loginCommands],
   elements: {
     usernameInput: {
@@ -69,6 +73,10 @@ module.exports = {
     },
     loginButton: {
       selector: '//button[@data-test="login-button"]',
+      locateStrategy: 'xpath',
+    },
+    loginError: {
+      selector: '//div[@data-test="contextual-alert"]',
       locateStrategy: 'xpath',
     },
   },
