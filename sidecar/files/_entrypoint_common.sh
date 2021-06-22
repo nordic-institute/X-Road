@@ -21,7 +21,7 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         cp -a -n /root/backup/local.conf /etc/xroad/services/
         cp -a -n /root/backup/devices.ini /etc/xroad/
         pg_ctlcluster 12 main start
-        pg_isready -t 10
+        pg_isready -t 12
         dpkg-reconfigure xroad-proxy
         pg_ctlcluster 12 main stop
         sleep 1
