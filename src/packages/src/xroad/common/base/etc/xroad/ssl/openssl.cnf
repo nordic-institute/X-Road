@@ -23,38 +23,11 @@ organizationalUnitName  = Organizational Unit Name (eg, section)
 commonName          = Common Name (e.g. server FQDN or YOUR name)
 commonName_max      = 64
 
-[ nginx ]
+[ tls ]
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
 
-[ nginx_alt ]
-basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-subjectAltName=$ENV::ALT
-
-[ proxy-ui-api ]
-basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-
-[ proxy-ui-api_alt ]
-basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-subjectAltName=$ENV::ALT
-
-[ internal ]
-basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-
-[ internal_alt ]
-basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-subjectAltName=$ENV::ALT
-
-[ opmonitor ]
-basicConstraints=critical,CA:TRUE,pathlen:0
-keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
-
-[ opmonitor_alt ]
+[ tls_alt ]
 basicConstraints=critical,CA:TRUE,pathlen:0
 keyUsage=nonRepudiation,keyEncipherment,digitalSignature,keyCertSign
 subjectAltName=$ENV::ALT

@@ -103,9 +103,9 @@ fi
 
 if [[ -n $ALT ]]
 then
-  OPENSSL_EXT=(-extensions "${NAME}"_alt)
+  OPENSSL_EXT=(-extensions tls_alt)
 else
-  OPENSSL_EXT=(-extensions "${NAME}")
+  OPENSSL_EXT=(-extensions tls)
 fi
 export ALT
 
