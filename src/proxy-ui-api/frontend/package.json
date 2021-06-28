@@ -22,7 +22,7 @@
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",
     "build-all": "npm run install-build-ui-lib && npm install && npm run build",
-    "prepare-api-definition": "rm -f ./openapi-definition.yaml* && cp ../src/main/resources/openapi-definition.yaml ./openapi-definition-frontend.yaml && sed -i.backup 's+../../../../common-rest-api+../../common-rest-api+g' ./openapi-definition-frontend.yaml"
+    "prepare-api-definition": "rm -f ./openapi-definition-frontend.yaml* && cp ../src/main/resources/openapi-definition.yaml ./openapi-definition-frontend.yaml && sed -i.backup 's+../../../../common-rest-api+../../common-rest-api+g' ./openapi-definition-frontend.yaml"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.3.0",

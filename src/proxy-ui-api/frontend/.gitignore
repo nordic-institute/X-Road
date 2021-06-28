@@ -17,8 +17,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Modified api definitions
-./openapi-definition-frontend.yaml
-./openapi-definition-frontend.yaml.backup
+openapi-definition-frontend.yaml
+openapi-definition-frontend.yaml.backup
 
 # Generated type definitions
 src/openapi-types
