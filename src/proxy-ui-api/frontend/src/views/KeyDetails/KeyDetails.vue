@@ -139,11 +139,11 @@ import {
   PossibleAction,
   PossibleActions as PossibleActionsList,
   Token,
-} from '@/openapi-types';
+} from '@/openapi-types/ss-types';
 import { encodePathParameter } from '@/util/api';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { mapGetters } from 'vuex';
-import { PossibleActions } from '@/openapi-types/models/PossibleActions';
+import { PossibleActions } from '@/openapi-types/ss-types/models/PossibleActions';
 import { isEmpty } from '@/util/helpers';
 
 export default Vue.extend({

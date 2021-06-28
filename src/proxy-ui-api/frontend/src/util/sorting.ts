@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { AccessRight, Service, ServiceDescription } from '@/openapi-types';
+import { AccessRight, Service, ServiceDescription } from '@/openapi-types/ss-types';
 
 /**
  * Sorting function for comparing Services by (full) service codes

@@ -82,7 +82,7 @@
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import { AccessRight } from '@/openapi-types';
+import { AccessRight } from '@/openapi-types/ss-types';
 import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
 export default Vue.extend({

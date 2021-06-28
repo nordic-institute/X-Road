@@ -26,7 +26,7 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import * as api from '@/util/api';
 import { RootState } from '../types';
-import { MemberName } from '@/openapi-types';
+import { MemberName } from '@/openapi-types/ss-types';
 
 export interface State {
   xroadInstances: string[];

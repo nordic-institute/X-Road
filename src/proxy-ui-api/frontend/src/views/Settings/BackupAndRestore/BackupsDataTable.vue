@@ -70,7 +70,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { Backup } from '@/openapi-types';
+import { Backup } from '@/openapi-types/ss-types';
 import { saveResponseAsFile, selectedFilter } from '@/util/helpers';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 import { Prop } from 'vue/types/options';

@@ -25,7 +25,7 @@
  */
 
 import * as Sorting from '@/views/KeysAndCertificates/SignAndAuthKeys/keyColumnSorting';
-import { CertificateOcspStatus } from '@/openapi-types';
+import { CertificateOcspStatus } from '@/openapi-types/ss-types';
 import { KeysSortColumn } from '@/views/KeysAndCertificates/SignAndAuthKeys/keyColumnSorting';
 
 // Simplified mock version of Keys

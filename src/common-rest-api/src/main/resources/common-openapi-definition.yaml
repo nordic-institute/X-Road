@@ -93,5 +93,20 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/CodeWithDetails'
+  examples:
+    ErrorExample:
+      summary: Error response body example
+      value:
+        status: 400
+        error:
+          code: invalid_filename
+    ErrorWithMetadataExample:
+      summary: Error with metadata response body example
+      value:
+        status: 400
+        error:
+          code: invalid_service_url
+          metadata:
+            - "sftp://some.sftp.server"
 security:
   - ApiKeyAuth: []

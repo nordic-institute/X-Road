@@ -273,7 +273,7 @@ import {
   TimestampingServiceDiagnostics,
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
-} from '@/openapi-types';
+} from '@/openapi-types/ss-types';
 
 export default Vue.extend({
   computed: {

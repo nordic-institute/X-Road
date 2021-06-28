@@ -25,7 +25,7 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Endpoint, Service, ServiceClient } from '@/openapi-types';
+import { Endpoint, Service, ServiceClient } from '@/openapi-types/ss-types';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];

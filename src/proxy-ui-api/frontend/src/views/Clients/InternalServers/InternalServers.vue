@@ -125,7 +125,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { FileUploadResult } from '@niis/shared-ui';
-import { CertificateDetails } from '@/openapi-types';
+import { CertificateDetails } from '@/openapi-types/ss-types';
 import { saveResponseAsFile } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';

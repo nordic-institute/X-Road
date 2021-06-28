@@ -78,7 +78,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
-import { ServiceClient } from '@/openapi-types';
+import { ServiceClient } from '@/openapi-types/ss-types';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
 

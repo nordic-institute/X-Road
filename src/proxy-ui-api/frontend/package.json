@@ -12,7 +12,7 @@
     "test:coverage": "vue-cli-service test:unit --coverage",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit",
-    "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
+    "generate-types": "npm run prepare-api-definition && openapi --input ./openapi-definition-frontend.yaml --output ./src/openapi-types/ss-types --exportCore false --exportServices false && openapi --input ../../common-rest-api/src/main/resources/common-openapi-definition.yaml --output ./src/openapi-types/common-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "install-ui-lib": "cd ../../shared-ui && npm install",
@@ -21,7 +21,8 @@
     "audit-check-ui-lib": "cd ../../shared-ui && npm run check-audit",
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",
-    "build-all": "npm run install-build-ui-lib && npm install && npm run build"
+    "build-all": "npm run install-build-ui-lib && npm install && npm run build",
+    "prepare-api-definition": "rm -f ./openapi-definition.yaml* && cp ../src/main/resources/openapi-definition.yaml ./openapi-definition-frontend.yaml && sed -i.backup 's+../../../../common-rest-api+../../common-rest-api+g' ./openapi-definition-frontend.yaml"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.3.0",

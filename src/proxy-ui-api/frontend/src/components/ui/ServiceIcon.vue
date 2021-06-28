@@ -32,7 +32,7 @@
 <script lang="ts">
 // Icon for a service. Shows lock icon with proper color.
 import Vue, { PropType } from 'vue';
-import { Service } from '@/openapi-types';
+import { Service } from '@/openapi-types/ss-types';
 
 export default Vue.extend({
   props: {

@@ -85,7 +85,7 @@ import NewGroupDialog from './NewGroupDialog.vue';
 import { mapGetters } from 'vuex';
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
-import { LocalGroup } from '@/openapi-types';
+import { LocalGroup } from '@/openapi-types/ss-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({

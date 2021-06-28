@@ -25,7 +25,7 @@
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import { Key, Token, TokenCertificate } from '@/openapi-types/ss-types';
 import * as api from '@/util/api';
 import { deepClone } from '@/util/helpers';
 import { encodePathParameter } from '@/util/api';

@@ -106,7 +106,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { Prop } from 'vue/types/options';
-import { TimestampingService } from '@/openapi-types';
+import { TimestampingService } from '@/openapi-types/ss-types';
 
 export default Vue.extend({
   name: 'AddTimestampingServiceDialog',

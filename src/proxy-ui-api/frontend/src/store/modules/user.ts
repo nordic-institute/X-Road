@@ -34,7 +34,7 @@ import {
   TokenInitStatus,
   User,
   VersionInfo,
-} from '@/openapi-types';
+} from '@/openapi-types/ss-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import routes from '@/routes';

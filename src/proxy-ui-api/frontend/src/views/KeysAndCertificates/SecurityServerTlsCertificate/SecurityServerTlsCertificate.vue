@@ -124,7 +124,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
-import { CertificateDetails } from '@/openapi-types';
+import { CertificateDetails } from '@/openapi-types/ss-types';
 import * as api from '@/util/api';
 import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/GenerateTlsAndCertificateDialog.vue';
 import { saveResponseAsFile } from '@/util/helpers';

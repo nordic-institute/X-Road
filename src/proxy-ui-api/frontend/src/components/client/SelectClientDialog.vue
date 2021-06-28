@@ -98,7 +98,7 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { Client } from '@/openapi-types';
+import { Client } from '@/openapi-types/ss-types';
 
 export default Vue.extend({
   props: {

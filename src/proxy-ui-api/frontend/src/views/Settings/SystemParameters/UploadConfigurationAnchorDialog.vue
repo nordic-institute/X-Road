@@ -131,7 +131,7 @@
 import Vue from 'vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Anchor } from '@/openapi-types';
+import { Anchor } from '@/openapi-types/ss-types';
 import { FileUploadResult } from '@niis/shared-ui';
 import { PostPutPatch } from '@/util/api';
 

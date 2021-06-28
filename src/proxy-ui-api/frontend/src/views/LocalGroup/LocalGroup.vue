@@ -160,7 +160,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Permissions } from '@/global';
-import { GroupMember, LocalGroup } from '@/openapi-types';
+import { GroupMember, LocalGroup } from '@/openapi-types/ss-types';
 import AddMembersDialog from './AddMembersDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';

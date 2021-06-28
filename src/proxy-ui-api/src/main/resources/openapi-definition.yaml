@@ -110,12 +110,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -172,10 +172,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 warnings_response:
                   $ref: '#/components/examples/UploadExistingBackupWarningExample'
         '401':
@@ -251,12 +251,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -334,12 +334,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -414,12 +414,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -523,12 +523,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -641,12 +641,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -660,10 +660,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
   /token-certificates/{hash}/mark-for-deletion:
     put:
       tags:
@@ -691,12 +691,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -710,10 +710,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
   /clients:
     get:
       tags:
@@ -850,10 +850,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 warnings_response:
                   $ref: '#/components/examples/AddUnregisteredMemberWarningExample'
                 validation_errors_response:
@@ -1098,10 +1098,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
     delete:
       tags:
         - clients
@@ -1126,10 +1126,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1165,12 +1165,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1184,10 +1184,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
   /clients/{id}/service-clients:
     get:
       tags:
@@ -1661,12 +1661,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1680,10 +1680,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
   /clients/{id}/service-descriptions:
     get:
       tags:
@@ -1727,10 +1727,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
     post:
@@ -1778,12 +1778,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/AddServiceDescriptionWarningExample'
                 validation_errors_response:
@@ -1815,7 +1815,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
@@ -1945,12 +1945,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -1964,10 +1964,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
   /diagnostics/globalconf:
     get:
       tags:
@@ -2108,10 +2108,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_invalid_init_params:
                   $ref: '#/components/examples/ErrorInvalidInitParamsMetadataExample'
                 error_weak_pin:
@@ -2459,12 +2459,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/DeleteKeyWarningExample'
         '401':
@@ -2478,10 +2478,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
   /keys/{id}/csrs:
     post:
       tags:
@@ -3075,10 +3075,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 warnings_response:
                   $ref: '#/components/examples/UpdateServiceSslHandshakeWarningExample'
         '401':
@@ -3126,10 +3126,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3143,7 +3143,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
         '500':
           description: internal server error
   /services/{id}/service-clients:
@@ -3233,10 +3233,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '409':
@@ -3282,10 +3282,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
   /endpoints/{id}:
@@ -3324,10 +3324,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '500':
@@ -3365,10 +3365,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3378,10 +3378,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '409':
@@ -3389,10 +3389,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '500':
           description: internal server error
     delete:
@@ -3420,12 +3420,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3435,10 +3435,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '500':
@@ -3476,12 +3476,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3491,10 +3491,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '406':
           description: request specified an invalid format
         '500':
@@ -3539,12 +3539,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3591,12 +3591,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -3690,12 +3690,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/UpdateServiceDescriptionWarningExample'
                 validation_errors_response:
@@ -3726,7 +3726,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
@@ -3877,12 +3877,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
                 warnings_response:
                   $ref: '#/components/examples/RefreshServiceDescriptionWarningExample'
         '401':
@@ -3911,7 +3911,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_metadata_response:
                   $ref: '#/components/examples/ServiceDescriptionErrorWithMetadataExample'
@@ -4171,12 +4171,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4688,10 +4688,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_weak_pin:
                   $ref: '#/components/examples/ErrorWeakPinMetadataExample'
                 validation_errors_response:
@@ -4743,12 +4743,12 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorInfo'
+                $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
               examples:
                 error_response:
-                  $ref: '#/components/examples/ErrorExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
                 error_metadata_response:
-                  $ref: '#/components/examples/ErrorWithMetadataExample'
+                  $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
         '401':
           description: authentication credentials are missing
         '403':
@@ -4959,20 +4959,6 @@ components:
           - DEV:ORG:1234:Subsystem
           - DEV:security-server-owners
           - "123"
-    ErrorExample:
-      summary: Error response body example
-      value:
-        status: 400
-        error:
-          code: invalid_filename
-    ErrorWithMetadataExample:
-      summary: Error with metadata response body example
-      value:
-        status: 400
-        error:
-          code: invalid_service_url
-          metadata:
-            - "sftp://some.sftp.server"
     ErrorInvalidInitParamsMetadataExample:
       summary: Initialization error with metadata
       value:
@@ -5649,40 +5635,6 @@ components:
         - ERROR_CODE_MISSING_PRIVATE_PARAMS # The downloaded global configuration did not contain private parameters
         - ERROR_CODE_UNINITIALIZED # The configuration client is initializing.
         - UNKNOWN
-    CodeWithDetails:
-      type: object
-      description: object that contains a code identifier and possibly collection of
-        associated metadata or validation errors. Used to relay error and warning information.
-      required:
-        - code
-      properties:
-        code:
-          type: string
-          format: text
-          description: identifier of the item (for example errorcode)
-          example: adding_services
-        metadata:
-          type: array
-          description: array containing metadata associated with the item. For example names of services
-            were attempted to add, but failed
-          uniqueItems: true
-          items:
-            type: string
-            format: text
-        validation_errors:
-          description: A dictionary object that contains validation errors bound to their respected fields. The key
-            represents the field where the validation error has happened and the value is a list of validation errors
-          type: object
-          additionalProperties: # https://swagger.io/docs/specification/data-models/dictionaries/
-            type: array
-            description: Array containing the validation errors of a field. The possible validation error values
-              are listed in the X-Road User Guide
-            items:
-              type: string
-              format: text
-          example:
-            clientAdd.client.memberCode: ["NoPercent"]
-            clientAdd.client.subsystemCode: ["NoPercent", "NoBackslashes"]
     ConnectionType:
       type: string
       format: enum
@@ -5801,25 +5753,6 @@ components:
         - OK
         - WAITING
         - FAIL
-    ErrorInfo:
-      type: object
-      description: object returned in error cases
-      required:
-        - status
-      properties:
-        status:
-          type: integer
-          format: int32
-          description: http status code
-          example: 400
-        error:
-          $ref: '#/components/schemas/CodeWithDetails'
-        warnings:
-          type: array
-          description: warnings that could be ignored
-          uniqueItems: true
-          items:
-            $ref: '#/components/schemas/CodeWithDetails'
     InitialServerConf:
       type: object
       description: security server initial configuration

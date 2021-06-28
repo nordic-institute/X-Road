@@ -112,7 +112,7 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import { Endpoint } from '@/openapi-types';
+import { Endpoint } from '@/openapi-types/ss-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({

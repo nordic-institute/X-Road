@@ -92,7 +92,7 @@ import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Backup } from '@/openapi-types';
+import { Backup } from '@/openapi-types/ss-types';
 import { FileUploadResult } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {

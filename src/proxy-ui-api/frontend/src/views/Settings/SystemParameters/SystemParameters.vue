@@ -245,7 +245,7 @@ import {
   Anchor,
   CertificateAuthority,
   TimestampingService,
-} from '@/openapi-types';
+} from '@/openapi-types/ss-types';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
 import TimestampingServiceRow from '@/views/Settings/SystemParameters/TimestampingServiceRow.vue';

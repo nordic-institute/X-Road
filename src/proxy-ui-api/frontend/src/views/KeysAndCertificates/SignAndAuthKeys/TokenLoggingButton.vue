@@ -51,7 +51,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Token } from '@/openapi-types';
+import { Token } from '@/openapi-types/ss-types';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({

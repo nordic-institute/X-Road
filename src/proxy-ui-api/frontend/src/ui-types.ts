@@ -27,7 +27,7 @@
  TypeScript typings that are used in UI, but not in backend.
  These are not in openapi definitions.
 */
-import { Client } from '@/openapi-types';
+import { Client } from '@/openapi-types/ss-types';
 import { Location } from 'vue-router';
 
 // Interface for Tab data

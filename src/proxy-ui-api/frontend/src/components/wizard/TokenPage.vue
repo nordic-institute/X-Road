@@ -106,7 +106,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
-import { Token } from '@/openapi-types';
+import { Token } from '@/openapi-types/ss-types';
 
 export default Vue.extend({
   components: {

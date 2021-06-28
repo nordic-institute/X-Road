@@ -36,7 +36,7 @@ import {
   KeyUsageType,
   CsrFormat,
   TokenType,
-} from '@/openapi-types';
+} from '@/openapi-types/ss-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 

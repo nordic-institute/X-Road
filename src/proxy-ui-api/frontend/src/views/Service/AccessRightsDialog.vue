@@ -202,7 +202,7 @@
 import Vue, { PropType } from 'vue';
 import * as api from '@/util/api';
 import { mapGetters } from 'vuex';
-import { ServiceClient } from '@/openapi-types';
+import { ServiceClient } from '@/openapi-types/ss-types';
 
 enum ServiceClientTypes {
   GLOBALGROUP = 'GLOBALGROUP',

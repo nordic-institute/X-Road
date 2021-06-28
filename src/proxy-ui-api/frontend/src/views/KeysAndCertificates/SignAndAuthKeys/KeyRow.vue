@@ -62,7 +62,7 @@ import {
   PossibleAction,
   TokenCertificate,
   KeyUsageType,
-} from '@/openapi-types';
+} from '@/openapi-types/ss-types';
 import { Permissions } from '@/global';
 export default Vue.extend({
   props: {

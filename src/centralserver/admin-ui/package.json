@@ -5,14 +5,15 @@
   "scripts": {
     "serve": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service serve",
     "build": "rm -rf src/openapi-types && npm run generate-types && vue-cli-service build",
-    "generate-types": "openapi --input ../admin-service/src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore true --client fetch",
+    "generate-types": "npm run prepare-api-definition && openapi --input ./openapi-definition-frontend.yaml --output ./src/openapi-types/cs-types --exportCore true --client fetch && openapi --input ../../common-rest-api/src/main/resources/common-openapi-definition.yaml --output ./src/openapi-types/common-types --exportCore true --client fetch",
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
-    "license-add": "license-check-and-add add -f license-check-and-add-config.json"
+    "license-add": "license-check-and-add add -f license-check-and-add-config.json",
+    "prepare-api-definition": "rm -f ./openapi-definition.yaml* && cp ../admin-service/src/main/resources/openapi-definition.yaml ./openapi-definition-frontend.yaml && sed -i.backup 's+../../../../common-rest-api+../../common-rest-api+g' ./openapi-definition-frontend.yaml"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.4.5",

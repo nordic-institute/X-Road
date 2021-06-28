@@ -96,7 +96,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { ServiceClient } from '@/openapi-types';
+import { ServiceClient } from '@/openapi-types/ss-types';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
 import { encodePathParameter } from '@/util/api';

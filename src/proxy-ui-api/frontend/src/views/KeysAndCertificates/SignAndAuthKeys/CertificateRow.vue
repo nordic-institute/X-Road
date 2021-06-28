@@ -56,8 +56,8 @@
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import CertificateStatusIcon from './CertificateStatusIcon.vue';
-import { CertificateStatus } from '@/openapi-types';
-import { TokenCertificate } from '@/openapi-types';
+import { CertificateStatus } from '@/openapi-types/ss-types';
+import { TokenCertificate } from '@/openapi-types/ss-types';
 import { Colors } from '@/global';
 
 export default Vue.extend({
