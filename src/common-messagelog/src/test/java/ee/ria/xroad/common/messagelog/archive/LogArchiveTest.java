@@ -136,19 +136,17 @@ public class LogArchiveTest {
     private LogArchiveBase dummyLogArchiveBase() {
         return new LogArchiveBase() {
             @Override
-            public void markArchiveCreated(DigestEntry lastArchive)
-                    throws Exception {
+            public void markArchiveCreated(String entryName, DigestEntry lastArchive) {
                 // Do nothing.
             }
 
             @Override
-            public void markRecordArchived(LogRecord logRecord)
-                    throws Exception {
+            public void markRecordArchived(LogRecord logRecord) {
                 // Do nothing.
             }
 
             @Override
-            public DigestEntry loadLastArchive() {
+            public DigestEntry loadLastArchive(String entryName) {
                 return DigestEntry.empty();
             }
         };

@@ -11,6 +11,7 @@
     "**/*.config.js",
     "**/*.cer",
     "**/*.log",
+    "**/*.yaml*",
     "**/.*",
     "src/openapi-types/",
     "**/openapi-types.ts",

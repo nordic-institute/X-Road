@@ -41,24 +41,20 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
  */
 class LinkingInfoBuilder {
     private final String hashAlgoId;
-    private final LogArchiveBase archiveBase;
-
     private DigestEntry lastArchive;
 
+    @Getter
     private String lastDigest;
 
-    @Getter
-    private String createdArchiveLastDigest;
-
-    @Getter
     private List<DigestEntry> digestsForFiles = new ArrayList<>();
 
-    LinkingInfoBuilder(String hashAlgoId, LogArchiveBase archiveBase) {
+    LinkingInfoBuilder(String hashAlgoId) {
+        this(hashAlgoId, DigestEntry.empty());
+    }
+
+    LinkingInfoBuilder(String hashAlgoId, DigestEntry lastArchive) {
         this.hashAlgoId = hashAlgoId;
-        this.archiveBase = archiveBase;
-
-        updateLastArchive();
-
+        this.lastArchive = lastArchive;
         this.lastDigest = lastArchive.getDigest();
     }
 
@@ -72,14 +68,9 @@ class LinkingInfoBuilder {
         lastDigest = currentDigest;
     }
 
-    void afterArchiveCreated() {
-        digestsForFiles = new ArrayList<>();
-        createdArchiveLastDigest = lastDigest;
-        lastDigest = lastArchive.getDigest();
-    }
-
-    void afterArchiveSaved() {
-        updateLastArchive();
+    void reset(DigestEntry digestEntry) {
+        this.lastArchive = digestEntry;
+        this.lastDigest = lastArchive.getDigest();
     }
 
     byte[] build() {
@@ -106,8 +97,4 @@ class LinkingInfoBuilder {
         return isBlank(input) ? "-" : input;
     }
 
-    @SneakyThrows
-    private void updateLastArchive() {
-        this.lastArchive = archiveBase.loadLastArchive();
-    }
 }

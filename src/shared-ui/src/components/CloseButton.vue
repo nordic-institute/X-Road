@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <i @click="click()" id="dlg-close-x"></i>
+  <i id="dlg-close-x" @click="click()"></i>
 </template>
 
 <script lang="ts">
@@ -34,7 +34,7 @@ import Vue from 'vue';
  * Component for close action with X icon.
  */
 export default Vue.extend({
-  name: 'close-button',
+  name: 'CloseButton',
   methods: {
     click(event: MouseEvent): void {
       this.$emit('click', event);

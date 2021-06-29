@@ -36,7 +36,7 @@
     <xrd-simple-dialog
       :dialog="confirmMakeOwner"
       :loading="makeOwnerLoading"
-      saveButtonText="client.action.makeOwner.button"
+      save-button-text="client.action.makeOwner.button"
       title="client.action.makeOwner.confirmTitle"
       @cancel="confirmMakeOwner = false"
       @save="makeOwner()"

@@ -27,12 +27,12 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="warning"
+    :cancel-button-text="cancelButtonText"
+    :save-button-text="acceptButtonText"
+    :show-close="false"
+    :loading="loading"
     @save="accept"
     @cancel="cancel"
-    :cancelButtonText="cancelButtonText"
-    :saveButtonText="acceptButtonText"
-    :showClose="false"
-    :loading="loading"
   >
     <div slot="content" data-test="dialog-content-text">
       <div v-for="warning in warnings" :key="warning.code">

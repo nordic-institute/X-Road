@@ -27,7 +27,7 @@
 <template>
   <div class="help-wrapper">
     <v-tooltip top>
-      <template v-slot:activator="{ on }">
+      <template #activator="{ on }">
         <v-icon color="#202020" small dark v-on="on">mdi-help-circle</v-icon>
       </template>
       <span>{{ text }}</span>
@@ -39,7 +39,7 @@
 import Vue from 'vue';
 
 export default Vue.extend({
-  name: 'help-icon',
+  name: 'HelpIcon',
   props: {
     text: {
       type: String,

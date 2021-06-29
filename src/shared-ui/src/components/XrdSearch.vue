@@ -26,7 +26,7 @@
  -->
 <template>
   <div>
-    <v-icon @click="closed = false" v-if="closed" class="icon-closed"
+    <v-icon v-if="closed" class="icon-closed" @click="closed = false"
       >mdi-magnify</v-icon
     >
     <v-text-field
@@ -38,8 +38,8 @@
       class="search-input"
       prepend-inner-icon="mdi-magnify"
       clearable
-      v-bind:value="value"
-      v-on:input="$emit('input', $event)"
+      :value="value"
+      @input="$emit('input', $event)"
     >
     </v-text-field>
   </div>
@@ -52,14 +52,14 @@ import Vue from 'vue';
  * */
 
 export default Vue.extend({
-  name: 'xrd-search',
+  name: 'XrdSearch',
   props: ['value', 'label'],
-  computed: {},
   data() {
     return {
       closed: true,
     };
   },
+  computed: {},
   methods: {
     show(): void {
       this.closed = false;

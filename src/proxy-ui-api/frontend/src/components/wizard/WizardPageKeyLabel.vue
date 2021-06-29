@@ -29,19 +29,19 @@
       <div class="row-wrap">
         <xrd-form-label
           v-if="tokenType === 'HARDWARE'"
-          :labelText="$t('wizard.signKey.keyLabel')"
-          :helpText="$t('wizard.signKey.info')"
+          :label-text="$t('wizard.signKey.keyLabel')"
+          :help-text="$t('wizard.signKey.info')"
         />
         <xrd-form-label
           v-else
-          :labelText="$t('wizard.signKey.keyLabel')"
-          :helpText="$t('wizard.signKey.info')"
+          :label-text="$t('wizard.signKey.keyLabel')"
+          :help-text="$t('wizard.signKey.info')"
         />
 
         <v-text-field
+          v-model="keyLabel"
           class="form-input"
           type="text"
-          v-model="keyLabel"
           outlined
           data-test="key-label-button"
           autofocus
@@ -51,13 +51,13 @@
     <div class="button-footer">
       <xrd-button
         outlined
-        @click="cancel"
         :disabled="!disableDone"
         data-test="cancel-button"
+        @click="cancel"
         >{{ $t('action.cancel') }}</xrd-button
       >
 
-      <xrd-button @click="done" data-test="next-button">{{
+      <xrd-button data-test="next-button" @click="done">{{
         $t('action.next')
       }}</xrd-button>
     </div>
@@ -73,7 +73,13 @@ export default Vue.extend({
     tokenType: {
       type: String,
       required: false,
+      default: undefined,
     },
+  },
+  data() {
+    return {
+      disableDone: true,
+    };
   },
   computed: {
     ...mapGetters(['csrForm']),
@@ -92,11 +98,6 @@ export default Vue.extend({
         return 'keys.keyLabelInput';
       }
     },
-  },
-  data() {
-    return {
-      disableDone: true,
-    };
   },
   methods: {
     cancel(): void {

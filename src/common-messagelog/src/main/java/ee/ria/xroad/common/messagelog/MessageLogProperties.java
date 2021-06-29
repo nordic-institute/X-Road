@@ -26,6 +26,7 @@
 package ee.ria.xroad.common.messagelog;
 
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import com.google.common.base.Splitter;
@@ -95,6 +96,11 @@ public final class MessageLogProperties {
 
     public static final String ARCHIVE_TRANSFER_COMMAND = PREFIX + "archive-transfer-command";
 
+    /** log archive grouping strategy, one of
+     *  none, member, subsystem
+     **/
+    public static final String ARCHIVE_GROUPING = PREFIX + "archive-grouping";
+
     /**
      * Property name for toggling SOAP body logging on/off
      * @deprecated
@@ -121,6 +127,7 @@ public final class MessageLogProperties {
 
     /** is truncating body in logging allowed **/
     private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
+
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -236,6 +243,11 @@ public final class MessageLogProperties {
      */
     public static String getArchiveTransferCommand() {
         return System.getProperty(ARCHIVE_TRANSFER_COMMAND, null);
+    }
+
+    public static GroupingStrategy getArchiveGrouping() {
+        return GroupingStrategy.valueOf(
+                System.getProperty(ARCHIVE_GROUPING, GroupingStrategy.NONE.name()).toUpperCase());
     }
 
     private static int getInt(String value, int defaultValue) {

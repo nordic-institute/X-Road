@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,33 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.common.messagelog.archive;
 
-import { VApp, VMain } from 'vuetify/lib';
-import vuetifyConfig from '../src/plugins/vuetify';
-import '../src/plugins/vee-validate';
-import '@fontsource/open-sans';
-import 'vuetify/dist/vuetify.min.css'
-import "@mdi/font/css/materialdesignicons.css";
-import "../src/assets/icons.css";
-import i18n from '../src/i18n';
+import ee.ria.xroad.common.messagelog.MessageRecord;
 
-export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
+public enum GroupingStrategy {
+    NONE {
+        @Override
+        Grouping forRecord(MessageRecord record) {
+            return NO_GROUPING;
+        }
+    },
+    MEMBER {
+        @Override
+        Grouping forRecord(MessageRecord record) {
+            return new MemberGrouping(record);
+        }
+    },
+    SUBSYSTEM {
+        @Override
+        Grouping forRecord(MessageRecord record) {
+            return new SubsystemGrouping(record);
+        }
+    };
+
+    abstract Grouping forRecord(MessageRecord record);
+
+    static final Grouping NO_GROUPING = new Grouping() {
+        @Override
+        public boolean includes(MessageRecord record) {
+            return true;
+        }
+
+        @Override
+        public String name() {
+            return null;
+        }
+    };
 }
-
-const appDecorator = () => {
-  return {
-    vuetify: vuetifyConfig,
-    i18n,
-    components: { VApp, VMain },
-    template: `
-      <v-app>
-          <v-main>
-            <story/>
-          </v-main>
-      </v-app>
-    `
-  };
-};
-
-export const decorators = [appDecorator];

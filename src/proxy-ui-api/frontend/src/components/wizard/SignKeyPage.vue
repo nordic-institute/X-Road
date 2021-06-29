@@ -28,13 +28,13 @@
     <div class="wizard-step-form-content py-10 mt-10">
       <div class="row-wrap">
         <xrd-form-label
-          :labelText="$t('wizard.signKey.keyLabel')"
-          :helpText="$t('wizard.signKey.info')"
+          :label-text="$t('wizard.signKey.keyLabel')"
+          :help-text="$t('wizard.signKey.info')"
         />
         <v-text-field
+          v-model="keyLabel"
           class="form-input"
           type="text"
-          v-model="keyLabel"
           data-test="key-label-input"
           outlined
           autofocus
@@ -44,20 +44,20 @@
     <div class="button-footer">
       <xrd-button
         outlined
-        @click="cancel"
         :disabled="!disableDone"
         data-test="cancel-button"
+        @click="cancel"
         >{{ $t('action.cancel') }}</xrd-button
       >
 
       <xrd-button
-        @click="previous"
         outlined
         class="previous-button"
         data-test="previous-button"
+        @click="previous"
         >{{ $t('action.previous') }}</xrd-button
       >
-      <xrd-button @click="done" data-test="next-button">{{
+      <xrd-button data-test="next-button" @click="done">{{
         $t('action.next')
       }}</xrd-button>
     </div>
@@ -68,6 +68,11 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  data() {
+    return {
+      disableDone: true,
+    };
+  },
   computed: {
     keyLabel: {
       get(): string {
@@ -77,11 +82,6 @@ export default Vue.extend({
         this.$store.commit('storeKeyLabel', value);
       },
     },
-  },
-  data() {
-    return {
-      disableDone: true,
-    };
   },
   methods: {
     cancel(): void {

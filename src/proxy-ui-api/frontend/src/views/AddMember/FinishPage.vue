@@ -39,7 +39,7 @@
         <p></p>
 
         <div v-if="showRegisterOption">
-          <xrd-form-label :labelText="$t('wizard.member.register')" />
+          <xrd-form-label :label-text="$t('wizard.member.register')" />
           <v-checkbox
             v-model="registerChecked"
             color="primary"
@@ -52,25 +52,25 @@
     <div class="button-footer">
       <xrd-button
         outlined
-        @click="cancel"
         :disabled="disableCancel"
         data-test="cancel-button"
+        @click="cancel"
         >{{ $t('action.cancel') }}</xrd-button
       >
 
       <xrd-button
-        @click="previous"
         outlined
         :disabled="disableCancel"
         class="previous-button"
         data-test="previous-button"
+        @click="previous"
         >{{ $t('action.previous') }}</xrd-button
       >
 
       <xrd-button
-        @click="done"
         data-test="submit-button"
         :loading="submitLoading"
+        @click="done"
         >{{ $t('action.submit') }}</xrd-button
       >
     </div>
@@ -78,7 +78,7 @@
     <warningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
-      localizationParent="wizard.warning"
+      localization-parent="wizard.warning"
       @cancel="cancelSubmit()"
       @accept="acceptWarnings()"
     />
@@ -98,6 +98,15 @@ export default Vue.extend({
   components: {
     WarningDialog,
   },
+  data() {
+    return {
+      disableCancel: false as boolean,
+      registerChecked: true as boolean,
+      submitLoading: false as boolean,
+      warningInfo: [] as string[],
+      warningDialog: false as boolean,
+    };
+  },
   computed: {
     ...mapGetters([
       'addMemberWizardMode',
@@ -115,15 +124,7 @@ export default Vue.extend({
       return false;
     },
   },
-  data() {
-    return {
-      disableCancel: false as boolean,
-      registerChecked: true as boolean,
-      submitLoading: false as boolean,
-      warningInfo: [] as string[],
-      warningDialog: false as boolean,
-    };
-  },
+
   methods: {
     cancel(): void {
       this.$emit('cancel');

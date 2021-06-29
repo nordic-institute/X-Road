@@ -34,17 +34,17 @@
       <div>
         <xrd-button
           v-if="showAddMember"
-          @click="addMember"
           data-test="add-member-button"
           class="add-member"
           outlined
+          @click="addMember"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
           {{ $t('action.addMember') }}</xrd-button
         >
         <xrd-button
           v-if="showAddClient"
-          @click="addClient"
           data-test="add-client-button"
+          @click="addClient"
           ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
           {{ $t('action.addClient') }}</xrd-button
         >
@@ -67,7 +67,7 @@
       :loader-height="2"
     >
       <!-- https://stackoverflow.com/questions/61344980/v-slot-directive-doesnt-support-any-modifier -->
-      <template v-slot:[`item.visibleName`]="{ item }">
+      <template #[`item.visibleName`]="{ item }">
         <!-- Name - Owner member -->
         <template v-if="item.type === clientTypes.OWNER_MEMBER">
           <i @click="openClient(item)">
@@ -128,15 +128,15 @@
         </template>
       </template>
 
-      <template v-slot:[`item.id`]="{ item }">
+      <template #[`item.id`]="{ item }">
         <span class="identifier-wrap">{{ item.id }}</span>
       </template>
 
-      <template v-slot:[`item.status`]="{ item }">
+      <template #[`item.status`]="{ item }">
         <client-status :status="item.status" />
       </template>
 
-      <template v-slot:[`item.button`]="{ item }">
+      <template #[`item.button`]="{ item }">
         <div class="button-wrap">
           <xrd-button
             v-if="
@@ -178,9 +178,9 @@
       :dialog="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"
+      :loading="registerClientLoading"
       @cancel="confirmRegisterClient = false"
       @accept="registerAccepted(selectedClient)"
-      :loading="registerClientLoading"
     />
   </v-container>
 </template>
@@ -261,6 +261,9 @@ export default Vue.extend({
     canOpenClient(): boolean {
       return this.$store.getters.hasPermission(Permissions.VIEW_CLIENT_DETAILS);
     },
+  },
+  created() {
+    this.fetchClients();
   },
 
   methods: {
@@ -461,9 +464,6 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
-  },
-  created() {
-    this.fetchClients();
   },
 });
 </script>
