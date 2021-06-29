@@ -48,11 +48,11 @@ docker network inspect xroad-network >/dev/null 2>&1 || docker network create -d
 echo "=====> Build sidecar image"
 docker build -f sidecar/Dockerfile -t xroad-sidecar-security-server-image sidecar/
 echo "=====> Run container"
-docker run  --detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network --cap-drop NET_RAW --security-opt="no-new-privileges" --memory="4g" --cpus="2" -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL -e XROAD_DATABASE_NAME=$8 --name $1 xroad-sidecar-security-server-image
+docker run  --detach -p $2:4000 -p $httpport:8080 -p 5588:5588 --network xroad-network --cap-drop NET_RAW --security-opt="no-new-privileges" --memory="4g" --cpus="2" -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD  -e XROAD_LOG_LEVEL=$XROAD_LOG_LEVEL -e XROAD_DATABASE_NAME=$8 --name $1 xroad-sidecar-security-server-image
 
 printf "\n
 Sidecar security server software token PIN is set to $3
 Sidecar security server admin UI should be accessible shortly in https://localhost:$2
-$1-container port 80 is mapped to $httpport
+$1-container port 8080 is mapped to $httpport
 Sidecar security server database is located at $postgresqlhost:$postgresqlport
 "
