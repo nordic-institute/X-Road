@@ -42,7 +42,7 @@ The document is intended for readers with a moderate knowledge of Linux server m
 
 ## 2 Reference Data
 
-Please check the Reference data in the [Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/XRDDEV-1419/doc/kubernetes_security_server_sidecar_user_guide.md#44-reference-data).
+Please check the Reference data in the [Kubernetes User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md.md#44-reference-data).
 
 **Ref** | **Value**                                | **Explanation**
 ------- | ----------------------------------------- | ----------------------------------------------------------
@@ -54,7 +54,7 @@ Please check the Reference data in the [Kubernetes User Guide](https://github.co
 
 ## 3 Handling passwords and secrets
 
-Kubernetes Secrets let you store and manage sensitive information in a safer way than putting it verbatim in a Pod definition or container image. For example, for the scenario [Multiple Pods using a Load Balancer](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/XRDDEV-1419/doc/kubernetes_security_server_sidecar_user_guide.md#23-multiple-pods-using-a-load-balancer) it is recommended to use secrets to store the environmental variables for the database password and the SSH keys using for the communication between the Primary and Secondary pods.
+Kubernetes Secrets let you store and manage sensitive information in a safer way than putting it verbatim in a Pod definition or container image. For example, for the scenario [Multiple Pods using a Load Balancer](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/kubernetes_security_server_sidecar_user_guide.md#23-multiple-pods-using-a-load-balancer) it is recommended to use secrets to store the environmental variables for the database password and the SSH keys using for the communication between the Primary and Secondary pods.
 The Secrets can be used with a Pod in three ways:
 
 * As files in a volume mounted on one or more containers.
