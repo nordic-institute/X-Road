@@ -36,7 +36,7 @@ import org.niis.xroad.restapi.auth.GrantedAuthorityMapper;
 import org.niis.xroad.restapi.auth.PamAuthenticationProvider;
 import org.niis.xroad.restapi.auth.securityconfigurer.CookieAndSessionCsrfTokenRepository;
 import org.niis.xroad.restapi.domain.Role;
-import org.niis.xroad.securityserver.restapi.openapi.model.User;
+import org.niis.xroad.restapi.openapi.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;

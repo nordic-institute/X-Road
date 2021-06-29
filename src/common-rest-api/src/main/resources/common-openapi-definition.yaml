@@ -17,20 +17,32 @@ servers:
 tags:
   - name: dummy
 paths:
-  /dummy:
+  /user:
     get:
       tags:
-        - dummy
-      summary: dummy path to satisfy validator
-      operationId: dummy path
-      description: dummy path
+        - user
+      summary: get user data for the logged user
+      operationId: getUser
+      description: <h3>Administrator gets user data from backend.</h3>
       responses:
         '200':
-          description: dummy path
+          description: user details
           content:
             application/json:
               schema:
-                type: boolean
+                $ref: '#/components/schemas/User'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
 components:
   securitySchemes:
     ApiKeyAuth:
@@ -93,6 +105,35 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/CodeWithDetails'
+    User:
+      type: object
+      description: x-road user
+      required:
+        - username
+        - roles
+        - permissions
+      properties:
+        username:
+          type: string
+          format: text
+          description: user username
+          example: Guest
+          minLength: 1
+          maxLength: 255
+        roles:
+          type: array
+          description: user roles
+          uniqueItems: true
+          items:
+            type: string
+            format: text
+        permissions:
+          type: array
+          description: user permissions
+          uniqueItems: true
+          items:
+            type: string
+            format: text
   examples:
     ErrorExample:
       summary: Error response body example

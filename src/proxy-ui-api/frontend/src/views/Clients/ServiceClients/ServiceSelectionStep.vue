@@ -112,7 +112,11 @@
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
-import { AccessRight, AccessRights, ServiceClient } from '@/openapi-types/ss-types';
+import {
+  AccessRight,
+  AccessRights,
+  ServiceClient,
+} from '@/openapi-types/ss-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 

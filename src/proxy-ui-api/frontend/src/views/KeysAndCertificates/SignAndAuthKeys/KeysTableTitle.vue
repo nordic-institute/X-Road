@@ -49,7 +49,11 @@
 // View for a token
 import Vue from 'vue';
 import { Colors } from '@/global';
-import { CertificateStatus, Key, TokenCertificate } from '@/openapi-types/ss-types';
+import {
+  CertificateStatus,
+  Key,
+  TokenCertificate,
+} from '@/openapi-types/ss-types';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({

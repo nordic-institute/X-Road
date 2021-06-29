@@ -263,7 +263,11 @@ import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { mapGetters } from 'vuex';
 import { RouteName, Permissions } from '@/global';
-import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types/ss-types';
+import {
+  ServiceClient,
+  ServiceClients,
+  ServiceUpdate,
+} from '@/openapi-types/ss-types';
 import { ServiceTypeEnum } from '@/domain';
 import { encodePathParameter } from '@/util/api';
 
