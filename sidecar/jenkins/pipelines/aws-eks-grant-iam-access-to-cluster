@@ -1,0 +1,25 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Cluster name", name: "CLUSTER_NAME", defaultValue: "${params?.CLUSTER_NAME}")
+        string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
+        string(description: "User name", name: "USER_NAME", defaultValue: "${params?.USER_NAME}")
+        string(description: "User ARN", name: "USER_ARN", defaultValue: "${params?.USER_ARN}")
+    }
+    stages {
+        stage('Update kube config') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'aws eks --region ${REGION_CODE} update-kubeconfig --name ${CLUSTER_NAME}'
+                }
+            }
+        }
+        stage('Modify aws-auth config to add role to EKS cluster') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                    sh 'sidecar/kubernetes/grant-user-access-to-cluster.sh ${USER_NAME} ${USER_ARN}'
+                }
+            }
+        }
+    }
+}

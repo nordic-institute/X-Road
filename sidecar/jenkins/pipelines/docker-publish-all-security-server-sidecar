@@ -1,0 +1,36 @@
+pipeline {
+    agent { label 'dev-test' }
+    parameters {
+        string(description: "Image tag", name: "REPOSITORY_NAME", defaultValue: "${params?.REPOSITORY_NAME}")
+        string(description: "Version", name: "RELEASE_VERSION", defaultValue: "${params?.RELEASE_VERSION}")
+    }
+    stages {
+      stage('Build all security server sidecar images') {
+          steps {
+              build job: 'build-all-security-server-sidecar-docker-images',
+              parameters: [
+                  string(name: 'REPOSITORY_NAME', value: params.REPOSITORY_NAME),
+                  string(name: 'RELEASE_VERSION', value: params.RELEASE_VERSION)
+              ]
+          }
+      }
+      stage('Publish image with REPOSITORY_NAME:RELEASE_VERSION') {
+          steps {
+              withDockerRegistry([ credentialsId: "dockerhub", url: "" ]) {
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-primary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-secondary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-primary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-secondary'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-primary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-secondary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-primary-fi'
+                  sh 'docker push $REPOSITORY_NAME:$RELEASE_VERSION-slim-secondary-fi'
+              }
+          }
+       }
+    }
+}

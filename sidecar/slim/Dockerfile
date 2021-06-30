@@ -82,4 +82,4 @@ COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.con
 
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 8080 8443 4000 5500 5577 5588
+EXPOSE 8080 8443 4000 5500 5577 5588 80 443
