@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="">
-    <div class="apply-to-all" v-if="showApplyToAll">
+    <div v-if="showApplyToAll" class="apply-to-all">
       <div class="apply-to-all-text">{{ $t('services.applyToAll') }}</div>
     </div>
 
@@ -35,37 +35,37 @@
           <xrd-form-label
             class="edit-title"
             data-test="service-parameters-service-url-label"
-            :labelText="$t('services.serviceUrl')"
-            :helpText="$t('services.urlTooltip')"
+            :label-text="$t('services.serviceUrl')"
+            :help-text="$t('services.urlTooltip')"
           />
 
           <div class="edit-input">
             <ValidationProvider
+              v-slot="{ errors }"
               rules="required|wsdlUrl"
               name="serviceUrl"
               class="validation-provider"
-              v-slot="{ errors }"
             >
               <v-text-field
                 v-model="service.url"
-                @input="changeUrl()"
                 outlined
                 class="description-input"
                 name="serviceUrl"
                 :error-messages="errors"
                 data-test="service-url"
                 :disabled="!canEdit"
+                @input="changeUrl()"
               ></v-text-field>
             </ValidationProvider>
           </div>
 
           <v-checkbox
             v-if="showApplyToAll"
-            @change="setTouched()"
             v-model="url_all"
             color="primary"
             class="table-checkbox"
             data-test="url-all"
+            @change="setTouched()"
           ></v-checkbox>
         </div>
 
@@ -73,27 +73,27 @@
           <xrd-form-label
             class="edit-title"
             data-test="service-parameters-timeout-label"
-            :labelText="$t('services.timeoutSec')"
-            :helpText="$t('services.timeoutTooltip')"
+            :label-text="$t('services.timeoutSec')"
+            :help-text="$t('services.timeoutTooltip')"
           />
 
           <div class="edit-input">
             <ValidationProvider
+              v-slot="{ errors }"
               :rules="{ required: true, between: { min: 0, max: 1000 } }"
               name="serviceTimeout"
               class="validation-provider"
-              v-slot="{ errors }"
             >
               <v-text-field
                 v-model="service.timeout"
                 outlined
-                @input="setTouched()"
                 type="number"
                 style="max-width: 200px"
                 name="serviceTimeout"
                 :error-messages="errors"
                 :disabled="!canEdit"
                 data-test="service-timeout"
+                @input="setTouched()"
               ></v-text-field>
             </ValidationProvider>
             <!-- 0 - 1000 -->
@@ -101,11 +101,11 @@
 
           <v-checkbox
             v-if="showApplyToAll"
-            @change="setTouched()"
             v-model="timeout_all"
             color="primary"
             class="table-checkbox"
             data-test="timeout-all"
+            @change="setTouched()"
           ></v-checkbox>
         </div>
 
@@ -113,28 +113,28 @@
           <xrd-form-label
             class="edit-title"
             data-test="service-parameters-verify-tls-label"
-            :labelText="$t('services.verifyTls')"
-            :helpText="$t('services.tlsTooltip')"
+            :label-text="$t('services.verifyTls')"
+            :help-text="$t('services.tlsTooltip')"
           />
 
           <div class="edit-input">
             <v-checkbox
-              :disabled="!isHttpsMethod() || !canEdit"
-              @change="setTouched()"
               v-model="service.ssl_auth"
+              :disabled="!isHttpsMethod() || !canEdit"
               color="primary"
               class="table-checkbox"
               data-test="ssl-auth"
+              @change="setTouched()"
             ></v-checkbox>
           </div>
 
           <v-checkbox
             v-if="showApplyToAll"
-            @change="setTouched()"
             v-model="ssl_auth_all"
             color="primary"
             class="table-checkbox"
             data-test="ssl-auth-all"
+            @change="setTouched()"
           ></v-checkbox>
         </div>
 
@@ -143,8 +143,8 @@
             v-if="canEdit"
             :disabled="invalid || disableSave"
             :loading="saving"
-            @click="save(false)"
             data-test="save-service-parameters"
+            @click="save(false)"
             >{{ $t('action.save') }}</xrd-button
           >
         </div>
@@ -155,19 +155,19 @@
       <div class="row-title">{{ $t('accessRights.title') }}</div>
       <div class="row-buttons">
         <xrd-button
-          :disabled="!hasServiceClients"
           v-if="canEdit"
+          :disabled="!hasServiceClients"
           outlined
-          @click="removeAllServiceClients()"
           data-test="remove-subjects"
+          @click="removeAllServiceClients()"
           >{{ $t('action.removeAll') }}</xrd-button
         >
         <xrd-button
           v-if="canEdit"
           outlined
           class="add-members-button"
-          @click="showAddServiceClientDialog()"
           data-test="show-add-subjects"
+          @click="showAddServiceClientDialog()"
           >{{ $t('accessRights.addServiceClients') }}</xrd-button
         >
       </div>
@@ -183,7 +183,7 @@
           <th></th>
         </tr>
         <template v-if="serviceClients">
-          <tr v-for="sc in serviceClients" v-bind:key="sc.id">
+          <tr v-for="sc in serviceClients" :key="sc.id">
             <td class="identifier-wrap">{{ sc.name }}</td>
             <td class="identifier-wrap">{{ sc.id }}</td>
             <td>{{ sc.service_client_type }}</td>
@@ -194,8 +194,8 @@
                   v-if="canEdit"
                   text
                   :outlined="false"
-                  @click="removeServiceClient(sc)"
                   data-test="remove-subject"
+                  @click="removeServiceClient(sc)"
                   >{{ $t('action.remove') }}</xrd-button
                 >
               </div>
@@ -205,7 +205,7 @@
       </table>
 
       <div class="footer-buttons-wrap">
-        <xrd-button @click="close()" data-test="close">{{
+        <xrd-button data-test="close" @click="close()">{{
           $t('action.close')
         }}</xrd-button>
       </div>
@@ -213,8 +213,8 @@
 
     <!-- Confirm dialog remove Access Right service clients -->
     <xrd-confirm-dialog
-      :dialog="confirmMember"
       v-if="confirmMember"
+      :dialog="confirmMember"
       title="accessRights.removeTitle"
       text="accessRights.removeText"
       data-test="confirm-delete-access-right"
@@ -224,8 +224,8 @@
 
     <!-- Confirm dialog remove all Access Right service clients -->
     <xrd-confirm-dialog
-      :dialog="confirmAllServiceClients"
       v-if="confirmAllServiceClients"
+      :dialog="confirmAllServiceClients"
       title="accessRights.removeAllTitle"
       text="accessRights.removeAllText"
       data-test="confirm-delete-all-access-right"
@@ -235,10 +235,10 @@
 
     <!-- Add access right service clients dialog -->
     <accessRightsDialog
-      :dialog="addServiceClientDialogVisible"
       v-if="addServiceClientDialogVisible"
-      :existingServiceClients="serviceClients"
-      :clientId="clientId"
+      :dialog="addServiceClientDialogVisible"
+      :existing-service-clients="serviceClients"
+      :client-id="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="closeAccessRightsDialog"
       @service-clients-added="doAddServiceClient"
@@ -248,7 +248,7 @@
     <warningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
-      localizationParent="services.service_parameters_ssl_test_warnings"
+      localization-parent="services.service_parameters_ssl_test_warnings"
       @cancel="cancelSubmit()"
       @accept="acceptWarnings()"
     />

@@ -31,19 +31,19 @@
           $t(title)
         }}</span>
         <v-spacer />
-        <i @click="cancel()" id="close-x"></i>
+        <i id="close-x" @click="cancel()"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px" class="elevation-0 px-0">
         <v-expansion-panels
-          class="elevation-0 px-0"
           v-model="expandPanel"
+          class="elevation-0 px-0"
           multiple
         >
           <v-expansion-panel class="elevation-0 px-0">
             <v-expansion-panel-header></v-expansion-panel-header>
             <v-expansion-panel-content class="elevation-0 px-0">
-              <template v-slot:header>
+              <template #header>
                 <v-spacer />
                 <div class="exp-title">
                   {{ $t('localGroup.searchOptions') }}
@@ -102,7 +102,7 @@
                 </div>
 
                 <div class="search-wrap">
-                  <xrd-button @click="search()" :loading="loading">{{
+                  <xrd-button :loading="loading" @click="search()">{{
                     $t('action.search')
                   }}</xrd-button>
                 </div>
@@ -122,12 +122,12 @@
             </tr>
           </thead>
           <tbody v-if="members && members.length > 0">
-            <tr v-for="member in members" v-bind:key="member.id">
+            <tr v-for="member in members" :key="member.id">
               <td>
                 <div class="checkbox-wrap">
                   <v-checkbox
-                    @change="checkboxChange(member.id, $event)"
                     color="primary"
+                    @change="checkboxChange(member.id, $event)"
                   ></v-checkbox>
                 </div>
               </td>
@@ -195,6 +195,7 @@ export default Vue.extend({
     },
     filtered: {
       type: Array as PropType<Client[]>,
+      default: undefined,
     },
     title: {
       type: String,
@@ -210,6 +211,10 @@ export default Vue.extend({
     canSave(): boolean {
       return this.selectedIds.length > 0;
     },
+  },
+  created() {
+    this.$store.dispatch('fetchXroadInstances');
+    this.$store.dispatch('fetchMemberClasses');
   },
 
   methods: {
@@ -279,10 +284,6 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
-  },
-  created() {
-    this.$store.dispatch('fetchXroadInstances');
-    this.$store.dispatch('fetchMemberClasses');
   },
 });
 </script>

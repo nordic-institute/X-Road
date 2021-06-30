@@ -31,9 +31,9 @@
       <xrd-button
         v-if="showDeleteTsp"
         data-test="system-parameters-timestamping-service-delete-button"
-        @click="confirmDeleteDialog = true"
         :outlined="false"
         text
+        @click="confirmDeleteDialog = true"
       >
         {{
           $t('systemParameters.timestampingServices.table.action.delete.button')
@@ -42,11 +42,11 @@
       <xrd-confirm-dialog
         data-test="system-parameters-timestamping-service-delete-confirm-dialog"
         :dialog="confirmDeleteDialog"
-        @cancel="confirmDeleteDialog = false"
-        @accept="deleteTimestampingService"
         :loading="deleting"
         title="systemParameters.timestampingServices.table.action.delete.confirmation.title"
         text="systemParameters.timestampingServices.table.action.delete.confirmation.text"
+        @cancel="confirmDeleteDialog = false"
+        @accept="deleteTimestampingService"
       />
     </td>
   </tr>
@@ -67,17 +67,17 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {
-    showDeleteTsp(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_TSP);
-    },
-  },
   data() {
     return {
       confirmDeleteDialog: false,
       deleting: false,
       permissions: Permissions,
     };
+  },
+  computed: {
+    showDeleteTsp(): boolean {
+      return this.$store.getters.hasPermission(Permissions.DELETE_TSP);
+    },
   },
   methods: {
     deleteTimestampingService(): void {

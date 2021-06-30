@@ -27,16 +27,16 @@
   <div>
     <xrd-file-upload
       v-if="showUploadAnchor"
+      v-slot="{ upload }"
       accepts=".xml"
       @file-changed="onUploadFileChanged"
-      v-slot="{ upload }"
     >
       <xrd-button
         data-test="system-parameters-configuration-anchor-upload-button"
         outlined
-        @click="upload"
         :loading="previewing"
         class="ml-5"
+        @click="upload"
       >
         <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
         {{
@@ -117,8 +117,8 @@
           >
           <xrd-button
             data-test="system-parameters-upload-configuration-anchor-dialog-confirm-button"
-            @click="confirmUpload"
             :loading="uploading"
+            @click="confirmUpload"
             >{{ $t('action.confirm') }}</xrd-button
           >
         </v-card-actions>
@@ -148,11 +148,6 @@ export default Vue.extend({
       default: false,
     },
   },
-  computed: {
-    showUploadAnchor(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPLOAD_ANCHOR);
-    },
-  },
   data() {
     return {
       previewing: false as boolean,
@@ -163,6 +158,11 @@ export default Vue.extend({
       permissions: Permissions,
       anchorFile: undefined as string | undefined,
     };
+  },
+  computed: {
+    showUploadAnchor(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPLOAD_ANCHOR);
+    },
   },
   methods: {
     onUploadFileChanged(event: FileUploadResult): void {

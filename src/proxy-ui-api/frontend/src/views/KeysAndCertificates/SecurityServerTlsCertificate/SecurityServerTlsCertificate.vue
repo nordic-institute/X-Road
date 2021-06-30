@@ -29,9 +29,9 @@
       <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
       <div>
         <help-button
-          helpImage="tls_certificate.png"
-          helpTitle="keys.helpTitleSS"
-          helpText="keys.helpTextSS"
+          help-image="tls_certificate.png"
+          help-title="keys.helpTitleSS"
+          help-text="keys.helpTextSS"
         ></help-button>
       </div>
     </div>
@@ -41,21 +41,21 @@
         v-if="generateKeyVisible"
         class="button-spacing"
         outlined
-        @click="generateDialog = true"
         data-test="security-server-tls-certificate-generate-key-button"
+        @click="generateDialog = true"
         >{{ $t('ssTlsCertificate.generateKey') }}</xrd-button
       >
       <xrd-file-upload
         v-if="importCertificateVisible"
+        v-slot="{ upload }"
         accepts=".pem, .cer, .der"
         @file-changed="onImportFileChanged"
-        v-slot="{ upload }"
       >
         <xrd-button
           class="button-spacing"
           outlined
-          @click="upload"
           data-test="security-server-tls-certificate-import-certificate-key"
+          @click="upload"
           >{{ $t('ssTlsCertificate.importCertificate') }}</xrd-button
         >
       </xrd-file-upload>
@@ -64,8 +64,8 @@
         class="button-spacing"
         outlined
         :loading="exportPending"
-        @click="exportCertificate()"
         data-test="security-server-tls-certificate-export-certificate-button"
+        @click="exportCertificate()"
         >{{ $t('ssTlsCertificate.exportCertificate') }}</xrd-button
       >
     </div>
@@ -94,8 +94,8 @@
             />
 
             <div
-              class="clickable-link"
               v-if="certificate"
+              class="clickable-link"
               @click="certificateClick()"
             >
               {{ certificate.hash | colonize }}
@@ -107,10 +107,10 @@
           <xrd-button
             v-if="generateCsrVisible"
             class="mr-2"
-            @click="generateCsr()"
             text
             :outlined="false"
             data-test="security-server-tls-certificate-generate-csr-button"
+            @click="generateCsr()"
             >{{ $t('ssTlsCertificate.generateCsr') }}</xrd-button
           >
         </div>
@@ -165,6 +165,9 @@ export default Vue.extend({
       );
     },
   },
+  created() {
+    this.fetchData();
+  },
   methods: {
     certificateClick(): void {
       this.$router.push({
@@ -214,9 +217,6 @@ export default Vue.extend({
         })
         .catch((error) => this.$store.dispatch('showError', error));
     },
-  },
-  created() {
-    this.fetchData();
   },
 });
 </script>

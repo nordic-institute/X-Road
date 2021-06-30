@@ -27,23 +27,23 @@
 <template>
   <div>
     <xrd-button
-      min-width="120px"
       v-if="!token.logged_in"
+      min-width="120px"
       :outlined="false"
       text
       :disabled="!token.available"
-      @click="confirmLogin()"
       data-test="token-login-button"
+      @click="confirmLogin()"
       >{{ $t('keys.logIn') }}
     </xrd-button>
 
     <xrd-button
+      v-if="token.logged_in"
       min-width="120px"
       :outlined="false"
       text
-      v-if="token.logged_in"
-      @click="confirmLogout()"
       data-test="token-logout-button"
+      @click="confirmLogout()"
       >{{ $t('keys.logOut') }}
     </xrd-button>
   </div>

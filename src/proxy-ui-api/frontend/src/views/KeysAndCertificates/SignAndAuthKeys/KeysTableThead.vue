@@ -28,15 +28,15 @@
     <tr>
       <th
         class="title-col"
+        data-test="name-sort"
         @click="setSort(sortColumn.NAME)"
         @mouseover="hoverName = true"
         @mouseleave="hoverName = false"
-        data-test="name-sort"
       >
         <div class="header-title">
           <div>{{ $t('name') }}</div>
           <sort-button
-            :arrowState="sortDirection"
+            :arrow-state="sortDirection"
             :active="hoverName"
             :selected="selectedSort === sortColumn.NAME"
           />
@@ -44,15 +44,15 @@
       </th>
       <th
         class="id-col"
+        data-test="id-sort"
         @click="setSort(sortColumn.ID)"
         @mouseover="hoverId = true"
         @mouseleave="hoverId = false"
-        data-test="id-sort"
       >
         <div class="header-title">
           {{ $t('keys.id') }}
           <sort-button
-            :arrowState="sortDirection"
+            :arrow-state="sortDirection"
             :active="hoverId"
             :selected="selectedSort === sortColumn.ID"
           />
@@ -60,15 +60,15 @@
       </th>
       <th
         class="ocsp-col"
+        data-test="ocsp-sort"
         @click="setSort(sortColumn.OCSP)"
         @mouseover="hoverOcsp = true"
         @mouseleave="hoverOcsp = false"
-        data-test="ocsp-sort"
       >
         <div class="header-title">
           {{ $t('keys.ocsp') }}
           <sort-button
-            :arrowState="sortDirection"
+            :arrow-state="sortDirection"
             :active="hoverOcsp"
             :selected="selectedSort === sortColumn.OCSP"
           />
@@ -76,15 +76,15 @@
       </th>
       <th
         class="expiration-col"
+        data-test="expiration-sort"
         @click="setSort(sortColumn.EXPIRATION)"
         @mouseover="hoverExp = true"
         @mouseleave="hoverExp = false"
-        data-test="expiration-sort"
       >
         <div class="header-title">
           {{ $t('keys.expires') }}
           <sort-button
-            :arrowState="sortDirection"
+            :arrow-state="sortDirection"
             :active="hoverExp"
             :selected="selectedSort === sortColumn.EXPIRATION"
           />
@@ -92,15 +92,15 @@
       </th>
       <th
         class="status-col"
+        data-test="status-sort"
         @click="setSort(sortColumn.STATUS)"
         @mouseover="hoverStatus = true"
         @mouseleave="hoverStatus = false"
-        data-test="status-sort"
       >
         <div class="header-title">
           {{ $t('keys.status') }}
           <sort-button
-            :arrowState="sortDirection"
+            :arrow-state="sortDirection"
             :active="hoverStatus"
             :selected="selectedSort === sortColumn.STATUS"
           />

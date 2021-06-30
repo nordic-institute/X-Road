@@ -25,14 +25,14 @@
  -->
 <template>
   <div>
-    <v-card flat class="xrd-card" v-if="showConnectionType">
+    <v-card v-if="showConnectionType" flat class="xrd-card">
       <v-flex class="px-4 pt-4">
         <h1 class="title mb-3">{{ $t('internalServers.connectionType') }}</h1>
         <v-select
+          :key="revertHack"
           v-model="connectionType"
           :items="connectionTypes"
           class="select-connection"
-          :key="revertHack"
           outlined
           :disabled="!canEditConnectionType"
           :readonly="!canEditConnectionType"
@@ -48,9 +48,9 @@
         <h1 class="title mb-3">{{ $t('internalServers.tlsTitle') }}</h1>
         <xrd-file-upload
           v-if="canAddTlsCert"
+          v-slot="{ upload }"
           accepts=".pem, .cer, .der"
           @file-changed="onFileChange"
-          v-slot="{ upload }"
         >
           <xrd-button outlined color="primary" @click="upload"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
@@ -63,18 +63,15 @@
       </div>
       <table class="certificate-table server-certificates">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
-          <tr
-            v-for="certificate in tlsCertificates"
-            v-bind:key="certificate.hash"
-          >
+          <tr v-for="certificate in tlsCertificates" :key="certificate.hash">
             <td class="pl-4 pt-2">
               <i class="icon-Certificate icon" />
             </td>
             <td>
               <span
                 v-if="canViewTlsCertDetails"
-                @click="openCertificate(certificate)"
                 class="certificate-link"
+                @click="openCertificate(certificate)"
                 >{{ certificate.hash | colonize }}</span
               >
               <span v-else>{{ certificate.hash | colonize }}</span>

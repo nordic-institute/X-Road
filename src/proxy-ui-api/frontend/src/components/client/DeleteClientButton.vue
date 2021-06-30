@@ -27,8 +27,8 @@
   <div>
     <xrd-button
       data-test="delete-client-button"
-      @click="confirmDelete = true"
       outlined
+      @click="confirmDelete = true"
       ><v-icon class="xrd-large-button-icon">icon-Declined</v-icon
       >{{ $t('action.delete') }}</xrd-button
     >
@@ -49,7 +49,7 @@
       :loading="orphansLoading"
       title="client.action.removeOrphans.confirmTitle"
       text="client.action.removeOrphans.confirmText"
-      cancelButtonText="client.action.removeOrphans.cancelButtonText"
+      cancel-button-text="client.action.removeOrphans.cancelButtonText"
       @cancel="notDeleteOrphans()"
       @accept="deleteOrphans()"
     />

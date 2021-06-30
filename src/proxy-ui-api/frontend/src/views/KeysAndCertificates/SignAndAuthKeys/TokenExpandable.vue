@@ -26,48 +26,46 @@
 <template>
   <xrd-expandable
     class="expandable"
+    :is-open="isExpanded(token.id)"
+    :color="tokenStatusColor"
     @open="descOpen(token.id)"
     @close="descClose(token.id)"
-    :isOpen="isExpanded(token.id)"
-    :color="tokenStatusColor"
   >
-    <template v-slot:link>
+    <template #link>
       <div
         class="clickable-link identifier-wrap"
-        @click="tokenNameClick()"
         data-test="token-name"
+        @click="tokenNameClick()"
       >
         <span
           class="token-status-indicator token-name"
-          v-bind:class="tokenStatusClass"
+          :class="tokenStatusClass"
         >
           {{ $t('keys.token') }} {{ token.name }}
         </span>
 
         <v-btn
           icon
-          @click="tokenClick(token)"
           color="primary"
           data-test="token-icon-button"
+          @click="tokenClick(token)"
         >
           <v-icon class="button-icon">icon-Edit</v-icon>
         </v-btn>
       </div>
     </template>
 
-    <template v-slot:action>
+    <template #action>
       <div class="action-slot-wrapper">
         <template v-if="canActivateToken">
           <div
             v-if="tokenLabelKey && tokenLabelKey.length > 1"
             class="token-status token-status-indicator label"
-            v-bind:class="tokenStatusClass"
+            :class="tokenStatusClass"
           >
-            <v-icon
-              class="token-status-indicator"
-              v-bind:class="tokenStatusClass"
-              >{{ tokenIcon }}</v-icon
-            >
+            <v-icon class="token-status-indicator" :class="tokenStatusClass">{{
+              tokenIcon
+            }}</v-icon>
             {{ $t(tokenLabelKey) }}
           </div>
           <TokenLoggingButton
@@ -80,30 +78,30 @@
       </div>
     </template>
 
-    <template v-slot:content>
+    <template #content>
       <div>
         <div class="button-wrap mb-6">
           <xrd-button
             v-if="canAddKey"
             outlined
-            @click="addKey()"
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
+            @click="addKey()"
             ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
             >{{ $t('keys.addKey') }}</xrd-button
           >
           <xrd-file-upload
             v-if="canImportCertificate"
+            v-slot="{ upload }"
             accepts=".pem, .cer, .der"
             @file-changed="importCert"
-            v-slot="{ upload }"
           >
             <xrd-button
               outlined
               class="button-spacing"
               :disabled="!token.logged_in"
-              @click="upload"
               data-test="token-import-cert-button"
+              @click="upload"
             >
               <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
               {{ $t('keys.importCert') }}</xrd-button
@@ -117,14 +115,14 @@
           <KeysTableTitle
             title="keys.authKeyCert"
             :keys="getAuthKeys(token.keys)"
+            :arrow-state="authKeysOpen"
             @click="authKeysOpen = !authKeysOpen"
-            :arrowState="authKeysOpen"
           />
           <keys-table
             v-if="authKeysOpen"
             :keys="getAuthKeys(token.keys)"
-            :tokenLoggedIn="token.logged_in"
-            :tokenType="token.type"
+            :token-logged-in="token.logged_in"
+            :token-type="token.type"
             @key-click="keyClick"
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
@@ -138,16 +136,16 @@
           <KeysTableTitle
             title="keys.signKeyCert"
             :keys="getSignKeys(token.keys)"
-            :arrowState="signKeysOpen"
+            :arrow-state="signKeysOpen"
             @click="signKeysOpen = !signKeysOpen"
           />
 
           <keys-table
-            class="keys-table"
             v-if="signKeysOpen"
+            class="keys-table"
             :keys="getSignKeys(token.keys)"
-            :tokenLoggedIn="token.logged_in"
-            :tokenType="token.type"
+            :token-logged-in="token.logged_in"
+            :token-type="token.type"
             @key-click="keyClick"
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
@@ -161,14 +159,14 @@
           <KeysTableTitle
             title="keys.unknown"
             :keys="getOtherKeys(token.keys)"
-            :arrowState="unknownKeysOpen"
+            :arrow-state="unknownKeysOpen"
             @click="unknownKeysOpen = !unknownKeysOpen"
           />
           <unknown-keys-table
             v-if="unknownKeysOpen"
             :keys="getOtherKeys(token.keys)"
-            :tokenLoggedIn="token.logged_in"
-            :tokenType="token.type"
+            :token-logged-in="token.logged_in"
+            :token-type="token.type"
             @key-click="keyClick"
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
@@ -216,6 +214,14 @@ export default Vue.extend({
       type: Object as Prop<Token>,
       required: true,
     },
+  },
+  data() {
+    return {
+      colors: Colors,
+      authKeysOpen: true,
+      signKeysOpen: true,
+      unknownKeysOpen: true,
+    };
   },
   computed: {
     canActivateToken(): boolean {
@@ -289,13 +295,13 @@ export default Vue.extend({
       }
     },
   },
-  data() {
-    return {
-      colors: Colors,
-      authKeysOpen: true,
-      signKeysOpen: true,
-      unknownKeysOpen: true,
-    };
+  created() {
+    if (this.getAuthKeys(this.token.keys).length > 10) {
+      this.authKeysOpen = false;
+    }
+    if (this.getSignKeys(this.token.keys).length > 10) {
+      this.signKeysOpen = false;
+    }
   },
   methods: {
     addKey(): void {
@@ -417,14 +423,6 @@ export default Vue.extend({
       // Fetch tokens from backend
       this.$emit('refresh-list');
     },
-  },
-  created() {
-    if (this.getAuthKeys(this.token.keys).length > 10) {
-      this.authKeysOpen = false;
-    }
-    if (this.getSignKeys(this.token.keys).length > 10) {
-      this.signKeysOpen = false;
-    }
   },
 });
 </script>

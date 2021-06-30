@@ -27,11 +27,11 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="warning"
+    :cancel-button-text="cancelButtonText"
+    :save-button-text="acceptButtonText"
+    :show-close="false"
     @save="accept"
     @cancel="cancel"
-    :cancelButtonText="cancelButtonText"
-    :saveButtonText="acceptButtonText"
-    :showClose="false"
   >
     <div slot="content" data-test="dialog-content-text">
       <template v-if="errorResponse">{{ $t('keys.unregisterError') }}</template>

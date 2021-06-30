@@ -24,22 +24,22 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver ref="form" v-slot="{ invalid }" v-if="dialog">
+  <ValidationObserver v-if="dialog" ref="form" v-slot="{ invalid }">
     <xrd-simple-dialog
       :dialog="dialog"
       :width="750"
       title="endpoints.addEndpoint"
+      :disable-save="invalid"
       @save="save"
       @cancel="cancel"
-      :disableSave="invalid"
     >
       <div slot="content">
         <div class="dlg-edit-row">
           <v-select
+            v-model="method"
             class="ml-2"
             data-test="endpoint-method"
             :label="$t('endpoints.httpRequestMethod')"
-            v-model="method"
             autofocus
             outlined
             :items="methods"
@@ -48,15 +48,15 @@
 
         <div class="dlg-edit-row">
           <ValidationProvider
-            rules="required|xrdEndpoint"
             ref="path"
+            v-slot="{ errors }"
+            rules="required|xrdEndpoint"
             name="path"
             class="validation-provider"
-            v-slot="{ errors }"
           >
             <v-text-field
-              class="ml-2"
               v-model="path"
+              class="ml-2"
               outlined
               :label="$t('endpoints.path')"
               :error-messages="errors"

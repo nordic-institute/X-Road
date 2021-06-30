@@ -45,17 +45,17 @@
           >{{ $t('backup.backupConfiguration.button') }}
         </xrd-button>
         <xrd-file-upload
+          v-slot="{ upload }"
           accepts=".gpg"
           @file-changed="onFileUploaded"
-          v-slot="{ upload }"
         >
           <xrd-button
             v-if="canBackup"
             color="primary"
             :loading="uploadingBackup"
             class="button-spacing"
-            @click="upload"
             data-test="backup-upload"
+            @click="upload"
           >
             <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
 
@@ -76,7 +76,7 @@
       </div>
     </div>
     <BackupsDataTable
-      :canBackup="canBackup"
+      :can-backup="canBackup"
       :backups="backups"
       :filter="search"
       @refresh-data="fetchData"
@@ -129,6 +129,9 @@ export default Vue.extend({
         Permissions.BACKUP_CONFIGURATION,
       );
     },
+  },
+  created(): void {
+    this.fetchData();
   },
   methods: {
     async fetchData() {
@@ -207,9 +210,6 @@ export default Vue.extend({
           this.needsConfirmation = false;
         });
     },
-  },
-  created(): void {
-    this.fetchData();
   },
 });
 </script>

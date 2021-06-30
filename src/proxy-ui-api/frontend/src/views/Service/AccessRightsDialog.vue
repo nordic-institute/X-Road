@@ -31,19 +31,19 @@
           {{ $t(title) }}
         </span>
         <v-spacer />
-        <i @click="cancel()" id="close-x" data-test="cancel"></i>
+        <i id="close-x" data-test="cancel" @click="cancel()"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px" class="elevation-0 px-0">
         <v-expansion-panels
-          class="elevation-0 px-0"
           v-model="expandPanel"
+          class="elevation-0 px-0"
           multiple
         >
           <v-expansion-panel class="elevation-0 px-0">
             <v-expansion-panel-header></v-expansion-panel-header>
             <v-expansion-panel-content class="elevation-0">
-              <template v-slot:header>
+              <template #header>
                 <v-spacer />
                 <div class="exp-title">
                   {{ $t('localGroup.searchOptions') }}
@@ -122,8 +122,8 @@
                 <div class="search-wrap">
                   <xrd-button
                     :loading="loading"
-                    @click="search()"
                     data-test="search-button"
+                    @click="search()"
                     >{{ $t('action.search') }}</xrd-button
                   >
                 </div>
@@ -145,13 +145,13 @@
           <tbody
             v-if="serviceClientCandidates && serviceClientCandidates.length > 0"
           >
-            <tr v-for="sc in serviceClientCandidates" v-bind:key="sc.id">
+            <tr v-for="sc in serviceClientCandidates" :key="sc.id">
               <td class="first-column">
                 <div class="checkbox-wrap">
                   <v-checkbox
-                    @change="checkboxChange(sc, $event)"
                     color="primary"
                     data-test="sc-checkbox"
+                    @change="checkboxChange(sc, $event)"
                   ></v-checkbox>
                 </div>
               </td>
@@ -274,6 +274,10 @@ export default Vue.extend({
       ];
     },
   },
+  created() {
+    this.$store.dispatch('fetchXroadInstances');
+    this.$store.dispatch('fetchMemberClasses');
+  },
   methods: {
     checkboxChange(subject: ServiceClient, event: boolean): void {
       if (event) {
@@ -352,10 +356,6 @@ export default Vue.extend({
       // Reset initial state
       Object.assign(this.$data, initialState());
     },
-  },
-  created() {
-    this.$store.dispatch('fetchXroadInstances');
-    this.$store.dispatch('fetchMemberClasses');
   },
 });
 </script>

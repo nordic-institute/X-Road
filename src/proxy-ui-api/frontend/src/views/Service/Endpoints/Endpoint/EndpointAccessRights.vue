@@ -37,16 +37,16 @@
       <div class="row-buttons">
         <xrd-button
           v-if="canEdit"
-          @click="removeAll()"
           outlined
           data-test="remove-all-access-rights"
+          @click="removeAll()"
           >{{ $t('action.removeAll') }}
         </xrd-button>
         <xrd-button
           v-if="canEdit"
-          @click="toggleAddServiceClientsDialog()"
           outlined
           data-test="add-subjects-dialog"
+          @click="toggleAddServiceClientsDialog()"
           >{{ $t('accessRights.addServiceClients') }}
         </xrd-button>
       </div>
@@ -62,23 +62,21 @@
         </tr>
       </thead>
       <tbody>
-        <template>
-          <tr v-for="sc in serviceClients" :key="sc.id">
-            <td class="identifier-wrap">{{ sc.name }}</td>
-            <td class="identifier-wrap">{{ sc.id }}</td>
-            <td>{{ sc.rights_given_at | formatDateTime }}</td>
-            <td>
-              <xrd-button
-                v-if="canEdit"
-                text
-                :outlined="false"
-                @click="remove(sc)"
-                data-test="remove-access-right"
-                >{{ $t('action.remove') }}
-              </xrd-button>
-            </td>
-          </tr>
-        </template>
+        <tr v-for="sc in serviceClients" :key="sc.id">
+          <td class="identifier-wrap">{{ sc.name }}</td>
+          <td class="identifier-wrap">{{ sc.id }}</td>
+          <td>{{ sc.rights_given_at | formatDateTime }}</td>
+          <td>
+            <xrd-button
+              v-if="canEdit"
+              text
+              :outlined="false"
+              data-test="remove-access-right"
+              @click="remove(sc)"
+              >{{ $t('action.remove') }}
+            </xrd-button>
+          </td>
+        </tr>
       </tbody>
     </table>
 
@@ -103,8 +101,8 @@
     <!-- Add access right subjects dialog -->
     <accessRightsDialog
       :dialog="addSubjectsDialogVisible"
-      :existingServiceClients="serviceClients"
-      :clientId="clientId"
+      :existing-service-clients="serviceClients"
+      :client-id="clientId"
       title="accessRights.addServiceClientsTitle"
       @cancel="toggleAddServiceClientsDialog"
       @service-clients-added="doAddServiceClients"
@@ -150,6 +148,9 @@ export default Vue.extend({
     canEdit(): boolean {
       return this.$store.getters.hasPermission(Permissions.EDIT_ENDPOINT_ACL);
     },
+  },
+  created(): void {
+    this.fetchData();
   },
   methods: {
     close(): void {
@@ -238,9 +239,6 @@ export default Vue.extend({
           this.toggleAddServiceClientsDialog();
         });
     },
-  },
-  created(): void {
-    this.fetchData();
   },
 });
 </script>

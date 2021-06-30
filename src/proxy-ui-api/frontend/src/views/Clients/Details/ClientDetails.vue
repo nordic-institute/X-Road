@@ -26,7 +26,7 @@
 <template>
   <div>
     <v-card flat>
-      <table class="xrd-table detail-table" v-if="client">
+      <table v-if="client" class="xrd-table detail-table">
         <tr>
           <td>{{ $t('client.memberName') }}</td>
           <td class="identifier-wrap">{{ client.member_name }}</td>
@@ -57,7 +57,7 @@
         <template v-if="signCertificates && signCertificates.length > 0">
           <tr
             v-for="certificate in signCertificates"
-            v-bind:key="certificate.certificate_details.hash"
+            :key="certificate.certificate_details.hash"
           >
             <td>
               <span class="cert-name" @click="viewCertificate(certificate)">{{

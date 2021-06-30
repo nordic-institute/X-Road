@@ -29,8 +29,8 @@
       <div class="action-row">
         <div>{{ $t('initialConfiguration.anchor.info') }}</div>
         <upload-configuration-anchor-dialog
+          init-mode
           @uploaded="fetchConfigurationAnchor"
-          initMode
         />
       </div>
 
@@ -61,8 +61,8 @@
       <div>
         <xrd-button
           :disabled="!configuratonAnchor"
-          @click="done"
           data-test="save-button"
+          @click="done"
           >{{ $t(saveButtonText) }}</xrd-button
         >
       </div>

@@ -27,8 +27,8 @@
   <div>
     <xrd-button
       data-test="unregister-client-button"
-      @click="confirmUnregisterClient = true"
       outlined
+      @click="confirmUnregisterClient = true"
       >{{ $t('action.unregister') }}</xrd-button
     >
 

@@ -29,9 +29,9 @@
       <div class="xrd-view-title">{{ $t('tab.keys.signAndAuthKeys') }}</div>
       <div>
         <help-button
-          helpImage="keys_and_certificates.png"
-          helpTitle="keys.helpTitleKeys"
-          helpText="keys.helpTextKeys"
+          help-image="keys_and_certificates.png"
+          help-title="keys.helpTitleKeys"
+          help-text="keys.helpTextKeys"
         ></help-button>
       </div>
       <div class="search-row">
@@ -45,12 +45,12 @@
     <template v-if="filtered">
       <token-expandable
         v-for="token in filtered"
-        v-bind:key="token.id"
+        :key="token.id"
+        :token="token"
         @refresh-list="fetchData"
         @token-logout="logoutDialog = true"
         @token-login="loginDialog = true"
         @add-key="addKey"
-        :token="token"
       />
     </template>
 
@@ -164,6 +164,9 @@ export default Vue.extend({
       return arr;
     },
   },
+  created() {
+    this.fetchData();
+  },
   methods: {
     fetchData(): void {
       // Fetch tokens from backend
@@ -202,9 +205,6 @@ export default Vue.extend({
         },
       });
     },
-  },
-  created() {
-    this.fetchData();
   },
 });
 </script>

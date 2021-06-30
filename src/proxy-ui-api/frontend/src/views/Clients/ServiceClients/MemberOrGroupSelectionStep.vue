@@ -52,15 +52,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="candidate in this.filteredCandidates()"
-            v-bind:key="candidate.id"
-          >
+          <tr v-for="candidate in filteredCandidates()" :key="candidate.id">
             <td class="checkbox-column">
               <div class="checkbox-wrap">
                 <v-radio
-                  :disabled="isDisabled(candidate)"
                   :key="candidate.id"
+                  :disabled="isDisabled(candidate)"
                   :value="candidate"
                   data-test="candidate-selection"
                 />
@@ -80,14 +77,14 @@
     </v-radio-group>
 
     <div class="button-footer full-width">
-      <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
         $t('action.cancel')
       }}</xrd-button>
 
       <xrd-button
         :disabled="!selection"
-        @click="$emit('set-step')"
         data-test="next-button"
+        @click="$emit('set-step')"
         >{{ $t('action.next') }}</xrd-button
       >
     </div>
@@ -118,6 +115,9 @@ export default Vue.extend({
       serviceClientCandidates: [] as ServiceClient[],
       selection: undefined as undefined | ServiceClient,
     };
+  },
+  created(): void {
+    this.fetchData();
   },
   methods: {
     fetchData(): void {
@@ -153,9 +153,6 @@ export default Vue.extend({
         (sc: ServiceClient): boolean => sc.id === scCandidate.id,
       );
     },
-  },
-  created(): void {
-    this.fetchData();
   },
 });
 </script>

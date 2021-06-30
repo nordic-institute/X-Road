@@ -50,7 +50,7 @@
         <tbody>
           <tr
             v-for="accessRight in searchResults"
-            v-bind:key="accessRight.id"
+            :key="accessRight.id"
             class="service-row"
             data-test="access-right-toggle"
           >
@@ -69,38 +69,38 @@
         </tbody>
       </table>
     </div>
-    <div class="empty" v-if="serviceCandidates.length === 0">
+    <div v-if="serviceCandidates.length === 0" class="empty">
       {{ $t('serviceClients.noAvailableServices') }}
     </div>
 
     <div
-      class="empty"
       v-if="
         serviceCandidates.length > 0 &&
         searchResults &&
         searchResults.length === 0
       "
+      class="empty"
     >
       {{ $t('action.emptySearch', { msg: search }) }}
     </div>
 
     <div class="button-footer full-width">
-      <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
         $t('action.cancel')
       }}</xrd-button>
 
       <xrd-button
-        @click="$emit('set-step')"
         data-test="previous-button"
         outlined
         class="previous-button"
+        @click="$emit('set-step')"
         >{{ $t('action.previous') }}</xrd-button
       >
 
       <xrd-button
         data-test="finish-button"
-        @click="saveServices"
         :disabled="!selections || selections.length === 0"
+        @click="saveServices"
       >
         {{ $t('serviceClients.addSelected') }}
       </xrd-button>
@@ -135,6 +135,12 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      selections: [] as ServiceCandidate[],
+      search: '' as string,
+    };
+  },
   computed: {
     searchResults(): ServiceCandidate[] {
       return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
@@ -143,12 +149,6 @@ export default Vue.extend({
           .includes(this.search.toLowerCase()),
       );
     },
-  },
-  data() {
-    return {
-      selections: [] as ServiceCandidate[],
-      search: '' as string,
-    };
   },
   methods: {
     saveServices(): void {

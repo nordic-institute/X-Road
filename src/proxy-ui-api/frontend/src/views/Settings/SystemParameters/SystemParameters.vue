@@ -30,9 +30,9 @@
     <v-card flat class="xrd-card">
       <v-card-text class="card-text">
         <v-row
+          v-if="hasPermission(permissions.VIEW_ANCHOR)"
           no-gutters
           class="px-4"
-          v-if="hasPermission(permissions.VIEW_ANCHOR)"
         >
           <v-col
             ><h3>
@@ -44,9 +44,9 @@
               <xrd-button
                 v-if="hasPermission(permissions.DOWNLOAD_ANCHOR)"
                 data-test="system-parameters-configuration-anchor-download-button"
-                @click="downloadAnchor"
                 :loading="downloadingAnchor"
                 outlined
+                @click="downloadAnchor"
               >
                 <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
                 {{ $t('systemParameters.configurationAnchor.action.download') }}
@@ -58,7 +58,7 @@
             </div>
           </v-col>
         </v-row>
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
+        <v-row v-if="hasPermission(permissions.VIEW_ANCHOR)" no-gutters>
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -83,9 +83,9 @@
                 data-test="system-parameters-configuration-anchor-table-body"
               >
                 <tr>
-                  <td>{{ this.configuratonAnchor.hash | colonize }}</td>
+                  <td>{{ configuratonAnchor.hash | colonize }}</td>
                   <td class="pr-4">
-                    {{ this.configuratonAnchor.created_at | formatDateTime }}
+                    {{ configuratonAnchor.created_at | formatDateTime }}
                   </td>
                 </tr>
               </tbody>
@@ -97,9 +97,9 @@
     <v-card flat class="xrd-card">
       <v-card-text class="card-text">
         <v-row
+          v-if="hasPermission(permissions.VIEW_TSPS)"
           no-gutters
           class="px-4"
-          v-if="hasPermission(permissions.VIEW_TSPS)"
         >
           <v-col
             ><h3>
@@ -115,7 +115,7 @@
           </v-col>
         </v-row>
 
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
+        <v-row v-if="hasPermission(permissions.VIEW_TSPS)" no-gutters>
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -141,8 +141,7 @@
                 data-test="system-parameters-timestamping-services-table-body"
               >
                 <timestamping-service-row
-                  v-for="timestampingService in this
-                    .configuredTimestampingServices"
+                  v-for="timestampingService in configuredTimestampingServices"
                   :key="timestampingService.url"
                   :timestamping-service="timestampingService"
                   @deleted="fetchConfiguredTimestampingServiced"
@@ -156,11 +155,11 @@
     <v-card flat class="xrd-card">
       <v-card-text class="card-text">
         <v-row
-          no-gutters
-          class="px-4"
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
+          no-gutters
+          class="px-4"
         >
           <v-col
             ><h3>
@@ -169,10 +168,10 @@
           >
         </v-row>
         <v-row
-          no-gutters
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
+          no-gutters
         >
           <v-col>
             <table class="xrd-table">
@@ -277,6 +276,19 @@ export default Vue.extend({
       );
     },
   },
+  created(): void {
+    if (this.hasPermission(Permissions.VIEW_ANCHOR)) {
+      this.fetchConfigurationAnchor();
+    }
+
+    if (this.hasPermission(Permissions.VIEW_TSPS)) {
+      this.fetchConfiguredTimestampingServiced();
+    }
+
+    if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
+      this.fetchApprovedCertificateAuthorities();
+    }
+  },
   methods: {
     hasPermission(permission: Permissions): boolean {
       return this.$store.getters.hasPermission(permission);
@@ -311,19 +323,6 @@ export default Vue.extend({
         })
         .finally(() => (this.downloadingAnchor = false));
     },
-  },
-  created(): void {
-    if (this.hasPermission(Permissions.VIEW_ANCHOR)) {
-      this.fetchConfigurationAnchor();
-    }
-
-    if (this.hasPermission(Permissions.VIEW_TSPS)) {
-      this.fetchConfiguredTimestampingServiced();
-    }
-
-    if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
-      this.fetchApprovedCertificateAuthorities();
-    }
   },
 });
 </script>

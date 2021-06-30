@@ -49,8 +49,8 @@
         <xrd-button
           v-if="showDelete"
           data-test="service-description-details-delete-button"
-          @click="showDeletePopup(serviceDesc.type)"
           outlined
+          @click="showDeletePopup(serviceDesc.type)"
           >{{ $t('action.delete') }}</xrd-button
         >
       </div>
@@ -62,23 +62,23 @@
           <div>{{ $t('services.serviceType') }}</div>
 
           <div
+            v-if="serviceDesc.type === serviceType.REST"
             class="code-input"
             data-test="service-description-details-url-type-value"
-            v-if="serviceDesc.type === serviceType.REST"
           >
             {{ $t('services.restApiBasePath') }}
           </div>
           <div
+            v-else-if="serviceDesc.type === serviceType.OPENAPI3"
             class="code-input"
             data-test="service-description-details-url-type-value"
-            v-else-if="serviceDesc.type === serviceType.OPENAPI3"
           >
             {{ $t('services.OpenApi3Description') }}
           </div>
           <div
+            v-else
             class="code-input"
             data-test="service-description-details-url-type-value"
-            v-else
           >
             {{ $t('services.wsdlDescription') }}
           </div>
@@ -88,9 +88,9 @@
           <div>{{ $t('services.editUrl') }}</div>
 
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required|wsdlUrl"
             name="url"
-            v-slot="{ errors }"
             class="validation-provider"
           >
             <v-text-field
@@ -115,9 +115,9 @@
             <div>{{ $t('services.serviceCode') }}</div>
 
             <ValidationProvider
+              v-slot="{ errors }"
               rules="required|xrdIdentifier"
               name="code_field"
-              v-slot="{ errors }"
               class="validation-provider"
             >
               <v-text-field
@@ -137,16 +137,16 @@
       <v-card flat>
         <div class="footer-button-wrap mt-12">
           <xrd-button
-            @click="close()"
             data-test="service-description-details-cancel-button"
             outlined
+            @click="close()"
             >{{ $t('action.cancel') }}</xrd-button
           >
           <xrd-button
             :loading="saveBusy"
             data-test="service-description-details-save-button"
-            @click="save()"
             :disabled="!touched || invalid"
+            @click="save()"
             >{{ $t('action.save') }}</xrd-button
           >
         </div>
@@ -230,6 +230,16 @@ export default Vue.extend({
     showDelete(): boolean {
       return this.$store.getters.hasPermission(Permissions.DELETE_WSDL);
     },
+  },
+  watch: {
+    serviceDesc(desc: ServiceDescription) {
+      if (desc.services?.[0]?.service_code) {
+        this.currentServiceCode = desc.services[0].service_code;
+      }
+    },
+  },
+  created() {
+    this.fetchData(this.id);
   },
   methods: {
     close(): void {
@@ -350,16 +360,6 @@ export default Vue.extend({
       this.confirmEditWarning = false;
       this.saveBusy = false;
       this.editLoading = false;
-    },
-  },
-  created() {
-    this.fetchData(this.id);
-  },
-  watch: {
-    serviceDesc(desc: ServiceDescription) {
-      if (desc.services?.[0]?.service_code) {
-        this.currentServiceCode = desc.services[0].service_code;
-      }
     },
   },
 });

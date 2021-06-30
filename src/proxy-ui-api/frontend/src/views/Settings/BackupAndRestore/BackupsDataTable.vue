@@ -34,7 +34,7 @@
       </thead>
       <template v-if="backups && backups.length > 0">
         <tbody>
-          <tr v-for="backup in filtered()" v-bind:key="backup.filename">
+          <tr v-for="backup in filtered()" :key="backup.filename">
             <td>{{ backup.filename }}</td>
             <td>
               <div class="d-flex justify-end">

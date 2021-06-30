@@ -39,7 +39,7 @@
         <p></p>
 
         <div v-if="showRegisterOption && canRegisterClient">
-          <xrd-form-label :labelText="$t('wizard.client.register')" />
+          <xrd-form-label :label-text="$t('wizard.client.register')" />
           <v-checkbox
             v-model="registerChecked"
             color="primary"
@@ -52,25 +52,25 @@
     <div class="button-footer">
       <xrd-button
         outlined
-        @click="cancel"
         :disabled="disableCancel"
         data-test="cancel-button"
+        @click="cancel"
         >{{ $t('action.cancel') }}</xrd-button
       >
 
       <xrd-button
-        @click="previous"
         outlined
         :disabled="disableCancel"
         class="previous-button"
         data-test="previous-button"
+        @click="previous"
         >{{ $t('action.previous') }}</xrd-button
       >
 
       <xrd-button
-        @click="done"
         :loading="submitLoading"
         data-test="submit-button"
+        @click="done"
         >{{ $t('action.submit') }}</xrd-button
       >
     </div>
@@ -78,7 +78,7 @@
     <warningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
-      localizationParent="wizard.warning"
+      localization-parent="wizard.warning"
       @cancel="cancelSubmit()"
       @accept="acceptWarnings()"
     />
@@ -99,6 +99,15 @@ export default Vue.extend({
   components: {
     WarningDialog,
   },
+  data() {
+    return {
+      disableCancel: false,
+      registerChecked: true,
+      submitLoading: false,
+      warningInfo: [] as string[],
+      warningDialog: false,
+    };
+  },
   computed: {
     ...mapGetters([
       'addMemberWizardMode',
@@ -117,15 +126,6 @@ export default Vue.extend({
       const memberName = `${this.currentSecurityServer.instance_id}:${this.memberClass}:${this.memberCode}`;
       return memberHasValidSignCert(memberName, this.tokens);
     },
-  },
-  data() {
-    return {
-      disableCancel: false,
-      registerChecked: true,
-      submitLoading: false,
-      warningInfo: [] as string[],
-      warningDialog: false,
-    };
   },
 
   methods: {

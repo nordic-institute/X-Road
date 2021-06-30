@@ -29,8 +29,8 @@
       <div class="wizard-step-form-content">
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('csr.usage')"
-            :helpText="$t('csr.helpUsage')"
+            :label-text="$t('csr.usage')"
+            :help-text="$t('csr.helpUsage')"
           />
 
           <div class="readonly-info-field">{{ usage }}</div>
@@ -38,8 +38,8 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('csr.client')"
-            :helpText="$t('csr.helpClient')"
+            :label-text="$t('csr.client')"
+            :help-text="$t('csr.helpClient')"
           />
 
           <div class="readonly-info-field">{{ selectedMemberId }}</div>
@@ -47,21 +47,21 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('csr.certificationService')"
-            :helpText="$t('csr.helpCertificationService')"
+            :label-text="$t('csr.certificationService')"
+            :help-text="$t('csr.helpCertificationService')"
           />
 
           <ValidationProvider
+            v-slot="{}"
             name="csr.certService"
             rules="required"
-            v-slot="{}"
           >
             <v-select
+              v-model="certificationService"
               :items="filteredServiceList"
               item-text="name"
               item-value="name"
               class="form-input"
-              v-model="certificationService"
               data-test="csr-certification-service-select"
               outlined
             ></v-select>
@@ -70,15 +70,15 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('csr.csrFormat')"
-            :helpText="$t('csr.helpCsrFormat')"
+            :label-text="$t('csr.csrFormat')"
+            :help-text="$t('csr.helpCsrFormat')"
           />
 
-          <ValidationProvider name="csr.csrFormat" rules="required" v-slot="{}">
+          <ValidationProvider v-slot="{}" name="csr.csrFormat" rules="required">
             <v-select
+              v-model="csrFormat"
               :items="csrFormatList"
               class="form-input"
-              v-model="csrFormat"
               data-test="csr-format-select"
               outlined
             ></v-select>
@@ -86,19 +86,19 @@
         </div>
       </div>
       <div class="button-footer">
-        <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-button outlined data-test="cancel-button" @click="cancel">{{
           $t('action.cancel')
         }}</xrd-button>
 
         <xrd-button
           v-if="showPreviousButton"
-          @click="previous"
           outlined
           class="previous-button"
           data-test="previous-button"
+          @click="previous"
           >{{ $t('action.previous') }}</xrd-button
         >
-        <xrd-button :disabled="invalid" @click="done" data-test="save-button">{{
+        <xrd-button :disabled="invalid" data-test="save-button" @click="done">{{
           $t(saveButtonText)
         }}</xrd-button>
       </div>
@@ -157,6 +157,15 @@ export default Vue.extend({
       },
     },
   },
+
+  watch: {
+    filteredServiceList(val) {
+      // Set first certification service selected as default when the list is updated
+      if (val?.length === 1) {
+        this.certificationService = val[0].name;
+      }
+    },
+  },
   methods: {
     done(): void {
       this.$emit('done');
@@ -166,15 +175,6 @@ export default Vue.extend({
     },
     cancel(): void {
       this.$emit('cancel');
-    },
-  },
-
-  watch: {
-    filteredServiceList(val) {
-      // Set first certification service selected as default when the list is updated
-      if (val?.length === 1) {
-        this.certificationService = val[0].name;
-      }
     },
   },
 });

@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="table-title" :class="{ 'table-closed': !arrowState }">
-    <div class="title-text" @click="arrowClick" data-test="key-title-sort">
+    <div class="title-text" data-test="key-title-sort" @click="arrowClick">
       <v-btn icon :color="colors.WarmGrey100">
         <v-icon v-if="arrowState">icon-Sorting-arrow</v-icon>
         <v-icon v-else class="arrow-degree">icon-Sorting-arrow</v-icon>
@@ -71,7 +71,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {},
   data() {
     return {
       errors: 0,
@@ -79,6 +78,10 @@ export default Vue.extend({
       certificateCount: 0,
       colors: Colors,
     };
+  },
+  computed: {},
+  created() {
+    this.countStates();
   },
   methods: {
     countStates(): void {
@@ -97,9 +100,6 @@ export default Vue.extend({
     arrowClick(): void {
       this.$emit('click');
     },
-  },
-  created() {
-    this.countStates();
   },
 });
 </script>

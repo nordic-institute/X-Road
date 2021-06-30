@@ -46,9 +46,9 @@
           <div class="details-view-tools">
             <xrd-button
               v-if="canDelete"
-              @click="confirmDelete = true"
               :loading="deleting"
               outlined
+              @click="confirmDelete = true"
               >{{ $t('action.delete') }}</xrd-button
             >
           </div>
@@ -56,9 +56,9 @@
 
         <div>
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required"
             name="keys.name"
-            v-slot="{ errors }"
             class="validation-provider"
           >
             <v-text-field
@@ -93,13 +93,13 @@
         </div>
       </div>
       <div class="footer-button-wrap">
-        <xrd-button @click="close()" outlined>{{
+        <xrd-button outlined @click="close()">{{
           $t('action.cancel')
         }}</xrd-button>
         <xrd-button
           :loading="saveBusy"
-          @click="save()"
           :disabled="!touched || invalid"
+          @click="save()"
           >{{ $t('action.save') }}</xrd-button
         >
       </div>
@@ -118,7 +118,7 @@
     <warningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
-      localizationParent="keys"
+      localization-parent="keys"
       @cancel="cancelSubmit()"
       @accept="acceptWarnings()"
     />
@@ -197,6 +197,9 @@ export default Vue.extend({
 
       return this.$store.getters.hasPermission(Permissions.DELETE_KEY);
     },
+  },
+  created() {
+    this.fetchData(this.id);
   },
   methods: {
     close(): void {
@@ -296,9 +299,6 @@ export default Vue.extend({
         this.key.name = this.key.id;
       }
     },
-  },
-  created() {
-    this.fetchData(this.id);
   },
 });
 </script>

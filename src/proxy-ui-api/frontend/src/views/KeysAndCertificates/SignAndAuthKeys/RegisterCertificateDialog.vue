@@ -27,9 +27,9 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="keys.registrationRequest"
+    :disable-save="!isValid"
     @save="save"
     @cancel="cancel"
-    :disableSave="!isValid"
   >
     <div slot="content">
       <ValidationObserver ref="form" v-slot="{}">
@@ -37,9 +37,9 @@
           <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
 
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required"
             name="dns"
-            v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
             <v-text-field

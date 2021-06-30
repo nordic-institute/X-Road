@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,33 +24,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package ee.ria.xroad.common.messagelog.archive;
 
-import { VApp, VMain } from 'vuetify/lib';
-import vuetifyConfig from '../src/plugins/vuetify';
-import '../src/plugins/vee-validate';
-import '@fontsource/open-sans';
-import 'vuetify/dist/vuetify.min.css'
-import "@mdi/font/css/materialdesignicons.css";
-import "../src/assets/icons.css";
-import i18n from '../src/i18n';
+import lombok.Getter;
+import lombok.Setter;
 
-export const parameters = {
-  actions: { argTypesRegex: "^on[A-Z].*" },
+@Getter
+public class ArchiveDigest {
+    private Long id;
+    private String groupName;
+    @Setter
+    private DigestEntry digestEntry;
+
+    protected ArchiveDigest() {
+        //for JPA
+    }
+
+    public ArchiveDigest(String groupName) {
+        this(groupName, null);
+    }
+
+    public ArchiveDigest(String groupName, DigestEntry digestEntry) {
+        this.id = null;
+        this.groupName = groupName;
+        this.digestEntry = digestEntry;
+    }
 }
-
-const appDecorator = () => {
-  return {
-    vuetify: vuetifyConfig,
-    i18n,
-    components: { VApp, VMain },
-    template: `
-      <v-app>
-          <v-main>
-            <story/>
-          </v-main>
-      </v-app>
-    `
-  };
-};
-
-export const decorators = [appDecorator];

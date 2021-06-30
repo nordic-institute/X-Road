@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-tab-max-width xrd-view-common main-wrap">
-    <xrd-sub-view-title :title="serviceClientId" @close="close" class="pa-4" />
+    <xrd-sub-view-title :title="serviceClientId" class="pa-4" @close="close" />
     <v-card flat>
       <table
         class="xrd-table service-client-margin"
@@ -48,26 +48,26 @@
       <div class="row-title">{{ $t('serviceClients.accessRights') }}</div>
       <div class="row-buttons">
         <xrd-button
-          @click="showConfirmDeleteAll = true"
+          v-if="canEdit && serviceClientAccessRights.length > 0"
           outlined
           data-test="remove-all-access-rights"
-          v-if="canEdit && serviceClientAccessRights.length > 0"
+          @click="showConfirmDeleteAll = true"
           >{{ $t('serviceClients.removeAll') }}
         </xrd-button>
         <xrd-button
           v-if="canEdit"
-          @click="showAddServiceDialog()"
           outlined
           data-test="add-subjects-dialog"
+          @click="showAddServiceDialog()"
           >{{ $t('serviceClients.addService') }}
         </xrd-button>
       </div>
     </div>
 
     <table
+      v-if="serviceClientAccessRights.length > 0"
       class="xrd-table service-client-margin"
       data-test="service-client-access-rights-table"
-      v-if="serviceClientAccessRights.length > 0"
     >
       <thead>
         <tr>
@@ -107,7 +107,7 @@
     </p>
 
     <div class="footer-buttons-wrap">
-      <xrd-button @click="close()" data-test="close">{{
+      <xrd-button data-test="close" @click="close()">{{
         $t('action.close')
       }}</xrd-button>
     </div>
@@ -115,7 +115,7 @@
     <AddServiceClientServiceDialog
       v-if="isAddServiceDialogVisible"
       :dialog="isAddServiceDialogVisible"
-      :serviceCandidates="serviceCandidates()"
+      :service-candidates="serviceCandidates()"
       @save="addService"
       @cancel="hideAddService"
     >
@@ -123,8 +123,8 @@
 
     <!-- Confirm dialog delete group -->
     <xrd-confirm-dialog
-      :dialog="showConfirmDeleteAll"
       v-if="showConfirmDeleteAll"
+      :dialog="showConfirmDeleteAll"
       title="serviceClients.removeAllTitle"
       text="serviceClients.removeAllText"
       @cancel="showConfirmDeleteAll = false"
@@ -132,8 +132,8 @@
     />
 
     <xrd-confirm-dialog
-      :dialog="showConfirmDeleteOne"
       v-if="showConfirmDeleteOne"
+      :dialog="showConfirmDeleteOne"
       title="serviceClients.removeOneTitle"
       text="serviceClients.removeOneText"
       @cancel="resetDeletionSettings()"
@@ -177,13 +177,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  computed: {
-    canEdit(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
-      );
-    },
-  },
   data() {
     return {
       serviceClientAccessRights: [] as AccessRight[],
@@ -194,6 +187,16 @@ export default Vue.extend({
       showConfirmDeleteAll: false as boolean,
       showConfirmDeleteOne: false as boolean,
     };
+  },
+  computed: {
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(
+        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
+      );
+    },
+  },
+  created(): void {
+    this.fetchData();
   },
   methods: {
     fetchData(): void {
@@ -314,9 +317,6 @@ export default Vue.extend({
         },
       ) as UiAccessRight[];
     },
-  },
-  created(): void {
-    this.fetchData();
   },
 });
 </script>

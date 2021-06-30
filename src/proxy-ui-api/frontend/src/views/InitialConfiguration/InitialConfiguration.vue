@@ -29,12 +29,12 @@
       <xrd-sub-view-title
         class="view-title"
         :title="$t('initialConfiguration.title')"
-        :showClose="false"
+        :show-close="false"
         data-test="wizard-title"
       />
       <v-stepper
-        :alt-labels="true"
         v-model="currentStep"
+        :alt-labels="true"
         class="stepper noshadow"
       >
         <!-- Headers without anchor page -->
@@ -65,7 +65,7 @@
         <v-stepper-items v-if="isAnchorImported" class="stepper-content">
           <!-- Member step -->
           <v-stepper-content step="1">
-            <OwnerMemberStep @done="nextStep" :showPreviousButton="false" />
+            <OwnerMemberStep :show-previous-button="false" @done="nextStep" />
           </v-stepper-content>
           <!-- PIN step -->
           <v-stepper-content step="2">
@@ -85,9 +85,9 @@
           <!-- PIN step -->
           <v-stepper-content step="3">
             <TokenPinStep
+              :save-busy="pinSaveBusy"
               @previous="currentStep = 2"
               @done="tokenPinReady"
-              :saveBusy="pinSaveBusy"
             />
           </v-stepper-content>
         </v-stepper-items>
@@ -97,7 +97,7 @@
       <warningDialog
         :dialog="confirmInitWarning"
         :warnings="warningInfo"
-        localizationParent="initialConfiguration.warning"
+        localization-parent="initialConfiguration.warning"
         @cancel="confirmInitWarning = false"
         @accept="acceptInitWarning()"
       ></warningDialog>
@@ -122,13 +122,6 @@ export default Vue.extend({
     OwnerMemberStep,
     WarningDialog,
   },
-  computed: {
-    ...mapGetters([
-      'isAnchorImported',
-      'isServerOwnerInitialized',
-      'isServerCodeInitialized',
-    ]),
-  },
   data() {
     return {
       currentStep: 1 as number,
@@ -137,6 +130,17 @@ export default Vue.extend({
       confirmInitWarning: false as boolean,
       requestPayload: {} as InitialServerConf,
     };
+  },
+  computed: {
+    ...mapGetters([
+      'isAnchorImported',
+      'isServerOwnerInitialized',
+      'isServerCodeInitialized',
+    ]),
+  },
+
+  created() {
+    this.fetchInitStatus();
   },
   methods: {
     nextStep(): void {
@@ -210,9 +214,6 @@ export default Vue.extend({
         this.$store.dispatch('showError', error);
       });
     },
-  },
-  created() {
-    this.fetchInitStatus();
   },
 });
 </script>
