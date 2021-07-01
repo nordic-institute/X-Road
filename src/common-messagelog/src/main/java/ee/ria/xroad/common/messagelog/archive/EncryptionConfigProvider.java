@@ -30,6 +30,8 @@ import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.Getter;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPSecretKey;
 
 import java.nio.file.Path;
 
@@ -38,8 +40,28 @@ class EncryptionConfigProvider {
     private final boolean encryptionEnabled = MessageLogProperties.isEncryptionEnabled();
     private final Path gpgHome = MessageLogProperties.getGPGHome();
 
+    private final PGPSecretKey signingKey;
+    private final PGPPublicKey[] encryptionKeys;
+
+    EncryptionConfigProvider() {
+        if (encryptionEnabled) {
+            try {
+                //POC -- hard coded keys
+                signingKey = BCPGPUtil.selectPGPSigningKey(gpgHome.resolve("server.pgp"));
+                encryptionKeys = new PGPPublicKey[] {
+                        BCPGPUtil.selectPGPEncryptionKey(gpgHome.resolve("server.pub"))
+                };
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        } else {
+            signingKey = null;
+            encryptionKeys = null;
+        }
+    }
+
     EncryptionConfig forRecord(MessageRecord record) {
-        return encryptionEnabled ? new EncryptionConfig(true, gpgHome, null) : EncryptionConfig.DISABLED;
+        return encryptionEnabled ? new EncryptionConfig(true, signingKey, encryptionKeys) : EncryptionConfig.DISABLED;
     }
 
 }

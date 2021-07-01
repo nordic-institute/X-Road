@@ -33,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.openpgp.PGPPublicKey;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
@@ -106,7 +107,7 @@ public class LogArchiveCacheTest {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws Exception {
         cache = createCache(getMockRandomGenerator());
     }
 
@@ -423,11 +424,14 @@ public class LogArchiveCacheTest {
         return builder;
     }
 
-    private LogArchiveCache createCache(Supplier<String> randomGenerator) {
+    private LogArchiveCache createCache(Supplier<String> randomGenerator) throws Exception {
         return new LogArchiveCache(
                 randomGenerator,
                 mockLinkingInfoBuilder(),
-                encrypted ? new EncryptionConfig(true, Paths.get("build/resources/test/gpg"), null)
+                encrypted ? new EncryptionConfig(true,
+                        BCPGPUtil.selectPGPSigningKey(Paths.get("build/resources/test/gpg/server.pgp")),
+                        new PGPPublicKey[] {BCPGPUtil.selectPGPEncryptionKey(
+                                Paths.get("build/resources/test/gpg/server.pub"))})
                         : EncryptionConfig.DISABLED,
                 Paths.get("build/tmp/")
         );

@@ -28,16 +28,15 @@ package ee.ria.xroad.common.messagelog.archive;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.nio.file.Path;
-import java.util.List;
+import org.bouncycastle.openpgp.PGPPublicKey;
+import org.bouncycastle.openpgp.PGPSecretKey;
 
 @Getter
 @RequiredArgsConstructor
 class EncryptionConfig {
     private final boolean enabled;
-    private final Path gpgHomeDir;
-    private final List<Path> encryptionKeys;
+    private final PGPSecretKey secretKey;
+    private final PGPPublicKey[] encryptionKeys;
 
     static final EncryptionConfig DISABLED = new EncryptionConfig(false, null, null);
 }

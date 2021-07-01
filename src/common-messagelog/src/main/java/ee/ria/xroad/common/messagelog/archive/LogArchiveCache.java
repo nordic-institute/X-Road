@@ -219,11 +219,9 @@ class LogArchiveCache implements Closeable {
     private void resetArchive() throws IOException {
         deleteArchiveArtifacts();
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
-        final OutputStream os;
+        OutputStream os = Files.newOutputStream(archiveTmpFile);
         if (encryptionConfig.isEnabled()) {
-            os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), archiveTmpFile);
-        } else {
-            os = Files.newOutputStream(archiveTmpFile);
+            os = new BCPGPOutputStream(os, encryptionConfig.getSecretKey(), encryptionConfig.getEncryptionKeys());
         }
         archiveTmp = new ZipOutputStream(new BufferedOutputStream(os));
         archiveTmp.setLevel(0);
