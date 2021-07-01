@@ -7,13 +7,13 @@ pipeline {
         string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
     }
     stages {
-      stage('Create cluster') {
+      stage('Add public key') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws ec2-instance-connect send-ssh-public-key \
                        --instance-id ${INSTANDE_ID} \
                        --instance-os-user ${USER} \
-                       --ssh-public-key ${PUBLIC_KEY} \
+                       --ssh-public-key file://home/alberto/id_rsa.pub \
                        --availability-zone ${REGION_CODE}'
                 }
             }
