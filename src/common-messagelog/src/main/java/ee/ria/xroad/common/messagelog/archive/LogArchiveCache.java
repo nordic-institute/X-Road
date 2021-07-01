@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -48,7 +47,6 @@ import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
 import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
 
@@ -57,6 +55,8 @@ import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM
  */
 @Slf4j
 class LogArchiveCache implements Closeable {
+
+    private Path gpgHome = MessageLogProperties.getGPGHome();
 
     private enum State {
         NEW,
@@ -77,14 +77,23 @@ class LogArchiveCache implements Closeable {
     private Date minCreationTime;
     private Date maxCreationTime;
     private long archivesTotalSize;
+    private EncryptionConfig encryptionConfig;
+
+    LogArchiveCache(Supplier<String> randomGenerator,
+            LinkingInfoBuilder linkingInfoBuilder,
+            EncryptionConfig encryptionConfig,
+            Path workingDir) {
+        this.randomGenerator = randomGenerator;
+        this.linkingInfoBuilder = linkingInfoBuilder;
+        this.encryptionConfig = encryptionConfig;
+        this.workingDir = workingDir;
+        resetCacheState();
+    }
 
     LogArchiveCache(Supplier<String> randomGenerator,
             LinkingInfoBuilder linkingInfoBuilder,
             Path workingDir) {
-        this.randomGenerator = randomGenerator;
-        this.linkingInfoBuilder = linkingInfoBuilder;
-        this.workingDir = workingDir;
-        reset();
+        this(randomGenerator, linkingInfoBuilder, EncryptionConfig.DISABLED, workingDir);
     }
 
     void add(MessageRecord messageRecord) throws Exception {
@@ -105,7 +114,7 @@ class LogArchiveCache implements Closeable {
             archiveTmp = null;
             Path archive = archiveTmpFile;
             archiveTmpFile = null;
-            reset();
+            resetCacheState();
             return archive;
         } catch (IOException e) {
             handleCacheError(e);
@@ -152,17 +161,15 @@ class LogArchiveCache implements Closeable {
 
     private void validateMessageRecord(MessageRecord record) {
         if (record == null) {
-            throw new IllegalArgumentException(
-                    "Message record to be archived must not be null");
+            throw new IllegalArgumentException("Message record to be archived must not be null");
         }
     }
 
-    private void handleRotation() {
-        if (state != State.ROTATING) {
+    private void handleRotation() throws IOException {
+        if (state == State.ADDING) {
             return;
         }
-
-        reset();
+        resetArchive();
     }
 
     @SuppressWarnings("checkstyle:InnerAssignment")
@@ -209,21 +216,16 @@ class LogArchiveCache implements Closeable {
         linkingInfoBuilder.addNextFile(archiveFilename, digest.digest());
     }
 
-    private void reset() {
-        try {
-            resetArchive();
-            resetCacheState();
-        } catch (IOException e) {
-            log.error("Resetting log archive cache failed, cause:", e);
-            throw new CodedException(X_IO_ERROR,
-                    "Failed to reset log archive cache");
-        }
-    }
-
     private void resetArchive() throws IOException {
         deleteArchiveArtifacts();
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
-        archiveTmp = new ZipOutputStream(Files.newOutputStream(archiveTmpFile));
+        final OutputStream os;
+        if (encryptionConfig.isEnabled()) {
+            os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), archiveTmpFile);
+        } else {
+            os = Files.newOutputStream(archiveTmpFile);
+        }
+        archiveTmp = new ZipOutputStream(new BufferedOutputStream(os));
         archiveTmp.setLevel(0);
     }
 
