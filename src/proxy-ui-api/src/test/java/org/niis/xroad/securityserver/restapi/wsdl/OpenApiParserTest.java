@@ -36,7 +36,7 @@ import java.net.URL;
 public class OpenApiParserTest {
 
     @Test
-    public void shouldParseOpenApiYaml() throws OpenApiParser.ParsingException {
+    public void shouldParseOpenApiYaml() throws OpenApiParser.ParsingException, UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/valid.yaml");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertFalse(result.hasWarnings());
@@ -44,7 +44,7 @@ public class OpenApiParserTest {
     }
 
     @Test
-    public void shouldHaveWarnings() throws OpenApiParser.ParsingException {
+    public void shouldHaveWarnings() throws OpenApiParser.ParsingException, UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/warnings.yml");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertTrue(result.hasWarnings());
@@ -52,7 +52,7 @@ public class OpenApiParserTest {
     }
 
     @Test
-    public void shouldParseOpenApiJson() throws OpenApiParser.ParsingException {
+    public void shouldParseOpenApiJson() throws OpenApiParser.ParsingException, UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/valid.json");
         final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
         Assert.assertFalse(result.hasWarnings());
@@ -60,13 +60,15 @@ public class OpenApiParserTest {
     }
 
     @Test(expected = OpenApiParser.ParsingException.class)
-    public void shouldFailIfInvalidProtocol() throws OpenApiParser.ParsingException {
+    public void shouldFailIfInvalidProtocol() throws OpenApiParser.ParsingException,
+            UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/valid.json");
         final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
     }
 
     @Test(expected = OpenApiParser.ParsingException.class)
-    public void shouldFailIfDuplicateEndpoint() throws OpenApiParser.ParsingException {
+    public void shouldFailIfDuplicateEndpoint() throws OpenApiParser.ParsingException,
+            UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/duplicateendpoint.yaml");
         final OpenApiParser.Result result = new OpenApiParser().parse(url.toString());
     }

@@ -150,6 +150,7 @@ public final class DeviationCodes {
     public static final String ERROR_WSDL_EXISTS = "wsdl_exists";
     public static final String ERROR_WSDL_VALIDATOR_INTERRUPTED = "wsdl_validator_interrupted";
     public static final String ERROR_WSDL_VALIDATOR_NOT_EXECUTABLE = "wsdl_validator_not_executable";
+    public static final String ERROR_UNSUPPORTED_OPENAPI_VERSION = "unsupported_openapi_version";
 
     public static final String WARNING_ADDING_SERVICES = "adding_services";
     public static final String WARNING_AUTH_KEY_REGISTERED_CERT_DETECTED = "auth_key_with_registered_cert_warning";

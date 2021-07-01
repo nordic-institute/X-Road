@@ -28,7 +28,6 @@
 package org.niis.xroad.securityserver.restapi.wsdl;
 
 import io.swagger.v3.oas.models.servers.Server;
-import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
 import lombok.Value;
@@ -66,8 +65,10 @@ public class OpenApiParser {
      * Parse openapi3 description
      *
      * @return OpenApiParser.Result
+     * @throws ParsingException if parsing cannot be done
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
-    public Result parse(String urlString) throws ParsingException {
+    public Result parse(String urlString) throws ParsingException, UnsupportedOpenApiVersionException {
         URI openApiUrl = null;
         try {
             openApiUrl = new URI(urlString);
@@ -85,7 +86,7 @@ public class OpenApiParser {
             log.error("Reading OpenAPI description from {} failed", openApiUrl, e);
             throw e;
         }
-        final SwaggerParseResult result = new OpenAPIV3Parser().readContents(openApiDescription,
+        final SwaggerParseResult result = new XroadOpenAPIV3Parser().readContents(openApiDescription,
                 null, options);
         validate(result, openApiUrl);
 
