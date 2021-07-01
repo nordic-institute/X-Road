@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
-  version: "1.0.32"
+  version: "1.0.33"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -58,6 +58,39 @@ tags:
   - name: xroad-instances
     description: xroad-instances endpoints
 paths:
+  /uppercase-user:
+    post:
+      tags:
+        - user
+      summary: silly test endpoint - get uppercase username from given user
+      operationId: getUppercaseUsername
+      description: <h3>silly test endpoint</h3>
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: array of member classes
+          content:
+            application/json:
+              schema:
+                type: string
+                format: text
+                description: uppercase username
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /backups:
     get:
       tags:
@@ -6840,5 +6873,30 @@ components:
         java_runtime_version:
           type: string
           description: java runtime version string from java.runtime.version system property
+    User:
+      $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
+    Common:
+      $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/Common'
+    ChildCommon2:
+      $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/Common2'
+    ChildCommon3:
+      allOf:
+        - $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/Common3'
+    Container:
+      type: object
+      description: container for some common objects
+      properties:
+        common1:
+          $ref: '#/components/schemas/Common'
+        common2:
+          $ref: '#/components/schemas/ChildCommon2'
+        common3:
+          $ref: '#/components/schemas/ChildCommon3'
+    Container2:
+      type: object
+      description: container for some common objects
+      properties:
+        commonb1:
+          $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/Common'
 security:
   - ApiKeyAuth: []

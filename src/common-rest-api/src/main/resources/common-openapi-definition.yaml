@@ -134,6 +134,45 @@ components:
           items:
             type: string
             format: text
+    Common:
+      type: object
+      description: common object only defined in common-openapi-definition
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          format: text
+          description: user username
+          example: Guest
+          minLength: 1
+          maxLength: 255
+    Common2:
+      type: object
+      description: common object only defined in common-openapi-definition
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          format: text
+          description: user username
+          example: Guest
+          minLength: 1
+          maxLength: 255
+    Common3:
+      type: object
+      description: common object only defined in common-openapi-definition
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          format: text
+          description: user username
+          example: Guest
+          minLength: 1
+          maxLength: 255
   examples:
     ErrorExample:
       summary: Error response body example
