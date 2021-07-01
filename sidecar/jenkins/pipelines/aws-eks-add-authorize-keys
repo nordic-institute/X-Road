@@ -14,7 +14,7 @@ pipeline {
                        --instance-id ${INSTANDE_ID} \
                        --instance-os-user ${USER} \
                        --ssh-public-key ${PUBLIC_KEY} \
-                       --availability-zone ${REGION_CODE} \
+                       --availability-zone ${REGION_CODE}'
                 }
             }
         }
