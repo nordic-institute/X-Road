@@ -6898,5 +6898,11 @@ components:
       properties:
         commonb1:
           $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/Common'
+    UserContainer:
+      type: object
+      description: for testing modelFilesConstrainedTo
+      properties:
+        user:
+          $ref: '../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
 security:
   - ApiKeyAuth: []
