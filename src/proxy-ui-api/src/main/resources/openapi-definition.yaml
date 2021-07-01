@@ -53,15 +53,15 @@ tags:
     description: token certificates endpoints
   - name: tokens
     description: tokens endpoints
-  - name: user
-    description: user endpoints
+  - name: uppercase-user
+    description: silly user endpoints
   - name: xroad-instances
     description: xroad-instances endpoints
 paths:
   /uppercase-user:
     post:
       tags:
-        - user
+        - uppercase-user
       summary: silly test endpoint - get uppercase username from given user
       operationId: getUppercaseUsername
       description: <h3>silly test endpoint</h3>

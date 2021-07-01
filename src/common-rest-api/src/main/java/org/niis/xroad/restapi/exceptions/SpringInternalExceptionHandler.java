@@ -28,7 +28,7 @@ package org.niis.xroad.restapi.exceptions;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
-import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;

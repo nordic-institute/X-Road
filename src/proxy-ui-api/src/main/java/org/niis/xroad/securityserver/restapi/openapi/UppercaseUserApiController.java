@@ -47,7 +47,7 @@ import javax.validation.Valid;
 @Slf4j
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
-public class UppercaseUserApiController implements UserApi {
+public class UppercaseUserApiController implements UppercaseUserApi {
 
     UserUtil userUtil = new UserUtil();
 
@@ -55,21 +55,19 @@ public class UppercaseUserApiController implements UserApi {
     @Override
     public ResponseEntity<String> getUppercaseUsername(@Valid User user) {
 
-//        Does not compile, since UserUtil works with "common-rest-api User"
-//        error: incompatible types: @javax.validation.Valid org.niis.xroad.securityserver.restapi.openapi.model.User cannot be converted to org.niis.xroad.restapi.openapi.model.User
-//
-//        String uc = userUtil.getUppercaseUsername(user);
+        // works or no?
+        String uc = userUtil.getUppercaseUsername(user);
 
-        org.niis.xroad.restapi.openapi.model.User commonUser = convertUser(user);
-        String uc = userUtil.getUppercaseUsername(commonUser);
+//        org.niis.xroad.restapi.openapi.model.User commonUser = convertUser(user);
+//        String uc = userUtil.getUppercaseUsername(commonUser);
 
         return new ResponseEntity<>(uc, HttpStatus.OK);
 
     }
 
-    private org.niis.xroad.restapi.openapi.model.User convertUser(User user) {
-        org.niis.xroad.restapi.openapi.model.User commonUser = new org.niis.xroad.restapi.openapi.model.User();
-        BeanUtils.copyProperties(user, commonUser);
-        return commonUser;
-    }
+//    private org.niis.xroad.restapi.openapi.model.User convertUser(User user) {
+//        org.niis.xroad.restapi.openapi.model.User commonUser = new org.niis.xroad.restapi.openapi.model.User();
+//        BeanUtils.copyProperties(user, commonUser);
+//        return commonUser;
+//    }
 }

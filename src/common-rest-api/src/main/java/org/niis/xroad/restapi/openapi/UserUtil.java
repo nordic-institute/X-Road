@@ -25,7 +25,7 @@
  */
 package org.niis.xroad.restapi.openapi;
 
-import org.niis.xroad.restapi.openapi.model.User;
+import org.niis.xroad.securityserver.restapi.openapi.model.User;
 
 /**
  * Example util to demonstrate duplicate classes-problem

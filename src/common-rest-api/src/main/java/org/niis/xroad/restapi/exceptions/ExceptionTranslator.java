@@ -27,8 +27,8 @@ package org.niis.xroad.restapi.exceptions;
 
 import ee.ria.xroad.common.CodedException;
 
-import org.niis.xroad.restapi.openapi.model.CodeWithDetails;
-import org.niis.xroad.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.securityserver.restapi.openapi.model.CodeWithDetails;
+import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
