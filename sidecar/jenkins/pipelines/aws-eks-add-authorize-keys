@@ -10,7 +10,7 @@ pipeline {
       stage('Create cluster') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-                    sh 'aws cli  ec2-instance-connect send-ssh-public-key \
+                    sh 'aws ec2-instance-connect send-ssh-public-key \
                        --instance-id ${INSTANDE_ID} \
                        --instance-os-user ${USER} \
                        --ssh-public-key ${PUBLIC_KEY} \
