@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.15  
+Version: 1.16  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -32,6 +32,7 @@ Doc. ID: IG-SS-RHEL
  29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
  16.04.2021 | 1.14    | Update remote database installation instructions                | Jarkko Hyöty
  18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
+ 01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
 
 ## License
 
@@ -130,7 +131,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | ------- | --------------------------| ---------------------------------------------------------- |
 | 1.0     | RHEL (7.3 or newer; 8.0 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
 | 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 | 1.3     |                                         | Account name in the user interface
 | 1.4     | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
 |         | TCP 5500                                | Message exchange between security servers
