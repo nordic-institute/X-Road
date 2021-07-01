@@ -76,7 +76,7 @@ spec:
           mountPath: /etc/xroad
       containers:
       - name: security-server-sidecar-slim
-        image: niis/xroad-security-server-sidecar:6.25.0-slim
+        image: niis/xroad-security-server-sidecar:6.26.0-slim
         imagePullPolicy: "Always"
         volumeMounts:
         - name: sidecar-config-slim-volume
@@ -102,8 +102,8 @@ spec:
         - name: XROAD_DATABASE_NAME
           value: "{{XROAD_DATABASE_NAME}}"
         ports:
-        - containerPort: 80
-        - containerPort: 443
+        - containerPort: 8080
+        - containerPort: 8443
         - containerPort: 4000
         - containerPort: 5500
         - containerPort: 5577

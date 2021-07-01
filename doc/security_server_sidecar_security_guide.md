@@ -355,7 +355,7 @@ Containers connected to the same user-defined bridge network effectively expose 
 To expose a port to containers or non-Docker hosts on different networks, we can use the flag -p:
 
 ```bash
-docker run -p 4000:4000 -p 80:80 -p 5588:5588 ...
+docker run -p 4000:4000 -p 8080:8080 -p 5588:5588 ...
 ```
 
 More information can be found on the Docker documentation about [Docker bridge networks](https://docs.docker.com/network/bridge/).

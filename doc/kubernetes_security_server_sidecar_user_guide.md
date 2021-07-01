@@ -1560,8 +1560,8 @@ The [load_balancer_setup manifest template](./files/load_balancer_setup.yaml) co
     * &lt;xroad log level&gt; (**reference data: 1.10**)
     * &lt;xroad dabase name&gt; (**reference data: 1.11**)
     * &lt;pv-efs-id&gt; (**reference data: 3.11**) In this setup we are using an [4.5.3.2.3 Persistent Volume AWS Elastic File System](#45323-persistent-volume-aws-elastic-file-system)
-    * &lt;version primary&gt; Supported image versions for the primary are: 6.25.0-primary, 6.25.0-primary-fi. Make sure that the image version for the secondary matches the image version for the primary, for example, if you choose the 6.25.0-primary-slim version for the primary, you must choose the 6.25.0-secondary-slim version for the secondary.
-    * &lt;version secondary&gt; Supported image versions for the secondary are: 6.25.0-slim-secondary, 6.25.0-slim-secondary-fi. Make sure that the image version for the secondary matches the image version for the primary, for example, if you choose the 6.25.0-primary-slim version for the primary, you must choose the 6.25.0-secondary-slim version for the secondary.
+    * &lt;version primary&gt; Supported image versions for the primary are: 6.26.0-primary, 6.26.0-primary-fi. Make sure that the image version for the secondary matches the image version for the primary, for example, if you choose the 6.26.0-primary-slim version for the primary, you must choose the 6.26.0-secondary-slim version for the secondary.
+    * &lt;version secondary&gt; Supported image versions for the secondary are: 6.26.0-slim-secondary, 6.26.0-slim-secondary-fi. Make sure that the image version for the secondary matches the image version for the primary, for example, if you choose the 6.26.0-primary-slim version for the primary, you must choose the 6.26.0-secondary-slim version for the secondary.
 
 2. Once the values are replaced, apply the manifest file:
 

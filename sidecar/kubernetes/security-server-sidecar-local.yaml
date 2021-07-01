@@ -69,8 +69,8 @@ spec:
           value: "{{XROAD_LOG_LEVEL}}"
 
         ports:
-        - containerPort: 80
-        - containerPort: 443
+        - containerPort: 8080
+        - containerPort: 8443
         - containerPort: 4000
         - containerPort: 5500
         - containerPort: 5577

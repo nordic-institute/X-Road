@@ -20,10 +20,10 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
         cp -a -n /root/backup/local.ini /etc/xroad/conf.d/
         cp -a -n /root/backup/local.conf /etc/xroad/services/
         cp -a -n /root/backup/devices.ini /etc/xroad/
-        pg_ctlcluster 10 main start
-        pg_isready -t 10
+        pg_ctlcluster 12 main start
+        pg_isready -t 12
         dpkg-reconfigure xroad-proxy
-        pg_ctlcluster 10 main stop
+        pg_ctlcluster 12 main stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
     fi
@@ -100,11 +100,11 @@ if [ ! -f ${DB_PROPERTIES} ]; then
         [ -n "$messagelog" ] && dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
         [ -n "$opmonitor" ] && dpkg-reconfigure -fnoninteractive xroad-opmonitor
     else
-        pg_ctlcluster 10 main start
+        pg_ctlcluster 12 main start
         dpkg-reconfigure -fnoninteractive xroad-proxy
         [ -n "$messagelog" ] && dpkg-reconfigure -fnoninteractive xroad-addon-messagelog
         [ -n "$opmonitor" ] && dpkg-reconfigure -fnoninteractive xroad-opmonitor
-        pg_ctlcluster 10 main stop
+        pg_ctlcluster 12 main stop
     fi
 fi
 

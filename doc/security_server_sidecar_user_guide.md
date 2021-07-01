@@ -8,6 +8,7 @@
  24.12.2020 | 1.1     | Add description of features of different image versions         | Petteri Kivimäki
  21.01.2021 | 1.2     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
  10.02.2021 | 1.3     | Modify description of different supported platforms             | Raul Martinez Lopez
+ 06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
 
 ## Table of Contents
 
@@ -74,7 +75,7 @@ See <https://docs.docker.com/develop/develop-images/build_enhancements/> for mor
 
 ### 2.2 X-Road Security Server Sidecar images
 
-The Security Server Sidecar has four different images with alternative configurations. Each Security Server version number (e.g., 6.24.0, 6.25.0, etc.) has its own set of images.
+The Security Server Sidecar has four different images with alternative configurations.
 
 **Image**                                                | **Description**
 ------------------------------------------------------------ | -----------------------------------------------------------------------------------------------------------------
@@ -105,17 +106,17 @@ Operational monitoring           | Yes         | No               |
 1.6    | &lt;admin password&gt;                    | Admin password
 1.7    | &lt;database host&gt;                     | Database host for external or local database, use '127.0.0.1' for local database
 1.8    | &lt;database port&gt;                     | (Optional) database port when using an external database, recommended 5432
-1.9    | &lt;xroad db password&gt;                        | (Optional)Environmental variable with the DB password in case we are using a external database
-1.10    | &lt;xroad log level&gt;                         | (Optional) Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
-1.11    | &lt;database-name&gt;                     | (Optional) this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
-1.12    | TCP 5500                                  | Ports for outbound connections (from the Security Server to the external network)<br> Message exchange between Security Servers
+1.9    | &lt;xroad db password&gt;                 | (Optional)Environmental variable with the DB password in case we are using a external database
+1.10   | &lt;xroad log level&gt;                   | (Optional) Environmental variable with output logging level, could be one of the case-sensitive string values: TRACE, DEBUG, INFO, WARN, ERROR, ALL or OFF
+1.11   | &lt;database-name&gt;                     | (Optional) this parameter will change the name of the database 'serverconf' to 'serverconf_&lt;database-name&gt;', this is useful when we are using an external database host with an already existing database and we don't want to use it
+1.12   | TCP 5500                                  | Ports for outbound connections (from the Security Server to the external network)<br> Message exchange between Security Servers
 &nbsp; | TCP 5577                                  | Ports for outbound connections (from the Security Server to the external network)<br> Querying of OCSP responses between Security Servers
-&nbsp; | TCP 80 (1)                                | Ports for outbound connections (from the Security Server to the external network)<br> Downloading global configuration
-&nbsp; | TCP 80 (1),443                            | Ports for outbound connections (from the Security Server to the external network)<br> Most common OCSP service
-1.13   | TCP 80 (1)                                | Ports for information system access points (in the local network)<br> Connections from information systems
-&nbsp; | TCP 443                                   | Ports for information system access points (in the local network)<br> Connections from information systems
-1.14    | TCP 5588                                  | Port for health check (local network)
-1.15    | TCP 4000 (2)                              | Port for admin user interface (local network)
+&nbsp; | TCP 80                                    | Ports for outbound connections (from the Security Server to the external network)<br> Downloading global configuration
+&nbsp; | TCP 80, 443                               | Ports for outbound connections (from the Security Server to the external network)<br> Most common OCSP service
+1.13   | TCP 8080                                  | Ports for information system access points (in the local network)<br> Connections from information systems
+&nbsp; | TCP 8443                                  | Ports for information system access points (in the local network)<br> Connections from information systems
+1.14   | TCP 5588                                  | Port for health check (local network)
+1.15   | TCP 4000                                  | Port for admin user interface (local network)
 1.16   |                                           | Internal IP address and hostname(s) for Security Server Sidecar
 1.17   |                                           | Public IP address, NAT address for Security Server Sidecar
 
@@ -130,7 +131,6 @@ Minimum recommended Docker engine configuration to run the Security Server Sidec
 
 * CPUs: 2
 * Memory: 2 GiB
-* Swap: 1 GiB
 * Disk space: 2 GiB
 * If the Security Server is separated from other networks by a firewall and/or NAT, you need to allow the necessary connections to and from the Security Server (**reference data: 1.12; 1.13; 1.14; 1.15;**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) are outside the scope of this guide.
 * If the Security Server has a private IP address, you must create a corresponding NAT record in the firewall (**reference data: 1.18**).
@@ -149,7 +149,7 @@ Out | Security Server | Data Exchange Partner Security Server (Service Producer)
 Out | Security Server | Producer Information System | 80, 443, other | tcp | Target in the internal network |
 In  | Monitoring Security Server | Security Server | 5500, 5577 | tcp | |
 In  | Data Exchange Partner Security Server (Service Consumer) | Security Server | 5500, 5577 | tcp | |
-In | Consumer Information System | Security Server | 80, 443 | tcp | Source in the internal network |
+In | Consumer Information System | Security Server | 8080, 8443 | tcp | Source in the internal network |
 In | Admin | Security Server | &lt;ui port&gt; (**reference data 1.2**) | tcp | Source in the internal network |
 
 ### 2.6 Installation
@@ -167,7 +167,7 @@ docker network create -d bridge xroad-network
 To install the Security Server Sidecar in a local development or test environment, run the Docker command (**reference data: 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 1.10, 1.11**):
 
 ```bash
-docker run --detach -p <ui port>:4000 -p <http port>:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
+docker run --detach -p <ui port>:4000 -p <http port>:8080 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
 
 Note (1): This command persists all configuration inside the Sidecar container which means that all configuration is lost when the container is destroyed. In production use, the configuration must be persisted outside of the container using volumes and external database. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
@@ -185,18 +185,18 @@ The script `setup_security_server_sidecar.sh` will:
 1. Create a Docker bridge-type network called xroad-network to provide container-to-container communication.
 2. Build xroad-sidecar-security-server-image performing the following configuration steps:
 
-    * Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.23.0 or later).
+    * Downloads and installs the packages xroad-proxy, xroad-addon-metaservices, xroad-addon-wsdlvalidator and xroad-autologin from the public NIIS artifactory repository (version bionic-6.26.0 or later).
     * Removes the generated serverconf database and properties files (to be re-generated in the initial configuration script).
     * Removes the default admin username (to be re-generated in the initial configuration script).
     * Removes the generated internal and proxy-ui-api certificates (to be re-generated in the initial configuration script).
     * Enables health check port and interfaces (by default all available interfaces).
     * Backs up the read-only xroad packages' configuration to allow Security Server Sidecar configuration updates.
     * Copies the Security Server Sidecar custom configuration files.
-    * Exposes the container ports 80 (HTTP), 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
+    * Exposes the container ports 80, 8080 (HTTP), 8443, 443 (HTTPS), 4000 (admin UI), 5500 (proxy), 5577 (proxy OCSP) and 5588 (proxy health check).
 
 3. Start a new Security Server Sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
 
-    * Maps ports 4000 (admin UI) and 80 (HTTP) to user-defined ones (**reference data 1.2**).
+    * Maps ports 4000 (admin UI) and 8080 (HTTP) to user-defined ones (**reference data 1.2**).
     * Maps port 5588 (proxy health check) to the same host port.
     * Updates Security Server Sidecar configuration on startup if the installed version of the image has been updated.
     * Configures xroad-autologin custom software token PIN code with user-supplied PIN (**reference data 1.3**).
@@ -211,6 +211,8 @@ The script `setup_security_server_sidecar.sh` will:
     Note (1): The installation using the setup script is only for Linux systems. To install Security Server Sidecar on Windows or MacOS operating systems, follow the [Installation using Dockerhub image](#261-installation-using-dockerhub-image).
 
     Note (2): It is strongly recommended to configure the Security Server Sidecar container to use volumes and external database to persist information outside the Security Server Sidecar container in a production environment. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
+
+    Note (3): The installation in a test or development environment requires a free swap memory space of at least 1 GiB.
 
 ##### 2.6.2.1 Security Server Sidecar Slim
 
@@ -270,7 +272,7 @@ The Security Server Sidecar provides the option to configure an external databas
     docker inspect <container_name>
     ```
 
-The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL version 10).
+The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL versions 10 and 12).
 
 #### 2.7.1 Reconfigure external database address after initialization
 
@@ -303,7 +305,7 @@ To change the database host, you need to:
 
     If other components like `message_log` or `op_monitor` are also configured in the `etc/xroad/db.properties` file to use an external database, you must change their properties in the same way as in the example above.
 
-4. If you are using a version up to 6.24.0, you must update the admin users by editing `etc/xroad.properties` file and replace the admin users and passwords with the new ones:
+4. If you are using a version up to 6.26.0, you must update the admin users by editing `etc/xroad.properties` file and replace the admin users and passwords with the new ones:
 
     ```bash
     [...]
@@ -341,16 +343,16 @@ It is possible to configure the Security Server Sidecar to use volume support fo
 To add volume support, you have to add the volume mapping parameters to the docker run command inside the `setup_security_server_sidecar.sh` script as shown below:
 
 ```bash
-docker run ... -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/10/main ...
+docker run ... -v (sidecar-config-volume-name):/etc/xroad -v (sidecar-config-db-volume-name):/var/lib/postgresql/12/main ...
 ```
 
 For example:
 
 ```bash
-docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/10/main -detach -p $2:4000 -p $httpport:80 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
+docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/12/main -detach -p $2:4000 -p $httpport:8080 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
 ```
 
-This will allow us to create the sidecar-config and sidecar-config-db directories on the host and mount them onto the /etc/xroad and /var/lib/postgresql/10/main config directories respectively in the container.
+This will allow us to create the sidecar-config and sidecar-config-db directories on the host and mount them onto the /etc/xroad and /var/lib/postgresql/12/main config directories respectively in the container.
 
 #### 2.9.1 Store sensitive information in volumes
 
@@ -373,7 +375,7 @@ To check that the installation was successful, do the following:
     ```bash
     docker ps --filter "name=<container name>"
     CONTAINER ID        IMAGE                                                COMMAND                 CREATED             STATUS              PORTS                                                                                               NAMES
-    b3031affa4b7        niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago      Up 10 minutes       443/tcp, 5500/tcp, 5577/tcp, 0.0.0.0:5588->5588/tcp, 0.0.0.0:<http port>->80/tcp, 0.0.0.0:4600->4000/tcp   <container name>
+    b3031affa4b7        niis/xroad-security-server-sidecar:<image tag>   "/root/entrypoint.sh"   10 minutes ago      Up 10 minutes       443/tcp, 5500/tcp, 5577/tcp, 0.0.0.0:5588->5588/tcp, 0.0.0.0:<http port>->8080/tcp, 0.0.0.0:4600->4000/tcp   <container name>
     ```
 
 2. Ensure that the services are running (**reference data: 1.1**) by running a command in the running container:
