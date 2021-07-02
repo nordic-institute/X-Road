@@ -29,8 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.UserUtil;
-import org.niis.xroad.securityserver.restapi.openapi.model.User;
-import org.springframework.beans.BeanUtils;
+import org.niis.xroad.restapi.openapi.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -55,19 +54,8 @@ public class UppercaseUserApiController implements UppercaseUserApi {
     @Override
     public ResponseEntity<String> getUppercaseUsername(@Valid User user) {
 
-        // works or no?
         String uc = userUtil.getUppercaseUsername(user);
-
-//        org.niis.xroad.restapi.openapi.model.User commonUser = convertUser(user);
-//        String uc = userUtil.getUppercaseUsername(commonUser);
-
         return new ResponseEntity<>(uc, HttpStatus.OK);
 
     }
-
-//    private org.niis.xroad.restapi.openapi.model.User convertUser(User user) {
-//        org.niis.xroad.restapi.openapi.model.User commonUser = new org.niis.xroad.restapi.openapi.model.User();
-//        BeanUtils.copyProperties(user, commonUser);
-//        return commonUser;
-//    }
 }

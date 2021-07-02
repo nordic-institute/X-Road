@@ -249,17 +249,20 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
+    importMappings = [
+            User : "org.niis.xroad.restapi.openapi.model.User"
+    ]
     systemProperties = [
         modelDocs: "false",
-        apis     : "", // must use empty strings instead of "true":
+        apis     : "", // must use empty strings to represent "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : "AccessRight,AccessRights,Anchor,BackupArchive,Backup,CertificateAuthority,CertificateAuthorityOcspResponse,CertificateDetails,CertificateOcspStatus,CertificateStatus,ChildCommon2,ChildCommon3,ClientAdd,Client,ClientStatus,CodeWithDetails,Common2,Common3,Common,ConfigurationStatus,ConnectionType,ConnectionTypeWrapper,Container2,Container,CsrFormat,CsrGenerate,CsrSubjectFieldDescription,DiagnosticStatusClass,DistinguishedName,Endpoint,EndpointUpdate,ErrorInfo,GlobalConfDiagnostics,GroupMember,IgnoreWarnings,InitializationStatus,InitialServerConf,Key,KeyLabel,KeyLabelWithCsrGenerate,KeyName,KeyUsage,KeyUsageType,KeyValuePair,KeyWithCertificateSigningRequestId,Language,LocalGroupAdd,LocalGroupDescription,LocalGroup,MemberName,Members,OcspResponderDiagnostics,OcspResponder,OcspStatus,OrphanInformation,PossibleAction,SecurityServerAddress,SecurityServer,ServiceClient,ServiceClients,ServiceClientType,ServiceDescriptionAdd,ServiceDescriptionDisabledNotice,ServiceDescription,ServiceDescriptionUpdate,Service,ServiceType,ServiceUpdate,TimestampingServiceDiagnostics,TimestampingService,TimestampingStatus,TokenCertificate,TokenCertificateSigningRequest,TokenInitStatus,Token,TokenName,TokenPassword,TokenPinUpdate,TokensLoggedOut,TokenStatus,TokenType,UserContainer,VersionInfo",
+        models   : "",
         generateSupportingFiles : "true",
-        supportingFiles: 'ApiUtil.java'
+        supportingFiles: 'ApiUtil.java',
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true"
+        useTags      : "true",
     ]
 }
 

@@ -71,12 +71,8 @@ openApiGenerate {
     inputSpec = "$projectDir/src/main/resources/common-openapi-definition.yaml".toString()
     outputDir = "$buildDir/generated-sources/openapi".toString()
 
-    // changing package names here is simpler, even if we should really change the proxy-ui-api build
-    apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
-    modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
-
-//    apiPackage = "org.niis.xroad.restapi.openapi"
-//    modelPackage = "org.niis.xroad.restapi.openapi.model"
+    apiPackage = "org.niis.xroad.restapi.openapi"
+    modelPackage = "org.niis.xroad.restapi.openapi.model"
     systemProperties = [
             modelDocs: "false",
             apis     : "",
