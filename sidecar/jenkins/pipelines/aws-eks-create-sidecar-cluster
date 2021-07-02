@@ -46,7 +46,8 @@ pipeline {
                        --subnets ${NODE_SUBNET_ID}  \
                        --node-role ${ROLE_ARN} \
                        --disk-size ${DISK_SIZE} \
-                       --remote-access ec2SshKey=${SSH_KEY},sourceSecurityGroups=${SECURITY_GROUP_IDS}'
+                       --remote-access ec2SshKey=${SSH_KEY},sourceSecurityGroups=${SECURITY_GROUP_IDS} \
+                       --tags SecurityServerSidecar=True'
                 }
             }
         }
