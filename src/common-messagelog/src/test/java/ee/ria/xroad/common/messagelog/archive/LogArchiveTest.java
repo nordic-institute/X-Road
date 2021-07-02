@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -34,9 +33,11 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,6 +49,7 @@ import static org.junit.Assert.assertTrue;
  * Exercises entire logic of archiving log entries. Actually depends on
  * LogArchiveCacheTest.
  */
+@RunWith(Parameterized.class)
 public class LogArchiveTest {
 
     private static final int NUM_TIMESTAMPS = 3;
@@ -56,8 +58,14 @@ public class LogArchiveTest {
     private static boolean rotated;
     private long recordNo;
 
-    @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    @Parameterized.Parameter
+    public boolean encrypted;
+
+
+    @Parameterized.Parameters(name = "encrypted = {0}")
+    public static Object[] params() {
+        return new Object[] {Boolean.FALSE, Boolean.TRUE};
+    }
 
     /**
      * Preparations for testing log archive.
@@ -65,13 +73,21 @@ public class LogArchiveTest {
      */
     @Before
     public void beforeTest() throws Exception {
+        if (encrypted) {
+            Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
+        }
         recordNo = 0;
         rotated = false;
         Files.createDirectory(Paths.get("build/slog"));
+        System.setProperty(MessageLogProperties.GPG_HOME_DIRECTORY, "build/resources/test/gpg");
+        System.setProperty(MessageLogProperties.ENCRYPTION_ENABLED, String.valueOf(encrypted));
     }
 
     @After
     public void afterTest() {
+        System.clearProperty(MessageLogProperties.GPG_HOME_DIRECTORY);
+        System.clearProperty(MessageLogProperties.ENCRYPTION_ENABLED);
+        System.clearProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE);
         FileUtils.deleteQuietly(Paths.get("build/slog").toFile());
     }
 
@@ -84,7 +100,6 @@ public class LogArchiveTest {
     @Test
     public void writeAndRotate() throws Exception {
         System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE, "50");
-
         writeRecordsToLog(false);
         assertTrue(rotated);
     }

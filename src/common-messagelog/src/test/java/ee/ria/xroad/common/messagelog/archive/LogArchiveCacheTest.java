@@ -37,6 +37,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -107,12 +108,17 @@ public class LogArchiveCacheTest {
 
     @Before
     public void setup() {
+        if (encrypted) {
+            Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
+        }
         cache = createCache(getMockRandomGenerator());
     }
 
     @After
-    public void tearDown() throws IOException {
-        cache.close();
+    public void tearDown() {
+        if (cache != null) {
+            cache.close();
+        }
     }
 
     /**

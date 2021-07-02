@@ -86,8 +86,7 @@ class GPGInputStream extends FilterInputStream {
             if (in != null) {
                 super.close();
             }
-            //gpg encrypts on the fly, so it should finish almost immediately
-            gpg.waitFor(1, TimeUnit.MINUTES);
+            gpg.waitFor(10, TimeUnit.SECONDS);
             statusText = Files.readAllLines(statusTmp, StandardCharsets.UTF_8);
             if (gpg.isAlive()) {
                 log.debug("Decryption failed: {}", statusText);
