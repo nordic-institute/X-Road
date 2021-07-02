@@ -13,7 +13,7 @@ pipeline {
                     sh 'aws ec2-instance-connect send-ssh-public-key \
                        --instance-id ${INSTANDE_ID} \
                        --instance-os-user ${USER} \
-                       --ssh-public-key file:///home/alberto/id_rsa.pub \
+                       --ssh-public-key "${PUBLIC_KEY}" \
                        --availability-zone ${REGION_CODE}'
                 }
             }
