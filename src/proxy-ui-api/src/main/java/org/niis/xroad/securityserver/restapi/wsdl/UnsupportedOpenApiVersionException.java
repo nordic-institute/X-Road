@@ -32,14 +32,6 @@ import org.niis.xroad.restapi.service.ServiceException;
  * Thrown if the provided OpenAPI document version differs from 3.0.x
  */
 public class UnsupportedOpenApiVersionException extends ServiceException {
-    public UnsupportedOpenApiVersionException(ErrorDeviation errorDeviation) {
-        super(errorDeviation);
-    }
-
-    public UnsupportedOpenApiVersionException(Throwable t, ErrorDeviation errorDeviation) {
-        super(t, errorDeviation);
-    }
-
     public UnsupportedOpenApiVersionException(String msg, ErrorDeviation errorDeviation) {
         super(msg, errorDeviation);
     }

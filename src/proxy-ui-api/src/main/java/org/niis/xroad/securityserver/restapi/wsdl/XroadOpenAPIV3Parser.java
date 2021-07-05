@@ -35,6 +35,8 @@ import io.swagger.v3.parser.util.OpenAPIDeserializer;
 import lombok.SneakyThrows;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 
+import java.util.Arrays;
+
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_UNSUPPORTED_OPENAPI_VERSION;
 
 /**
@@ -58,6 +60,30 @@ public class XroadOpenAPIV3Parser extends OpenAPIV3Parser {
             super();
         }
 
+        /**
+         * Overridden method that can SneakyThrow UnsupportedOpenApiVersionException
+         */
+        @SneakyThrows(UnsupportedOpenApiVersionException.class)
+        @Override
+        public SwaggerParseResult deserialize(JsonNode rootNode, String path) {
+            SwaggerParseResult result = new SwaggerParseResult();
+            try {
+                ParseResult rootParse = new ParseResult();
+                OpenAPI api = parseRoot(rootNode, rootParse, path); // sneakythrows UnsupportedOpenApiVersionException
+                result.setOpenAPI(api);
+                result.setMessages(rootParse.getMessages());
+            } catch (Exception e) {
+                if (e instanceof UnsupportedOpenApiVersionException) {
+                    throw (UnsupportedOpenApiVersionException) e;
+                }
+                result.setMessages(Arrays.asList(e.getMessage()));
+            }
+            return result;
+        }
+
+        /**
+         * Overridden method that can SneakyThrow UnsupportedOpenApiVersionException
+         */
         @SneakyThrows(UnsupportedOpenApiVersionException.class)
         @Override
         public OpenAPI parseRoot(JsonNode node, ParseResult result, String path) {

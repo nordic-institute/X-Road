@@ -27,9 +27,20 @@
 
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import ee.ria.xroad.common.util.OpenapiDescriptionFiletype;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -50,6 +61,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_PARSING;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_UNSUPPORTED_OPENAPI_VERSION;
 
 /**
  * Parser for OpenAPI descriptions
@@ -58,8 +70,12 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_OPENAPI_PAR
 @Component
 public class OpenApiParser {
 
+    private static final String SUPPORTED_OPENAPI_MINOR_VERSION = "3.0";
     private static final int BUF_SIZE = 8192;
     private static final long MAX_DESCRIPTION_SIZE = 10 * 1024 * 1024;
+    private static final ObjectMapper JSON_MAPPER = new ObjectMapper(new JsonFactory());
+    private static final ObjectMapper YAML_MAPPER =
+            new ObjectMapper(new YAMLFactory()).configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
     /**
      * Parse openapi3 description
@@ -79,15 +95,25 @@ public class OpenApiParser {
         final ParseOptions options = new ParseOptions();
         options.setResolve(false);
 
-        String openApiDescription;
+        OpenApiDescriptionAndType openApiDescriptionAndType;
+        final SwaggerParseResult result;
+
         try {
-            openApiDescription = readOpenAPIDescription(openApiUrl);
+            openApiDescriptionAndType = readOpenAPIDescription(openApiUrl);
+            if (openApiDescriptionAndType.getFileType() == OpenapiDescriptionFiletype.YAML) {
+                JsonNode yamlNode = YAML_MAPPER.readTree(openApiDescriptionAndType.getOpenApiDescription());
+                result = new OpenAPIV3Parser().parseJsonNode(null, yamlNode);
+            } else { // parse json by default
+                JsonNode jsonNode = JSON_MAPPER.readTree(openApiDescriptionAndType.getOpenApiDescription());
+                result = new OpenAPIV3Parser().parseJsonNode(null, jsonNode);
+            }
+        } catch (JsonProcessingException e) {
+            throw new ParsingException("Unable to parse OpenAPI description from " + openApiUrl, e);
         } catch (Exception e) {
             log.error("Reading OpenAPI description from {} failed", openApiUrl, e);
             throw e;
         }
-        final SwaggerParseResult result = new XroadOpenAPIV3Parser().readContents(openApiDescription,
-                null, options);
+
         validate(result, openApiUrl);
 
         String baseUrl = Optional.ofNullable(result.getOpenAPI().getServers())
@@ -113,18 +139,21 @@ public class OpenApiParser {
         return new Result(baseUrl, operations, result.getMessages());
     }
 
-    private void validate(SwaggerParseResult result, URI openApiUrl) throws ParsingException {
+    private void validate(SwaggerParseResult result, URI openApiUrl) throws ParsingException,
+            UnsupportedOpenApiVersionException {
         if (result == null || result.getOpenAPI() == null) {
             throw new ParsingException("Unable to parse OpenAPI description from " + openApiUrl);
         }
 
-        final String version = result.getOpenAPI().getOpenapi();
-        if (version == null || !version.startsWith("3.")) {
-            throw new ParsingException("Unsupported OpenAPI version " + version + ", expected major version 3");
+        final String openapiVersion = result.getOpenAPI().getOpenapi();
+        if (openapiVersion != null && !openapiVersion.startsWith(SUPPORTED_OPENAPI_MINOR_VERSION)) {
+            String errorMsg = String.format("OpenAPI version %s not supported", openapiVersion);
+            throw new UnsupportedOpenApiVersionException(errorMsg,
+                    new ErrorDeviation(ERROR_UNSUPPORTED_OPENAPI_VERSION, openapiVersion));
         }
     }
 
-    private String readOpenAPIDescription(URI openApiUrl) throws ParsingException {
+    private OpenApiDescriptionAndType readOpenAPIDescription(URI openApiUrl) throws ParsingException {
         URLConnection conn = null;
         try {
             if (!allowProtocol(openApiUrl.getScheme())) {
@@ -148,7 +177,12 @@ public class OpenApiParser {
                     }
                     builder.append(buf, 0, n);
                 }
-                return builder.toString();
+                String contentType = conn.getContentType();
+                OpenapiDescriptionFiletype fileType = OpenapiDescriptionFiletype.JSON; // Default to JSON
+                if (contentType.contains("yaml")) {
+                    fileType = OpenapiDescriptionFiletype.YAML;
+                }
+                return new OpenApiDescriptionAndType(fileType, builder.toString());
             }
         } catch (UnknownHostException e) {
             throw new ParsingException("Error reading OpenAPI description: Unknown or invalid host name", e);
@@ -163,6 +197,13 @@ public class OpenApiParser {
 
     public boolean allowProtocol(String protocol) {
         return "http".equals(protocol) || "https".equals(protocol);
+    }
+
+    @AllArgsConstructor
+    @Getter
+    private static final class OpenApiDescriptionAndType {
+        private final OpenapiDescriptionFiletype fileType;
+        private final String openApiDescription;
     }
 
     /**
