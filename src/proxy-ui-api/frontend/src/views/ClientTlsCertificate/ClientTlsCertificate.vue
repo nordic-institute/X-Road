@@ -59,7 +59,7 @@ import { Permissions } from '@/global';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types/ss-types';
+import { CertificateDetails } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({

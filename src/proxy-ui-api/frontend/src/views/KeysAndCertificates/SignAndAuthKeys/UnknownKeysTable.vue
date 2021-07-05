@@ -85,7 +85,7 @@ import {
   PossibleAction,
   TokenCertificate,
   TokenCertificateSigningRequest,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { Permissions } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';

@@ -113,7 +113,7 @@ import ConfigurationAnchorStep from './ConfigurationAnchorStep.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import OwnerMemberStep from './OwnerMemberStep.vue';
 import * as api from '@/util/api';
-import { InitialServerConf } from '@/openapi-types/ss-types';
+import { InitialServerConf } from '@/openapi-types';
 
 export default Vue.extend({
   components: {

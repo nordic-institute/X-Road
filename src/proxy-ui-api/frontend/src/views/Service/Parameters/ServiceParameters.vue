@@ -267,7 +267,7 @@ import {
   ServiceClient,
   ServiceClients,
   ServiceUpdate,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { encodePathParameter } from '@/util/api';
 

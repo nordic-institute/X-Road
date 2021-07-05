@@ -27,7 +27,7 @@ import {
   AccessRight,
   Service,
   ServiceDescription,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 
 /**
  * Sorting function for comparing Services by (full) service codes

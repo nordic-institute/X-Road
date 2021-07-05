@@ -90,7 +90,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Endpoint } from '@/openapi-types/ss-types';
+import { Endpoint } from '@/openapi-types';
 import * as api from '@/util/api';
 import addEndpointDialog from './AddEndpointDialog.vue';
 import { RouteName, Permissions } from '@/global';

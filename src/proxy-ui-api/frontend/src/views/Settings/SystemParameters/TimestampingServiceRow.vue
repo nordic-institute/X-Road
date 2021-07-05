@@ -54,7 +54,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { TimestampingService } from '@/openapi-types/ss-types';
+import { TimestampingService } from '@/openapi-types';
 import { Permissions } from '@/global';
 import { Prop } from 'vue/types/options';
 import * as api from '@/util/api';

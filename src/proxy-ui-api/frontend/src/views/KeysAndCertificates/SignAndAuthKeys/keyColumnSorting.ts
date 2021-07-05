@@ -28,7 +28,7 @@ import {
   Key,
   TokenCertificate,
   TokenCertificateSigningRequest,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 
 // Keys sort columns for keys and certificates view
 export enum KeysSortColumn {

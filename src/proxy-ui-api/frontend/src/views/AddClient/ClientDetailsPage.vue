@@ -153,7 +153,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { debounce, isEmpty, containsClient } from '@/util/helpers';
-import { Client } from '@/openapi-types/ss-types';
+import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { AddMemberWizardModes } from '@/global';
 import { validate } from 'vee-validate';

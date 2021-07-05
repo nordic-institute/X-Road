@@ -212,7 +212,7 @@ import {
   Service,
   ServiceDescription,
   ServiceType,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';

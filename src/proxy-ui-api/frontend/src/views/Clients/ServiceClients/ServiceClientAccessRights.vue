@@ -150,7 +150,7 @@ import {
   AccessRights,
   ServiceClient,
   ServiceDescription,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import AddServiceClientServiceDialog from '@/views/Clients/ServiceClients/AddServiceClientServiceDialog.vue';
 import { serviceCandidatesForServiceClient } from '@/util/serviceClientUtils';
 

@@ -29,7 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
 import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import org.springframework.beans.factory.annotation.Autowired;

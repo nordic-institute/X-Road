@@ -110,7 +110,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import { CsrFormat } from '@/openapi-types/ss-types';
+import { CsrFormat } from '@/openapi-types';
 
 export default Vue.extend({
   components: {

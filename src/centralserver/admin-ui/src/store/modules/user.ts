@@ -27,7 +27,7 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
-import { Version } from '@/openapi-types/cs-types';
+import { Version } from '@/openapi-types';
 
 export interface State {
   authenticated: boolean;

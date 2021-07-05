@@ -33,12 +33,12 @@ import {
   SecurityServer,
   TokenInitStatus,
   VersionInfo,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import routes from '@/routes';
 import i18n from '@/i18n';
-import { User } from '@/openapi-types/common-types';
+import { User } from '@/openapi-types';
 
 export interface UserState {
   authenticated: boolean;

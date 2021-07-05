@@ -53,7 +53,7 @@ import {
   CertificateStatus,
   Key,
   TokenCertificate,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 
 export default Vue.extend({

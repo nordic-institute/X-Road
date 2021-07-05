@@ -30,7 +30,7 @@ import {
   CertificateDetails,
   Client,
   TokenCertificate,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export interface ClientState {

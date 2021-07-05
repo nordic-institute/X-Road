@@ -81,7 +81,7 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
-import { KeyUsageType, TokenCertificate } from '@/openapi-types/ss-types';
+import { KeyUsageType, TokenCertificate } from '@/openapi-types';
 
 export default Vue.extend({
   props: {

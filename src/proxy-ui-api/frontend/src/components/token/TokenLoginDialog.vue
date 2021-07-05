@@ -62,7 +62,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
-import { Token } from '@/openapi-types/ss-types';
+import { Token } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 

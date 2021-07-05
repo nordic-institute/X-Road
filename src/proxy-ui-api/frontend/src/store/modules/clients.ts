@@ -26,7 +26,7 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import { Client } from '@/openapi-types/ss-types';
+import { Client } from '@/openapi-types';
 import { createClientId, deepClone, Mutable } from '@/util/helpers';
 import { ExtendedClient } from '@/ui-types';
 import { ClientTypes } from '@/global';

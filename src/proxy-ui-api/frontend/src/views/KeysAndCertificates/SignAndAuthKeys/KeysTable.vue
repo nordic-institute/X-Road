@@ -161,7 +161,7 @@ import {
   TokenCertificate,
   TokenCertificateSigningRequest,
   TokenType,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { Permissions } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 import * as api from '@/util/api';

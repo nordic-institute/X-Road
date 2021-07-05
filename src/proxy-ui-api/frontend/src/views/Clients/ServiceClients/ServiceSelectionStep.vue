@@ -116,7 +116,7 @@ import {
   AccessRight,
   AccessRights,
   ServiceClient,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 

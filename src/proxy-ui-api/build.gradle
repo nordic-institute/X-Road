@@ -249,6 +249,11 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
+    importMappings = [
+        User : "org.niis.xroad.restapi.openapi.model.User",
+        ErrorInfo : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
+        CodeWithDetails : "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
+    ]
     systemProperties = [
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":

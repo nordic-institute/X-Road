@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { Client } from '@/openapi-types/ss-types';
+import { Client } from '@/openapi-types';
 import { AxiosResponse } from 'axios';
 
 // Filters an array of objects excluding specified object key

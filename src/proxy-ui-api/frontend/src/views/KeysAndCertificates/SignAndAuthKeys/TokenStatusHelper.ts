@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { TokenStatus } from '@/openapi-types/ss-types';
+import { TokenStatus } from '@/openapi-types';
 
 // This enum type is aimed for styling token login/logout button
 export enum TokenUIStatus {

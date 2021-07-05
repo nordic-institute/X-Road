@@ -190,7 +190,7 @@ import {
   KeyUsageType,
   Token,
   TokenCertificate,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';

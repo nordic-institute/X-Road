@@ -25,7 +25,7 @@
  */
 
 import * as Helpers from '@/util/helpers';
-import { Client, ClientStatus, ConnectionType } from '@/openapi-types/ss-types';
+import { Client, ClientStatus, ConnectionType } from '@/openapi-types';
 
 const arr: Client[] = [
   {

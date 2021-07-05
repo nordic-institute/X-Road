@@ -29,7 +29,7 @@ import {
   KeyUsageType,
   Token,
   TokenCertificate,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 
 /**
  * Return true if tokens list contain any certificate with good ocsp response status with memberName matching owner_id

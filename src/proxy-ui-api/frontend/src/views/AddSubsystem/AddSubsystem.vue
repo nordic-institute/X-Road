@@ -159,7 +159,7 @@ import Vue from 'vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
-import { Client } from '@/openapi-types/ss-types';
+import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';

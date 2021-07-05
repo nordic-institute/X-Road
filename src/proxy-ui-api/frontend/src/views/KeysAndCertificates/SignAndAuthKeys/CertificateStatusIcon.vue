@@ -32,7 +32,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { CertificateStatus } from '@/openapi-types/ss-types';
+import { CertificateStatus } from '@/openapi-types';
 
 export default Vue.extend({
   props: {

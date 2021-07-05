@@ -40,7 +40,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { CertificateDetails } from '@/openapi-types/ss-types';
+import { CertificateDetails } from '@/openapi-types';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 

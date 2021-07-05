@@ -30,7 +30,7 @@ import Vue from 'vue';
 import Vuex, { Store, StoreOptions } from 'vuex';
 import { clientsModule } from '@/store/modules/clients';
 import { user as userModule } from '@/store/modules/user';
-import { InitializationStatus, TokenInitStatus } from '@/openapi-types/ss-types';
+import { InitializationStatus, TokenInitStatus } from '@/openapi-types';
 
 Vue.use(Vuex);
 

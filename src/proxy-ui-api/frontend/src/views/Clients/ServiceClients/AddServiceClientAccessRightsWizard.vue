@@ -77,7 +77,7 @@ import {
   Service,
   ServiceClient,
   ServiceDescription,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import * as api from '@/util/api';
 import { ServiceCandidate } from '@/ui-types';
 import { compareByServiceCode } from '@/util/sorting';

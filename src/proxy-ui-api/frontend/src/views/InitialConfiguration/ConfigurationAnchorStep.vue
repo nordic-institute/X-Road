@@ -73,7 +73,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import { Anchor } from '@/openapi-types/ss-types';
+import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
 

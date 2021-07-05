@@ -39,7 +39,7 @@ import {
   Token,
   TokenCertificate,
   TokenCertificateSigningRequest,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 
 interface ReservedMemberData {
   instanceId: string;

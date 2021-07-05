@@ -111,12 +111,12 @@ import {
   PossibleActions as PossibleActionsList,
   KeyUsageType,
   PossibleAction,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
-import { PossibleActions } from '@/openapi-types/ss-types/models/PossibleActions';
+import { PossibleActions } from '@/openapi-types/models/PossibleActions';
 
 export default Vue.extend({
   components: {

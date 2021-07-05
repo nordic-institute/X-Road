@@ -169,7 +169,7 @@
 import Vue, { PropType } from 'vue';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
-import { Client } from '@/openapi-types/ss-types';
+import { Client } from '@/openapi-types';
 
 const initialState = () => {
   return {

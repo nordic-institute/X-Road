@@ -27,7 +27,7 @@ import {
   AccessRight,
   Service,
   ServiceDescription,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { ServiceCandidate } from '@/ui-types';
 import { compareByServiceCode } from '@/util/sorting';
 

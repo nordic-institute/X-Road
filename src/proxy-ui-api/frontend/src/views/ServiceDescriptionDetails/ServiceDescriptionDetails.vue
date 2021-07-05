@@ -195,7 +195,7 @@ import {
   ServiceDescription,
   ServiceDescriptionUpdate,
   ServiceType,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({

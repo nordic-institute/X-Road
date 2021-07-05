@@ -78,7 +78,7 @@ import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '../HelpButton.vue';
 import { mapGetters } from 'vuex';
-import { Key, Token, TokenCertificate } from '@/openapi-types/ss-types';
+import { Key, Token, TokenCertificate } from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({

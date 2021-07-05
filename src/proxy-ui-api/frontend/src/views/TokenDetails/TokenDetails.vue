@@ -187,7 +187,7 @@ import {
   Token,
   TokenPinUpdate,
   TokenType,
-} from '@/openapi-types/ss-types';
+} from '@/openapi-types';
 
 export default Vue.extend({
   components: {

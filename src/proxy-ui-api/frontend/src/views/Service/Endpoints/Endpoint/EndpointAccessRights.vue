@@ -113,7 +113,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
-import { Endpoint, ServiceClient } from '@/openapi-types/ss-types';
+import { Endpoint, ServiceClient } from '@/openapi-types';
 import AccessRightsDialog from '@/views/Service/AccessRightsDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';

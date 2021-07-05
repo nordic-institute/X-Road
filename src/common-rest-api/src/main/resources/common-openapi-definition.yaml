@@ -15,7 +15,8 @@ servers:
   - url: /api/v1
     description: basepath for API v1
 tags:
-  - name: dummy
+  - name: user
+    description: user endpoints
 paths:
   /user:
     get:
