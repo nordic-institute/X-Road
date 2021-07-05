@@ -32,6 +32,8 @@ module.exports = {
 
   afterEach(browser) {
     browser.refresh();
+    const frontPage = browser.page.loginpage();
+    frontPage.navigate();
   },
   after(browser) {
     browser.end();
@@ -52,10 +54,22 @@ module.exports = {
       .signin()
       .loginErrorMessageIsShown();
   },
-  'Login succeeds': (browser) => {
+  'Admin login succeeds': (browser) => {
     const login = browser.page.loginpage();
     const members = browser.page.memberspage();
     login.signinDefaultUser();
+    members.membersViewIsVisible();
+  },
+  'Security-officer login succeeds': (browser) => {
+    const login = browser.page.loginpage();
+    const members = browser.page.memberspage();
+    login.signinSecurityOfficer();
+    members.membersViewIsVisible();
+  },
+  'Registration-officer login succeeds': (browser) => {
+    const login = browser.page.loginpage();
+    const members = browser.page.memberspage();
+    login.signinRegistrationOfficer();
     members.membersViewIsVisible();
   },
 };

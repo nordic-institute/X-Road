@@ -50,10 +50,28 @@ const loginCommands = {
     return this;
   },
   signinDefaultUser() {
+    return this.signinUser(
+      this.api.globals.login_usr,
+      this.api.globals.login_pwd,
+    );
+  },
+  signinSecurityOfficer() {
+    return this.signinUser(
+      this.api.globals.login_security_officer,
+      this.api.globals.login_pwd,
+    );
+  },
+  signinRegistrationOfficer() {
+    return this.signinUser(
+      this.api.globals.login_registration_officer,
+      this.api.globals.login_pwd,
+    );
+  },
+  signinUser(username, password) {
     this.clearValue('@usernameInput');
     this.clearValue('@passwordInput');
-    this.setValue('@usernameInput', this.api.globals.login_usr);
-    this.setValue('@passwordInput', this.api.globals.login_pwd);
+    this.setValue('@usernameInput', username);
+    this.setValue('@passwordInput', password);
     this.click('@loginButton');
     return this;
   },
