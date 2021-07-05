@@ -27,7 +27,10 @@
 module.exports = {
   tags: ['ss', 'xroad-registration-officer', 'permissions'],
   before: function (browser) {
-    browser.LoginCommand(browser.globals.login_registration_officer, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_registration_officer,
+      browser.globals.login_pwd,
+    );
   },
 
   'Can add clients': (browser) => {

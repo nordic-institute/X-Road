@@ -185,12 +185,7 @@ import { Permissions, RouteName } from '@/global';
 import KeysTable from './KeysTable.vue';
 import KeysTableTitle from './KeysTableTitle.vue';
 import UnknownKeysTable from './UnknownKeysTable.vue';
-import {
-  Key,
-  KeyUsageType,
-  Token,
-  TokenCertificate,
-} from '@/openapi-types';
+import { Key, KeyUsageType, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { FileUploadResult } from '@niis/shared-ui';
 import { encodePathParameter } from '@/util/api';

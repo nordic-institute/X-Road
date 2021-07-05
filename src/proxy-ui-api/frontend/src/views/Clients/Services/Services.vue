@@ -208,11 +208,7 @@ import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
 import WarningDialog from '@/components/service/WarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
-import {
-  Service,
-  ServiceDescription,
-  ServiceType,
-} from '@/openapi-types';
+import { Service, ServiceDescription, ServiceType } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';

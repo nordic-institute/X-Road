@@ -25,22 +25,23 @@
  */
 
 module.exports = {
-  tags: ['ss', 'xroad-securityserver-observer', 'permissions',],
+  tags: ['ss', 'xroad-securityserver-observer', 'permissions'],
 
   before: function (browser) {
-    browser.LoginCommand(browser.globals.login_securityserver_observer, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_securityserver_observer,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
     browser.end();
   },
 
-
   'Can not add clients': (browser) => {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const searchField = mainPage.section.clientsTab.elements.searchField;
-
 
     // clients
     mainPage.openClientsTab();
@@ -48,7 +49,6 @@ module.exports = {
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
   },
-
 
   'Can not add keys': (browser) => {
     const mainPage = browser.page.ssMainPage();
@@ -85,7 +85,8 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const settingsTab = mainPage.section.settingsTab;
     const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
-    const anchorDownloadButton = backupAndRestoreTab.elements.anchorDownloadButton;
+    const anchorDownloadButton =
+      backupAndRestoreTab.elements.anchorDownloadButton;
 
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
@@ -131,7 +132,9 @@ module.exports = {
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling
     //  for 'clientLocalGroups', figure out why
-    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.click(
+      '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
+    );
     browser.waitForElementVisible(clientLocalGroups);
 
     // Security server observer should not see add local groups button
@@ -157,6 +160,5 @@ module.exports = {
     browser.waitForElementNotPresent(
       localGroupPopup.elements.localGroupDeleteButton,
     );
-  }
-}
-
+  },
+};

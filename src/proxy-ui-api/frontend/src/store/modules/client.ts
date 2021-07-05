@@ -26,11 +26,7 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
-import {
-  CertificateDetails,
-  Client,
-  TokenCertificate,
-} from '@/openapi-types';
+import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
 export interface ClientState {

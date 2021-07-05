@@ -27,7 +27,10 @@
 module.exports = {
   tags: ['ss', 'xroad-security-officer', 'permissions'],
   before: function (browser) {
-    browser.LoginCommand(browser.globals.login_security_officer, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_security_officer,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
@@ -96,5 +99,4 @@ module.exports = {
     clientsTab.openClient('TestGov');
     browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
   },
-}
-
+};

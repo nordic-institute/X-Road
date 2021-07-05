@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.35  
+Version: 2.36  
 Doc. ID: IG-SS
 
 ---
@@ -59,6 +59,7 @@ Doc. ID: IG-SS
  16.04.2021 | 2.33    | Update remote database installation instructions                | Jarkko Hyöty
  18.05.2021 | 2.34    | Update error handling section | Ilkka Seppälä
  02.06.2021 | 2.35    | Add backup encryption information | Andres Allkivi
+ 01.07.2021 | 2.36    | Update 3rd party key server | Petteri Kivimäki
 
 ## License
 
@@ -166,7 +167,7 @@ The software can be installed both on physical and virtualized hardware (of the 
  ------ | --------------------------------------- | ----------------------------------------------------------
  1.0    | Ubuntu 18.04, x86-64<br>3 GB RAM, 3 GB free disk space | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
- 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+ 1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
  1.3    |                                         | Account name in the user interface
  1.4    | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
  &nbsp; | TCP 5500                                | Message exchange between security servers
