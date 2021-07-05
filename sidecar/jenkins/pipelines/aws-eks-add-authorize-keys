@@ -7,7 +7,7 @@ pipeline {
         string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
     }
     stages {
-      stage('Add public key') {
+      stage('Add SSH public key to AWS instance') {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws ec2-instance-connect send-ssh-public-key \
