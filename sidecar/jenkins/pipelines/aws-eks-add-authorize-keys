@@ -1,7 +1,7 @@
 pipeline {
     agent { label 'dev-test' }
     parameters {
-        string(description: "Instance id", name: "INSTANDE_ID", defaultValue: "${params?.INSTANDE_ID}")
+        string(description: "Instance ID", name: "INSTANCE_ID", defaultValue: "${params?.INSTANCE_ID}")
         string(description: "User", name: "USER", defaultValue: "${params?.USER}")
         string(description: "Public key", name: "PUBLIC_KEY", defaultValue: "${params?.PUBLIC_KEY}")
         string(description: "Region code", name: "REGION_CODE", defaultValue: "${params?.REGION_CODE}")
