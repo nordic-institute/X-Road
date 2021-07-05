@@ -26,7 +26,10 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
@@ -41,6 +44,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Outputstream that pipes output to an external GnuPG process for signing and encryption
  */
+@Slf4j
 class GPGOutputStream extends FilterOutputStream {
 
     private final Process gpg;
@@ -68,7 +72,7 @@ class GPGOutputStream extends FilterOutputStream {
      */
     GPGOutputStream(Path gpgHome, Path output, Path... encryptionKeys) throws IOException {
         super(null);
-        statusTmp = Files.createTempFile("gpgstatus", ".tmp");
+        statusTmp = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "gpgstatus", ".tmp");
         final ProcessBuilder builder = new ProcessBuilder("/usr/bin/gpg");
 
         builder.command().add("--homedir");
@@ -125,9 +129,11 @@ class GPGOutputStream extends FilterOutputStream {
             gpg.waitFor(1, TimeUnit.MINUTES);
             final List<String> status = Files.readAllLines(statusTmp, StandardCharsets.UTF_8);
             if (gpg.isAlive()) {
+                log.debug("Encryption failed, GPG status: {}", status);
                 throw new GPGException("Encryption failed, gpg process did not stop", status, -1);
             }
             if (gpg.exitValue() != 0) {
+                log.debug("Encryption failed, GPG status: {}", status);
                 throw new GPGException("Encryption failed, gpg process exit code: " + gpg.exitValue(), status,
                         gpg.exitValue());
             }

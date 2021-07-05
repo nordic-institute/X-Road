@@ -231,7 +231,7 @@ public class LogArchiveCacheTest {
         final InputStream is;
 
         if (encrypted) {
-            is = new GPGInputStream(Paths.get("build/resources/test/gpg"), archive);
+            is = new GPGInputStream(Paths.get("build/gpg"), archive);
         } else {
             is = Files.newInputStream(archive);
         }
@@ -433,7 +433,7 @@ public class LogArchiveCacheTest {
         return new LogArchiveCache(
                 randomGenerator,
                 mockLinkingInfoBuilder(),
-                encrypted ? new EncryptionConfig(true, Paths.get("build/resources/test/gpg"), null)
+                encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null)
                         : EncryptionConfig.DISABLED,
                 Paths.get("build/tmp/")
         );

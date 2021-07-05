@@ -79,7 +79,7 @@ public class LogArchiveTest {
         recordNo = 0;
         rotated = false;
         Files.createDirectory(Paths.get("build/slog"));
-        System.setProperty(MessageLogProperties.GPG_HOME_DIRECTORY, "build/resources/test/gpg");
+        System.setProperty(MessageLogProperties.GPG_HOME_DIRECTORY, "build/gpg");
         System.setProperty(MessageLogProperties.ENCRYPTION_ENABLED, String.valueOf(encrypted));
     }
 

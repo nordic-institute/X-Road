@@ -1,3 +1,10 @@
+task copyGpg(type: Copy) {
+  from 'src/test/gpg'
+  into 'build/gpg'
+}
+
+test.dependsOn copyGpg
+
 dependencies {
     implementation project(':common-util')
     implementation project(':asic-util')
