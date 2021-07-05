@@ -11,7 +11,7 @@ pipeline {
             steps {
                  withCredentials([usernamePassword(credentialsId: 'AWS', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
                     sh 'aws ec2-instance-connect send-ssh-public-key \
-                       --instance-id ${INSTANDE_ID} \
+                       --instance-id ${INSTANCE_ID} \
                        --instance-os-user ${USER} \
                        --ssh-public-key "${PUBLIC_KEY}" \
                        --availability-zone ${REGION_CODE}'
