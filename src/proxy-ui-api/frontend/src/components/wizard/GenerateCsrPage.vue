@@ -27,22 +27,22 @@
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content pt-6">
-        <div v-for="item in csrForm" v-bind:key="item.id" class="row-wrap">
+        <div v-for="item in csrForm" :key="item.id" class="row-wrap">
           <div class="label">
             {{ $t('certificateProfile.' + item.label_key) }}
           </div>
 
           <div>
             <ValidationProvider
+              v-slot="{ errors }"
               :name="item.id"
               :rules="item.required && 'required'"
-              v-slot="{ errors }"
             >
               <v-text-field
+                v-model="item.default_value"
                 class="form-input"
                 :name="item.id"
                 type="text"
-                v-model="item.default_value"
                 :disabled="item.read_only"
                 :error-messages="errors"
                 outlined
@@ -54,18 +54,18 @@
         </div>
       </div>
       <div class="button-footer">
-        <xrd-button outlined @click="cancel" data-test="cancel-button">{{
+        <xrd-button outlined data-test="cancel-button" @click="cancel">{{
           $t('action.cancel')
         }}</xrd-button>
 
         <xrd-button
-          @click="previous"
           outlined
           class="previous-button"
           data-test="previous-button"
+          @click="previous"
           >{{ $t('action.previous') }}</xrd-button
         >
-        <xrd-button @click="done" :disabled="invalid" data-test="save-button">{{
+        <xrd-button :disabled="invalid" data-test="save-button" @click="done">{{
           $t(saveButtonText)
         }}</xrd-button>
       </div>

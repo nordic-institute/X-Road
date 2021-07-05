@@ -27,31 +27,31 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="login.logIn"
-    @save="save"
-    @cancel="cancel"
-    saveButtonText="login.logIn"
-    :disableSave="!isValid"
+    save-button-text="login.logIn"
+    :disable-save="!isValid"
     :loading="loading"
     width="620"
+    @save="save"
+    @cancel="cancel"
   >
     <div slot="content">
       <div class="pt-5 dlg-input-width">
         <ValidationProvider
-          rules="required"
           ref="tokenPin"
-          name="tokenPin"
           v-slot="{ errors }"
+          rules="required"
+          name="tokenPin"
           class="validation-provider"
         >
           <v-text-field
-            type="password"
             v-model="pin"
+            type="password"
             outlined
             :label="$t('fields.tokenPin')"
             autofocus
             name="tokenPin"
             :error-messages="errors"
-            v-on:keyup.enter="save"
+            @keyup.enter="save"
           ></v-text-field>
         </ValidationProvider>
       </div>
@@ -75,6 +75,13 @@ export default Vue.extend({
     },
   },
 
+  data() {
+    return {
+      pin: '',
+      loading: false,
+    };
+  },
+
   computed: {
     isValid(): boolean {
       // Check that input is not empty
@@ -83,13 +90,6 @@ export default Vue.extend({
       }
       return false;
     },
-  },
-
-  data() {
-    return {
-      pin: '',
-      loading: false,
-    };
   },
 
   methods: {

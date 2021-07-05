@@ -27,13 +27,13 @@
 <template>
   <div class="px-3">
     <!-- Error -->
-    <v-container fluid class="alerts-container px-3" v-if="show">
+    <v-container v-if="show" fluid class="alerts-container px-3">
       <v-alert
         data-test="contextual-modal-alert"
         color="red"
         border="left"
         colored-border
-        class="mb-2"
+        class="alert mb-2"
         icon="icon-Error-notification"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">

@@ -28,12 +28,12 @@
     :dialog="dialog"
     :width="750"
     title="serviceClients.addService"
+    scrollable
+    :disable-save="filterSelections().length === 0"
     @save="save"
     @cancel="cancel"
-    scrollable
-    :disableSave="filterSelections().length === 0"
   >
-    <div slot="content" v-if="serviceCandidates.length > 0">
+    <div v-if="serviceCandidates.length > 0" slot="content">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -56,7 +56,7 @@
         <tbody>
           <tr
             v-for="accessRight in searchResults()"
-            v-bind:key="accessRight.id"
+            :key="accessRight.id"
             class="service-row"
             data-test="access-right-toggle"
           >
@@ -75,7 +75,7 @@
         </tbody>
       </table>
     </div>
-    <div slot="content" v-else>
+    <div v-else slot="content">
       <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </div>
   </xrd-simple-dialog>

@@ -29,8 +29,8 @@
       <div class="wizard-step-form-content">
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.memberName')"
-            :helpText="$t('wizard.client.memberNameTooltip')"
+            :label-text="$t('wizard.memberName')"
+            :help-text="$t('wizard.client.memberNameTooltip')"
           />
           <div
             v-if="memberName"
@@ -44,8 +44,8 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.memberClass')"
-            :helpText="$t('wizard.client.memberClassTooltip')"
+            :label-text="$t('wizard.memberClass')"
+            :help-text="$t('wizard.client.memberClassTooltip')"
           />
 
           <ValidationProvider name="addClient.memberClass" rules="required">
@@ -60,22 +60,22 @@
         </div>
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.memberCode')"
-            :helpText="$t('wizard.client.memberCodeTooltip')"
+            :label-text="$t('wizard.memberCode')"
+            :help-text="$t('wizard.client.memberCodeTooltip')"
           />
 
           <ValidationProvider
-            name="addClient.memberCode"
-            rules="required|xrdIdentifier"
             v-slot="{ errors }"
             ref="memberCodeVP"
+            name="addClient.memberCode"
+            rules="required|xrdIdentifier"
           >
             <v-text-field
+              v-model="memberCode"
               class="form-input"
               type="text"
               :error-messages="errors"
               :disabled="isServerOwnerInitialized"
-              v-model="memberCode"
               autofocus
               data-test="member-code-input"
             ></v-text-field>
@@ -84,21 +84,21 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('fields.securityServerCode')"
-            :helpText="$t('initialConfiguration.member.serverCodeHelp')"
+            :label-text="$t('fields.securityServerCode')"
+            :help-text="$t('initialConfiguration.member.serverCodeHelp')"
           />
 
           <ValidationProvider
+            v-slot="{ errors }"
             name="securityServerCode"
             rules="required|xrdIdentifier"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="securityServerCode"
               class="form-input"
               type="text"
               :error-messages="errors"
               :disabled="isServerCodeInitialized"
-              v-model="securityServerCode"
               data-test="security-server-code-input"
             ></v-text-field>
           </ValidationProvider>
@@ -109,16 +109,16 @@
         <div>
           <xrd-button
             v-if="showPreviousButton"
-            @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
+            @click="previous"
             >{{ $t('action.previous') }}</xrd-button
           >
           <xrd-button
             :disabled="invalid"
-            @click="done"
             data-test="save-button"
+            @click="done"
             >{{ $t(saveButtonText) }}</xrd-button
           >
         </div>
@@ -204,35 +204,6 @@ export default (
       },
     },
   },
-  methods: {
-    done(): void {
-      this.$emit('done');
-    },
-    previous(): void {
-      this.$emit('previous');
-    },
-
-    checkMember(): void {
-      if (
-        this.memberClass?.length > 0 &&
-        this.memberCode?.length > 0 &&
-        this.isMemberCodeValid
-      ) {
-        this.$store
-          .dispatch('fetchMemberName', {
-            memberClass: this.memberClass,
-            memberCode: this.memberCode,
-          })
-          .catch((error) => {
-            if (error.response.status === 404) {
-              // no match found
-              return;
-            }
-            this.$store.dispatch('showError', error);
-          });
-      }
-    },
-  },
 
   watch: {
     memberClassesCurrentInstance(val: string[]) {
@@ -271,6 +242,35 @@ export default (
   },
   mounted() {
     this.$refs.memberCodeVP;
+  },
+  methods: {
+    done(): void {
+      this.$emit('done');
+    },
+    previous(): void {
+      this.$emit('previous');
+    },
+
+    checkMember(): void {
+      if (
+        this.memberClass?.length > 0 &&
+        this.memberCode?.length > 0 &&
+        this.isMemberCodeValid
+      ) {
+        this.$store
+          .dispatch('fetchMemberName', {
+            memberClass: this.memberClass,
+            memberCode: this.memberCode,
+          })
+          .catch((error) => {
+            if (error.response.status === 404) {
+              // no match found
+              return;
+            }
+            this.$store.dispatch('showError', error);
+          });
+      }
+    },
   },
 });
 </script>

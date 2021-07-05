@@ -25,12 +25,12 @@
  -->
 <template>
   <v-app-bar app dark absolute color="#636161" flat height="32" max-height="32">
-    <div class="auth-container" v-if="isAuthenticated">
+    <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">X-ROAD SECURITY SERVER</div>
       <div
+        v-show="currentSecurityServer.id"
         class="server-name"
         data-test="app-toolbar-server-name"
-        v-show="currentSecurityServer.id"
       >
         {{
           `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
@@ -49,7 +49,7 @@ import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'toolbar',
+  name: 'Toolbar',
   computed: {
     ...mapGetters(['currentSecurityServer', 'isAuthenticated']),
   },

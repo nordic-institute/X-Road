@@ -29,6 +29,7 @@ import { VApp, VMain } from 'vuetify/lib';
 import vuetifyConfig from '../src/plugins/vuetify';
 import '../src/plugins/vee-validate';
 import '@fontsource/open-sans';
+import 'vuetify/dist/vuetify.min.css'
 import "@mdi/font/css/materialdesignicons.css";
 import "../src/assets/icons.css";
 import i18n from '../src/i18n';

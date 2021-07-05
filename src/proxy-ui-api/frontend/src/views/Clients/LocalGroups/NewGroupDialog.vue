@@ -27,10 +27,10 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="localGroup.addLocalGroup"
+    :disable-save="!formReady"
+    width="620"
     @save="save"
     @cancel="cancel"
-    :disableSave="!formReady"
-    width="620"
   >
     <div slot="content">
       <div class="dlg-input-width">

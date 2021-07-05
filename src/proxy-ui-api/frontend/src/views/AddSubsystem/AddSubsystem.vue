@@ -28,7 +28,7 @@
     <xrd-sub-view-title
       class="view-title"
       :title="$t('wizard.addSubsystemTitle')"
-      :showClose="false"
+      :show-close="false"
     />
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
@@ -41,9 +41,9 @@
           </div>
           <div class="action-block">
             <xrd-button
-              @click="showSelectClient = true"
               outlined
               data-test="select-subsystem-button"
+              @click="showSelectClient = true"
               >{{ $t('wizard.subsystem.selectSubsystem') }}</xrd-button
             >
           </div>
@@ -51,8 +51,8 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.memberName')"
-            :helpText="$t('wizard.client.memberNameTooltip')"
+            :label-text="$t('wizard.memberName')"
+            :help-text="$t('wizard.client.memberNameTooltip')"
           />
           <div data-test="selected-member-name" class="identifier-wrap">
             {{ memberName }}
@@ -61,8 +61,8 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.memberClass')"
-            :helpText="$t('wizard.client.memberClassTooltip')"
+            :label-text="$t('wizard.memberClass')"
+            :help-text="$t('wizard.client.memberClassTooltip')"
           />
           <div data-test="selected-member-class" class="identifier-wrap">
             {{ memberClass }}
@@ -70,8 +70,8 @@
         </div>
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.memberCode')"
-            :helpText="$t('wizard.client.memberCodeTooltip')"
+            :label-text="$t('wizard.memberCode')"
+            :help-text="$t('wizard.client.memberCodeTooltip')"
           />
           <div data-test="selected-member-code" class="identifier-wrap">
             {{ memberCode }}
@@ -80,20 +80,20 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.subsystemCode')"
-            :helpText="$t('wizard.client.subsystemCodeTooltip')"
+            :label-text="$t('wizard.subsystemCode')"
+            :help-text="$t('wizard.client.subsystemCodeTooltip')"
           />
 
           <ValidationProvider
+            v-slot="{ errors }"
             name="addClient.subsystemCode"
             rules="required|xrdIdentifier"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="subsystemCode"
               class="form-input"
               type="text"
               :error-messages="errors"
-              v-model="subsystemCode"
               autofocus
               :placeholder="$t('wizard.subsystemCode')"
               outlined
@@ -107,7 +107,7 @@
 
         <div class="row-wrap">
           <xrd-form-label
-            :labelText="$t('wizard.subsystem.registerSubsystem')"
+            :label-text="$t('wizard.subsystem.registerSubsystem')"
           />
           <v-checkbox
             v-model="registerChecked"
@@ -120,15 +120,15 @@
 
       <div class="button-footer">
         <div class="button-group">
-          <xrd-button outlined @click="exitView" data-test="cancel-button">{{
+          <xrd-button outlined data-test="cancel-button" @click="exitView">{{
             $t('action.cancel')
           }}</xrd-button>
         </div>
         <xrd-button
-          @click="done"
           :disabled="invalid || duplicateClient"
           data-test="submit-add-subsystem-button"
           :loading="submitLoading"
+          @click="done"
           >{{ $t('action.addSubsystem') }}</xrd-button
         >
       </div>
@@ -136,9 +136,9 @@
 
     <SelectClientDialog
       title="wizard.addSubsystemTitle"
-      searchLabel="wizard.subsystem.searchLabel"
+      search-label="wizard.subsystem.searchLabel"
       :dialog="showSelectClient"
-      :selectableClients="selectableSubsystems"
+      :selectable-clients="selectableSubsystems"
       @cancel="showSelectClient = false"
       @save="saveSelectedClient"
     />
@@ -147,9 +147,9 @@
       :dialog="confirmRegisterClient"
       title="clients.action.register.confirm.title"
       text="clients.action.register.confirm.text"
+      :loading="registerClientLoading"
       @cancel="exitView"
       @accept="registerSubsystem"
-      :loading="registerClientLoading"
     />
   </div>
 </template>
@@ -213,6 +213,10 @@ export default Vue.extend({
         this.subsystemCode,
       );
     },
+  },
+
+  created() {
+    this.fetchData();
   },
   methods: {
     done(): void {
@@ -306,10 +310,6 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         });
     },
-  },
-
-  created() {
-    this.fetchData();
   },
 });
 </script>

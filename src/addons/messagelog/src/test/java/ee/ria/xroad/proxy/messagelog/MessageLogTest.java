@@ -35,7 +35,9 @@ import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
+import ee.ria.xroad.common.messagelog.archive.ArchiveDigest;
 import ee.ria.xroad.common.messagelog.archive.DigestEntry;
+import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.JobManager;
@@ -43,7 +45,6 @@ import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
 import akka.actor.Props;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.junit.After;
@@ -436,6 +437,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.CLEAN_INTERVAL, "0 0 0 1 1 ? 2099");
 
         System.setProperty(MessageLogProperties.ARCHIVE_PATH, "build/");
+        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
 
         initForTest();
         testSetUp();
@@ -453,13 +455,12 @@ public class MessageLogTest extends AbstractMessageLogTest {
         TestTimestamperWorker.failNextTimestamping(false);
     }
 
-    @SneakyThrows
-    private void initLastHashStep() {
+    private void initLastHashStep() throws Exception {
         DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
-
+        ArchiveDigest digest = new ArchiveDigest("BUSINESS-consumer", lastArchive);
         doInTransaction(session -> {
             session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
-            session.save(lastArchive);
+            session.save(digest);
 
             return null;
         });
@@ -501,7 +502,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
 
     private String getLastEntryDeleteQuery() {
-        return "delete from " + DigestEntry.class.getName();
+        return "delete from " + ArchiveDigest.class.getName();
     }
 
     private void assertArchiveHashChain() throws Exception {
@@ -564,14 +565,14 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private static String getLastDigestQuery() {
-        return "select new java.lang.String(d.digest) from DigestEntry d where d.digest is not null";
+        return "select new java.lang.String(d.digestEntry.digest) "
+                + "from ArchiveDigest d where d.digestEntry.digest is not null";
     }
 
-    @SneakyThrows
     private String getArchiveFilePath() {
         File outputDir = new File("build");
 
-        FileFilter fileFilter = new RegexFileFilter("^mlog-\\d+-\\d+-.\\w+\\.zip$");
+        FileFilter fileFilter = new RegexFileFilter("^mlog.*-\\d+-\\d+-.\\w+\\.zip$");
 
         File[] files = outputDir.listFiles(fileFilter);
 
@@ -649,6 +650,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
          * assertTaskQueueSize(3);
          * startTimestamping();
          *
+         *
          * Now if TimestamperJob starts somewhere before startTimestamping (which
          * is a likely outcome with the default initial delay of 1 sec) the results
          * will not be what the test expects.
@@ -680,7 +682,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
         @Override
         protected Props getArchiverImpl() {
-            return Props.create(TestLogArchiver.class, Paths.get("build"), Paths.get("build/tmp"));
+            return Props.create(TestLogArchiver.class, Paths.get("build"));
         }
 
         @Override

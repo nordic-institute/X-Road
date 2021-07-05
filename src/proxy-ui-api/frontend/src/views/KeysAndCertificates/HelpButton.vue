@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-view-common xrd-sub-view-wrapper" @click="helpClick()">
-    <v-hover v-slot:default="{ hover }">
+    <v-hover v-slot="{ hover }">
       <v-icon :color="hover ? '#663cdc' : '#575169'" dark class="help-icon"
         >icon-Tooltip</v-icon
       >
@@ -33,9 +33,9 @@
 
     <xrd-help-dialog
       :dialog="showHelp"
-      @cancel="closeHelp"
       :title="helpTitle"
       :text="helpText"
+      @cancel="closeHelp"
     >
       <v-img :src="require('./../../assets/' + helpImage)"></v-img>
     </xrd-help-dialog>
