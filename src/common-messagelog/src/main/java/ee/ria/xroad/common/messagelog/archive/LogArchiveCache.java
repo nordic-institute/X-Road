@@ -126,7 +126,6 @@ class LogArchiveCache implements Closeable {
         zipOut.write(linkingInfoBuilder.build());
         zipOut.closeEntry();
 
-        linkingInfoBuilder.afterArchiveCreated();
     }
 
     boolean isRotating() {
@@ -203,6 +202,7 @@ class LogArchiveCache implements Closeable {
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)
             record.toAsicContainer().write(bos);
+            bos.flush();
             archivesTotalSize += cos.getCount();
         }
         archiveTmp.closeEntry();

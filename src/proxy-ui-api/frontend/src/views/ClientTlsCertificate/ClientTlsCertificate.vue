@@ -91,6 +91,9 @@ export default Vue.extend({
       );
     },
   },
+  created() {
+    this.fetchData(this.id, this.hash);
+  },
   methods: {
     close(): void {
       this.$router.go(-1);
@@ -133,9 +136,6 @@ export default Vue.extend({
           this.close();
         });
     },
-  },
-  created() {
-    this.fetchData(this.id, this.hash);
   },
 });
 </script>

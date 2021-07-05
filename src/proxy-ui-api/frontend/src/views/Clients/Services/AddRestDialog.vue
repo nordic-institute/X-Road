@@ -29,18 +29,18 @@
       :dialog="dialog"
       :width="620"
       title="services.addRest"
+      :disable-save="!valid"
       @save="save"
       @cancel="cancel"
-      :disableSave="!valid"
     >
       <div slot="content">
         <div class="dlg-edit-row">
           <div class="dlg-row-title">{{ $t('services.serviceType') }}</div>
 
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required"
             name="serviceType"
-            v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
             <v-radio-group
@@ -65,14 +65,14 @@
 
         <div class="pt-3 dlg-input-width">
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required|restUrl"
             name="serviceUrl"
-            v-slot="{ errors }"
             class="validation-provider"
           >
             <v-text-field
-              :placeholder="$t('services.urlPlaceholder')"
               v-model="url"
+              :placeholder="$t('services.urlPlaceholder')"
               :label="$t('services.url')"
               name="serviceUrl"
               outlined
@@ -84,9 +84,9 @@
 
         <div class="pt-3 dlg-input-width">
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required|xrdIdentifier"
             name="serviceCode"
-            v-slot="{ errors }"
             class="validation-provider"
           >
             <v-text-field

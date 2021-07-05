@@ -28,11 +28,11 @@
     <!-- Success -->
     <transition name="fade">
       <v-snackbar
-        data-test="success-snackbar"
         v-for="notification in successNotifications"
         :key="notification.timeAdded"
-        :timeout="notification.timeout"
         v-model="notification.show"
+        data-test="success-snackbar"
+        :timeout="notification.timeout"
         :color="colors.Success10"
         multi-line
         class="success-snackbar"
@@ -70,17 +70,17 @@ import { Colors } from '@/global';
 
 export default Vue.extend({
   // Component for snackbar notifications
+  data() {
+    return {
+      colors: Colors,
+    };
+  },
   computed: {
     ...mapGetters([
       'successMessageCode',
       'successMessageRaw',
       'successNotifications',
     ]),
-  },
-  data() {
-    return {
-      colors: Colors,
-    };
   },
   methods: {
     closeSuccess(id: number): void {

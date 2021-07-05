@@ -25,12 +25,12 @@
  -->
 <template>
   <v-container class="xrd-view-common justify-center wrapper">
-    <v-stepper :alt-labels="true" v-model="step" class="stepper mt-2">
+    <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
         :show-close="true"
-        @close="close"
         class="pa-4"
+        @close="close"
       ></xrd-sub-view-title>
 
       <v-stepper-header class="stepper-header">
@@ -50,7 +50,7 @@
                 <h3>{{ $t('apiKey.createApiKey.step.roles.description') }}</h3>
               </v-col>
             </v-row>
-            <v-row no-gutters v-for="role in roles" :key="role">
+            <v-row v-for="role in roles" :key="role" no-gutters>
               <v-col class="checkbox-wrapper">
                 <v-checkbox
                   v-model="selectedRoles"
@@ -119,17 +119,17 @@
           <v-row class="button-footer mt-12" no-gutters>
             <xrd-button
               outlined
-              @click="close"
               :disabled="keyGenerated || generatingKey"
+              @click="close"
             >
               {{ $t('action.cancel') }}
             </xrd-button>
 
             <xrd-button
               outlined
-              @click="step--"
               class="mr-5"
               :disabled="keyGenerated || generatingKey"
+              @click="step--"
             >
               {{ $t('action.previous') }}
             </xrd-button>

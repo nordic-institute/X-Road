@@ -28,31 +28,29 @@
     <div class="pa-4">
       <xrd-sub-view-title :title="groupCode" @close="close" />
 
-      <template>
-        <div class="cert-hash" data-test="local-group-title">
-          {{ $t('localGroup.localGroup') }}
-          <xrd-button
-            v-if="showDelete"
-            @click="deleteGroup()"
-            outlined
-            data-test="delete-local-group-button"
-          >
-            {{ $t('action.delete') }}
-          </xrd-button>
-        </div>
-      </template>
+      <div class="cert-hash" data-test="local-group-title">
+        {{ $t('localGroup.localGroup') }}
+        <xrd-button
+          v-if="showDelete"
+          outlined
+          data-test="delete-local-group-button"
+          @click="deleteGroup()"
+        >
+          {{ $t('action.delete') }}
+        </xrd-button>
+      </div>
     </div>
 
     <div class="px-4 description-field">
       <template v-if="canEditDescription">
         <v-text-field
           v-model="description"
-          @change="saveDescription"
           outlined
           :label="$t('localGroup.description')"
           hide-details
           data-test="ocal-group-edit-description-input"
           class="description-input"
+          @change="saveDescription"
         ></v-text-field>
       </template>
       <template v-else>
@@ -64,20 +62,20 @@
       <div class="row-title">{{ $t('localGroup.groupMembers') }}</div>
       <div class="row-buttons">
         <xrd-button
-          :disabled="!hasMembers"
           v-if="canEditMembers"
-          @click="removeAllMembers()"
+          :disabled="!hasMembers"
           outlined
           data-test="remove-all-members-button"
+          @click="removeAllMembers()"
           >{{ $t('action.removeAll') }}</xrd-button
         >
 
         <xrd-button
-          class="add-members-button"
           v-if="canEditMembers"
-          @click="addMembers()"
+          class="add-members-button"
           outlined
           data-test="add-members-button"
+          @click="addMembers()"
           >{{ $t('localGroup.addMembers') }}</xrd-button
         >
       </div>
@@ -92,7 +90,7 @@
           <th></th>
         </tr>
         <template v-if="group && group.members && group.members.length > 0">
-          <tr v-for="groupMember in group.members" v-bind:key="groupMember.id">
+          <tr v-for="groupMember in group.members" :key="groupMember.id">
             <td>{{ groupMember.name }}</td>
             <td>{{ groupMember.id }}</td>
             <td>{{ groupMember.created_at }}</td>
@@ -113,7 +111,7 @@
       </table>
 
       <div class="close-button-wrap">
-        <xrd-button @click="close()" data-test="local-group-close-button">{{
+        <xrd-button data-test="local-group-close-button" @click="close()">{{
           $t('action.close')
         }}</xrd-button>
       </div>
@@ -213,6 +211,9 @@ export default Vue.extend({
       }
       return false;
     },
+  },
+  created() {
+    this.fetchData(this.clientId, this.groupId);
   },
   methods: {
     close(): void {
@@ -342,9 +343,6 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         });
     },
-  },
-  created() {
-    this.fetchData(this.clientId, this.groupId);
   },
 });
 </script>

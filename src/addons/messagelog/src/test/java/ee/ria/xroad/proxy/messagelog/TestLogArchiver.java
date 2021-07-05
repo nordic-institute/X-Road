@@ -25,10 +25,6 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
-import ee.ria.xroad.common.messagelog.archive.DigestEntry;
-
-import org.hibernate.Session;
-
 import java.nio.file.Path;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -37,8 +33,8 @@ class TestLogArchiver extends LogArchiver {
 
     private static CountDownLatch gate = new CountDownLatch(1);
 
-    TestLogArchiver(Path arhivePath, Path workingPath) {
-        super(arhivePath, workingPath);
+    TestLogArchiver(Path archivePath) {
+        super(archivePath);
     }
 
     public static void waitForArchiveSuccessful() throws Exception {
@@ -50,10 +46,7 @@ class TestLogArchiver extends LogArchiver {
     }
 
     @Override
-    protected void markArchiveCreated(final DigestEntry lastArchive,
-            final Session session) throws Exception {
-        super.markArchiveCreated(lastArchive, session);
-
+    protected void onArchivingDone() {
         gate.countDown();
     }
 }

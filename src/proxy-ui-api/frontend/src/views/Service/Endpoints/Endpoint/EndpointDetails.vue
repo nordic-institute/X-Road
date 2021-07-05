@@ -30,9 +30,9 @@
       <div class="delete-wrap">
         <xrd-button
           v-if="showDelete"
-          @click="showDeletePopup()"
           outlined
           data-test="delete-endpoint"
+          @click="showDeletePopup()"
           >{{ $t('action.delete') }}</xrd-button
         >
       </div>
@@ -42,24 +42,24 @@
       <div class="px-4">
         <div class="dlg-edit-row">
           <v-select
-            class="dlg-row-input"
-            @input="touched = true"
-            data-test="endpoint-method"
             v-model="endpoint.method"
+            class="dlg-row-input"
+            data-test="endpoint-method"
             :label="$t('endpoints.httpRequestMethod')"
             autofocus
             outlined
             :items="methods"
+            @input="touched = true"
           />
         </div>
 
         <div class="dlg-edit-row">
           <ValidationProvider
-            rules="required|xrdEndpoint"
             ref="path"
+            v-slot="{ errors }"
+            rules="required|xrdEndpoint"
             name="path"
             class="validation-provider dlg-row-input"
-            v-slot="{ errors }"
           >
             <v-text-field
               v-model="endpoint.path"
@@ -83,14 +83,14 @@
         </div>
       </div>
       <div class="footer-buttons-wrap">
-        <xrd-button @click="close()" outlined>{{
+        <xrd-button outlined @click="close()">{{
           $t('action.cancel')
         }}</xrd-button>
         <xrd-button
           class="save-button"
           :loading="saveBusy"
-          @click="saveEndpoint()"
           :disabled="!touched || invalid"
+          @click="saveEndpoint()"
           >{{ $t('action.save') }}</xrd-button
         >
       </div>
@@ -150,6 +150,9 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.DELETE_ENDPOINT);
     },
   },
+  created(): void {
+    this.fetchData(this.id);
+  },
   methods: {
     close(): void {
       this.$router.go(-1);
@@ -196,9 +199,6 @@ export default Vue.extend({
           this.$store.dispatch('showError', error.message);
         });
     },
-  },
-  created(): void {
-    this.fetchData(this.id);
   },
 });
 </script>

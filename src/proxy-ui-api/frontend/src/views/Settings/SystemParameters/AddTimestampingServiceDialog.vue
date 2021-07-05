@@ -30,12 +30,12 @@
     persistent
     data-test="system-parameters-add-timestamping-service-dialog"
   >
-    <template v-slot:activator="{ on: { click } }">
+    <template #activator="{ on: { click } }">
       <xrd-button
         data-test="system-parameters-timestamping-services-add-button"
         outlined
-        @click="click"
         :disabled="selectableTimestampingServices.length === 0"
+        @click="click"
       >
         <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}
@@ -63,9 +63,9 @@
             data-test="system-parameters-add-timestamping-service-dialog-radio-group"
           >
             <v-row
-              class="option-row"
               v-for="timestampingService in selectableTimestampingServices"
               :key="timestampingService.name"
+              class="option-row"
             >
               <v-col>
                 <v-radio
@@ -142,6 +142,9 @@ export default Vue.extend({
       );
     },
   },
+  created(): void {
+    this.fetchApprovedTimestampingServices();
+  },
   methods: {
     fetchApprovedTimestampingServices(): void {
       api
@@ -168,9 +171,6 @@ export default Vue.extend({
       this.show = false;
       this.selectedTimestampingServiceName = '';
     },
-  },
-  created(): void {
-    this.fetchApprovedTimestampingServices();
   },
 });
 </script>

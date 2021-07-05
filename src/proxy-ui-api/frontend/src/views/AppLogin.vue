@@ -53,36 +53,36 @@
             <v-form>
               <ValidationObserver ref="form">
                 <ValidationProvider
+                  v-slot="{ errors }"
                   name="username"
                   rules="required"
-                  v-slot="{ errors }"
                 >
                   <v-text-field
                     id="username"
+                    v-model="username"
                     name="username"
                     outlined
                     :label="$t('fields.username')"
                     :error-messages="errors"
                     type="text"
-                    v-model="username"
-                    @keyup.enter="submit"
                     autofocus
+                    @keyup.enter="submit"
                   ></v-text-field>
                 </ValidationProvider>
 
                 <ValidationProvider
+                  v-slot="{ errors }"
                   name="password"
                   rules="required"
-                  v-slot="{ errors }"
                 >
                   <v-text-field
                     id="password"
+                    v-model="password"
                     name="password"
                     outlined
                     :label="$t('fields.password')"
                     :error-messages="errors"
                     type="password"
-                    v-model="password"
                     @keyup.enter="submit"
                   ></v-text-field>
                 </ValidationProvider>
@@ -96,11 +96,11 @@
               gradient
               block
               large
-              @click="submit"
               :min_width="120"
               rounded
               :disabled="isDisabled"
               :loading="loading"
+              @click="submit"
               >{{ $t('login.logIn') }}</xrd-button
             >
           </v-card-actions>
@@ -125,7 +125,7 @@ export default (
     }
   >
 ).extend({
-  name: 'login',
+  name: 'Login',
   components: {
     ValidationProvider,
     ValidationObserver,

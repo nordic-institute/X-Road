@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -63,8 +62,13 @@ public class LogArchiveWriter implements Closeable {
 
     private Path archiveTmp;
 
+    private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
+
+    private Grouping grouping;
+
     /**
      * Creates new LogArchiveWriter
+     *
      * @param outputPath  directory where the log archive is created.
      * @param archiveBase interface to archive database.
      */
@@ -72,10 +76,7 @@ public class LogArchiveWriter implements Closeable {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
 
-        this.linkingInfoBuilder = new LinkingInfoBuilder(
-                MessageLogProperties.getHashAlg(),
-                archiveBase
-        );
+        this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
 
         this.logArchiveCache = new LogArchiveCache(
                 () -> randomAlphanumeric(RANDOM_LENGTH),
@@ -86,20 +87,31 @@ public class LogArchiveWriter implements Closeable {
 
     /**
      * Write a message log record.
+     *
      * @param logRecord the log record
      * @return true if the a archive file was rotated
      * @throws Exception in case of any errors
      */
-    public boolean write(LogRecord logRecord) throws Exception {
+    public boolean write(MessageRecord logRecord) throws Exception {
         if (logRecord == null) {
             throw new IllegalArgumentException("log record must not be null");
         }
 
         if (log.isTraceEnabled()) log.trace("write({})", logRecord.getId());
+        boolean rotated = false;
 
-        if (logRecord instanceof MessageRecord) {
-            logArchiveCache.add((MessageRecord)logRecord);
+        if (grouping == null) {
+            grouping = groupingStrategy.forRecord(logRecord);
+            linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
+        } else {
+            if (!grouping.includes(logRecord)) {
+                rotate();
+                grouping = groupingStrategy.forRecord(logRecord);
+                linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
+                rotated = true;
+            }
         }
+        logArchiveCache.add(logRecord);
 
         archiveBase.markRecordArchived(logRecord);
 
@@ -107,7 +119,7 @@ public class LogArchiveWriter implements Closeable {
             rotate();
             return true;
         }
-        return false;
+        return rotated;
     }
 
     @Override
@@ -130,7 +142,10 @@ public class LogArchiveWriter implements Closeable {
     }
 
     protected String getArchiveFilename(String random) {
-        return String.format("mlog-%s-%s-%s.zip",
+        final String groupName = escape(grouping.name());
+
+        return String.format("mlog-%.200s%s-%s-%.16s.zip",
+                groupName == null ? "" : groupName + "-",
                 simpleDateFormat.format(logArchiveCache.getStartTime()),
                 simpleDateFormat.format(logArchiveCache.getEndTime()),
                 random);
@@ -149,24 +164,12 @@ public class LogArchiveWriter implements Closeable {
         Path archiveFile = getUniqueArchiveFilename();
         archiveTmp = logArchiveCache.getArchiveFile();
         atomicMove(archiveTmp, archiveFile);
-        setArchivedInDatabase(archiveFile.getFileName().toString());
-        linkingInfoBuilder.afterArchiveSaved();
+        final DigestEntry digestEntry = new DigestEntry(linkingInfoBuilder.getLastDigest(),
+                archiveFile.getFileName().toString());
+        archiveBase.markArchiveCreated(grouping.name(), digestEntry);
+        linkingInfoBuilder.reset(digestEntry);
         archiveTmp = null;
         log.info("Created archive file {}", archiveFile);
-    }
-
-    private void setArchivedInDatabase(String archiveFilename)
-            throws IOException {
-        try {
-            archiveBase.markArchiveCreated(
-                    new DigestEntry(
-                            linkingInfoBuilder.getCreatedArchiveLastDigest(),
-                            archiveFilename
-                    )
-            );
-        } catch (Exception e) {
-            throw new IOException(e);
-        }
     }
 
     private Path getUniqueArchiveFilename() {
@@ -182,8 +185,12 @@ public class LogArchiveWriter implements Closeable {
         return archive;
     }
 
-    private static void atomicMove(Path source, Path destination)
-            throws IOException {
+    private static void atomicMove(Path source, Path destination) throws IOException {
         Files.move(source, destination, REPLACE_EXISTING, ATOMIC_MOVE);
     }
+
+    private String escape(String s) {
+        return s == null ? null : s.replaceAll("[\\00\\\\<>/:|*?\\p{gc=Cc}]", "_");
+    }
 }
+

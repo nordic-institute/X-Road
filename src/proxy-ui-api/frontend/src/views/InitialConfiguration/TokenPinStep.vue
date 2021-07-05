@@ -30,17 +30,17 @@
         {{ $t('initialConfiguration.pin.info1') }}
         <div class="mt-6 mb-4">
           <ValidationProvider
+            v-slot="{ errors }"
             name="pin"
             rules="required|password:@confirmPin"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="pin"
               class="form-input"
               name="pin"
               autofocus
               :label="$t('initialConfiguration.pin.pin')"
               type="password"
-              v-model="pin"
               :error-messages="errors"
               data-test="pin-input"
             ></v-text-field>
@@ -49,16 +49,16 @@
 
         <div class="mb-6">
           <ValidationProvider
+            v-slot="{ errors }"
             name="confirmPin"
             rules="required"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="pinConfirm"
               class="form-input"
               name="confirmPin"
               :label="$t('initialConfiguration.pin.confirmPin')"
               type="password"
-              v-model="pinConfirm"
               :error-messages="errors"
               data-test="confirm-pin-input"
             ></v-text-field>
@@ -73,17 +73,17 @@
         <v-spacer></v-spacer>
         <div>
           <xrd-button
-            @click="previous"
             outlined
             class="previous-button"
             data-test="previous-button"
+            @click="previous"
             >{{ $t('action.previous') }}</xrd-button
           >
           <xrd-button
             :disabled="invalid"
             :loading="saveBusy"
-            @click="done"
             data-test="save-button"
+            @click="done"
             >{{ $t('action.submit') }}</xrd-button
           >
         </div>

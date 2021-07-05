@@ -29,8 +29,8 @@
       <xrd-button
         v-if="canAddEndpoint"
         color="primary"
-        @click="isAddEndpointDialogVisible = true"
         data-test="endpoint-add"
+        @click="isAddEndpointDialogVisible = true"
         >{{ $t('endpoints.addEndpoint') }}</xrd-button
       >
     </div>
@@ -47,7 +47,7 @@
         <tr
           v-for="endpoint in endpoints"
           :key="endpoint.id"
-          v-bind:class="{ generated: endpoint.generated }"
+          :class="{ generated: endpoint.generated }"
         >
           <td>
             <span v-if="endpoint.method === '*'">{{
@@ -110,6 +110,11 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      isAddEndpointDialogVisible: false,
+    };
+  },
   computed: {
     ...mapGetters(['service']),
 
@@ -135,11 +140,7 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.VIEW_ENDPOINT_ACL);
     },
   },
-  data() {
-    return {
-      isAddEndpointDialogVisible: false,
-    };
-  },
+
   methods: {
     addEndpoint(method: string, path: string): void {
       api

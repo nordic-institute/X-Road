@@ -25,8 +25,8 @@
  -->
 <template>
   <div>
-    <sub-tabs :tab="tab">
-      <v-tab v-for="tab in tabs" v-bind:key="tab.key" :to="tab.to" exact>{{
+    <sub-tabs :tab="currentTab">
+      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact>{{
         $t(tab.name)
       }}</v-tab>
     </sub-tabs>
@@ -44,7 +44,7 @@ export default Vue.extend({
     SubTabs,
   },
   data: () => ({
-    tab: null,
+    currentTab: undefined as undefined | Tab,
     showHelp: false,
   }),
 

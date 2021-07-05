@@ -30,7 +30,6 @@ import ee.ria.xroad.common.CommonMessages;
 import ee.ria.xroad.common.DiagnosticsErrorCodes;
 import ee.ria.xroad.common.DiagnosticsStatus;
 import ee.ria.xroad.common.DiagnosticsUtils;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
@@ -231,8 +230,7 @@ public class LogManager extends AbstractLogManager {
     }
 
     protected Props getArchiverImpl() {
-        return Props.create(LogArchiver.class, Paths.get(MessageLogProperties.getArchivePath()),
-                Paths.get(SystemProperties.getTempFilesPath()));
+        return Props.create(LogArchiver.class, Paths.get(MessageLogProperties.getArchivePath()));
     }
 
     protected Props getCleanerImpl() {

@@ -27,9 +27,9 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="services.disableTitle"
+    save-button-text="action.ok"
     @save="save"
     @cancel="cancel"
-    saveButtonText="action.ok"
   >
     <div slot="content">
       <div class="dlg-edit-row">
@@ -56,9 +56,11 @@ export default Vue.extend({
     },
     subject: {
       type: Object,
+      required: true,
     },
     subjectIndex: {
       type: Number,
+      required: true,
     },
   },
 

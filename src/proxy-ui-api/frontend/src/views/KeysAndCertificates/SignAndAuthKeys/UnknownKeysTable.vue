@@ -27,16 +27,16 @@
   <div>
     <table class="xrd-table keys-table">
       <KeysTableThead
-        :sortDirection="sortDirection"
-        :selectedSort="selectedSort"
+        :sort-direction="sortDirection"
+        :selected-sort="selectedSort"
         @set-sort="setSort"
       />
 
-      <tbody v-for="key in sortedKeys" v-bind:key="key.id">
+      <tbody v-for="key in sortedKeys" :key="key.id">
         <!-- Key -->
         <KeyRow
-          :tokenLoggedIn="tokenLoggedIn"
-          :tokenKey="key"
+          :token-logged-in="tokenLoggedIn"
+          :token-key="key"
           @generate-csr="generateCsr(key)"
           @key-click="keyClick(key)"
         />
@@ -44,7 +44,7 @@
         <!-- Certificate -->
         <CertificateRow
           v-for="cert in key.certificates"
-          v-bind:key="cert.id"
+          :key="cert.id"
           :cert="cert"
           @certificate-click="certificateClick(cert, key)"
         >
@@ -110,6 +110,18 @@ export default Vue.extend({
     },
   },
 
+  data() {
+    return {
+      registerDialog: false,
+      confirmDeleteCsr: false,
+      selectedCert: undefined as TokenCertificate | undefined,
+      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
+      selectedKey: undefined as Key | undefined,
+      sortDirection: false,
+      selectedSort: KeysSortColumn.NAME,
+    };
+  },
+
   computed: {
     sortedKeys(): Key[] {
       return Sorting.keyArraySort(
@@ -128,18 +140,6 @@ export default Vue.extend({
       // Can the user import certificate from hardware token
       return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
-  },
-
-  data() {
-    return {
-      registerDialog: false,
-      confirmDeleteCsr: false,
-      selectedCert: undefined as TokenCertificate | undefined,
-      selectedCsr: undefined as TokenCertificateSigningRequest | undefined,
-      selectedKey: undefined as Key | undefined,
-      sortDirection: false,
-      selectedSort: KeysSortColumn.NAME,
-    };
   },
 
   methods: {

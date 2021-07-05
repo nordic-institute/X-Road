@@ -29,9 +29,9 @@
       <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
       <div>
         <help-button
-          helpImage="api_keys.png"
-          helpTitle="keys.helpTitleApi"
-          helpText="keys.helpTextApi"
+          help-image="api_keys.png"
+          help-title="keys.helpTitleApi"
+          help-text="keys.helpTextApi"
         ></help-button>
       </div>
     </div>
@@ -83,15 +83,18 @@ export default Vue.extend({
     ApiKeyRow,
     HelpButton,
   },
+  data() {
+    return {
+      apiKeys: new Array<ApiKey>(),
+    };
+  },
   computed: {
     canCreateApiKey(): boolean {
       return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
     },
   },
-  data() {
-    return {
-      apiKeys: new Array<ApiKey>(),
-    };
+  created(): void {
+    this.loadKeys();
   },
   methods: {
     loadKeys(): void {
@@ -107,9 +110,6 @@ export default Vue.extend({
         name: RouteName.CreateApiKey,
       });
     },
-  },
-  created(): void {
-    this.loadKeys();
   },
 });
 </script>

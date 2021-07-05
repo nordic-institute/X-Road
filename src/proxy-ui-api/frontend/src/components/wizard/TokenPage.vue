@@ -40,7 +40,7 @@
       </v-text-field>
 
       <v-radio-group v-model="tokenGroup">
-        <div class="radio-row" v-for="token in filteredTokens" :key="token.id">
+        <div v-for="token in filteredTokens" :key="token.id" class="radio-row">
           <v-radio
             :label="`Token ${token.name}`"
             :value="token"
@@ -49,12 +49,12 @@
           ></v-radio>
           <div>
             <xrd-button
-              @click="confirmLogin(token)"
               v-if="!token.logged_in"
               :disabled="!token.available"
               :outlined="false"
               text
               data-test="token-login-button"
+              @click="confirmLogin(token)"
               >{{ $t('keys.logIn') }}</xrd-button
             >
             <xrd-button
@@ -73,24 +73,24 @@
     <div class="button-footer">
       <xrd-button
         outlined
-        @click="cancel"
         :disabled="!disableDone"
         data-test="cancel-button"
+        @click="cancel"
         >{{ $t('action.cancel') }}</xrd-button
       >
 
       <xrd-button
-        @click="previous"
         outlined
         class="previous-button"
         data-test="previous-button"
+        @click="previous"
         >{{ $t('action.previous') }}</xrd-button
       >
 
       <xrd-button
-        @click="done"
         :disabled="disableNext"
         data-test="next-button"
+        @click="done"
         >{{ $t('action.next') }}</xrd-button
       >
     </div>
@@ -111,6 +111,14 @@ import { Token } from '@/openapi-types';
 export default Vue.extend({
   components: {
     TokenLoginDialog,
+  },
+  data() {
+    return {
+      search: undefined as string | undefined,
+      disableDone: true,
+      tokenGroup: undefined as Token | undefined,
+      loginDialog: false,
+    };
   },
   computed: {
     ...mapGetters(['tokens']),
@@ -135,13 +143,8 @@ export default Vue.extend({
       return true;
     },
   },
-  data() {
-    return {
-      search: undefined as string | undefined,
-      disableDone: true,
-      tokenGroup: undefined as Token | undefined,
-      loginDialog: false,
-    };
+  created() {
+    this.fetchData();
   },
   methods: {
     cancel(): void {
@@ -182,9 +185,6 @@ export default Vue.extend({
           this.$store.dispatch('showError', error);
         });
     },
-  },
-  created() {
-    this.fetchData();
   },
 });
 </script>

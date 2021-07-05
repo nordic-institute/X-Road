@@ -85,8 +85,8 @@
 
               <!-- Show the error metadata if it exists -->
               <div
-                v-else
                 v-for="meta in errorMetadata(notification)"
+                v-else
                 :key="meta"
               >
                 {{ meta }}
@@ -105,10 +105,10 @@
                   <template v-else>
                     <ul>
                       <li
-                        v-for="errorCode in validationError.errorCodes"
-                        :key="`${validationError.field}.${errorCode}`"
+                        v-for="errCode in validationError.errCodes"
+                        :key="`${validationError.field}.${errCode}`"
                       >
-                        {{ $t(`validationError.${errorCode}`) }}
+                        {{ $t(`validationError.${errCode}`) }}
                       </li>
                     </ul>
                   </template>
