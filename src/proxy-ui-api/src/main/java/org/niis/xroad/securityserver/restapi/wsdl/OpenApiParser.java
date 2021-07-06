@@ -134,7 +134,7 @@ public class OpenApiParser {
         if (openapiVersion != null && !openapiVersion.startsWith(SUPPORTED_OPENAPI_MINOR_VERSION)) {
             String errorMsg = String.format("OpenAPI version %s not supported", openapiVersion);
             throw new UnsupportedOpenApiVersionException(errorMsg,
-                    new ErrorDeviation(ERROR_UNSUPPORTED_OPENAPI_VERSION, openapiVersion));
+                    new ErrorDeviation(ERROR_UNSUPPORTED_OPENAPI_VERSION));
         }
     }
 
