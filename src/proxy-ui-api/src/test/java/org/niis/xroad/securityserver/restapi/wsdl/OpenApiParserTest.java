@@ -74,10 +74,17 @@ public class OpenApiParserTest {
     }
 
     @Test(expected = UnsupportedOpenApiVersionException.class)
-    public void shouldFailOnUnsupportedOpenApiVersion() throws OpenApiParser.ParsingException,
+    public void shouldFailOnUnsupportedOpenApiVersionYaml() throws OpenApiParser.ParsingException,
             UnsupportedOpenApiVersionException {
         URL url = getClass().getResource("/openapiparser/v310.yaml");
-        final OpenApiParser.Result result = new TestOpenApiParser().parse(url.toString());
+        new TestOpenApiParser().parse(url.toString());
+    }
+
+    @Test(expected = UnsupportedOpenApiVersionException.class)
+    public void shouldFailOnUnsupportedOpenApiVersionJson() throws OpenApiParser.ParsingException,
+            UnsupportedOpenApiVersionException {
+        URL url = getClass().getResource("/openapiparser/v310.json");
+        new TestOpenApiParser().parse(url.toString());
     }
 
     static class TestOpenApiParser extends OpenApiParser {
