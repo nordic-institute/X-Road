@@ -26,8 +26,6 @@
 
 package org.niis.xroad.securityserver.restapi.wsdl;
 
-import ee.ria.xroad.common.util.OpenapiDescriptionFiletype;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,8 +34,6 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import io.swagger.v3.parser.core.models.SwaggerParseResult;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
@@ -183,13 +179,6 @@ public class OpenApiParser {
 
     public boolean allowProtocol(String protocol) {
         return "http".equals(protocol) || "https".equals(protocol);
-    }
-
-    @AllArgsConstructor
-    @Getter
-    private static final class OpenApiDescriptionAndType {
-        private final OpenapiDescriptionFiletype fileType;
-        private final String openApiDescription;
     }
 
     /**
