@@ -915,7 +915,7 @@
     "member_class_exists": "Member class exists",
     "member_code_exists": "Member code exists",
     "pin_code_exists": "PIN code exists",
-    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions up to 3.0.x are currently supported.",
+    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x are currently supported.",
     "conf_verification": {
       "anchor_not_for_external_source": "Anchor points to an internal configuration source. Only external configuration source anchors are supported as trusted anchors.",
       "missing_private_params": "Configuration anchor import failed: invalid anchor file",
