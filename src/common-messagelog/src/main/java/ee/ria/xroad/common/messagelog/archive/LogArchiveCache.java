@@ -73,6 +73,7 @@ class LogArchiveCache implements Closeable {
 
     private Path archiveTmpFile;
     private ZipOutputStream archiveTmp;
+    private OutputStream outputStream;
 
     private Date minCreationTime;
     private Date maxCreationTime;
@@ -114,6 +115,7 @@ class LogArchiveCache implements Closeable {
             archiveTmp = null;
             Path archive = archiveTmpFile;
             archiveTmpFile = null;
+            outputStream = null;
             resetCacheState();
             return archive;
         } catch (IOException e) {
@@ -123,7 +125,7 @@ class LogArchiveCache implements Closeable {
     }
 
     private <T extends Exception> void handleCacheError(T e) throws T {
-        deleteArchiveArtifacts();
+        deleteArchiveArtifacts(e);
         throw e;
     }
 
@@ -156,7 +158,7 @@ class LogArchiveCache implements Closeable {
 
     @Override
     public void close() {
-        deleteArchiveArtifacts();
+        deleteArchiveArtifacts(null);
     }
 
     private void validateMessageRecord(MessageRecord record) {
@@ -217,24 +219,36 @@ class LogArchiveCache implements Closeable {
     }
 
     private void resetArchive() throws IOException {
-        deleteArchiveArtifacts();
+        deleteArchiveArtifacts(null);
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
-        final OutputStream os;
         if (encryptionConfig.isEnabled()) {
-            os = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), archiveTmpFile);
+            outputStream = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), archiveTmpFile,
+                    encryptionConfig.getEncryptionKeys());
         } else {
-            os = Files.newOutputStream(archiveTmpFile);
+            outputStream = Files.newOutputStream(archiveTmpFile);
         }
-        archiveTmp = new ZipOutputStream(new BufferedOutputStream(os));
+        archiveTmp = new ZipOutputStream(new BufferedOutputStream(outputStream));
         archiveTmp.setLevel(0);
     }
 
-    private void deleteArchiveArtifacts() {
+    private void deleteArchiveArtifacts(Exception cause) {
         if (archiveTmp != null) {
             try {
                 archiveTmp.close();
             } catch (IOException e) {
-                //IGNORE
+                if (cause != null) {
+                    cause.addSuppressed(e);
+                }
+            }
+        }
+        // in case of error during close, ZipOutputStream can fail to close the underlying OutputStream.
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                if (cause != null) {
+                    cause.addSuppressed(e);
+                }
             }
         }
         if (archiveTmpFile != null) {

@@ -47,9 +47,6 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 class GPGOutputStream extends FilterOutputStream {
 
-    private final Process gpg;
-    private final Path statusTmp;
-
     private static final String[] DEFAULT_ARGS = {
             "--batch",
             "--no-tty",
@@ -62,6 +59,12 @@ class GPGOutputStream extends FilterOutputStream {
             "--digest-algo", "SHA256"
     };
 
+    private final Process gpg;
+    private final Path statusTmp;
+
+    private Object closeLock = new Object();
+    private boolean closed = false;
+
     /**
      * Constructs a stream that pipes data to a gpg process encrypting and signing.
      *
@@ -70,7 +73,7 @@ class GPGOutputStream extends FilterOutputStream {
      * @param encryptionKeys Zero or more encryption key files in PGP format (see gpg --recipient-file)
      * @throws IOException if setting up the gpg process fails
      */
-    GPGOutputStream(Path gpgHome, Path output, Path... encryptionKeys) throws IOException {
+    GPGOutputStream(Path gpgHome, Path output, List<Path> encryptionKeys) throws IOException {
         super(null);
         statusTmp = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "gpgstatus", ".tmp");
         final ProcessBuilder builder = new ProcessBuilder("/usr/bin/gpg");
@@ -86,7 +89,7 @@ class GPGOutputStream extends FilterOutputStream {
         builder.command().add("--status-file");
         builder.command().add(statusTmp.toString());
 
-        if (encryptionKeys == null || encryptionKeys.length == 0) {
+        if (encryptionKeys == null || encryptionKeys.size() == 0) {
             builder.command().add("--default-recipient-self");
         } else {
             for (Path p : encryptionKeys) {
@@ -116,32 +119,45 @@ class GPGOutputStream extends FilterOutputStream {
      * Tries to ensure that the gpg process is stopped even in a case of failure. No attempt to delete
      * the output file even in failure is made.
      *
-     * @throws IOException if the output to the gpg process can not be closed.
-     * @throws GPGException if gpg process does not stop or exits with and error code (!=0)
+     * @throws GPGException If closing the stream or gpg process exits with error code
      */
     @Override
-    public void close() throws IOException {
+    public void close() throws GPGException {
+        synchronized (closeLock) {
+            if (closed) {
+                return;
+            }
+            closed = true;
+        }
+
+        IOException suppressed = null;
         try {
             if (out != null) {
-                super.close();
+                try {
+                    super.close();
+                } catch (IOException e) {
+                    suppressed = e;
+                }
             }
-            //gpg encrypts on the fly, so it should finish almost immediately
+            //gpg encrypts on the fly, so it should normally finish almost immediately
             gpg.waitFor(1, TimeUnit.MINUTES);
-            final List<String> status = Files.readAllLines(statusTmp, StandardCharsets.UTF_8);
+
+            List<String> status = getStatus();
+
             if (gpg.isAlive()) {
                 log.debug("Encryption failed, GPG status: {}", status);
-                throw new GPGException("Encryption failed, gpg process did not stop", status, -1);
+                throw GPGException.of("Encryption failed, gpg process did not stop", status, -1, suppressed);
             }
-            if (gpg.exitValue() != 0) {
+            if (gpg.exitValue() != 0 || suppressed != null) {
                 log.debug("Encryption failed, GPG status: {}", status);
-                throw new GPGException("Encryption failed, gpg process exit code: " + gpg.exitValue(), status,
-                        gpg.exitValue());
+                throw GPGException.of("Encryption failed, gpg process exit code: " + gpg.exitValue(), status,
+                        gpg.exitValue(), suppressed);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             if (gpg.isAlive()) {
                 //interrupted while waiting for gpg process to exit, signal failure
-                throw new GPGException(e);
+                throw GPGException.of(e, suppressed);
             }
         } finally {
             try {
@@ -150,6 +166,15 @@ class GPGOutputStream extends FilterOutputStream {
                 //ignore
             }
             gpg.destroyForcibly();
+            closed = true;
+        }
+    }
+
+    private List<String> getStatus() {
+        try {
+            return Files.readAllLines(statusTmp, StandardCharsets.UTF_8);
+        } catch (IOException ioe) {
+            return null;
         }
     }
 
@@ -168,6 +193,22 @@ class GPGOutputStream extends FilterOutputStream {
             super(cause);
             this.details = null;
             this.exitCode = -1;
+        }
+
+        static GPGException of(String message, List<String> status, int exitCode, Throwable suppressed) {
+            final GPGException exception = new GPGException(message, status, exitCode);
+            if (suppressed != null) {
+                exception.addSuppressed(suppressed);
+            }
+            return exception;
+        }
+
+        static GPGException of(Throwable cause, Throwable suppressed) {
+            final GPGException exception = new GPGException(cause);
+            if (suppressed != null) {
+                exception.addSuppressed(suppressed);
+            }
+            return exception;
         }
     }
 
