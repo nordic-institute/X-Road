@@ -12,7 +12,7 @@
     "test:coverage": "vue-cli-service test:unit --coverage",
     "check-audit": "check-audit",
     "resolve-audit": "resolve-audit",
-    "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
+    "generate-types": "npm run bundle-openapi && openapi --input ../build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-types --exportCore false --exportServices false",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "install-ui-lib": "cd ../../shared-ui && npm install",
@@ -21,7 +21,8 @@
     "audit-check-ui-lib": "cd ../../shared-ui && npm run check-audit",
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",
-    "build-all": "npm run install-build-ui-lib && npm install && npm run build"
+    "build-all": "npm run install-build-ui-lib && npm install && npm run build",
+    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-definition.yaml"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.4.2",
@@ -38,6 +39,7 @@
     "vuex-router-sync": "5.0.0"
   },
   "devDependencies": {
+    "@apidevtools/swagger-cli": "~4.0.4",
     "@mdi/font": "~5.9.55",
     "@types/jest": "^26.0.22",
     "@typescript-eslint/eslint-plugin": "~4.26.0",

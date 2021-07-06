@@ -29,7 +29,10 @@ module.exports = {
 
   tags: ['ss', 'xroad-service-administrator', 'permissions'],
   before: function (browser) {
-    browser.LoginCommand(browser.globals.login_service_administrator, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_service_administrator,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
@@ -114,7 +117,9 @@ module.exports = {
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling
     //  for 'clientLocalGroups', figure out why
-    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.click(
+      '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
+    );
     browser.waitForElementVisible(clientLocalGroups);
 
     // Service administrator should see add local groups button
@@ -139,5 +144,5 @@ module.exports = {
     browser.waitForElementVisible(
       localGroupPopup.elements.localGroupDeleteButton,
     );
-  }
+  },
 };

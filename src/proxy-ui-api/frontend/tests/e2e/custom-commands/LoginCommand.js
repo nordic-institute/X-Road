@@ -42,4 +42,4 @@ module.exports = class LoginCommand {
     // Check that correct username is displayed on topbar
     mainPage.verifyCurrentUser(username);
   }
-}
+};

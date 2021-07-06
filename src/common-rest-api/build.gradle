@@ -74,10 +74,11 @@ openApiGenerate {
     modelPackage = "org.niis.xroad.restapi.openapi.model"
     systemProperties = [
             modelDocs: "false",
-            apis     : "false",
+            apis     : "",
             models   : "", // must use empty strings instead of "true":
             // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-            generateSupportingFiles : "false"
+            generateSupportingFiles : "true",
+            supportingFiles: 'ApiUtil.java'
     ]
     configOptions = [
             interfaceOnly: "true",

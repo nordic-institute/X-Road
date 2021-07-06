@@ -28,7 +28,10 @@ module.exports = {
   tags: ['ss', 'xroad-system-administrator', 'permissions'],
 
   before: function (browser) {
-    browser.LoginCommand(browser.globals.login_system_administrator, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_system_administrator,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
@@ -66,7 +69,9 @@ module.exports = {
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
-    browser.waitForElementVisible(backupAndRestoreTab.elements.anchorDownloadButton);
+    browser.waitForElementVisible(
+      backupAndRestoreTab.elements.anchorDownloadButton,
+    );
     settingsTab.openBackupAndRestore();
     browser.waitForElementVisible(backupAndRestoreTab.elements.backupButton);
   },
