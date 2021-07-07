@@ -24,9 +24,30 @@
  * THE SOFTWARE.
  */
 
+// Tabs
+let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab, APIKeysTab;
+
+// Other
+let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton;
+
 module.exports = {
   tags: ['ss', 'xroad-security-officer', 'permissions'],
   before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+    keysTab = mainPage.section.keysTab;
+    clientsTab = mainPage.section.clientsTab;
+    APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
+    settingsTab = mainPage.section.settingsTab;
+    backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
+
+    clientInfo = mainPage.section.clientInfo;
+    searchField = mainPage.section.clientsTab.elements.searchField;
+    tokenName = mainPage.section.keysTab.elements.tokenName;
+    generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    anchorDownloadButton = backupAndRestoreTab.elements.anchorDownloadButton;
+
     browser.LoginCommand(browser.globals.login_security_officer, browser.globals.login_pwd);
   },
 
@@ -35,10 +56,6 @@ module.exports = {
   },
 
   'Can not add clients': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
-
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
@@ -46,13 +63,6 @@ module.exports = {
   },
 
   'Can not see API-keys': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
-    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
-
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -63,12 +73,6 @@ module.exports = {
   },
 
   'Can not do backup and restore': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const settingsTab = mainPage.section.settingsTab;
-    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
-    const anchorDownloadButton =
-      backupAndRestoreTab.elements.anchorDownloadButton;
-
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
@@ -77,15 +81,10 @@ module.exports = {
   },
 
   'Can not see diagnostics-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
     browser.waitForElementNotPresent(diagnosticsTab);
   },
-  'Can not see client details': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
 
+  'Can not see client details': (browser) => {
     // Security officer should see clients list
     mainPage.openClientsTab();
     // Security officer should not see add client button
