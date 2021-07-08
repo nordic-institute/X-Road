@@ -3,10 +3,6 @@ plugins {
   id 'org.springframework.boot'
 }
 
-ext {
-    set('springCloudVersion', "Hoxton.SR8")
-}
-
 bootJar {
     excludeDevtools = false
 }
