@@ -25,8 +25,6 @@
  -->
 <template>
   <v-container fluid class="pa-0">
-    <div><GlobalNotification /></div>
-    <div class="alerts-wrapper"></div>
     <GlobalAlerts />
     <ContextualAlerts />
   </v-container>
@@ -36,13 +34,11 @@
 import Vue from 'vue';
 import ContextualAlerts from './ContextualAlerts.vue';
 import GlobalAlerts from './GlobalAlerts.vue';
-import GlobalNotification from './InitNotification.vue';
 
 export default Vue.extend({
   components: {
     ContextualAlerts,
     GlobalAlerts,
-    GlobalNotification,
   },
 });
 </script>

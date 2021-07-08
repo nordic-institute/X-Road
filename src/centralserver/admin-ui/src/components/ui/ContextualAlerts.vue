@@ -29,7 +29,7 @@
     <v-container
       v-if="errorNotifications && errorNotifications.length > 0"
       fluid
-      class="alerts-container"
+      class="alerts-container px-3"
     >
       <v-alert
         v-for="notification in errorNotifications"
@@ -237,6 +237,8 @@ export default Vue.extend({
 
   .alert {
     margin-top: 8px;
+    border: 2px solid $XRoad-WarmGrey30;
+    box-sizing: border-box;
     border-radius: 4px;
 
     .row-wrapper-top {

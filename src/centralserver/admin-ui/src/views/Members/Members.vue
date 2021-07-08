@@ -26,7 +26,7 @@
 
 <template>
   <sub-view-container>
-    <router-view></router-view>
+    <router-view data-test="members-view"></router-view>
   </sub-view-container>
 </template>
 
