@@ -25,7 +25,7 @@
  */
 let login;
 let members;
-const User = require('../constants').User;
+const { User } = require('../constants');
 module.exports = {
   tags: ['cs', 'login'],
   before(browser) {
