@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-const User = require('../constants/').User;
+const { User } = require('../constants/');
 const loginCommands = {
   clearUsername() {
     this.clearValue('@usernameInput');
