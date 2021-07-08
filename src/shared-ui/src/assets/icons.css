@@ -1,34 +1,8 @@
-/*
- * The MIT License
- *
- * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
- * Copyright (c) 2018 Estonian Information System Authority (RIA),
- * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
- * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
 @font-face {
     font-family: "icons";
-    src: url("./icons.eot?079159c8469dda20a14109c847b9b879#iefix") format("embedded-opentype"),
-url("./icons.woff2?079159c8469dda20a14109c847b9b879") format("woff2"),
-url("./icons.woff?079159c8469dda20a14109c847b9b879") format("woff");
+    src: url("./icons.eot?e6668743ba253d936fad5be00988697f#iefix") format("embedded-opentype"),
+url("./icons.woff2?e6668743ba253d936fad5be00988697f") format("woff2"),
+url("./icons.woff?e6668743ba253d936fad5be00988697f") format("woff");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -46,93 +20,105 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-Add:before {
     content: "\f101";
 }
-.icon-Cancel:before {
+.icon-AddCertificate:before {
     content: "\f102";
 }
-.icon-Certificate:before {
+.icon-AddUser:before {
     content: "\f103";
 }
-.icon-Checked:before {
+.icon-Cancel:before {
     content: "\f104";
 }
-.icon-Checker:before {
+.icon-Certificate:before {
     content: "\f105";
 }
-.icon-Checkmark:before {
+.icon-ChangeOwner:before {
     content: "\f106";
 }
-.icon-Close:before {
+.icon-Checked:before {
     content: "\f107";
 }
-.icon-Copy:before {
+.icon-Checker:before {
     content: "\f108";
 }
-.icon-Database-backup:before {
+.icon-Checkmark:before {
     content: "\f109";
 }
-.icon-Database:before {
+.icon-Close:before {
     content: "\f10a";
 }
-.icon-Datepicker:before {
+.icon-Copy:before {
     content: "\f10b";
 }
-.icon-Declined:before {
+.icon-Database-backup:before {
     content: "\f10c";
 }
-.icon-Download:before {
+.icon-Database:before {
     content: "\f10d";
 }
-.icon-Dropdown-open:before {
+.icon-Datepicker:before {
     content: "\f10e";
 }
-.icon-Edit:before {
+.icon-Declined:before {
     content: "\f10f";
 }
-.icon-Error-notification:before {
+.icon-Download:before {
     content: "\f110";
 }
-.icon-Error:before {
+.icon-Dropdown-open:before {
     content: "\f111";
 }
-.icon-Folder-outline:before {
+.icon-Error-notification:before {
     content: "\f112";
 }
-.icon-Folder:before {
+.icon-Error:before {
     content: "\f113";
 }
-.icon-Import:before {
+.icon-Folder-outline:before {
     content: "\f114";
 }
-.icon-In-progress:before {
+.icon-Folder:before {
     content: "\f115";
 }
-.icon-Key:before {
+.icon-Import:before {
     content: "\f116";
 }
-.icon-Menu:before {
+.icon-In-progress:before {
     content: "\f117";
 }
-.icon-Plus:before {
+.icon-Key:before {
     content: "\f118";
 }
-.icon-Search:before {
+.icon-Menu:before {
     content: "\f119";
 }
-.icon-Security-Server:before {
+.icon-Plus:before {
     content: "\f11a";
 }
-.icon-Sorting-arrow:before {
+.icon-RemoveCertificate:before {
     content: "\f11b";
 }
-.icon-Table-backup:before {
+.icon-RemoveUser:before {
     content: "\f11c";
 }
-.icon-Tooltip:before {
+.icon-Search:before {
     content: "\f11d";
 }
-.icon-Upload:before {
+.icon-Security-Server:before {
     content: "\f11e";
 }
-.icon-Warning:before {
+.icon-Sorting-arrow:before {
     content: "\f11f";
+}
+.icon-Table-backup:before {
+    content: "\f120";
+}
+.icon-Tooltip:before {
+    content: "\f121";
+}
+.icon-Upload:before {
+    content: "\f122";
+}
+.icon-Warning:before {
+    content: "\f123";
 }
