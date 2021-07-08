@@ -96,6 +96,7 @@ import org.niis.xroad.securityserver.restapi.service.TokenService;
 import org.niis.xroad.securityserver.restapi.util.ResourceUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
+import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
@@ -390,7 +391,7 @@ public class ClientsApiController implements ClientsApi {
                 addedServiceDescriptionType = serviceDescriptionService.addOpenApi3ServiceDescription(clientId, url,
                         restServiceCode, ignoreWarnings);
             } catch (OpenApiParser.ParsingException | UnhandledWarningsException | MissingParameterException
-                    | InvalidUrlException e) {
+                    | InvalidUrlException | UnsupportedOpenApiVersionException e) {
                 throw new BadRequestException(e);
             } catch (ClientNotFoundException e) {
                 throw new ResourceNotFoundException(e);

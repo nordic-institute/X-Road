@@ -51,6 +51,7 @@ import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionNotFoundE
 import org.niis.xroad.securityserver.restapi.service.ServiceDescriptionService;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
+import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -162,7 +163,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
 
         } catch (WsdlParser.WsdlNotFoundException | OpenApiParser.ParsingException | UnhandledWarningsException
                 | InvalidUrlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
-                | InvalidWsdlException | InvalidServiceUrlException e) {
+                | InvalidWsdlException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException
@@ -191,7 +192,7 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
                             ignoreWarnings.getIgnoreWarnings()));
         } catch (WsdlParser.WsdlNotFoundException | UnhandledWarningsException | InvalidUrlException
                 | InvalidWsdlException | ServiceDescriptionService.WrongServiceDescriptionTypeException
-                | OpenApiParser.ParsingException | InvalidServiceUrlException e) {
+                | OpenApiParser.ParsingException | InvalidServiceUrlException | UnsupportedOpenApiVersionException e) {
             throw new BadRequestException(e);
         } catch (ServiceDescriptionService.ServiceAlreadyExistsException
                 | ServiceDescriptionService.WsdlUrlAlreadyExistsException e) {
