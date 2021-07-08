@@ -23,52 +23,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+let login;
+let members;
 module.exports = {
   tags: ['cs', 'login'],
   before(browser) {
-    const frontPage = browser.page.loginpage();
-    frontPage.navigate();
+    login = browser.page.loginpage();
+    members = browser.page.memberspage();
   },
-
-  afterEach(browser) {
-    browser.refresh();
-    const frontPage = browser.page.loginpage();
-    frontPage.navigate();
+  beforeEach() {
+    login.navigate();
   },
   after(browser) {
     browser.end();
   },
   'Wrong username is rejected': (browser) => {
-    const login = browser.page.loginpage();
     login
-    .enterUsername('invalid')
-    .enterPassword(browser.globals.login_pwd)
-    .signin()
-    .loginErrorMessageIsShown();
+      .enterUsername('invalid')
+      .enterPassword(browser.globals.login_pwd)
+      .signin()
+      .loginErrorMessageIsShown();
   },
   'Wrong password is rejected': (browser) => {
-    const login = browser.page.loginpage();
     login
-    .enterUsername(browser.globals.login_usr)
-    .enterPassword('invalid')
-    .signin()
-    .loginErrorMessageIsShown();
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword('invalid')
+      .signin()
+      .loginErrorMessageIsShown();
   },
-  'Admin login succeeds': (browser) => {
-    const login = browser.page.loginpage();
-    const members = browser.page.memberspage();
+  'Admin login succeeds': () => {
     login.signinDefaultUser();
     members.membersViewIsVisible();
   },
-  'Security-officer login succeeds': (browser) => {
-    const login = browser.page.loginpage();
-    const members = browser.page.memberspage();
+  'Security-officer login succeeds': () => {
     login.signinSecurityOfficer();
     members.membersViewIsVisible();
   },
-  'Registration-officer login succeeds': (browser) => {
-    const login = browser.page.loginpage();
-    const members = browser.page.memberspage();
+  'Registration-officer login succeeds': () => {
     login.signinRegistrationOfficer();
     members.membersViewIsVisible();
   },
