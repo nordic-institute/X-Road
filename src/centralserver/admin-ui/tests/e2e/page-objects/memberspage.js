@@ -29,6 +29,10 @@ const membersCommands = {
     this.assert.visible('@membersView');
     return this;
   },
+  verifyCurrentUser: function (user) {
+    this.api.assert.containsText(this.elements.userMenuButton, user);
+    return this;
+  },
 };
 
 module.exports = {
@@ -37,6 +41,10 @@ module.exports = {
   elements: {
     membersView: {
       selector: '//div[@data-test="members-view"]',
+      locateStrategy: 'xpath',
+    },
+    userMenuButton: {
+      selector: '//button[@data-test="username-button"]',
       locateStrategy: 'xpath',
     },
   },

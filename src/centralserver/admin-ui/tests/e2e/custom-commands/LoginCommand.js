@@ -23,45 +23,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-let login;
-let members;
-const User = require('../constants').User;
-module.exports = {
-  tags: ['cs', 'login'],
-  before(browser) {
-    login = browser.page.loginpage();
-    members = browser.page.memberspage();
-  },
-  beforeEach() {
-    login.navigate();
-  },
-  after(browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    login
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    login
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-  'Admin login succeeds': () => {
-    login.signInUser(User.ADMIN);
-    members.membersViewIsVisible();
-  },
-  'Security-officer login succeeds': () => {
-    login.signInUser(User.SECURITY_OFFICER);
-    members.membersViewIsVisible();
-  },
-  'Registration-officer login succeeds': () => {
-    login.signInUser(User.REGISTRATION_OFFICER);
-    members.membersViewIsVisible();
-  },
+
+module.exports = class LoginCommand {
+  async command(
+    username = this.api.globals.login_usr,
+    password = this.api.globals.login_pwd,
+  ) {
+    const loginpage = this.api.page.loginpage();
+    const memberspage = this.api.page.memberspage();
+    loginpage.navigate();
+    this.api.waitForElementVisible('//*[@id="app"]');
+    loginpage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(username)
+      .enterPassword(password)
+      .signIn();
+    // Check that correct username is displayed on topbar
+    memberspage.verifyCurrentUser(username);
+  }
 };

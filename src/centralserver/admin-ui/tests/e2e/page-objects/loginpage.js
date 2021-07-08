@@ -24,6 +24,7 @@
  * THE SOFTWARE.
  */
 
+const User = require('../constants/').User;
 const loginCommands = {
   clearUsername() {
     this.clearValue('@usernameInput');
@@ -41,7 +42,7 @@ const loginCommands = {
     this.setValue('@passwordInput', password);
     return this;
   },
-  signin() {
+  signIn() {
     this.click('@loginButton');
     return this;
   },
@@ -49,31 +50,23 @@ const loginCommands = {
     this.assert.visible('@loginError');
     return this;
   },
-  signinDefaultUser() {
-    return this.signinUser(
-      this.api.globals.login_usr,
-      this.api.globals.login_pwd,
-    );
-  },
-  signinSecurityOfficer() {
-    return this.signinUser(
-      this.api.globals.login_security_officer,
-      this.api.globals.login_pwd,
-    );
-  },
-  signinRegistrationOfficer() {
-    return this.signinUser(
-      this.api.globals.login_registration_officer,
-      this.api.globals.login_pwd,
-    );
-  },
-  signinUser(username, password) {
-    this.clearValue('@usernameInput');
-    this.clearValue('@passwordInput');
-    this.setValue('@usernameInput', username);
-    this.setValue('@passwordInput', password);
-    this.click('@loginButton');
-    return this;
+  signInUser(role) {
+    switch (role) {
+      case User.REGISTRATION_OFFICER:
+        return this.api.LoginCommand(
+          this.api.globals.login_registration_officer,
+          this.api.globals.login_pwd,
+        );
+      case User.SECURITY_OFFICER:
+        return this.api.LoginCommand(
+          this.api.globals.login_security_officer,
+          this.api.globals.login_pwd,
+        );
+      case User.ADMIN:
+        return this.api.LoginCommand();
+      default:
+        throw Error('Login role not provided');
+    }
   },
 };
 
