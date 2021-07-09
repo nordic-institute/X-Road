@@ -24,10 +24,25 @@
  * THE SOFTWARE.
  */
 
+// Tabs
+let mainPage, diagnosticsTab, clientsTab, keysTab, settingsTab, backupAndRestoreTab;
+
+// Other
+let clientInfo, searchField, localGroupPopup, clientLocalGroups;
+
+
 module.exports = {
   tags: ['ss', 'xroad-system-administrator', 'permissions'],
 
   before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    keysTab = mainPage.section.keysTab;
+    settingsTab = mainPage.section.settingsTab;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+    backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
+
+    // Actual test starts here...
     browser.LoginCommand(
       browser.globals.login_system_administrator,
       browser.globals.login_pwd,
@@ -39,9 +54,6 @@ module.exports = {
   },
 
   'can see elements in keys and certs': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
-
     mainPage.openKeysTab();
     browser.waitForElementVisible(mainPage.section.keysTab);
     keysTab.openSignAndAuthKeys();
@@ -53,19 +65,12 @@ module.exports = {
   },
 
   'Can see functions in diagnostics-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-
     mainPage.openDiagnosticsTab();
     browser.waitForElementVisible(diagnosticsTab);
     browser.waitForElementVisible(diagnosticsTab.elements.globalConfiguration);
   },
 
   'can see functions in Settings-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const settingsTab = mainPage.section.settingsTab;
-    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
-
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
@@ -77,7 +82,6 @@ module.exports = {
   },
 
   'can not see Clients-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
     browser.waitForElementNotPresent(mainPage.section.clientsTab);
   },
 };

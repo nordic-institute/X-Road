@@ -24,8 +24,15 @@
  * THE SOFTWARE.
  */
 
+let mainPage, frontPage;
+
 module.exports = {
   tags: ['ss', 'logout'],
+  before: function (browser) {
+    mainPage = browser.page.ssMainPage();
+    frontPage = browser.page.ssFrontPage();
+    },
+
   beforeEach: function (browser) {
     browser.LoginCommand();
   },
@@ -34,15 +41,11 @@ module.exports = {
   },
 
   'Security server logout': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const frontPage = browser.page.ssFrontPage();
     mainPage.logout();
     browser.waitForElementVisible(frontPage.elements.usernameInput);
   },
 
   'Security server timeout logout': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const frontPage = browser.page.ssFrontPage();
     // Wait for the timeout message to appear
     browser.waitForElementVisible(
       mainPage.elements.sessionExpiredPopupOkButton,

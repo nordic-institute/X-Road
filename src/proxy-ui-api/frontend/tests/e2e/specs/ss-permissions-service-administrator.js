@@ -23,12 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+// Tabs
+let mainPage, diagnosticsTab, clientsTab, keysTab, settingsTab;
+
+// Other
+let clientInfo, searchField, localGroupPopup, clientLocalGroups;
 
 module.exports = {
   // TODO This test is not self contained yet, fix it figuring out beforeEach and afterEach structure
-
   tags: ['ss', 'xroad-service-administrator', 'permissions'],
   before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    keysTab = mainPage.section.keysTab;
+    settingsTab = mainPage.section.settingsTab;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+
+    searchField = mainPage.section.clientsTab.elements.searchField;
+    clientInfo = mainPage.section.clientInfo;
+    clientLocalGroups = clientInfo.section.localGroups;
+    localGroupPopup = mainPage.section.localGroupPopup;
+
+    // Actual test starts here...
     browser.LoginCommand(
       browser.globals.login_service_administrator,
       browser.globals.login_pwd,
@@ -39,30 +56,21 @@ module.exports = {
     browser.end();
   },
   'Can not see Keys-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
 
     browser.waitForElementNotPresent(keysTab);
   },
 
   'Can not see diagnostics-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
 
     browser.waitForElementNotPresent(diagnosticsTab);
   },
 
   'Can not see Settings-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const settingsTab = mainPage.section.settingsTab;
 
     browser.waitForElementNotPresent(settingsTab);
   },
 
   'Can see functions under Clients-tab': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
 
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
@@ -71,18 +79,12 @@ module.exports = {
   },
 
   'Can not add clients': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-
     // Service administrator should not see add client button
     browser.waitForElementVisible(clientsTab);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
   },
-  'Can see client details': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
 
+  'Can see client details': (browser) => {
     // Service administrator should see clients details
     clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
@@ -105,12 +107,7 @@ module.exports = {
       );
   },
 
-  'Should see local groups list, group members and edit buttons': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientLocalGroups = clientInfo.section.localGroups;
-    const localGroupPopup = mainPage.section.localGroupPopup;
+  'Should see local groups list, group members and see edit buttons': (browser) => {
 
     // Service administrator should see local groups list
     mainPage.openClientsTab();

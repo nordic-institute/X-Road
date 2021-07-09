@@ -24,9 +24,24 @@
  * THE SOFTWARE.
  */
 
+let mainPage, clientsTab, searchField, keysTab, diagnosticsTab, tokenName, APIKeysTab, generateKeyButton, settingsTab,
+  clientInfo;
+
 module.exports = {
   tags: ['ss', 'xroad-registration-officer', 'permissions'],
   before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    keysTab = mainPage.section.keysTab;
+    tokenName = mainPage.section.keysTab.elements.tokenName;
+    APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
+    generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+    settingsTab = mainPage.section.settingsTab;
+    clientInfo = mainPage.section.clientInfo;
+    searchField = mainPage.section.clientsTab.elements.searchField;
+
     browser.LoginCommand(
       browser.globals.login_registration_officer,
       browser.globals.login_pwd,
@@ -34,10 +49,6 @@ module.exports = {
   },
 
   'Can add clients': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
-
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
@@ -45,13 +56,6 @@ module.exports = {
   },
 
   'Can see keys and certs': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const keysTab = mainPage.section.keysTab;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
-    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
-
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -63,22 +67,14 @@ module.exports = {
   },
 
   'Can not see diagnostics': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
     browser.waitForElementNotPresent(diagnosticsTab);
   },
 
   'Can not see settings': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const settingsTab = mainPage.section.settingsTab;
-
     browser.waitForElementNotPresent(settingsTab);
   },
-  'Should see client details': (browser) => {
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
 
+  'Should see client details': (browser) => {
     // Registration officer should see clients list
     mainPage.openClientsTab();
 
