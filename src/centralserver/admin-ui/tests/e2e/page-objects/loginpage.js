@@ -24,39 +24,54 @@
  * THE SOFTWARE.
  */
 
-var loginCommands = {
-  clearUsername: function () {
+const { User } = require('../constants/');
+const loginCommands = {
+  clearUsername() {
     this.clearValue('@usernameInput');
     return this;
   },
-  clearPassword: function () {
+  clearPassword() {
     this.clearValue('@passwordInput');
     return this;
   },
-  enterUsername: function (username) {
+  enterUsername(username) {
     this.setValue('@usernameInput', username);
     return this;
   },
-  enterPassword: function (password) {
+  enterPassword(password) {
     this.setValue('@passwordInput', password);
     return this;
   },
-  signin: function () {
+  signIn() {
     this.click('@loginButton');
     return this;
   },
-  signinDefaultUser: function () {
-    this.clearValue('@usernameInput');
-    this.clearValue('@passwordInput');
-    this.setValue('@usernameInput', this.api.globals.login_usr);
-    this.setValue('@passwordInput', this.api.globals.login_pwd);
-    this.click('@loginButton');
+  loginErrorMessageIsShown() {
+    this.assert.visible('@loginError');
     return this;
+  },
+  signInUser(role) {
+    switch (role) {
+      case User.REGISTRATION_OFFICER:
+        return this.api.LoginCommand(
+          this.api.globals.login_registration_officer,
+          this.api.globals.login_pwd,
+        );
+      case User.SECURITY_OFFICER:
+        return this.api.LoginCommand(
+          this.api.globals.login_security_officer,
+          this.api.globals.login_pwd,
+        );
+      case User.ADMIN:
+        return this.api.LoginCommand();
+      default:
+        throw Error('Login role not provided');
+    }
   },
 };
 
 module.exports = {
-  url: 'https://localhost:8080/#/login',
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/login`,
   commands: [loginCommands],
   elements: {
     usernameInput: {
@@ -69,6 +84,10 @@ module.exports = {
     },
     loginButton: {
       selector: '//button[@data-test="login-button"]',
+      locateStrategy: 'xpath',
+    },
+    loginError: {
+      selector: '//div[@data-test="contextual-alert"]',
       locateStrategy: 'xpath',
     },
   },
