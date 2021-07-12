@@ -546,9 +546,13 @@ Note: It is possible that a major version update will require extra changes. Rem
 
 ## 7 Version upgrade from 6.25.0 to 6.26.0
 
+The Security Server Sidecar version 6.26.0 upgrades the base operating system from Ubuntu 18.04 to Ubuntu 20.04. Furthermore, PostgreSQL is updated from version 10 to 12. There are two alternative methods to upgrade the Security Server Sidecar from version 6.25.0 to 6.26.0. Please read carefully and follow the provided steps for each method.
+
+Note! It is strongly recommended to have a backup of the Security Server sidecar and databases to avoid a loss of data in case of a failure in the upgrade process.
+
 ### 7.1 Using a configuration backup
 
-The Security Server Sidecar can be upgraded to a new version by creating a backup of the Security Server configuration on the container with the old version and restoring the backup on a new container running the new version following the steps below:
+The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a backup of the Security Server configuration on the container running the 6.25.0 version and restoring the backup on a the container running the 6.26.0 version by following the steps below:
 
 1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
 
@@ -575,7 +579,7 @@ The Security Server Sidecar can be upgraded to a new version by creating a backu
     supervisorctl start xroad-proxy xroad-opmonitor
     ```
 
-5. Stop the Security Server sidecar container version 6.25.0. and switch over to the sidecar container version 6.26.0, making sure the new Security Server sidecar container address matches the old Security Server sidecar address so that other security servers and information systems can reach the new container.
+5. Stop the Security Server sidecar container running the 6.25.0 version and switch over to the sidecar container running the 6.26.0 version, making sure the new Security Server sidecar container address matches the old Security Server sidecar address so that other security servers and information systems can reach the sidecar container running the 6.26.0 version.
 
 Note! The backup file does not include X-Road admin user account(s) or remote database credentials (stored in `/etc/xroad.properties`) so you need to take care of moving these manually.
 
@@ -591,10 +595,6 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages while the Do
     apt-get update && apt-get full-upgrade
     supervisorctl start all
     ```
-
-Note (1) It is strongly recommended to have a backup of the Security Server sidecar and databases to avoid a loss of data in case of a failure in the upgrade process.
-
-Note (2) It is possible that a major version upgrade will require extra changes. Remember to always check the specific documentation for the version upgrade and follow the provided instructions.
 
 ## 8 Monitoring
 
