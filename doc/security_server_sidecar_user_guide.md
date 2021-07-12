@@ -90,6 +90,8 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the
 
 All of the images can act as a provider or consumer Security Servers, but the slim images have less features available. The images with a country code suffix (e.g., `-fi`) come with a country-specific configuration. The images without a country code suffix come with the X-Road default configuration.
 
+Note! The [2.6.2.1 Security Server Sidecar Slim](#2621-security-server-sidecar-slim) version does not require any connection to the timestamp service since it does not include the message logging feature.
+
 **Feature**                      | **Sidecar** | **Sidecar Slim** |
 ---------------------------------|-------------|------------------|
 Consume services                 | Yes         | Yes              |
@@ -220,7 +222,7 @@ The script `setup_security_server_sidecar.sh` will:
 
 ##### 2.6.2.1 Security Server Sidecar Slim
 
-The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring. To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`.
+The Security Server Sidecar slim is a leaner version of the sidecar who does not include support for message logging and monitoring. To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`.
 
 To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`
 
