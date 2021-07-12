@@ -42,7 +42,7 @@
 * [6 Version update](#6-version-update)
 * [7 Version upgrade from 6.25.0 to 6.26.0](#7-version-upgrade-from-6250-to-6260)
   * [7.1 Using a configuration backup](#71-using-a-configuration-backup)
-  * [7.2 In-place update](#72-in-place-update)
+  * [7.2 In-place upgrade](#72-in-place-upgrade)
 * [8 Monitoring](#8-monitoring)
   * [8.1 Environmental monitoring](#81-environmental-monitoring)
   * [8.2 Operational Monitoring](#82-operational-monitoring)
@@ -587,7 +587,7 @@ The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a 
 
 Note! The backup file does not include X-Road admin user account(s) or remote database credentials (stored in `/etc/xroad.properties`) so you need to take care of moving these manually.
 
-### 8.2 In-place upgrade
+### 7.2 In-place upgrade
 
 Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 to 6.26.0 version without removing the container where the Security Server Sidecar is currently running by following the steps below:
 
