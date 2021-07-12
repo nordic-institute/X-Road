@@ -552,7 +552,7 @@ Note! It is strongly recommended to have a backup of the Security Server sidecar
 
 ### 7.1 Using a configuration backup
 
-The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a backup of the Security Server configuration on the container running the 6.25.0 version and restoring the backup on a the container running the 6.26.0 version by following the steps below:
+The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a backup of the Security Server configuration on the container running the 6.25.0 version and restoring the backup on a new container running the 6.26.0 version by following the steps below:
 
 1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
 
@@ -587,7 +587,7 @@ Note! The backup file does not include X-Road admin user account(s) or remote da
 
 ### 8.2 In-place upgrade
 
-Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 to 6.26.0 version while the Docker container is running by following the steps below:
+Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 to 6.26.0 version without removing the container where the Security Server Sidecar is currently running by following the steps below:
 
 1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
 
@@ -654,6 +654,8 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 
     sudo apt purge postgresql-10
     sudo apt autoremove
     ```
+
+Note! If recovery from an in-place upgrade failure is not possible, restore the backup and start over or try [upgrading using the backup method](#71-using-a-configuration-backup).
 
 ## 8 Monitoring
 
