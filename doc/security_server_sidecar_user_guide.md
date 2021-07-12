@@ -9,6 +9,7 @@
  21.01.2021 | 1.2     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
  10.02.2021 | 1.3     | Modify description of different supported platforms             | Raul Martinez Lopez
  06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
+ 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                            | Raul Martinez Lopez
 
 ## Table of Contents
 
@@ -39,6 +40,9 @@
 * [5 Back up and Restore](#5-back-up-and-restore)
   * [5.1 Automatic Backups](#51-automatic-backups)
 * [6 Version update](#6-version-update)
+* [7 Version upgrade](#7-version-upgrade)
+  * [7.1 Using a configuration backup](#71-using-a-configuration-backup)
+  * [7.2 In-place update](#72-in-place-update)
 * [7 Monitoring](#7-monitoring)
   * [7.1 Environmental monitoring](#71-environmental-monitoring)
   * [7.2 Operational Monitoring](#72-operational-monitoring)
@@ -170,7 +174,7 @@ To install the Security Server Sidecar in a local development or test environmen
 docker run --detach -p <ui port>:4000 -p <http port>:8080 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
 
-Note (1): This command persists all configuration inside the Sidecar container which means that all configuration is lost when the container is destroyed. In production use, the configuration must be persisted outside of the container using volumes and external database. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
+Note! This command persists all configuration inside the Sidecar container which means that all configuration is lost when the container is destroyed. In production use, the configuration must be persisted outside of the container using volumes and external database. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
 
 #### 2.6.2 Installation using setup script
 
@@ -269,7 +273,7 @@ The Security Server Sidecar provides the option to configure an external databas
 4. If the database is in your local machine you have to use the interface IP that uses the host to connect to the Docker containers. You can get this IP by running the command below and checking the gateway property:
 
     ```bash
-    docker inspect <container_name>
+    docker inspect <container name>
     ```
 
 The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL versions 10 and 12).
@@ -283,7 +287,7 @@ To change the database host, you need to:
 1. Run a new command on the Sidecar container:
 
     ```bash
-    docker exec -it <sidecar_container_name> bash
+    docker exec -it <sidecar container name> bash
     ```
 
 2. Inside the container, open the `etc/xroad/db.properties` file in a text editor (you can install any of the command line text editors such as nano, vi...) :
@@ -297,9 +301,9 @@ To change the database host, you need to:
     ```bash
     [...]
     # -db.properties -
-    serverconf.hibernate.connection.url = jdbc:postgresql://<new_host_ip>:5432/serverconf
-    serverconf.hibernate.connection.username = <new_user>
-    serverconf.hibernate.connection.password = <new_password>
+    serverconf.hibernate.connection.url = jdbc:postgresql://<new host ip>:5432/serverconf
+    serverconf.hibernate.connection.username = <new user>
+    serverconf.hibernate.connection.password = <new password>
     [...]
     ```
 
@@ -310,8 +314,8 @@ To change the database host, you need to:
     ```bash
     [...]
     # -xroad.properties -
-    serverconf.database.admin_user = <new_serverconf_admin>
-    serverconf.database.admin_password = -<new_serverconf_password>
+    serverconf.database.admin_user = <new serverconf admin>
+    serverconf.database.admin_password = -<new serverconf password>
     [...]
     ```
 
@@ -424,7 +428,7 @@ Note (4): The Security Server code uniquely identifies the Security Server in an
 To perform the initial configuration, open the address below in a web browser (**reference data: 1.2**):
 
 ```bash
-https://SECURITYSERVER:<ui-port>/
+https://SECURITYSERVER:<ui port>/
 ```
 
 To log in, use the account name and password you set during the installation (**reference data: 1.5; 1.6**).
@@ -539,6 +543,58 @@ To do this, you must:
     ```
 
 Note: It is possible that a major version update will require extra changes. Remember to always check the specific documentation for the version update and follow the provided instructions.
+
+## 7 Version upgrade from 6.25.0 to 6.26.0
+
+### 7.1 Using a configuration backup
+
+The Security Server Sidecar can be upgraded to a new version by creating a backup of the Security Server configuration on the container with the old version and restoring the backup on a new container running the new version following the steps below:
+
+1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
+
+2. Optionally, create a backup of the messagelog and operational monitoring databases and archived log records from the old container.
+
+    ```bash
+    supervisorctl stop xroad-proxy xroad-opmonitor
+    sudo -iu postgres pg_dump -d messagelog -Fc -f <messagelog db dump file>
+    sudo -iu postgres pg_dump -d "op-monitor" -F c -f <op-monitor db dump file>
+    ```
+
+3. Run a new Security Server sidecar image version 6.26.0 and restore the backup inside the container. Note that the internal and admin UI and internal TLS certificates will be overwritten by the ones restored from the backup.
+
+    ```bash
+    sudo -iu xroad /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh -F -f <backup file>
+    ```
+
+4. Optionally, restore the messagelog and operational monitoring databases backup.
+
+    ```bash
+    supervisorctl stop xroad-proxy xroad-opmonitor
+    sudo -iu postgres pg_restore -d messagelog -c <messagelog db dump file>
+    sudo -iu postgres pg_restore -d "op-monitor" -c <op-monitor dump file>
+    supervisorctl start xroad-proxy xroad-opmonitor
+    ```
+
+5. Stop the Security Server sidecar container version 6.25.0. and switch over to the sidecar container version 6.26.0, making sure the new Security Server sidecar container address matches the old Security Server sidecar address so that other security servers and information systems can reach the new container.
+
+Note! The backup file does not include X-Road admin user account(s) or remote database credentials (stored in `/etc/xroad.properties`) so you need to take care of moving these manually.
+
+### 7.2 In-place upgrade
+
+Alternatively, you can manually upgrade the X-Road Sidecar packages while the Docker container is running by following the steps below:
+
+1. Update and upgrade the packages in the Security Server sidecar container:
+
+    ```bash
+    supervisorctl stop all
+    echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
+    apt-get update && apt-get full-upgrade
+    supervisorctl start all
+    ```
+
+Note (1) It is strongly recommended to have a backup of the Security Server sidecar and databases to avoid a loss of data in case of a failure in the upgrade process.
+
+Note (2) It is possible that a major version upgrade will require extra changes. Remember to always check the specific documentation for the version upgrade and follow the provided instructions.
 
 ## 7 Monitoring
 
