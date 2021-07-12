@@ -591,11 +591,11 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 
 
 1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
 
-2. Stop the Security Server services and prevent them from starting automatically at boot.
+2. Stop the Security Server sidecar services and prevent them from starting automatically at boot.
 
     ```bash
-    supervisorctl stop all
-    supervisorctl disable "xroad-*"
+    mv /etc/supervisor/conf.d/xroad.conf /etc/supervisor/conf.d/xroad.conf.disabled
+    supervisorctl update all
     ```
 
 3. Optionally, create a backup of the messagelog and operational monitoring databases and archived log records from the old container.
@@ -605,19 +605,55 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 
     sudo -iu postgres pg_dump -d "op-monitor" -F c -f <op-monitor db dump file>
     ```
 
-4. Update and upgrade the packages in the Security Server sidecar container.
+4. Update and upgrade the packages in the Security Server sidecar container and install update-manager-core if it is not already installed. Make sure the Prompt line in `/etc/update-manager/release-upgrades line` is set to lts.
 
     ```bash
-    supervisorctl stop all
-    echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
-    apt-get update && apt-get full-upgrade
+    sudo apt-get update && sudo apt-get upgrade
+    sudo apt-get install update-manager-core
     ```
 
-5. Optionally, restore the messagelog and operational monitoring databases backup.
+5. Launch the Ubuntu upgrade tool with the command `do-release-upgrade` and follow the on-screen instructions. When the upgrade is finished, reboot when prompted.
+
+6. Upgrade the PostgreSQL database from version 10 to 12. The Ubuntu upgrade process by default creates an empty database instance that should be removed before the old database is upgraded to version 12.
+
+    ```bash
+    sudo pg_dropcluster --stop 12 main
+    sudo pg_upgradecluster --method=upgrade --link 10 main
+    ```
+
+7. Update the new version repository and upgrade the packages.
+
+    ```bash
+    echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
+    sudo apt update && sudo apt full-upgrade
+    ```
+
+8. Start the Security Server services:
+
+    ```bash
+    mv /etc/supervisor/conf.d/xroad.conf.disabled /etc/supervisor/conf.d/xroad.conf
+    supervisorctl update all
+    ```
+
+9. Optionally, restore the messagelog and operational monitoring databases backup.
 
     ```bash
     sudo -iu postgres pg_restore -d messagelog -c <messagelog db dump file>
     sudo -iu postgres pg_restore -d "op-monitor" -c <op-monitor dump file>
+    ```
+
+10. Verify that the postgresql service is running 12-main cluster and the system is responding.
+
+    ```bash
+    supervisorctl status
+    ```
+
+11. Drop the old database and remove obsolete PostgreSQL packages.
+
+    ```bash
+    sudo pg_dropcluster 10 main
+    sudo apt purge postgresql-10
+    sudo apt autoremove
     ```
 
 ## 8 Monitoring
