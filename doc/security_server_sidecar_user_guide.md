@@ -43,16 +43,16 @@
 * [7 Version upgrade](#7-version-upgrade)
   * [7.1 Using a configuration backup](#71-using-a-configuration-backup)
   * [7.2 In-place update](#72-in-place-update)
-* [7 Monitoring](#7-monitoring)
-  * [7.1 Environmental monitoring](#71-environmental-monitoring)
-  * [7.2 Operational Monitoring](#72-operational-monitoring)
-* [8 Message log](#8-message-log)
-  * [8.1 Local storage of message log](#81-local-storage-of-message-log)
-* [9 Deployment options](#9-deployment-options)
-  * [9.1 General](#91-general)
-  * [9.2 Container local database](#92-container-local-database)
-  * [9.3 Remote database](#93-remote-database)
-  * [9.4 High Availability Setup](#94-high-availability-setup)
+* [8 Monitoring](#8-monitoring)
+  * [8.1 Environmental monitoring](#81-environmental-monitoring)
+  * [8.2 Operational Monitoring](#82-operational-monitoring)
+* [9 Message log](#9-message-log)
+  * [9.1 Local storage of message log](#91-local-storage-of-message-log)
+* [10 Deployment options](#10-deployment-options)
+  * [10.1 General](#101-general)
+  * [10.2 Container local database](#102-container-local-database)
+  * [10.3 Remote database](#103-remote-database)
+  * [10.4 High Availability Setup](#104-high-availability-setup)
 
 ## 1 Introduction
 
@@ -579,7 +579,7 @@ The Security Server Sidecar can be upgraded to a new version by creating a backu
 
 Note! The backup file does not include X-Road admin user account(s) or remote database credentials (stored in `/etc/xroad.properties`) so you need to take care of moving these manually.
 
-### 7.2 In-place upgrade
+### 8.2 In-place upgrade
 
 Alternatively, you can manually upgrade the X-Road Sidecar packages while the Docker container is running by following the steps below:
 
@@ -596,11 +596,11 @@ Note (1) It is strongly recommended to have a backup of the Security Server side
 
 Note (2) It is possible that a major version upgrade will require extra changes. Remember to always check the specific documentation for the version upgrade and follow the provided instructions.
 
-## 7 Monitoring
+## 8 Monitoring
 
 Monitoring module is available for the regular version of the X-Road Security Server Sidecar instead of the 'slim' version. More information can be found on [Security Server Sidecar images](#22-x-road-security-server-sidecar-images) section.
 
-### 7.1 Environmental monitoring
+### 8.1 Environmental monitoring
 
 You can use Environmental monitoring for the Security Server Sidecar provider to obtain information about the platform it's running on
 For example, to get the system metrics:
@@ -719,15 +719,15 @@ More information can be found on [Environmental Monitoring documentation](https:
 
 Note (1): The Security Server Sidecar must have available certificates and a subsystem registered on the Central Server.
 
-### 7.2 Operational Monitoring
+### 8.2 Operational Monitoring
 
 You can use operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the Security Servers. The operational monitoring will create a database named "op-monitor" to store the data. You can configure this database internally in the container or externally (check 1.6). More information on how to test it can be found on the [Operational Monitoring documentation](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols).
 
-## 8 Message log
+## 9 Message log
 
 Message log will be available if you use the regular version of the X-Road Security Server Sidecar instead of the 'slim' version.
 
-### 8.1 Local storage of message log
+### 9.1 Local storage of message log
 
 The Security Server Sidecar periodically composes signed (and timestamped) documents from the message log data and archives them in the local file system folder:
 
@@ -744,21 +744,21 @@ From the [docker run command](##2.6-Installation) add the Docker volume paramete
 docker run ... -v (custom-volume-name):/var/lib/xroad/ ...
 ```
 
-## 9 Deployment options
+## 10 Deployment options
 
-### 9.1 General
+### 10.1 General
 
 X-Road Security Server Sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases.
 
 There are also other Security Server images available that can be used for tailoring the deployment to specific needs. These different images can be combined. Any of these Security Server Sidecar images can be used either as a consumer or provider role.
 
-### 9.2 Container local database
+### 10.2 Container local database
 
 The simplest deployment option is to use a single Security Server Sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, if you run the Security Server Sidecar on a production environment, the requirements may be stricter.
 
 ![Security Server with local database](img/ig-ss_local_db.svg)
 
-### 9.3 Remote database
+### 10.3 Remote database
 
 It is possible to use a remote database with X-Road Security Server Sidecar.
 
@@ -766,7 +766,7 @@ X-Road Security Server Sidecar supports a variety of cloud databases including A
 
 ![Security Server with remote database](img/ig-ss_external_db.svg)
 
-### 9.4 High Availability Setup
+### 10.4 High Availability Setup
 
 In production systems, it's rarely acceptable to have a single point of failure. Security Server supports provider side high-availability setup via the so-called internal load balancing mechanism. The setup works so that the same combination of &lt;member&gt;/&lt;member class&gt;/&lt;member code&gt;/&lt;subsystem&gt;/&lt;service code&gt; is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
