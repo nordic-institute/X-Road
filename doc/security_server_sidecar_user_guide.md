@@ -40,7 +40,7 @@
 * [5 Back up and Restore](#5-back-up-and-restore)
   * [5.1 Automatic Backups](#51-automatic-backups)
 * [6 Version update](#6-version-update)
-* [7 Version upgrade](#7-version-upgrade)
+* [7 Version upgrade from 6.25.0 to 6.26.0](#7-version-upgrade-from-6250-to-6260)
   * [7.1 Using a configuration backup](#71-using-a-configuration-backup)
   * [7.2 In-place update](#72-in-place-update)
 * [8 Monitoring](#8-monitoring)
