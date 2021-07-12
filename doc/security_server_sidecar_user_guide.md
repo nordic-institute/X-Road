@@ -564,13 +564,17 @@ The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a 
     sudo -iu postgres pg_dump -d "op-monitor" -F c -f <op-monitor db dump file>
     ```
 
-3. Run a new Security Server sidecar image version 6.26.0 and restore the backup inside the container. Note that the internal and admin UI and internal TLS certificates will be overwritten by the ones restored from the backup.
+3. Stop the Security Server sidecar container running the 6.25.0 version.
+
+4. Run a new Security Server sidecar image version 6.26.0 and switch over to the sidecar container running the 6.26.0 version, making sure the new Security Server sidecar container address matches the old Security Server sidecar address so that other security servers and information systems can reach the sidecar container running the 6.26.0 version.
+
+5. Restore the backup inside the container. Note that the internal and admin UI and internal TLS certificates will be overwritten by the ones restored from the backup.
 
     ```bash
     sudo -iu xroad /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh -F -f <backup file>
     ```
 
-4. Optionally, restore the messagelog and operational monitoring databases backup.
+6. Optionally, restore the messagelog and operational monitoring databases backup.
 
     ```bash
     supervisorctl stop xroad-proxy xroad-opmonitor
@@ -579,21 +583,41 @@ The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a 
     supervisorctl start xroad-proxy xroad-opmonitor
     ```
 
-5. Stop the Security Server sidecar container running the 6.25.0 version and switch over to the sidecar container running the 6.26.0 version, making sure the new Security Server sidecar container address matches the old Security Server sidecar address so that other security servers and information systems can reach the sidecar container running the 6.26.0 version.
-
 Note! The backup file does not include X-Road admin user account(s) or remote database credentials (stored in `/etc/xroad.properties`) so you need to take care of moving these manually.
 
 ### 8.2 In-place upgrade
 
-Alternatively, you can manually upgrade the X-Road Sidecar packages while the Docker container is running by following the steps below:
+Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 to 6.26.0 version while the Docker container is running by following the steps below:
 
-1. Update and upgrade the packages in the Security Server sidecar container:
+1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
+
+2. Stop the Security Server services and prevent them from starting automatically at boot.
+
+    ```bash
+    supervisorctl stop all
+    supervisorctl disable "xroad-*"
+    ```
+
+3. Optionally, create a backup of the messagelog and operational monitoring databases and archived log records from the old container.
+
+    ```bash
+    sudo -iu postgres pg_dump -d messagelog -Fc -f <messagelog db dump file>
+    sudo -iu postgres pg_dump -d "op-monitor" -F c -f <op-monitor db dump file>
+    ```
+
+4. Update and upgrade the packages in the Security Server sidecar container.
 
     ```bash
     supervisorctl stop all
     echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
     apt-get update && apt-get full-upgrade
-    supervisorctl start all
+    ```
+
+5. Optionally, restore the messagelog and operational monitoring databases backup.
+
+    ```bash
+    sudo -iu postgres pg_restore -d messagelog -c <messagelog db dump file>
+    sudo -iu postgres pg_restore -d "op-monitor" -c <op-monitor dump file>
     ```
 
 ## 8 Monitoring
