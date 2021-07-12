@@ -622,7 +622,7 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 
     sudo pg_ctlcluster 12 main start
     ```
 
-7. Update the new version repository and upgrade the packages. Some configuration files need to be updated manually as below.
+7. Update the new version repository and upgrade the packages. Some configuration files need to be updated manually using the commands below.
 
     ```bash
     echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
