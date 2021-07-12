@@ -612,43 +612,42 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 
     sudo apt-get install update-manager-core
     ```
 
-5. Launch the Ubuntu upgrade tool with the command `do-release-upgrade` and follow the on-screen instructions. When the upgrade is finished, reboot when prompted.
+5. Launch the Ubuntu upgrade tool with the command `do-release-upgrade` and follow the on-screen instructions.
 
 6. Upgrade the PostgreSQL database from version 10 to 12. The Ubuntu upgrade process by default creates an empty database instance that should be removed before the old database is upgraded to version 12.
 
     ```bash
     sudo pg_dropcluster --stop 12 main
     sudo pg_upgradecluster --method=upgrade --link 10 main
+    sudo pg_ctlcluster 12 main start
     ```
 
-7. Update the new version repository and upgrade the packages.
+7. Update the new version repository and upgrade the packages. Some configuration files need to be updated manually as below.
 
     ```bash
     echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
+    mv /etc/supervisor/conf.d/xroad.conf.disabled /etc/supervisor/conf.d/xroad.conf
+    sed -i -e "s/postgresql\/10/postgresql\/12/g" /etc/supervisor/conf.d/xroad.conf
+    crudini --set /etc/supervisor/conf.d/xroad.conf program:xroad-proxy command "/usr/share/xroad/bin/xroad-proxy"
+    crudini --set /etc/supervisor/conf.d/xroad.conf program:xroad-proxy user "xroad"
+    sed -i -e "s/10/12/g" /root/entrypoint.sh
     sudo apt update && sudo apt full-upgrade
     ```
 
-8. Start the Security Server services:
-
-    ```bash
-    mv /etc/supervisor/conf.d/xroad.conf.disabled /etc/supervisor/conf.d/xroad.conf
-    supervisorctl update all
-    ```
-
-9. Optionally, restore the messagelog and operational monitoring databases backup.
+8. Optionally, restore the messagelog and operational monitoring databases backup.
 
     ```bash
     sudo -iu postgres pg_restore -d messagelog -c <messagelog db dump file>
     sudo -iu postgres pg_restore -d "op-monitor" -c <op-monitor dump file>
     ```
 
-10. Verify that the postgresql service is running 12-main cluster and the system is responding.
+9. Restart the Security Server sidecar container. Verify that the postgresql service is running 12-main cluster and the system is responding.
 
     ```bash
     supervisorctl status
     ```
 
-11. Drop the old database and remove obsolete PostgreSQL packages.
+10. Drop the old database and remove obsolete PostgreSQL packages.
 
     ```bash
     sudo pg_dropcluster 10 main
