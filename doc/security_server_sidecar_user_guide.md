@@ -585,7 +585,7 @@ The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a 
     supervisorctl start xroad-proxy xroad-opmonitor
     ```
 
-Note! The backup file does not include X-Road admin user account(s) or remote database credentials (stored in `/etc/xroad.properties`) so you need to take care of moving these manually.
+Note! The backup file does not include the X-Road admin user account(s) or remote database credentials stored in `/etc/xroad.properties` so you need to take care of moving these manually.
 
 ### 7.2 In-place upgrade
 
@@ -604,17 +604,21 @@ Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 
 
     ```bash
     sudo -iu postgres pg_dump -d messagelog -Fc -f <messagelog db dump file>
-    sudo -iu postgres pg_dump -d "op-monitor" -F c -f <op-monitor db dump file>
+    sudo -iu postgres pg_dump -d "op-monitor" -Fc -f <op-monitor db dump file>
     ```
 
-4. Update and upgrade the packages in the Security Server sidecar container and install update-manager-core if it is not already installed. Make sure the Prompt line in `/etc/update-manager/release-upgrades line` is set to lts.
+4. Update and upgrade the packages in the Security Server sidecar container and install update-manager-core if it is not already installed. Make sure the Prompt line in `/etc/update-manager/release-upgrades` is set to lts.
 
     ```bash
     sudo apt-get update && sudo apt-get upgrade
     sudo apt-get install update-manager-core
     ```
 
-5. Launch the Ubuntu upgrade tool with the command `do-release-upgrade` and follow the on-screen instructions.
+5. Launch the Ubuntu upgrade tool `do-release-upgrade` and follow the on-screen instructions.
+
+    ```bash
+    sudo do-release-upgrade
+    ```
 
 6. Upgrade the PostgreSQL database from version 10 to 12. The Ubuntu upgrade process by default creates an empty database instance that should be removed before the old database is upgraded to version 12.
 
