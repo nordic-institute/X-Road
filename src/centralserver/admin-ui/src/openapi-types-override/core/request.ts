@@ -72,6 +72,14 @@ async function resolve<T>(options: ApiRequestOptions, resolver?: T | Resolver<T>
   return resolver;
 }
 
+
+// Helper function for reading a cookie value
+function read(name: string) {
+  var match = document.cookie.match(new RegExp('(^|;\\s*)(' + name + ')=([^;]*)'));
+  return (match ? decodeURIComponent(match[3]) : null);
+};
+
+
 async function getHeaders(options: ApiRequestOptions): Promise<Headers> {
   const token = await resolve(options, OpenAPI.TOKEN);
   const username = await resolve(options, OpenAPI.USERNAME);
@@ -86,6 +94,15 @@ async function getHeaders(options: ApiRequestOptions): Promise<Headers> {
 
   if (isStringWithValue(token)) {
     headers.append('Authorization', `Bearer ${token}`);
+  }
+
+  // Read the XSRF-TOKEN value from the cookie...
+  var xsrfValue = read('XSRF-TOKEN');
+
+  // ...and add it to the headers. This is done because backend wants it also the headers.
+  // Library like axios does this automatically, but in this case it has to be done in code.
+  if (xsrfValue) {
+    headers.append('X-XSRF-TOKEN', xsrfValue);
   }
 
   if (isStringWithValue(username) && isStringWithValue(password)) {
