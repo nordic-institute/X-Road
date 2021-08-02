@@ -65,6 +65,10 @@
         nextIcon: 'mdi-plus',
       }"
     >
+      <template #[`item.id`]="{ item }">
+        <div class="request-id">{{ item.id }}</div>
+      </template>
+
       <template #[`item.type`]="{ item }">
         <type-cell :status="item.type" />
       </template>
@@ -223,13 +227,18 @@ export default Vue.extend({
   },
 });
 </script>
-<style lang="scss">
+<style lang="scss" wrapped>
 @import '~styles/tables';
 
 .button-wrap {
   width: 100%;
   display: flex;
   justify-content: flex-end;
+}
+.request-id {
+  color: $XRoad-Purple100;
+  font-weight: 600;
+  font-size: 14px;
 }
 
 .align-fix {
@@ -241,7 +250,7 @@ export default Vue.extend({
 }
 
 .custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12);
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;
 }
 
