@@ -151,19 +151,19 @@ export default Vue.extend({
           text: this.$t('securityServers.serverCode') as string,
           align: 'start',
           value: 'server',
-          class: 'xrd-table-header xrd-table-header-id',
+          class: 'xrd-table-header',
         },
         {
           text: this.$t('securityServers.ownerName') as string,
           align: 'start',
           value: 'validFrom',
-          class: 'xrd-table-header xrd-table-header-name',
+          class: 'xrd-table-header',
         },
         {
           text: this.$t('securityServers.ownerCode') as string,
           align: 'start',
           value: 'validTo',
-          class: 'xrd-table-header xrd-table-header-status',
+          class: 'xrd-table-header',
         },
       ];
     },
