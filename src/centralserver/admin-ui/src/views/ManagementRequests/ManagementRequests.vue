@@ -55,15 +55,6 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
-      :footer-props="{
-        showFirstLastPage: false,
-        showCurrentPage: false,
-        disableItemsPerPage: true,
-        firstIcon: 'mdi-arrow-collapse-left',
-        lastIcon: 'mdi-arrow-collapse-right',
-        prevIcon: 'mdi-minus',
-        nextIcon: 'mdi-plus',
-      }"
     >
       <template #[`item.id`]="{ item }">
         <div class="request-id">{{ item.id }}</div>
@@ -175,52 +166,52 @@ export default Vue.extend({
           text: this.$t('global.id') as string,
           align: 'start',
           value: 'id',
-          class: 'xrd-table-header xrd-table-header-id',
+          class: 'xrd-table-header mr-table-header-id',
         },
         {
           text: this.$t('global.created') as string,
           align: 'start',
           value: 'created',
-          class: 'xrd-table-header xrd-table-header-name',
+          class: 'xrd-table-header mr-table-header-created',
         },
         {
           text: this.$t('global.type') as string,
           align: 'start',
           value: 'type',
-          class: 'xrd-table-header xrd-table-header-status',
+          class: 'xrd-table-header mr-table-header-type',
         },
 
         {
           text: this.$t('managementRequests.serverOwnerName') as string,
           align: 'start',
           value: 'serverOwnerName',
-          class: 'xrd-table-header xrd-table-header-status',
+          class: 'xrd-table-header mr-table-header-owner-name',
         },
         {
           text: this.$t('managementRequests.serverOnwerId') as string,
           align: 'start',
           value: 'serverOnwerId',
-          class: 'xrd-table-header xrd-table-header-status',
+          class: 'xrd-table-header mr-table-header-owner-id',
         },
         {
           text: this.$t('managementRequests.serverCode') as string,
           align: 'start',
           value: 'serverCode',
-          class: 'xrd-table-header xrd-table-header-status',
+          class: 'xrd-table-header mr-table-header-server-code',
         },
 
         {
           text: this.$t('global.status') as string,
           align: 'start',
           value: 'status',
-          class: 'xrd-table-header xrd-table-header-status',
+          class: 'xrd-table-header mr-table-header-status',
         },
 
         {
           text: '',
           value: 'button',
           sortable: false,
-          class: 'xrd-table-header xrd-table-header-button',
+          class: 'xrd-table-header mr-table-header-buttons',
         },
       ];
     },
