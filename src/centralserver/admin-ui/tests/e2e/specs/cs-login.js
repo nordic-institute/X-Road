@@ -23,57 +23,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-const login = (browser) => {
-  const frontPage = browser.page.loginpage();
-
-  frontPage
-    .clearUsername()
-    .clearPassword()
-    .enterUsername(browser.globals.login_usr)
-    .enterPassword(browser.globals.login_pwd)
-    .signin();
-};
-
+let login;
+let members;
+const { User } = require('../constants');
 module.exports = {
   tags: ['cs', 'login'],
-  'Security server failed login': (browser) => {
-    const frontPage = browser.page.loginpage();
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter invalid credentials
-    frontPage
-      .enterUsername(browser.globals.login_wrong_usr)
-      .enterPassword(browser.globals.login_wrong_pwd)
-      .signin();
-
-    // Verify there's an error message
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
-
+  before(browser) {
+    login = browser.page.loginpage();
+    members = browser.page.memberspage();
+  },
+  beforeEach() {
+    login.navigate();
+  },
+  after(browser) {
     browser.end();
   },
-  'Security server passed login': (browser) => {
-    const frontPage = browser.page.loginpage();
-
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    login(browser);
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    // Test refresh
-    browser
-      .refresh()
-      .waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    browser.end();
+  'Wrong username is rejected': (browser) => {
+    login
+      .enterUsername('invalid')
+      .enterPassword(browser.globals.login_pwd)
+      .signIn()
+      .loginErrorMessageIsShown();
+  },
+  'Wrong password is rejected': (browser) => {
+    login
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword('invalid')
+      .signIn()
+      .loginErrorMessageIsShown();
+  },
+  'Admin login succeeds': () => {
+    login.signInUser(User.ADMIN);
+    members.membersViewIsVisible();
+  },
+  'Security-officer login succeeds': () => {
+    login.signInUser(User.SECURITY_OFFICER);
+    members.membersViewIsVisible();
+  },
+  'Registration-officer login succeeds': () => {
+    login.signInUser(User.REGISTRATION_OFFICER);
+    members.membersViewIsVisible();
   },
 };

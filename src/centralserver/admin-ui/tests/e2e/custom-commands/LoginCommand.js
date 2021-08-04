@@ -24,34 +24,22 @@
  * THE SOFTWARE.
  */
 
-let frontPage;
-
-module.exports = {
-  tags: ['ss', 'login'],
-  before: function (browser) {
-    frontPage = browser.page.ssFrontPage();
-
-    frontPage.navigate();
-  },
-
-  afterEach: function (browser) {
-    browser.refresh();
-  },
-  after: function (browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    frontPage
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signin()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    frontPage
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signin()
-      .loginErrorMessageIsShown();
-  },
+module.exports = class LoginCommand {
+  async command(
+    username = this.api.globals.login_usr,
+    password = this.api.globals.login_pwd,
+  ) {
+    const loginpage = this.api.page.loginpage();
+    const memberspage = this.api.page.memberspage();
+    loginpage.navigate();
+    this.api.waitForElementVisible('//*[@id="app"]');
+    loginpage
+      .clearUsername()
+      .clearPassword()
+      .enterUsername(username)
+      .enterPassword(password)
+      .signIn();
+    // Check that correct username is displayed on topbar
+    memberspage.verifyCurrentUser(username);
+  }
 };

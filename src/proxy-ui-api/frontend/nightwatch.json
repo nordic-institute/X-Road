@@ -1,5 +1,5 @@
 {
-  "src_folders" : ["./tests/e2e/specs", "./tests/e2e/utils"],
+  "src_folders" : ["./tests/e2e/specs"],
   "output_folder" : "./tests/e2e/reports",
   "page_objects_path" : "./tests/e2e/pages",
   "custom_assertions_path" : "",
@@ -9,7 +9,7 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
-    
+
     "default": {
       "screenshots" : {
         "enabled" : true,

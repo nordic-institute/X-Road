@@ -1,23 +1,8 @@
-buildscript {
-    ext {
-        // currently duplicate with proxy-ui-api build.gradle, probably should fix
-        openapiGeneratorVersion = '4.2.1'
-        swaggerParserVersion = '2.0.21'
-    }
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
-    id 'org.openapi.generator' version "$openapiGeneratorVersion"
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
     id 'org.niis.xroad.oasvalidatorplugin'
-}
-
-ext {
-    set('springCloudVersion', "Hoxton.SR10")
 }
 
 sourceSets {

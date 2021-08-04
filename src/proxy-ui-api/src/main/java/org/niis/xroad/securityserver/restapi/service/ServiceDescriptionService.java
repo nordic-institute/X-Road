@@ -53,6 +53,7 @@ import org.niis.xroad.securityserver.restapi.util.EndpointHelper;
 import org.niis.xroad.securityserver.restapi.util.SecurityServerFormatUtils;
 import org.niis.xroad.securityserver.restapi.wsdl.InvalidWsdlException;
 import org.niis.xroad.securityserver.restapi.wsdl.OpenApiParser;
+import org.niis.xroad.securityserver.restapi.wsdl.UnsupportedOpenApiVersionException;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlParser;
 import org.niis.xroad.securityserver.restapi.wsdl.WsdlValidator;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -94,9 +95,7 @@ public class ServiceDescriptionService {
 
     public static final int DEFAULT_SERVICE_TIMEOUT = 60;
     public static final String DEFAULT_DISABLED_NOTICE = "Out of order";
-
     public static final String SERVICE_NOT_FOUND_ERROR_MSG = "Service not found from servicedescription with id ";
-
     public static final String CLIENT_WITH_ID = "Client with id";
     public static final String NOT_FOUND = " not found";
 
@@ -319,7 +318,8 @@ public class ServiceDescriptionService {
      * @throws UrlAlreadyExistsException if trying to add duplicate url
      * @throws ServiceCodeAlreadyExistsException if trying to add duplicate ServiceCode
      * @throws MissingParameterException if given ServiceCode is null
-     * @throws InvalidUrlException if url is invalid
+     * @throws InvalidUrlException if url is invalid'
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     @PreAuthorize("hasAuthority('ADD_OPENAPI3')")
     public ServiceDescriptionType addOpenApi3ServiceDescription(ClientId clientId, String url,
@@ -328,7 +328,7 @@ public class ServiceDescriptionService {
             UnhandledWarningsException,
             UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException,
-            MissingParameterException, InvalidUrlException {
+            MissingParameterException, InvalidUrlException, UnsupportedOpenApiVersionException {
 
         if (serviceCode == null) {
             throw new MissingParameterException("Missing ServiceCode");
@@ -543,13 +543,14 @@ public class ServiceDescriptionService {
      * @throws ServiceAlreadyExistsException service code already exists if refreshing wsdl
      * @throws WsdlUrlAlreadyExistsException url is already in use by this client
      * @throws OpenApiParser.ParsingException openapi3 description parsing fails
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     public ServiceDescriptionType refreshServiceDescription(Long id, boolean ignoreWarnings)
             throws WsdlParser.WsdlNotFoundException, InvalidWsdlException,
             ServiceDescriptionNotFoundException, WrongServiceDescriptionTypeException,
             UnhandledWarningsException, InvalidUrlException, ServiceAlreadyExistsException,
             WsdlUrlAlreadyExistsException, OpenApiParser.ParsingException, InterruptedException,
-            InvalidServiceUrlException {
+            InvalidServiceUrlException, UnsupportedOpenApiVersionException {
 
         ServiceDescriptionType serviceDescriptionType = getServiceDescriptiontype(id);
         if (serviceDescriptionType == null) {
@@ -618,11 +619,13 @@ public class ServiceDescriptionService {
      * @throws UnhandledWarningsException if unhandled warnings are found and ignoreWarnings if false
      * @throws OpenApiParser.ParsingException if parsing openapi3 description fails
      * @throws InvalidUrlException if url is invalid
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     @PreAuthorize("hasAuthority('REFRESH_OPENAPI3')")
     private ServiceDescriptionType refreshOpenApi3ServiceDescription(ServiceDescriptionType serviceDescriptionType,
             boolean ignoreWarnings) throws WrongServiceDescriptionTypeException,
-            UnhandledWarningsException, OpenApiParser.ParsingException, InvalidUrlException {
+            UnhandledWarningsException, OpenApiParser.ParsingException, InvalidUrlException,
+            UnsupportedOpenApiVersionException {
 
         if (!serviceDescriptionType.getType().equals(DescriptionType.OPENAPI3)) {
             throw new WrongServiceDescriptionTypeException("Expected description type OPENAPI3");
@@ -712,13 +715,14 @@ public class ServiceDescriptionService {
      * description
      * @throws OpenApiParser.ParsingException if openapi3 parser finds errors in the parsed document
      * @throws InvalidUrlException if url is invalid
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     @PreAuthorize("hasAuthority('EDIT_OPENAPI3')")
     public ServiceDescriptionType updateOpenApi3ServiceDescription(Long id, String url, String restServiceCode,
             String newRestServiceCode, Boolean ignoreWarnings) throws UrlAlreadyExistsException,
             ServiceCodeAlreadyExistsException, UnhandledWarningsException, OpenApiParser.ParsingException,
             WrongServiceDescriptionTypeException, ServiceDescriptionNotFoundException,
-            InvalidUrlException {
+            InvalidUrlException, UnsupportedOpenApiVersionException {
 
         ServiceDescriptionType serviceDescription = getServiceDescriptiontype(id);
 
@@ -767,10 +771,11 @@ public class ServiceDescriptionService {
      * @param serviceDescription
      * @throws OpenApiParser.ParsingException if there are errors in the openapi3 description document
      * @throws UnhandledWarningsException if ignoreWarnings is false and parser returns warnings from openapi
+     * @throws UnsupportedOpenApiVersionException if the openapi version is not supported
      */
     private void parseOpenApi3ToServiceDescription(String url, String serviceCode, boolean ignoreWarnings,
             ServiceDescriptionType serviceDescription) throws
-            OpenApiParser.ParsingException, UnhandledWarningsException {
+            OpenApiParser.ParsingException, UnhandledWarningsException, UnsupportedOpenApiVersionException {
         OpenApiParser.Result result = openApiParser.parse(url);
         if (!ignoreWarnings && result.hasWarnings()) {
             WarningDeviation openapiParserWarnings = new WarningDeviation(WARNING_OPENAPI_VALIDATION_WARNINGS,

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,8 +23,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.serverproxy;
 
-public enum OpenapiDescriptionFiletype {
-    JSON, YAML
-}
+const membersCommands = {
+  membersViewIsVisible() {
+    this.assert.visible('@membersView');
+    return this;
+  },
+  verifyCurrentUser: function (user) {
+    this.api.assert.containsText(this.elements.userMenuButton, user);
+    return this;
+  },
+};
+
+module.exports = {
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/members`,
+  commands: [membersCommands],
+  elements: {
+    membersView: {
+      selector: '//div[@data-test="members-view"]',
+      locateStrategy: 'xpath',
+    },
+    userMenuButton: {
+      selector: '//button[@data-test="username-button"]',
+      locateStrategy: 'xpath',
+    },
+  },
+};
