@@ -168,6 +168,10 @@ subprojects {
         source = fileTree('src/main/java')
     }
 
+    checkstyleTest {
+        source = fileTree('src/test/java')
+    }
+
     jacocoTestReport {
         reports {
             xml.enabled true
