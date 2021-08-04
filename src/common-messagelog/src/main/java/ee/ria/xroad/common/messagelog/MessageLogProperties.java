@@ -134,6 +134,8 @@ public final class MessageLogProperties {
 
     public static final String GPG_HOME_DIRECTORY = PREFIX + "gpg-home-directory";
 
+    public static final String ENCRYPTION_KEYS_DIR = PREFIX + "encryption-keys-dir";
+
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
     public static final int SECOND_COMPONENT = 1;
@@ -322,6 +324,11 @@ public final class MessageLogProperties {
 
     public static Path getGPGHome() {
         return Paths.get(System.getProperty(GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
+    }
+
+    public static Path getEncryptionKeysDir() {
+        return Paths.get(System.getProperty(ENCRYPTION_KEYS_DIR,
+                System.getProperty(GPG_HOME_DIRECTORY, "/etc/xroad/gpghome")));
     }
 
     private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {

@@ -27,19 +27,103 @@
 package ee.ria.xroad.common.messagelog.archive;
 
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
-import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.util.CryptoUtils;
 
-import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 
-class EncryptionConfigProvider {
-    @Getter
-    private final boolean encryptionEnabled = MessageLogProperties.isEncryptionEnabled();
-    private final Path gpgHome = MessageLogProperties.getGPGHome();
+interface EncryptionConfigProvider {
 
-    EncryptionConfig forRecord(MessageRecord record) {
-        return encryptionEnabled ? new EncryptionConfig(true, gpgHome, null) : EncryptionConfig.DISABLED;
+    default boolean isEncryptionEnabled() {
+        return true;
     }
 
+    /**
+     * Given a grouping, returns an encryption configuration that applies to it.
+     */
+    EncryptionConfig forGrouping(Grouping grouping);
+
+    static EncryptionConfigProvider getInstance(GroupingStrategy groupingStrategy) {
+        if (!MessageLogProperties.isEncryptionEnabled()) {
+            return DisabledEncryptionConfigProvider.INSTANCE;
+        } else if (groupingStrategy == GroupingStrategy.NONE) {
+            return new ServerEncryptionConfigProvider();
+        } else {
+            return new MemberEncryptionConfigProvider();
+        }
+    }
+}
+
+enum DisabledEncryptionConfigProvider implements EncryptionConfigProvider {
+    INSTANCE;
+
+    @Override
+    public boolean isEncryptionEnabled() {
+        return false;
+    }
+
+    @Override
+    public EncryptionConfig forGrouping(Grouping grouping) {
+        return EncryptionConfig.DISABLED;
+    }
+}
+
+/**
+ * Encrypts using the security server key
+ */
+class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
+    private final Path gpgHome = MessageLogProperties.getGPGHome();
+    private final EncryptionConfig config = new EncryptionConfig(true, gpgHome, null);
+
+    @Override
+    public EncryptionConfig forGrouping(Grouping grouping) {
+        return config;
+    }
+}
+
+/**
+ * Encrypts using per-member key, or security server key if the
+ * member key is not available
+ */
+@Slf4j
+class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
+
+    private final Path gpgHome = MessageLogProperties.getGPGHome();
+    private final Path keyDir = MessageLogProperties.getEncryptionKeysDir();
+    private final MessageDigest digest;
+
+    MemberEncryptionConfigProvider() {
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Unable to create SHA-256 message digest", e);
+        }
+    }
+
+    public EncryptionConfig forGrouping(Grouping grouping) {
+        if (grouping.getClientId() == null) {
+            throw new IllegalArgumentException("Expected a grouping with a client identifier");
+        }
+
+        log.debug(grouping.getClientId().getMemberId().toShortString());
+        byte[] keyName = digest.digest(
+                grouping.getClientId().getMemberId().toShortString().getBytes(StandardCharsets.UTF_8));
+        digest.reset();
+
+        Path key = keyDir.resolve(CryptoUtils.encodeHex(keyName) + ".pgp");
+
+        if (Files.exists(key)) {
+            log.debug("Using key {} for grouping {}", key, grouping);
+            return new EncryptionConfig(true, gpgHome, Collections.singletonList(key));
+        } else {
+            log.debug("Key {} does not exist, using server key for grouping {}", key, grouping);
+            return new EncryptionConfig(true, gpgHome, null);
+        }
+    }
 }

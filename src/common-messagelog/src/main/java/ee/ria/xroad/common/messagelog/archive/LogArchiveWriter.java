@@ -64,8 +64,7 @@ public class LogArchiveWriter implements Closeable {
     private Path archiveTmp;
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
-    private final EncryptionConfigProvider encryptionConfigProvider = new EncryptionConfigProvider();
-
+    private final EncryptionConfigProvider encryptionConfigProvider;
     private Grouping grouping;
 
     /**
@@ -78,6 +77,7 @@ public class LogArchiveWriter implements Closeable {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
         this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
+        this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }
 
     /**
@@ -124,7 +124,7 @@ public class LogArchiveWriter implements Closeable {
         logArchiveCache = new LogArchiveCache(
                 () -> randomAlphanumeric(RANDOM_LENGTH),
                 linkingInfoBuilder,
-                encryptionConfigProvider.forRecord(logRecord),
+                encryptionConfigProvider.forGrouping(grouping),
                 outputPath);
     }
 
