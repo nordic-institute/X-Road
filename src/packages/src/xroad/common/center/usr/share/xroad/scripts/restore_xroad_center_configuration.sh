@@ -5,7 +5,6 @@
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
 COMMON_RESTORE_SCRIPT=/usr/share/xroad/scripts/_restore_xroad.sh
-THIS_FILE=$(pwd)/$0
 
 usage () {
 cat << EOF
@@ -30,7 +29,7 @@ EOF
 execute_restore () {
   if [ -x ${COMMON_RESTORE_SCRIPT} ] ; then
     local args="-t central -f ${BACKUP_FILENAME}"
-    if [ -n ${FORCE_RESTORE} ] && [[ ${FORCE_RESTORE} = true ]] ; then
+    if [ -n "${FORCE_RESTORE}" ] && [[ ${FORCE_RESTORE} = true ]] ; then
       args="${args} -F"
     else
       args="${args} -i ${INSTANCE_ID}"
@@ -41,7 +40,7 @@ execute_restore () {
         args="${args} -n ${CENTRAL_SERVER_HA_NODE_NAME}"
       fi
     fi
-    if [ -n ${SKIP_DB_RESTORE} ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
+    if [ -n "${SKIP_DB_RESTORE}" ] && [[ ${SKIP_DB_RESTORE} = true ]] ; then
       args="${args} -S"
     fi
     sudo -u root ${COMMON_RESTORE_SCRIPT} ${args} 2>&1
