@@ -5,6 +5,7 @@
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
 COMMON_RESTORE_SCRIPT=/usr/share/xroad/scripts/_restore_xroad.sh
+THIS_FILE=$(pwd)/$0
 
 usage () {
 cat << EOF
