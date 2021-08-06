@@ -192,10 +192,7 @@ public class InternalTlsCertificateService {
             throw new InvalidCertificateException("cannot convert bytes to certificate", e);
         }
         auditDataHelper.putCertificateHash(Iterables.get(x509Certificates, 0));
-        // if it's a single cert, check that the cert matches the internal key
-        if (x509Certificates.size() == 1) {
-            verifyInternalCertImportability(Iterables.get(x509Certificates, 0));
-        }
+        verifyInternalCertImportability(x509Certificates);
         try {
             // create pkcs12 checks the certificate chain validity
             CertUtils.createPkcs12(internalKeyPath, certificateBytes, internalKeystorePath);
@@ -212,17 +209,18 @@ public class InternalTlsCertificateService {
     }
 
     /**
-     * Verifies that the cert matches the internal TLS key
+     * Verifies that the chain matches the internal TLS key
      *
-     * @param newCert the cert to be imported
+     * @param newCertChain the cert chain to be imported
      * @throws KeyNotFoundException if the public key of the cert does not match
      */
-    private void verifyInternalCertImportability(X509Certificate newCert)
+    private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain)
             throws KeyNotFoundException {
         X509Certificate internalCert = getInternalTlsCertificate();
         PublicKey internalPublicKey = internalCert.getPublicKey();
-        PublicKey newCertPublicKey = newCert.getPublicKey();
-        if (!internalPublicKey.equals(newCertPublicKey)) {
+
+        boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
+        if (!found) {
             throw new KeyNotFoundException("The imported cert does not match the internal TLS key");
         }
     }
