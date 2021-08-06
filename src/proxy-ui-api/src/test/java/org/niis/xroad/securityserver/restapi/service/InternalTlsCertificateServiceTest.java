@@ -201,10 +201,21 @@ public class InternalTlsCertificateServiceTest {
         }
     }
 
-    @Test(expected = CertificateAlreadyExistsException.class)
-    public void importDuplicateInternalTlsCertificate() throws Exception {
+    @Test
+    public void importValidInternalTlsCertificateChain() throws Exception {
         prepareTlsImportForTesting();
-        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("internal.crt");
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("validchain.crt");
+        try {
+            internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
+        } catch (Exception e) {
+            fail("should not throw exceptions");
+        }
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void importInvalidInternalTlsCertificateChain() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("invalidchain.crt");
         internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
     }
 
