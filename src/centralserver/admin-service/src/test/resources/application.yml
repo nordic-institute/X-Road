@@ -1,0 +1,9 @@
+---
+logging:
+  config: classpath:centralserver-admin-service-test-logback.xml
+cache:
+  simple:
+    ttl: 5
+
+common-module-endpoints:
+  base-path: /api
