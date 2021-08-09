@@ -130,3 +130,23 @@
 .pointer {
   cursor: pointer;
 }
+
+// Styling used for Vuetify data table header
+.xrd-table-header {
+  border-bottom: 1px solid $XRoad-WarmGrey30 !important;
+}
+
+// Vuetify overrides
+
+// Override Vuetify default table cell height
+.v-data-table > .v-data-table__wrapper > table > tbody > tr > td,
+.v-data-table > .v-data-table__wrapper > table > thead > tr > td,
+.v-data-table > .v-data-table__wrapper > table > tfoot > tr > td {
+  height: 56px;
+  color: $XRoad-Black100;
+}
+
+// Override Vuetify table row hover color
+.v-data-table > .v-data-table__wrapper > table > tbody > tr:hover {
+  background: $XRoad-Purple10 !important;
+}
