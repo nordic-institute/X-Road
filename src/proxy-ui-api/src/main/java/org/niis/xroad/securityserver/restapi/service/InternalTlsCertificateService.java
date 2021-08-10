@@ -105,6 +105,10 @@ public class InternalTlsCertificateService {
         return internalTlsCertificateRepository.getInternalTlsCertificate();
     }
 
+    public Collection<X509Certificate> getInternalTlsCertificateChain() {
+        return internalTlsCertificateRepository.getInternalTlsCertificateChain();
+    }
+
     /**
      * Builds a tar.gz package which contains internal tls certificate as
      * two files:
@@ -215,13 +219,15 @@ public class InternalTlsCertificateService {
      * @throws KeyNotFoundException if the public key of the cert does not match
      */
     private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain)
-            throws KeyNotFoundException {
-        X509Certificate internalCert = getInternalTlsCertificate();
-        PublicKey internalPublicKey = internalCert.getPublicKey();
+            throws KeyNotFoundException, CertificateAlreadyExistsException {
+        Collection<X509Certificate> internalCertChain = getInternalTlsCertificateChain();
+        PublicKey internalPublicKey = Iterables.get(internalCertChain, 0).getPublicKey();
 
         boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
         if (!found) {
             throw new KeyNotFoundException("The imported cert does not match the internal TLS key");
+        } else if (Iterables.elementsEqual(internalCertChain, newCertChain)) {
+            throw new CertificateAlreadyExistsException("The imported cert already exists");
         }
     }
 }
