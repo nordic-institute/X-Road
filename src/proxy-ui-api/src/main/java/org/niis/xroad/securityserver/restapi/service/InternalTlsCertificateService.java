@@ -217,6 +217,7 @@ public class InternalTlsCertificateService {
      *
      * @param newCertChain the cert chain to be imported
      * @throws KeyNotFoundException if the public key of the cert does not match
+     * @throws CertificateAlreadyExistsException if the certificate has already been imported
      */
     private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain)
             throws KeyNotFoundException, CertificateAlreadyExistsException {
