@@ -157,7 +157,15 @@ export default Vue.extend({
   props: {
     iconName: {
       type: String,
-      default: 'box',
+      validator: (prop) =>
+        [
+          'register_client',
+          'register_certificate',
+          'delete_client',
+          'delete_certificate',
+          'change_owner',
+        ].includes(prop),
+      default: '',
     },
     width: {
       type: [Number, String],
