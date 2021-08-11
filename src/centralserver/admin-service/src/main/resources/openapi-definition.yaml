@@ -215,6 +215,8 @@ components:
           maxLength: 255
     ErrorInfo:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
+    CodeWithDetails:
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
