@@ -25,12 +25,13 @@
  */
 package org.niis.xroad.centralserver.restapi.util;
 
-import java.util.Collections;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.Collections;
+@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class TestUtils {
 
     public static final String API_KEY_HEADER_PREFIX = "X-Road-apikey token=";
