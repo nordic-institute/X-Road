@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -128,6 +130,9 @@ public final class MessageLogProperties {
     /** is truncating body in logging allowed **/
     private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
 
+    public static final String ENCRYPTION_ENABLED = PREFIX + "encryption-enabled";
+
+    public static final String GPG_HOME_DIRECTORY = PREFIX + "gpg-home-directory";
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -309,6 +314,14 @@ public final class MessageLogProperties {
 
     public static int getCleanTransactionBatchSize() {
         return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
+    }
+
+    public static boolean isEncryptionEnabled() {
+        return Boolean.getBoolean(ENCRYPTION_ENABLED);
+    }
+
+    public static Path getGPGHome() {
+        return Paths.get(System.getProperty(GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
     }
 
     private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {

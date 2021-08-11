@@ -109,6 +109,7 @@ export enum RouteName {
   ExternalConfiguration = 'external-configuration',
   TrustedAnchors = 'trusted-anchors',
   Login = 'login',
+  Initialisation = 'init',
 }
 
 // A "single source of truth" for permission strings

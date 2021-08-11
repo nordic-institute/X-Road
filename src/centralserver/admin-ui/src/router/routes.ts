@@ -40,7 +40,6 @@ import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 import MemberList from '@/views/Members/MemberList.vue';
 
 import MockView1 from '@/views/MockView1.vue';
-import MockView2 from '@/views/MockView2.vue';
 import MockSubview from '@/views/MockSubview.vue';
 import Members from '@/views/Members/Members.vue';
 import Member from '@/views/Members/Member/Member.vue';
@@ -50,6 +49,8 @@ import PageNavigation from '@/components/layout/PageNavigation.vue';
 import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
+import SecurityServers from '@/views/SecurityServers/SecurityServers.vue';
+import TrustServices from '@/views/TrustServices/TrustServices.vue';
 
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 
@@ -152,7 +153,7 @@ const routes: RouteConfig[] = [
         name: RouteName.SecurityServers,
         path: '/security-servers',
         components: {
-          default: MockView2,
+          default: SecurityServers,
           top: TabsBase,
           alerts: AlertsContainer,
         },
@@ -163,7 +164,18 @@ const routes: RouteConfig[] = [
         name: RouteName.TrustServices,
         path: '/trust-services',
         components: {
-          default: InitialConfiguration, // Mock for demo
+          default: TrustServices,
+          top: TabsBase,
+          alerts: AlertsContainer,
+        },
+        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+      },
+
+      {
+        name: RouteName.Initialisation,
+        path: '/init',
+        components: {
+          default: InitialConfiguration,
           top: TabsBase,
           alerts: AlertsContainer,
         },

@@ -177,6 +177,18 @@
       }
     }
   },
+  "securityServers": {
+    "serverCode": "Server Code",
+    "ownerName": "Owner Name",
+    "ownerClass": "Owner Class",
+    "ownerCode": "Owner Code"
+  },
+  "trustServices": {
+    "certificationServices": "Certification Services",
+    "timestampingServices": "Timestamping Services",
+    "addCertificationService": "Add certification service",
+    "addTimestampingService": "Add timestamping service"
+  },
   "init": {
     "initialConfiguration": "Initial Configuration",
     "csIdentification": "Central Server Identification",

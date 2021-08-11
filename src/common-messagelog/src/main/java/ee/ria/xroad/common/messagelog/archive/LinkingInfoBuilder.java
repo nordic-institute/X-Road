@@ -71,6 +71,7 @@ class LinkingInfoBuilder {
     void reset(DigestEntry digestEntry) {
         this.lastArchive = digestEntry;
         this.lastDigest = lastArchive.getDigest();
+        this.digestsForFiles.clear();
     }
 
     byte[] build() {
