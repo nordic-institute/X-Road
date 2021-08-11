@@ -223,6 +223,7 @@ components:
       in: header
       name: Authorization
       description: X-Road-ApiKey token=<api key>
+      # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   examples:
     ErrorExample:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
