@@ -14,6 +14,7 @@
     <logger name="ee.ria.xroad" level="DEBUG" />
     <logger name="ee.ria.xroad.common.SystemPropertiesLoader" level="OFF" />
     <logger name="org.niis.xroad" level="DEBUG" />
+    <logger name="org.hibernate" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

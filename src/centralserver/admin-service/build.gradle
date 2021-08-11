@@ -47,13 +47,14 @@ openApiGenerate {
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : ""
+        models   : "",
+        generateSupportingFiles: "false",
+        skipDefaultInterface: "true",
+        supportingFiles: 'ApiUtil.java'
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true",
-        generateSupportingFiles: "false",
-        skipDefaultInterface: "true"
+        useTags      : "true"
     ]
 }
 
@@ -111,6 +112,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':common-ui')
     implementation project(':common-rest-api')
+    implementation project(':centralserver:database')
 
 
     implementation('org.springframework.boot:spring-boot-starter-security')

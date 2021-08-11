@@ -40,8 +40,166 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /initialization:
+    post:
+      tags:
+        - initialization
+      summary: Initialize a new central server with the provided initial configuration
+      operationId: initCentralServer
+      description:
+        <h3>Administrator initializes a new Central Server with the provided initial configuration.</h3>
+        <p>
+        This endpoint can also return metadata in the error response. The metadata array can contain error messages about why the init did not succeed.
+        If the pin code is too weak, the error code <code>weak_pin</code> is used and the entries in the metadata array are always ordered in following way
+        <ul>
+        <li>metadata has a list of strings ["pin_min_length", x, "pin_min_char_classes_count", y] where</li>
+        <li>x = the minimum length of the pin code</li>
+        <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
+        </ul>
+        Other possible error code is <code>invalid_init_params</code> which can have any one or more of the following strings in the metadata field
+        <ul>
+        <li>instance_id_not_provided</li>
+        <li>instance_id_exists</li>
+        <li>pin_code_not_provided</li>
+        <li>pin_code_exists</li>
+        </ul>
+        </p>
+        <p>
+        This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
+        If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
+        <ul>
+        <li>server code has already been set for this Central Server (warning code <code>init_servercode_exists</code>)</li>
+        <li>server owner has already been set for this Central Server(warning code <code>init_server_owner_exists</code>)</li>
+        <li>software token has already been initialized in this Central Server(warning code <code>init_software_token_initialized</code>)</li>
+        <li>the provided server id is already in use by another Central Server(warning code <code>init_server_id_exists</code>)</li>
+        </ul>
+        </p>
+        <strong>See the '400' response examples</strong>
+      requestBody:
+        description: initial central server configuration
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InitialServerConf'
+      responses:
+        '201':
+          description: central server initialized
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_invalid_init_params:
+                  $ref: '#/components/examples/ErrorInvalidInitParamsMetadataExample'
+                error_weak_pin:
+                  $ref: '#/components/examples/ErrorWeakPinMetadataExample'
+                warnings_response:
+                  $ref: '#/components/examples/InitializationWarningExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
+  /initialization/status:
+      get:
+        tags:
+          - initialization
+        summary: Check the initialization status of the Central Server
+        operationId: getInitializationStatus
+        description: <h3>Administrator checks the initialization status of the Central Server.</h3>
+        responses:
+          '200':
+            description: initialization status of the Central Server
+            content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/InitializationStatus'
+          '400':
+            description: request was invalid
+          '401':
+            description: authentication credentials are missing
+          '403':
+            description: request has been refused
+          '404':
+            description: resource requested does not exists
+          '406':
+            description: request specified an invalid format
+          '409':
+            description: an existing item already exists
+          '500':
+            description: internal server error
 components:
   schemas:
+    InitializationStatus:
+      type: object
+      description: Initialization status of the Central Server
+      required:
+        - is_anchor_imported
+        - is_server_code_initialized
+        - is_server_owner_initialized
+        - software_token_init_status
+      properties:
+        is_anchor_imported:
+          type: boolean
+          description: whether a configuration anchor has been imported or not
+        is_server_code_initialized:
+          type: boolean
+          description: whether the server code of the security server has been initialized or not
+        is_server_owner_initialized:
+          type: boolean
+          description: whether the server owner of the security server has been initialized or not
+        software_token_init_status:
+          $ref: '#/components/schemas/TokenInitStatus'
+    InitialServerConf:
+      type: object
+      description: central server initial configuration
+      properties:
+        instance_identifier:
+          type: string
+          format: text
+          description: instance identifier
+          example: FI-TEST
+          minLength: 1
+          maxLength: 255
+        central_server_address:
+          type: string
+          format: text
+          description: Central server’s public DNS name or external IP address
+        software_token_pin:
+          type: string
+          format: text
+          description: pin code for the initial software token
+          example: sup3rs3cr3t_p!n
+          minLength: 1
+          maxLength: 255
+        ignore_warnings:
+          type: boolean
+          default: false
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+    TokenInitStatus:
+      type: string
+      format: enum
+      description: whether a token has been initialized or not – if the software token init status
+        cannot be resolved (e.g. signer module is offline), the value is UNKNOWN
+      example: INITIALIZED
+      enum:
+        - INITIALIZED
+        - NOT_INITIALIZED
+        - UNKNOWN
     Version:
       type: object
       description: version information
@@ -55,5 +213,56 @@ components:
           example: Security Server version 6.21.0-SNAPSHOT-20190411git32add470
           minLength: 1
           maxLength: 255
+    ErrorInfo:
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: X-Road-ApiKey token=<api key>
+  examples:
+    ErrorExample:
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
+    ErrorWithMetadataExample:
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorWithMetadataExample'
+    ErrorInvalidInitParamsMetadataExample:
+      summary: Initialization error with metadata
+      value:
+        status: 400
+        error:
+          code: invalid_init_params
+          metadata:
+            - "server_address_not_provided"
+            - "instance_id_not_provided"
+            - "pin_code_exists"
+    ErrorWeakPinMetadataExample:
+      summary: Initialization or pin change error with metadata when the provided pin is too weak
+      value:
+        status: 400
+        error:
+          code: weak_pin
+          metadata:
+            - "pin_min_length"
+            - "8"
+            - "pin_min_char_classes_count"
+            - "3"
+    InitializationWarningExample:
+      summary: All initialization warnings example.
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: init_software_token_initialized
+    ValidationErrorsExample:
+      summary: Validation errors response body example
+      value:
+        status: 400
+        error:
+          code: validation_failure
+          validation_errors:
+            "TBD":
+              - NoTBDTBD
 security:
   - ApiKeyAuth: []

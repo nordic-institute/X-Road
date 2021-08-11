@@ -1,9 +1,28 @@
 ---
+debug: true
 logging:
   config: classpath:centralserver-admin-service-test-logback.xml
+  level:
+    org:
+      springframework:
+        security: DEBUG
+        transaction:
+          interceptor: TRACE
 cache:
   simple:
     ttl: 5
 
 common-module-endpoints:
   base-path: /api
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
+    show-sql: true
+  profiles:
+    active: test
+  main:
+    lazy-initialization: true
+

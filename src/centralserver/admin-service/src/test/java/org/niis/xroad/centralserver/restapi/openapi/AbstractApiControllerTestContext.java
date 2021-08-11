@@ -28,7 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import org.junit.After;
 import org.junit.Before;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.centralserver.restapi.utils.TestUtils;
+import org.niis.xroad.centralserver.restapi.util.TestUtils;
 
 
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
@@ -36,7 +36,6 @@ import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /**

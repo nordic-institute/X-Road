@@ -30,7 +30,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication(scanBasePackages = { "org.niis.xroad.centralserver.restapi", "org.niis.xroad.restapi" })
+@SpringBootApplication(scanBasePackages = {
+        "org.niis.xroad.centralserver.restapi",
+        "org.niis.xroad.restapi",
+        "org.niis.xroad.centralserver.database.entity"
+})
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
