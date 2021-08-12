@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,16 +26,14 @@
  */
 package org.niis.xroad.centralserver.restapi.controller;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.openapi.AbstractApiControllerTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.TestPropertySources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -45,23 +44,19 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTe
     @Autowired
     TestRestTemplate restTemplate;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         addApiKeyAuthorizationHeader(restTemplate);
     }
 
-
     @Test
-    @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void testViewVersionRestEndpoint () {
-        ResponseEntity<Version> response = restTemplate.getForEntity("/api/v1/systemVersion", Version.class);
+    @WithMockUser(authorities = {"VIEW_VERSION"})
+    public void testViewVersionRestEndpoint() {
+        ResponseEntity<Version> response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-
     }
-
-
 
 }

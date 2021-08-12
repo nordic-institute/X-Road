@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -45,10 +46,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     void setUp() {
     }
 
-
     @Test
-    @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void testViewVersionEndpoint () {
+    @WithMockUser(authorities = {"VIEW_VERSION"})
+    public void testViewVersionEndpoint() {
         ResponseEntity<Version> response = systemApiController.systemVersion();
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
@@ -56,7 +56,5 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
 
     }
-
-
 
 }

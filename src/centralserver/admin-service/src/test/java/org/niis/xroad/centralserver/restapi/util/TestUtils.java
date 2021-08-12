@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -31,8 +32,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.util.Collections;
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class TestUtils {
+
+public final class TestUtils {
+
+    private TestUtils() {
+        //Utility class
+    }
 
     public static final String API_KEY_HEADER_PREFIX = "X-Road-apikey token=";
     public static final String API_KEY_TOKEN_WITH_ALL_ROLES = "d56e1ca7-4134-4ed4-8030-5f330bdb602a";
@@ -46,8 +51,8 @@ public class TestUtils {
     /**
      * Add Authentication header for API key with all roles
      *
-     * @param testRestTemplate
-     */
+     * @param testRestTemplate where X-Road authorizationHearder needs to be used
+     * */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate) {
         addApiKeyAuthorizationHeader(testRestTemplate, API_KEY_TOKEN_WITH_ALL_ROLES);
     }
@@ -55,11 +60,11 @@ public class TestUtils {
     /**
      * Add Authentication header for specific API key
      *
-     * @param testRestTemplate
-     * @param apiKeyToken API key token
+     * @param testRestTemplate  where X-Road authorizationHeader needs to be used
+     * @param apiKeyToken      API key token for X-Road authorizationHeader
      */
     public static void addApiKeyAuthorizationHeader(TestRestTemplate testRestTemplate,
-                                                    String apiKeyToken) {
+            String apiKeyToken) {
         testRestTemplate.getRestTemplate().setInterceptors(
                 Collections.singletonList((request, body, execution) -> {
                     request.getHeaders()
