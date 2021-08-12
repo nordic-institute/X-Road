@@ -4,45 +4,6 @@ class Baseline < ActiveRecord::Migration
       # creates the database from scratch
       # only run this migration on an empty (new) database
       up_baseline
-    else
-      up_update_fix_sequences
-    end
-  end
-
-  def up_update_fix_sequences
-    if ActiveRecord::Base.connection.adapter_name == "PostgreSQL"
-      schema = ActiveRecord::Base.connection_config[:schema] || 'centerui'
-
-      suppress_messages do
-        execute <<-SQL
-        CREATE OR REPLACE FUNCTION _fix_sequence_all(schema_name text) RETURNS void
-            LANGUAGE plpgsql
-            AS $$
-        DECLARE
-          s INTEGER;
-          t INTEGER;
-          x RECORD;
-        BEGIN
-          FOR x IN SELECT PGT.schemaname,S.relname sname ,C.attname, T.relname tname
-           FROM pg_class AS S, pg_depend AS D, pg_class AS T, pg_attribute AS C, pg_tables AS PGT
-           WHERE S.relkind = 'S' AND S.oid = D.objid AND D.refobjid = T.oid AND D.refobjid = C.attrelid AND D.refobjsubid = C.attnum AND T.relname = PGT.tablename AND PGT.schemaname = schema_name
-           LOOP
-             -- get max used value from table
-             EXECUTE format('select COALESCE(max(%I),0) from %I.%I', x.attname, x.schemaname, x.tname) into t;
-               LOOP
-                 -- roll sequence till it is bigger than used value
-                 EXECUTE format('select nextval(''%I.%I'')', x.schemaname, x.sname) into s;
-                 IF s>t THEN
-                   exit;
-                 END IF;
-               END LOOP;
-           END LOOP;
-        END;
-        $$;
-
-        DROP FUNCTION IF EXISTS _fix_sequence_all();
-        SQL
-      end
     end
   end
 
@@ -356,31 +317,6 @@ class Baseline < ActiveRecord::Migration
           field_key text,
           field_value text
         );
-
-        CREATE FUNCTION _fix_sequence_all(schema_name text) RETURNS void
-            LANGUAGE plpgsql
-            AS $$
-        DECLARE
-          s INTEGER;
-          t INTEGER;
-          x RECORD;
-        BEGIN
-          FOR x IN SELECT PGT.schemaname,S.relname sname ,C.attname, T.relname tname
-           FROM pg_class AS S, pg_depend AS D, pg_class AS T, pg_attribute AS C, pg_tables AS PGT
-           WHERE S.relkind = 'S' AND S.oid = D.objid AND D.refobjid = T.oid AND D.refobjid = C.attrelid AND D.refobjsubid = C.attnum AND T.relname = PGT.tablename AND PGT.schemaname = schema_name
-           LOOP
-             -- get max used value from table
-             EXECUTE format('select COALESCE(max(%I),0) from %I.%I', x.attname, x.schemaname, x.tname) into t;
-               LOOP
-                 -- roll sequence till it is bigger than used value
-                 EXECUTE format('select nextval(''%I.%I'')', x.schemaname, x.sname) into s;
-                 IF s>t THEN
-                   exit;
-                 END IF;
-               END LOOP;
-           END LOOP;
-        END;
-        $$;
 
         CREATE FUNCTION add_history_rows() RETURNS trigger
             LANGUAGE plpgsql
