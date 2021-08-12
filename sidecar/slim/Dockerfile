@@ -62,7 +62,9 @@ COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
 RUN rm -f /etc/xroad/db.properties \
   && rm -f /etc/xroad.properties \
-  && rm -f /etc/xroad/ssl/*.{crt,key} \
+  && rm -f /etc/xroad/ssl/*.crt \
+  && rm -f /etc/xroad/ssl/*.key \
+  && rm -f /etc/xroad/ssl/*.p12 \
   && sed -E -i 's/-Xmx[0-9]+./-XX:MaxRAMPercentage=25.0/' /etc/xroad/services/proxy.conf \
   && mkdir -p /root/etc/xroad /root/backup \
   && cp -a /etc/xroad/* /root/etc/xroad/ \
