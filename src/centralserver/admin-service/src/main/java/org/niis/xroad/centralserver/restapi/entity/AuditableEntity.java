@@ -24,37 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.controller;
+package org.niis.xroad.centralserver.restapi.entity;
 
-import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
-import org.niis.xroad.centralserver.openapi.model.Version;
-import org.niis.xroad.centralserver.restapi.openapi.AbstractApiControllerTestContext;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.PreUpdate;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.util.Date;
 
-public class SystemApiControllerTest extends AbstractApiControllerTestContext {
+@MappedSuperclass
+public abstract class AuditableEntity {
 
-    @Autowired
-    SystemApiController systemApiController;
+    private Date createdAt = new Date();
+    private Date updatedAt = createdAt;
 
-    @BeforeEach
-    void setUp() {
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    public Date getCreatedAt() {
+        return this.createdAt;
     }
 
-    @Test
-    @WithMockUser(authorities = {"VIEW_VERSION"})
-    public void testViewVersionEndpoint() {
-        ResponseEntity<Version> response = systemApiController.systemVersion();
-        assertNotNull(response, "System Version response  must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
-        assertNotNull(response.getBody());
-        assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
     }
 
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_at", nullable = false)
+    public Date getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = new Date();
+    }
 }

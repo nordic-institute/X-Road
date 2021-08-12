@@ -8,8 +8,6 @@ apply plugin: 'com.github.hierynomus.license'
 
 archivesBaseName ='centralserver-admin-service'
 
-sourceCompatibility = 11
-targetCompatibility = 11
 
 configurations {
     dist {
@@ -112,8 +110,6 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':common-ui')
     implementation project(':common-rest-api')
-    implementation project(':centralserver:database')
-
 
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')

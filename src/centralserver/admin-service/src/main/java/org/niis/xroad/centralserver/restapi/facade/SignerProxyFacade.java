@@ -29,12 +29,18 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.commonui.SignerProxy.GeneratedCertRequestInfo;
 import ee.ria.xroad.signer.protocol.SignerClient;
-import ee.ria.xroad.signer.protocol.dto.*;
+import ee.ria.xroad.signer.protocol.dto.CertificateInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
-import java.util.Date;
-import java.util.List;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * SignerProxy facade.

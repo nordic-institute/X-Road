@@ -5,9 +5,11 @@ logging:
   level:
     org:
       springframework:
+        boot:
+          autoconfigure: INFO
         security: DEBUG
         transaction:
-          interceptor: TRACE
+          interceptor: DEBUG
 cache:
   simple:
     ttl: 5

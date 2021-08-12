@@ -1,15 +1,39 @@
+/**
+ * The MIT License
+ *
+ * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+ * Copyright (c) 2018 Estonian Information System Authority (RIA),
+ * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+ * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 package org.niis.xroad.centralserver.restapi.controller;
 
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.openapi.AbstractApiControllerTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
-import org.springframework.test.context.TestPropertySources;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -20,23 +44,19 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTe
     @Autowired
     TestRestTemplate restTemplate;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
         addApiKeyAuthorizationHeader(restTemplate);
     }
 
-
     @Test
-    @WithMockUser(authorities = { "VIEW_VERSION" })
-    public void testViewVersionRestEndpoint () {
-        ResponseEntity<Version> response = restTemplate.getForEntity("/api/v1/systemVersion", Version.class);
+    @WithMockUser(authorities = {"VIEW_VERSION"})
+    public void testViewVersionRestEndpoint() {
+        ResponseEntity<Version> response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-
     }
-
-
 
 }

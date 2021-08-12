@@ -143,6 +143,8 @@ paths:
             description: internal server error
 components:
   schemas:
+    CodeWithDetails:
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     InitializationStatus:
       type: object
       description: Initialization status of the Central Server

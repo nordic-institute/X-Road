@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<entity-mappings xmlns="http://xmlns.jcp.org/xml/ns/persistence/orm"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence/orm http://xmlns.jcp.org/xml/ns/persistence/orm_2_2.xsd"
+                 version="2.2">
+
+    <entity class="ee.ria.xroad.common.identifier.XRoadId" access="FIELD" metadata-complete="true">
+        <table name="identifier"/>
+        <inheritance strategy="SINGLE_TABLE"/>
+        <discriminator-column name="type" discriminator-type="STRING"/>
+        <attributes>
+            <id name="id">
+                <generated-value generator="identifier_id_seq"/>
+                <sequence-generator name="identifier_id_seq" sequence-name="identifier_id_seq"/>
+            </id>
+            <basic name="xRoadInstance">
+                <column name="xroad_instance"/>
+            </basic>
+            <basic name="type">
+                <column name="object_type"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="ee.ria.xroad.common.identifier.ClientId" access="FIELD" metadata-complete="true">
+        <discriminator-value>ClientId</discriminator-value>
+        <attributes>
+            <basic name="memberClass">
+                <column name="member_class"/>
+            </basic>
+            <basic name="memberCode">
+                <column name="member_code"/>
+            </basic>
+            <basic name="subsystemCode">
+                <column name="subsystem_code"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="ee.ria.xroad.common.identifier.SecurityServerId" access="FIELD" metadata-complete="true">
+        <discriminator-value>SecurityServerId</discriminator-value>
+        <attributes>
+            <basic name="memberClass">
+                <column name="member_class"/>
+            </basic>
+            <basic name="memberCode">
+                <column name="member_code"/>
+            </basic>
+            <basic name="serverCode">
+                <column name="server_code"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="ee.ria.xroad.common.identifier.ServiceId" access="FIELD" metadata-complete="true">
+        <discriminator-value>ServiceId</discriminator-value>
+        <attributes>
+            <basic name="memberClass">
+                <column name="member_class"/>
+            </basic>
+            <basic name="memberCode">
+                <column name="member_code"/>
+            </basic>
+            <basic name="subsystemCode">
+                <column name="subsystem_code"/>
+            </basic>
+            <basic name="serviceCode">
+                <column name="service_code"/>
+            </basic>
+            <basic name="serviceVersion">
+                <column name="service_version"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="org.niis.xroad.restapi.domain.PersistentApiKeyType" access="FIELD" metadata-complete="true">
+        <table name="apikey"/>
+        <attributes>
+            <id name="id">
+                <generated-value/>
+            </id>
+            <basic name="encodedKey"/>
+            <element-collection name="roles" fetch="EAGER">
+                <column name="role" nullable="false"/>
+                <enumerated>STRING</enumerated>
+                <collection-table name="apikey_roles">
+                    <join-column name="apikey_id" nullable="false"/>
+                </collection-table>
+            </element-collection>
+        </attributes>
+    </entity>
+
+</entity-mappings>
