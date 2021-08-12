@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <g :fill="fillColor">
+  <g>
     <path
       fill-rule="evenodd"
       clip-rule="evenodd"

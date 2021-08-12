@@ -25,7 +25,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <g :fill="fillColor">
+  <g>
     <rect y="5" width="24" height="2" rx="1" />
     <rect y="11" width="24" height="2" rx="1" />
     <rect y="17" width="24" height="2" rx="1" />
