@@ -96,7 +96,11 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
 
-    sourceCompatibility = 1.8
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(11)
+        }
+    }
 
     tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
