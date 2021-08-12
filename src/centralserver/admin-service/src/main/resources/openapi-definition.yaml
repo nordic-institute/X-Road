@@ -1,4 +1,3 @@
----
 openapi: 3.0.0
 info:
   description: X-Road Central Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.

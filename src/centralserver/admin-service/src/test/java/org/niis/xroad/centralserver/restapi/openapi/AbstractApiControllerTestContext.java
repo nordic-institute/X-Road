@@ -53,8 +53,10 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
 
     @MockBean
     public ApiKeyService apiKeyService;
+
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
+
     /**
      * Add mock servlet request attributes to the RequestContextHolder. This is because testing a controller method
      * by directly calling it is not actually considered a real request. Some tests will need a 'real' request

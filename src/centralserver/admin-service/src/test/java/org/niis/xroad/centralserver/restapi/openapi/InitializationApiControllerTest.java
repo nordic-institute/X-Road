@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,29 +26,30 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.Before;
+import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class InitializationApiControllerTest extends AbstractApiControllerTestContext {
+@WithMockUser(authorities = { "INIT_CONFIG" })
+public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
     InitializationApiController initializationApiController;
 
-    @BeforeEach
-    void setUp() {
+    @Before
+    public void setUp() {
     }
 
     @Test
-    void getInitializationStatus() {
+    public void getInitializationStatus() {
         ResponseEntity<InitializationStatus> response = initializationApiController.getInitializationStatus();
         assertNotNull(response, "status should be always available");
         assertEquals(200, response.getStatusCodeValue());
@@ -56,9 +58,8 @@ class InitializationApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    void initCentralServer() {
+    public void initCentralServer() {
         InitialServerConf testConf = new InitialServerConf();
-
-        ResponseEntity<Void> response = initializationApiController.initCentralServer(testConf);
+        initializationApiController.initCentralServer(testConf);
     }
 }
