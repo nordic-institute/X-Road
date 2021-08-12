@@ -73,22 +73,4 @@
             </basic>
         </attributes>
     </entity>
-
-    <entity class="org.niis.xroad.restapi.domain.PersistentApiKeyType" access="FIELD" metadata-complete="true">
-        <table name="apikey"/>
-        <attributes>
-            <id name="id">
-                <generated-value/>
-            </id>
-            <basic name="encodedKey"/>
-            <element-collection name="roles" fetch="EAGER">
-                <column name="role" nullable="false"/>
-                <enumerated>STRING</enumerated>
-                <collection-table name="apikey_roles">
-                    <join-column name="apikey_id" nullable="false"/>
-                </collection-table>
-            </element-collection>
-        </attributes>
-    </entity>
-
 </entity-mappings>
