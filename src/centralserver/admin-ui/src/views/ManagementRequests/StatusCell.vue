@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,105 +24,77 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <v-icon v-if="status === 'ok'" :small="true" color="#0CC177"
-      >icon-Checked</v-icon
-    >
-    <v-icon v-else-if="status === 'saved'" x-large color="#211E1E"
-      >icon-Checkmark</v-icon
-    >
-    <v-icon v-else-if="status === 'progress-register'" small color="#0CC177"
-      >icon-In-progress</v-icon
-    >
-    <v-icon v-else-if="status === 'progress-delete'" small color="#211E1E"
-      >icon-Cancel</v-icon
-    >
-    <v-icon v-else-if="status === 'error'" small color="#EC4040"
-      >icon-Error</v-icon
-    >
-    <v-icon v-else-if="status === 'pending'" small color="#F5A623"
-      >icon-Error</v-icon
-    >
+  <div class="status-wrapper">
+    <xrd-status-icon :status="statusIconType" />
+    <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
 </template>
 
 <script lang="ts">
-/**
- * General purpose component for status icon with color
- */
 import Vue from 'vue';
 
 export default Vue.extend({
-  name: 'StatusIcon',
   props: {
     status: {
       type: String,
-      validator: (val) =>
-        [
-          '',
-          'ok',
-          'saved',
-          'progress-register',
-          'progress-delete',
-          'error',
-          'pending',
-        ].includes(val),
+      default: undefined,
+    },
+  },
+
+  computed: {
+    statusIconType(): string {
+      if (!this.status) {
+        return '';
+      }
+      switch (this.status) {
+        case 'REJECTED':
+          return 'progress-delete';
+        case 'APPROVED':
+          return 'ok';
+        case 'PENDING':
+          return 'pending';
+        default:
+          return 'error';
+      }
+    },
+  },
+
+  methods: {
+    getStatusText(status: string): string {
+      if (!status) {
+        return '';
+      }
+      switch (status) {
+        case 'REJECTED':
+          return this.$t('managementRequests.rejected') as string;
+        case 'APPROVED':
+          return this.$t('managementRequests.approved') as string;
+        case 'PENDING':
+          return this.$t('managementRequests.pending') as string;
+        default:
+          return '';
+      }
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
 .status-wrapper {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
 
-%status-icon-shared {
-  height: 8px;
-  width: 8px;
-  min-height: 8px;
-  min-width: 8px;
-  border-radius: 50%;
-  margin-right: 16px;
-}
-
-%status-ring-icon-shared {
-  height: 10px;
-  width: 10px;
-  border-radius: 50%;
-  margin-right: 16px;
-  border: 2px solid;
-}
-
-.red {
-  @extend %status-icon-shared;
-  background: #d0021b;
-}
-
-.red-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #d0021b;
-}
-
-.green {
-  @extend %status-icon-shared;
-  background: #7ed321;
-}
-
-.green-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #7ed321;
-}
-
-.orange {
-  @extend %status-icon-shared;
-  border-color: #f5a623;
-}
-
-.orange-ring {
-  @extend %status-ring-icon-shared;
-  border-color: #f5a623;
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  color: $XRoad-WarmGrey100;
+  margin-left: 2px;
+  text-transform: uppercase;
 }
 </style>

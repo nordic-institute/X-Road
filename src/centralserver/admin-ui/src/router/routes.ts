@@ -59,6 +59,7 @@ import GlobalConfigurationTabs from '@/views/GlobalConfiguration/GlobalConfigura
 import ExternalConfiguration from '@/views/GlobalConfiguration/ExternalConfiguration/ExternalConfiguration.vue';
 import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfiguration/InternalConfiguration.vue';
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
+import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -185,7 +186,7 @@ const routes: RouteConfig[] = [
         name: RouteName.ManagementRequests,
         path: '/management-requests',
         components: {
-          default: MockView1,
+          default: ManagementRequests,
           top: TabsBase,
           alerts: AlertsContainer,
         },
