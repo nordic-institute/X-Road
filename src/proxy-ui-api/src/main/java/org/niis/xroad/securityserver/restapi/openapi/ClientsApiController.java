@@ -105,6 +105,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.validation.Valid;
+import javax.validation.constraints.Size;
+
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -177,13 +180,12 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-            Boolean onlyLocalClientsWithValidLocalSignCert, Boolean excludeLocal) {
+            Boolean localValidSignCert, Boolean excludeLocal, Boolean validSignCertExists) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        Boolean hasValidLocalSignCert = null; // not used yet
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
-                onlyLocalClientsWithValidLocalSignCert, excludeLocal, hasValidLocalSignCert));
+                localValidSignCert, excludeLocal, validSignCertExists));
         Collections.sort(clients, clientSortingComparator);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
