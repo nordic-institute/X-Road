@@ -49,6 +49,7 @@ import static org.niis.xroad.restapi.auth.PamAuthenticationProvider.KEY_MANAGEME
 /**
  * Development time authentication provider, which uses hard coded users
  */
+@SuppressWarnings("deprecation")
 @Configuration
 @Profile("devtools-test-auth")
 public class DevelopmentUserDetailsAuthenticationConfiguration {
@@ -62,7 +63,7 @@ public class DevelopmentUserDetailsAuthenticationConfiguration {
      * Create a development-time in-memory authentication provider
      * Label with names LOCALHOST_PAM_AUTHENTICATION_BEAN and REGULAR_PAM_AUTHENTICATION_BEAN
      * so that proxy-ui-api injections are satisfied
-     * @return
+     * @return authenticationProvider
      */
     @Bean({FORM_LOGIN_PAM_AUTHENTICATION, KEY_MANAGEMENT_PAM_AUTHENTICATION})
     public AuthenticationProvider createDevelopmentInMemoryProvider() {
@@ -73,6 +74,7 @@ public class DevelopmentUserDetailsAuthenticationConfiguration {
 
     private UserDetailsService userDetailsService() {
         Collection<UserDetails> users = new ArrayList<>();
+
         users.add(User.withDefaultPasswordEncoder()
                 .username("security-officer")
                 .password(PASSWORD)

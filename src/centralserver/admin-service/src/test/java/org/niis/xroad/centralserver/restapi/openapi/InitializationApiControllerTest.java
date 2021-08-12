@@ -60,6 +60,8 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void initCentralServer() {
         InitialServerConf testConf = new InitialServerConf();
-        initializationApiController.initCentralServer(testConf);
+        ResponseEntity<Void> response = initializationApiController.initCentralServer(testConf);
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCodeValue());
     }
 }
