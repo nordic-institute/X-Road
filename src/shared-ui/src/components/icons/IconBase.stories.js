@@ -135,9 +135,9 @@ const Template = (args, { argTypes }) => ({
   <icon-base
     width="16"
     height="16"
-    icon-name="write"
+    icon-name="small 16x16"
     v-bind="$props"
-  ><icon-certificate /></icon-base>
+  ><XrdIconFolderOutline /></icon-base>
 
   <v-icon>icon-Edit</v-icon>
   <!-- or you can use the default, which is 18 -->
@@ -160,25 +160,6 @@ const Template = (args, { argTypes }) => ({
   <icon-svg icon-name="removeCertificate"></icon-svg>
   <icon-svg icon-name="changeOwner"></icon-svg>
   <br><br>
-  <icon-base icon-name="folder" v-bind="$props"><xrd-icon-folder /></icon-base>
-  <icon-base
-
-  icon-name="write"
-  v-bind="$props"
-><icon-certificate /></icon-base>
-  <icon-base icon-name="folder outline" v-bind="$props"><xrd-icon-folder-outline /></icon-base>
-  x x 
-  <icon-base icon-name="calendar" v-bind="$props"><icon-calendar /></icon-base>
-
-  <icon-base icon-name="declined" v-bind="$props"><IconDeclined /></icon-base>
-  <icon-base icon-name="key" v-bind="$props"><IconKey /></icon-base>
-  <icon-base icon-name="key 2" v-bind="$props"><icon-key /></icon-base>
-  <icon-base icon-name="key 3" v-bind="$props"><icon-key /></icon-base>
-  <icon-base
-
-  icon-name="write"
-  v-bind="$props"
-><icon-certificate /></icon-base>
 
 <br>SVG icons<br>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconAdd /></icon-base>
@@ -212,6 +193,7 @@ const Template = (args, { argTypes }) => ({
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconTooltip /></icon-base>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconUpload /></icon-base>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconWarning /></icon-base>
+
 <br>Multicolor SVG icons<br>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconChangeOwner /></icon-base>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconAddUser /></icon-base>
