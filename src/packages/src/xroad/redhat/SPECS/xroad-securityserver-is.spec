@@ -36,3 +36,8 @@ cp -p %{srcdir}/default-configuration/override-securityserver-is.ini %{buildroot
 %upgrade_check
 
 %post
+
+%postun
+if [ $1 -gt 0 ] ; then
+    %systemd_postun_with_restart xroad-addon-messagelog.service
+fi
