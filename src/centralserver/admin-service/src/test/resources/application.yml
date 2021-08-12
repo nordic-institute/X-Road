@@ -5,9 +5,11 @@ logging:
   level:
     org:
       springframework:
+        boot:
+          autoconfigure: INFO
         security: DEBUG
         transaction:
-          interceptor: TRACE
+          interceptor: DEBUG
 cache:
   simple:
     ttl: 5
@@ -17,6 +19,10 @@ common-module-endpoints:
 
 spring:
   jpa:
+    open-in-view: false
+    mapping-resources:
+      - apikey.hbm.xml
+      - META-INF/orm.xml
     hibernate:
       ddl-auto: create
     generate-ddl: true

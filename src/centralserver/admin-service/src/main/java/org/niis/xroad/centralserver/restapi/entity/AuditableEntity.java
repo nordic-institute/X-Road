@@ -24,18 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi;
+package org.niis.xroad.centralserver.restapi.entity;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import javax.persistence.Column;
+import javax.persistence.MappedSuperclass;
+import javax.persistence.PreUpdate;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-@SpringBootApplication(scanBasePackages = {
-        "org.niis.xroad.centralserver.restapi",
-        "org.niis.xroad.restapi"
-})
-public class Main {
-    public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+import java.util.Date;
+
+@MappedSuperclass
+public abstract class AuditableEntity {
+
+    private Date createdAt = new Date();
+    private Date updatedAt = createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at", nullable = false)
+    public Date getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_at", nullable = false)
+    public Date getUpdatedAt() {
+        return this.updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        this.updatedAt = new Date();
     }
 }
