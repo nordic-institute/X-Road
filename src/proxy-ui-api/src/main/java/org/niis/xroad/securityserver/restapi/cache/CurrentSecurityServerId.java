@@ -30,6 +30,9 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * Cached {@link SecurityServerId} of this SS. See {@link CurrentSecurityServerConfig}
+ */
 @Data
 @AllArgsConstructor
 public class CurrentSecurityServerId {

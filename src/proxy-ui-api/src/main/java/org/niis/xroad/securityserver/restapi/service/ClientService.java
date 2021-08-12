@@ -381,13 +381,18 @@ public class ClientService {
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
-     * @param localValidSignCert include only local clients that have valid sign cert
+     * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
+     *                              false = include only clients who don't have a local valid sign cert
+     *                              null = don't care whether client has a local valid sign cert
+     *                              NOTE: parameter does not have an effect on whether local or global clients are
+     *                              searched (unlike {@code onlyLocalClientsWithValidLocalSignCert}, which limits
+     *                              to local clients only
      * @return ClientType list
      */
     public List<ClientType> findLocalClients(String name, String instance, String propertyClass, String memberCode,
-            String subsystemCode, boolean showMembers, boolean localValidSignCert) {
+            String subsystemCode, boolean showMembers, Boolean hasValidLocalSignCert) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode, localValidSignCert);
+                memberCode, subsystemCode, hasValidLocalSignCert);
 
         List<ClientType> allLocalClients = getAllLocalClients();
 
@@ -406,12 +411,18 @@ public class ClientService {
      * @param memberCode
      * @param subsystemCode
      * @param showMembers include members (without susbsystemCode) in the results
+     * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
+     *                              false = include only clients who don't have a local valid sign cert
+     *                              null = don't care whether client has a local valid sign cert
+     *                              NOTE: parameter does not have an effect on whether local or global clients are
+     *                              searched (unlike {@code onlyLocalClientsWithValidLocalSignCert}, which limits
+     *                              to local clients only
      * @return ClientType list
      */
     public List<ClientType> findGlobalClients(String name, String instance, String propertyClass, String memberCode,
-            String subsystemCode, boolean showMembers) {
+            String subsystemCode, boolean showMembers, Boolean hasValidLocalSignCert) {
         Predicate<ClientType> matchingSearchTerms = buildClientSearchPredicate(name, instance, propertyClass,
-                memberCode, subsystemCode, false);
+                memberCode, subsystemCode, hasValidLocalSignCert);
         return getAllGlobalClients().stream()
                 .filter(matchingSearchTerms)
                 .filter(clientType -> showMembers || clientType.getIdentifier().getSubsystemCode() != null)
@@ -444,22 +455,45 @@ public class ClientService {
      * @param subsystemCode
      * @param showMembers include members (without subsystemCode) in the results
      * @param internalSearch search only in the local clients
-     * @param localValidSignCert include only local clients that have valid sign cert
+     * @param onlyLocalClientsWithValidLocalSignCert include only local clients that have valid local sign cert
+     *                                               NOTE: for searching based on local sign cert existence, without
+     *                                               limiting to local clients, see {@code hasValidLocalSignCert}
      * @param excludeLocal list only clients that are missing from this security server
+     * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
+     *                              false = include only clients who don't have a local valid sign cert
+     *                              null = don't care whether client has a local valid sign cert
+     *                              NOTE: parameter does not have an effect on whether local or global clients are
+     *                              searched (unlike {@code onlyLocalClientsWithValidLocalSignCert}, which limits
+     *                              to local clients only
      * @return ClientType list
      */
     public List<ClientType> findClients(String name, String instance, String memberClass, String memberCode,
             String subsystemCode, boolean showMembers, boolean internalSearch,
-            boolean localValidSignCert, boolean excludeLocal) {
+            boolean onlyLocalClientsWithValidLocalSignCert, boolean excludeLocal,
+            Boolean hasValidLocalSignCert) {
+
+        // calculate effectiveHasValidLocalSignCert parameter by combining two similar parameters:
+        // onlyLocalClientsWithValidLocalSignCert and hasValidLocalSignCert
+        if (Boolean.FALSE.equals(hasValidLocalSignCert) && onlyLocalClientsWithValidLocalSignCert) {
+            // hasValidLocalSignCert asks for ones WITHOUT valid certs
+            // onlyLocalClientsWithValidLocalSignCert asks for ones WITH valid certs
+            // this results in empty set, but is legal, like using both internalSearch = true & excludeLocal = true
+            return new ArrayList<>();
+        }
+
+        Boolean effectiveHasValidLocalSignCert = hasValidLocalSignCert;
+        if (onlyLocalClientsWithValidLocalSignCert) {
+            effectiveHasValidLocalSignCert = Boolean.TRUE;
+        }
 
         List<ClientType> localClients = findLocalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers, localValidSignCert);
-        if (internalSearch || localValidSignCert) {
+                showMembers, effectiveHasValidLocalSignCert);
+        if (internalSearch || onlyLocalClientsWithValidLocalSignCert) {
             return localClients;
         }
 
         List<ClientType> globalClients = findGlobalClients(name, instance, memberClass, memberCode, subsystemCode,
-                showMembers);
+                showMembers, effectiveHasValidLocalSignCert);
 
         if (excludeLocal) {
             return subtractLocalFromGlobalClients(globalClients, localClients);
@@ -621,8 +655,13 @@ public class ClientService {
         return new ArrayList<>(uniqueClientMap.values());
     }
 
+    /**
+     * @param localValidSignCert true = client must have a local valid sign cert (registered & OCSP good)
+     *                           false = client must not have a local valid sign cert
+     *                           null = don't care about local valid sign cert
+     */
     private Predicate<ClientType> buildClientSearchPredicate(String name, String instance,
-            String memberClass, String memberCode, String subsystemCode, boolean localValidSignCert) {
+            String memberClass, String memberCode, String subsystemCode, Boolean localValidSignCert) {
         Predicate<ClientType> clientTypePredicate = clientType -> true;
         if (!StringUtils.isEmpty(name)) {
             clientTypePredicate = clientTypePredicate.and(ct -> {
@@ -646,8 +685,9 @@ public class ClientService {
             clientTypePredicate = clientTypePredicate.and(ct -> ct.getIdentifier().getSubsystemCode() != null
                     && ct.getIdentifier().getSubsystemCode().toLowerCase().contains(subsystemCode.toLowerCase()));
         }
-        if (localValidSignCert) {
-            clientTypePredicate = clientTypePredicate.and(this::hasValidLocalSignCertCheck);
+        if (localValidSignCert != null) {
+            clientTypePredicate = clientTypePredicate.and(
+                    ct -> localValidSignCert.equals(hasValidLocalSignCertCheck(ct)));
         }
         return clientTypePredicate;
     }
