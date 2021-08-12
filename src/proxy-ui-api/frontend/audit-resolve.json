@@ -543,6 +543,14 @@
     "1755|@vue/cli-service>mini-css-extract-plugin>normalize-url": {
       "decision": "ignore",
       "madeAt": 1623230670981
+    },
+    "1776|@vue/cli-service>webpack-dev-server>sockjs-client>eventsource>original>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1628761741407
+    },
+    "1776|@vue/cli-service>webpack-dev-server>sockjs-client>url-parse": {
+      "decision": "ignore",
+      "madeAt": 1628761741407
     }
   },
   "rules": {},
