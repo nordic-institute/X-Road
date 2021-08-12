@@ -40,22 +40,6 @@ class Baseline < ActiveRecord::Migration
         END;
         $$;
 
-        CREATE OR REPLACE FUNCTION fix_sequence(schema_name text)
-          RETURNS void
-          LANGUAGE plpgsql
-          AS $$
-        BEGIN
-          IF exists(SELECT 1 FROM pg_extension WHERE extname='bdr') THEN
-            RAISE NOTICE 'BDR';
-            PERFORM bdr.bdr_replicate_ddl_command(format('select %I._fix_sequence_all(%L);', schema_name, schema_name));
-          ELSE
-            RAISE NOTICE 'nonBDR';
-            PERFORM _fix_sequence_all(schema_name);
-          END IF;
-        END;
-        $$;
-
-        DROP FUNCTION IF EXISTS fix_sequence();
         DROP FUNCTION IF EXISTS _fix_sequence_all();
         SQL
       end
@@ -395,21 +379,6 @@ class Baseline < ActiveRecord::Migration
                  END IF;
                END LOOP;
            END LOOP;
-        END;
-        $$;
-
-        CREATE FUNCTION fix_sequence(schema_name text)
-          RETURNS void
-          LANGUAGE plpgsql
-          AS $$
-        BEGIN
-          IF exists(SELECT 1 FROM pg_extension WHERE extname='bdr') THEN
-            RAISE NOTICE 'BDR';
-            PERFORM bdr.bdr_replicate_ddl_command(format('select %I._fix_sequence_all(%L);', schema_name, schema_name));
-          ELSE
-            RAISE NOTICE 'nonBDR';
-            PERFORM _fix_sequence_all(schema_name);
-          END IF;
         END;
         $$;
 
