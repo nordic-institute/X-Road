@@ -25,11 +25,7 @@
  */
 
 // Tabs
-let mainPage, diagnosticsTab, clientsTab, keysTab, settingsTab, backupAndRestoreTab;
-
-// Other
-let clientInfo, searchField, localGroupPopup, clientLocalGroups;
-
+let mainPage, diagnosticsTab, keysTab, settingsTab, backupAndRestoreTab;
 
 module.exports = {
   tags: ['ss', 'xroad-system-administrator', 'permissions'],
