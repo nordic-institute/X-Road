@@ -118,7 +118,7 @@ public class LogArchiveWriter implements Closeable {
         return rotated;
     }
 
-    private void prepareGrouping(MessageRecord logRecord) {
+    private void prepareGrouping(MessageRecord logRecord) throws IOException {
         grouping = groupingStrategy.forRecord(logRecord);
         linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
         logArchiveCache = new LogArchiveCache(

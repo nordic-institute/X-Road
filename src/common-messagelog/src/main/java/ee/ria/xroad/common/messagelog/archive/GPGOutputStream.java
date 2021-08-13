@@ -55,7 +55,7 @@ class GPGOutputStream extends FilterOutputStream {
             "--sign",
             //sane cipher setting overrides (disables negotiation)
             "--compress-algo", "none",
-            "--cipher-algo", "AES",
+            "--cipher-algo", "AES-256",
             "--digest-algo", "SHA256"
     };
 
@@ -155,10 +155,7 @@ class GPGOutputStream extends FilterOutputStream {
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            if (gpg.isAlive()) {
-                //interrupted while waiting for gpg process to exit, signal failure
-                throw GPGException.of(e, suppressed);
-            }
+            throw GPGException.of(e, suppressed);
         } finally {
             try {
                 Files.deleteIfExists(statusTmp);

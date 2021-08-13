@@ -99,16 +99,16 @@ public class LogArchiveTest {
         rotated = false;
         Files.createDirectory(Paths.get("build/slog"));
         System.setProperty(MessageLogProperties.GPG_HOME_DIRECTORY, "build/gpg");
-        System.setProperty(MessageLogProperties.ENCRYPTION_KEYS_DIR, "build/gpg");
-        System.setProperty(MessageLogProperties.ENCRYPTION_ENABLED, String.valueOf(encrypted));
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR, "build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, groupingStrategy.name());
     }
 
     @After
     public void afterTest() {
         System.clearProperty(MessageLogProperties.GPG_HOME_DIRECTORY);
-        System.clearProperty(MessageLogProperties.ENCRYPTION_KEYS_DIR);
-        System.clearProperty(MessageLogProperties.ENCRYPTION_ENABLED);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
         System.clearProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE);
         System.clearProperty(MessageLogProperties.ARCHIVE_GROUPING);
         FileUtils.deleteQuietly(Paths.get("build/slog").toFile());

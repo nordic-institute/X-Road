@@ -31,12 +31,18 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 interface EncryptionConfigProvider {
 
@@ -47,10 +53,10 @@ interface EncryptionConfigProvider {
     /**
      * Given a grouping, returns an encryption configuration that applies to it.
      */
-    EncryptionConfig forGrouping(Grouping grouping);
+    EncryptionConfig forGrouping(Grouping grouping) throws IOException;
 
     static EncryptionConfigProvider getInstance(GroupingStrategy groupingStrategy) {
-        if (!MessageLogProperties.isEncryptionEnabled()) {
+        if (!MessageLogProperties.getArchiveEncryptionEnabled()) {
             return DisabledEncryptionConfigProvider.INSTANCE;
         } else if (groupingStrategy == GroupingStrategy.NONE) {
             return new ServerEncryptionConfigProvider();
@@ -77,9 +83,22 @@ enum DisabledEncryptionConfigProvider implements EncryptionConfigProvider {
 /**
  * Encrypts using the security server key
  */
-class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
+@Slf4j
+final class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
     private final Path gpgHome = MessageLogProperties.getGPGHome();
-    private final EncryptionConfig config = new EncryptionConfig(true, gpgHome, null);
+    private final EncryptionConfig config;
+
+    ServerEncryptionConfigProvider() {
+        final Path key = MessageLogProperties.getArchiveDefaultEncryptionKey();
+        final List<Path> defaultKey;
+        if (key == null) {
+            log.warn("Default archive encryption key not defined, using primary GPG key as default.");
+            defaultKey = Collections.emptyList();
+        } else {
+            defaultKey = Collections.singletonList(MessageLogProperties.getArchiveEncryptionKeysDir().resolve(key));
+        }
+        config = new EncryptionConfig(true, gpgHome, defaultKey);
+    }
 
     @Override
     public EncryptionConfig forGrouping(Grouping grouping) {
@@ -92,38 +111,69 @@ class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
  * member key is not available
  */
 @Slf4j
-class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
+final class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
 
     private final Path gpgHome = MessageLogProperties.getGPGHome();
-    private final Path keyDir = MessageLogProperties.getEncryptionKeysDir();
+    private final Path keyDir = MessageLogProperties.getArchiveEncryptionKeysDir();
+    private final List<Path> defaultKey;
     private final MessageDigest digest;
 
     MemberEncryptionConfigProvider() {
         try {
             digest = MessageDigest.getInstance("SHA-256");
+            final Path key = MessageLogProperties.getArchiveDefaultEncryptionKey();
+            if (key == null) {
+                log.warn("Default archive encryption key not defined, using primary GPG key as default.");
+                this.defaultKey = Collections.emptyList();
+            } else {
+                this.defaultKey = Collections.singletonList(keyDir.resolve(key));
+            }
         } catch (NoSuchAlgorithmException e) {
+            // should not happen
             throw new IllegalStateException("Unable to create SHA-256 message digest", e);
         }
     }
 
-    public EncryptionConfig forGrouping(Grouping grouping) {
+    public EncryptionConfig forGrouping(Grouping grouping) throws IOException {
         if (grouping.getClientId() == null) {
             throw new IllegalArgumentException("Expected a grouping with a client identifier");
         }
 
-        log.debug(grouping.getClientId().getMemberId().toShortString());
-        byte[] keyName = digest.digest(
-                grouping.getClientId().getMemberId().toShortString().getBytes(StandardCharsets.UTF_8));
+        byte[] keyDigest =
+                digest.digest(grouping.getClientId().getMemberId().toShortString().getBytes(StandardCharsets.UTF_8));
         digest.reset();
 
-        Path key = keyDir.resolve(CryptoUtils.encodeHex(keyName) + ".pgp");
+        final String keyName = CryptoUtils.encodeHex(keyDigest);
 
-        if (Files.exists(key)) {
-            log.debug("Using key {} for grouping {}", key, grouping);
-            return new EncryptionConfig(true, gpgHome, Collections.singletonList(key));
+        List<Path> keys = findKeys(keyName);
+
+        if (keys.isEmpty()) {
+            log.info("Encryption key {}.* does not exist, using default key for group {}", keyName, grouping);
+            return new EncryptionConfig(true, gpgHome, defaultKey);
         } else {
-            log.debug("Key {} does not exist, using server key for grouping {}", key, grouping);
-            return new EncryptionConfig(true, gpgHome, null);
+            log.debug("Using key(s) {} for encrypting group {} archives", keys, grouping);
+            return new EncryptionConfig(true, gpgHome, keys);
         }
     }
+
+    /* Find files starting with "<keyName>." and ending with ".(pgp|asc|gpg)".
+
+        Multiple keys can be defined e.g. by using the following convention.
+            keyName.1.pgp
+            keyName.2.pgp
+            ..
+     */
+    private List<Path> findKeys(String keyName) throws IOException {
+        final String prefix = keyName + ".";
+
+        try (Stream<Path> stream = Files.find(keyDir, 1,
+                (path, attr) -> attr.isRegularFile()
+                        && path.getFileName().toString().startsWith(prefix)
+                        && SUFFIX.matcher(path.getFileName().toString()).matches(),
+                FileVisitOption.FOLLOW_LINKS)) {
+            return stream.collect(Collectors.toList());
+        }
+    }
+
+    private static final Pattern SUFFIX = Pattern.compile("^.+\\.(pgp|asc|gpg)$");
 }

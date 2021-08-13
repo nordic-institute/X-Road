@@ -1642,21 +1642,22 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 
 9.  `archive-gpg-home-directory` - GPG home directory for archive file encryption (default `/etc/xroad/gpghome`)
 
-10. `archive-encryption-keys-dir` - Directory for archive file encryption (recipient) PGP keys (default gpg-home-directory). Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key)
+10. `archive-encryption-keys-dir` - Directory for archive file encryption (recipient) PGP keys (default same as `gpg-home-directory`). Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key)
+
+11. `archive-default-encryption-key` - Default archive encryption key (in `archive-encryption-keys-dir`) if there is no grouping or a encryption key for a member is not present. If not defined, the primary GPG encryption key is used.
 
 #### 11.1.4 Archive encryption
 
-Archive files can be encrypted (`encryption-enable = true`) using GnuPG (OpenPGP compatible, RFC 4880).
+Archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
 
-When encryption is enabled, the archiving process expects to find a server signing and encryption key in `gpg-home-directory`. This key is used to sign the generated archive files. In case grouping is `none` or no per-member key is available, this key (or its encryption subkey) is also used to encrypt the archive files.
+When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files. In case grouping is `none` or no per-member key is available the `archive-default-encryption-key` is used to encrypt archive files.
 
-Per-member archive encryption keys must be OpenPGP public keys suitable for encryption. For example, on some host generate a keypair with defaults and no expiration and export the public key:
+Archive encryption keys must be OpenPGP public keys suitable for encryption. For example, on some host generate a keypair with defaults and no expiration and export the public key:
 ```
 gpg --homedir ~/xroad-test --quick-generate-key INSTANCE/memberClass/memberCode default default never
 gpg --homedir ~/xroad-test --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
 ```
-
-Copy the public key to `encryption-keys-dir`, and rename (or create a symlink to) it using a name provided by /usr/share/xroad/scripts/keyname.sh script (hex-encoded sha-256 digest of the member identifier).
+Copy the public key to `encryption-keys-dir`, and rename it using a name provided by /usr/share/xroad/scripts/keyname.sh script (hex-encoded sha-256 digest of the member identifier).
 ```
 # check that the key is valid and suitable for encryption (has a (sub)key with usage E):
 gpg --show-keys INSTANCE-memberClass-memberCode.pgp
@@ -1669,9 +1670,11 @@ gpg --show-keys INSTANCE-memberClass-memberCode.pgp
   80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 mv INSTANCE-memberClass-memberCode.pgp 80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 ```
-
-Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
-
+It is possible to define multiple encryption keys per member by adding a qualifier between the member identifier digest and suffix, e.g.:
+```
+80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.1.pgp  
+80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.2.pgp  
+```
 
 ### 11.2 Transferring the Archive Files from the Security Server
 

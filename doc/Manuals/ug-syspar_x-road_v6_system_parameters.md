@@ -350,9 +350,11 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 | archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). 
-| encryption-enabled                               | false                                      |   |   | Archive file encryption
+| archive-encryption-enabled                       | false                                      |   |   | Archive file encryption
 | gpg-home-directory                               | /etc/xroad/gpghome                         |   |   | GPG home for archive file encryption
-| encryption-keys-dir                              | /etc/xroad/gpghome                         |   |   | Directory for archive file encryption (recipient) PGP keys. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key) |
+| archive-encryption-keys-dir                      | /etc/xroad/gpghome                         |   |   | Directory for archive file encryption (recipient) PGP keys. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key) |
+| archive-default-encryption-key                   |                                            |   |   | Default PGP public key for archive encryption (if not defined, the primary gpg encryption key is used)
+
 
 
 
