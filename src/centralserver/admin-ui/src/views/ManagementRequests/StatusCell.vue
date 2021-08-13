@@ -24,35 +24,77 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <h1>Mock view 2</h1>
-    <xrd-button
-      color="primary"
-      outlined
-      data-test="notification-button"
-      @click="mockAction"
-    >
-      {{ $t('action.continue') }}
-    </xrd-button>
+  <div class="status-wrapper">
+    <xrd-status-icon :status="statusIconType" />
+    <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { StoreTypes, RouteName } from '@/global';
 
 export default Vue.extend({
+  props: {
+    status: {
+      type: String,
+      default: undefined,
+    },
+  },
+
+  computed: {
+    statusIconType(): string {
+      if (!this.status) {
+        return '';
+      }
+      switch (this.status) {
+        case 'REJECTED':
+          return 'progress-delete';
+        case 'APPROVED':
+          return 'ok';
+        case 'PENDING':
+          return 'pending';
+        default:
+          return 'error';
+      }
+    },
+  },
+
   methods: {
-    mockAction(): void {
-      this.$store.commit(StoreTypes.mutations.SET_ERROR_ACTION, {
-        errorMessageCode: 'footer.software.versionPrefix',
-        action: {
-          icon: 'icon-Key',
-          text: 'footer.software.title',
-          route: RouteName.TrustServices,
-        },
-      });
+    getStatusText(status: string): string {
+      if (!status) {
+        return '';
+      }
+      switch (status) {
+        case 'REJECTED':
+          return this.$t('managementRequests.rejected') as string;
+        case 'APPROVED':
+          return this.$t('managementRequests.approved') as string;
+        case 'PENDING':
+          return this.$t('managementRequests.pending') as string;
+        default:
+          return '';
+      }
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/colors';
+
+.status-wrapper {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  color: $XRoad-WarmGrey100;
+  margin-left: 2px;
+  text-transform: uppercase;
+}
+</style>

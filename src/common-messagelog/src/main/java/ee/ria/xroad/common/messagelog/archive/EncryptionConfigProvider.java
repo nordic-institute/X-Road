@@ -1,4 +1,4 @@
-/*
+/**
  * The MIT License
  *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
@@ -24,43 +24,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import StatusIcon from './StatusIcon.vue';
+package ee.ria.xroad.common.messagelog.archive;
 
-export default {
-  title: 'X-Road/Status icon',
-  component: StatusIcon,
-  argTypes: {
-    status: {
-      control: {
-        type: 'select',
-        options: [
-          'ok',
-          'saved',
-          'progress-register',
-          'progress-delete',
-          'error',
-        ],
-      },
-    },
-  },
-};
+import ee.ria.xroad.common.messagelog.MessageLogProperties;
+import ee.ria.xroad.common.messagelog.MessageRecord;
 
-const Template = (args, { argTypes }) => ({
-  props: Object.keys(argTypes),
-  components: { StatusIcon },
-  template: `
-    <div>
-    <status-icon v-bind="$props" /><br>
-    <status-icon status="ok" /> ok<br>
-    <status-icon status="saved" /> saved<br>
-    <status-icon status="progress-register" /> progress-register<br>
-    <status-icon status="progress-delete" /> progress-delete<br>
-    <status-icon status="error" /> error<br>
-    <status-icon status="pending" /> pending<br>
-    </div>`,
-});
+import lombok.Getter;
 
-export const Primary = Template.bind({});
-Primary.args = {
-  status: 'error',
-};
+import java.nio.file.Path;
+
+class EncryptionConfigProvider {
+    @Getter
+    private final boolean encryptionEnabled = MessageLogProperties.isEncryptionEnabled();
+    private final Path gpgHome = MessageLogProperties.getGPGHome();
+
+    EncryptionConfig forRecord(MessageRecord record) {
+        return encryptionEnabled ? new EncryptionConfig(true, gpgHome, null) : EncryptionConfig.DISABLED;
+    }
+
+}
