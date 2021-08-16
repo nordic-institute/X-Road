@@ -34,6 +34,9 @@ import ee.ria.xroad.signer.protocol.dto.KeyInfo;
 import ee.ria.xroad.signer.protocol.dto.KeyUsageInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
+import org.bouncycastle.asn1.x509.CRLReason;
+import org.bouncycastle.cert.ocsp.RevokedStatus;
+import org.bouncycastle.cert.ocsp.UnknownStatus;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -74,6 +77,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -456,6 +460,46 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
         assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
         assertEquals(11, clientsResponse.getBody().size());
     }
+
+    @Test
+    @WithMockUser(authorities = "VIEW_CLIENTS")
+    public void findAllClientsByLocalValidSignCert() {
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos())
+                .thenReturn(createSimpleSignCertList());
+        int clientsTotal = 11;
+        // FI:GOV:M1, FI:GOV:M1:SS1, FI:GOV:M1:SS3
+        int clientsWithValidSignCert = 3;
+        // search all
+        ResponseEntity<List<Client>> clientsResponse = clientsApiController.findClients(null, null, null, null, null,
+                true, false, null, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(clientsTotal, clientsResponse.getBody().size());
+
+        // search ones with valid sign cert
+        clientsResponse = clientsApiController.findClients(null, null, null, null, null,
+                true, false, true, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals(clientsWithValidSignCert, clientsResponse.getBody().size());
+
+        // search ones without valid sign cert
+        clientsResponse = clientsApiController.findClients(null, null, null, null, null,
+                true, false, false, false);
+        assertEquals(HttpStatus.OK, clientsResponse.getStatusCode());
+        assertEquals((clientsTotal - clientsWithValidSignCert), clientsResponse.getBody().size());
+    }
+
+    /**
+     * Mock sign certs
+     * - FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD (default)
+     */
+    private List<CertificateInfo> createSimpleSignCertList() {
+        List<CertificateInfo> certificateInfos = new ArrayList<>();
+        certificateInfos.add(new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(ClientId.create("FI", "GOV", "M1"))
+                .build());
+        return certificateInfos;
+    }
+
 
     @Test
     @WithMockUser(authorities = "VIEW_CLIENTS")
