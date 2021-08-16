@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
-  version: "1.0.32"
+  version: "2.0.0"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -784,12 +784,12 @@ paths:
         - in: query
           name: local_valid_sign_cert
           description:
-            to search only local clients with valid local sign cert. Legacy parameter, see valid_sign_cert_exists
-            which offers more flexibility (does not limit search to local clients)
+            To search only clients that have (or don't have) a valid (registered, OCSP response GOOD) sign cert stored on this security server.
+            Can be used to search both local and global clients, and can be combined with <code>internal_search</code> and <code>exclude_local</code> parameters.
+            True = limit to clients that have a valid local sign cert, false = limit to clients that don't have a valid local sign cert.
           required: false
           schema:
             type: boolean
-            default: false
         - in: query
           name: exclude_local
           description: to search only clients that are not added to this security server
@@ -797,16 +797,6 @@ paths:
           schema:
             type: boolean
             default: false
-        - in: query
-          name: valid_sign_cert_exists
-          description:
-            To search only clients that have (or don't have) a valid (registered, OCSP response GOOD) sign cert stored on this security server.
-            Can be used to search both local and global clients, and can be combined with internal_search and exclude_local parameters.
-            Replacement for legacy parameter local_valid_sign_cert.
-            True = limit to clients that have a valid local sign cert, false = limit to clients that don't have a valid local sign cert.
-          required: false
-          schema:
-            type: boolean
       responses:
         '200':
           description: list of clients

@@ -105,9 +105,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.validation.Valid;
-import javax.validation.constraints.Size;
-
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Comparator;
@@ -172,7 +169,12 @@ public class ClientsApiController implements ClientsApi {
      * @param memberClass
      * @param memberCode
      * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
+     * @param showMembers include members (without subsystemCode) in the results
+     * @param localValidSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
+     *                              false = include only clients who don't have a local valid sign cert
+     *                              null = don't care whether client has a local valid sign cert
+     *                              NOTE: parameter does not have an effect on whether local or global clients are
+     *                              searched
      * @param internalSearch search only in the local clients
      * @return
      */
@@ -180,12 +182,12 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
     public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
-            Boolean localValidSignCert, Boolean excludeLocal, Boolean validSignCertExists) {
+            Boolean localValidSignCert, Boolean excludeLocal) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         List<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
-                localValidSignCert, excludeLocal, validSignCertExists));
+                excludeLocal, localValidSignCert));
         Collections.sort(clients, clientSortingComparator);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
