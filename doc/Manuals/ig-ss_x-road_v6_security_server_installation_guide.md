@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.36  
+Version: 2.37  
 Doc. ID: IG-SS
 
 ---
@@ -60,6 +60,7 @@ Doc. ID: IG-SS
  18.05.2021 | 2.34    | Update error handling section | Ilkka Seppälä
  02.06.2021 | 2.35    | Add backup encryption information | Andres Allkivi
  01.07.2021 | 2.36    | Update 3rd party key server | Petteri Kivimäki
+ 11.08.2021 | 2.37    | Minor updates | Petteri Kivimäki
 
 ## License
 
@@ -468,16 +469,15 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
-To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section.
-(add or edit this section) 
+To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
     [proxy]
     backup-encrypted=true
     backup-public-key-path=/etc/xroad/backupkeys
 
-To turn backup encryption on, please change the backup-encrypted property value to true.
-By default, additional encryption keys are stored in the /etc/xroad/backupkeys directory.
-The default directory can be changed by modifying the backup-public-key-path property value.
+To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
+By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
+The default directory can be changed by modifying the `backup-public-key-path` property value.
 
 By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
 is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
@@ -493,7 +493,7 @@ To export security server's backup encryption public key use the following comma
 
     gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
 
-where AA/GOV/TS1OWNER/TS1 is the security server id.
+where `AA/GOV/TS1OWNER/TS1` is the security server id.
 
 The key can then be moved to an external host and imported to GPG keyring with the following command:
 
