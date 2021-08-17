@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.16  
+Version: 1.17  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -33,6 +33,7 @@ Doc. ID: IG-SS-RHEL
  16.04.2021 | 1.14    | Update remote database installation instructions                | Jarkko Hyöty
  18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
  01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
+ 11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
 
 ## License
 
@@ -67,6 +68,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
+  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
@@ -403,6 +405,40 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
+
+### 3.4 Configuring configuration backup encryption
+
+It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
+for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
+To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
+
+    [proxy]
+    backup-encrypted=true
+    backup-public-key-path=/etc/xroad/backupkeys
+
+To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
+By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
+The default directory can be changed by modifying the `backup-public-key-path` property value.
+
+By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
+is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
+encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
+consistency and decrypting backups in case security server's backup encryption key gets lost for whatever reason.
+Do not place any other files into backup keys folder, otherwise backing up configuration will fail.
+
+To externally verify a backup archive's consistency, security server's backup encryption public key has to be exported
+and imported into external GPG keyring. Note that this can be done only after security server has been initialised - the
+security server backup encryption key is generated during initialisation.
+
+To export security server's backup encryption public key use the following command:
+
+    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+
+where `AA/GOV/TS1OWNER/TS1` is the security server id.
+
+The key can then be moved to an external host and imported to GPG keyring with the following command:
+
+    gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
 
 ## 4 Installation Error handling
 

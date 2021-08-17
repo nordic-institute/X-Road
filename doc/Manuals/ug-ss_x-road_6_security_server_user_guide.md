@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.57  
+Version: 2.58  
 Doc. ID: UG-SS
 
 ---
@@ -90,7 +90,8 @@ Doc. ID: UG-SS
  25.02.2020 | 2.55    | Added information to find X-Road ID from conf backup file in chapter [13.2 Restore from the Command Line](#132-restore-from-the-command-line) | Karl Talumäe
  31.05.2021 | 2.56    | Added information about backup archive contents and encryption | Andres Allkivi
  23.06.2021 | 2.57    | Fix incorrect link in Chapter [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner) | Petteri Kivimäki
-
+ 11.08.2021 | 2.58    | Minor updates to backup archive contents and encryption | Petteri Kivimäki
+ 
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
@@ -1858,9 +1859,14 @@ For example (all on one line):
     -s AA/GOV/TS1OWNER/TS1 \
     –f /var/lib/xroad/backup/conf_backup_20140703-110438.gpg
 
-In case original backup encryption and siging key is lost additional parameters can be specified to skip decryption and/or
+In case original backup encryption and signing key is lost additional parameters can be specified to skip decryption and/or
 signature verification. Use `-P` command line switch when backup archive is already decrypted externally and `-N` switch to
 skip checking archive signature.
+
+If a backup is restored on a new uninitialized (the initial configuration hasn't been completed) security server, the 
+security server's gpg key must be manually created before restoring the backup:
+
+    /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome <security server ID>
 
 If it is absolutely necessary to restore the system from a backup made on a different security server, the forced mode
 of the restore command can be used with the –F option together with unencrypted backup archive flags. For example (all on one line):
@@ -1930,10 +1936,10 @@ To export security servers backup encryption public key use the following comman
 
     gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>
 
-where <instanceIdentifier>/<memberClass>/<memberCode>/<serverCode> is the security server id,
-for example, AA/GOV/TS1OWNER/TS1
+where `<instanceIdentifier>/<memberClass>/<memberCode>/<serverCode>` is the security server id,
+for example, `AA/GOV/TS1OWNER/TS1`.
 
-Resulting file (server-public-key.gpg) should then be exported from security server and imported to GPG keystore used
+Resulting file (`server-public-key.gpg`) should then be exported from security server and imported to GPG keystore used
 for backup archive consistency verification.
 
 ## 14 Diagnostics
