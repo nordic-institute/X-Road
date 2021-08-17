@@ -64,3 +64,10 @@ Type: error
 Description: User does not exist
   Specified user does not exist
 
+Template: xroad-common/skip-cs-db-migrations
+Type: boolean
+Default: false
+Description: Skip automatic database migrations
+ The normal operation is to perform the database migrations automatically.
+ .
+ To make it possible to keep using legacy database solutions such as BDR1 automatic migrations can be skipped.
