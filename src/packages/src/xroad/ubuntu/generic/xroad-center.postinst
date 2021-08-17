@@ -37,8 +37,8 @@ setup_database() {
     crudini --set "${db_properties}" '' port "${db_port}"
 
     RET=
-    db_get xroad-common/skip-cs-db-migrations
-    local skip_migrations="${RET}"
+    db_get xroad-common/skip-cs-db-migrations || true
+    local skip_migrations="${RET:-false}"
     echo "skip_migrations=$skip_migrations"
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
