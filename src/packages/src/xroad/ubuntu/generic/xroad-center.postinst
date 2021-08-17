@@ -38,8 +38,9 @@ setup_database() {
 
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
-    local skip_migrations="${RET:-false}"
+    local skip_migrations="${RET}"
     echo "skip_migrations=$skip_migrations"
+    crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
     local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
