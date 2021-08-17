@@ -380,7 +380,7 @@ public class ClientService {
      * @param propertyClass
      * @param memberCode
      * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
+     * @param showMembers include members (without subsystemCode) in the results
      * @param hasValidLocalSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
      *                              false = include only clients who don't have a local valid sign cert
      *                              null = don't care whether client has a local valid sign cert
