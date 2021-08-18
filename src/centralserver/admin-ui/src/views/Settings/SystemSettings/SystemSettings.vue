@@ -36,7 +36,7 @@
       <!-- System Parameters -->
 
       <div id="anchor" class="mb-6">
-        <v-card class="pb-4">
+        <v-card class="pb-4" flat>
           <div class="card-top">
             <div class="card-main-title">
               {{ $t('systemSettings.systemParameters') }}
@@ -77,101 +77,99 @@
       </div>
     </div>
 
-    <div>
-      <!-- Management Services -->
+    <!-- Management Services -->
 
-      <div id="anchor" class="mb-6">
-        <v-card class="pb-4">
-          <div class="card-top">
-            <div class="card-main-title">
-              {{ $t('systemSettings.managementServices') }}
-            </div>
+    <div id="anchor" class="mb-6">
+      <v-card class="pb-4" flat>
+        <div class="card-top">
+          <div class="card-main-title">
+            {{ $t('systemSettings.managementServices') }}
           </div>
+        </div>
 
-          <table class="xrd-table mt-0 pb-3">
-            <tbody>
-              <!-- SOFTWARE token table body -->
-              <tr>
-                <td class="title-cell">
-                  <div class="icon-column-wrap">
-                    <div>
-                      {{ $t('systemSettings.serviceProviderIdentifier') }}
-                    </div>
+        <table class="xrd-table mt-0 pb-3">
+          <tbody>
+            <!-- SOFTWARE token table body -->
+            <tr>
+              <td class="title-cell">
+                <div class="icon-column-wrap">
+                  <div>
+                    {{ $t('systemSettings.serviceProviderIdentifier') }}
                   </div>
-                </td>
-                <td>SUBSYSTEM:DEV/ORG/111/MANAGEMENT</td>
-                <td class="action-cell">
-                  <xrd-button text :outlined="false">{{
-                    $t('action.edit')
-                  }}</xrd-button>
-                </td>
-              </tr>
+                </div>
+              </td>
+              <td>SUBSYSTEM:DEV/ORG/111/MANAGEMENT</td>
+              <td class="action-cell">
+                <xrd-button text :outlined="false">{{
+                  $t('action.edit')
+                }}</xrd-button>
+              </td>
+            </tr>
 
-              <tr>
-                <td class="td-icon">
-                  <div class="icon-column-wrap">
-                    <div>
-                      {{ $t('systemSettings.serviceProviderName') }}
-                    </div>
+            <tr>
+              <td class="td-icon">
+                <div class="icon-column-wrap">
+                  <div>
+                    {{ $t('systemSettings.serviceProviderName') }}
                   </div>
-                </td>
-                <td>NIIS</td>
-                <td></td>
-              </tr>
+                </div>
+              </td>
+              <td>NIIS</td>
+              <td></td>
+            </tr>
 
-              <tr>
-                <td class="td-icon">
-                  <div class="icon-column-wrap">
-                    <div>
-                      {{ $t('systemSettings.managementServiceSecurityServer') }}
-                    </div>
+            <tr>
+              <td class="td-icon">
+                <div class="icon-column-wrap">
+                  <div>
+                    {{ $t('systemSettings.managementServiceSecurityServer') }}
                   </div>
-                </td>
-                <td>SERVER:DEV/ORG/111/SS1</td>
-                <td></td>
-              </tr>
+                </div>
+              </td>
+              <td>SERVER:DEV/ORG/111/SS1</td>
+              <td></td>
+            </tr>
 
-              <tr>
-                <td class="td-icon">
-                  <div class="icon-column-wrap">
-                    <div>
-                      {{ $t('systemSettings.wsdlAddress') }}
-                    </div>
+            <tr>
+              <td class="td-icon">
+                <div class="icon-column-wrap">
+                  <div>
+                    {{ $t('systemSettings.wsdlAddress') }}
                   </div>
-                </td>
-                <td>http://dev-cs.i.x-road.rocks/managementservices.wsdl</td>
-                <td></td>
-              </tr>
+                </div>
+              </td>
+              <td>http://dev-cs.i.x-road.rocks/managementservices.wsdl</td>
+              <td></td>
+            </tr>
 
-              <tr>
-                <td class="td-icon">
-                  <div class="icon-column-wrap">
-                    <div>
-                      {{ $t('systemSettings.centralServerAddress') }}
-                    </div>
+            <tr>
+              <td class="td-icon">
+                <div class="icon-column-wrap">
+                  <div>
+                    {{ $t('systemSettings.centralServerAddress') }}
                   </div>
-                </td>
-                <td>
-                  https://dev-cs.i.x-road.rocks:4002/managementservice/manage/
-                </td>
-                <td></td>
-              </tr>
+                </div>
+              </td>
+              <td>
+                https://dev-cs.i.x-road.rocks:4002/managementservice/manage/
+              </td>
+              <td></td>
+            </tr>
 
-              <tr>
-                <td class="td-icon">
-                  <div class="icon-column-wrap">
-                    <div>
-                      {{ $t('systemSettings.securityServerOwnerroupCode') }}
-                    </div>
+            <tr>
+              <td class="td-icon">
+                <div class="icon-column-wrap">
+                  <div>
+                    {{ $t('systemSettings.securityServerOwnerroupCode') }}
                   </div>
-                </td>
-                <td>security-server-owners</td>
-                <td></td>
-              </tr>
-            </tbody>
-          </table>
-        </v-card>
-      </div>
+                </div>
+              </td>
+              <td>security-server-owners</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+      </v-card>
     </div>
 
     <!-- Table -->

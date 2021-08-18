@@ -30,7 +30,7 @@
   <main id="member-details-content">
     <!-- Member Details -->
     <div id="member-details">
-      <v-card class="details-card" data-test="member-name-card">
+      <v-card class="details-card" data-test="member-name-card" flat>
         <v-card-title class="card-title">{{
           $t('global.memberName')
         }}</v-card-title>
@@ -39,7 +39,7 @@
         <v-divider class="pb-4"></v-divider>
       </v-card>
 
-      <v-card class="details-card" data-test="member-class-card">
+      <v-card class="details-card" data-test="member-class-card" flat>
         <v-card-title class="card-title">{{
           $t('global.memberClass')
         }}</v-card-title>
@@ -48,7 +48,7 @@
         <v-divider class="pb-4"></v-divider>
       </v-card>
 
-      <v-card class="details-card" data-test="member-code-card">
+      <v-card class="details-card" data-test="member-code-card" flat>
         <v-card-title class="card-title">{{
           $t('global.memberCode')
         }}</v-card-title>
@@ -67,7 +67,7 @@
         <xrd-search data-test="search-owned-servers" />
       </div>
 
-      <v-card>
+      <v-card flat>
         <div class="card-corner-button pt-4 pr-4">
           <xrd-button outlined>
             <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
@@ -90,7 +90,7 @@
         <xrd-search data-test="search-global-groups" />
       </div>
 
-      <v-card>
+      <v-card flat>
         <div class="card-corner-button pt-4 pr-4">
           <xrd-button outlined data-test="add-member-to-group">
             <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
