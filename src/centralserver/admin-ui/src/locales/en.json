@@ -189,6 +189,20 @@
     "addCertificationService": "Add certification service",
     "addTimestampingService": "Add timestamping service"
   },
+  "systemSettings": {
+    "code": "Code",
+    "description": "Description",
+    "memberClasses": "Member classes",
+    "systemParameters": "System Parameters",
+    "managementServices": "Management Services",
+    "instanceIdentifier": "Instance Identifier",
+    "centralServerAddress": "Central Server address",
+    "serviceProviderIdentifier": "Service Provider Identifier",
+    "serviceProviderName": "Service Provider Name",
+    "managementServiceSecurityServer": "Management Services' Security Server",
+    "wsdlAddress": "WSDL Address",
+    "securityServerOwnerroupCode": "Security Server Owners Group Code"
+  },
   "init": {
     "initialConfiguration": "Initial Configuration",
     "csIdentification": "Central Server Identification",
