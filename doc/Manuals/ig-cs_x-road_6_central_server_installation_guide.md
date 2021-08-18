@@ -536,8 +536,9 @@ password=<randomly generated password stored is stored here>
 database=centerui_production
 schema=centerui
 reconnect=true
-host = 127.0.0.1
-port = 5432
+host=127.0.0.1
+port=5432
+skip_migrations=false
 ```
 
 ## Annex B Database Users
