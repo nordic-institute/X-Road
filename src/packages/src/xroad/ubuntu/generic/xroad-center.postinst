@@ -39,6 +39,7 @@ setup_database() {
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     local skip_migrations="${RET}"
+    echo "xroad-center.postinst skip_migrations=$skip_migrations"
     crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
@@ -100,6 +101,7 @@ EOF
     fi
 
     if [ "$skip_migrations" = false ] ; then
+      echo "running database migrations"
       if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
           /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
           psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
@@ -231,12 +233,14 @@ configure | reconfigure)
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     skip_migrations="${RET}"
+    echo "configure, skip_migrations=$skip_migrations"
 
     if [ "$skip_migrations" = false ] ; then
       invoke-rc.d --quiet rsyslog try-restart || true
       invoke-rc.d --quiet nginx try-restart || true
       invoke-rc.d --quiet xroad-signer try-restart || true
       invoke-rc.d --quiet xroad-jetty restart || true
+      echo "services restarted"
     else
       invoke-rc.d --quiet rsyslog stop || true
       invoke-rc.d --quiet nginx stop || true
