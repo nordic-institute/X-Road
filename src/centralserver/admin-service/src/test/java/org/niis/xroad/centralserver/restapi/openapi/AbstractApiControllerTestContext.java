@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import org.junit.After;
 import org.junit.Before;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
+import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -37,7 +38,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 /**
  * Base for all api controller tests that need mocked beans in the application context. All api controller
- * test classes inheriting this will shared the same mock bean configuration, and have a common
+ * test classes inheriting this will share the same mock bean configuration, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the tests.
  *
  * Service layer mocking strategy varies
@@ -56,6 +57,9 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
 
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
+
+    @MockBean
+    public InitializationService initializationService;
 
     /**
      * Add mock servlet request attributes to the RequestContextHolder. This is because testing a controller method

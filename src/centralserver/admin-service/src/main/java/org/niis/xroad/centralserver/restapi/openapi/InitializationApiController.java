@@ -31,10 +31,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.InitializationApi;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
+import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
+import org.niis.xroad.centralserver.restapi.service.InitializationService;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -44,15 +48,28 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequiredArgsConstructor
 public class InitializationApiController implements InitializationApi {
 
+    private final InitializationService initializationService;
+
     @Override
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
-        return ResponseEntity.ok(new InitializationStatus());
+        return ResponseEntity.ok(
+                new InitializationStatus()
+        );
     }
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
-    public ResponseEntity<Void> initCentralServer(InitialServerConf initialServerConf) {
+    public ResponseEntity<Void> initCentralServer(@Validated InitialServerConf initialServerConf) {
+        InitializationConfigDto configDto = new InitializationConfigDto();
+        configDto.setInstanceIdentifier(initialServerConf.getInstanceIdentifier());
+        configDto.setCentralServerAddress(initialServerConf.getCentralServerAddress());
+        configDto.setSoftwareTokenPin(initialServerConf.getSoftwareTokenPin());
+        try {
+            initializationService.initialize(configDto);
+        } catch (InitializationService.InvalidInitParamsException e) {
+            throw new BadRequestException(e);
+        }
         return ResponseEntity.ok().build();
     }
 }

@@ -146,37 +146,28 @@ components:
       type: object
       description: Initialization status of the Central Server
       required:
-        - is_anchor_imported
-        - is_server_code_initialized
-        - is_server_owner_initialized
+        - instance_identifier
+        - central_server_address
         - software_token_init_status
       properties:
-        is_anchor_imported:
-          type: boolean
-          description: whether a configuration anchor has been imported or not
-        is_server_code_initialized:
-          type: boolean
-          description: whether the server code of the security server has been initialized or not
-        is_server_owner_initialized:
-          type: boolean
-          description: whether the server owner of the security server has been initialized or not
+        instance_identifier:
+          $ref: '#/components/schemas/InstanceIdentifier'
+        central_server_address:
+          $ref: '#/components/schemas/CentralServerAddress'
         software_token_init_status:
           $ref: '#/components/schemas/TokenInitStatus'
     InitialServerConf:
       type: object
       description: central server initial configuration
+      required:
+        - instance_identifier
+        - central_server_address
+        - software_token_pin
       properties:
         instance_identifier:
-          type: string
-          format: text
-          description: instance identifier
-          example: FI-TEST
-          minLength: 1
-          maxLength: 255
+          $ref: '#/components/schemas/InstanceIdentifier'
         central_server_address:
-          type: string
-          format: text
-          description: Central server’s public DNS name or external IP address
+          $ref: '#/components/schemas/CentralServerAddress'
         software_token_pin:
           type: string
           format: text
@@ -199,6 +190,17 @@ components:
         - INITIALIZED
         - NOT_INITIALIZED
         - UNKNOWN
+    InstanceIdentifier:
+      type: string
+      format: text
+      description: instance identifier
+      example: FI-TEST
+      minLength: 1
+      maxLength: 255
+    CentralServerAddress:
+      type: string
+      format: text
+      description: Central server’s public DNS name or external IP address
     Version:
       type: object
       description: version information
