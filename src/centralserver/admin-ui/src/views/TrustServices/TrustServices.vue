@@ -31,8 +31,10 @@
         {{ $t('trustServices.certificationServices') }}
       </div>
 
-      <xrd-button data-test="add-certification-service" @click="() => {}"
-        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+      <xrd-button data-test="add-certification-service" @click="() => {}">
+        <xrd-icon-base class="xrd-large-button-icon"
+          ><XrdIconAdd
+        /></xrd-icon-base>
         {{ $t('trustServices.addCertificationService') }}</xrd-button
       >
     </div>
@@ -50,10 +52,10 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.serverCode`]="{ item }">
+      <template #[`item.server`]="{ item }">
         <div class="server-code">
-          <v-icon color="#663cdc" class="mr-4">icon-Security-Server</v-icon
-          >{{ item.serverCode }}
+          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base>
+          {{ item.server }}
         </div>
       </template>
 
@@ -68,8 +70,10 @@
         {{ $t('trustServices.timestampingServices') }}
       </div>
 
-      <xrd-button data-test="add-timestamping-service" @click="() => {}"
-        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+      <xrd-button data-test="add-timestamping-service" @click="() => {}">
+        <xrd-icon-base class="xrd-large-button-icon"
+          ><XrdIconAdd
+        /></xrd-icon-base>
         {{ $t('trustServices.addTimestampingService') }}</xrd-button
       >
     </div>
@@ -87,10 +91,10 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.serverCode`]="{ item }">
+      <template #[`item.server`]="{ item }">
         <div class="server-code">
-          <v-icon color="#663cdc" class="mr-4">icon-Security-Server</v-icon
-          >{{ item.serverCode }}
+          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base
+          >{{ item.server }}
         </div>
       </template>
 
@@ -148,22 +152,22 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('securityServers.serverCode') as string,
+          text: this.$t('trustServices.approvedCertificationService') as string,
           align: 'start',
           value: 'server',
           class: 'xrd-table-header ts-table-header-server-code',
         },
         {
-          text: this.$t('securityServers.ownerName') as string,
+          text: this.$t('trustServices.validFrom') as string,
           align: 'start',
           value: 'validFrom',
-          class: 'xrd-table-header ts-table-header-owner-name',
+          class: 'xrd-table-header ts-table-header-valid-from',
         },
         {
-          text: this.$t('securityServers.ownerCode') as string,
+          text: this.$t('trustServices.validTo') as string,
           align: 'start',
           value: 'validTo',
-          class: 'xrd-table-header ts-table-header-owner-code',
+          class: 'xrd-table-header ts-table-header-valid-to',
         },
       ];
     },

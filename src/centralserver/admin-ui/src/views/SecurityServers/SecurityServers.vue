@@ -50,8 +50,8 @@
     >
       <template #[`item.serverCode`]="{ item }">
         <div class="server-code">
-          <v-icon color="#663cdc" class="mr-4">icon-Security-Server</v-icon
-          >{{ item.serverCode }}
+          <xrd-icon-base class="mr-4"><XrdIconSecurityServer /></xrd-icon-base>
+          <div>{{ item.serverCode }}</div>
         </div>
       </template>
 
@@ -159,6 +159,8 @@ export default Vue.extend({
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
+  display: flex;
+  align-items: center;
 }
 
 .align-fix {

@@ -40,7 +40,10 @@
         @input="closeSuccess(notification.timeAdded)"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
-          <v-icon :color="colors.Success100">icon-Checker</v-icon>
+          <xrd-icon-base :color="colors.Success100"
+            ><XrdIconChecker
+          /></xrd-icon-base>
+
           <div class="row-wrapper">
             <div v-if="notification.successMessageCode">
               {{ $t(notification.successMessageCode) }}

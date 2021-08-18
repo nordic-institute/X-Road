@@ -27,7 +27,8 @@
   <tr>
     <td class="pl-8">
       <div class="name-wrap-top">
-        <i class="icon-Key key-icon" />
+        <xrd-icon-base class="key-icon"><XrdIconKey /></xrd-icon-base>
+
         <div class="clickable-link identifier-wrap" @click="keyClick">
           <span v-if="!tokenKey.name || tokenKey.name === ''">{{
             tokenKey.id

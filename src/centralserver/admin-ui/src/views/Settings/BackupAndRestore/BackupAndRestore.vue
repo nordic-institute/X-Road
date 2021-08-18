@@ -40,8 +40,11 @@
           data-test="backup-create-configuration"
           @click="createBackup"
         >
-          <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
-          >{{ $t('backup.backupConfiguration.button') }}
+          <xrd-icon-base :color="colors.Purple100" class="xrd-large-button-icon"
+            ><XrdIconDatabaseBackup
+          /></xrd-icon-base>
+
+          {{ $t('backup.backupConfiguration.button') }}
         </xrd-button>
         <xrd-file-upload
           v-slot="{ upload }"
@@ -55,7 +58,9 @@
             data-test="backup-upload"
             @click="upload"
           >
-            <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><XrdIconUpload
+            /></xrd-icon-base>
 
             {{ $t('backup.uploadBackup.button') }}
           </xrd-button>
@@ -84,6 +89,7 @@
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { FileUploadResult } from '@niis/shared-ui';
+import { Colors } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -96,6 +102,7 @@ export default Vue.extend({
       uploadingBackup: false,
       needsConfirmation: false,
       uploadedFile: null as File | null,
+      colors: Colors,
     };
   },
   methods: {
