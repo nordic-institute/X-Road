@@ -29,16 +29,13 @@
     xmlns="http://www.w3.org/2000/svg"
     :width="width"
     :height="height"
-    viewBox="0 0 24 24"
+    viewBox="0 0 26 26"
     :aria-labelledby="iconName"
     role="presentation"
-    :fill="iconColor"
+    :fill="color"
   >
     <title :id="iconName" lang="en">{{ iconName }} icon</title>
-    <!--<g :fill="iconColor">
-      <slot />
-    </g> -->
-    <slot :fillColor="iconColor" />
+    <slot :fillColor="color" />
   </svg>
 </template>
 
@@ -54,21 +51,16 @@ export default Vue.extend({
     },
     width: {
       type: [Number, String],
-      default: 24,
+      default: 26,
     },
     height: {
       type: [Number, String],
-      default: 24,
+      default: 26,
     },
-    iconColor: {
+    color: {
       type: String,
       default: 'currentColor',
     },
-  },
-  created() {
-    console.log('piip');
-    console.log(this.$vuetify.icons);
-    //<v-icon v-text="'$vuetify.icons.heart'"/>
   },
 });
 </script>
@@ -76,7 +68,6 @@ export default Vue.extend({
 <style scoped>
 svg {
   display: inline-block;
-  vertical-align: baseline;
-  margin-bottom: -2px; /* yes, I'm that particular about formatting */
+  vertical-align: middle;
 }
 </style>

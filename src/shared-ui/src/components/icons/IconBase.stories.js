@@ -75,7 +75,7 @@ export default {
   title: 'X-Road/Icon',
   component: IconBase,
   argTypes: {
-    iconColor: { control: 'text' },
+    color: { control: 'text' },
   },
 };
 
@@ -200,12 +200,11 @@ const Template = (args, { argTypes }) => ({
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconAddCertificate /></icon-base>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconRemoveCertificate /></icon-base>
 <icon-base icon-name="folder outline" v-bind="$props"><XrdIconRemoveUser /></icon-base>
-
 </p>`,
 });
 
 export const Primary = Template.bind({});
 Primary.args = {
   primary: true,
-  iconColor: 'blue',
+  color: 'blue',
 };
