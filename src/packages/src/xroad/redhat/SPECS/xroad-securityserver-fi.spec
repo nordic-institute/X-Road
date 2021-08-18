@@ -38,6 +38,4 @@ cp -p %{srcdir}/default-configuration/override-securityserver-fi.ini %{buildroot
 %post
 
 %postun
-if [ $1 -gt 0 ] ; then
-    %systemd_postun_with_restart xroad-signer.service xroad-proxy.service xroad-addon-messagelog.service
-fi
+%systemd_postun_with_restart xroad-signer.service xroad-proxy.service
