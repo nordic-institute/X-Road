@@ -100,20 +100,22 @@ EOF
         crudini --set "${db_properties}" '' password "${db_password}"
     fi
 
-    if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
-        /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
-        psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
-ALTER SCHEMA public RENAME TO "${db_schema}";
-ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
-REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
-CREATE SCHEMA public;
-GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
-ALTER EXTENSION hstore SET SCHEMA public;
-EOF
-        crudini --set "${db_properties}" '' schema "${db_schema}"
-    fi
+    if [ "$skip_migrations" = false ] ; then
+      if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
+          /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
+          psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
+  ALTER SCHEMA public RENAME TO "${db_schema}";
+  ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
+  REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
+  CREATE SCHEMA public;
+  GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
+  ALTER EXTENSION hstore SET SCHEMA public;
+  EOF
+          crudini --set "${db_properties}" '' schema "${db_schema}"
+      fi
 
-    /usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
+      /usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
+    fi
 }
 
 # check certificates and request necessary subject information from the user
@@ -225,10 +227,21 @@ configure | reconfigure)
     chmod 755 /var/lib/xroad/import
     chown xroad:xroad /var/lib/xroad/import
 
-    invoke-rc.d --quiet rsyslog try-restart || true
-    invoke-rc.d --quiet nginx try-restart || true
-    invoke-rc.d --quiet xroad-signer try-restart || true
-    invoke-rc.d --quiet xroad-jetty restart || true
+    RET=
+    db_get xroad-common/skip-cs-db-migrations || true
+    local skip_migrations="${RET}"
+
+    if [ "$skip_migrations" = false ] ; then
+      invoke-rc.d --quiet rsyslog try-restart || true
+      invoke-rc.d --quiet nginx try-restart || true
+      invoke-rc.d --quiet xroad-signer try-restart || true
+      invoke-rc.d --quiet xroad-jetty restart || true
+    else
+      invoke-rc.d --quiet rsyslog stop || true
+      invoke-rc.d --quiet nginx stop || true
+      invoke-rc.d --quiet xroad-signer stop || true
+      invoke-rc.d --quiet xroad-jetty stop || true
+    fi
     ;;
 
 abort-upgrade | abort-remove | abort-deconfigure)
