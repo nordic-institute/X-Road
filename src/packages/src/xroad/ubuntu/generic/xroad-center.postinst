@@ -104,13 +104,13 @@ EOF
       if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
           /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
           psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
-  ALTER SCHEMA public RENAME TO "${db_schema}";
-  ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
-  REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
-  CREATE SCHEMA public;
-  GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
-  ALTER EXTENSION hstore SET SCHEMA public;
-  EOF
+ALTER SCHEMA public RENAME TO "${db_schema}";
+ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
+REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
+CREATE SCHEMA public;
+GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
+ALTER EXTENSION hstore SET SCHEMA public;
+EOF
           crudini --set "${db_properties}" '' schema "${db_schema}"
       fi
 
