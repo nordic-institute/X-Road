@@ -96,7 +96,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
       }
     }
 
-    if (!to.meta.permissions) {
+    if (!to?.meta?.permissions) {
       next();
     } else if (store.getters.hasAnyOfPermissions(to.meta.permissions)) {
       // This route is allowed
