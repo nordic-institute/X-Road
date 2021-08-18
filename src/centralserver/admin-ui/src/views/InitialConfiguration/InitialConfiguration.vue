@@ -181,7 +181,7 @@ export default (
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '~styles/colors';
 @import '~styles/forms';
 

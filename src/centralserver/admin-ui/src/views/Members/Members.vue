@@ -41,5 +41,3 @@ export default Vue.extend({
   components: { SubViewContainer },
 });
 </script>
-
-<style scoped lang="scss"></style>

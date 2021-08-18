@@ -122,7 +122,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '../../../../assets/colors';
 
 .card-corner-button {

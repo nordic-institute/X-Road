@@ -218,7 +218,7 @@ export default Vue.extend({
   },
 });
 </script>
-<style lang="scss" wrapped>
+<style lang="scss" scoped>
 @import '~styles/tables';
 
 .button-wrap {
