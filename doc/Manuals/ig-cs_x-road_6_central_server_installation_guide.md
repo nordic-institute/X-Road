@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.24  
+Version: 2.25  
 Doc. ID: IG-CS
 
 ---
@@ -46,6 +46,7 @@ Doc. ID: IG-CS
 | 16.04.2021 | 2.22    | Update remote database installation instructions. | Jarkko Hyöty
 | 18.05.2021 | 2.23    | Update installation error handling section. | Ilkka Seppälä
 | 01.07.2021 | 2.24    | Update 3rd party key server | Petteri Kivimäki
+| 18.08.2021 | 2.25    | Minor fix to Annex D | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -619,6 +620,9 @@ GRANT USAGE ON SCHEMA public to <database user>;
 
 Create the `/etc/xroad/db.properties` file
 ```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
 sudo touch /etc/xroad/db.properties
 sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
