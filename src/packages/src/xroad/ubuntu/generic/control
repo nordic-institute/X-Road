@@ -23,7 +23,7 @@ Package: xroad-center
 Conflicts: xroad-proxy, xroad-confproxy, xtee55-center
 Architecture: all
 Depends: ${misc:Depends}, openjdk-8-jre-headless | java8-runtime-headless | java8-runtime, rsyslog, xroad-jetty9 (=${binary:Version}), curl, unzip, libmhash2, xroad-nginx (=${binary:Version}), xroad-signer (=${binary:Version}), xroad-confclient (=${binary:Version})
-Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version}), crudini
+Pre-depends: xroad-database-local (=${binary:Version}) | xroad-database-remote (=${binary:Version})
 Description: X-Road central server
  X-Road central server programs and utilities
 
