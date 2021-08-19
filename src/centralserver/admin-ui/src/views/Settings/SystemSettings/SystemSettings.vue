@@ -299,25 +299,9 @@ export default Vue.extend({
   align-items: center;
 }
 
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-top {
-}
-
 .custom-footer {
   border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
   height: 16px;
-}
-
-.card-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  color: $XRoad-Black70;
-  font-weight: bold;
-  padding-top: 5px;
-  padding-bottom: 5px;
 }
 
 .card-corner-button {
@@ -342,7 +326,6 @@ export default Vue.extend({
 .action-cell {
   text-align: right;
   width: 100px;
-  /*padding-right: 20px; */
 }
 
 .card-main-title {
@@ -352,11 +335,6 @@ export default Vue.extend({
   font-size: 18px;
   line-height: 24px;
   margin-left: 16px;
-}
-
-.cert-icon {
-  margin-right: 10px;
-  color: $XRoad-Purple100;
 }
 
 .icon-column-wrap {
