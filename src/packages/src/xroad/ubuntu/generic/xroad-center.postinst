@@ -39,7 +39,6 @@ setup_database() {
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     local skip_migrations="${RET}"
-    echo "xroad-center.postinst skip_migrations=$skip_migrations"
     crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
 
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
@@ -233,7 +232,6 @@ configure | reconfigure)
     RET=
     db_get xroad-common/skip-cs-db-migrations || true
     skip_migrations="${RET}"
-    echo "configure, skip_migrations=$skip_migrations"
 
     if [ "$skip_migrations" = false ] ; then
       invoke-rc.d --quiet rsyslog try-restart || true

@@ -46,7 +46,7 @@ Doc. ID: IG-CS
 | 16.04.2021 | 2.22    | Update remote database installation instructions. | Jarkko Hyöty
 | 18.05.2021 | 2.23    | Update installation error handling section. | Ilkka Seppälä
 | 01.07.2021 | 2.24    | Update 3rd party key server | Petteri Kivimäki
-| 18.08.2021 | 2.25    | Minor fix to Annex D | Ilkka Seppälä
+| 18.08.2021 | 2.25    | Minor updates to Annex D | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
