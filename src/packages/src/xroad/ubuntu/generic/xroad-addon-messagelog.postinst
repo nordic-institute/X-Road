@@ -3,8 +3,18 @@
 
 if [[ "$1" == configure ]]; then
   RET=
-  db_get xroad-common/database-host || RET=""
-  /usr/share/xroad/scripts/setup_messagelog_db.sh "$RET"
+  db_get xroad-common/enable-messagelog || RET=true
+
+  if [ "$RET" = false ]; then
+    mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
+  fi
+
+  if [ "$RET" = true ]; then
+    RET=
+    db_get xroad-common/database-host || RET=""
+    /usr/share/xroad/scripts/setup_messagelog_db.sh "$RET"
+  fi
+
   db_stop
 
   invoke-rc.d xroad-proxy try-restart || true
