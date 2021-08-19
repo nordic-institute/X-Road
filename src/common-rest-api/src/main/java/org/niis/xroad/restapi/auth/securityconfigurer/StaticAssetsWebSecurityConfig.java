@@ -41,7 +41,7 @@ public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http
-            .requestMatchers()
+                .requestMatchers()
                 .antMatchers("/favicon.ico",
                         "/",
                         "/index.html",
@@ -49,25 +49,26 @@ public class StaticAssetsWebSecurityConfig extends WebSecurityConfigurerAdapter 
                         "/css/**",
                         "/js/**",
                         "/fonts/**")
-                .and()
-            .headers()
-                    .contentSecurityPolicy(
-                            "default-src 'self' 'unsafe-inline'  ;"
-                            + "script-src 'self' 'unsafe-inline' 'unsafe-eval' ;"
-                            + "font-src data: 'self'"
-                    )
                     .and()
-                .and()
-            .authorizeRequests()
-                .anyRequest()
-                .permitAll()
-                .and()
-            .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                .and()
-            .csrf()
-                .disable()
-            .formLogin()
-                .disable();
+                .headers()
+                    .contentSecurityPolicy(
+                                "default-src 'self' ;"
+                                        + "script-src 'self' ;"
+                                        + "style-src 'self' 'unsafe-inline' ;"
+                                        + "font-src data: 'self'"
+                            )
+                            .and()
+                    .and()
+                .authorizeRequests()
+                        .anyRequest()
+                        .permitAll()
+                    .and()
+                .sessionManagement()
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    .and()
+                .csrf()
+                    .disable()
+                .formLogin()
+                    .disable();
     }
 }
