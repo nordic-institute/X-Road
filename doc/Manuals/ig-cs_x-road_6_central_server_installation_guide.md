@@ -641,4 +641,5 @@ reconnect=true
 host=<database host>
 port=<database port>
 schema=<database schema>
+skip_migrations=<false by default, set to true to skip migrations>
 ```
