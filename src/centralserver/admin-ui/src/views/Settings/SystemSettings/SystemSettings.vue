@@ -47,7 +47,7 @@
             <tbody>
               <tr>
                 <td class="title-cell">
-                  <div class="icon-column-wrap">
+                  <div>
                     <div>
                       {{ $t('systemSettings.instanceIdentifier') }}
                     </div>
@@ -57,8 +57,8 @@
                 <td></td>
               </tr>
               <tr>
-                <td class="td-icon">
-                  <div class="icon-column-wrap">
+                <td>
+                  <div>
                     <div>
                       {{ $t('systemSettings.centralServerAddress') }}
                     </div>
@@ -92,7 +92,7 @@
             <!-- SOFTWARE token table body -->
             <tr>
               <td class="title-cell">
-                <div class="icon-column-wrap">
+                <div>
                   <div>
                     {{ $t('systemSettings.serviceProviderIdentifier') }}
                   </div>
@@ -107,8 +107,8 @@
             </tr>
 
             <tr>
-              <td class="td-icon">
-                <div class="icon-column-wrap">
+              <td>
+                <div>
                   <div>
                     {{ $t('systemSettings.serviceProviderName') }}
                   </div>
@@ -119,8 +119,8 @@
             </tr>
 
             <tr>
-              <td class="td-icon">
-                <div class="icon-column-wrap">
+              <td>
+                <div>
                   <div>
                     {{ $t('systemSettings.managementServiceSecurityServer') }}
                   </div>
@@ -131,8 +131,8 @@
             </tr>
 
             <tr>
-              <td class="td-icon">
-                <div class="icon-column-wrap">
+              <td>
+                <div>
                   <div>
                     {{ $t('systemSettings.wsdlAddress') }}
                   </div>
@@ -143,8 +143,8 @@
             </tr>
 
             <tr>
-              <td class="td-icon">
-                <div class="icon-column-wrap">
+              <td>
+                <div>
                   <div>
                     {{ $t('systemSettings.centralServerAddress') }}
                   </div>
@@ -157,8 +157,8 @@
             </tr>
 
             <tr>
-              <td class="td-icon">
-                <div class="icon-column-wrap">
+              <td>
+                <div>
                   <div>
                     {{ $t('systemSettings.securityServerOwnerroupCode') }}
                   </div>
@@ -335,11 +335,5 @@ export default Vue.extend({
   font-size: 18px;
   line-height: 24px;
   margin-left: 16px;
-}
-
-.icon-column-wrap {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
 }
 </style>
