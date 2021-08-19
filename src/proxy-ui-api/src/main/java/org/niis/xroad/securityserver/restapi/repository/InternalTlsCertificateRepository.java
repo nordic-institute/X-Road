@@ -33,6 +33,7 @@ import org.springframework.stereotype.Repository;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 
 /**
  * internal tls certificate repository
@@ -51,7 +52,19 @@ public class InternalTlsCertificateRepository {
         try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
             return CryptoUtils.readCertificate(fileInputStream);
         } catch (IOException ioe) {
-            log.error("cant read internal tls cert");
+            log.error("can't read internal tls cert");
+            throw new RuntimeException(ioe);
+        }
+    }
+
+    /**
+     * reads internal tls certificate chain from file
+     */
+    public Collection<X509Certificate> getInternalTlsCertificateChain() {
+        try (FileInputStream fileInputStream = new FileInputStream(INTERNAL_TLS_CERT_PATH)) {
+            return CryptoUtils.readCertificates(fileInputStream);
+        } catch (IOException ioe) {
+            log.error("can't read internal tls cert");
             throw new RuntimeException(ioe);
         }
     }
