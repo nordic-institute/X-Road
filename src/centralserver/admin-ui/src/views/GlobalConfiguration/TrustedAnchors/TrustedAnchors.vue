@@ -34,7 +34,7 @@
 
     <!-- Anchor -->
     <div id="anchor" class="mt-4">
-      <v-card class="pb-4">
+      <v-card class="pb-4" flat>
         <div class="card-top">
           <div class="card-main-title">Configuration parts</div>
           <div class="card-corner-button pr-4">

@@ -35,7 +35,7 @@
       />
     </div>
 
-    <v-card class="mt-4">
+    <v-card class="mt-4" flat>
       <v-card-text>
         <xrd-table>
           <thead>

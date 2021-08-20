@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card class="mt-8">
+  <v-card class="mt-8" flat>
     <div class="card-corner-button pt-4 pr-4">
       <xrd-button outlined data-test="add-member-to-group">
         <xrd-icon-base class="xrd-large-button-icon"

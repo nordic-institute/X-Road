@@ -39,7 +39,7 @@
       >
     </div>
 
-    <v-card>
+    <v-card flat>
       <v-card-text>
         <xrd-table>
           <thead>

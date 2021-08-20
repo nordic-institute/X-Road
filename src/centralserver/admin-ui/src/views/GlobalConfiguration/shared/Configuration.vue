@@ -48,7 +48,7 @@
 
     <!-- Anchor -->
     <div id="anchor" class="mt-4">
-      <v-card>
+      <v-card flat>
         <div class="card-top">
           <div class="card-main-title">Anchor</div>
           <div class="card-corner-button pr-4">
@@ -83,7 +83,7 @@
 
     <!-- Download URL -->
     <div id="download-url" class="mt-5">
-      <v-card>
+      <v-card flat>
         <div class="card-top">
           <div class="card-main-title">Download URL</div>
         </div>
@@ -99,7 +99,7 @@
 
     <!-- Configuration parts -->
     <div id="global-groups" class="mt-5">
-      <v-card>
+      <v-card flat>
         <div class="card-top">
           <div class="card-main-title">Configuration parts</div>
         </div>
