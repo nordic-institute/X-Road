@@ -53,12 +53,17 @@
           <div class="card-main-title">Anchor</div>
           <div class="card-corner-button pr-4">
             <xrd-button outlined class="mr-4">
-              <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
-              >Re-create
+              <xrd-icon-base class="xrd-large-button-icon"
+                ><XrdIconAdd
+              /></xrd-icon-base>
+
+              Re-create
             </xrd-button>
             <xrd-button outlined>
-              <v-icon class="xrd-large-button-icon">icon-Download</v-icon
-              >Download
+              <xrd-icon-base class="xrd-large-button-icon"
+                ><XrdIconDownload
+              /></xrd-icon-base>
+              Download
             </xrd-button>
           </div>
         </div>
@@ -67,7 +72,9 @@
         >
         <v-divider></v-divider>
         <v-card-text>
-          <v-icon class="internal-conf-icon">icon-Certificate</v-icon>
+          <xrd-icon-base class="internal-conf-icon"
+            ><XrdIconCertificate
+          /></xrd-icon-base>
           42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F</v-card-text
         >
         <v-divider class="pb-4"></v-divider>
@@ -205,7 +212,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '~styles/colors';
 
 .card-title {

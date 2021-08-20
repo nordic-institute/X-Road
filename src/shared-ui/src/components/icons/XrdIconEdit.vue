@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,10 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <sub-view-container>
-    <router-view data-test="members-view"></router-view>
-  </sub-view-container>
+  <g>
+    <path
+      d="M4.162 10.6667H12V12.0001H0V9.17139L6.6 2.57139L9.428 5.40072L4.16133 10.6667H4.162ZM7.542 1.62939L8.95667 0.214722C9.08169 0.0897416 9.25122 0.0195312 9.428 0.0195312C9.60478 0.0195312 9.77432 0.0897416 9.89933 0.214722L11.7853 2.10072C11.9103 2.22574 11.9805 2.39528 11.9805 2.57206C11.9805 2.74883 11.9103 2.91837 11.7853 3.04339L10.3707 4.45739L7.54267 1.62939H7.542Z"
+    />
+  </g>
 </template>
-
-<script lang="ts">
-import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
-
-/**
- * Members main view wrapping content all from 'Members' main tab
- */
-export default Vue.extend({
-  components: { SubViewContainer },
-});
-</script>

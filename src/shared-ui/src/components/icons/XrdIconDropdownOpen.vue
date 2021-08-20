@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,12 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <sub-view-container>
-    <router-view data-test="members-view"></router-view>
-  </sub-view-container>
+  <g>
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M7.42969 8.5L5.92969 10L12 16.0703L18.0703 10L16.5703 8.5L12 13.0703L7.42969 8.5Z"
+    />
+  </g>
 </template>
-
-<script lang="ts">
-import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
-
-/**
- * Members main view wrapping content all from 'Members' main tab
- */
-export default Vue.extend({
-  components: { SubViewContainer },
-});
-</script>

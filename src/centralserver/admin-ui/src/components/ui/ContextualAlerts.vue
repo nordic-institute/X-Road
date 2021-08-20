@@ -43,7 +43,9 @@
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="mr-4">
-            <v-icon color="red">icon-Error-notification</v-icon>
+            <xrd-icon-base color="red"
+              ><XrdIconErrorNotification
+            /></xrd-icon-base>
           </div>
           <div class="row-wrapper">
             <!-- Show localised text by id -->
@@ -116,8 +118,12 @@
             class="id-button"
             data-test="copy-id-button"
             @click.prevent="copyId(notification)"
-            ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
-            >{{ $t('action.copyId') }}</xrd-button
+          >
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><XrdIconCopy
+            /></xrd-icon-base>
+
+            {{ $t('action.copyId') }}</xrd-button
           >
 
           <!-- Handle possible action -->
@@ -140,7 +146,7 @@
               data-test="close-snackbar"
               @click="closeError(notification.timeAdded)"
             >
-              <v-icon dark>icon-Close</v-icon>
+              <xrd-icon-base><XrdIconClose /></xrd-icon-base>
             </v-btn>
           </div>
         </div>

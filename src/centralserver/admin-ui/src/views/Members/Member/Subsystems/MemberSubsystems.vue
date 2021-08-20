@@ -27,8 +27,11 @@
   <v-card class="mt-8">
     <div class="card-corner-button pt-4 pr-4">
       <xrd-button outlined data-test="add-member-to-group">
-        <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
-        >{{ $t('members.member.subsystems.addClient') }}
+        <xrd-icon-base class="xrd-large-button-icon"
+          ><xrd-icon-add
+        /></xrd-icon-base>
+
+        {{ $t('members.member.subsystems.addClient') }}
       </xrd-button>
     </div>
 
@@ -122,7 +125,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '../../../../assets/colors';
 
 .card-corner-button {

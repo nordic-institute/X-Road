@@ -91,7 +91,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .status {
   text-transform: uppercase;
   font-weight: bold;

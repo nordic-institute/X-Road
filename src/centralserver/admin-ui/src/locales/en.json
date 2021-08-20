@@ -187,7 +187,10 @@
     "certificationServices": "Certification Services",
     "timestampingServices": "Timestamping Services",
     "addCertificationService": "Add certification service",
-    "addTimestampingService": "Add timestamping service"
+    "addTimestampingService": "Add timestamping service",
+    "approvedCertificationService": "Approved Certification service",
+    "validFrom": "Valid from",
+    "validTo": "Valid to"
   },
   "init": {
     "initialConfiguration": "Initial Configuration",

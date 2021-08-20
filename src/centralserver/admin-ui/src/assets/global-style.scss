@@ -114,7 +114,8 @@
 // For adjusting the position of an icon when used inside a button component
 .xrd-large-button-icon {
   margin-right: 5px;
-  margin-left: -2px;
+  margin-left: -4px;
+  margin-bottom: -2px;
   min-width: 20px; // needs a width or the buttons with short text "collapse"
 }
 

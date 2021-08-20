@@ -31,9 +31,10 @@
       data-test="continue-init-notification"
     >
       <div class="left-block">
-        <v-icon class="xrd-large-button-icon notification-icon"
-          >icon-Checked</v-icon
-        >
+        <xrd-icon-base class="xrd-large-button-icon notification-icon"
+          ><xrd-icon-checked
+        /></xrd-icon-base>
+
         <span class="alert-text">{{ $t('init.notification') }}</span>
       </div>
 
@@ -67,7 +68,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '~styles/colors';
 
 .notification-icon {

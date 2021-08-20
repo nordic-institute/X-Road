@@ -39,8 +39,10 @@
           <div class="card-main-title">Configuration parts</div>
           <div class="card-corner-button pr-4">
             <xrd-button outlined>
-              <v-icon class="xrd-large-button-icon">icon-Download</v-icon
-              >Download
+              <xrd-icon-base class="xrd-large-button-icon"
+                ><XrdIconDownload
+              /></xrd-icon-base>
+              Download
             </xrd-button>
           </div>
         </div>
@@ -62,8 +64,9 @@
             <tr>
               <td class="td-icon">
                 <div class="icon-column-wrap">
-                  <i class="icon-Certificate cert-icon" />
-
+                  <xrd-icon-base class="cert-icon"
+                    ><XrdIconCertificate
+                  /></xrd-icon-base>
                   <div>
                     42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:
                   </div>
@@ -96,8 +99,9 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '~styles/colors';
+@import '~styles/tables';
 
 .card-title {
   font-size: 12px;

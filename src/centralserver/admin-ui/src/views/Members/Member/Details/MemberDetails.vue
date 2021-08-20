@@ -70,7 +70,8 @@
       <v-card>
         <div class="card-corner-button pt-4 pr-4">
           <xrd-button outlined>
-            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><xrd-icon-add /></xrd-icon-base
             >{{ $t('members.member.details.addServer') }}
           </xrd-button>
         </div>
@@ -93,7 +94,8 @@
       <v-card>
         <div class="card-corner-button pt-4 pr-4">
           <xrd-button outlined data-test="add-member-to-group">
-            <v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><xrd-icon-add /></xrd-icon-base
             >{{ $t('members.member.details.addMemberToGroup') }}
           </xrd-button>
         </div>
@@ -140,7 +142,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '~styles/colors';
 
 .card-title {

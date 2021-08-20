@@ -35,7 +35,7 @@
   >
     <title :id="iconName" lang="en">{{ iconName }} icon</title>
     <g :fill="iconColor">
-      <template v-if="iconName === 'register_client'">
+      <template v-if="iconName === 'addUser'">
         <path
           d="M17.0789 7.02652C17.0789 9.74434 14.8757 11.9476 12.1579 11.9476C9.44005 11.9476 7.23682 9.74434 7.23682 7.02652C7.23682 4.3087 9.44005 2.10547 12.1579 2.10547C14.8757 2.10547 17.0789 4.3087 17.0789 7.02652Z"
           fill="#211E1E"
@@ -54,7 +54,7 @@
         />
       </template>
 
-      <template v-if="iconName === 'register_certificate'">
+      <template v-if="iconName === 'addCertificate'">
         <path
           d="M12.9091 6.59091C12.9091 5.77827 13.0868 5.00713 13.4055 4.31424L12 2.95459L10.2013 4.69287L7.72621 4.34308L7.29297 6.80757L5.08416 7.97945L6.18146 10.2273L5.08416 12.4752L7.29297 13.6471L7.72621 16.1116L10.2031 15.7618L12 17.5L13.7987 15.7618L16.2756 16.1116L16.707 13.6471L18.9176 12.4752L18.7024 12.0351C18.5904 12.042 18.4774 12.0455 18.3636 12.0455C15.3512 12.0455 12.9091 9.60337 12.9091 6.59091Z"
           fill="#211E1E"
@@ -76,7 +76,7 @@
           fill="#0CC177"
         />
       </template>
-      <template v-if="iconName === 'delete_client'">
+      <template v-if="iconName === 'removeUser'">
         <path
           d="M17.1929 7.06417C17.1929 9.80764 14.9689 12.0317 12.2254 12.0317C9.48196 12.0317 7.25794 9.80764 7.25794 7.06417C7.25794 4.3207 9.48196 2.09668 12.2254 2.09668C14.9689 2.09668 17.1929 4.3207 17.1929 7.06417Z"
           fill="#211E1E"
@@ -95,7 +95,7 @@
         />
       </template>
 
-      <template v-if="iconName === 'delete_certificate'">
+      <template v-if="iconName === 'removeCertificate'">
         <path
           d="M12.9091 6.59091C12.9091 5.77827 13.0868 5.00713 13.4055 4.31424L12 2.95459L10.2013 4.69287L7.72621 4.34308L7.29297 6.80757L5.08416 7.97945L6.18146 10.2273L5.08416 12.4752L7.29297 13.6471L7.72621 16.1116L10.2031 15.7618L12 17.5L13.7987 15.7618L16.2756 16.1116L16.707 13.6471L18.9176 12.4752L18.7024 12.0351C18.5904 12.042 18.4774 12.0455 18.3636 12.0455C15.3512 12.0455 12.9091 9.60337 12.9091 6.59091Z"
           fill="#211E1E"
@@ -118,7 +118,7 @@
         />
       </template>
 
-      <template v-if="iconName === 'change_owner'">
+      <template v-if="iconName === 'changeOwner'">
         <path
           d="M16.76 1H7.76001V4.88536C7.74146 4.92331 7.72338 4.96152 7.70578 5H5V6H7.37219C7.29736 6.34283 7.25794 6.6989 7.25794 7.06417C7.25794 9.80764 9.48196 12.0317 12.2254 12.0317C14.9689 12.0317 17.1929 9.80764 17.1929 7.06417C17.1929 6.6989 17.1535 6.34283 17.0787 6H19V5H16.76V1Z"
           fill="#211E1E"
@@ -145,11 +145,6 @@
 </template>
 
 <script lang="ts">
-/**
- * Component for SVG icons. Used for the few multi color icons because the icon font can not handle multiple colors.
- * If more icons are added in the furure consider splitting the template (<g> tag parts) into
- * separate vue components for each icon.
- */
 import Vue from 'vue';
 
 export default Vue.extend({
@@ -157,15 +152,7 @@ export default Vue.extend({
   props: {
     iconName: {
       type: String,
-      validator: (prop) =>
-        [
-          'register_client',
-          'register_certificate',
-          'delete_client',
-          'delete_certificate',
-          'change_owner',
-        ].includes(prop),
-      default: '',
+      default: 'box',
     },
     width: {
       type: [Number, String],
@@ -183,10 +170,10 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 svg {
   display: inline-block;
   vertical-align: baseline;
-  margin-bottom: -6px; /* adjust the icon placement */
+  margin-bottom: -2px; /* yes, I'm that particular about formatting */
 }
 </style>

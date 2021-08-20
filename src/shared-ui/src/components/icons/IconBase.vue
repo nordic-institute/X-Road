@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,21 +24,50 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <sub-view-container>
-    <router-view data-test="members-view"></router-view>
-  </sub-view-container>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    :width="width"
+    :height="height"
+    viewBox="0 0 26 26"
+    :aria-labelledby="iconName"
+    role="presentation"
+    :fill="color"
+  >
+    <title :id="iconName" lang="en">{{ iconName }} icon</title>
+    <slot :fillColor="color" />
+  </svg>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 
-/**
- * Members main view wrapping content all from 'Members' main tab
- */
 export default Vue.extend({
-  components: { SubViewContainer },
+  name: 'XrdIconBase',
+  props: {
+    iconName: {
+      type: String,
+      default: 'box',
+    },
+    width: {
+      type: [Number, String],
+      default: 26,
+    },
+    height: {
+      type: [Number, String],
+      default: 26,
+    },
+    color: {
+      type: String,
+      default: 'currentColor',
+    },
+  },
 });
 </script>
+
+<style scoped>
+svg {
+  display: inline-block;
+  vertical-align: middle;
+}
+</style>
