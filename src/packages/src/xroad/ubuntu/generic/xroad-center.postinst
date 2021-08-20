@@ -50,8 +50,6 @@ setup_database() {
         PGDATABASE="$db_database" PGUSER="$db_user" PGPASSWORD="$db_password" remote_psql "$@"
     }
 
-    detect_bdr()  { [[ "$(psql_dbuser -c 'select bdr.bdr_version()' 2>/dev/null)" == "1.0."* ]]; }
-
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
         local db_master_passwd=$(get_prop ${root_properties} postgres.connection.password)
         db_master_user=$(get_prop ${root_properties} postgres.connection.user 'postgres')
@@ -98,8 +96,7 @@ EOF
 
     if [[ $(psql_dbuser -c "SELECT max(version) <= '20191211104400' from public.schema_migrations;" 2>/dev/null) == "t" ]]; then
         /usr/share/xroad/db/migrate-legacy.sh db:migrate || abort "Database migration failed. ABORTING."
-        if ! detect_bdr; then
-            psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
+        psql_master --single-transaction -d "$db_database" <<EOF || abort "Renaming public schema to '$db_schema' failed."
 ALTER SCHEMA public RENAME TO "${db_schema}";
 ALTER SCHEMA "${db_schema}" OWNER TO "${db_plain_user}";
 REVOKE ALL ON SCHEMA "${db_schema}" FROM PUBLIC;
@@ -108,13 +105,6 @@ GRANT USAGE ON SCHEMA public TO "${db_plain_user}";
 ALTER EXTENSION hstore SET SCHEMA public;
 EOF
         crudini --set "${db_properties}" '' schema "${db_schema}"
-        else
-            log "PostgreSQL BDR 1.0 detected, not migrating the 'public' schema."
-            log "Manually migrate the 'public' schema to keep built-in database backup/restore functionality."
-            log "Note. BDR 1.0 is deprecated and support will be removed in a future X-Road release."
-            db_schema="public"
-            crudini --set "${db_properties}" '' schema "${db_schema}"
-        fi
     fi
 
     /usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
