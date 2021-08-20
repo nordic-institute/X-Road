@@ -240,11 +240,8 @@ configure | reconfigure)
       invoke-rc.d --quiet xroad-jetty restart || true
       echo "services restarted"
     else
-      invoke-rc.d --quiet rsyslog stop || true
-      invoke-rc.d --quiet nginx stop || true
-      invoke-rc.d --quiet xroad-signer stop || true
       invoke-rc.d --quiet xroad-jetty stop || true
-      echo "services remain stopped since the database migrations were skipped"
+      echo "xroad-jetty service remains stopped since the database migrations were skipped"
     fi
     ;;
 
