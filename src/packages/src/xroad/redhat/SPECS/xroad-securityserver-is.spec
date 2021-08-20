@@ -36,3 +36,6 @@ cp -p %{srcdir}/default-configuration/override-securityserver-is.ini %{buildroot
 %upgrade_check
 
 %post
+
+%postun
+%systemd_postun_with_restart xroad-proxy.service
