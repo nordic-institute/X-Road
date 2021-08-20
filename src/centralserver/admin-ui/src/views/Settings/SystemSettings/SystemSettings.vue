@@ -34,7 +34,6 @@
 
     <div>
       <!-- System Parameters -->
-
       <div id="anchor" class="mb-6">
         <v-card class="pb-4" flat>
           <div class="card-top">
@@ -53,7 +52,7 @@
                     </div>
                   </div>
                 </td>
-                <td>DEV</td>
+                <td>{{ systemParameters.instanceIdentifier }}</td>
                 <td></td>
               </tr>
               <tr>
@@ -64,7 +63,7 @@
                     </div>
                   </div>
                 </td>
-                <td>DEV</td>
+                <td>{{ systemParameters.centralServerAddress }}</td>
                 <td class="action-cell">
                   <xrd-button text :outlined="false">{{
                     $t('action.edit')
@@ -78,7 +77,6 @@
     </div>
 
     <!-- Management Services -->
-
     <div id="anchor" class="mb-6">
       <v-card class="pb-4" flat>
         <div class="card-top">
@@ -89,7 +87,6 @@
 
         <table class="xrd-table mt-0 pb-3">
           <tbody>
-            <!-- SOFTWARE token table body -->
             <tr>
               <td class="title-cell">
                 <div>
@@ -98,7 +95,7 @@
                   </div>
                 </div>
               </td>
-              <td>SUBSYSTEM:DEV/ORG/111/MANAGEMENT</td>
+              <td>{{ managementServices.serviceProviderIdentifier }}</td>
               <td class="action-cell">
                 <xrd-button text :outlined="false">{{
                   $t('action.edit')
@@ -114,7 +111,7 @@
                   </div>
                 </div>
               </td>
-              <td>NIIS</td>
+              <td>{{ managementServices.serviceProviderName }}</td>
               <td></td>
             </tr>
 
@@ -126,7 +123,7 @@
                   </div>
                 </div>
               </td>
-              <td>SERVER:DEV/ORG/111/SS1</td>
+              <td>{{ managementServices.managementServiceSecurityServer }}</td>
               <td></td>
             </tr>
 
@@ -138,7 +135,7 @@
                   </div>
                 </div>
               </td>
-              <td>http://dev-cs.i.x-road.rocks/managementservices.wsdl</td>
+              <td>{{ managementServices.wsdlAddress }}</td>
               <td></td>
             </tr>
 
@@ -151,7 +148,7 @@
                 </div>
               </td>
               <td>
-                https://dev-cs.i.x-road.rocks:4002/managementservice/manage/
+                {{ managementServices.centralServerAddress }}
               </td>
               <td></td>
             </tr>
@@ -164,7 +161,7 @@
                   </div>
                 </div>
               </td>
-              <td>security-server-owners</td>
+              <td>{{ managementServices.securityServerOwnerroupCode }}</td>
               <td></td>
             </tr>
           </tbody>
@@ -229,7 +226,7 @@
 
 <script lang="ts">
 /**
- * View for 'trust services' tab
+ * View for 'system settings' tab
  */
 import Vue from 'vue';
 import SubViewContainer from '@/components/layout/SubViewContainer.vue';
@@ -244,6 +241,19 @@ export default Vue.extend({
       search: '' as string,
       loading: false,
       showOnlyPending: false,
+      systemParameters: {
+        instanceIdentifier: 'DEV',
+        centralServerAddress: 'dev-cs.i.road.rocks',
+      },
+      managementServices: {
+        serviceProviderIdentifier: 'SUBSYSTEM:DEV/ORG/111/MANAGEMENT',
+        serviceProviderName: 'NIIS',
+        managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
+        wsdlAddress: 'http://dev-cs.i.x-road.rocks/managementservices.wsdl',
+        centralServerAddress:
+          'https://dev-cs.i.x-road.rocks:4002/managementservice/manage/',
+        securityServerOwnerroupCode: 'security-server-owners',
+      },
       memberClasses: [
         {
           code: 'COM',
