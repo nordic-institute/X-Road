@@ -9,6 +9,7 @@
  21.01.2021 | 1.2     | Removal of kubernetes related sections                          | Alberto Fernandez Lorenzo
  10.02.2021 | 1.3     | Modify description of different supported platforms             | Raul Martinez Lopez
  06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
+ 12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                            | Raul Martinez Lopez
 
 ## Table of Contents
 
@@ -39,16 +40,19 @@
 * [5 Back up and Restore](#5-back-up-and-restore)
   * [5.1 Automatic Backups](#51-automatic-backups)
 * [6 Version update](#6-version-update)
-* [7 Monitoring](#7-monitoring)
-  * [7.1 Environmental monitoring](#71-environmental-monitoring)
-  * [7.2 Operational Monitoring](#72-operational-monitoring)
-* [8 Message log](#8-message-log)
-  * [8.1 Local storage of message log](#81-local-storage-of-message-log)
-* [9 Deployment options](#9-deployment-options)
-  * [9.1 General](#91-general)
-  * [9.2 Container local database](#92-container-local-database)
-  * [9.3 Remote database](#93-remote-database)
-  * [9.4 High Availability Setup](#94-high-availability-setup)
+* [7 Version upgrade from 6.25.0 to 6.26.0](#7-version-upgrade-from-6250-to-6260)
+  * [7.1 Using a configuration backup](#71-using-a-configuration-backup)
+  * [7.2 In-place upgrade](#72-in-place-upgrade)
+* [8 Monitoring](#8-monitoring)
+  * [8.1 Environmental monitoring](#81-environmental-monitoring)
+  * [8.2 Operational Monitoring](#82-operational-monitoring)
+* [9 Message log](#9-message-log)
+  * [9.1 Local storage of message log](#91-local-storage-of-message-log)
+* [10 Deployment options](#10-deployment-options)
+  * [10.1 General](#101-general)
+  * [10.2 Container local database](#102-container-local-database)
+  * [10.3 Remote database](#103-remote-database)
+  * [10.4 High Availability Setup](#104-high-availability-setup)
 
 ## 1 Introduction
 
@@ -85,6 +89,8 @@ niis/xroad-security-server-sidecar:&lt;version&gt;-slim-fi   | This image is the
 niis/xroad-security-server-sidecar:&lt;version&gt;-fi        | This image is the same as the niis/xroad-security-server-sidecar:&lt;version&gt; but with the Finnish configuration settings included.
 
 All of the images can act as a provider or consumer Security Servers, but the slim images have less features available. The images with a country code suffix (e.g., `-fi`) come with a country-specific configuration. The images without a country code suffix come with the X-Road default configuration.
+
+Note! The [2.6.2.1 Security Server Sidecar Slim](#2621-security-server-sidecar-slim) version does not require any connection to the timestamp service since it does not include the message logging feature.
 
 **Feature**                      | **Sidecar** | **Sidecar Slim** |
 ---------------------------------|-------------|------------------|
@@ -170,7 +176,7 @@ To install the Security Server Sidecar in a local development or test environmen
 docker run --detach -p <ui port>:4000 -p <http port>:8080 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=<token pin> -e XROAD_ADMIN_USER=<admin user> -e XROAD_ADMIN_PASSWORD=<admin password> (-e XROAD_DB_HOST=<database host> -e XROAD_DB_PORT=<database port> -e XROAD_DB_PWD=<xroad db password> -e XROAD_LOG_LEVEL=<xroad log level> -e XROAD_CONF_DATABASE_NAME=<database name>) --name <container name> niis/xroad-security-server-sidecar:<image tag>
 ```
 
-Note (1): This command persists all configuration inside the Sidecar container which means that all configuration is lost when the container is destroyed. In production use, the configuration must be persisted outside of the container using volumes and external database. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
+Note! This command persists all configuration inside the Sidecar container which means that all configuration is lost when the container is destroyed. In production use, the configuration must be persisted outside of the container using volumes and external database. More information can be found on sections [2.9 Volume support](#29-volume-support) and [2.7 External database](#27-external-database).
 
 #### 2.6.2 Installation using setup script
 
@@ -216,13 +222,13 @@ The script `setup_security_server_sidecar.sh` will:
 
 ##### 2.6.2.1 Security Server Sidecar Slim
 
-The Sidecar is a slim version of the sidecar who does not include support for message logging and monitoring. To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`.
+The Security Server Sidecar slim is a leaner version of the sidecar who does not include support for message logging and monitoring. To install the Security Server Sidecar slim, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/Dockerfile`.
 
-To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`
+To install the Security Server Sidecar slim with Finnish settings, modify the Docker image build path in the `setup_security_server_sidecar.sh` script by changing the path `sidecar/Dockerfile` to `sidecar/slim/fi/Dockerfile`.
 
 ##### 2.6.2.2 Finnish settings
 
-To install the Security Server Sidecar in a local development or test environment with Finnish settings, modify the image build in the `setup_security_server_sidecar.sh` changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile"
+To install the Security Server Sidecar in a local development or test environment with Finnish settings, modify the image build in the `setup_security_server_sidecar.sh` changing the path "sidecar/Dockerfile" to "sidecar/fi/Dockerfile".
 
 ### 2.7 External database
 
@@ -269,7 +275,7 @@ The Security Server Sidecar provides the option to configure an external databas
 4. If the database is in your local machine you have to use the interface IP that uses the host to connect to the Docker containers. You can get this IP by running the command below and checking the gateway property:
 
     ```bash
-    docker inspect <container_name>
+    docker inspect <container name>
     ```
 
 The external database has been tested both for external PostgreSQL database running in our local machine and in a remote server or inside another Docker container. It can also be integrated with AWS RDS, which has been tested for PostgreSQL engine and Aurora PostgreSQL engine (PostgreSQL versions 10 and 12).
@@ -283,7 +289,7 @@ To change the database host, you need to:
 1. Run a new command on the Sidecar container:
 
     ```bash
-    docker exec -it <sidecar_container_name> bash
+    docker exec -it <sidecar container name> bash
     ```
 
 2. Inside the container, open the `etc/xroad/db.properties` file in a text editor (you can install any of the command line text editors such as nano, vi...) :
@@ -297,9 +303,9 @@ To change the database host, you need to:
     ```bash
     [...]
     # -db.properties -
-    serverconf.hibernate.connection.url = jdbc:postgresql://<new_host_ip>:5432/serverconf
-    serverconf.hibernate.connection.username = <new_user>
-    serverconf.hibernate.connection.password = <new_password>
+    serverconf.hibernate.connection.url = jdbc:postgresql://<new host ip>:5432/serverconf
+    serverconf.hibernate.connection.username = <new user>
+    serverconf.hibernate.connection.password = <new password>
     [...]
     ```
 
@@ -310,8 +316,8 @@ To change the database host, you need to:
     ```bash
     [...]
     # -xroad.properties -
-    serverconf.database.admin_user = <new_serverconf_admin>
-    serverconf.database.admin_password = -<new_serverconf_password>
+    serverconf.database.admin_user = <new serverconf admin>
+    serverconf.database.admin_password = -<new serverconf password>
     [...]
     ```
 
@@ -424,7 +430,7 @@ Note (4): The Security Server code uniquely identifies the Security Server in an
 To perform the initial configuration, open the address below in a web browser (**reference data: 1.2**):
 
 ```bash
-https://SECURITYSERVER:<ui-port>/
+https://SECURITYSERVER:<ui port>/
 ```
 
 To log in, use the account name and password you set during the installation (**reference data: 1.5; 1.6**).
@@ -540,11 +546,128 @@ To do this, you must:
 
 Note: It is possible that a major version update will require extra changes. Remember to always check the specific documentation for the version update and follow the provided instructions.
 
-## 7 Monitoring
+## 7 Version upgrade from 6.25.0 to 6.26.0
+
+The Security Server Sidecar version 6.26.0 upgrades the base operating system from Ubuntu 18.04 to Ubuntu 20.04. Furthermore, PostgreSQL is updated from version 10 to 12. There are two alternative methods to upgrade the Security Server Sidecar from version 6.25.0 to 6.26.0. Please read carefully and follow the provided steps for each method.
+
+Note! It is strongly recommended to have a backup of the Security Server sidecar and databases to avoid a loss of data in case of a failure in the upgrade process.
+
+### 7.1 Using a configuration backup
+
+The Security Server Sidecar can be upgraded to the 6.26.0 version by creating a backup of the Security Server configuration on the container running the 6.25.0 version and restoring the backup on a new container running the 6.26.0 version by following the steps below:
+
+1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
+
+2. Optionally, create a backup of the messagelog and operational monitoring databases and archived log records from the old container.
+
+    ```bash
+    supervisorctl stop xroad-proxy xroad-opmonitor
+    sudo -iu postgres pg_dump -d messagelog -Fc -f <messagelog db dump file>
+    sudo -iu postgres pg_dump -d "op-monitor" -F c -f <op-monitor db dump file>
+    ```
+
+3. Stop the Security Server sidecar container running the 6.25.0 version.
+
+4. Run a new Security Server sidecar image version 6.26.0 and switch over to the sidecar container running the 6.26.0 version, making sure the new Security Server sidecar container address matches the old Security Server sidecar address so that other security servers and information systems can reach the sidecar container running the 6.26.0 version.
+
+5. Restore the backup inside the container. Note that the internal and admin UI and internal TLS certificates will be overwritten by the ones restored from the backup.
+
+    ```bash
+    sudo -iu xroad /usr/share/xroad/scripts/restore_xroad_proxy_configuration.sh -F -f <backup file>
+    ```
+
+6. Optionally, restore the messagelog and operational monitoring databases backup.
+
+    ```bash
+    supervisorctl stop xroad-proxy xroad-opmonitor
+    sudo -iu postgres pg_restore -d messagelog -c <messagelog db dump file>
+    sudo -iu postgres pg_restore -d "op-monitor" -c <op-monitor dump file>
+    supervisorctl start xroad-proxy xroad-opmonitor
+    ```
+
+Note! The backup file does not include the X-Road admin user account(s) or remote database credentials stored in `/etc/xroad.properties` so you need to take care of moving these manually.
+
+### 7.2 In-place upgrade
+
+Alternatively, you can manually upgrade the X-Road Sidecar packages from 6.25.0 to 6.26.0 version without removing the container where the Security Server Sidecar is currently running by following the steps below:
+
+1. Create a backup of the Security Server sidecar configuration via the Admin UI and download the tar file to a safe location.
+
+2. Stop the Security Server sidecar services and prevent them from starting automatically at boot.
+
+    ```bash
+    mv /etc/supervisor/conf.d/xroad.conf /etc/supervisor/conf.d/xroad.conf.disabled
+    supervisorctl update all
+    ```
+
+3. Optionally, create a backup of the messagelog and operational monitoring databases and archived log records from the old container.
+
+    ```bash
+    sudo -iu postgres pg_dump -d messagelog -Fc -f <messagelog db dump file>
+    sudo -iu postgres pg_dump -d "op-monitor" -Fc -f <op-monitor db dump file>
+    ```
+
+4. Update and upgrade the packages in the Security Server sidecar container and install update-manager-core if it is not already installed. Make sure the Prompt line in `/etc/update-manager/release-upgrades` is set to lts.
+
+    ```bash
+    sudo apt-get update && sudo apt-get upgrade
+    sudo apt-get install update-manager-core
+    ```
+
+5. Launch the Ubuntu upgrade tool `do-release-upgrade` and follow the on-screen instructions.
+
+    ```bash
+    sudo do-release-upgrade
+    ```
+
+6. Upgrade the PostgreSQL database from version 10 to 12. The Ubuntu upgrade process by default creates an empty database instance that should be removed before the old database is upgraded to version 12.
+
+    ```bash
+    sudo pg_dropcluster --stop 12 main
+    sudo pg_upgradecluster --method=upgrade --link 10 main
+    sudo pg_ctlcluster 12 main start
+    ```
+
+7. Update the new version repository and upgrade the packages. Some configuration files need to be updated manually using the commands below.
+
+    ```bash
+    echo "deb https://artifactory.niis.org/xroad-release-deb focal-current main" >/etc/apt/sources.list.d/xroad.list && apt-key add '/tmp/repokey.gpg'
+    mv /etc/supervisor/conf.d/xroad.conf.disabled /etc/supervisor/conf.d/xroad.conf
+    sed -i -e "s/postgresql\/10/postgresql\/12/g" /etc/supervisor/conf.d/xroad.conf
+    crudini --set /etc/supervisor/conf.d/xroad.conf program:xroad-proxy command "/usr/share/xroad/bin/xroad-proxy"
+    crudini --set /etc/supervisor/conf.d/xroad.conf program:xroad-proxy user "xroad"
+    sed -i -e "s/10/12/g" /root/entrypoint.sh
+    sudo apt update && sudo apt full-upgrade
+    ```
+
+8. Optionally, restore the messagelog and operational monitoring databases backup.
+
+    ```bash
+    sudo -iu postgres pg_restore -d messagelog -c <messagelog db dump file>
+    sudo -iu postgres pg_restore -d "op-monitor" -c <op-monitor dump file>
+    ```
+
+9. Restart the Security Server sidecar container. Verify that the postgresql service is running 12-main cluster and the system is responding.
+
+    ```bash
+    supervisorctl status
+    ```
+
+10. Drop the old database and remove obsolete PostgreSQL packages.
+
+    ```bash
+    sudo pg_dropcluster 10 main
+    sudo apt purge postgresql-10
+    sudo apt autoremove
+    ```
+
+Note! If recovery from an in-place upgrade failure is not possible, restore the backup and start over or try [upgrading using the backup method](#71-using-a-configuration-backup).
+
+## 8 Monitoring
 
 Monitoring module is available for the regular version of the X-Road Security Server Sidecar instead of the 'slim' version. More information can be found on [Security Server Sidecar images](#22-x-road-security-server-sidecar-images) section.
 
-### 7.1 Environmental monitoring
+### 8.1 Environmental monitoring
 
 You can use Environmental monitoring for the Security Server Sidecar provider to obtain information about the platform it's running on
 For example, to get the system metrics:
@@ -663,15 +786,15 @@ More information can be found on [Environmental Monitoring documentation](https:
 
 Note (1): The Security Server Sidecar must have available certificates and a subsystem registered on the Central Server.
 
-### 7.2 Operational Monitoring
+### 8.2 Operational Monitoring
 
 You can use operational monitoring for the Security Server Sidecar provider can be used to obtain information about the services it is running. The operational monitoring processes operational statistics (such as which services have been called, how many times, what was the size of the response, etc.) of the Security Servers. The operational monitoring will create a database named "op-monitor" to store the data. You can configure this database internally in the container or externally (check 1.6). More information on how to test it can be found on the [Operational Monitoring documentation](https://github.com/nordic-institute/X-Road/tree/develop/doc/OperationalMonitoring/Protocols).
 
-## 8 Message log
+## 9 Message log
 
 Message log will be available if you use the regular version of the X-Road Security Server Sidecar instead of the 'slim' version.
 
-### 8.1 Local storage of message log
+### 9.1 Local storage of message log
 
 The Security Server Sidecar periodically composes signed (and timestamped) documents from the message log data and archives them in the local file system folder:
 
@@ -688,21 +811,21 @@ From the [docker run command](##2.6-Installation) add the Docker volume paramete
 docker run ... -v (custom-volume-name):/var/lib/xroad/ ...
 ```
 
-## 9 Deployment options
+## 10 Deployment options
 
-### 9.1 General
+### 10.1 General
 
 X-Road Security Server Sidecar has multiple deployment options. The simplest choice is to have a single Security Server with a local database. This is usually fine for the majority of the cases.
 
 There are also other Security Server images available that can be used for tailoring the deployment to specific needs. These different images can be combined. Any of these Security Server Sidecar images can be used either as a consumer or provider role.
 
-### 9.2 Container local database
+### 10.2 Container local database
 
 The simplest deployment option is to use a single Security Server Sidecar container with the local database running inside the container. For development and testing purposes there is rarely the need for anything else. However, if you run the Security Server Sidecar on a production environment, the requirements may be stricter.
 
 ![Security Server with local database](img/ig-ss_local_db.svg)
 
-### 9.3 Remote database
+### 10.3 Remote database
 
 It is possible to use a remote database with X-Road Security Server Sidecar.
 
@@ -710,7 +833,7 @@ X-Road Security Server Sidecar supports a variety of cloud databases including A
 
 ![Security Server with remote database](img/ig-ss_external_db.svg)
 
-### 9.4 High Availability Setup
+### 10.4 High Availability Setup
 
 In production systems, it's rarely acceptable to have a single point of failure. Security Server supports provider side high-availability setup via the so-called internal load balancing mechanism. The setup works so that the same combination of &lt;member&gt;/&lt;member class&gt;/&lt;member code&gt;/&lt;subsystem&gt;/&lt;service code&gt; is configured on multiple Security Servers and X-Road will then route the request to the server that responds the fastest. Note that this deployment option does not provide performance benefits, just redundancy.
 
