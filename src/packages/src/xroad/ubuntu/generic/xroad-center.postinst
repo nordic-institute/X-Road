@@ -113,7 +113,6 @@ ALTER EXTENSION hstore SET SCHEMA public;
 EOF
           crudini --set "${db_properties}" '' schema "${db_schema}"
       fi
-
       /usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
     else
       echo "skipping database migrations"
