@@ -44,6 +44,7 @@ import ee.ria.xroad.common.util.HttpHeaders;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.proxy.messagelog.LogRecordManager;
 import ee.ria.xroad.proxy.messagelog.MessageLog;
+import ee.ria.xroad.proxy.messagelog.MessageLogEncryption;
 import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
@@ -237,6 +238,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                         DOCUMENTS_NOT_FOUND_FAULT_MESSAGE);
             }
             try (ZipOutputStream zos = startZipResponse(filename)) {
+                final MessageLogEncryption messageLogEncryption = MessageLogEncryption.getInstance();
                 zos.setLevel(0);
                 for (MessageRecord record : records) {
                     if (record.getTimestampRecord() == null) {
@@ -244,6 +246,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                         // the ensureTimestamped check was made. Ignore to emulate the previous behavior.
                         continue;
                     }
+                    messageLogEncryption.prepareDecryption(record);
                     String type = record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
                             : AsicContainerNameGenerator.TYPE_REQUEST;
                     zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
@@ -300,6 +303,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 if (record.getTimestampRecord() != null) {
                     throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
                 }
+                MessageLogEncryption.getInstance().prepareDecryption(record);
                 record.toAsicContainer().write(servletResponse.getOutputStream());
             } catch (CodedException ce) {
                 throw ce;

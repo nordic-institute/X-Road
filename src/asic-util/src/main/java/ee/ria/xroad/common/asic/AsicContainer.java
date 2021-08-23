@@ -312,7 +312,7 @@ public class AsicContainer {
         }
     }
 
-    InputStream getAttachment() {
+    public InputStream getAttachment() {
         return attachment;
     }
 }
