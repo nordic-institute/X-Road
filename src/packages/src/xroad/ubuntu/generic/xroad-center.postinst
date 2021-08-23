@@ -232,12 +232,11 @@ configure | reconfigure)
     db_get xroad-common/skip-cs-db-migrations || true
     skip_migrations="${RET}"
 
+    invoke-rc.d --quiet rsyslog try-restart || true
+    invoke-rc.d --quiet nginx try-restart || true
+    invoke-rc.d --quiet xroad-signer try-restart || true
     if [ "$skip_migrations" = false ] ; then
-      invoke-rc.d --quiet rsyslog try-restart || true
-      invoke-rc.d --quiet nginx try-restart || true
-      invoke-rc.d --quiet xroad-signer try-restart || true
       invoke-rc.d --quiet xroad-jetty restart || true
-      echo "services restarted"
     else
       invoke-rc.d --quiet xroad-jetty stop || true
       echo "xroad-jetty service remains stopped since the database migrations were skipped"
