@@ -32,6 +32,8 @@
     - { question: "xroad-common/admin-altsubject",   value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
     - { question: "xroad-common/service-subject",    value: "/CN={{ inventory_hostname }}" }
     - { question: "xroad-common/service-altsubject", value: "IP:{{ ansible_default_ipv4.address }},DNS:{{ inventory_hostname }}" }
+  tags:
+    - install-xroad-ss-packages
 
 - name: install xroad security server packages
   apt:
