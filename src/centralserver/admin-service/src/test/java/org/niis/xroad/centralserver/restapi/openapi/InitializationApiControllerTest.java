@@ -29,6 +29,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
+import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -52,6 +53,16 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         assertNotNull(response, "status should be always available");
         assertEquals(200, response.getStatusCodeValue());
         assertTrue(response.hasBody());
+        assertNotNull(response.getBody());
+        assertEquals(
+                TokenInitStatus.NOT_INITIALIZED,
+                response.getBody().getSoftwareTokenInitStatus(),
+                "TokenInit status should be NOT_INITIALIZED before initialization"
+        );
+        assertTrue(
+                response.getBody().getCentralServerAddress().isEmpty(),
+                "No Server Address should be initialized yet."
+        );
 
     }
 
@@ -66,6 +77,16 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         ResponseEntity<Void> response = initializationApiController.initCentralServer(testConf);
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
+
+        ResponseEntity<InitializationStatus> statusResponseEntity =
+                initializationApiController.getInitializationStatus();
+        assertNotNull(statusResponseEntity.getBody());
+        assertEquals(
+                TokenInitStatus.INITIALIZED,
+                statusResponseEntity.getBody().getSoftwareTokenInitStatus()
+        );
+        assertEquals("TEST", statusResponseEntity.getBody().getInstanceIdentifier());
+        assertEquals("xroad.example.org", statusResponseEntity.getBody().getCentralServerAddress());
     }
 
     @Test

@@ -55,13 +55,6 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
                 .centralServerAddress("123.123.123.123")
                 .instanceIdentifier(null)
                 .softwareTokenPin("1234-valid");
-
-        ResponseEntity<InitializationStatus> statusResponseEntity =
-                restTemplate.getForEntity("/api/v1/initialization/status", InitializationStatus.class);
-        assertNotNull(statusResponseEntity);
-
-
-        assertEquals(HttpStatus.OK.value(), statusResponseEntity.getStatusCodeValue());
         ResponseEntity<Object> response = restTemplate.postForEntity(
                 "/api/v1/initialization",
                 invalidConf,
