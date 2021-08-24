@@ -26,6 +26,7 @@ dependencies {
     testImplementation "org.hibernate:hibernate-hikaricp:$hibernateVersion"
 
     schema project(':common-util')
+    schema "org.apache.ant:ant:1.10.11"
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
     schema "org.hibernate:hibernate-tools:$hibernateVersion"
     schema 'commons-collections:commons-collections:3.2.2'

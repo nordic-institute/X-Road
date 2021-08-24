@@ -56,12 +56,13 @@ import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
 
 import javax.security.auth.x500.X500Principal;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
@@ -423,16 +424,15 @@ public final class CertUtils {
     }
 
     /**
-     * Read X509 certificate chain from file
-     * @param filename input file
+     * Read X509 certificate chain from byte array
+     * @param certBytes certificates byte array
      * @return X509Certificate
      * @throws CertificateException when certificate is invalid
-     * @throws java.io.FileNotFoundException when file is not found
      * @throws IOException when I/O error occurs
      */
-    public static X509Certificate[] readCertificateChain(String filename) throws CertificateException, IOException {
+    public static X509Certificate[] readCertificateChain(byte[] certBytes) throws CertificateException, IOException {
         CertificateFactory fact = CertificateFactory.getInstance("X.509");
-        try (FileInputStream is = new FileInputStream(filename)) {
+        try (InputStream is = new ByteArrayInputStream(certBytes)) {
             final Collection<? extends Certificate> certs = fact.generateCertificates(is);
             return certs.toArray(new X509Certificate[0]);
         }
@@ -441,17 +441,17 @@ public final class CertUtils {
     /**
      * Create and write pkcs12 keystore to file
      * @param filenameKey pem file containing private key
-     * @param filenamePem pem file containing certificate
+     * @param certBytes certificates byte array
      * @param filenameP12 output filename of the .p12 keystore
      * @throws Exception when error occurs
      */
-    public static void createPkcs12(String filenameKey, String filenamePem, String filenameP12) throws Exception {
+    public static void createPkcs12(String filenameKey, byte[] certBytes, String filenameP12) throws Exception {
         Security.addProvider(new BouncyCastleProvider());
 
         KeyPair keyPair = readKeyPairFromPemFile(filenameKey);
         PrivateKey privateKey = keyPair.getPrivate();
 
-        Certificate[] outChain = readCertificateChain(filenamePem);
+        Certificate[] outChain = readCertificateChain(certBytes);
 
         KeyStore outStore = KeyStore.getInstance("PKCS12");
         outStore.load(null, InternalSSLKey.getKEY_PASSWORD());

@@ -4,7 +4,7 @@
 
 # X-Road: Central Server User Guide <!-- omit in toc --> 
 
-Version: 2.17  
+Version: 2.18  
 Doc. ID: UG-CS
 
 ## Version history <!-- omit in toc --> 
@@ -47,6 +47,7 @@ Doc. ID: UG-CS
 | 13.03.2020 | 2.15    | Add instructions for migrating to remote database | Ilkka Seppälä |
 | 30.03.2020 | 2.16    | Added description of pre-restore backups | Ilkka Seppälä |
 | 04.08.2021 | 2.17    | Add more details about restoring configuration from the command line | Ilkka Seppälä |
+| 11.08.2021 | 2.18    | Update chapter 3.2 about checking the cluster status. | Ilkka Seppälä |
 
 ## Table of Contents <!-- omit in toc --> 
 <!-- toc -->
@@ -229,9 +230,9 @@ In order to detect the type of deployment and the name of the node in the cluste
 
 ## 3.2 Checking the Status of the Nodes of the Cluster
 
-In order to check the status of the nodes in an HA setup, the following script can be used on the command line:
+In order to check the status of the nodes in an HA setup, execute the following command on the central server node's command line:
 
-`/usr/share/xroad/scripts/check_ha_cluster_status.py`
+`curl -k https://localhost:4000/public_system_status/check_ha_cluster_status`
 
 # 4. System Settings
 ## 4.1 Managing the Member Classes

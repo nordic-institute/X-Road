@@ -51,6 +51,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -108,6 +109,14 @@ public class InternalTlsCertificateServiceTest {
             public X509Certificate getInternalTlsCertificate() {
                 try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
                     return CryptoUtils.readCertificate(stream);
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+            }
+            @Override
+            public Collection<X509Certificate> getInternalTlsCertificateChain() {
+                try (InputStream stream = getClass().getClassLoader().getResourceAsStream("internal.crt")) {
+                    return CryptoUtils.readCertificates(stream);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }
@@ -201,10 +210,28 @@ public class InternalTlsCertificateServiceTest {
         }
     }
 
+    @Test
+    public void importValidInternalTlsCertificateChain() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("validchain.crt");
+        try {
+            internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
+        } catch (Exception e) {
+            fail("should not throw exceptions");
+        }
+    }
+
     @Test(expected = CertificateAlreadyExistsException.class)
     public void importDuplicateInternalTlsCertificate() throws Exception {
         prepareTlsImportForTesting();
         byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("internal.crt");
+        internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
+    }
+
+    @Test(expected = DeviationAwareRuntimeException.class)
+    public void importInvalidInternalTlsCertificateChain() throws Exception {
+        prepareTlsImportForTesting();
+        byte[] internalCertBytes = TestUtils.getTestResourceFileAsBytes("invalidchain.crt");
         internalTlsCertificateService.importInternalTlsCertificate(internalCertBytes);
     }
 
