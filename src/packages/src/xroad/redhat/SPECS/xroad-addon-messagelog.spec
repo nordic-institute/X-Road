@@ -71,7 +71,16 @@ rm -rf %{buildroot}
 %upgrade_check
 
 %post
-/usr/share/xroad/scripts/setup_messagelog_db.sh
+if [ -e /etc/sysconfig/xroad-addon-messagelog ]; then
+    source /etc/sysconfig/xroad-addon-messagelog
+    if [ "$ENABLE_MESSAGELOG" = false ]; then
+        mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
+    else
+        /usr/share/xroad/scripts/setup_messagelog_db.sh
+    fi
+else
+    /usr/share/xroad/scripts/setup_messagelog_db.sh
+fi
 
 %postun
 %systemd_postun_with_restart xroad-proxy.service
