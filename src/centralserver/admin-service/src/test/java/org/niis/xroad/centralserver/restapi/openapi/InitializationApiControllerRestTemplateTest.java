@@ -40,6 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+
 public class InitializationApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
 
     private final ObjectMapper testObjectMapper = new ObjectMapper();
@@ -51,7 +52,7 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);
         InitialServerConf invalidConf = new InitialServerConf()
-                .centralServerAddress("valid")
+                .centralServerAddress("123.123.123.123")
                 .instanceIdentifier(null)
                 .softwareTokenPin("1234-valid");
 
@@ -76,7 +77,7 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
     @Test
     public void nonAuthorizedInitializationShoudFail() {
         InitialServerConf validConf = new InitialServerConf()
-                .centralServerAddress("valid")
+                .centralServerAddress("valid.domain.org")
                 .instanceIdentifier("VALIDINSTANCE")
                 .softwareTokenPin("1234-valid");
 
@@ -86,6 +87,23 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
                 Object.class);
 
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
+
+    }
+
+    @Test
+    public void correctInitializationOK() {
+        InitialServerConf validConf = new InitialServerConf()
+                .centralServerAddress("valid.domain.org")
+                .instanceIdentifier("VALIDINSTANCE")
+                .softwareTokenPin("1234-valid");
+
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<Object> response = restTemplate.postForEntity(
+                "/api/v1/initialization",
+                validConf,
+                Object.class);
+
+        assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
 
     }
 
