@@ -36,6 +36,11 @@ setup_database() {
     crudini --set "${db_properties}" '' host "${db_addr}"
     crudini --set "${db_properties}" '' port "${db_port}"
 
+    RET=
+    db_get xroad-common/skip-cs-db-migrations || true
+    local skip_migrations="${RET}"
+    crudini --set "${db_properties}" '' skip_migrations "${skip_migrations}"
+
     local db_user=$(get_prop ${db_properties} 'username' 'centerui')
     local db_schema=$(get_prop ${db_properties} 'schema' "${db_user%%@*}")
     local db_password=$(get_prop ${db_properties} 'password' 'centerui')
@@ -94,7 +99,11 @@ EOF
         crudini --set "${db_properties}" '' password "${db_password}"
     fi
 
-    /usr/share/xroad/db/migrate.sh || abort "Database migration failed. ABORTING."
+    if [ "$skip_migrations" = true ] ; then
+      echo "skipping database migrations"
+    else
+      /usr/share/xroad/db/migrate.sh || abort "Database migration failed. ABORTING."
+    fi
 }
 
 # check certificates and request necessary subject information from the user
@@ -206,10 +215,19 @@ configure | reconfigure)
     chmod 755 /var/lib/xroad/import
     chown xroad:xroad /var/lib/xroad/import
 
+    RET=
+    db_get xroad-common/skip-cs-db-migrations || true
+    skip_migrations="${RET}"
+
     invoke-rc.d --quiet rsyslog try-restart || true
     invoke-rc.d --quiet nginx try-restart || true
     invoke-rc.d --quiet xroad-signer try-restart || true
-    invoke-rc.d --quiet xroad-jetty restart || true
+    if [ "$skip_migrations" = false ] ; then
+      invoke-rc.d --quiet xroad-jetty restart || true
+    else
+      invoke-rc.d --quiet xroad-jetty stop || true
+      echo "xroad-jetty service remains stopped since the database migrations were skipped"
+    fi
     ;;
 
 abort-upgrade | abort-remove | abort-deconfigure)

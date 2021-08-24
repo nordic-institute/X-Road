@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 2.37  
+Version: 2.38  
 Doc. ID: IG-SS
 
 ---
@@ -61,6 +61,8 @@ Doc. ID: IG-SS
  02.06.2021 | 2.35    | Add backup encryption information | Andres Allkivi
  01.07.2021 | 2.36    | Update 3rd party key server | Petteri Kivimäki
  11.08.2021 | 2.37    | Minor updates | Petteri Kivimäki
+ 18.08.2021 | 2.38    | Minor updates to Annex D | Ilkka Seppälä
+
 
 ## License
 
@@ -93,7 +95,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
   - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
-* [4 Installation Error handling](#4-installation-error-handling)
+- [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
   - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
   - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
@@ -841,6 +843,9 @@ messagelog.database.admin_password = <messagelog_admin password>
 
 Create the `/etc/xroad/db.properties` file
 ```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
 sudo touch /etc/xroad/db.properties
 sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
