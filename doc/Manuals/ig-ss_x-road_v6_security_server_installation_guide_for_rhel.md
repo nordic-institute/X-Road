@@ -34,6 +34,7 @@ Doc. ID: IG-SS-RHEL
  18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
  01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
  11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
+ 24.08.2021 | 1.18    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
 
 ## License
 
@@ -58,10 +59,11 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  - [2.7 Security Server Installation](#27-security-server-installation)
-    - [2.7.1 Configure Proxy Ports](#271-configure-proxy-ports)
-    - [2.7.2 Start Security Server](#272-start-security-server)
-  - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
+    - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
+    - [2.8.2 Start Security Server](#282-start-security-server)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
@@ -225,7 +227,7 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
   ```
 
-If you are installing the default setup with local PostgreSQL database, continue at section 2.7. If you need to customize database properties and e.g. use a remote database, read on.
+If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.
 
 ### 2.6 Remote Database Setup (optional)
 
@@ -289,7 +291,17 @@ Before continuing, test that the connection to the database works, e.g.
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
 
-### 2.7 Security Server Installation
+### 2.7 Disable the Messagelog Addon before Installation (optional)
+
+It is possible to preconfigure the Security Server installation so that the messagelog addon will be automatically disabled after the installation process is done. This also skips the creation of the messagelog database.
+
+Create the following configuration file with following content before installing the Security Server in order to skip messagelog database creation and disable the addon
+
+```
+echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
+```
+
+### 2.8 Security Server Installation
 
 Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
 
@@ -306,7 +318,7 @@ Add system user (**reference data: 1.3**) whom all roles in the user interface a
 User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 
-#### 2.7.1 Configure Proxy Ports
+#### 2.8.1 Configure Proxy Ports
 
 **This is an optional step.** Change `xroad-proxy` to use ports 80 and 443.
 
@@ -320,7 +332,7 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
   client-https-port=443
   ```
 
-#### 2.7.2 Start Security Server
+#### 2.8.2 Start Security Server
 
 Once the installation is completed, start the security server
 
@@ -329,7 +341,7 @@ Once the installation is completed, start the security server
   ```
 
 
-### 2.8 Post-Installation Checks
+### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
