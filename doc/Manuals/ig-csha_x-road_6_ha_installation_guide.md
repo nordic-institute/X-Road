@@ -6,7 +6,7 @@
 # Central Server High Availability Installation Guide <!-- omit in toc -->
 **X-ROAD 6**
 
-Version: 1.13  
+Version: 1.14  
 Doc. ID: IG-CSHA
 
 ---
@@ -30,44 +30,43 @@ Doc. ID: IG-CSHA
  03.12.2019 | 1.10    | Removed dependency on BDR | Jarkko Hyöty
  30.12.2019 | 1.11    | Add instructions for setting up a replicated PostgreSQL database | Jarkko Hyöty 
  18.03.2020 | 1.12    | Add instructions for Central Server HA Migration | Ilkka Seppälä 
- 16.04.2020 | 1.13    | Update cluster status output
+ 16.04.2020 | 1.13    | Update cluster status output | Jarkko Hyöty
+ 10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references. | Ilkka Seppälä
  
 ## Table of Contents <!-- omit in toc -->
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
-  * [1.2 Target Audience](#12-target-audience)
-  * [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
-  * [1.4 References](#14-references)
-* [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
-* [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
-  * [3.1 Requirements](#31-requirements)
-  * [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
-  * [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
-  * [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
-  * [3.5 Upgrading from a previous version of the HA cluster](#35-upgrading-from-a-previous-version-of-the-ha-cluster)
-  * [3.6 Post-Configuration Steps](#36-post-configuration-steps)
-* [4 General Installation of HA Support](#4-general-installation-of-ha-support)
-* [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
-* [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
-  * [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
-  * [6.2 One or more cental server nodes lost, backup available](#62-one-or-more-cental-server-nodes-lost-backup-available)
-  * [6.3 Some central server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
-* [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database)
-  * [Prerequisites](#prerequisites)
-  * [PostgreSQL configuration (all database servers)](#postgresql-configuration-all-database-servers)
-  * [Preparing the standby](#preparing-the-standby)
-  * [Verifying replication](#verifying-replication)
-  * [Configuring central servers](#configuring-central-servers)
-  * [Fail-over](#fail-over)
-    * [Automatic fail-over](#automatic-fail-over)
-* [Appendix B. Central Server HA Migration](#appendix-b-central-server-ha-migration)
-  * [Migrating from BDR to Cluster](#migrating-from-bdr-to-cluster)
-  * [Migrating from Standalone to HA Cluster](#migrating-from-standalone-to-ha-cluster)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 High Availability for X-Road Central Server](#11-high-availability-for-x-road-central-server)
+  - [1.2 Target Audience](#12-target-audience)
+  - [1.3 Terms and abbreviations](#13-terms-and-abbreviations)
+  - [1.4 References](#14-references)
+- [2 Key Points and Known Limitations for X-Road Central Server HA Deployment](#2-key-points-and-known-limitations-for-x-road-central-server-ha-deployment)
+- [3 Requirements and Workflows for HA Configuration](#3-requirements-and-workflows-for-ha-configuration)
+  - [3.1 Requirements](#31-requirements)
+  - [3.2 Workflow for a New X-Road Instance Setup](#32-workflow-for-a-new-x-road-instance-setup)
+  - [3.3 Workflow for Upgrading an Existing X-Road Central Server to an HA Configuration](#33-workflow-for-upgrading-an-existing-x-road-central-server-to-an-ha-configuration)
+  - [3.4 Workflow for Adding New Nodes to an Existing HA Configuration](#34-workflow-for-adding-new-nodes-to-an-existing-ha-configuration)
+  - [3.5 Post-Configuration Steps](#35-post-configuration-steps)
+- [4 General Installation of HA Support](#4-general-installation-of-ha-support)
+- [5 Monitoring HA State on a Node](#5-monitoring-ha-state-on-a-node)
+- [6 Recovery of the HA cluster](#6-recovery-of-the-ha-cluster)
+  - [6.1 Configuration database (and possible replicas) is lost](#61-configuration-database-and-possible-replicas-is-lost)
+  - [6.2 One or more cental server nodes lost, backup available](#62-one-or-more-cental-server-nodes-lost-backup-available)
+  - [6.3 Some central server nodes lost, backup not available](#63-some-central-server-nodes-lost-backup-not-available)
+- [Appendix A. Setting up a replicated PostgreSQL database](#appendix-a-setting-up-a-replicated-postgresql-database)
+  - [Prerequisites](#prerequisites)
+  - [PostgreSQL configuration (all database servers)](#postgresql-configuration-all-database-servers)
+  - [Preparing the standby](#preparing-the-standby)
+  - [Verifying replication](#verifying-replication)
+  - [Configuring central servers](#configuring-central-servers)
+  - [Fail-over](#fail-over)
+    - [Automatic fail-over](#automatic-fail-over)
+- [Appendix B. Central Server HA Migration](#appendix-b-central-server-ha-migration)
+  - [Migrating from Standalone to HA Cluster](#migrating-from-standalone-to-ha-cluster)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -81,7 +80,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ### 1.1 High Availability for X-Road Central Server
 
-The High Availability (HA) solution for the X-Road central server relies on a shared, optionally highly-available database. This enables every node to work as a standalone central server which receives configuration updates from all other nodes. Security servers can download identical configuration from any of the public addresses published in a configuration anchor file.
+The High Availability (HA) solution for the X-Road central server relies on a shared, optionally highly available database. This enables every node to work as a standalone central server which receives configuration updates from all other nodes. Security servers can download identical configuration from any of the public addresses published in a configuration anchor file.
 
 Every central server node has its own:
 - node specific keys to sign configuration;
@@ -158,15 +157,7 @@ Referencing steps in section [4](#4-general-installation-of-ha-support).
 
 After installing and configuring all the X-Road central server nodes, retrieve new internal end external configuration anchor files from one of the nodes and distribute the files to all security servers and configuration proxies.
 
-### 3.5 Upgrading from a previous version of the HA cluster
-
-It is possible to use a BDR database cluster from a pre-6.23.0 version. Before upgrading the software to version 6.23 (or newer), define the node name on each node like described in [4](#4-general-installation-of-ha-support). 
-The HA node name is displayed in the central server admin UI. It is also possible to query the local database node from command line:
-```
-sudo -iu postgres psql -qtA -d centerui_production -c "select bdr.bdr_get_local_node_name()"
-```
- 
-### 3.6 Post-Configuration Steps
+### 3.5 Post-Configuration Steps
 
 If the remote database supports fail over to a secondary host (e.g. when using PostgreSQL streaming replication with hot-standby), it is possible to define the secondary database hosts in `/etc/xroad/db.properties`. The system will automatically try the secondary hosts in case the primary fails.
 
@@ -198,9 +189,11 @@ In addition, it is necessary to configure a unique node name for each node parti
 
     If upgrading an existing cluster with BDR, the name of the node **must be** the same as the local BDR node name.
 
-3.  Install the X-Road central server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on each node.
+3.  Install the X-Road central server software according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\] on the first node.
     
     When the installation asks for a database host, provide the details of the external database.
+
+4. On the subsequent nodes, first copy the database configuration file /etc/xroad/db.properties from the first node. Then install the central server according to the X-Road Central Server Installation Guide \[[IG-CS](#Ref_IG-CS)\].
 
 ## 5 Monitoring HA State on a Node
 
@@ -438,51 +431,6 @@ Achieving and maintaining a system with automated fail-over is a complex task an
   * PAF is a resource agent for Pacemaker cluster resource manager; probably the most versatile but also most difficult to configure and operate.
 
 ## Appendix B. Central Server HA Migration
-
-### Migrating from BDR to Cluster
-
-This article explains how to migrate from a Central Server HA setup (<= v6.22) that uses PostgreSQL 9.4 with BDR 1.0.x to an external PostgreSQL database cluster. This article is only for Central Server versions <= v6.22.
-
-The migration is completed by following the steps below.
-
-The migration is completed by following the steps below.
-
-1. Take a backup of the Central Servers.
-2. Update Central Servers to version 6.23.0 (or later). See Central Server High Availability Installation Guide for instructions.
-    - Verify that center.ha-node-name is configured in /etc/xroad/conf.d/local.ini (on each server).
-3. Create the destination database using DB super-user privileges:
-```
-psql --host=<host> --username=<super-user, e.g. postgres> <<EOF
-create user centerui password '<password>';
-grant centerui to postgres; -- required e.g. by AWS RDS because the managed super-user does not have full privileges
-create database centerui_production owner centerui;
-\c centerui_production
-create extension hstore;
-EOF    
-```
-4. Stop Central Servers.
-    - Alternatively, one can leave the servers running but any modifications to the configuration (e.g. new Security Server registrations) during the upgrade are lost.
-5. Take a dump of the Central Server database:
-    - Note the destination database version (e.g. PostgreSQL 10.10).
-    - If necessary, install a version of the postgresql-client package that has the same major version as the destination database (e.g. postgresql-client-10).
-        - If a suitable version is not available from Ubuntu package repositories, please see https://www.postgresql.org/download/linux/ubuntu/
-    - Use the pg_dump version that has the same major version as the destination database. Do not use pg_dump from the BDR version of PostgreSQL.
-```
-/usr/lib/postgresql/<major version>/bin/pg_dump --host=localhost --username=centerui --no-privileges --no-owner --schema=public --exclude-table=xroad_bdr_replication_info --dbname=centerui_production --format=c -f center.dmp
-```
-6. Restore the dump to the new database:
-    - Use pg_restore that has the same major version as the destination database.
-```
-/usr/lib/postgresql/<major version>/bin/pg_restore --list center.dmp | sed '/FUNCTION public get_xroad_bdr_replication_info()/d' >center.list
-/usr/lib/postgresql/<major version>/bin/pg_restore --host=<host> --username=centerui --dbname=centerui_production --no-owner --single-transaction --use-list=center.list center.dmp
-```
-7. Update the configuration file /etc/xroad/db.properties with information about the new database.
-8. (Re)start Central Servers.
-9. If the local PosgreSQL is not used by other applications, stop the local instance and prevent it from starting:
-```
-sudo systemctl stop postgresql
-sudo systemctl mask postgresql
-```
 
 ### Migrating from Standalone to HA Cluster
 

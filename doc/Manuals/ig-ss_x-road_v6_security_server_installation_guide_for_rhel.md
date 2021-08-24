@@ -6,7 +6,7 @@
 
 **X-ROAD 6**
 
-Version: 1.17  
+Version: 1.18  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -34,6 +34,7 @@ Doc. ID: IG-SS-RHEL
  18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
  01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
  11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
+ 18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
 
 ## License
 
@@ -690,6 +691,9 @@ messagelog.database.admin_password = <messagelog_admin password>
 
 Create the `/etc/xroad/db.properties` file
 ```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
 sudo touch /etc/xroad/db.properties
 sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties
