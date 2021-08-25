@@ -321,7 +321,7 @@ For additional security, the `postgresql.connection.*` properties can be removed
 
 It is possible to preconfigure the Security Server installation so that the messagelog addon will be automatically disabled after the installation process is done. This also skips the creation of the messagelog database.
 
-Add the following value into the debconf database before installing the Security Server in order to skip messagelog database creation and disable the addon
+In order to skip messagelog database creation and disable the messagelog addon, run the following command to add a boolean value into the debconf database before installing the Security Server 
 
 ```
 sudo debconf-set-selections <<< 'xroad-addon-messagelog xroad-common/enable-messagelog boolean false'
