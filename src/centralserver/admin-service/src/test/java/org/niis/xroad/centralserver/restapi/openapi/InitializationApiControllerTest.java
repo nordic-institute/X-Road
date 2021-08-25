@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
@@ -47,8 +48,14 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Autowired
     InitializationApiController initializationApiController;
 
+    @Before
+    public void setup() {
+
+    }
+
     @Test
     public void getInitializationStatus() {
+
         ResponseEntity<InitializationStatus> response = initializationApiController.getInitializationStatus();
         assertNotNull(response, "status should be always available");
         assertEquals(200, response.getStatusCodeValue());

@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -26,11 +25,6 @@
  */
 package org.niis.xroad.centralserver.restapi.dto;
 
-import lombok.Data;
-
-@Data
-public class InitializationStatusDto {
-    private String instanceIdentifier;
-    private String centralServerAddress;
-    private TokenInitStatusInfo tokenInitStatus = TokenInitStatusInfo.UNKNOWN;
+public enum TokenInitStatusInfo {
+    INITIALIZED, NOT_INITIALIZED, UNKNOWN
 }

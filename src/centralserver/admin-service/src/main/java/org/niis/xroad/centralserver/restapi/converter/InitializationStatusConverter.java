@@ -24,13 +24,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.centralserver.restapi.converter;
 
-import lombok.Data;
+import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
+import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
+import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
+import org.springframework.stereotype.Component;
 
-@Data
-public class InitializationStatusDto {
-    private String instanceIdentifier;
-    private String centralServerAddress;
-    private TokenInitStatusInfo tokenInitStatus = TokenInitStatusInfo.UNKNOWN;
+import static org.niis.xroad.centralserver.restapi.converter.TokenInitStatusMapping.map;
+
+@Component
+public class InitializationStatusConverter {
+
+    public InitializationStatus convert(InitializationStatusDto initializationStatusDto) {
+        InitializationStatus status = new InitializationStatus();
+        return status.centralServerAddress(initializationStatusDto.getCentralServerAddress())
+                .instanceIdentifier(initializationStatusDto.getInstanceIdentifier())
+                .softwareTokenInitStatus(map(initializationStatusDto.getTokenInitStatus())
+                        .orElse(TokenInitStatus.UNKNOWN)
+                );
+    }
 }

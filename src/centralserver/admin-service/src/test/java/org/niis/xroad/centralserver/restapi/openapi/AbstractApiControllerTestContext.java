@@ -34,6 +34,7 @@ import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.web.context.request.RequestContextHolder;
 
 /**
@@ -58,7 +59,7 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
 
-    @MockBean
+    @SpyBean
     public InitializationService initializationService;
 
     /**

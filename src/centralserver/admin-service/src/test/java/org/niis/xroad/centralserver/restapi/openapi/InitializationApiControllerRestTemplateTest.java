@@ -28,7 +28,6 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
-import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;

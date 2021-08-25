@@ -26,25 +26,30 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
+import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
+
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
 @Service
@@ -56,15 +61,26 @@ public class InitializationService {
     private final SignerProxyFacade signerProxyFacade;
 
     public InitializationStatusDto getInitializationStatusDto() {
+        TokenInitStatusInfo initStatusInfo;
+        try {
+            if (isSWTokenInitialized()) {
+                initStatusInfo = TokenInitStatusInfo.INITIALIZED;
+            } else {
+                initStatusInfo = TokenInitStatusInfo.NOT_INITIALIZED;
+            }
+        } catch (SignerNotReachableException notReachableException) {
+            initStatusInfo = TokenInitStatusInfo.UNKNOWN;
+        }
         InitializationStatusDto statusDto = new InitializationStatusDto();
-        // TODO: get Identifier and Address from real SystemParameter table
+
         statusDto.setInstanceIdentifier(getStoredInstanceIdentifier());
-        statusDto.setCentralServerAddress("TODO-central-server-address-should-come-from-SystemParameter-table");
-        statusDto.setTokenInitStatus(getTokenInitStatus());
+        statusDto.setCentralServerAddress(getStoredCentralServerAddress());
+        statusDto.setTokenInitStatus(initStatusInfo);
         return statusDto;
     }
 
-    public void initialize(InitializationConfigDto configDto) throws InvalidInitParamsException {
+
+    public void initialize(InitializationConfigDto configDto) {
 
         // TODO: Validate instance_identifier if not already stored at db SystemParamater
 
@@ -75,7 +91,6 @@ public class InitializationService {
         // TODO: If previous 3 are true -->  already initialized --> throw: init.already_initialized
 
         // TODO: Validate params
-        validateConfigOrThrow(configDto);
 
 
         // TODO: Store instance identifier to SystemParameter - table   --- CONSIDERING HA node info
@@ -100,42 +115,34 @@ public class InitializationService {
 
     }
 
-    private void validateConfigOrThrow(InitializationConfigDto configDto) throws InvalidInitParamsException {
 
-        List<String> validationErrors = new ArrayList<>();
-
-        // Instance identifier shall not contain any %;:/\ or CharMatcher.javaIsoControl().matchesAnyOf(s)
-        // Continuation:     || s.indexOf(FORBIDDEN_BOM) >= 0
-        // Continuation:                and || s.indexOf(FORBIDDEN_ZWSP) >= 0;
-
-
-
-        // serverAddress: valid internet address or domain name,
-
-        // SW token: must exist
-        if (configDto.getSoftwareTokenPin().isEmpty()) {
-            validationErrors.add(ERROR_METADATA_PIN_NOT_PROVIDED);
+    private boolean isSWTokenInitialized() {
+        boolean isSWTokenInitialized = false;
+        List<TokenInfo> tokenInfos;
+        try {
+            tokenInfos = signerProxyFacade.getTokens();
+        } catch (Exception e) {
+            throw new SignerNotReachableException("could not list all tokens", e);
         }
+        Optional<TokenInfo> firstSWToken = tokenInfos.stream()
+                .filter(tokenInfo -> tokenInfo.getId().equals(SignerProxy.SSL_TOKEN_ID))
+                .findFirst();
 
-        if (validationErrors.isEmpty()) {
-            throw new InvalidInitParamsException("Bad parameters given", validationErrors);
+        if (firstSWToken.isPresent()) {
+            TokenInfo tokenInfo = firstSWToken.get();
+            isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
         }
-
-
-    }
-
-
-    private TokenInitStatus getTokenInitStatus() {
-        // TODO: is SW token initialized - SignerProxy has entry with  SSL_TOKEN_ID
-
-
-        return TokenInitStatus.UNKNOWN;
+        return isSWTokenInitialized;
     }
 
     private String getStoredInstanceIdentifier() {
-
         return "fake-instance";
     }
+
+    private String getStoredCentralServerAddress() {
+        return "fake-address.example.org";
+    }
+
 
 
     /**

@@ -31,9 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.openapi.InitializationApi;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
+import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
+import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,12 +50,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 public class InitializationApiController implements InitializationApi {
 
     private final InitializationService initializationService;
+    private final InitializationStatusConverter initializationStatusConverter;
 
     @Override
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
+        InitializationStatusDto initializationStatusDto =
+                initializationService.getInitializationStatusDto();
         return ResponseEntity.ok(
-                new InitializationStatus()
+                initializationStatusConverter.convert(initializationStatusDto)
         );
     }
 
@@ -65,11 +69,9 @@ public class InitializationApiController implements InitializationApi {
         configDto.setInstanceIdentifier(initialServerConf.getInstanceIdentifier());
         configDto.setCentralServerAddress(initialServerConf.getCentralServerAddress());
         configDto.setSoftwareTokenPin(initialServerConf.getSoftwareTokenPin());
-        try {
-            initializationService.initialize(configDto);
-        } catch (InitializationService.InvalidInitParamsException e) {
-            throw new BadRequestException(e);
-        }
+
+        initializationService.initialize(configDto);
+
         return ResponseEntity.ok().build();
     }
 }
