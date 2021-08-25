@@ -26,21 +26,32 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import ee.ria.xroad.commonui.SignerProxy;
+import ee.ria.xroad.signer.protocol.dto.KeyInfo;
+import ee.ria.xroad.signer.protocol.dto.TokenInfo;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
+import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
+import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.validation.ConstraintViolationException;
 
+import java.util.Collections;
+
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.refEq;
+import static org.mockito.Mockito.when;
 
 @WithMockUser(authorities = {"INIT_CONFIG"})
 public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
@@ -55,7 +66,6 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void getInitializationStatus() {
-
         ResponseEntity<InitializationStatus> response = initializationApiController.getInitializationStatus();
         assertNotNull(response, "status should be always available");
         assertEquals(200, response.getStatusCodeValue());
@@ -70,7 +80,32 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
                 response.getBody().getCentralServerAddress().isEmpty(),
                 "No Server Address should be initialized yet."
         );
+    }
 
+    @Test
+    public void getInitializationStatusFailingSignerConnection() throws Exception {
+
+        when(signerProxyFacade.getTokens()).thenThrow(RuntimeException.class);
+        assertDoesNotThrow(() -> {
+            final ResponseEntity<InitializationStatus> response;
+            response = initializationApiController.getInitializationStatus();
+            assertTrue(response.hasBody());
+            InitializationStatus status = response.getBody();
+            assertNotNull(status);
+            assertEquals(TokenInitStatus.UNKNOWN,  status.getSoftwareTokenInitStatus());
+        });
+    }
+
+    @Test
+    public void getInitializationStatusFromSignerProxy() throws Exception {
+        TokenInfo testSWToken = new TokenTestUtils.TokenInfoBuilder().id(SignerProxy.SSL_TOKEN_ID).build();
+        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
+        ResponseEntity<InitializationStatus> statusResponseEntity =
+                initializationApiController.getInitializationStatus();
+        assertTrue(statusResponseEntity.hasBody());
+        InitializationStatus status = statusResponseEntity.getBody();
+        assertNotNull(status);
+        assertEquals(TokenInitStatus.INITIALIZED,  status.getSoftwareTokenInitStatus());
     }
 
     @Test
