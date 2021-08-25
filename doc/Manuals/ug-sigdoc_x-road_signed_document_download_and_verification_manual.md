@@ -2,9 +2,9 @@
 
 ---
 # Signed Document Download and Verification Manual
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: UG-SIGDOC
 
 ---
@@ -25,6 +25,7 @@ Doc. ID: UG-SIGDOC
  03.11.2018 | 1.5     | Convert from Word to Markdown. Asicverifier supports extracting messages when verification fails | Petteri Kivimäki
  07.01.2019 | 1.6     | Asicverifier version option. Updated asicverifier usage and jar name | Caro Hautamäki
  07.03.2019 | 1.7     | REST support modifications | Jarkko Hyöty
+ 25.08.2021 | 1.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents
 
