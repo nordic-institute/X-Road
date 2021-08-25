@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,6 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package org.niis.xroad.restapi.auth.securityconfigurer;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +48,6 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -80,25 +81,29 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
     protected void configure(HttpSecurity http) throws Exception {
         http
             .authorizeRequests()
-                .antMatchers("/error").permitAll()
-                .antMatchers(LOGIN_URL).permitAll()
-                .antMatchers("/logout").fullyAuthenticated()
-                .antMatchers("/api/**").denyAll()
-                .anyRequest().denyAll()
+                    .antMatchers("/error").permitAll()
+                    .antMatchers(LOGIN_URL).permitAll()
+                    .antMatchers("/logout").fullyAuthenticated()
+                    .antMatchers("/api/**").denyAll()
+                    .anyRequest().denyAll()
                 .and()
             .csrf()
-                .ignoringAntMatchers(LOGIN_URL)
-                .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
+                    .ignoringAntMatchers(LOGIN_URL)
+                    .csrfTokenRepository(new CookieAndSessionCsrfTokenRepository())
+                    .and()
+            .headers()
+                    .contentSecurityPolicy("default-src 'self' 'unsafe-inline'")
+                    .and()
                 .and()
             .formLogin()
-                .loginPage(LOGIN_URL)
-                .successHandler(formLoginStatusCodeSuccessHandler())
-                .failureHandler(statusCode401AuthenticationFailureHandler())
-                .permitAll()
+                    .loginPage(LOGIN_URL)
+                    .successHandler(formLoginStatusCodeSuccessHandler())
+                    .failureHandler(statusCode401AuthenticationFailureHandler())
+                    .permitAll()
                 .and()
             .logout()
-                .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
-                .addLogoutHandler(new AuditLoggingLogoutHandler())
+                    .logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+                    .addLogoutHandler(new AuditLoggingLogoutHandler())
                 .permitAll();
     }
 
@@ -121,13 +126,14 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
 
     /**
      * authentication failure handler which does not redirect but just returns a http status code
-     * @return
+     * @return the constructed AuthenticationFailureHandler handler
      */
     private static AuthenticationFailureHandler statusCode401AuthenticationFailureHandler() {
         return new SimpleUrlAuthenticationFailureHandler() {
+            @Override
             public void onAuthenticationFailure(HttpServletRequest request,
                     HttpServletResponse response, AuthenticationException exception)
-                    throws IOException, ServletException {
+                    throws IOException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
             }
@@ -136,13 +142,14 @@ public class FormLoginWebSecurityConfigurerAdapter extends WebSecurityConfigurer
 
     /**
      * form login success handler which does not redirect but just returns a http status code
-     * @return
+     * @return the constructed AuthenticationSuccessHandler handler
      */
     private static AuthenticationSuccessHandler formLoginStatusCodeSuccessHandler() {
         return new SimpleUrlAuthenticationSuccessHandler() {
+            @Override
             public void onAuthenticationSuccess(HttpServletRequest request,
                     HttpServletResponse response, Authentication authentication)
-                    throws IOException, ServletException {
+                    throws IOException {
                 response.setContentType("application/json;charset=UTF-8");
                 response.getWriter().println("OK");
             }

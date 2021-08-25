@@ -36,3 +36,6 @@ cp -p %{srcdir}/default-configuration/override-securityserver-fo.ini %{buildroot
 %upgrade_check
 
 %post
+
+%postun
+%systemd_postun_with_restart xroad-signer.service
