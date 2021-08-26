@@ -70,7 +70,11 @@ public class InitializationApiController implements InitializationApi {
         configDto.setCentralServerAddress(initialServerConf.getCentralServerAddress());
         configDto.setSoftwareTokenPin(initialServerConf.getSoftwareTokenPin());
 
-        initializationService.initialize(configDto);
+        try {
+            initializationService.initialize(configDto);
+        } catch (InitializationService.ServerAlreadyFullyInitializedException e) {
+            throw new ConflictException(e);
+        }
 
         return ResponseEntity.ok().build();
     }

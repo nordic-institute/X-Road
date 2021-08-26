@@ -35,7 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
+import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
+import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
@@ -59,6 +61,32 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TO
 public class InitializationService {
 
     private final SignerProxyFacade signerProxyFacade;
+    private final SystemParameterRepository systemParameterRepository;
+
+    private final Boolean isHAConfigured = false;
+    private final String currentHaNodeName = "node_0";
+    // Some day these --^^ will be fetched like in Ruby:
+    /*
+    def self.detect_ha_support
+    if @@ha_configured != nil
+      return
+    end
+    if !CommonSql.is_postgres?
+      @@ha_configured = false
+      return
+    end
+    node_name = java.lang.System.get_property("xroad.center.ha-node-name")
+    if node_name && !node_name.empty?
+      @@ha_node_name = node_name
+      @@ha_configured = true
+    else
+      @@ha_configured = false
+    end
+     */
+
+
+
+
 
     public InitializationStatusDto getInitializationStatusDto() {
         TokenInitStatusInfo initStatusInfo;
@@ -80,18 +108,13 @@ public class InitializationService {
     }
 
 
-    public void initialize(InitializationConfigDto configDto) {
+    public void initialize(InitializationConfigDto configDto) throws ServerAlreadyFullyInitializedException {
 
-        // TODO: Validate instance_identifier if not already stored at db SystemParamater
-
-        // TODO: Validate central_server_address if not already stored at SystemParamater table
-
-        // TODO: Check if software_token is already initialized (initialized?)
-
-        // TODO: If previous 3 are true -->  already initialized --> throw: init.already_initialized
-
-        // TODO: Validate params
-
+        if (isCentralServerInitialized()) {
+            throw new ServerAlreadyFullyInitializedException(
+                    "Central server Initialization failed, already initialized"
+            );
+        }
 
         // TODO: Store instance identifier to SystemParameter - table   --- CONSIDERING HA node info
 
@@ -116,6 +139,11 @@ public class InitializationService {
     }
 
 
+    private boolean isCentralServerInitialized() {
+        return isSWTokenInitialized()
+                && !getStoredInstanceIdentifier().isEmpty()
+                && !getStoredCentralServerAddress().isEmpty();
+    }
     private boolean isSWTokenInitialized() {
         boolean isSWTokenInitialized = false;
         List<TokenInfo> tokenInfos;
@@ -136,11 +164,20 @@ public class InitializationService {
     }
 
     private String getStoredInstanceIdentifier() {
-        return "fake-instance";
+        Optional<SystemParameter> instanceIdentifier =
+                systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
+                        SystemParameter.INSTANCE_IDENTIFIER,
+                        currentHaNodeName
+                );
+        return instanceIdentifier.map(SystemParameter::getValue).orElse("");
     }
 
     private String getStoredCentralServerAddress() {
-        return "fake-address.example.org";
+        Optional<SystemParameter> serverAddress = systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
+                SystemParameter.CENTRAL_SERVER_ADDRESS,
+                currentHaNodeName);
+        return serverAddress.map(SystemParameter::getValue).orElse("");
+
     }
 
 
