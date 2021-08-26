@@ -56,7 +56,7 @@ import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM
 @Slf4j
 class LogArchiveCache implements Closeable {
 
-    private Path gpgHome = MessageLogProperties.getGPGHome();
+    private Path gpgHome = MessageLogProperties.getArchiveGPGHome();
 
     private enum State {
         NEW,

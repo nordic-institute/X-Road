@@ -2,9 +2,16 @@
 set -euo pipefail
 
 usage() {
-  cat <<EOF
-  Given a member name in format INSTANCE/MEMBERCLASS/MEMBERCODE (case sensitive, UTF-8),
+  [[ $# -gt 0 && -n "$1" ]] && echo -e "  $1\n"
+
+  cat <<EOF >&2
+  Usage:
+  $0 [-f] <member identifier>
+
+  Given a member identifier in format INSTANCE/MEMBERCLASS/MEMBERCODE (case sensitive, UTF-8),
   outputs corresponding message log archive encryption key file name.
+
+  -f   Use relaxed format (allows / in identifier components)
 
   Example:
     $0 INSTANCE/MEMBERCLASS/MEMBERCODE
@@ -13,14 +20,32 @@ EOF
   exit 1
 }
 
-if [[ $# -ne 1 ]]; then
+format='^[^/]+/[^/]+/[^/]+$'
+
+case $# in
+1)
+  id="$1"
+  ;;
+2)
+  if [ "$1" = "-f" ]; then
+    format='^.+/.+/.+$'
+  else
+    usage "Invalid flag $1"
+  fi
+  id="$2"
+  ;;
+*)
   usage
+  ;;
+esac
+
+member=$(echo -En "$id" | iconv -f UTF-8 -t UTF-8) || true
+if [[ "$member" != "$id" ]]; then
+  usage "ERROR: '$id' is not UTF-8 encoded"
 fi
 
-member=$(echo -En "$1" | iconv -f UTF-8 -t UTF-8) || true
-if [[ "$member" != "$1" ]]; then
-  echo "ERROR: Expected $1 to be UTF-8 encoded"
-  exit 2
+if [[ ! "$member" =~ $format ]]; then
+  usage "ERROR: Invalid member identifier '$id'"
 fi
 
 name=$(echo -En "$member" | sha256sum -b | cut -d' ' -f1)

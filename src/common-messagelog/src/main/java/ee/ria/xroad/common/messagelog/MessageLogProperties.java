@@ -132,7 +132,7 @@ public final class MessageLogProperties {
 
     public static final String ARCHIVE_ENCRYPTION_ENABLED = PREFIX + "archive-encryption-enabled";
 
-    public static final String GPG_HOME_DIRECTORY = PREFIX + "archive-gpg-home-directory";
+    public static final String ARCHIVE_GPG_HOME_DIRECTORY = PREFIX + "archive-gpg-home-directory";
 
     public static final String ARCHIVE_ENCRYPTION_KEYS_DIR = PREFIX + "archive-encryption-keys-dir";
 
@@ -320,17 +320,17 @@ public final class MessageLogProperties {
         return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
     }
 
-    public static boolean getArchiveEncryptionEnabled() {
+    public static boolean isArchiveEncryptionEnabled() {
         return Boolean.getBoolean(ARCHIVE_ENCRYPTION_ENABLED);
     }
 
-    public static Path getGPGHome() {
-        return Paths.get(System.getProperty(GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
+    public static Path getArchiveGPGHome() {
+        return Paths.get(System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
     }
 
     public static Path getArchiveEncryptionKeysDir() {
         return Paths.get(System.getProperty(ARCHIVE_ENCRYPTION_KEYS_DIR,
-                System.getProperty(GPG_HOME_DIRECTORY, "/etc/xroad/gpghome")));
+                System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome")));
     }
 
     public static Path getArchiveDefaultEncryptionKey() {

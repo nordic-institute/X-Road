@@ -56,7 +56,7 @@ interface EncryptionConfigProvider {
     EncryptionConfig forGrouping(Grouping grouping) throws IOException;
 
     static EncryptionConfigProvider getInstance(GroupingStrategy groupingStrategy) {
-        if (!MessageLogProperties.getArchiveEncryptionEnabled()) {
+        if (!MessageLogProperties.isArchiveEncryptionEnabled()) {
             return DisabledEncryptionConfigProvider.INSTANCE;
         } else if (groupingStrategy == GroupingStrategy.NONE) {
             return new ServerEncryptionConfigProvider();
@@ -85,7 +85,7 @@ enum DisabledEncryptionConfigProvider implements EncryptionConfigProvider {
  */
 @Slf4j
 final class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
-    private final Path gpgHome = MessageLogProperties.getGPGHome();
+    private final Path gpgHome = MessageLogProperties.getArchiveGPGHome();
     private final EncryptionConfig config;
 
     ServerEncryptionConfigProvider() {
@@ -113,7 +113,7 @@ final class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
 @Slf4j
 final class MemberEncryptionConfigProvider implements EncryptionConfigProvider {
 
-    private final Path gpgHome = MessageLogProperties.getGPGHome();
+    private final Path gpgHome = MessageLogProperties.getArchiveGPGHome();
     private final Path keyDir = MessageLogProperties.getArchiveEncryptionKeysDir();
     private final List<Path> defaultKey;
     private final MessageDigest digest;
