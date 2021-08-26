@@ -4,9 +4,9 @@
 
 # Security Server Installation Guide for Red Hat Enterprise Linux <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.19  
+Version: 1.20  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -35,7 +35,8 @@ Doc. ID: IG-SS-RHEL
  01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
  11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
  18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
- 24.08.2021 | 1.19    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
+ 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
 
 ## License
 
@@ -105,7 +106,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 

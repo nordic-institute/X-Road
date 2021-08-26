@@ -4,9 +4,9 @@
 
 # SECURITY SERVER USER GUIDE <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 2.58  
+Version: 2.59  
 Doc. ID: UG-SS
 
 ---
@@ -91,6 +91,7 @@ Doc. ID: UG-SS
  31.05.2021 | 2.56    | Added information about backup archive contents and encryption | Andres Allkivi
  23.06.2021 | 2.57    | Fix incorrect link in Chapter [3.1](#31-configuring-the-signing-key-and-certificate-for-the-security-server-owner) | Petteri Kivimäki
  11.08.2021 | 2.58    | Minor updates to backup archive contents and encryption | Petteri Kivimäki
+ 25.08.2021 | 2.59    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -226,7 +227,7 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 ## 1 Introduction
 
-This document describes the management and maintenance of an X-Road version 6 security server.
+This document describes the management and maintenance of an X-Road version 7 security server.
 
 
 ### 1.1 The X-Road Security Server
@@ -851,7 +852,7 @@ To delete a client, follow these steps.
 
 ### 5.1 Availability States of Security Tokens
 
-**Notice that the colors are a new feature introduced in the upcoming version 6.25.0**
+**Notice that the colors were introduced in version 6.25.0**
 
 To display the availability of tokens, the following colors and labels are used in the "Keys and Certificates" view.
 
