@@ -43,7 +43,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import javax.validation.ConstraintViolationException;
 
 import java.util.Collections;
-import java.util.Optional;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +51,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 
 @WithMockUser(authorities = {"INIT_CONFIG"})
 public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
@@ -149,25 +151,25 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void initCentralServerAlreadyInitialized() throws Exception {
         SystemParameter validCentralServerAddressParameter = new SystemParameter();
-        validCentralServerAddressParameter.setKey(SystemParameter.CENTRAL_SERVER_ADDRESS);
+        validCentralServerAddressParameter.setKey(CENTRAL_SERVER_ADDRESS);
         validCentralServerAddressParameter.setValue("123.123.123.123");
 
         SystemParameter validInstanceIdentifierParameter = new SystemParameter();
-        validInstanceIdentifierParameter.setKey(SystemParameter.CENTRAL_SERVER_ADDRESS);
+        validInstanceIdentifierParameter.setKey(CENTRAL_SERVER_ADDRESS);
         validInstanceIdentifierParameter.setValue("VALID_INSTANCE");
 
         when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
 
         when(systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                SystemParameter.CENTRAL_SERVER_ADDRESS,
+                CENTRAL_SERVER_ADDRESS,
                 "node_0")
-        ).thenReturn(Optional.of(validCentralServerAddressParameter));
+        ).thenReturn(List.of(validCentralServerAddressParameter));
 
         when(systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                SystemParameter.INSTANCE_IDENTIFIER,
+                INSTANCE_IDENTIFIER,
                 "node_0")
         )
-                .thenReturn(Optional.of(validInstanceIdentifierParameter));
+                .thenReturn(List.of(validInstanceIdentifierParameter));
         assertThrows(ConflictException.class, () -> initializationApiController.initCentralServer(okConf));
     }
 }

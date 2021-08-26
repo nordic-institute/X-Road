@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
@@ -48,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
@@ -62,30 +65,8 @@ public class InitializationService {
 
     private final SignerProxyFacade signerProxyFacade;
     private final SystemParameterRepository systemParameterRepository;
-
-    private final Boolean isHAConfigured = false;
-    private final String currentHaNodeName = "node_0";
-    // Some day these --^^ will be fetched like in Ruby:
-    /*
-    def self.detect_ha_support
-    if @@ha_configured != nil
-      return
-    end
-    if !CommonSql.is_postgres?
-      @@ha_configured = false
-      return
-    end
-    node_name = java.lang.System.get_property("xroad.center.ha-node-name")
-    if node_name && !node_name.empty?
-      @@ha_node_name = node_name
-      @@ha_configured = true
-    else
-      @@ha_configured = false
-    end
-     */
-
-
-
+    private final CentralServerSystemParameterService centralServerSystemParameterService;
+    private final HAConfigStatus currentHaConfigStatus;
 
 
     public InitializationStatusDto getInitializationStatusDto() {
@@ -115,10 +96,15 @@ public class InitializationService {
                     "Central server Initialization failed, already initialized"
             );
         }
-
-        // TODO: Store instance identifier to SystemParameter - table   --- CONSIDERING HA node info
-
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CENTRAL_SERVER_ADDRESS,
+                configDto.getCentralServerAddress()
+        );
         // TODO: store server address to SystemParameter - table  --- CONSIDERING HA node info
+        centralServerSystemParameterService.updateOrCreateParameter(
+                INSTANCE_IDENTIFIER,
+                configDto.getInstanceIdentifier()
+        );
 
         // TODO:  Initialize other parameters:
         //          -  to GlobalGroup - table, store SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP
@@ -144,6 +130,7 @@ public class InitializationService {
                 && !getStoredInstanceIdentifier().isEmpty()
                 && !getStoredCentralServerAddress().isEmpty();
     }
+
     private boolean isSWTokenInitialized() {
         boolean isSWTokenInitialized = false;
         List<TokenInfo> tokenInfos;
@@ -164,23 +151,24 @@ public class InitializationService {
     }
 
     private String getStoredInstanceIdentifier() {
-        Optional<SystemParameter> instanceIdentifier =
+        List<SystemParameter> instanceIdentifier =
                 systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                        SystemParameter.INSTANCE_IDENTIFIER,
-                        currentHaNodeName
+                        INSTANCE_IDENTIFIER,
+                        currentHaConfigStatus.getCurrentHaNodeName()
                 );
-        return instanceIdentifier.map(SystemParameter::getValue).orElse("");
+        assert instanceIdentifier.size() <= 1;
+        return instanceIdentifier.stream().findFirst().map(SystemParameter::getValue)
+                .orElse("");
     }
 
     private String getStoredCentralServerAddress() {
-        Optional<SystemParameter> serverAddress = systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                SystemParameter.CENTRAL_SERVER_ADDRESS,
-                currentHaNodeName);
-        return serverAddress.map(SystemParameter::getValue).orElse("");
-
+        List<SystemParameter> serverAddress = systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
+                CENTRAL_SERVER_ADDRESS,
+                currentHaConfigStatus.getCurrentHaNodeName());
+        assert serverAddress.size() <= 1;
+        return serverAddress.stream().findFirst().map(SystemParameter::getValue)
+                .orElse("");
     }
-
-
 
     /**
      * If missing or empty or redundant params are provided for the init

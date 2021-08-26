@@ -47,18 +47,6 @@ public class SystemParameter extends AuditableEntity {
     private String value;
     private String haNodeName;
 
-    public static final String INSTANCE_IDENTIFIER = "instanceIdentifier";
-    public static final String CENTRAL_SERVER_ADDRESS = "centralServerAddress";
-    public static final String AUTH_CERT_REG_URL = "authCertRegUrl";
-    public static final String CONF_SIGN_DIGEST_ALGO_ID = "confSignDigestAlgoId";
-    public static final String CONF_HASH_ALGO_URI = "confHashAlgoUri";
-    public static final String CONF_SIGN_CERT_HASH_ALGO_URI = "confSignCertHashAlgoUri";
-    public static final String SECURITY_SERVER_OWNERS_GROUP = "securityServerOwnersGroup";
- /*   static final String            managementServiceProviderClass
-    static final String managementServiceProviderCode
-    static final String managementServiceProviderSubsystem
-*/
-
     public SystemParameter() {
         //JPA
     }
