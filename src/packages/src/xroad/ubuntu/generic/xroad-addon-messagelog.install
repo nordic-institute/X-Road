@@ -1,4 +1,4 @@
-../../../../src/xroad/common/addon/proxy/messagelog.conf usr/share/xroad/jlib/addon/proxy/
+../../../../src/xroad/common/addon/proxy/messagelog.conf.default usr/share/xroad/jlib/addon/proxy/
 ../../../../../addons/messagelog/build/libs/messagelog-1.0.jar usr/share/xroad/jlib/addon/proxy/
 ../../../../../addons/messagelog/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
 

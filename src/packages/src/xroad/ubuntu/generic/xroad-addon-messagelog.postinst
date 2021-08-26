@@ -6,12 +6,10 @@ if [[ "$1" == configure ]]; then
   db_get xroad-addon-messagelog/enable-messagelog || RET=true
 
   if [ "$RET" = false ]; then
-    if [ -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-      mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
-    fi
+    rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
   else
-    if [ -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled ]; then
-      mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+    if [ ! -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
+      ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
     fi
 
     RET=

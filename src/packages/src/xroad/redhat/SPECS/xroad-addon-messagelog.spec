@@ -30,7 +30,7 @@ mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-server
 mkdir -p %{buildroot}/usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier
 mkdir -p %{buildroot}/usr/share/doc/%{name}
 
-cp -p %{srcdir}/common/addon/proxy/messagelog.conf %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/messagelog/build/libs/messagelog-1.0.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/../../../addons/messagelog/scripts/archive-http-transporter.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
@@ -59,7 +59,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/db/messagelog-changelog.xml
 /usr/share/xroad/db/messagelog
 /usr/share/xroad/jlib/addon/proxy/messagelog-1.0.jar
-/usr/share/xroad/jlib/addon/proxy/messagelog.conf
+/usr/share/xroad/jlib/addon/proxy/messagelog.conf.default
 /usr/share/xroad/scripts/archive-http-transporter.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 /usr/share/xroad/jlib/asicverifier.jar
@@ -72,8 +72,9 @@ rm -rf %{buildroot}
 
 %post
 if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
-    mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
+    rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
 else
+    ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
     /usr/share/xroad/scripts/setup_messagelog_db.sh
 fi
 
