@@ -72,13 +72,8 @@ rm -rf %{buildroot}
 
 %post
 if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
-    if [ -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
-        mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
-    fi
+    mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled
 else
-    if [ -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled ]; then
-        mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled /usr/share/xroad/jlib/addon/proxy/messagelog.conf
-    fi
     /usr/share/xroad/scripts/setup_messagelog_db.sh
 fi
 
