@@ -340,8 +340,9 @@ module.exports = {
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription('Group4');
+    let maxLengthDescription = browser.globals.test_string_300.slice(0, 255);
     localGroupPopup.changeDescription(
-      browser.globals.test_string_300.slice(0, 255),
+      maxLengthDescription,
     );
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
@@ -352,11 +353,12 @@ module.exports = {
     localGroupPopup.close();
     browser.waitForElementVisible(
       '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
-        browser.globals.test_string_300.slice(0, 255) +
+        maxLengthDescription +
         '")]]',
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.waitForDescription(maxLengthDescription);
     localGroupPopup.changeDescription('Group4');
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
