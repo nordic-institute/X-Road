@@ -665,7 +665,7 @@ systemctl stop xroad-jetty
 3. Run the database migrations.
 
 ```
-/usr/share/xroad/db/migrate.sh db:migrate || abort "Database migration failed. ABORTING."
+/usr/share/xroad/db/migrate.sh db:migrate"
 ```
 
 4. Start the services, if they are not yet running.
