@@ -38,7 +38,7 @@
         "ss2_sign_csr" : "ss2_auth_csr.pem",
         "export_cert" : "certs.tar.gz",
         "e2etest_testdata" : "/../testdata",
-        "testfiles_path" : "/var/lib/tomcat7/webapps/ROOT/test_data",
+        "testfiles_path" : "/usr/share/nginx/html/test_data",
         "wsdl_url_1": "testservice1.wsdl",
         "wsdl_url_2": "testservice2.wsdl",
         "wsdl_url_x": "testserviceX.wsdl",

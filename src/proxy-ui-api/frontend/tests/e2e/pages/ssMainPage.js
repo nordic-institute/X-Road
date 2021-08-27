@@ -57,7 +57,7 @@ var navigateCommands = {
     this.click('@logoutOKButton');
     return this;
   },
-  closeSnackbar: function () {
+  closeSnackbar: function (doubleClick) {
     this.click('@snackBarCloseButton');
     return this;
   },
@@ -176,12 +176,18 @@ var clientInternalServersCommands = {
 };
 
 var localGroupPopupCommands = {
-  changeCode: function (code) {
+  waitForDescription: function (value) {
+    this.waitForValue('@localGroupDescription', value);
+    return this;
+  },
+  modifyCode: function (code) {
+    this.waitForNonEmpty('@localGroupCode');
     this.clearValue2('@localGroupCode');
     this.setValue('@localGroupCode', code);
     return this;
   },
-  changeDescription: function (description) {
+  modifyDescription: function (description) {
+    this.waitForNonEmpty('@localGroupDescription');
     this.clearValue2('@localGroupDescription');
     this.setValue('@localGroupDescription', description);
     return this;
@@ -284,12 +290,26 @@ var clientServicesCommands = {
     this.click('@cancelAddServiceButton');
     return this;
   },
-  enterServiceUrl: function (url) {
+  initServiceUrl: function (url) {
+    this.logMessage("initServiceUrl -> " + url);
+    this.assert.value('@newServiceUrl', "");
+    this.setValue('@newServiceUrl', url);
+    return this;
+  },
+  modifyServiceUrl: function (url) {
+    this.waitForNonEmpty('@newServiceUrl');
     this.clearValue2('@newServiceUrl');
     this.setValue('@newServiceUrl', url);
     return this;
   },
-  enterServiceCode: function (code) {
+  initServiceCode: function (code) {
+    this.assert.value('@newServiceCode', "");
+    this.clearValue2('@newServiceCode');
+    this.setValue('@newServiceCode', code);
+    return this;
+  },
+  modifyServiceCode: function (code) {
+    this.waitForNonEmpty('@newServiceCode');
     this.clearValue2('@newServiceCode');
     this.setValue('@newServiceCode', code);
     return this;
@@ -318,7 +338,14 @@ var clientServicesCommands = {
     this.click('@serviceEnableToggle');
     return this;
   },
-  enterDisableNotice: function (notice) {
+  initDisableNotice: function (notice) {
+    this.assert.value('@disableNotice', "");
+    this.clearValue2('@disableNotice');
+    this.setValue('@disableNotice', notice);
+    return this;
+  },
+  modifyDisableNotice: function (notice) {
+    this.waitForNonEmpty('@disableNotice');
     this.clearValue2('@disableNotice');
     this.setValue('@disableNotice', notice);
     return this;
@@ -374,12 +401,14 @@ var clientLocalGroupsCommands = {
     this.click('@cancelAddButton');
     return this;
   },
-  enterCode: function (code) {
+  initCode: function (code) {
+    this.assert.value('@groupCode', "");
     this.clearValue2('@groupCode');
     this.setValue('@groupCode', code);
     return this;
   },
-  enterDescription: function (description) {
+  initDescription: function (description) {
+    this.assert.value('@groupDescription', "");
     this.clearValue2('@groupDescription');
     this.setValue('@groupDescription', description);
     return this;
@@ -426,12 +455,25 @@ var serviceDetailsCommands = {
     this.click('@deleteServiceButton');
     return this;
   },
-  enterServiceUrl: function (url) {
+  initServiceUrl: function (url) {
+    this.assert.value('@serviceURL', "");
+    this.setValue('@serviceURL', url);
+    return this;
+  },
+  modifyServiceUrl: function (url) {
+    this.waitForNonEmpty('@serviceURL');
     this.clearValue2('@serviceURL');
     this.setValue('@serviceURL', url);
     return this;
   },
-  enterServiceCode: function (code) {
+  initServiceCode: function (code) {
+    this.assert.value('@serviceCode', "");
+    this.clearValue2('@serviceCode');
+    this.setValue('@serviceCode', code);
+    return this;
+  },
+  modifyServiceCode: function (code) {
+    this.waitForNonEmpty('@serviceCode');
     this.clearValue2('@serviceCode');
     this.setValue('@serviceCode', code);
     return this;
@@ -479,12 +521,14 @@ var wsdlOperationCommands = {
     this.click('@verifyCertApplyToAllCheckbox');
     return this;
   },
-  enterUrl: function (url) {
+  modifyUrl: function (url) {
+    this.waitForNonEmpty('@serviceURL');
     this.clearValue2('@serviceURL');
     this.setValue('@serviceURL', url);
     return this;
   },
-  enterTimeout: function (timeout) {
+  modifyTimeout: function (timeout) {
+    this.waitForNonEmpty('@timeout');
     this.clearValue2('@timeout');
     this.setValue('@timeout', timeout);
     return this;
@@ -567,7 +611,15 @@ var restEndpointCommands = {
 };
 
 var addEndpointCommands = {
-  enterPath: function (path) {
+  // previous value must be empty
+  initPath: function (path) {
+    this.assert.valueContains('@requestPath', "");
+    this.setValue('@requestPath', path);
+    return this;
+  },
+  // previous value must be non-empty
+  modifyPath: function (path) {
+    this.waitForNonEmpty('@requestPath');
     this.clearValue2('@requestPath');
     this.setValue('@requestPath', path);
     return this;
@@ -673,11 +725,11 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     snackBarMessage: {
-      selector: '//div[contains(@class, "v-snack__content")]',
+      selector: '//div[@data-test="success-snackbar"]',
       locateStrategy: 'xpath',
     },
     alertCloseButton: {
-      selector: '//button[@data-test="close-snackbar"]',
+      selector: '//button[@data-test="close-alert"]',
       locateStrategy: 'xpath',
     },
     alertMessage: {
@@ -1083,8 +1135,8 @@ module.exports = {
         },
       },
     },
-    serviceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog"]',
+    wsdlServiceDetails: {
+      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1128,7 +1180,7 @@ module.exports = {
       },
     },
     restServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="rest-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1186,7 +1238,7 @@ module.exports = {
       },
     },
     openApiServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="openapi-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {

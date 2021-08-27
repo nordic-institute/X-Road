@@ -23,35 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+const Events = require('events');
 
-let frontPage;
-
-module.exports = {
-  tags: ['ss', 'login'],
-  before: function (browser) {
-    frontPage = browser.page.ssFrontPage();
-
-    frontPage.navigateAndMakeTestable();
-  },
-
-  afterEach: function (browser) {
-    browser.refresh();
-  },
-  after: function (browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    frontPage
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signin()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    frontPage
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signin()
-      .loginErrorMessageIsShown();
-  },
+// make UI more testable by
+// 1. setting e2eTestingMode = true -> snackbars stay open forever
+// 2. adding transition:none CSS (disables animations / transitions that make button clicks unreliable)
+module.exports = class MakeTestable extends Events {
+  command() {
+    this.api.execute(function makeUiTestable() {
+      window.e2eTestingMode = true;
+      const style = `
+      <style>
+        *, ::before, ::after {
+            transition:none !important;
+        }
+      </style>`;
+      document.head.insertAdjacentHTML('beforeend', style);
+    }, []);
+    this.api.logMessage("made UI testable by setting window.e2eTestingMode and injecting CSS");
+    this.emit('complete');
+  }
 };

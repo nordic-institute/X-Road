@@ -189,7 +189,18 @@ if (!project.hasProperty("runHeadless")) {
     ext.runHeadless = ""
 }
 
+// TODO: rename these to "e2e"
+if (!project.hasProperty("testscript")) {
+    ext.testscript = ""
+}
 
+if (!project.hasProperty("testcase")) {
+    ext.testcase = ""
+}
+
+if (!project.hasProperty("testverbose")) {
+    ext.testverbose = ""
+}
 
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
@@ -207,16 +218,38 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
 
+    if (!testverbose.isEmpty()) {
+        if (testverbose == "true") {
+            args.add("--verbose")
+        }
+    }
+
     if (!runHeadless.isEmpty()) {
       if (runHeadless == "true") {
-        args += "--headless"
+          args.add("--headless")
       }
     }
 
     if (!failScreenshot.isEmpty()) {
       if (failScreenshot == "true") {
-        args += "--env screenshot"
+        args.add("--env screenshot")
       }
+    }
+
+    // (at least if testcase name has spaces) wrap name in quotes, e.g. -Ptestcase "Security server client add wsdl service"
+    if (!testcase.isEmpty()) {
+        if (testscript.isEmpty()) {
+            // to run specific testcase, your need to also define -Ptestscript, otherwise nightwatch ignores this parameter
+            throw new GradleException('Tried to use -Ptestcase without -Ptestscript, that will not work.')
+        }
+        args.add("--testcase");
+        args.add(testcase);
+        println 'set testcase arg to value [' + testcase + ']'
+
+    }
+
+    if (!testscript.isEmpty()) {
+        args.add("--test=" + testscript)
     }
 
     execOverrides {

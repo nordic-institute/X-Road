@@ -27,7 +27,7 @@
 var fs = require('fs');
 
 module.exports = {
-  tags: ['ss', 'clients', 'internalservers'],
+  tags: ['x1736','ss', 'clients', 'internalservers'],
   'Security server client internal servers page': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -54,7 +54,7 @@ module.exports = {
     }
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -113,7 +113,10 @@ module.exports = {
       browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Certificate already exists'
-    mainPage.closeSnackbar();
+
+    browser.logMessage("closing alertMessage now");
+
+    mainPage.closeAlertMessage();
 
     // Open and verify certificate info
     clientInternalServers.openTLSCert();

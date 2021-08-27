@@ -25,7 +25,7 @@
  */
 
 module.exports = {
-  tags: ['ss', 'clients', 'localgroups'],
+  tags: ['x1736', 'ss', 'clients', 'localgroups'],
   'Security server client local groups filtering': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
@@ -34,7 +34,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -77,7 +77,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -100,9 +100,9 @@ module.exports = {
     clientLocalGroups.verifyGroupListRow(7, 'cbb');
 
     clientLocalGroups.openAddDialog();
-    clientLocalGroups.enterCode('abc');
+    clientLocalGroups.initCode('abc');
     browser.assert.valueContains(clientLocalGroups.elements.groupCode, 'abc');
-    clientLocalGroups.enterDescription('addDesc');
+    clientLocalGroups.initDescription('addDesc');
     clientLocalGroups.cancelAddDialog();
 
     clientLocalGroups.verifyGroupListRow(2, '1122');
@@ -118,7 +118,7 @@ module.exports = {
     browser.assert.value(clientLocalGroups.elements.groupDescription, '');
 
     // Verify that add is disabled if only Code is entered
-    clientLocalGroups.enterCode('abc');
+    clientLocalGroups.initCode('abc');
     browser.waitForElementVisible(
       '//button[@data-test="dialog-save-button" and @disabled="disabled"]',
     );
@@ -126,13 +126,13 @@ module.exports = {
 
     // Verify that add is disabled if only description is entered
     clientLocalGroups.openAddDialog();
-    clientLocalGroups.enterDescription('addDesc');
+    clientLocalGroups.initDescription('addDesc');
     browser.waitForElementVisible(
       '//button[@data-test="dialog-save-button" and @disabled="disabled"]',
     );
 
     // Verify that trying to add a group with existing code results in an error message
-    clientLocalGroups.enterCode('abb');
+    clientLocalGroups.initCode('abb');
     clientLocalGroups.confirmAddDialog();
     browser.assert.containsText(
       mainPage.elements.alertMessage,
@@ -140,14 +140,16 @@ module.exports = {
     );
 
     // Add a new group and verify
-    clientLocalGroups.enterCode('abc');
-    clientLocalGroups.enterDescription('addDesc');
+    clientLocalGroups.initCode('abc');
+    clientLocalGroups.initDescription('addDesc');
     clientLocalGroups.confirmAddDialog();
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
       'Local group added',
     );
+    browser.logMessage("closing 'local group added' snackbar");
     mainPage.closeSnackbar();
+    browser.logMessage("closed");
     // Close also alert, this cannot be closed while the popup is active
     mainPage.closeAlertMessage();
 
@@ -169,7 +171,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -223,7 +225,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -290,7 +292,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -305,9 +307,11 @@ module.exports = {
     browser.waitForElementVisible(clientLocalGroups);
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
+    // wait for element visible is not enough, element could be visible but data/state not loaded yet - wait for data
+    localGroupPopup.waitForDescription('Group4');
 
     // Change description
-    localGroupPopup.changeDescription('');
+    localGroupPopup.modifyDescription('');
     browser.keys(browser.Keys.ENTER); // Enter keypress needed after data entry to trigger validation
     browser.assert.containsText(
       mainPage.elements.alertMessage,
@@ -321,7 +325,8 @@ module.exports = {
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
-    localGroupPopup.changeDescription(
+    localGroupPopup.waitForDescription('Group4');
+    localGroupPopup.modifyDescription(
       browser.globals.test_string_300.slice(0, 256),
     );
     browser.keys(browser.Keys.ENTER);
@@ -336,8 +341,10 @@ module.exports = {
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
-    localGroupPopup.changeDescription(
-      browser.globals.test_string_300.slice(0, 255),
+    localGroupPopup.waitForDescription('Group4');
+    let maxLengthDescription = browser.globals.test_string_300.slice(0, 255);
+    localGroupPopup.modifyDescription(
+      maxLengthDescription,
     );
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
@@ -348,12 +355,13 @@ module.exports = {
     localGroupPopup.close();
     browser.waitForElementVisible(
       '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
-        browser.globals.test_string_300.slice(0, 255) +
+        maxLengthDescription +
         '")]]',
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
-    localGroupPopup.changeDescription('Group4');
+    localGroupPopup.waitForDescription(maxLengthDescription);
+    localGroupPopup.modifyDescription('Group4');
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
@@ -375,7 +383,7 @@ module.exports = {
     const localGroupPopup = mainPage.section.localGroupPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials

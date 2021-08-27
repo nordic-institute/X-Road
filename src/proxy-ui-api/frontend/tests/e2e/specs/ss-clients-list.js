@@ -25,14 +25,14 @@
  */
 
 module.exports = {
-  tags: ['ss', 'clients', 'clientslist'],
+  tags: ['x1736','ss', 'clients', 'clientslist'],
   'Security server clients list': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
