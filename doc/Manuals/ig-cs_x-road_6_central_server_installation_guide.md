@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.26  
+Version: 2.27  
 Doc. ID: IG-CS
 
 ---
@@ -47,7 +47,8 @@ Doc. ID: IG-CS
 | 18.05.2021 | 2.23    | Update installation error handling section. | Ilkka Seppälä
 | 01.07.2021 | 2.24    | Update 3rd party key server | Petteri Kivimäki
 | 18.08.2021 | 2.25    | Minor updates to Annex D | Ilkka Seppälä
-| 25.08.2021 | 2.26    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+| 24.08.2021 | 2.26    | Add instructions for running the database migrations manually. | Ilkka Seppälä
+| 25.08.2021 | 2.27    | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -92,6 +93,7 @@ Doc. ID: IG-CS
   - [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
   - [C.6 Summary](#c6-summary)
 - [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+- [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -270,6 +272,8 @@ Upon the first installation of the central server software, the system asks for 
 - Account name for the user who will be granted the rights to perform all activities in the user interface (reference data: 1.3).
 
 - Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
+
+- Whether the database migrations should be skipped and handled manually instead. Usually automatic migrations should be used, but for legacy database support (like BDR1) it's possible to rely on manual operations instead. How to execute the database migrations manually is described in [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually).
 
 - The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. 
 
@@ -644,3 +648,31 @@ port=<database port>
 schema=<database schema>
 skip_migrations=<false by default, set to true to skip migrations>
 ```
+
+## Annex E Run Database Migrations Manually
+
+When installing/upgrading the central server, it's possible to skip the automatic database migrations. The installer respects the setting `skip_migrations = true/false` in the file `/etc/xroad/db.properties`. For clean installations the installer asks the setting value (among other settings) using debconf. For upgrade installations the setting `skip_migrations = true` needs to be set before upgrading by editing the aforementioned properties file or by running `dpkg-reconfigure xroad-center` to alter the settings via debconf.
+
+To run the database migrations manually, follow the next steps.
+
+1. Login to the central server console and issue the following command as root.
+
+2. Ensure that the central server user interface process is stopped.
+
+```
+systemctl stop xroad-jetty
+```
+
+3. Run the database migrations.
+
+```
+/usr/share/xroad/db/migrate.sh db:migrate
+```
+
+4. Start the services, if they are not yet running.
+
+```
+systemctl start xroad-signer nginx xroad-jetty
+```
+
+5. Verify that everything is working by performing the steps described in [2.10 Post-Installation Checks](#210-post-installation-checks).
