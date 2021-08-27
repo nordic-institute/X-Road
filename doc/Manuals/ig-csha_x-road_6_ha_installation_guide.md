@@ -4,9 +4,9 @@
 
 
 # Central Server High Availability Installation Guide <!-- omit in toc -->
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.14  
+Version: 1.15  
 Doc. ID: IG-CSHA
 
 ---
@@ -32,6 +32,7 @@ Doc. ID: IG-CSHA
  18.03.2020 | 1.12    | Add instructions for Central Server HA Migration | Ilkka Seppälä 
  16.04.2020 | 1.13    | Update cluster status output | Jarkko Hyöty
  10.08.2021 | 1.14    | Update HA installation instructions. Remove obsolete BDR references. | Ilkka Seppälä
+ 25.08.2021 | 1.15    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  
 ## Table of Contents <!-- omit in toc -->
 
@@ -103,8 +104,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\]
 
 ### 1.4 References
 
-1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md).
-2.  <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] X-Road 6. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md).
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 7. Central Server Installation Guide. Document ID: [IG-CS](ig-cs_x-road_6_central_server_installation_guide.md).
+2.  <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] X-Road 7. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md).
 3.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 

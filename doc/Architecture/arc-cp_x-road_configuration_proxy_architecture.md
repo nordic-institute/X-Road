@@ -6,8 +6,8 @@
 # X-Road: Configuration Proxy Architecture
 **Technical Specification**
 
-Version: 1.5  
-02.03.2018
+Version: 1.6  
+25.08.2021
 <!-- 1 pages -->
  Doc. ID: ARC-CP
 
@@ -26,6 +26,7 @@ Version: 1.5
  24.02.2017 | 1.3     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  19.01.2018 | 1.4     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
  02.03.2018 | 1.5     | Moved terms and abbreviations to terms document                 | Tatu Repo
+ 25.08.2021 | 1.6     | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents
 
@@ -83,7 +84,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 3. <a id="Ref_PKCS11" class="anchor"></a>\[PKCS11\] Cryptographic Token Interface Standard. RSA Laboratories, PKCS\#11.
 
-4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] Cybernetica AS. X-Road v6 Configuration Proxy Manual. Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
+4. <a id="Ref_UG-CP" class="anchor"></a>\[UG-CP\] Cybernetica AS. X-Road v7 Configuration Proxy Manual. Document ID: [UG-CP](../Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md).
 
 5. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 

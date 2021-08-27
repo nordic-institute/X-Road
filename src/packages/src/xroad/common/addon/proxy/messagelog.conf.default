@@ -1,0 +1,4 @@
+ADDON_CP="${ADDON_CP}:${ADDON_PATH}/proxy/messagelog-1.0.jar"
+ADDON_PARAMS="${ADDON_PARAMS} -Dxroad.proxy.messageLogManagerImpl=ee.ria.xroad.proxy.messagelog.LogManager"
+CLIENT_HANDLERS="${CLIENT_HANDLERS},ee.ria.xroad.proxy.clientproxy.AsicContainerHandler"
+

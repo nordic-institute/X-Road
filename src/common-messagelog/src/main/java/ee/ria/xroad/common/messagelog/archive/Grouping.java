@@ -26,23 +26,33 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+
+import lombok.Getter;
 
 import java.util.Objects;
 
 interface Grouping {
+    default ClientId getClientId() {
+        return null;
+    }
+
     boolean includes(MessageRecord record);
 
-    String name();
+    default String name() {
+        final ClientId id = getClientId();
+        return id == null ? null : id.toShortString();
+    }
 }
 
-final class MemberGrouping implements Grouping {
-    private final String memberClass;
-    private final String memberCode;
+class MemberGrouping implements Grouping {
+    @Getter
+    private final ClientId clientId;
 
     MemberGrouping(MessageRecord record) {
-        this.memberClass = record.getMemberClass();
-        this.memberCode = record.getMemberCode();
+        clientId = ClientId.create(GlobalConf.getInstanceIdentifier(), record.getMemberClass(), record.getMemberCode());
     }
 
     /**
@@ -50,28 +60,23 @@ final class MemberGrouping implements Grouping {
      */
     @Override
     public boolean includes(MessageRecord record) {
-        return Objects.equals(memberClass, record.getMemberClass())
-                && Objects.equals(memberCode, record.getMemberCode());
+        return Objects.equals(record.getMemberClass(), clientId.getMemberClass())
+                && Objects.equals(record.getMemberCode(), clientId.getMemberCode());
     }
 
-    public String name() {
-        StringBuilder b = new StringBuilder();
-        b.append(memberClass);
-        b.append("-");
-        b.append(memberCode);
-        return b.toString();
+    @Override
+    public String toString() {
+        return name();
     }
 }
 
-final class SubsystemGrouping implements Grouping {
-    private final String memberClass;
-    private final String memberCode;
-    private final String subsystemCode;
+class SubsystemGrouping implements Grouping {
+    @Getter
+    private final ClientId clientId;
 
     SubsystemGrouping(MessageRecord record) {
-        this.memberClass = record.getMemberClass();
-        this.memberCode = record.getMemberCode();
-        this.subsystemCode = record.getSubsystemCode();
+        clientId = ClientId.create(GlobalConf.getInstanceIdentifier(),
+                record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode());
     }
 
     /**
@@ -79,22 +84,13 @@ final class SubsystemGrouping implements Grouping {
      */
     @Override
     public boolean includes(MessageRecord record) {
-        return Objects.equals(memberClass, record.getMemberClass())
-                && Objects.equals(memberCode, record.getMemberCode())
-                && Objects.equals(subsystemCode, record.getSubsystemCode());
-
+        return Objects.equals(record.getMemberClass(), clientId.getMemberClass())
+                && Objects.equals(record.getMemberCode(), clientId.getMemberCode())
+                && Objects.equals(record.getSubsystemCode(), clientId.getSubsystemCode());
     }
 
-    public String name() {
-        StringBuilder b = new StringBuilder();
-        b.append(memberClass);
-        b.append("-");
-        b.append(memberCode);
-        if (subsystemCode != null) {
-            b.append("-");
-            b.append(subsystemCode);
-        }
-        return b.toString();
+    @Override
+    public String toString() {
+        return name();
     }
 }
-
