@@ -305,6 +305,8 @@ module.exports = {
     browser.waitForElementVisible(clientLocalGroups);
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
+    // wait for element visible is not enough, element could be visible but data/state not loaded yet - wait for data
+    localGroupPopup.waitForDescription('Group4');
 
     // Change description
     localGroupPopup.changeDescription('');

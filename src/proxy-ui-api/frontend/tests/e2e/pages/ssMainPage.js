@@ -176,6 +176,10 @@ var clientInternalServersCommands = {
 };
 
 var localGroupPopupCommands = {
+  waitForDescription: function (value) {
+    this.waitForValue('@localGroupDescription', value);
+    return this;
+  },
   changeCode: function (code) {
     this.clearValue2('@localGroupCode');
     this.setValue('@localGroupCode', code);
