@@ -323,6 +323,7 @@ module.exports = {
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.waitForDescription('Group4');
     localGroupPopup.changeDescription(
       browser.globals.test_string_300.slice(0, 256),
     );
@@ -338,6 +339,7 @@ module.exports = {
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
+    localGroupPopup.waitForDescription('Group4');
     localGroupPopup.changeDescription(
       browser.globals.test_string_300.slice(0, 255),
     );
