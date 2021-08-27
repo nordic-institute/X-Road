@@ -50,7 +50,14 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CONF_HASH_ALGO_URI;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CONF_SIGN_DIGEST_ALGO_ID;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_CONF_HASH_ALGO_URI;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
@@ -89,7 +96,8 @@ public class InitializationService {
     }
 
 
-    public void initialize(InitializationConfigDto configDto) throws ServerAlreadyFullyInitializedException {
+    public void initialize(InitializationConfigDto configDto)
+            throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException {
 
         if (isCentralServerInitialized()) {
             throw new ServerAlreadyFullyInitializedException(
@@ -100,7 +108,6 @@ public class InitializationService {
                 CENTRAL_SERVER_ADDRESS,
                 configDto.getCentralServerAddress()
         );
-        // TODO: store server address to SystemParameter - table  --- CONSIDERING HA node info
         centralServerSystemParameterService.updateOrCreateParameter(
                 INSTANCE_IDENTIFIER,
                 configDto.getInstanceIdentifier()
@@ -109,19 +116,34 @@ public class InitializationService {
         // TODO:  Initialize other parameters:
         //          -  to GlobalGroup - table, store SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP
         //                              with description  SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC
-        //          -  to SystemParamater -table - NOTE: in HA setups node_local_parameters need to be updated to the
-        //                                               HA node -specific entry
-        //                  - SystemParameter::CONF_SIGN_DIGEST_ALGO_ID with
-        //                            SystemParameter::DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
-        //                  - SystemParameter::CONF_HASH_ALGO_URI with
-        //                            SystemParameter::DEFAULT_CONF_HASH_ALGO_URI
-        //                  - SystemParameter::CONF_SIGN_CERT_HASH_ALGO_URI
-        //                              with  SystemParameter::DEFAULT_CONF_SIGN_CERT_HASH_ALGO_URI
-        //                  - SystemParameter::SECURITY_SERVER_OWNERS_GROUP
-        //                             with SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP
 
-        // TODO: init software token with SignerProxy
 
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CONF_SIGN_DIGEST_ALGO_ID,
+                DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
+        );
+
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CONF_HASH_ALGO_URI,
+                DEFAULT_CONF_HASH_ALGO_URI
+        );
+
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CONF_SIGN_CERT_HASH_ALGO_URI,
+                DEFAULT_CONF_HASH_ALGO_URI
+        );
+
+        centralServerSystemParameterService.updateOrCreateParameter(
+                SECURITY_SERVER_OWNERS_GROUP,
+                DEFAULT_SECURITY_SERVER_OWNERS_GROUP
+        );
+
+        try {
+            signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
+        } catch (Exception e) {
+            log.warn("Software token initialization failed", e);
+            throw new SoftwareTokenInitException("Software token initialization failed", e);
+        }
     }
 
 

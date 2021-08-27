@@ -74,6 +74,8 @@ public class InitializationApiController implements InitializationApi {
             initializationService.initialize(configDto);
         } catch (InitializationService.ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
+        } catch (InitializationService.SoftwareTokenInitException e) {
+            throw new InternalServerErrorException("Pin initialization failed!", e);
         }
 
         return ResponseEntity.ok().build();

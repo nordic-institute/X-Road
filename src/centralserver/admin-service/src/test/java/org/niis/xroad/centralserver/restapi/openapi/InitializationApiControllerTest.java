@@ -35,6 +35,7 @@ import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
+import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -59,6 +60,9 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Autowired
     InitializationApiController initializationApiController;
+
+    @Autowired
+    SystemParameterRepository systemParameterRepository;
 
     private InitialServerConf okConf;
     private TokenInfo testSWToken;
@@ -121,11 +125,17 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     }
 
     @Test
-    public void initCentralServer() {
+    public void initCentralServer() throws Exception {
+        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
+
         ResponseEntity<Void> response = initializationApiController.initCentralServer(okConf);
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
 
+        List<SystemParameter> storedCentralServerAddresses = systemParameterRepository
+                .findSystemParametersByKey(CENTRAL_SERVER_ADDRESS);
+        assertEquals(1, storedCentralServerAddresses.size());
+        assertEquals(okConf.getCentralServerAddress(), storedCentralServerAddresses.iterator().next().getValue());
         ResponseEntity<InitializationStatus> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertNotNull(statusResponseEntity.getBody());
