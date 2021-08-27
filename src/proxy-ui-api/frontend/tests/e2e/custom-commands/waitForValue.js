@@ -26,16 +26,14 @@
 module.exports = class WaitFor {
     // async command(f) {
     async command(selector, expectedValue) {
-        console.log('waitForValue, waiting for ' + expectedValue);
+        console.log('waitForValue, waiting for "' + expectedValue + '"');
         const interval = 100;
         const timeout = 5000;
         let counter = 0;
-        while (counter * interval < timeout) {
+        while ((counter * interval) < timeout) {
             let value = null;
             await this.api.getValue(selector, (result) => {
-                console.log("result.value = " + result.value);
                 let equality = (result.value === expectedValue);
-                console.log("equality = " + equality);
                 value = equality;
             })
             if (value) {
@@ -44,6 +42,8 @@ module.exports = class WaitFor {
                     status: 1,
                 }
             }
+            await new Promise(r => setTimeout(r, interval));
+            counter++;
         }
         console.log("timeout exceeded");
         return {
