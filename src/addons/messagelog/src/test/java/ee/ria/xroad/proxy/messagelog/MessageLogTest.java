@@ -28,6 +28,7 @@ package ee.ria.xroad.proxy.messagelog;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.AbstractLogRecord;
@@ -457,7 +458,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
 
     private void initLastHashStep() throws Exception {
         DigestEntry lastArchive = new DigestEntry(LAST_DIGEST, LAST_LOG_ARCHIVE_FILE);
-        ArchiveDigest digest = new ArchiveDigest("BUSINESS-consumer", lastArchive);
+        ArchiveDigest digest = new ArchiveDigest(ClientId.create("XRD", "BUSINESS", "consumer").toShortString(),
+                lastArchive);
         doInTransaction(session -> {
             session.createQuery(getLastEntryDeleteQuery()).executeUpdate();
             session.save(digest);
