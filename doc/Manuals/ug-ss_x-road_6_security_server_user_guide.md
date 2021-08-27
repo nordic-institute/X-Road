@@ -1660,6 +1660,7 @@ gpg --homedir ~/xroad-test --export INSTANCE/memberClass/memberCode >INSTANCE-me
 Copy the public key to `encryption-keys-dir`, and rename it using a name provided by /usr/share/xroad/scripts/keyname.sh script (hex-encoded sha-256 digest of the member identifier).
 ```
 # check that the key is valid and suitable for encryption (has a (sub)key with usage E):
+# note: --show-keys requires gnupg 2.2.8 or later
 gpg --show-keys INSTANCE-memberClass-memberCode.pgp
   pub   rsa3072 2021-08-04 [SC]
         96F20FF6578A5EF90DFBA18D8C003019508B5637
@@ -1668,7 +1669,8 @@ gpg --show-keys INSTANCE-memberClass-memberCode.pgp
 
 /usr/share/xroad/scripts/keyname.sh INSTANCE/memberClass/memberCode
   80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
-mv INSTANCE-memberClass-memberCode.pgp 80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
+
+cp INSTANCE-memberClass-memberCode.pgp /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 ```
 It is possible to define multiple encryption keys per member by adding a qualifier between the member identifier digest and suffix, e.g.:
 ```
@@ -1680,7 +1682,8 @@ It is possible to define multiple encryption keys per member by adding a qualifi
 
 In order to save hard disk space, it is recommended to transfer archive files periodically from the security server (manually or automatically) to an external location.
 
-Archive files (ZIP containers) are located in the directory specified by the configuration parameter archive-path. File names are in the format `mlog[-grouping]-X-Y-Z.zip`, where X is the timestamp (UTC time in the format `YYYYMMDDHHmmss`) of the first message log record, Y is the timestamp of the last message log record (records are processed in chronological order) and Z is 10 characters long alphanumeric random. If grouping is enabled, [-grouping] is a (possibly truncated and filename safe) member identifier. 
+Archive files (ZIP containers) are located in the directory specified by the configuration parameter archive-path. File names are in the format `mlog[-grouping]-X-Y-Z.zip[.gpg]`, where X is the timestamp (UTC time in the format `YYYYMMDDHHmmss`) of the first message log record, Y is the timestamp of the last message log record (records are processed in chronological order) and Z is 10 characters long alphanumeric random. If grouping is enabled, [-grouping] is a (possibly truncated and filename safe) member identifier. If encryption is enabled, the [.gpg] suffix is added.
+
 An example of an archive file name is:
 
     mlog-INSTANCE_CLASS_CODE-20150504152559-20150504152559-a7JS05XAJC.zip
