@@ -532,19 +532,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         logRecordTime = getDate(atDate);
         log(message, signature);
     }
-
-    protected void log(String atDate, SoapMessageImpl message, SignatureData signature, String xRequestId)
-            throws Exception {
-        logRecordTime = getDate(atDate);
-        log(message, signature, xRequestId);
-    }
-
-    protected void log(Instant instant, SoapMessageImpl message, SignatureData signature, String xRequestId)
-            throws Exception {
-        logRecordTime = Date.from(instant);
-        log(message, signature, xRequestId);
-    }
-
+    
     protected void log(Instant instant, RestRequest message, SignatureData signatureData, byte[] body)
             throws Exception {
         final ByteArrayInputStream bos = new ByteArrayInputStream(body);

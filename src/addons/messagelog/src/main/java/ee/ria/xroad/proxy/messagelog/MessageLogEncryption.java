@@ -116,10 +116,8 @@ public final class MessageLogEncryption {
             throw new IllegalStateException("Unable to initialize message log encryption", e);
         }
 
-        if (encryptionEnabled) {
-            if (messageKeys.isEmpty() || attachmentKeys.isEmpty()) {
-                log.warn("Message log encryption is enabled but no keys are available.");
-            }
+        if (encryptionEnabled && (messageKeys.isEmpty() || attachmentKeys.isEmpty())) {
+            log.warn("Message log encryption is enabled but no keys are available.");
         }
     }
 

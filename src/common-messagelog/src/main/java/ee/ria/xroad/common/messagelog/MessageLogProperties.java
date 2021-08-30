@@ -371,8 +371,10 @@ public final class MessageLogProperties {
         return null;
     }
 
+    /** @return keystore path for messagelog encryption keys or null if one is not defined */
     public static Path getMessageLogKeyStore() {
-        return Paths.get(System.getProperty(MESSAGELOG_KEYSTORE, "/etc/xroad/messagelog/messagelog.p12"));
+        final String property = System.getProperty(MESSAGELOG_KEYSTORE);
+        return property == null ? null : Paths.get(property);
     }
 
     public static String getMessageLogKeyId() {
