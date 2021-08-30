@@ -130,9 +130,13 @@ public final class MessageLogProperties {
     /** is truncating body in logging allowed **/
     private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
 
-    public static final String ENCRYPTION_ENABLED = PREFIX + "encryption-enabled";
+    public static final String ARCHIVE_ENCRYPTION_ENABLED = PREFIX + "archive-encryption-enabled";
 
-    public static final String GPG_HOME_DIRECTORY = PREFIX + "gpg-home-directory";
+    public static final String ARCHIVE_GPG_HOME_DIRECTORY = PREFIX + "archive-gpg-home-directory";
+
+    public static final String ARCHIVE_ENCRYPTION_KEYS_DIR = PREFIX + "archive-encryption-keys-dir";
+
+    public static final String ARCHIVE_DEFAULT_ENCRYPTION_KEY = PREFIX + "archive-default-encryption-key";
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -316,12 +320,25 @@ public final class MessageLogProperties {
         return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
     }
 
-    public static boolean isEncryptionEnabled() {
-        return Boolean.getBoolean(ENCRYPTION_ENABLED);
+    public static boolean isArchiveEncryptionEnabled() {
+        return Boolean.getBoolean(ARCHIVE_ENCRYPTION_ENABLED);
     }
 
-    public static Path getGPGHome() {
-        return Paths.get(System.getProperty(GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
+    public static Path getArchiveGPGHome() {
+        return Paths.get(System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
+    }
+
+    public static Path getArchiveEncryptionKeysDir() {
+        return Paths.get(System.getProperty(ARCHIVE_ENCRYPTION_KEYS_DIR,
+                System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome")));
+    }
+
+    public static Path getArchiveDefaultEncryptionKey() {
+        final String property = System.getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
+        if (property != null) {
+            return Paths.get(property);
+        }
+        return null;
     }
 
     private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {

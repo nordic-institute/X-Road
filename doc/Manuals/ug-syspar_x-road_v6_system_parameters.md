@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.60  
+Version: 2.62  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -70,6 +70,8 @@ Doc. ID: UG-SYSPAR
 | 13.10.2020 | 2.58     | Add new parameter *akka-use-secure-remote-transport* | Jarkko Hyöty |
 | 11.02.2021 | 2.59     | Add new parameter *auto-update-timestamp-service-url* | Ilkka Seppälä |
 | 01.06.2021 | 2.60     | Add new parameter *messagelog.archive-grouping* | Jarkko Hyöty |
+| 04.08.2021 | 2.61     | Add new parameters for messagelog archive encryption | Jarkko Hyöty |
+| 25.08.2021 | 2.62     | Update X-Road references from version 6 to 7 | Caro Hautamäki |
 
 ## Table of Contents
 
@@ -134,7 +136,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 7.  <a id="Ref_CRONMAN"></a>\[CRONMAN\] [http://linux.die.net/man/8/cron](http://linux.die.net/man/8/cron).
 8.  <a id="Ref_CRONHOW"></a>\[CRONHOW\] Cron format specifications [https://help.ubuntu.com/community/CronHowto](https://help.ubuntu.com/community/CronHowto).
 9.  <a id="Ref_PR-REST"></a>\[PR-REST\] [X-Road Message Protocol for REST v. 1.0](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
-10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 
 ## 2 Changing the System Parameter Values
 
@@ -348,6 +350,13 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
 | archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). 
+| archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using gpg
+| archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys
+| archive-encryption-keys-dir                      | /etc/xroad/gpghome                         |   |   | Directory for archive file encryption (recipient) PGP keys. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key) |
+| archive-default-encryption-key                   |                                            |   |   | Default PGP public key for archive encryption (if not defined, the primary gpg encryption key is used)
+
+
+
 
 #### 3.7.1 Note on logged X-Road message headers
 

@@ -95,6 +95,11 @@ final class TestUtil {
                     throw new CertificateException(e);
                 }
             }
+
+            @Override
+            public String getInstanceIdentifier() {
+                return "XRD";
+            }
         };
     }
 
