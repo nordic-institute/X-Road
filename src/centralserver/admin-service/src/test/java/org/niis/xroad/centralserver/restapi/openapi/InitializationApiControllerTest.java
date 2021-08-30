@@ -40,6 +40,7 @@ import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.ConstraintViolationException;
 
@@ -56,6 +57,7 @@ import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemPa
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 
 @WithMockUser(authorities = {"INIT_CONFIG"})
+@Transactional
 public class InitializationApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
@@ -170,16 +172,13 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
         when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
 
-        when(systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                CENTRAL_SERVER_ADDRESS,
-                "node_0")
+        when(systemParameterRepository.findSystemParametersByKey(
+                CENTRAL_SERVER_ADDRESS)
         ).thenReturn(List.of(validCentralServerAddressParameter));
 
-        when(systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                INSTANCE_IDENTIFIER,
-                "node_0")
-        )
-                .thenReturn(List.of(validInstanceIdentifierParameter));
+        when(systemParameterRepository.findSystemParametersByKey(
+                INSTANCE_IDENTIFIER)
+        ).thenReturn(List.of(validInstanceIdentifierParameter));
         assertThrows(ConflictException.class, () -> initializationApiController.initCentralServer(okConf));
     }
 }
