@@ -3,6 +3,8 @@
     "addSubsystem": "Add subsystem",
     "addClient": "Add client",
     "addMember": "Add member",
+    "approve": "Approve",
+    "decline": "Decline",
     "search": "Search",
     "add": "Add",
     "copyId": "Copy ID",
@@ -44,6 +46,10 @@
     "delete": "Delete",
     "register": "Register",
     "approve": "Approve",
+    "id": "Id",
+    "type": "Type",
+    "created": "Created",
+    "status": "Status",
     "navigation": {
       "back": "Back"
     },
@@ -121,6 +127,20 @@
       "repeatPin": "Repeat PIN"
     }
   },
+  "managementRequests": {
+    "serverOnwerId": "Server Owner ID",
+    "serverOwnerName": "Server Owner Name",
+    "serverCode": "Server Code",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "changeOwner": "Change Owner",
+    "addCertificate": "Add Certificate",
+    "removeCertificate": "Remove Certificate",
+    "addClient": "Add Client",
+    "removeClient": "Remove Client",
+    "showOnlyPending": "Show only pending requests"
+  },
   "members": {
     "header": "Members",
     "addMember": "Add member",
@@ -167,7 +187,24 @@
     "certificationServices": "Certification Services",
     "timestampingServices": "Timestamping Services",
     "addCertificationService": "Add certification service",
-    "addTimestampingService": "Add timestamping service"
+    "addTimestampingService": "Add timestamping service",
+    "approvedCertificationService": "Approved Certification service",
+    "validFrom": "Valid from",
+    "validTo": "Valid to"
+  },
+  "systemSettings": {
+    "code": "Code",
+    "description": "Description",
+    "memberClasses": "Member classes",
+    "systemParameters": "System Parameters",
+    "managementServices": "Management Services",
+    "instanceIdentifier": "Instance Identifier",
+    "centralServerAddress": "Central Server address",
+    "serviceProviderIdentifier": "Service Provider Identifier",
+    "serviceProviderName": "Service Provider Name",
+    "managementServiceSecurityServer": "Management Services' Security Server",
+    "wsdlAddress": "WSDL Address",
+    "securityServerOwnerroupCode": "Security Server Owners Group Code"
   },
   "init": {
     "initialConfiguration": "Initial Configuration",

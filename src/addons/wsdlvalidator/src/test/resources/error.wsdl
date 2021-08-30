@@ -12,11 +12,11 @@
         <xs:schema targetNamespace="http://producer.x-road.eu"
                 xmlns:xs="http://www.w3.org/2001/XMLSchema">
             <xs:import namespace="http://x-road.eu/xsd/xroad.xsd"
-                    schemaLocation="http://x-road.eu/xsd/xroad.xsd" />
+                    schemaLocation="xsd/xroad.xsd" />
             <xs:import namespace="http://ws-i.org/profiles/basic/1.1/xsd"
-                    schemaLocation="http://ws-i.org/profiles/basic/1.1/swaref.xsd" />
+                    schemaLocation="xsd/swaref.xsd" />
             <xs:import namespace="http://www.w3.org/2005/05/xmlmime"
-                    schemaLocation="http://www.w3.org/2005/05/xmlmime" />
+                    schemaLocation="xsd/xmlmime.xsd" />
             <xs:element name="mock">
                 <xs:complexType>
                     <xs:sequence>

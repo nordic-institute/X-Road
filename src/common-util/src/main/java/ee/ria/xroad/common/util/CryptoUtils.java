@@ -591,6 +591,18 @@ public final class CryptoUtils {
     }
 
     /**
+     * Reads X509Certificate chain from given certificate bytes.
+     * @param certBytes the certificate chain bytes
+     * @return the read certificate collection
+     */
+    @SneakyThrows
+    public static Collection<X509Certificate> readCertificates(byte[] certBytes) {
+        try (InputStream is = new ByteArrayInputStream(certBytes)) {
+            return readCertificates(is);
+        }
+    }
+
+    /**
      * Reads X509Certificate object from given input stream.
      * @param is Input stream containing certificate bytes.
      * @return the read certificate
@@ -598,6 +610,16 @@ public final class CryptoUtils {
     @SneakyThrows
     public static X509Certificate readCertificate(InputStream is) {
         return (X509Certificate) CERT_FACTORY.generateCertificate(is);
+    }
+
+    /**
+     * Reads X509Certificate chain from given input stream.
+     * @param is Input stream containing certificate bytes.
+     * @return the read certificate chain
+     */
+    @SneakyThrows
+    public static Collection<X509Certificate> readCertificates(InputStream is) {
+        return (Collection<X509Certificate>) CERT_FACTORY.generateCertificates(is);
     }
 
     /**

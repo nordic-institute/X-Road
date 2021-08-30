@@ -24,12 +24,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import XrdTable from "@/components/XrdTable";
+import XrdTable from '@/components/XrdTable';
 
 export default {
   title: 'X-Road/Table',
   component: XrdTable,
-}
+};
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
@@ -61,8 +61,7 @@ const Template = (args, { argTypes }) => ({
         </tr>
       </tbody>
     </xrd-table>
-  `
+  `,
 });
 
 export const table = Template.bind({});
-

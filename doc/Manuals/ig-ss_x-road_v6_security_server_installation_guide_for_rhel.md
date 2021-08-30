@@ -4,9 +4,9 @@
 
 # Security Server Installation Guide for Red Hat Enterprise Linux <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.16  
+Version: 1.20  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -33,6 +33,10 @@ Doc. ID: IG-SS-RHEL
  16.04.2021 | 1.14    | Update remote database installation instructions                | Jarkko Hyöty
  18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
  01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
+ 11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
+ 18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
+ 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
 
 ## License
 
@@ -57,16 +61,18 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  - [2.7 Security Server Installation](#27-security-server-installation)
-    - [2.7.1 Configure Proxy Ports](#271-configure-proxy-ports)
-    - [2.7.2 Start Security Server](#272-start-security-server)
-  - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
+    - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
+    - [2.8.2 Start Security Server](#282-start-security-server)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
+  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
 - [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
@@ -100,7 +106,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -223,7 +229,7 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
   ```
 
-If you are installing the default setup with local PostgreSQL database, continue at section 2.7. If you need to customize database properties and e.g. use a remote database, read on.
+If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.
 
 ### 2.6 Remote Database Setup (optional)
 
@@ -287,7 +293,17 @@ Before continuing, test that the connection to the database works, e.g.
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
 
-### 2.7 Security Server Installation
+### 2.7 Disable the Messagelog Addon before Installation (optional)
+
+It is possible to preconfigure the Security Server installation so that the messagelog addon will be automatically disabled after the installation process is done. This also skips the creation of the messagelog database.
+
+In order to skip messagelog database creation and disable the messagelog addon, run the following command to create a configuration file before installing the Security Server 
+
+```
+echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
+```
+
+### 2.8 Security Server Installation
 
 Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
 
@@ -304,7 +320,7 @@ Add system user (**reference data: 1.3**) whom all roles in the user interface a
 User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 
-#### 2.7.1 Configure Proxy Ports
+#### 2.8.1 Configure Proxy Ports
 
 **This is an optional step.** Change `xroad-proxy` to use ports 80 and 443.
 
@@ -318,7 +334,7 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
   client-https-port=443
   ```
 
-#### 2.7.2 Start Security Server
+#### 2.8.2 Start Security Server
 
 Once the installation is completed, start the security server
 
@@ -327,7 +343,7 @@ Once the installation is completed, start the security server
   ```
 
 
-### 2.8 Post-Installation Checks
+### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
@@ -403,6 +419,40 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
+
+### 3.4 Configuring configuration backup encryption
+
+It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
+for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
+To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
+
+    [proxy]
+    backup-encrypted=true
+    backup-public-key-path=/etc/xroad/backupkeys
+
+To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
+By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
+The default directory can be changed by modifying the `backup-public-key-path` property value.
+
+By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
+is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
+encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
+consistency and decrypting backups in case security server's backup encryption key gets lost for whatever reason.
+Do not place any other files into backup keys folder, otherwise backing up configuration will fail.
+
+To externally verify a backup archive's consistency, security server's backup encryption public key has to be exported
+and imported into external GPG keyring. Note that this can be done only after security server has been initialised - the
+security server backup encryption key is generated during initialisation.
+
+To export security server's backup encryption public key use the following command:
+
+    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+
+where `AA/GOV/TS1OWNER/TS1` is the security server id.
+
+The key can then be moved to an external host and imported to GPG keyring with the following command:
+
+    gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
 
 ## 4 Installation Error handling
 
@@ -654,6 +704,9 @@ messagelog.database.admin_password = <messagelog_admin password>
 
 Create the `/etc/xroad/db.properties` file
 ```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
 sudo touch /etc/xroad/db.properties
 sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties

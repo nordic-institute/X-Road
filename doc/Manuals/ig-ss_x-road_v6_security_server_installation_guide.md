@@ -4,9 +4,9 @@
 
 # Security Server Installation Guide for Ubuntu <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 2.36  
+Version: 2.40  
 Doc. ID: IG-SS
 
 ---
@@ -60,6 +60,10 @@ Doc. ID: IG-SS
  18.05.2021 | 2.34    | Update error handling section | Ilkka Seppälä
  02.06.2021 | 2.35    | Add backup encryption information | Andres Allkivi
  01.07.2021 | 2.36    | Update 3rd party key server | Petteri Kivimäki
+ 11.08.2021 | 2.37    | Minor updates | Petteri Kivimäki
+ 18.08.2021 | 2.38    | Minor updates to Annex D | Ilkka Seppälä
+ 25.08.2021 | 2.39    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 26.08.2021 | 2.40    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
 
 ## License
 
@@ -83,16 +87,17 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  - [2.7 Security Server Installation](#27-security-server-installation)
-  - [2.8 Post-Installation Checks](#28-post-installation-checks)
-  - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
-  - [2.10 Installing the Support for Environmental Monitoring](#210-installing-the-support-for-environmental-monitoring)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
+  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
   - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
-* [4 Installation Error handling](#4-installation-error-handling)
+- [4 Installation Error handling](#4-installation-error-handling)
   - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
   - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
   - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
@@ -130,7 +135,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -269,7 +274,7 @@ Update package repository metadata:
 sudo apt update
 ```
 
-If you are installing the default setup with local PostgreSQL database, continue at section 2.7. If you need to customize database properties and e.g. use a remote database, read on.
+If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.
 
 ### 2.6 Remote Database Setup (optional)
 
@@ -314,7 +319,17 @@ psql -h <database host> -U <superuser> -tAc 'show server_version'
 
 For additional security, the `postgresql.connection.*` properties can be removed from the `/etc/xroad.properties` file after installation (keep the other properties added by the installer).
 
-### 2.7 Security Server Installation
+### 2.7 Disable the Messagelog Addon before Installation (optional)
+
+It is possible to preconfigure the Security Server installation so that the messagelog addon will be automatically disabled after the installation process is done. This also skips the creation of the messagelog database.
+
+In order to skip messagelog database creation and disable the messagelog addon, run the following command to add a boolean value into the debconf database before installing the Security Server 
+
+```
+sudo debconf-set-selections <<< 'xroad-addon-messagelog xroad-addon-messagelog/enable-messagelog boolean false'
+```
+
+### 2.8 Security Server Installation
 
 Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
 ```
@@ -351,7 +366,7 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 
 **N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 
-### 2.8 Post-Installation Checks
+### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
@@ -369,7 +384,7 @@ The installation is successful if system services are started and the user inter
     ```
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
-### 2.9 Installing the Support for Hardware Tokens
+### 2.10 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -411,7 +426,7 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.
 **Note 2:** The item separator of the type STRING LIST is ",".
 
-### 2.10 Installing the Support for Environmental Monitoring
+### 2.11 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
 
@@ -468,16 +483,15 @@ If the configuration is successfully downloaded, the system asks for the followi
 
 It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
 for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
-To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section.
-(add or edit this section) 
+To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
     [proxy]
     backup-encrypted=true
     backup-public-key-path=/etc/xroad/backupkeys
 
-To turn backup encryption on, please change the backup-encrypted property value to true.
-By default, additional encryption keys are stored in the /etc/xroad/backupkeys directory.
-The default directory can be changed by modifying the backup-public-key-path property value.
+To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
+By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
+The default directory can be changed by modifying the `backup-public-key-path` property value.
 
 By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
 is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
@@ -493,7 +507,7 @@ To export security server's backup encryption public key use the following comma
 
     gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
 
-where AA/GOV/TS1OWNER/TS1 is the security server id.
+where `AA/GOV/TS1OWNER/TS1` is the security server id.
 
 The key can then be moved to an external host and imported to GPG keyring with the following command:
 
@@ -841,6 +855,9 @@ messagelog.database.admin_password = <messagelog_admin password>
 
 Create the `/etc/xroad/db.properties` file
 ```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
 sudo touch /etc/xroad/db.properties
 sudo chmod 0640 /etc/xroad/db.properties
 sudo chown xroad:xroad /etc/xroad/db.properties

@@ -30,13 +30,16 @@
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
         <xrd-search />
       </div>
-      <xrd-button data-test="add-member-button" @click="() => {}"
-        ><v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+      <xrd-button data-test="add-member-button" @click="() => {}">
+        <xrd-icon-base class="xrd-large-button-icon"
+          ><xrd-icon-add
+        /></xrd-icon-base>
+
         {{ $t('members.addMember') }}</xrd-button
       >
     </div>
 
-    <v-card>
+    <v-card flat>
       <v-card-text>
         <xrd-table>
           <thead>
@@ -56,7 +59,9 @@
             <tr data-test="niis">
               <!-- Set member identifier etc. as data-text attribute for real data so that individual member row can be found in e2e-test -->
               <td data-test="member-icon">
-                <v-icon class="xrd-clickable">icon-Folder-outline</v-icon>
+                <xrd-icon-base class="xrd-clickable"
+                  ><xrd-icon-folder-outline
+                /></xrd-icon-base>
               </td>
               <td data-test="member-name" class="xrd-clickable">
                 Nordic Institue for Interoperability Solutions
@@ -66,7 +71,9 @@
             </tr>
             <tr data-test="netum">
               <td data-test="member-icon">
-                <v-icon class="xrd-clickable">icon-Folder-outline</v-icon>
+                <xrd-icon-base class="xrd-clickable"
+                  ><xrd-icon-folder-outline
+                /></xrd-icon-base>
               </td>
               <td class="xrd-clickable" @click="toDetails('netum')">
                 Netum Oy
@@ -98,7 +105,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '../../assets/colors';
 
 .icon-column {

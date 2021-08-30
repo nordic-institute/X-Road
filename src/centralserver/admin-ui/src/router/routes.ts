@@ -39,8 +39,6 @@ import Settings from '@/views/Settings/Settings.vue';
 import SettingsTabs from '@/views/Settings/SettingsTabs.vue';
 import MemberList from '@/views/Members/MemberList.vue';
 
-import MockView1 from '@/views/MockView1.vue';
-import MockSubview from '@/views/MockSubview.vue';
 import Members from '@/views/Members/Members.vue';
 import Member from '@/views/Members/Member/Member.vue';
 
@@ -49,6 +47,7 @@ import PageNavigation from '@/components/layout/PageNavigation.vue';
 import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
+import SystemSettings from '@/views/Settings/SystemSettings/SystemSettings.vue';
 import SecurityServers from '@/views/SecurityServers/SecurityServers.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 
@@ -59,6 +58,7 @@ import GlobalConfigurationTabs from '@/views/GlobalConfiguration/GlobalConfigura
 import ExternalConfiguration from '@/views/GlobalConfiguration/ExternalConfiguration/ExternalConfiguration.vue';
 import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfiguration/InternalConfiguration.vue';
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
+import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -88,7 +88,7 @@ const routes: RouteConfig[] = [
           {
             name: RouteName.SystemSettings,
             path: '',
-            component: MockSubview,
+            component: SystemSettings,
             props: true,
             meta: { permissions: [Permissions.MOCK_PERMISSION1] },
           },
@@ -185,7 +185,7 @@ const routes: RouteConfig[] = [
         name: RouteName.ManagementRequests,
         path: '/management-requests',
         components: {
-          default: MockView1,
+          default: ManagementRequests,
           top: TabsBase,
           alerts: AlertsContainer,
         },

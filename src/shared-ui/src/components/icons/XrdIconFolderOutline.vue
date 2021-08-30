@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,7 +25,25 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <h1>Mock view 1</h1>
-  </div>
+  <g>
+    <path
+      fill-rule="evenodd"
+      clip-rule="evenodd"
+      d="M20 6H12L10.586 4.586C10.211 4.211 9.702 4 9.172 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V8C22 6.9 21.1 6 20 6ZM11.1716 8H20V18H4V6L9.17179 6.00021L11.1716 8Z"
+    />
+  </g>
 </template>
+
+<script lang="ts">
+import Vue from 'vue';
+
+export default Vue.extend({
+  //name: 'XrdIconFolderOutline',
+  props: {
+    fillColor: {
+      type: String,
+      default: 'currentColor',
+    },
+  },
+});
+</script>

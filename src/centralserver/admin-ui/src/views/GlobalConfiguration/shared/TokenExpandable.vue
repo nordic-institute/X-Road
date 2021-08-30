@@ -73,22 +73,16 @@
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
             @click="addKey()"
-            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('keys.addKey') }}</xrd-button
+          >
+            <xrd-icon-base class="xrd-large-button-icon"
+              ><XrdIconAdd
+            /></xrd-icon-base>
+            {{ $t('keys.addKey') }}</xrd-button
           >
         </div>
 
         <!-- SIGN keys table -->
         <div v-if="getSignKeys(token.keys).length > 0">
-          <!--  <KeysTableTitle
-            title="keys.signKeyCert"
-            :keys="getSignKeys(token.keys)"
-            :arrowState="signKeysOpen"
-            @click="signKeysOpen = !signKeysOpen"
-          />
-
-          -->
-
           <keys-table
             v-if="signKeysOpen"
             class="keys-table"

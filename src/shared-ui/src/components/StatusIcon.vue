@@ -41,6 +41,9 @@
     <v-icon v-else-if="status === 'error'" small color="#EC4040"
       >icon-Error</v-icon
     >
+    <v-icon v-else-if="status === 'pending'" small color="#F5A623"
+      >icon-Error</v-icon
+    >
   </div>
 </template>
 
@@ -63,6 +66,7 @@ export default Vue.extend({
           'progress-register',
           'progress-delete',
           'error',
+          'pending',
         ].includes(val),
     },
   },

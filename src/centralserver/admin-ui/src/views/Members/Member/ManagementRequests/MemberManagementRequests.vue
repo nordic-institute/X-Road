@@ -35,7 +35,7 @@
       />
     </div>
 
-    <v-card class="mt-4">
+    <v-card class="mt-4" flat>
       <v-card-text>
         <xrd-table>
           <thead>
@@ -91,7 +91,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .status {
   text-transform: uppercase;
   font-weight: bold;
