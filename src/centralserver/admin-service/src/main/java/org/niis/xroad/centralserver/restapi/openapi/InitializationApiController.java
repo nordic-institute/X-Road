@@ -35,6 +35,8 @@ import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConver
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
+import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
+import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,9 +74,9 @@ public class InitializationApiController implements InitializationApi {
 
         try {
             initializationService.initialize(configDto);
-        } catch (InitializationService.ServerAlreadyFullyInitializedException e) {
+        } catch (ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
-        } catch (InitializationService.SoftwareTokenInitException e) {
+        } catch (SoftwareTokenInitException e) {
             throw new InternalServerErrorException("Pin initialization failed!", e);
         }
 

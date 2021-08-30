@@ -32,15 +32,14 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
-import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
+import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
-import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
+import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
+import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -56,11 +55,9 @@ import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemPa
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_CONF_HASH_ALGO_URI;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SERVER_ALREADY_FULLY_INITIALIZED;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TOKEN_INIT_FAILED;
 
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
@@ -71,9 +68,8 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_SOFTWARE_TO
 public class InitializationService {
 
     private final SignerProxyFacade signerProxyFacade;
-    private final SystemParameterRepository systemParameterRepository;
+    private final GlobalGroupRepository globalGroupRepository;
     private final CentralServerSystemParameterService centralServerSystemParameterService;
-    private final HAConfigStatus currentHaConfigStatus;
 
 
     public InitializationStatusDto getInitializationStatusDto() {
@@ -113,30 +109,9 @@ public class InitializationService {
                 configDto.getInstanceIdentifier()
         );
 
-        // TODO:  Initialize other parameters:
-        //          -  to GlobalGroup - table, store SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP
-        //                              with description  SystemParameter::DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC
+        initializeGlobalGroupForSecurityServerOwners();
 
-
-        centralServerSystemParameterService.updateOrCreateParameter(
-                CONF_SIGN_DIGEST_ALGO_ID,
-                DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
-        );
-
-        centralServerSystemParameterService.updateOrCreateParameter(
-                CONF_HASH_ALGO_URI,
-                DEFAULT_CONF_HASH_ALGO_URI
-        );
-
-        centralServerSystemParameterService.updateOrCreateParameter(
-                CONF_SIGN_CERT_HASH_ALGO_URI,
-                DEFAULT_CONF_HASH_ALGO_URI
-        );
-
-        centralServerSystemParameterService.updateOrCreateParameter(
-                SECURITY_SERVER_OWNERS_GROUP,
-                DEFAULT_SECURITY_SERVER_OWNERS_GROUP
-        );
+        initializeCsSystemParameters();
 
         try {
             signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
@@ -144,6 +119,37 @@ public class InitializationService {
             log.warn("Software token initialization failed", e);
             throw new SoftwareTokenInitException("Software token initialization failed", e);
         }
+    }
+
+    private void initializeCsSystemParameters() {
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CONF_SIGN_DIGEST_ALGO_ID,
+                DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
+        );
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CONF_HASH_ALGO_URI,
+                DEFAULT_CONF_HASH_ALGO_URI
+        );
+        centralServerSystemParameterService.updateOrCreateParameter(
+                CONF_SIGN_CERT_HASH_ALGO_URI,
+                DEFAULT_CONF_HASH_ALGO_URI
+        );
+        centralServerSystemParameterService.updateOrCreateParameter(
+                SECURITY_SERVER_OWNERS_GROUP,
+                DEFAULT_SECURITY_SERVER_OWNERS_GROUP
+        );
+    }
+
+    private void initializeGlobalGroupForSecurityServerOwners() {
+        Optional<GlobalGroup> securityServerOwnersGlobalGroup = globalGroupRepository
+                .getGlobalGroupByGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+        if (securityServerOwnersGlobalGroup.isEmpty()) {
+            GlobalGroup defaultSsOwnersGlobalGroup = new GlobalGroup();
+            defaultSsOwnersGlobalGroup.setGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+            securityServerOwnersGlobalGroup = Optional.of(defaultSsOwnersGlobalGroup);
+        }
+        securityServerOwnersGlobalGroup.get().setDescription(DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC);
+        globalGroupRepository.save(securityServerOwnersGlobalGroup.get());
     }
 
 
@@ -173,50 +179,16 @@ public class InitializationService {
     }
 
     private String getStoredInstanceIdentifier() {
-        List<SystemParameter> instanceIdentifier =
-                systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
-                        INSTANCE_IDENTIFIER,
-                        currentHaConfigStatus.getCurrentHaNodeName()
-                );
-        assert instanceIdentifier.size() <= 1;
-        return instanceIdentifier.stream().findFirst().map(SystemParameter::getValue)
-                .orElse("");
+        return centralServerSystemParameterService.getParameterValue(
+                INSTANCE_IDENTIFIER,
+                ""
+        );
     }
 
     private String getStoredCentralServerAddress() {
-        List<SystemParameter> serverAddress = systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
+        return centralServerSystemParameterService.getParameterValue(
                 CENTRAL_SERVER_ADDRESS,
-                currentHaConfigStatus.getCurrentHaNodeName());
-        assert serverAddress.size() <= 1;
-        return serverAddress.stream().findFirst().map(SystemParameter::getValue)
-                .orElse("");
-    }
-
-    /**
-     * If missing or empty or redundant params are provided for the init
-     */
-    public static class InvalidInitParamsException extends ServiceException {
-        public InvalidInitParamsException(String msg, List<String> metadata) {
-            super(msg, new ErrorDeviation(ERROR_INVALID_INIT_PARAMS, metadata));
-        }
-    }
-
-    /**
-     * If the software token init fails
-     */
-    public static class SoftwareTokenInitException extends ServiceException {
-        public SoftwareTokenInitException(String msg, Throwable t) {
-            super(msg, t, new ErrorDeviation(ERROR_SOFTWARE_TOKEN_INIT_FAILED));
-        }
-    }
-
-    /**
-     * If the server has already been fully initialized
-     */
-    public static class ServerAlreadyFullyInitializedException extends ServiceException {
-        public ServerAlreadyFullyInitializedException(String msg) {
-            super(msg, new ErrorDeviation(ERROR_SERVER_ALREADY_FULLY_INITIALIZED));
-        }
+                "");
     }
 
 }
