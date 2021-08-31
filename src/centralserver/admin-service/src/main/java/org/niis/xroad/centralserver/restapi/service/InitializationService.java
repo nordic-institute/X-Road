@@ -81,6 +81,7 @@ public class InitializationService {
                 initStatusInfo = TokenInitStatusInfo.NOT_INITIALIZED;
             }
         } catch (SignerNotReachableException notReachableException) {
+            log.info("getInitializationStatusDto - signer was not reachable", notReachableException);
             initStatusInfo = TokenInitStatusInfo.UNKNOWN;
         }
         InitializationStatusDto statusDto = new InitializationStatusDto();
@@ -95,6 +96,7 @@ public class InitializationService {
     public void initialize(InitializationConfigDto configDto)
             throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException {
 
+        log.debug("initializing server with {}", configDto);
         if (isCentralServerInitialized()) {
             throw new ServerAlreadyFullyInitializedException(
                     "Central server Initialization failed, already initialized"

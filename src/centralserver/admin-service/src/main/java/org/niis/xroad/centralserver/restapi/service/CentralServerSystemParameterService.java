@@ -79,6 +79,7 @@ public class CentralServerSystemParameterService {
 
     public String getParameterValue(String key, String defaultValue) {
         List<SystemParameter> valueInDb;
+        log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
         if (currentHaConfigStatus.isHaConfigured()
                 && isNodeLocalParameter(key)
         ) {
@@ -90,8 +91,11 @@ public class CentralServerSystemParameterService {
             valueInDb = systemParameterRepository.findSystemParametersByKey(key);
         }
         if (!valueInDb.isEmpty()) {
-            return valueInDb.iterator().next().getValue();
+            String valueFromDb = valueInDb.iterator().next().getValue();
+            log.trace("getParameterValue found a {} SystemParameter value {}  ", key, valueFromDb);
+            return valueFromDb;
         }
+        log.trace("getParameterValue returns given default value for key {}", key);
         return defaultValue;
     }
 
@@ -117,6 +121,9 @@ public class CentralServerSystemParameterService {
         }
         SystemParameter systemParameterToStore = systemParameter.get();
         systemParameterToStore.setValue(updateValue);
+        log.debug("updateOrCreateParameter(): storing Systemparameter of key:{} with value:{} for node:{}",
+                lookupKey, updateValue, systemParameterToStore.getHaNodeName()
+        );
         return systemParameterRepository.save(systemParameterToStore);
     }
 
