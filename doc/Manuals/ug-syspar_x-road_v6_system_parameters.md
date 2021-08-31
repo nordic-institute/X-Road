@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.62  
+Version: 2.63  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -72,6 +72,7 @@ Doc. ID: UG-SYSPAR
 | 01.06.2021 | 2.60     | Add new parameter *messagelog.archive-grouping* | Jarkko Hyöty |
 | 04.08.2021 | 2.61     | Add new parameters for messagelog archive encryption | Jarkko Hyöty |
 | 25.08.2021 | 2.62     | Update X-Road references from version 6 to 7 | Caro Hautamäki |
+| 31.08.2021 | 2.63     | Update messagelog parameters | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -345,18 +346,19 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamp-retry-delay                            | 60                                         |   |   | Time-stamp retry delay in seconds when batch time-stamping fails. After failing to batch time-stamp, the timestamper waits for the time period defined by "timestamp-retry-delay" before trying again. This is repeated until fetching a time-stamp succeeds. After successfully fetching a time-stamp, the timestamper returns to normal time-stamping schedule. If the value of "timestamp-retry-delay" is higher than the value of the central server system parameter "timeStampingIntervalSeconds", the value of "timeStampingIntervalSeconds" is used. If the value of "timestamp-retry-delay" is zero, the value of "timeStampingIntervalSeconds" is used. |
-| archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
+| archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size). |
 | max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
-| archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). 
-| archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using gpg
-| archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys
+| archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). |
+| archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using gpg |
+| archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys |
 | archive-encryption-keys-dir                      | /etc/xroad/gpghome                         |   |   | Directory for archive file encryption (recipient) PGP keys. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key) |
-| archive-default-encryption-key                   |                                            |   |   | Default PGP public key for archive encryption (if not defined, the primary gpg encryption key is used)
-
-
-
+| archive-default-encryption-key                   |                                            |   |   | Default PGP public key for archive encryption (if not defined, the primary gpg encryption key is used) |
+| messagelog-encryption-enabled                    | false                                      |   |   | If true, message bodies are stored to the database in an encrypted format |
+| messagelog-keystore                              |                                            |   |   | Path to the keystore containing the key used in messagelog encryption |
+| messagelog-keystore-password                     |                                            |   |   | Messagelog keystore password |
+| messagelog-keyid                                 |                                            |   |   | Identifier of the messagelog encryption key |
 
 #### 3.7.1 Note on logged X-Road message headers
 
