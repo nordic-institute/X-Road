@@ -34,12 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-
+@Transactional
 public class InitializationApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
 
     private final ObjectMapper testObjectMapper = new ObjectMapper();

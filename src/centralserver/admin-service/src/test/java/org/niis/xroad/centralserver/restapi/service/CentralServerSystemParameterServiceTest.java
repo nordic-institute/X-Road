@@ -35,6 +35,7 @@ import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -44,6 +45,7 @@ import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemPa
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@Transactional
 public class CentralServerSystemParameterServiceTest extends AbstractFacadeMockingTestContext {
 
 
@@ -82,7 +84,7 @@ public class CentralServerSystemParameterServiceTest extends AbstractFacadeMocki
         assertEquals(instanceTestValue, storedSystemParameterValue);
     }
 
-    // This works only when postgresql-specific HA triggers are defined. E.g. with embedded test databases.
+    // This works only when postgresql-specific HA triggers are defined. E.g. NOT with embedded test databases.
     @Ignore("HA-specific test cases need postgresql db")
     @Test
     public void systemParameterValueStoredHaEnabled() {
