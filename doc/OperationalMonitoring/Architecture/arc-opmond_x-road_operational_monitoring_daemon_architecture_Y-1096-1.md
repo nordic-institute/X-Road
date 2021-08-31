@@ -135,12 +135,12 @@ The monitoring of the security servers is not the main functionality of the X-Ro
 
 This interface is used by a local monitoring system (e.g. Zabbix) to gather local operational health data of the security server via JMXMP. The interface is described in more detail in [[PR-OPMONJMX]](#PR-OPMONJMX).
 
-With the default configuration, JMX is disabled. JMX is enabled by adding the required configuration in `/etc/xroad/services/local.conf` file. The file is opened for editing and changes are made on the `OPMON_PARAMS` variable value. After the `OPMON_PARAMS` variable value has been updated, the `xroad-opmonitor` service must be restarted.
+With the default configuration, JMX is disabled. JMX is enabled by adding the required configuration in `/etc/xroad/services/local.conf` file. The file is opened for editing and changes are made on the `XROAD_OPMON_PARAMS` variable value. After the `XROAD_OPMON_PARAMS` variable value has been updated, the `xroad-opmonitor` service must be restarted.
                                                  
 The example configuration below enables JMX, binds it to port `9011` on any available interface with SSL and password authentication enabled:
  
  ```
-OPMON_PARAMS="$OPMON_PARAMS \
+XROAD_OPMON_PARAMS="$XROAD_OPMON_PARAMS \
  -Djava.rmi.server.hostname=0.0.0.0 \
  -Dcom.sun.management.jmxremote.port=9011 \
  -Dcom.sun.management.jmxremote.authenticate=true \

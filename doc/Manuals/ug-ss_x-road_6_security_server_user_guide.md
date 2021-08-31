@@ -2335,8 +2335,8 @@ Command line arguments can be modified using configuration file `local.conf`.
 Example from `/etc/xroad/services/local.conf` with modifications:
 
 ```
-PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Dratelimit.requests.per.second=100"
-PROXY_UI_API_PARAMS=" $PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB"
+XROAD_PROXY_UI_API_PARAMS=" $XROAD_PROXY_UI_API_PARAMS -Dratelimit.requests.per.second=100"
+XROAD_PROXY_UI_API_PARAMS=" $XROAD_PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB"
 ```
 
 ### 19.1 API key management operations
