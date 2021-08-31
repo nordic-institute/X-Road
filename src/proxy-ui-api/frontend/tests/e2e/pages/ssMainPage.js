@@ -288,7 +288,8 @@ var clientServicesCommands = {
     this.click('@cancelAddServiceButton');
     return this;
   },
-  enterServiceUrl: function (url) {
+  modifyServiceUrl: function (old, url) {
+    this.waitForValue('@newServiceUrl', old);
     this.clearValue2('@newServiceUrl');
     this.setValue('@newServiceUrl', url);
     return this;
@@ -430,7 +431,8 @@ var serviceDetailsCommands = {
     this.click('@deleteServiceButton');
     return this;
   },
-  enterServiceUrl: function (url) {
+  modifyServiceUrl: function (old, url) {
+    this.waitForValue('@serviceURL', old);
     this.clearValue2('@serviceURL');
     this.setValue('@serviceURL', url);
     return this;
@@ -677,7 +679,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     snackBarMessage: {
-      selector: '//div[contains(@class, "v-snack__content")]',
+      selector: '//div[@data-test="success-snackbar"]',
       locateStrategy: 'xpath',
     },
     alertCloseButton: {

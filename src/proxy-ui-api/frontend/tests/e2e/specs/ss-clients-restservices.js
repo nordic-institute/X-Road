@@ -52,13 +52,13 @@ module.exports = {
     clientServices.openAddREST();
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
-    clientServices.enterServiceUrl('a');
-    clientServices.enterServiceUrl('');
+    clientServices.modifyServiceUrl('', 'a');
+    clientServices.modifyServiceUrl('a', '');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('foobar');
+    clientServices.modifyServiceUrl('', 'foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
@@ -86,7 +86,7 @@ module.exports = {
 
     // Verify invalid service code
     clientServices.selectRESTPath();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.enterServiceCode('/');
@@ -100,7 +100,7 @@ module.exports = {
 
     // Verify successful URL open
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();
@@ -743,15 +743,15 @@ module.exports = {
     restServiceDetails.enterServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
     browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
-    restServiceDetails.enterServiceUrl('foobar');
+    restServiceDetails.modifyServiceUrl('', 'foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
-    restServiceDetails.enterServiceUrl('');
+    restServiceDetails.modifyServiceUrl('', '');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
 
     // Verify cancel
-    restServiceDetails.enterServiceUrl(
+    restServiceDetails.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     restServiceDetails.enterServiceCode('s1c2');
@@ -770,7 +770,7 @@ module.exports = {
 
     // Verify successful edit
     clientServices.openServiceDetails();
-    restServiceDetails.enterServiceUrl(
+    restServiceDetails.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     restServiceDetails.enterServiceCode('s1c2');

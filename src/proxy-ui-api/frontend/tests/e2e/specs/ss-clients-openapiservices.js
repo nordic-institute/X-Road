@@ -52,17 +52,17 @@ module.exports = {
     clientServices.openAddREST();
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
-    clientServices.enterServiceUrl('a');
+    clientServices.modifyServiceUrl('', 'a');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('');
+    clientServices.modifyServiceUrl('a', '');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('http://example.com');
+    clientServices.modifyServiceUrl('', 'http://example.com');
     clientServices.enterServiceCode('a');
     clientServices.enterServiceCode('');
     // Verify there's an error message, something like 'The Service Code field is required'
@@ -87,7 +87,7 @@ module.exports = {
     // Verify opening non-existing OpenApi URL
     const urlToTest = 'https://www.niis.org/nosuchopenapi.yaml';
     clientServices.selectOpenApi();
-    clientServices.enterServiceUrl(urlToTest);
+    clientServices.modifyServiceUrl('', urlToTest);
     clientServices.enterServiceCode('s3c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); // loading a missing file can sometimes take more time before failing
@@ -96,7 +96,7 @@ module.exports = {
 
     // Verify invalid service code
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.openapi_url_1,
     );
     clientServices.selectOpenApi();
@@ -113,7 +113,7 @@ module.exports = {
 
     // Verify successful URL open
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.openapi_url_1,
     );
     clientServices.selectOpenApi();
@@ -718,11 +718,11 @@ module.exports = {
     // Verify there's an error message, something like 'The fields.code_field field is required'
     browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
-    openApiServiceDetails.enterServiceUrl('foobar');
+    openApiServiceDetails.modifyServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(openApiServiceDetails.elements.URLMessage);
 
-    openApiServiceDetails.enterServiceUrl('');
+    openApiServiceDetails.modifyServiceUrl('');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(openApiServiceDetails.elements.URLMessage);
     openApiServiceDetails.cancelDialog();
@@ -740,13 +740,13 @@ module.exports = {
 
     // verify missing file
     clientServices.openServiceDetails();
-    openApiServiceDetails.enterServiceUrl('https://www.niis.org/nosuch.yaml');
+    openApiServiceDetails.modifyServiceUrl('', 'https://www.niis.org/nosuch.yaml');
     openApiServiceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Parsing OpenApi3 description failed'
     mainPage.closeAlertMessage();
 
     // Verify cancel
-    openApiServiceDetails.enterServiceUrl(
+    openApiServiceDetails.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.openapi_url_2,
     );
     openApiServiceDetails.enterServiceCode('s3c2');
@@ -765,7 +765,7 @@ module.exports = {
 
     // Verify succesfull edit
     clientServices.openServiceDetails();
-    openApiServiceDetails.enterServiceUrl(
+    openApiServiceDetails.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.openapi_url_2,
     );
     openApiServiceDetails.enterServiceCode('s3c2');

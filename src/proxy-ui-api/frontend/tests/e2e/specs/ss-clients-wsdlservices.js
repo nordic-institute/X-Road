@@ -27,6 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'wsdlservices'],
   before: function (browser) {
+    browser.logMessage("copy remote wsdl testservice1.wsdl -> testserviceX.wsdl")
     browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
   },
   'Security server client add wsdl service': (browser) => {
@@ -53,17 +54,17 @@ module.exports = {
 
     // Verify empty and malformed URL error messages
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl('a');
+    clientServices.modifyServiceUrl('', 'a');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('');
+    clientServices.modifyServiceUrl('a','');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('foobar');
+    clientServices.modifyServiceUrl('', 'foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
@@ -75,14 +76,15 @@ module.exports = {
     browser.assert.value(clientServices.elements.newServiceUrl, '');
 
     // Verify opening nonexisting URL
-    clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
+    clientServices.modifyServiceUrl('', 'https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'WSDL download failed'
     mainPage.closeAlertMessage();
 
     // Verify successful URL open
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl(
+        '',
       browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
     );
     clientServices.confirmAddDialog();
@@ -503,21 +505,23 @@ module.exports = {
 
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
-    serviceDetails.enterServiceUrl('');
+    serviceDetails.modifyServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_1, '');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(serviceDetails.elements.URLMessage);
-    serviceDetails.enterServiceUrl('foobar');
+    serviceDetails.modifyServiceUrl('', 'foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(serviceDetails.elements.URLMessage);
 
     // verify missing file
-    serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
+    serviceDetails.modifyServiceUrl('foobar', 'https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); //  'WSDL download failed', loading a missing file can sometimes take more time before failing
     mainPage.closeAlertMessage();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
+    browser.logMessage('Starting (part 1) artificial wait to make refresh timestamps differ');
+
     await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -528,7 +532,9 @@ module.exports = {
     });
 
     // Verify cancel
-    serviceDetails.enterServiceUrl(
+    browser.logMessage('Edit and cancel nosuch.wsdl -> testservice2.wsdl');
+    serviceDetails.modifyServiceUrl(
+        'https://www.niis.org/nosuch.wsdl',
       browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.cancelDialog();
@@ -543,13 +549,16 @@ module.exports = {
 
     // Verify succesful edit
     clientServices.openServiceDetails();
-    serviceDetails.enterServiceUrl(
-      browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
+    browser.logMessage('Edit and confirm nosuch.wsdl -> testservice2.wsdl');
+    serviceDetails.modifyServiceUrl(
+        browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
+        browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(servicesPopup);
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
+    browser.logMessage('Starting (part 2) artificial wait to make refresh timestamps differ');
     await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -668,7 +677,8 @@ module.exports = {
 
     // Verify successfull URL open
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl(
+        '',
       browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
     );
     clientServices.confirmAddDialog();
@@ -709,6 +719,7 @@ module.exports = {
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
+    browser.logMessage("Part 1 wait until at least 1 min has passed since refresh at the start of the test")
     browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -732,11 +743,13 @@ module.exports = {
     );
 
     // change the wsdl and refresh
+    browser.logMessage("copy remote wsdl testservice3.wsdl -> testserviceX.wsdl")
     browser.perform(function () {
       browser.page.ssMainPage().updateWSDLFileTo('testservice3.wsdl');
     });
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
+    browser.logMessage("Part 2 wait until at least 1 min has passed since refresh at the start of the test")
     browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;

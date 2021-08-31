@@ -293,7 +293,7 @@ module.exports = {
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
       clientServices.openAddWSDL();
-      clientServices.enterServiceUrl(
+      clientServices.modifyServiceUrl('',
         browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
       );
       clientServices.confirmAddDialog();
@@ -380,7 +380,7 @@ module.exports = {
 
       // Add first rest service to be used
       clientServices.openAddREST();
-      clientServices.enterServiceUrl(
+      clientServices.modifyServiceUrl('',
         browser.globals.testdata + '/' + browser.globals.rest_url_1,
       );
       clientServices.selectRESTPath();
@@ -536,7 +536,7 @@ module.exports = {
 
     // Add first rest service to be used
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(
+    clientServices.modifyServiceUrl('',
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();
