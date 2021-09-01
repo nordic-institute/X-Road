@@ -58,20 +58,13 @@ paths:
         Other possible error code is <code>invalid_init_params</code> which can have any one or more of the following strings in the metadata field
         <ul>
         <li>instance_id_not_provided</li>
-        <li>instance_id_exists</li>
+        <li>invalid_instance_id</li>
+        <li>server_address_not_provided</li>
+        <li>invalid_server_address</li>
         <li>pin_code_not_provided</li>
         <li>pin_code_exists</li>
         </ul>
         </p>
-        <p>
-        This endpoint can return a warnings response which can be ignored by setting <code>InitialServerConf.ignore_warnings</code> = true.
-        If <code>InitialServerConf.ignore_warnings</code> = false, a warnings response will be returned if any one of the following conditions is true
-        <ul>
-        <li>server code has already been set for this Central Server (warning code <code>init_servercode_exists</code>)</li>
-        <li>server owner has already been set for this Central Server(warning code <code>init_server_owner_exists</code>)</li>
-        <li>software token has already been initialized in this Central Server(warning code <code>init_software_token_initialized</code>)</li>
-        <li>the provided server id is already in use by another Central Server(warning code <code>init_server_id_exists</code>)</li>
-        </ul>
         </p>
         <strong>See the '400' response examples</strong>
       requestBody:
@@ -175,11 +168,6 @@ components:
           example: sup3rs3cr3t_p!n
           minLength: 1
           maxLength: 255
-        ignore_warnings:
-          type: boolean
-          default: false
-          description: if true, any ignorable warnings are ignored. if false (or missing),
-            any warnings cause request to fail
     TokenInitStatus:
       type: string
       format: enum
@@ -193,7 +181,7 @@ components:
     InstanceIdentifier:
       type: string
       format: text
-      description: instance identifier
+      description: Valid instance identifier, shall not contain colon, semicolon, forwardslash, backslash, percent or control characters.
       example: FI-TEST
       minLength: 1
       maxLength: 255

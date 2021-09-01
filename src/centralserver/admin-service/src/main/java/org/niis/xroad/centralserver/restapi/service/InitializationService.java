@@ -38,8 +38,10 @@ import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
 import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
+import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -70,6 +72,7 @@ public class InitializationService {
     private final SignerProxyFacade signerProxyFacade;
     private final GlobalGroupRepository globalGroupRepository;
     private final CentralServerSystemParameterService centralServerSystemParameterService;
+    private final TokenPinValidator tokenPinValidator;
 
 
     public InitializationStatusDto getInitializationStatusDto() {
@@ -94,7 +97,8 @@ public class InitializationService {
 
 
     public void initialize(InitializationConfigDto configDto)
-            throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException {
+            throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException, InvalidCharactersException,
+            WeakPinException {
 
         log.debug("initializing server with {}", configDto);
         if (isCentralServerInitialized()) {
@@ -102,6 +106,7 @@ public class InitializationService {
                     "Central server Initialization failed, already initialized"
             );
         }
+        tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
         centralServerSystemParameterService.updateOrCreateParameter(
                 CENTRAL_SERVER_ADDRESS,
                 configDto.getCentralServerAddress()

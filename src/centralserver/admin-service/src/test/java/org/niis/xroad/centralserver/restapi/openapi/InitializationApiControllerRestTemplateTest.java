@@ -38,7 +38,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 @Transactional
 public class InitializationApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
@@ -64,7 +63,6 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
         ErrorInfo errorInfo = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
         assertEquals("validation_failure", errorInfo.getError().getCode());
         assertEquals(1, errorInfo.getError().getValidationErrors().size());
-        assertNull(errorInfo.getWarnings(), "No warnings requested");
     }
 
     @Test

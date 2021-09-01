@@ -35,8 +35,11 @@ import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConver
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
+import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
 import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
+import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -77,7 +80,9 @@ public class InitializationApiController implements InitializationApi {
         } catch (ServerAlreadyFullyInitializedException e) {
             throw new ConflictException(e);
         } catch (SoftwareTokenInitException e) {
-            throw new InternalServerErrorException("Pin initialization failed!", e);
+            throw new InternalServerErrorException(e);
+        } catch (InvalidCharactersException | WeakPinException e) {
+            throw new BadRequestException(e);
         }
 
         return ResponseEntity.ok().build();
