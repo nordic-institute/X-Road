@@ -179,8 +179,7 @@ Doc. ID: UG-SS
     - [11.1.4 Timestamping parameters](#1114-timestamping-parameters)
     - [11.1.5 Archiving parameters](#1115-archiving-parameters)
     - [11.1.6 Archive files](#1116-archive-files)
-    - [11.1.7 Archive grouping](#1117-archive-grouping)
-    - [11.1.8 Archive encryption](#1118-archive-encryption)
+    - [11.1.7 Archive encryption](#1117-archive-encryption)
   - [11.2 Transferring the Archive Files from the Security Server](#112-transferring-the-archive-files-from-the-security-server)
   - [11.3 Using a Remote Database](#113-using-a-remote-database)
 - [12 Audit Log](#12-audit-log)
@@ -321,6 +320,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 23. <a id="Ref_REST_UI-API" class="anchor"></a>\[REST_UI-API\] X-Road Security Server Admin API OpenAPI Specification, <https://github.com/nordic-institute/X-Road/blob/develop/src/proxy-ui-api/src/main/resources/openapi-definition.yaml>.
 
 24. <a id="Ref_GnuPG" class="anchor"></a>\[GnuPG\] The GNU Privacy Guard, <https://gnupg.org>.
+
+25. <a id="Ref_UG-SIGDOC" class="anchor"></a>\[UG-SIGDOC\] X-Road: Signed Document Download and Verification Manual. Document ID: [UG-SIGDOC](../Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md).
+
 
 ## 2 User Management
 
@@ -1666,9 +1668,7 @@ keytool -keystore /etc/xroad/messagelog/messagelog.p12 -storetype pkcs12 -import
 
 Finally, restart xroad-proxy service.
 
-To decrypt and view encrypted message bodies:
-
-<todo>
+To view the encrypted messages at some later stage, use the ASIC web service documented in \[[UG-SIGDOC](Ref_UG-SIGDOC)\]. The web service performs automatic decryption, where needed.
 
 
 #### 11.1.4 Timestamping parameters
@@ -1704,19 +1704,30 @@ To decrypt and view encrypted message bodies:
 
 11. `archive-default-encryption-key` - Default archive encryption key (in `archive-encryption-keys-dir`) if there is no grouping or a encryption key for a member is not present. If not defined, the primary GPG encryption key is used.
 
+
 #### 11.1.6 Archive files
 
 Archive files (ZIP containers) are located in the directory specified by the configuration parameter `archive-path`. File names are in the format `mlog[-grouping]-X-Y-Z.zip[.gpg]`, where X is the timestamp (UTC time in the format `YYYYMMDDHHmmss`) of the first message log record, Y is the timestamp of the last message log record (records are processed in chronological order) and Z is 10 characters long alphanumeric random. If grouping is enabled, [-grouping] is a (possibly truncated and filename safe) member identifier. If encryption is enabled, the [.gpg] suffix is added.
 
-An example of an archive file name is:
+The most basic example of an archive file name when the encryption and grouping are switched off:
 
-    mlog-INSTANCE_CLASS_CODE-20150504152559-20150504152559-a7JS05XAJC.zip
+    mlog-20210901100858-20210901100905-5wOUQnXK4G.zip
 
-#### 11.1.7 Archive grouping
+Here's an example with the archive encryption switched on:
 
-<todo>
+    mlog-20210901101923-20210901101926-pXAZkBjnAC.zip.gpg
 
-#### 11.1.8 Archive encryption
+Switching on archive grouping by member produces the following:
+
+    mlog-INSTANCE_CLASS_CODE-20210901102251-20210901102254-yoA2z7EAkg.zip.gpg
+
+Finally, switching to archive grouping by subsystem gives us:
+
+    mlog-INSTANCE_CLASS_CODE_CONSUMERSUBSYSTEM-20210901102521-20210901102524-m1s2v5qZRc.zip.gpg
+    mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-7bZ0LoXNbu.zip.gpg
+
+
+#### 11.1.7 Archive encryption
 
 The archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
 
