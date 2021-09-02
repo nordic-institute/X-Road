@@ -179,7 +179,7 @@ Doc. ID: UG-SS
     - [11.1.4 Timestamping parameters](#1114-timestamping-parameters)
     - [11.1.5 Archiving parameters](#1115-archiving-parameters)
     - [11.1.6 Archive files](#1116-archive-files)
-    - [11.1.7 Archive encryption](#1117-archive-encryption)
+    - [11.1.7 Archive encryption and grouping](#1117-archive-encryption-and-grouping)
   - [11.2 Transferring the Archive Files from the Security Server](#112-transferring-the-archive-files-from-the-security-server)
   - [11.3 Using a Remote Database](#113-using-a-remote-database)
 - [12 Audit Log](#12-audit-log)
@@ -1727,20 +1727,23 @@ Finally, switching to archive grouping by subsystem gives us:
     mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-7bZ0LoXNbu.zip.gpg
 
 
-#### 11.1.7 Archive encryption
+#### 11.1.7 Archive encryption and grouping
 
 The archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
 
-When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files. In case grouping is `none` or no per-member key is available the `archive-default-encryption-key` is used to encrypt archive files.
+By default the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`.
 
-Archive encryption keys must be OpenPGP public keys suitable for encryption. For example, on some host generate a keypair with defaults and no expiration and export the public key:
+When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files and is automatically generated during the security server installation. In case grouping is `none` or no per-member key is available the `archive-default-encryption-key` is used to encrypt archive files. When grouping is set to `member` or `subsystem`, the archiving process uses per-member keys if they are available in `archive-encryption-keys-dir`.
+
+Archive encryption keys must be OpenPGP public keys suitable for encryption. In the following example, we generate a new keypair for a member with defaults and no expiration. The second gpg-command exports the public key.
 
 ```
-gpg --homedir ~/xroad-test --quick-generate-key INSTANCE/memberClass/memberCode default default never
-gpg --homedir ~/xroad-test --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
+mkdir ~/xroad-test
+gpg --homedir ~/xroad-test --quick-generate-key INSTANCE/MEMBERCLASS/MEMBERCODE default default never
+gpg --homedir ~/xroad-test --export INSTANCE/MEMBERCLASS/MEMBERCODE >INSTANCE-MEMBERCLASS-MEMBERCODE.pgp
 ```
 
-Copy the public key to `encryption-keys-dir`, and rename it using a name provided by `/usr/share/xroad/scripts/keyname.sh` script (hex-encoded sha-256 digest of the member identifier).
+Copy the public key `INSTANCE-MEMBERCLASS-MEMBERCODE.pgp` to `encryption-keys-dir`, and rename it using a name provided by `/usr/share/xroad/scripts/keyname.sh` script (hex-encoded sha-256 digest of the member identifier). See the steps below.
 
 ```
 # check that the key is valid and suitable for encryption (has a (sub)key with usage E):
@@ -1763,6 +1766,13 @@ It is possible to define multiple encryption keys per member by adding a qualifi
 80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.1.pgp  
 80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.2.pgp  
 ```
+
+To decrypt the encrypted archives, one can use the following command:
+
+```
+gpg [--homedir <gpghome>] --decrypt <archive name> --output <output file name>
+```
+
 
 ### 11.2 Transferring the Archive Files from the Security Server
 
