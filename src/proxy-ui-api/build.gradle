@@ -193,6 +193,13 @@ if (!project.hasProperty("runHeadless")) {
     ext.runHeadless = ""
 }
 
+if (!project.hasProperty("testscript")) {
+    ext.testscript = ""
+}
+
+if (!project.hasProperty("testcase")) {
+    ext.testcase = ""
+}
 
 
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
@@ -213,14 +220,23 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     if (!runHeadless.isEmpty()) {
       if (runHeadless == "true") {
-        args += "--headless"
+          args.add("--headless")
       }
     }
 
     if (!failScreenshot.isEmpty()) {
       if (failScreenshot == "true") {
-        args += "--env screenshot"
+        args.add("--env screenshot")
       }
+    }
+
+    if (!testcase.isEmpty()) {
+        args.add("--testcase");
+        args.add(testcase);
+    }
+
+    if (!testscript.isEmpty()) {
+        args.add("--test=" + testscript)
     }
 
     execOverrides {
