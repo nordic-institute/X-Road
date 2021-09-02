@@ -1743,7 +1743,7 @@ gpg --homedir ~/xroad-test --quick-generate-key INSTANCE/MEMBERCLASS/MEMBERCODE 
 gpg --homedir ~/xroad-test --export INSTANCE/MEMBERCLASS/MEMBERCODE >INSTANCE-MEMBERCLASS-MEMBERCODE.pgp
 ```
 
-Copy the public key `INSTANCE-MEMBERCLASS-MEMBERCODE.pgp` to `encryption-keys-dir`, and rename it using a name provided by `/usr/share/xroad/scripts/keyname.sh` script (hex-encoded sha-256 digest of the member identifier). See the steps below.
+Copy the public key `INSTANCE-MEMBERCLASS-MEMBERCODE.pgp` to `encryption-keys-dir`, and rename it using a name provided by `/usr/share/xroad/scripts/keyname.sh` script (hex-encoded sha-256 digest of the member identifier). Ensure the file access rights are correct. See the steps below.
 
 ```
 # check that the key is valid and suitable for encryption (has a (sub)key with usage E):
@@ -1758,6 +1758,8 @@ gpg --show-keys INSTANCE-memberClass-memberCode.pgp
   80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 
 cp INSTANCE-memberClass-memberCode.pgp /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
+chown xroad:xroad /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
+chmod 600 /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 ```
 
 It is possible to define multiple encryption keys per member by adding a qualifier between the member identifier digest and suffix, e.g.:
