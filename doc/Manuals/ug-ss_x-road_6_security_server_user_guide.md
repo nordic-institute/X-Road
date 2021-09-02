@@ -173,13 +173,13 @@ Doc. ID: UG-SS
   - [10.4 Approved Certificate Authorities](#104-approved-certificate-authorities)
 - [11 Message Log](#11-message-log)
   - [11.1 Changing the Configuration of the Message Log](#111-changing-the-configuration-of-the-message-log)
-    - [11.1.1 Common parameters](#1111-common-parameters)
-    - [11.1.2 Logging parameters](#1112-logging-parameters)
-    - [11.1.3 Messagelog encryption](#1113-messagelog-encryption)
-    - [11.1.4 Timestamping parameters](#1114-timestamping-parameters)
-    - [11.1.5 Archiving parameters](#1115-archiving-parameters)
-    - [11.1.6 Archive files](#1116-archive-files)
-    - [11.1.7 Archive encryption and grouping](#1117-archive-encryption-and-grouping)
+    - [11.1.1 Common Parameters](#1111-common-parameters)
+    - [11.1.2 Logging Parameters](#1112-logging-parameters)
+    - [11.1.3 Messagelog Encryption](#1113-messagelog-encryption)
+    - [11.1.4 Timestamping Parameters](#1114-timestamping-parameters)
+    - [11.1.5 Archiving Parameters](#1115-archiving-parameters)
+    - [11.1.6 Archive Files](#1116-archive-files)
+    - [11.1.7 Archive Encryption and Grouping](#1117-archive-encryption-and-grouping)
   - [11.2 Transferring the Archive Files from the Security Server](#112-transferring-the-archive-files-from-the-security-server)
   - [11.3 Using a Remote Database](#113-using-a-remote-database)
 - [12 Audit Log](#12-audit-log)
@@ -1615,11 +1615,11 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
     archive-max-filesize=67108864
 
 
-#### 11.1.1 Common parameters
+#### 11.1.1 Common Parameters
 
 1.  `hash-algo-id` – the hash algorithm that is used for hashing in the message log. Possible choices are `SHA-256`, `SHA-384`, `SHA-512`. Defaults to `SHA-512`.
 
-#### 11.1.2 Logging parameters
+#### 11.1.2 Logging Parameters
 
 1.  `message-body-logging` - if set to true, the messages are logged in their original form. If false, the message body is emptied of its contents.
 
@@ -1644,7 +1644,7 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 11.  `messagelog-key-id` - messagelog keystore key id
 
 
-#### 11.1.3 Messagelog encryption
+#### 11.1.3 Messagelog Encryption
 
 The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
 
@@ -1671,7 +1671,7 @@ Finally, restart xroad-proxy service.
 To view the encrypted messages at some later stage, use the ASIC web service documented in \[[UG-SIGDOC](Ref_UG-SIGDOC)\]. The web service performs automatic decryption, where needed.
 
 
-#### 11.1.4 Timestamping parameters
+#### 11.1.4 Timestamping Parameters
 
 1.  `timestamp-immediately` – if set to true, the timestamps are created synchronously with the message exchange, i.e., one timestamp is created for a request and another for a response. This is a security policy to guarantee the timestamp at the time of logging the message, but if the timestamping fails, the message exchange fails as well, and if load to the security server increases, then the load to the timestamping service increases as well. The value of this parameter defaults to false for better performance and availability. In case the value of the parameter is false then the timestamping is performed as a periodic background process (the time period is determined in the X-Road governing agency and propagated to the security servers by global configuration) and signatures stored during the time period (see parameter `timestamp-records-limit`) are timestamped in one batch.
 
@@ -1680,7 +1680,7 @@ To view the encrypted messages at some later stage, use the ASIC web service doc
 3.  `acceptable-timestamp-failure-period` – time period in seconds, for how long the asynchronous timestamping is allowed to fail before message exchange between security servers is stopped. Set to `0` to disable this check. Defaults to `14400`.
 
 
-#### 11.1.5 Archiving parameters
+#### 11.1.5 Archiving Parameters
 
 1. `keep-records-for` – time in days for which to keep timestamped and archived records in the database. Defaults to `30`.
 
@@ -1705,7 +1705,7 @@ To view the encrypted messages at some later stage, use the ASIC web service doc
 11. `archive-default-encryption-key` - Default archive encryption key (in `archive-encryption-keys-dir`) if there is no grouping or a encryption key for a member is not present. If not defined, the primary GPG encryption key is used.
 
 
-#### 11.1.6 Archive files
+#### 11.1.6 Archive Files
 
 Archive files (ZIP containers) are located in the directory specified by the configuration parameter `archive-path`. File names are in the format `mlog[-grouping]-X-Y-Z.zip[.gpg]`, where X is the timestamp (UTC time in the format `YYYYMMDDHHmmss`) of the first message log record, Y is the timestamp of the last message log record (records are processed in chronological order) and Z is 10 characters long alphanumeric random. If grouping is enabled, [-grouping] is a (possibly truncated and filename safe) member identifier. If encryption is enabled, the [.gpg] suffix is added.
 
@@ -1727,7 +1727,7 @@ Finally, switching to archive grouping by subsystem gives us:
     mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-7bZ0LoXNbu.zip.gpg
 
 
-#### 11.1.7 Archive encryption and grouping
+#### 11.1.7 Archive Encryption and Grouping
 
 The archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
 
