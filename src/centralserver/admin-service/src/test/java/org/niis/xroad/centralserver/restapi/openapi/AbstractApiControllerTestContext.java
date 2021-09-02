@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
+import org.niis.xroad.centralserver.restapi.service.TokenPinValidator;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.service.ApiKeyService;
@@ -65,6 +66,9 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
 
     @SpyBean
     public SystemParameterRepository systemParameterRepository;
+
+    @SpyBean
+    public TokenPinValidator tokenPinValidator;
 
     /**
      * Add mock servlet request attributes to the RequestContextHolder. This is because testing a controller method

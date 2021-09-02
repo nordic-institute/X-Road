@@ -74,8 +74,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         okConf = new InitialServerConf()
                 .centralServerAddress("xroad.example.org")
                 .instanceIdentifier("TEST")
-                .softwareTokenPin("1234")
-                .ignoreWarnings(false);
+                .softwareTokenPin("1234");
 
         testSWToken = new TokenTestUtils.TokenInfoBuilder()
                 .id(SignerProxy.SSL_TOKEN_ID)
@@ -152,12 +151,10 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void initCentralServerMissingParams() {
         InitialServerConf testConf = new InitialServerConf();
-        testConf.instanceIdentifier("TEST").centralServerAddress("xroad.example.org").softwareTokenPin(null)
-                .ignoreWarnings(false);
+        testConf.instanceIdentifier("TEST").centralServerAddress("xroad.example.org").softwareTokenPin(null);
         ConstraintViolationException constraintViolationException = assertThrows(ConstraintViolationException.class,
                 () -> initializationApiController.initCentralServer(testConf));
         assertEquals(1, constraintViolationException.getConstraintViolations().size());
-
     }
 
     @Test
