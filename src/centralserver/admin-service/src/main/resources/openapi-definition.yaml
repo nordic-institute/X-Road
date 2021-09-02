@@ -55,14 +55,24 @@ paths:
         <li>x = the minimum length of the pin code</li>
         <li>y = the minimum amount of character classes (e.g. uppercase, number, special characters) to be used in the pin code</li>
         </ul>
-        Other possible error code is <code>invalid_init_params</code> which can have any one or more of the following strings in the metadata field
+        Other possible error code are
         <ul>
-        <li>instance_id_not_provided</li>
-        <li>invalid_instance_id</li>
-        <li>server_address_not_provided</li>
-        <li>invalid_server_address</li>
-        <li>pin_code_not_provided</li>
+        <li><code>invalid_init_params</code> for "business" logic problems which can have any one or more of the following strings in the metadata field.
+        There "_exists" -entries are returned if parameter has been given already in partially succeeded initialization.
+        The "_not_provided"-entries are returned if these parameters is needed still for the initialization,  but it is not given in the request.
+
+        </li>
+
+
+        <ul>
         <li>pin_code_exists</li>
+        <li>pin_code_not_provided</li>
+        <li>server_address_exists</li>
+        <li>server_address_not_provided</li>
+        <li>instance_identifier_exists</li>
+        <li>instance_identifier_not_provided</li>
+        </ul>
+        <li><code>validation_failure</code> for parameter format errors
         </ul>
         </p>
         </p>
@@ -152,10 +162,6 @@ components:
     InitialServerConf:
       type: object
       description: central server initial configuration
-      required:
-        - instance_identifier
-        - central_server_address
-        - software_token_pin
       properties:
         instance_identifier:
           $ref: '#/components/schemas/InstanceIdentifier'
@@ -254,7 +260,7 @@ components:
         error:
           code: validation_failure
           validation_errors:
-            "TBD":
-              - NoTBDTBD
+            "initialServerConf.instanceIdentifier":
+              - IdentifierChars
 security:
   - ApiKeyAuth: []
