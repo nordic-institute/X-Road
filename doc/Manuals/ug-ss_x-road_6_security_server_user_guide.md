@@ -1587,13 +1587,13 @@ Lists approved certificate authorities. The listing contains the following infor
 
 The purpose of the message log is to provide means to prove the reception of a regular request or response message to a third party. Messages exchanged between security servers are signed and encrypted. For every regular request and response, the security server produces a complete signed and timestamped document (Associated Signature Container \[[ASiC](#Ref_ASiC)\]).
 
-Message log data is stored to the database of the security server during message exchange. When storing messages to the database, the message body can be optionally encrypted, but by default it's turned off. According to the configuration (see [11.1](#111-changing-the-configuration-of-the-message-log)), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
+Message log data is stored to the database of the security server during message exchange. When storing messages to the database, the message body can be optionally encrypted, but by default the encryption is switched off. According to the configuration ([11.1.4 Timestamping Parameters](#1114-timestamping-parameters)), the timestamping of the signatures of the exchanged messages is either synchronous to the message exchange process or is done asynchronously using the time period set by the X-Road governing agency.
 
 In case of synchronous timestamping, the timestamping is an integral part of the message exchange process (one timestamp is taken for the request and another for the response). If the timestamping fails, the message exchange fails as well and the security server responds with an error message.
 
-In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration, see [11.1](#111-changing-the-configuration-of-the-message-log)) stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the security server uses asynchronous timestamping for better performance and availability.
+In case of asynchronous timestamping, all the messages (maximum limit is determined in the configuration, see [11.1.4 Timestamping Parameters](#1114-timestamping-parameters)) stored in the message log since the last periodical timestamping event are timestamped with a single (batch) timestamp. By default, the security server uses asynchronous timestamping for better performance and availability.
 
-The security server periodically composes signed (and timestamped) documents from the message log data and archives them in the local file system. Archive files are ZIP containers containing one or more signed documents and a special linking information file for additional integrity verification purpose. Message log archive encryption and grouping can be enabled and configured separately.
+The security server periodically composes signed (and timestamped) documents from the (optionally encrypted) message log data and archives them in the local file system. Archive files are ZIP containers containing one or more signed documents and a special linking information file for additional integrity verification purpose. Message log archive encryption and grouping can be enabled and configured separately.
 
 
 ### 11.1 Changing the Configuration of the Message Log
@@ -1648,7 +1648,7 @@ For example, to configure the parameters `archive-path` and `archive-max-filesiz
 
 The message bodies can be encrypted (`messagelog-encryption-enabled = true`) when stored to the database. The encryption is symmetric, the used cipher is AES-CTR, and the encryption is performed using Java code.
 
-When the encryption is switched on, the implementation expects to find the keystore in the location pointed by `messagelog-keystore`. The keystore should contain an encryption key with the identifier specified in `messagelog-key-id`. The keystore password is specified in `messagelog-keystore-password`.
+When encryption is switched on, the implementation expects to find the keystore in the location pointed by `messagelog-keystore`. The keystore should contain an encryption key with the identifier specified in `messagelog-key-id`. The keystore password is specified in `messagelog-keystore-password`.
 
 For example, add the following to `/etc/xroad/conf.d/local.ini`:
 
@@ -1666,7 +1666,7 @@ Create the password store and import a key:
 keytool -keystore /etc/xroad/messagelog/messagelog.p12 -storetype pkcs12 -importpassword -alias key1
 ```
 
-Finally, restart xroad-proxy service.
+Finally, restart `xroad-proxy` service.
 
 To view the encrypted messages at some later stage, use the ASIC web service documented in \[[UG-SIGDOC](#Ref_UG-SIGDOC)\]. The web service performs automatic decryption, where needed.
 
@@ -1707,13 +1707,13 @@ To view the encrypted messages at some later stage, use the ASIC web service doc
 
 #### 11.1.6 Archive Files
 
-Archive files (ZIP containers) are located in the directory specified by the configuration parameter `archive-path`. File names are in the format `mlog[-grouping]-X-Y-Z.zip[.gpg]`, where X is the timestamp (UTC time in the format `YYYYMMDDHHmmss`) of the first message log record, Y is the timestamp of the last message log record (records are processed in chronological order) and Z is 10 characters long alphanumeric random. If grouping is enabled, [-grouping] is a (possibly truncated and filename safe) member identifier. If encryption is enabled, the [.gpg] suffix is added.
+Archive files (ZIP containers) are located in the directory specified by the configuration parameter `archive-path`. File names are in the format `mlog[-grouping]-X-Y-Z.zip[.gpg]`, where X is the timestamp (UTC time in the format `YYYYMMDDHHmmss`) of the first message log record, Y is the timestamp of the last message log record (records are processed in chronological order) and Z is 10 characters long alphanumeric random. If grouping is enabled, [-grouping] is a (possibly truncated and filename safe) member identifier. If encryption is enabled, the `[.gpg]` suffix is added.
 
 The most basic example of an archive file name when the encryption and grouping are switched off:
 
     mlog-20210901100858-20210901100905-5wOUQnXK4G.zip
 
-Here's an example with the archive encryption switched on:
+When the archive encryption switched on:
 
     mlog-20210901101923-20210901101926-pXAZkBjnAC.zip.gpg
 
@@ -1721,7 +1721,7 @@ Switching on archive grouping by member produces the following:
 
     mlog-INSTANCE_CLASS_CODE-20210901102251-20210901102254-yoA2z7EAkg.zip.gpg
 
-Finally, switching to archive grouping by subsystem gives us:
+Finally, switching to archive grouping by subsystem gives:
 
     mlog-INSTANCE_CLASS_CODE_CONSUMERSUBSYSTEM-20210901102521-20210901102524-m1s2v5qZRc.zip.gpg
     mlog-INSTANCE_CLASS_CODE_PROVIDERSUBSYSTEM-20210901102521-20210901102524-7bZ0LoXNbu.zip.gpg
@@ -1731,9 +1731,9 @@ Finally, switching to archive grouping by subsystem gives us:
 
 The archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
 
-By default the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`.
+By default, the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`.
 
-When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files and is automatically generated during the security server installation. In case grouping is `none` or no per-member key is available the `archive-default-encryption-key` is used to encrypt archive files. When grouping is set to `member` or `subsystem`, the archiving process uses per-member keys if they are available in `archive-encryption-keys-dir`.
+When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files and is automatically generated during the security server installation. In case grouping is `none` or no per-member key is available, the `archive-default-encryption-key` is used to encrypt archive files. When grouping is set to `member` or `subsystem`, the archiving process uses per-member keys if they are available in `archive-encryption-keys-dir`.
 
 Archive encryption keys must be OpenPGP public keys suitable for encryption. In the following example, we generate a new keypair for a member with defaults and no expiration. The second gpg-command exports the public key.
 
@@ -1748,16 +1748,16 @@ Copy the public key `INSTANCE-MEMBERCLASS-MEMBERCODE.pgp` to `encryption-keys-di
 ```
 # check that the key is valid and suitable for encryption (has a (sub)key with usage E):
 # note: --show-keys requires gnupg 2.2.8 or later
-gpg --show-keys INSTANCE-memberClass-memberCode.pgp
-  pub   rsa3072 2021-08-04 [SC]
-        96F20FF6578A5EF90DFBA18D8C003019508B5637
-  uid                      INSTANCE/memberClass/memberCode
-  sub   rsa3072 2021-08-04 [E]
+gpg --show-keys INSTANCE/MEMBERCLASS/MEMBERCODE.pgp
+  pub   rsa3072 2021-09-02 [SC]
+        196B498858216D2F72FF8663BDA81CBE27F848E2
+  uid                      INSTANCE/MEMBERCLASS/MEMBERCODE
+  sub   rsa3072 2021-09-02 [E]
 
-/usr/share/xroad/scripts/keyname.sh INSTANCE/memberClass/memberCode
+/usr/share/xroad/scripts/keyname.sh INSTANCE/MEMBERCLASS/MEMBERCODE
   80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 
-cp INSTANCE-memberClass-memberCode.pgp /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
+cp INSTANCE/MEMBERCLASS/MEMBERCODE.pgp /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 chown xroad:xroad /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 chmod 600 /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
 ```
@@ -1769,7 +1769,7 @@ It is possible to define multiple encryption keys per member by adding a qualifi
 80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.2.pgp  
 ```
 
-To decrypt the encrypted archives, one can use the following command:
+To decrypt the encrypted archives, use the following syntax:
 
 ```
 gpg [--homedir <gpghome>] --decrypt <archive name> --output <output file name>
@@ -1800,7 +1800,7 @@ Override the configuration parameter archive-transfer-command (create or edit th
     [message-log]
     archive-transfer-command=/usr/share/xroad/scripts/archive-http-transporter.sh -r http://my-archiving-server/cgi-bin/upload
 
-The message log package contains the CGI script /usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl for a demo archiving server for the purpose of testing or development.
+The message log package contains the CGI script `/usr/share/doc/xroad-addon-messagelog/archive-server/demo-upload.pl` for a demo archiving server for the purpose of testing or development.
 
 
 ### 11.3 Using a Remote Database
@@ -1915,7 +1915,7 @@ The audit log is rotated monthly by *logrotate*. To configure the audit log rota
 
 In order to save hard disk space and avoid loss of the audit log records during security server crash, it is recommended to archive the audit log files periodically to an external storage or a log server.
 
-The X-Road software does not offer special tools for archiving the audit log. The *rsyslog* can be configured to redirect the audit log to an external location.
+The X-Road software does not offer special tools for archiving the audit log. The `rsyslog` can be configured to redirect the audit log to an external location.
 
 
 ## 13 Back up and restore
@@ -1930,6 +1930,7 @@ following configuration:
   - members' sign keys and certificates (that are stored in soft token)
   - security server's internal TLS key and certificate
   - security server's UI key and certificate
+  - messagelog signing and encryption keys
 - database credentials.
 
 Backups contain sensitive information that must be kept secret (for example, private keys and database credentials).
