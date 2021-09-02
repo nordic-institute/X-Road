@@ -230,9 +230,16 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
       }
     }
 
+    // (at least if testcase name has spaces) wrap name in quotes, e.g. -Ptestcase "Security server client add wsdl service"
     if (!testcase.isEmpty()) {
+        if (testscript.isEmpty()) {
+            // to run specific testcase, your need to also define -Ptestscript, otherwise nightwatch ignores this parameter
+            throw new GradleException('Tried to use -Ptestcase without -Ptestscript, that will not work.')
+        }
         args.add("--testcase");
         args.add(testcase);
+        println 'set testcase arg to value [' + testcase + ']'
+
     }
 
     if (!testscript.isEmpty()) {
