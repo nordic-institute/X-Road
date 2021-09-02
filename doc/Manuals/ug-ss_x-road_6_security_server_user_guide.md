@@ -268,7 +268,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 1.  <a id="Ref_ASiC" class="anchor"></a>\[ASiC\] ETSI TS 102 918, Electronic Signatures and Infrastructures (ESI); Associated Signature Containers (ASiC)
 
 2.  <a id="Ref_CRON" class="anchor"></a>\[CRON\] Quartz Scheduler CRON expression,  
-    <http://www.quartz-scheduler.org/generated/2.2.1/html/qs-all/#page/Quartz_Scheduler_Documentation_Set%2Fco-trg_crontriggers.html>
+    <http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html>
 
 3.  <a id="Ref_INI" class="anchor"></a>\[INI\] INI file,  
     <http://en.wikipedia.org/wiki/INI_file>
@@ -1668,7 +1668,7 @@ keytool -keystore /etc/xroad/messagelog/messagelog.p12 -storetype pkcs12 -import
 
 Finally, restart xroad-proxy service.
 
-To view the encrypted messages at some later stage, use the ASIC web service documented in \[[UG-SIGDOC](Ref_UG-SIGDOC)\]. The web service performs automatic decryption, where needed.
+To view the encrypted messages at some later stage, use the ASIC web service documented in \[[UG-SIGDOC](#Ref_UG-SIGDOC)\]. The web service performs automatic decryption, where needed.
 
 
 #### 11.1.4 Timestamping Parameters
@@ -2323,7 +2323,7 @@ System services are managed through the *systemd* facility.
     service <service> stop
 
 Services use the [default unit start rate limits](https://www.freedesktop.org/software/systemd/man/systemd-system.conf.html#DefaultStartLimitIntervalSec=).
-An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](../../src/packages/src/xroad/ubuntu/bionic/debian/xroad-proxy-ui-api.service))
+An exception to this is `xroad-proxy-ui-api`, which uses a longer start rate limit ([5 starts / 40 seconds](../../src/packages/src/xroad/ubuntu/generic/xroad-proxy-ui-api.service))
 to prevent infinite restart-loop in some specific error situations.
 
 ### 17.2 Logging configuration
