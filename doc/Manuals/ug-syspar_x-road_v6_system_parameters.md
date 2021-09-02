@@ -129,7 +129,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 1.  <a id="Ref_INI"></a>\[INI\] INI file, [http://en.wikipedia.org/wiki/INI_file](http://en.wikipedia.org/wiki/INI_file).
 2.  <a id="Ref_CRON"></a>\[CRON\] Quartz Scheduler
-    CRON expression, [http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html](http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html).
+    CRON expression, [http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html).
 3.  <a id="Ref_PR-MESS"></a>\[PR-MESS\] [X-Road Message Protocol v. 4.0](../Protocols/pr-mess_x-road_message_protocol.md).
 4.  <a id="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] [Security Server Targeting Extension for the X-Road Message Protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md).
 5.  <a id="Ref_PR-SECTOKEN"></a>\[PR-SECTOKEN\] [Security Token Extension for the X-Road Message Protocol](../Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md).
@@ -241,9 +241,9 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-listen-address                            | 0.0.0.0                                    |   |   | IP address on which the service provider's security server listens for connections from the service client's security servers. The value 0.0.0.0 allows listening on all IPv4 interfaces. |
 | server-listen-port                               | 5500                                       |   |   | TCP port on which the service provider's security server listens for connections from the service client's security server. |
 | server-port                                      | 5500                                       |   |   | Destination TCP port for outgoing queries in the service client's security server. |
-| jetty-clientproxy-configuration-file             | /etc/xroad/jetty/clientproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service client's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
-| jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
-| jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
+| jetty-clientproxy-configuration-file             | /etc/xroad/jetty/clientproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service client's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html. |
+| jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html. |
+| jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html. |
 | ssl-enabled                                      | true                                       |   |   | If true, TLS is used for connections between the service client's and service provider's security servers. |
 | client-tls-ciphers                               | See [1](#Ref_note1)                        |   |   | TLS ciphers (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
 | xroad-tls-ciphers                                | See [2](#Ref_note2)                        |   |   | TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers, and between operational monitoring daemon and client. (since version 6.20)  |
@@ -402,7 +402,7 @@ the message log.
 | auto-update-timestamp-service-url                | false                                      | If enabled, makes the security server update the timestamping service URLs when they are changed on the central server. In case there are multiple timestamping services with the same name, the update will not be done and a warning is logged instead. |
 
 Configurable SSL connection parameters are those
-[Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+[Spring Boot's common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
 that start with `server.ssl`.
 
 ssl.properties can be used to override any `server.ssl.*` property, also those that do not have default values. However, the result of merging default properties
@@ -471,7 +471,7 @@ This section describes the system parameters used by the X-Road central server. 
 | confExpireIntervalSeconds   | integer        | 600                                      | Time in seconds of the validity of the configuration after creation. |
 | confHashAlgoUri             | string         | http://www.w3.org/2001/04/xmlenc#sha512  | URI of the algorithm used for calculating the hash values of the global configuration files.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512. |
 | confSignDigestAlgoId        | string         | SHA-512                                  | Identifier of the digest algorithm used for signing the global configuration.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
-| confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512  | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc\#sha256,<br/>http://www.w3.org/2001/04/xmlenc\#sha512. |
+| confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512  | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512. |
 | ocspFreshnessSeconds        | integer        | 3600                                     | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification. |
 | timeStampingIntervalSeconds | integer        | 60                                       | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
 
