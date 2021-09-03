@@ -36,6 +36,7 @@ import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
+import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
 import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
 import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
@@ -81,7 +82,7 @@ public class InitializationApiController implements InitializationApi {
             throw new ConflictException(e);
         } catch (SoftwareTokenInitException e) {
             throw new InternalServerErrorException(e);
-        } catch (InvalidCharactersException | WeakPinException e) {
+        } catch (InvalidInitParamsException | InvalidCharactersException | WeakPinException e) {
             throw new BadRequestException(e);
         }
 

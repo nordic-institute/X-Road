@@ -24,21 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.openapi.validator;
+package org.niis.xroad.centralserver.restapi.service.exception;
 
-import com.google.common.net.InetAddresses;
-import com.google.common.net.InternetDomainName;
+import org.niis.xroad.restapi.exceptions.ErrorDeviation;
+import org.niis.xroad.restapi.service.ServiceException;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import java.util.List;
 
-public class HostAddressValidator implements ConstraintValidator<ValidHostAddress, String> {
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INVALID_INIT_PARAMS;
 
-    @SuppressWarnings("UnstableApiUsage")
-    @Override
-    public boolean isValid(String value, ConstraintValidatorContext context) {
-        return  null == value
-                || InternetDomainName.isValid(value)
-                || InetAddresses.isInetAddress(value);
+/**
+ * If missing or empty or redundant params are provided for the init
+ */
+public class InvalidInitParamsException extends ServiceException {
+    public InvalidInitParamsException(String msg, List<String> metadata) {
+        super(msg, new ErrorDeviation(ERROR_INVALID_INIT_PARAMS, metadata));
     }
 }

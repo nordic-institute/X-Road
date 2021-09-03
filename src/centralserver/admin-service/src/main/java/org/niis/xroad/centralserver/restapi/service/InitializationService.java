@@ -39,6 +39,7 @@ import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
 import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
+import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsException;
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
 import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
 import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
@@ -47,6 +48,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,6 +62,12 @@ import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemPa
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_INSTANCE_IDENTIFIER_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_INSTANCE_IDENTIFIER_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_NOT_PROVIDED;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVER_ADDRESS_EXISTS;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SERVER_ADDRESS_NOT_PROVIDED;
 
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
@@ -98,15 +106,31 @@ public class InitializationService {
 
     public void initialize(InitializationConfigDto configDto)
             throws ServerAlreadyFullyInitializedException, SoftwareTokenInitException, InvalidCharactersException,
-            WeakPinException {
+            WeakPinException, InvalidInitParamsException {
 
         log.debug("initializing server with {}", configDto);
-        if (isCentralServerInitialized()) {
-            throw new ServerAlreadyFullyInitializedException(
-                    "Central server Initialization failed, already initialized"
-            );
+
+        if (null == configDto.getSoftwareTokenPin()) {
+            configDto.setSoftwareTokenPin("");
         }
-        tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
+        if (null == configDto.getCentralServerAddress()) {
+            configDto.setCentralServerAddress("");
+        }
+        if (null == configDto.getInstanceIdentifier()) {
+            configDto.setInstanceIdentifier("");
+        }
+
+        if (null != configDto.getSoftwareTokenPin()) {
+            tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
+        }
+
+        final boolean isSWTokenInitialized = isSWTokenInitialized();
+        final boolean isServerAddressInitialized = !getStoredCentralServerAddress().isEmpty();
+        final boolean isInstanceIdentifierInitialized = !getStoredInstanceIdentifier().isEmpty();
+        validateConfigParameters(configDto, isSWTokenInitialized, isServerAddressInitialized,
+                isInstanceIdentifierInitialized);
+
+
         centralServerSystemParameterService.updateOrCreateParameter(
                 CENTRAL_SERVER_ADDRESS,
                 configDto.getCentralServerAddress()
@@ -125,6 +149,44 @@ public class InitializationService {
         } catch (Exception e) {
             log.warn("Software token initialization failed", e);
             throw new SoftwareTokenInitException("Software token initialization failed", e);
+        }
+    }
+
+    private void validateConfigParameters(InitializationConfigDto configDto, boolean isSWTokenInitialized,
+                                          boolean isServerAddressInitialized, boolean isInstanceIdentifierInitialized)
+            throws ServerAlreadyFullyInitializedException, InvalidInitParamsException {
+
+
+        if (isSWTokenInitialized && isServerAddressInitialized && isInstanceIdentifierInitialized) {
+            throw new ServerAlreadyFullyInitializedException(
+                    "Central server Initialization failed, already fully initialized"
+            );
+        }
+        List<String> errorMetadata = new ArrayList<>();
+        if (isSWTokenInitialized && !configDto.getSoftwareTokenPin().isEmpty()) {
+            errorMetadata.add(ERROR_METADATA_PIN_EXISTS);
+        }
+        if (!isSWTokenInitialized && configDto.getSoftwareTokenPin().isEmpty()) {
+            errorMetadata.add(ERROR_METADATA_PIN_NOT_PROVIDED);
+        }
+        if (isServerAddressInitialized && !configDto.getCentralServerAddress().isEmpty()) {
+            errorMetadata.add(ERROR_METADATA_SERVER_ADDRESS_EXISTS);
+        }
+        if (!isServerAddressInitialized && configDto.getCentralServerAddress().isEmpty()) {
+            errorMetadata.add(ERROR_METADATA_SERVER_ADDRESS_NOT_PROVIDED);
+        }
+        if (isInstanceIdentifierInitialized && !configDto.getInstanceIdentifier().isEmpty()) {
+            errorMetadata.add(ERROR_METADATA_INSTANCE_IDENTIFIER_EXISTS);
+        }
+        if (!isInstanceIdentifierInitialized && configDto.getInstanceIdentifier().isEmpty()) {
+            errorMetadata.add(ERROR_METADATA_INSTANCE_IDENTIFIER_NOT_PROVIDED);
+        }
+        if (!errorMetadata.isEmpty()) {
+            log.debug("collected errors {}", errorMetadata.stream().reduce(
+                    (String result, String toAdd) -> result.concat(", " + toAdd)
+            ).orElse("none"));
+            throw new InvalidInitParamsException("Empty, missing or redundant parameters provided for initialization",
+                    errorMetadata);
         }
     }
 
@@ -159,13 +221,6 @@ public class InitializationService {
         globalGroupRepository.save(securityServerOwnersGlobalGroup.get());
     }
 
-
-    private boolean isCentralServerInitialized() {
-        return isSWTokenInitialized()
-                && !getStoredInstanceIdentifier().isEmpty()
-                && !getStoredCentralServerAddress().isEmpty();
-    }
-
     private boolean isSWTokenInitialized() {
         boolean isSWTokenInitialized = false;
         List<TokenInfo> tokenInfos;
@@ -180,6 +235,11 @@ public class InitializationService {
 
         if (firstSWToken.isPresent()) {
             TokenInfo tokenInfo = firstSWToken.get();
+            log.debug("sw token with SSL_TOKEN_ID obtained:{}, w/ label:{}, @status:{}",
+                    tokenInfo.getFriendlyName(),
+                    tokenInfo.getLabel(),
+                    tokenInfo.getStatus()
+            );
             isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
         }
         return isSWTokenInitialized;
