@@ -87,6 +87,17 @@ public final class TokenTestUtils {
                     new HashMap<>());
         }
 
+        public TokenInfoBuilder copy(TokenInfo tokenInfo) {
+            this.type = tokenInfo.getType();
+            this.friendlyName = tokenInfo.getFriendlyName();
+            this.id = tokenInfo.getId();
+            this.readOnly = tokenInfo.isReadOnly();
+            this.available = tokenInfo.isAvailable();
+            this.active = tokenInfo.isActive();
+            this.keyInfos = tokenInfo.getKeyInfo();
+            return this;
+        }
+
         public TokenInfoBuilder active(boolean activeParam) {
             this.active = activeParam;
             return this;

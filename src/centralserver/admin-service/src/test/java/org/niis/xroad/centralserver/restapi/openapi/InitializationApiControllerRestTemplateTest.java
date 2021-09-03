@@ -71,6 +71,25 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
     }
 
     @Test
+    public void initializationMissingParamsRespondsCorrectly() {
+        // All privileges role api Key added to all TestRestTemplate requests
+        TestUtils.addApiKeyAuthorizationHeader(restTemplate);
+        InitialServerConf invalidConf = new InitialServerConf()
+                .centralServerAddress("")
+                .instanceIdentifier("INSTANCE_VALID")
+                .softwareTokenPin("");
+        ResponseEntity<Object> response = restTemplate.postForEntity(
+                "/api/v1/initialization",
+                invalidConf,
+                Object.class);
+        assertEquals(400, response.getStatusCodeValue());
+        assertNotNull(response.getBody());
+        ErrorInfo errorInfo = testObjectMapper.convertValue(response.getBody(), ErrorInfo.class);
+        assertEquals("validation_failure", errorInfo.getError().getCode());
+        assertEquals(2, errorInfo.getError().getValidationErrors().size());
+    }
+
+    @Test
     public void initializationWithWeakPin() {
         // All privileges role api Key added to all TestRestTemplate requests
         TestUtils.addApiKeyAuthorizationHeader(restTemplate);

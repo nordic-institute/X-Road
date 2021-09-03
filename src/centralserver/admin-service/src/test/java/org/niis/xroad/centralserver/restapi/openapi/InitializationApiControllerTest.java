@@ -37,12 +37,11 @@ import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.validation.ConstraintViolationException;
 
 import java.util.Collections;
 import java.util.List;
@@ -54,7 +53,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
 
 @WithMockUser(authorities = {"INIT_CONFIG"})
 @Transactional
@@ -74,7 +72,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         okConf = new InitialServerConf()
                 .centralServerAddress("xroad.example.org")
                 .instanceIdentifier("TEST")
-                .softwareTokenPin("1234");
+                .softwareTokenPin("1234ABCD%&/(");
 
         testSWToken = new TokenTestUtils.TokenInfoBuilder()
                 .id(SignerProxy.SSL_TOKEN_ID)
@@ -116,20 +114,35 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void getInitializationStatusFromSignerProxy() throws Exception {
-        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
+        TokenInfo tokenInfo1 = new TokenTestUtils.TokenInfoBuilder()
+                .copy(testSWToken)
+                .friendlyName("token for getInitializationStatusFromSignerProxy")
+                .build();
+
+        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(tokenInfo1));
         ResponseEntity<InitializationStatus> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertTrue(statusResponseEntity.hasBody());
         InitializationStatus status = statusResponseEntity.getBody();
         assertNotNull(status);
         assertEquals(TokenInitStatus.INITIALIZED, status.getSoftwareTokenInitStatus());
+
     }
 
     @Test
     public void initCentralServer() throws Exception {
-        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
+        TokenInfo tokenInfo2 = new TokenTestUtils.TokenInfoBuilder()
+                .copy(testSWToken)
+                .friendlyName("token for initCentralServer case")
+                .build();
 
-        ResponseEntity<Void> response = initializationApiController.initCentralServer(okConf);
+        when(signerProxyFacade.getTokens()).thenReturn(
+                Collections.emptyList(),  // For 1st status query during initCentralServer() call
+                Collections.singletonList(tokenInfo2)  // for the getInitializationStatus
+        );
+
+        InitialServerConf initialServerConf1 = okConf.centralServerAddress("initCentralServer.example.org");
+        ResponseEntity<Void> response = initializationApiController.initCentralServer(initialServerConf1);
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
 
@@ -145,37 +158,38 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
                 statusResponseEntity.getBody().getSoftwareTokenInitStatus()
         );
         assertEquals("TEST", statusResponseEntity.getBody().getInstanceIdentifier());
-        assertEquals("xroad.example.org", statusResponseEntity.getBody().getCentralServerAddress());
+        assertEquals("initCentralServer.example.org", statusResponseEntity.getBody().getCentralServerAddress());
     }
 
     @Test
     public void initCentralServerMissingParams() {
-        InitialServerConf testConf = new InitialServerConf();
-        testConf.instanceIdentifier("TEST").centralServerAddress("xroad.example.org").softwareTokenPin(null);
-        ConstraintViolationException constraintViolationException = assertThrows(ConstraintViolationException.class,
+        InitialServerConf testConf = new InitialServerConf()
+                .instanceIdentifier("TEST")
+                .centralServerAddress("initCentralServerMissingParams.example.org")
+                .softwareTokenPin(null);
+        BadRequestException badRequestException = assertThrows(BadRequestException.class,
                 () -> initializationApiController.initCentralServer(testConf));
-        assertEquals(1, constraintViolationException.getConstraintViolations().size());
+        assertEquals(1, badRequestException.getErrorDeviation().getMetadata().size());
     }
 
     @Test
     public void initCentralServerAlreadyInitialized() throws Exception {
-        SystemParameter validCentralServerAddressParameter = new SystemParameter();
-        validCentralServerAddressParameter.setKey(CENTRAL_SERVER_ADDRESS);
-        validCentralServerAddressParameter.setValue("123.123.123.123");
+        String testAddress = "initCentralServerAlreadyInitialized.example.org";
+        TokenInfo tokenInfo3 = new TokenTestUtils.TokenInfoBuilder()
+                .copy(testSWToken)
+                .friendlyName("token for initCentralServerAlreadyInitialized case")
+                .build();
+        InitialServerConf testInitConf = new InitialServerConf()
+                .centralServerAddress(testAddress)
+                .instanceIdentifier("initCentralServerAlreadyInitialized-instance")
+                .softwareTokenPin("12341234");
 
-        SystemParameter validInstanceIdentifierParameter = new SystemParameter();
-        validInstanceIdentifierParameter.setKey(CENTRAL_SERVER_ADDRESS);
-        validInstanceIdentifierParameter.setValue("VALID_INSTANCE");
+        when(signerProxyFacade.getTokens()).thenReturn(
+                Collections.emptyList(),
+                Collections.singletonList(tokenInfo3)
+        );
+        assertDoesNotThrow(() -> initializationApiController.initCentralServer(testInitConf));
+        assertThrows(ConflictException.class, () -> initializationApiController.initCentralServer(testInitConf));
 
-        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
-
-        when(systemParameterRepository.findSystemParametersByKey(
-                CENTRAL_SERVER_ADDRESS)
-        ).thenReturn(List.of(validCentralServerAddressParameter));
-
-        when(systemParameterRepository.findSystemParametersByKey(
-                INSTANCE_IDENTIFIER)
-        ).thenReturn(List.of(validInstanceIdentifierParameter));
-        assertThrows(ConflictException.class, () -> initializationApiController.initCentralServer(okConf));
     }
 }

@@ -36,8 +36,11 @@ import org.niis.xroad.restapi.converter.PublicApiKeyDataConverter;
 import org.niis.xroad.restapi.service.ApiKeyService;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockReset;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.web.context.request.RequestContextHolder;
+
+import static org.mockito.Mockito.validateMockitoUsage;
 
 /**
  * Base for all api controller tests that need mocked beans in the application context. All api controller
@@ -61,7 +64,7 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @MockBean
     public PublicApiKeyDataConverter publicApiKeyDataConverter;
 
-    @SpyBean
+    @SpyBean(reset = MockReset.AFTER)
     public InitializationService initializationService;
 
     @SpyBean
@@ -83,5 +86,6 @@ public abstract class AbstractApiControllerTestContext extends AbstractFacadeMoc
     @After
     public void cleanUpServlet() {
         RequestContextHolder.resetRequestAttributes();
+        validateMockitoUsage();
     }
 }
