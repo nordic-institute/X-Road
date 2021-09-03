@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 1.20  
+Version: 1.21  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -37,6 +37,7 @@ Doc. ID: IG-SS-RHEL
  18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
  25.08.2021 | 1.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
+ 03.09.2021 | 1.21    | Minor fixes | Ilkka Seppälä
 
 ## License
 
@@ -121,7 +122,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
-* Ubuntu Server 18.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 18.04 and 20.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -195,7 +196,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (v7.3 or newer) x86-64 operating system;
+* an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
