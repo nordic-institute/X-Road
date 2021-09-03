@@ -72,7 +72,7 @@ Doc. ID: UG-SYSPAR
 | 01.06.2021 | 2.60     | Add new parameter *messagelog.archive-grouping* | Jarkko Hyöty |
 | 04.08.2021 | 2.61     | Add new parameters for messagelog archive encryption | Jarkko Hyöty |
 | 25.08.2021 | 2.62     | Update X-Road references from version 6 to 7 | Caro Hautamäki |
-| 31.08.2021 | 2.63     | Update messagelog parameters | Ilkka Seppälä |
+| 31.08.2021 | 2.63     | Update messagelog and proxy parameters | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -274,6 +274,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
 | enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
+| backup-encrypted                                 | false                                      |   |   | Whether the security server configuration backups are encrypted. |
+| backup-public-key-path                           | /etc/xroad/backupkeys                      |   |   | Directory where additional backup encryption keys are stored. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:
