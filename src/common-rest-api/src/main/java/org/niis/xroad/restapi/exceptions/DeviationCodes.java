@@ -110,6 +110,8 @@ public final class DeviationCodes {
     public static final String ERROR_MALFORMED_ANCHOR = "malformed_anchor";
     public static final String ERROR_MALFORMED_URL = "malformed_url";
     public static final String ERROR_MANAGEMENT_REQUEST_SENDING_FAILED = "management_request_sending_failed";
+    public static final String ERROR_METADATA_INSTANCE_IDENTIFIER_EXISTS = "instance_identifier_exists";
+    public static final String ERROR_METADATA_INSTANCE_IDENTIFIER_NOT_PROVIDED = "instance_identifier_not_provided";
     public static final String ERROR_METADATA_MEMBER_CLASS_EXISTS = "member_class_exists";
     public static final String ERROR_METADATA_MEMBER_CLASS_NOT_PROVIDED = "member_class_not_provided";
     public static final String ERROR_METADATA_MEMBER_CODE_EXISTS = "member_code_exists";
@@ -118,6 +120,8 @@ public final class DeviationCodes {
     public static final String ERROR_METADATA_PIN_MIN_CHAR_CLASSES = "pin_min_char_classes_count";
     public static final String ERROR_METADATA_PIN_MIN_LENGTH = "pin_min_length";
     public static final String ERROR_METADATA_PIN_NOT_PROVIDED = "pin_code_not_provided";
+    public static final String ERROR_METADATA_SERVER_ADDRESS_EXISTS = "server_address_exists";
+    public static final String ERROR_METADATA_SERVER_ADDRESS_NOT_PROVIDED = "server_address_not_provided";
     public static final String ERROR_METADATA_SERVERCODE_EXISTS = "server_code_exists";
     public static final String ERROR_METADATA_SERVERCODE_NOT_PROVIDED = "server_code_not_provided";
     public static final String ERROR_MISSING_PARAMETER = "missing_parameter";
