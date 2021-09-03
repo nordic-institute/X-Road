@@ -48,15 +48,11 @@ import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemPa
 @Transactional
 public class CentralServerSystemParameterServiceTest extends AbstractFacadeMockingTestContext {
 
-
-
-
     @MockBean
     HAConfigStatus currentHaConfigStatus;
 
     @Autowired
     SystemParameterRepository systemParameterRepository;
-
 
     @Autowired
     CentralServerSystemParameterService centralServerSystemParameterService;

@@ -26,8 +26,10 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
+import org.niis.xroad.centralserver.restapi.service.TokenPinValidator;
 import org.niis.xroad.centralserver.restapi.util.TestUtils;
 import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,6 +52,14 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
     private final ObjectMapper testObjectMapper = new ObjectMapper();
     @Autowired
     TestRestTemplate restTemplate;
+
+    @Autowired
+    private TokenPinValidator tokenPinValidator;
+
+    @After
+    public void cleanUp() {
+        tokenPinValidator.setTokenPinEnforced(false);
+    }
 
     @Test
     public void initializationInvalidParamsRespondsCorrectly() {
@@ -115,7 +125,6 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
         assertTrue(metadata.containsAll(expectedMetadata));
     }
 
-
     @Test
     public void nonAuthorizedInitializationShoudFail() {
         InitialServerConf validConf = new InitialServerConf()
@@ -148,5 +157,4 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
         assertEquals(HttpStatus.OK.value(), response.getStatusCodeValue());
 
     }
-
 }

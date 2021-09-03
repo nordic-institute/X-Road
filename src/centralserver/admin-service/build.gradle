@@ -131,7 +131,6 @@ dependencies {
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
     testImplementation('org.hsqldb:hsqldb')
-    testImplementation('org.mockito:mockito-inline')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')

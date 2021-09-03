@@ -34,8 +34,6 @@ import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
-import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
-import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +42,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -52,7 +49,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
 
 @WithMockUser(authorities = {"INIT_CONFIG"})
 @Transactional
@@ -60,9 +56,6 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Autowired
     InitializationApiController initializationApiController;
-
-    @Autowired
-    SystemParameterRepository systemParameterRepository;
 
     private InitialServerConf okConf;
     private TokenInfo testSWToken;
@@ -146,10 +139,6 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
 
-        List<SystemParameter> storedCentralServerAddresses = systemParameterRepository
-                .findSystemParametersByKey(CENTRAL_SERVER_ADDRESS);
-        assertEquals(1, storedCentralServerAddresses.size());
-        assertEquals(okConf.getCentralServerAddress(), storedCentralServerAddresses.iterator().next().getValue());
         ResponseEntity<InitializationStatus> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertNotNull(statusResponseEntity.getBody());
