@@ -107,12 +107,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void getInitializationStatusFromSignerProxy() throws Exception {
-        TokenInfo tokenInfo1 = new TokenTestUtils.TokenInfoBuilder()
-                .copy(testSWToken)
-                .friendlyName("token for getInitializationStatusFromSignerProxy")
-                .build();
-
-        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(tokenInfo1));
+        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
         ResponseEntity<InitializationStatus> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertTrue(statusResponseEntity.hasBody());
@@ -124,15 +119,9 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void initCentralServer() throws Exception {
-        TokenInfo tokenInfo2 = new TokenTestUtils.TokenInfoBuilder()
-                .copy(testSWToken)
-                .friendlyName("token for initCentralServer case")
-                .build();
-
         when(signerProxyFacade.getTokens()).thenReturn(
-                Collections.emptyList(),  // For 1st status query during initCentralServer() call
-                Collections.singletonList(tokenInfo2)  // for the getInitializationStatus
-        );
+                        Collections.emptyList())  // For 1st status query during initCentralServer() call
+                .thenReturn(Collections.singletonList(testSWToken)); // for the getInitializationStatus
 
         InitialServerConf initialServerConf1 = okConf.centralServerAddress("initCentralServer.example.org");
         ResponseEntity<Void> response = initializationApiController.initCentralServer(initialServerConf1);
@@ -164,19 +153,14 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void initCentralServerAlreadyInitialized() throws Exception {
         String testAddress = "initCentralServerAlreadyInitialized.example.org";
-        TokenInfo tokenInfo3 = new TokenTestUtils.TokenInfoBuilder()
-                .copy(testSWToken)
-                .friendlyName("token for initCentralServerAlreadyInitialized case")
-                .build();
         InitialServerConf testInitConf = new InitialServerConf()
                 .centralServerAddress(testAddress)
                 .instanceIdentifier("initCentralServerAlreadyInitialized-instance")
                 .softwareTokenPin("12341234");
+        when(signerProxyFacade.getTokens())
+                .thenReturn(Collections.emptyList())
+                .thenReturn(Collections.singletonList(testSWToken));
 
-        when(signerProxyFacade.getTokens()).thenReturn(
-                Collections.emptyList(),
-                Collections.singletonList(tokenInfo3)
-        );
         assertDoesNotThrow(() -> initializationApiController.initCentralServer(testInitConf));
         assertThrows(ConflictException.class, () -> initializationApiController.initCentralServer(testInitConf));
 
