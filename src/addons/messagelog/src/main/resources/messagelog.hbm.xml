@@ -5,9 +5,7 @@
 <hibernate-mapping>
 
     <class name="ee.ria.xroad.common.messagelog.AbstractLogRecord" table="LOGRECORD">
-        <id name="id" type="long" access="field">
-            <generator class="native"/>
-        </id>
+        <id name="id" type="long" access="field"/>
 
         <discriminator column="DISCRIMINATOR" type="string"/>
 
@@ -15,13 +13,13 @@
         <property name="archived" access="field"/>
 
         <subclass name="ee.ria.xroad.common.messagelog.MessageRecord" discriminator-value="m">
-            <property name="queryId" access="field" type="string"/>
-            <property name="message" access="field" type="text"/>
+            <property name="queryId" access="field" type="string" update="false"/>
+            <property name="message" access="field" type="text" update="false"/>
             <property name="signature" access="field" type="text"/>
 
-            <property name="memberClass" access="field" type="string"/>
-            <property name="memberCode" access="field" type="string"/>
-            <property name="subsystemCode" access="field" type="string"/>
+            <property name="memberClass" access="field" type="string" update="false"/>
+            <property name="memberCode" access="field" type="string" update="false"/>
+            <property name="subsystemCode" access="field" type="string" update="false"/>
 
             <property name="hashChain" access="field" type="text"/>
             <property name="hashChainResult" access="field" type="text"/>
@@ -32,9 +30,13 @@
                          class="ee.ria.xroad.common.messagelog.TimestampRecord"/>
 
             <property name="timestampHashChain" access="field" type="text"/>
-            <property name="response" access="field" type="boolean"/>
-            <property name="attachment" access="field" lazy="true" type="blob" update="false"/>
-            <property name="xRequestId" access="field" type="string"/>
+            <property name="response" access="field" type="boolean" update="false"/>
+            <!-- length for DDL only -->
+            <property name="attachment" access="field" lazy="true" type="blob" update="false" length="1000000"/>
+            <property name="xRequestId" access="field" type="string" update="false"/>
+            <property name="keyId" access="field" type="string" update="false"/>
+            <!-- length for DDL only -->
+            <property name="cipherMessage" access="field" update="false" length="1000000"/>
         </subclass>
 
         <subclass name="ee.ria.xroad.common.messagelog.TimestampRecord" discriminator-value="t">
@@ -76,5 +78,10 @@
             SELECT id FROM logrecord ORDER BY id LIMIT :limit) l)
         ]]>
     </sql-query>
+
+    <database-object>
+        <create>CREATE SEQUENCE logrecord_sequence START WITH 1 INCREMENT BY 1</create>
+        <drop>DROP SEQUENCE logrecord_sequence</drop>
+    </database-object>
 
 </hibernate-mapping>

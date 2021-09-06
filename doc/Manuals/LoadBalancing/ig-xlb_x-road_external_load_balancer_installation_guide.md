@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.12  
+Version: 1.13  
 Doc. ID: IG-XLB
 
 
@@ -19,6 +19,7 @@ Doc. ID: IG-XLB
 | 19.10.2020  | 1.10        | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
 | 23.12.2020  | 1.11        | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                 |
 | 02.07.2021  | 1.12        | Updates for state sync                                                                                                   | Jarkko Hyöty                 |
+| 25.08.2021  | 1.13        | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki               |
 
 ## Table of Contents
 
@@ -100,7 +101,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 |:--------------:|:-----------------------------------------------------------------------------------------|
 | \[SS-CLUSTER\] | [Readme: Security server cluster setup with Ansible](../../../ansible/ss_cluster/README.md) |
 | \[IG-SS\] | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md) |
-| \[UG-SS\] | [X-Road 6 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md) |
+| \[UG-SS\] | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md) |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)
 
 ## 2. Overview

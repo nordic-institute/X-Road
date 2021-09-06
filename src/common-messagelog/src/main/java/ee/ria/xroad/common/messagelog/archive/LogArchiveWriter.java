@@ -58,12 +58,13 @@ public class LogArchiveWriter implements Closeable {
     private final LogArchiveBase archiveBase;
 
     private final LinkingInfoBuilder linkingInfoBuilder;
-    private final LogArchiveCache logArchiveCache;
+
+    private LogArchiveCache logArchiveCache;
 
     private Path archiveTmp;
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
-
+    private final EncryptionConfigProvider encryptionConfigProvider;
     private Grouping grouping;
 
     /**
@@ -75,18 +76,14 @@ public class LogArchiveWriter implements Closeable {
     public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
-
         this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());
-
-        this.logArchiveCache = new LogArchiveCache(
-                () -> randomAlphanumeric(RANDOM_LENGTH),
-                linkingInfoBuilder,
-                outputPath
-        );
+        this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }
 
     /**
-     * Write a message log record.
+     * Write a message log record to an archive. If message record grouping is enabled, assumes that the records are
+     * ordered by the group and starts a new archive accordingly. If encryption is enabled, the archives will be
+     * encrypted.
      *
      * @param logRecord the log record
      * @return true if the a archive file was rotated
@@ -101,13 +98,12 @@ public class LogArchiveWriter implements Closeable {
         boolean rotated = false;
 
         if (grouping == null) {
-            grouping = groupingStrategy.forRecord(logRecord);
-            linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
+            prepareGrouping(logRecord);
         } else {
             if (!grouping.includes(logRecord)) {
                 rotate();
-                grouping = groupingStrategy.forRecord(logRecord);
-                linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
+                logArchiveCache.close();
+                prepareGrouping(logRecord);
                 rotated = true;
             }
         }
@@ -120,6 +116,16 @@ public class LogArchiveWriter implements Closeable {
             return true;
         }
         return rotated;
+    }
+
+    private void prepareGrouping(MessageRecord logRecord) throws IOException {
+        grouping = groupingStrategy.forRecord(logRecord);
+        linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
+        logArchiveCache = new LogArchiveCache(
+                () -> randomAlphanumeric(RANDOM_LENGTH),
+                linkingInfoBuilder,
+                encryptionConfigProvider.forGrouping(grouping),
+                outputPath);
     }
 
     @Override
@@ -143,12 +149,14 @@ public class LogArchiveWriter implements Closeable {
 
     protected String getArchiveFilename(String random) {
         final String groupName = escape(grouping.name());
+        final String suffix = encryptionConfigProvider.isEncryptionEnabled() ? "zip.gpg" : "zip";
 
-        return String.format("mlog-%.200s%s-%s-%.16s.zip",
+        return String.format("mlog-%.200s%s-%s-%.16s.%s",
                 groupName == null ? "" : groupName + "-",
                 simpleDateFormat.format(logArchiveCache.getStartTime()),
                 simpleDateFormat.format(logArchiveCache.getEndTime()),
-                random);
+                random,
+                suffix);
     }
 
     protected void rotate() throws IOException {

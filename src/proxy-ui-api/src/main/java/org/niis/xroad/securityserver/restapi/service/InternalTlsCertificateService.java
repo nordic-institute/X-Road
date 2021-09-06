@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.util.CertUtils;
 import ee.ria.xroad.common.util.CryptoUtils;
 
+import com.google.common.collect.Iterables;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -51,6 +52,7 @@ import java.io.IOException;
 import java.security.PublicKey;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.Collection;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_KEY_CERT_GENERATION_FAILED;
 
@@ -101,6 +103,10 @@ public class InternalTlsCertificateService {
 
     public X509Certificate getInternalTlsCertificate() {
         return internalTlsCertificateRepository.getInternalTlsCertificate();
+    }
+
+    public Collection<X509Certificate> getInternalTlsCertificateChain() {
+        return internalTlsCertificateRepository.getInternalTlsCertificateChain();
     }
 
     /**
@@ -179,17 +185,22 @@ public class InternalTlsCertificateService {
      */
     public X509Certificate importInternalTlsCertificate(byte[] certificateBytes) throws InvalidCertificateException,
             KeyNotFoundException, CertificateAlreadyExistsException {
-        X509Certificate x509Certificate = null;
+        Collection<X509Certificate> x509Certificates = null;
         try {
-            x509Certificate = CryptoUtils.readCertificate(certificateBytes);
+            // the imported file can be a single certificate or a chain
+            x509Certificates = CryptoUtils.readCertificates(certificateBytes);
+            if (x509Certificates == null || x509Certificates.isEmpty()) {
+                throw new InvalidCertificateException("cannot convert bytes to certificate");
+            }
         } catch (Exception e) {
             throw new InvalidCertificateException("cannot convert bytes to certificate", e);
         }
-        auditDataHelper.putCertificateHash(x509Certificate);
-        verifyInternalCertImportability(x509Certificate);
+        auditDataHelper.putCertificateHash(Iterables.get(x509Certificates, 0));
+        verifyInternalCertImportability(x509Certificates);
         try {
+            // create pkcs12 checks the certificate chain validity
+            CertUtils.createPkcs12(internalKeyPath, certificateBytes, internalKeystorePath);
             CertUtils.writePemToFile(certificateBytes, internalCertPath);
-            CertUtils.createPkcs12(internalKeyPath, internalCertPath, internalKeystorePath);
         } catch (Exception e) {
             log.error("Failed to import internal TLS cert", e);
             throw new DeviationAwareRuntimeException("cannot import internal TLS cert", e,
@@ -198,24 +209,25 @@ public class InternalTlsCertificateService {
 
         clearCacheService.executeClearConfigurationCache();
 
-        return x509Certificate;
+        return Iterables.get(x509Certificates, 0);
     }
 
     /**
-     * Verifies that the cert matches the internal TLS key and that the cert is not already imported
+     * Verifies that the chain matches the internal TLS key
      *
-     * @param newCert the cert to be imported
+     * @param newCertChain the cert chain to be imported
      * @throws KeyNotFoundException if the public key of the cert does not match
      * @throws CertificateAlreadyExistsException if the certificate has already been imported
      */
-    private void verifyInternalCertImportability(X509Certificate newCert) throws KeyNotFoundException,
-            CertificateAlreadyExistsException {
-        X509Certificate internalCert = getInternalTlsCertificate();
-        PublicKey internalPublicKey = internalCert.getPublicKey();
-        PublicKey newCertPublicKey = newCert.getPublicKey();
-        if (!internalPublicKey.equals(newCertPublicKey)) {
+    private void verifyInternalCertImportability(Collection<X509Certificate> newCertChain)
+            throws KeyNotFoundException, CertificateAlreadyExistsException {
+        Collection<X509Certificate> internalCertChain = getInternalTlsCertificateChain();
+        PublicKey internalPublicKey = Iterables.get(internalCertChain, 0).getPublicKey();
+
+        boolean found = newCertChain.stream().anyMatch(c -> c.getPublicKey().equals(internalPublicKey));
+        if (!found) {
             throw new KeyNotFoundException("The imported cert does not match the internal TLS key");
-        } else if (internalCert.equals(newCert)) {
+        } else if (Iterables.elementsEqual(internalCertChain, newCertChain)) {
             throw new CertificateAlreadyExistsException("The imported cert already exists");
         }
     }

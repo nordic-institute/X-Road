@@ -31,6 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
+import ee.ria.xroad.common.message.RestMessage;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.message.SoapParserImpl;
 import ee.ria.xroad.common.signature.SignatureData;
@@ -41,6 +43,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.message.BasicHeader;
 import org.hibernate.query.Query;
 
 import java.io.ByteArrayInputStream;
@@ -95,6 +98,11 @@ final class TestUtil {
                     throw new CertificateException(e);
                 }
             }
+
+            @Override
+            public String getInstanceIdentifier() {
+                return "XRD";
+            }
         };
     }
 
@@ -115,6 +123,7 @@ final class TestUtil {
 
         ServerConf.reload(getServerConf());
         GlobalConf.reload(getGlobalConf());
+        MessageLogEncryption.reload();
     }
 
     static void cleanUpDatabase() throws Exception {
@@ -144,6 +153,19 @@ final class TestUtil {
         return (SoapMessageImpl) new SoapParserImpl().parse(
                 MimeTypes.TEXT_XML_UTF8,
                 new ByteArrayInputStream(soap.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    static RestRequest createRestRequest(String queryId, String xRequestId) {
+        return new RestRequest(
+                "POST",
+                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
+                null,
+                Arrays.asList(
+                        new BasicHeader("X-Road-Client", "Instance/Class/Member/SubSystem"),
+                        new BasicHeader("X-Road-Id", queryId),
+                        new BasicHeader("X-Road-ServerId", "Instance/Class/Member/ServerCode")),
+                xRequestId
+        );
     }
 
     static SignatureData createSignature() throws Exception {

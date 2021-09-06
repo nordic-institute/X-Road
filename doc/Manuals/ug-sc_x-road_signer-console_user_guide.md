@@ -4,9 +4,9 @@
 
 # SIGNER CONSOLE USER GUIDE <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 2.7  
+Version: 2.8  
 Doc. ID: UG-SC
 
 ---
@@ -30,6 +30,7 @@ Doc. ID: UG-SC
  10.12.2015 | 2.5     | Editorial changes made                                          |
  26.02.2021 | 2.6     | Convert documentation to markdown | Caro Hautamäki
  01.03.2021 | 2.7     | Added [2.4.19 update-software-token-pin](#2419-update-software-token-pin) | Caro Hautamäki
+ 25.08.2021 | 2.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
  
 ## Table of Contents <!-- omit in toc -->

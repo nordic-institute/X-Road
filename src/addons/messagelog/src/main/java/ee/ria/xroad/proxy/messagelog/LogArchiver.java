@@ -119,6 +119,7 @@ public class LogArchiver extends UntypedAbstractActor {
                         try {
                             MessageRecord record = it.next();
                             recordIds.add(record.getId());
+                            MessageLogEncryption.getInstance().prepareDecryption(record);
                             if (archiveWriter.write(record)) {
                                 runTransferCommand(archiveTransferCommand);
                             }
@@ -205,9 +206,9 @@ public class LogArchiver extends UntypedAbstractActor {
         final Root<MessageRecord> m = query.from(MessageRecord.class);
 
         query.select(m).where(cb.and(
-                cb.isNotNull(m.get("timestampRecord")),
-                cb.isFalse(m.get(PROPERTY_NAME_ARCHIVED)),
-                cb.lessThanOrEqualTo(m.get("id"), maxId)))
+                        cb.isNotNull(m.get("timestampRecord")),
+                        cb.isFalse(m.get(PROPERTY_NAME_ARCHIVED)),
+                        cb.lessThanOrEqualTo(m.get("id"), maxId)))
                 .orderBy(
                         cb.asc(m.get("memberClass")),
                         cb.asc(m.get("memberCode")),

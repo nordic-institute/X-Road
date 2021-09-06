@@ -31,15 +31,19 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameter;
+import org.junit.runners.Parameterized.Parameters;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -72,6 +76,8 @@ import static org.mockito.Mockito.when;
 /**
  * Actually tests inner class of LogArchive.
  */
+@RunWith(Parameterized.class)
+@Slf4j
 public class LogArchiveCacheTest {
     private static final int TOO_LARGE_CONTAINER_SIZE = 10000;
     private static final int ARCHIVE_SIZE_SMALL = 50;
@@ -90,19 +96,29 @@ public class LogArchiveCacheTest {
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
     private static final long LOG_TIME_RESPONSE_NORMAL = 1428664927050L;
 
+    @Parameter(0)
+    public boolean encrypted;
+
     private LogArchiveCache cache;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    @Parameters(name = "encrypted = {0}")
+    public static Object[] params() {
+        return new Object[] {Boolean.FALSE, Boolean.TRUE};
+    }
 
     @Before
     public void setup() {
+        if (encrypted) {
+            Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
+        }
         cache = createCache(getMockRandomGenerator());
     }
 
     @After
-    public void tearDown() throws IOException {
-        cache.close();
+    public void tearDown() {
+        if (cache != null) {
+            cache.close();
+        }
     }
 
     /**
@@ -153,13 +169,9 @@ public class LogArchiveCacheTest {
      *
      * @throws Exception in case of any unexpected errors
      */
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void doNotAllowNullMessageRecords() throws Exception {
-        thrown.expect(IllegalArgumentException.class);
-
         cache.add(null);
-
-        thrown.expectMessage("Message record to be archived must not be null");
     }
 
     /**
@@ -216,7 +228,26 @@ public class LogArchiveCacheTest {
     private byte[] getArchiveBytes() throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         final Path archive = cache.getArchiveFile();
-        IOUtils.copy(Files.newInputStream(archive), bos);
+        final InputStream is;
+
+        if (encrypted) {
+            is = new GPGInputStream(Paths.get("build/gpg"), archive);
+        } else {
+            is = Files.newInputStream(archive);
+        }
+
+        try (InputStream src = is) {
+            IOUtils.copy(src, bos);
+        }
+
+        if (encrypted) {
+            GPGInputStream gis = ((GPGInputStream) is);
+            assertEquals(0, gis.getExitCode());
+            assertEquals(2, gis.getStatus().stream()
+                    .filter(it -> it.contains("DECRYPTION_OKAY") || it.contains("GOODSIG"))
+                    .count());
+        }
+
         Files.delete(archive);
         return bos.toByteArray();
     }
@@ -402,6 +433,8 @@ public class LogArchiveCacheTest {
         return new LogArchiveCache(
                 randomGenerator,
                 mockLinkingInfoBuilder(),
+                encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null)
+                        : EncryptionConfig.DISABLED,
                 Paths.get("build/tmp/")
         );
     }

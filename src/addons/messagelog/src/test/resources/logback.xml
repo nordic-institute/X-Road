@@ -19,6 +19,7 @@
 
     <logger name="ee.ria.xroad" level="DEBUG" />
     <logger name="ee.ria.xroad.proxy.messagelog" level="TRACE" />
+    <logger name="org.hibernate.SQL" level="DEBUG" />
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />

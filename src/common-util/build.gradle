@@ -18,7 +18,7 @@ sourceSets {
 
 dependencies {
     api 'org.apache.santuario:xmlsec:2.2.2'
-    api 'org.bouncycastle:bcpkix-jdk15on:1.69'
+    api "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}"
     api 'org.apache.commons:commons-lang3:3.12.0'
     api 'commons-io:commons-io:2.10.0'
     api 'org.slf4j:jcl-over-slf4j:1.7.30'

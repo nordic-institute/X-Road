@@ -296,6 +296,10 @@ class SystemSettingsController < ApplicationController
       end
     end
 
+    unless security_server_client
+      return
+    end
+
     security_servers.concat(ServerClient \
       .where(:security_server_client_id => security_server_client.id) \
       .joins(:security_server) \

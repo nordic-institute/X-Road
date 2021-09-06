@@ -25,7 +25,8 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.ExpectedCodedException;
+import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.LogRecord;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -34,9 +35,11 @@ import ee.ria.xroad.common.messagelog.TimestampRecord;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -48,6 +51,7 @@ import static org.junit.Assert.assertTrue;
  * Exercises entire logic of archiving log entries. Actually depends on
  * LogArchiveCacheTest.
  */
+@RunWith(Parameterized.class)
 public class LogArchiveTest {
 
     private static final int NUM_TIMESTAMPS = 3;
@@ -56,8 +60,24 @@ public class LogArchiveTest {
     private static boolean rotated;
     private long recordNo;
 
-    @Rule
-    public ExpectedCodedException thrown = ExpectedCodedException.none();
+    @Parameterized.Parameter(0)
+    public boolean encrypted;
+
+    @Parameterized.Parameter(1)
+    public GroupingStrategy groupingStrategy;
+
+
+    @Parameterized.Parameters(name = "encrypted = {0}, grouping = {1}")
+    public static Object[][] params() {
+        return new Object[][] {
+                {Boolean.FALSE, GroupingStrategy.NONE},
+                {Boolean.FALSE, GroupingStrategy.MEMBER},
+                {Boolean.FALSE, GroupingStrategy.SUBSYSTEM},
+                {Boolean.TRUE, GroupingStrategy.NONE},
+                {Boolean.TRUE, GroupingStrategy.MEMBER},
+                {Boolean.TRUE, GroupingStrategy.SUBSYSTEM}
+        };
+    }
 
     /**
      * Preparations for testing log archive.
@@ -65,13 +85,32 @@ public class LogArchiveTest {
      */
     @Before
     public void beforeTest() throws Exception {
+        GlobalConf.reload(new EmptyGlobalConf() {
+            @Override
+            public String getInstanceIdentifier() {
+                return "INSTANCE";
+            }
+        });
+
+        if (encrypted) {
+            Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
+        }
         recordNo = 0;
         rotated = false;
         Files.createDirectory(Paths.get("build/slog"));
+        System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR, "build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
+        System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, groupingStrategy.name());
     }
 
     @After
     public void afterTest() {
+        System.clearProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
+        System.clearProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE);
+        System.clearProperty(MessageLogProperties.ARCHIVE_GROUPING);
         FileUtils.deleteQuietly(Paths.get("build/slog").toFile());
     }
 
@@ -84,7 +123,6 @@ public class LogArchiveTest {
     @Test
     public void writeAndRotate() throws Exception {
         System.setProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE, "50");
-
         writeRecordsToLog(false);
         assertTrue(rotated);
     }
@@ -157,7 +195,7 @@ public class LogArchiveTest {
 
         MessageRecord record = new MessageRecord("qid" + recordNo,
                 "msg" + recordNo, "sig" + recordNo, false,
-                ClientId.create("memberClass", "memberCode", "subsystemCode"),
+                ClientId.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),
                 "92060130-3ba8-4e35-89e2-41b90aac074b");
         record.setId(recordNo);
         record.setTime((long)(Math.random() * 100000L));

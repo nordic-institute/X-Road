@@ -32,6 +32,8 @@ import ee.ria.xroad.common.util.CryptoUtils;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -63,17 +65,23 @@ public final class MessageLogProperties {
 
     private static final String PREFIX = "xroad.message-log.";
 
-    /** Property name of the timestamper client connect timeout (milliseconds). */
+    /**
+     * Property name of the timestamper client connect timeout (milliseconds).
+     */
     public static final String TIMESTAMPER_CLIENT_CONNECT_TIMEOUT = PREFIX + "timestamper-client-connect-timeout";
 
-    /** Property name of the timestamper client read timeout (milliseconds). */
+    /**
+     * Property name of the timestamper client read timeout (milliseconds).
+     */
     public static final String TIMESTAMPER_CLIENT_READ_TIMEOUT = PREFIX + "timestamper-client-read-timeout";
 
     public static final String TIMESTAMP_IMMEDIATELY = PREFIX + "timestamp-immediately";
 
     public static final String TIMESTAMP_RECORDS_LIMIT = PREFIX + "timestamp-records-limit";
 
-    /** Property name of the timestamp retry delay (seconds). */
+    /**
+     * Property name of the timestamp retry delay (seconds).
+     */
     public static final String TIMESTAMP_RETRY_DELAY = PREFIX + "timestamp-retry-delay";
 
     public static final String ACCEPTABLE_TIMESTAMP_FAILURE_PERIOD = PREFIX + "acceptable-timestamp-failure-period";
@@ -96,38 +104,70 @@ public final class MessageLogProperties {
 
     public static final String ARCHIVE_TRANSFER_COMMAND = PREFIX + "archive-transfer-command";
 
-    /** log archive grouping strategy, one of
-     *  none, member, subsystem
+    /**
+     * log archive grouping strategy, one of
+     * none, member, subsystem
      **/
     public static final String ARCHIVE_GROUPING = PREFIX + "archive-grouping";
 
     /**
      * Property name for toggling SOAP body logging on/off
+     *
      * @deprecated
      **/
     public static final String SOAP_BODY_LOGGING_ENABLED = PREFIX + "soap-body-logging";
 
-    /** Property name for toggling message body logging on/off **/
+    /**
+     * Property name for toggling message body logging on/off
+     **/
     public static final String MESSAGE_BODY_LOGGING_ENABLED = PREFIX + "message-body-logging";
 
-    /** Prefix for enable-overriding message body logging **/
+    /**
+     * Prefix for enable-overriding message body logging
+     **/
     private static final String MESSAGE_BODY_LOGGING_ENABLE = PREFIX + "enabled-body-logging";
 
-    /** Prefix for disable-overriding message body logging **/
+    /**
+     * Prefix for disable-overriding message body logging
+     **/
     private static final String MESSAGE_BODY_LOGGING_DISABLE = PREFIX + "disabled-body-logging";
 
-    /** Postfix for overriding message body logging for local producers **/
+    /**
+     * Postfix for overriding message body logging for local producers
+     **/
     private static final String MESSAGE_BODY_LOGGING_LOCAL_PRODUCER = "-local-producer-subsystems";
 
-    /** Postfix for overriding message body logging for remote producers **/
+    /**
+     * Postfix for overriding message body logging for remote producers
+     **/
     private static final String MESSAGE_BODY_LOGGING_REMOTE_PRODUCER = "-remote-producer-subsystems";
 
-    /** max loggable body size for rest messages **/
+    /**
+     * max loggable body size for rest messages
+     **/
     private static final String MAX_LOGGABLE_MESSAGE_BODY_SIZE = PREFIX + "max-loggable-message-body-size";
 
-    /** is truncating body in logging allowed **/
+    /**
+     * is truncating body in logging allowed
+     **/
     private static final String REST_TRUNCATED_BODY_ALLOWED = PREFIX + "truncated-body-allowed";
 
+    public static final String ARCHIVE_ENCRYPTION_ENABLED = PREFIX + "archive-encryption-enabled";
+
+    public static final String ARCHIVE_GPG_HOME_DIRECTORY = PREFIX + "archive-gpg-home-directory";
+
+    public static final String ARCHIVE_ENCRYPTION_KEYS_DIR = PREFIX + "archive-encryption-keys-dir";
+
+    public static final String ARCHIVE_DEFAULT_ENCRYPTION_KEY = PREFIX + "archive-default-encryption-key";
+
+    public static final String MESSAGELOG_ENCRYPTION_ENABLED = PREFIX + "messagelog-encryption-enabled";
+
+    public static final String MESSAGELOG_KEYSTORE = PREFIX + "messagelog-keystore";
+
+    public static final String MESSAGELOG_KEYSTORE_PASSWORD = PREFIX + "messagelog-keystore-password";
+    public static final String MESSAGELOG_KEYSTORE_PASSWORD_ENV = MESSAGELOG_KEYSTORE_PASSWORD.toUpperCase()
+            .replace('.', '_');
+    public static final String MESSAGELOG_KEY_ID = PREFIX + "messagelog-key-id";
 
     public static final int NUM_COMPONENTS = 4;
     public static final int FIRST_COMPONENT = 0;
@@ -290,7 +330,6 @@ public final class MessageLogProperties {
         return getMessageBodyLoggingOverrides(true);
     }
 
-
     /**
      * Returns maximum loggable REST body size
      */
@@ -309,6 +348,47 @@ public final class MessageLogProperties {
 
     public static int getCleanTransactionBatchSize() {
         return Integer.getInteger(CLEAN_TRANSACTION_BATCH, DEFAULT_CLEAN_TRANSACTION_BATCH_SIZE);
+    }
+
+    public static boolean isArchiveEncryptionEnabled() {
+        return Boolean.getBoolean(ARCHIVE_ENCRYPTION_ENABLED);
+    }
+
+    public static Path getArchiveGPGHome() {
+        return Paths.get(System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
+    }
+
+    public static Path getArchiveEncryptionKeysDir() {
+        return Paths.get(System.getProperty(ARCHIVE_ENCRYPTION_KEYS_DIR,
+                System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome")));
+    }
+
+    public static Path getArchiveDefaultEncryptionKey() {
+        final String property = System.getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
+        if (property != null) {
+            return Paths.get(property);
+        }
+        return null;
+    }
+
+    /** @return keystore path for messagelog encryption keys or null if one is not defined */
+    public static Path getMessageLogKeyStore() {
+        final String property = System.getProperty(MESSAGELOG_KEYSTORE);
+        return property == null ? null : Paths.get(property);
+    }
+
+    public static String getMessageLogKeyId() {
+        return System.getProperty(MESSAGELOG_KEY_ID);
+    }
+
+    public static boolean isMessageLogEncryptionEnabled() {
+        return Boolean.getBoolean(MESSAGELOG_ENCRYPTION_ENABLED);
+    }
+
+    public static char[] getMessageLogKeyStorePassword() {
+        final String property = System.getProperty(MESSAGELOG_KEYSTORE_PASSWORD,
+                System.getenv().get(MESSAGELOG_KEYSTORE_PASSWORD_ENV));
+        return property == null ? null : property.toCharArray();
     }
 
     private static String getMessageBodyLoggingOverrideParameterName(boolean enable, boolean local) {
