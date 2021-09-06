@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.40  
+Version: 2.41  
 Doc. ID: IG-SS
 
 ---
@@ -64,6 +64,7 @@ Doc. ID: IG-SS
  18.08.2021 | 2.38    | Minor updates to Annex D | Ilkka Seppälä
  25.08.2021 | 2.39    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  26.08.2021 | 2.40    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
+ 06.09.2021 | 2.41    | Update list of running services | Jarkko Hyöty
 
 ## License
 
@@ -74,46 +75,45 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  - [1.1 Target Audience](#11-target-audience)
-  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  - [1.3 References](#13-references)
-- [2 Installation](#2-installation)
-  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  - [2.2 Reference Data](#22-reference-data)
-    - [2.2.1 Network Diagram](#221-network-diagram)
-  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Setup Package Repository](#25-setup-package-repository)
-  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
-  - [2.8 Security Server Installation](#28-security-server-installation)
-  - [2.9 Post-Installation Checks](#29-post-installation-checks)
-  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
-  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
-- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  - [3.1 Prerequisites](#31-prerequisites)
-  - [3.2 Reference Data](#32-reference-data)
-  - [3.3 Configuration](#33-configuration)
-  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
-- [4 Installation Error handling](#4-installation-error-handling)
-  - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
-  - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
-  - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
-  - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
-  - [4.6 ERROR: Upgrade supported from version X.Y.Z or newer](#46-error-upgrade-supported-from-version-xyz-or-newer)
-- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-- [Annex B Default Database Users](#annex-b-default-database-users)
-- [Annex C Deployment Options](#annex-c-deployment-options)
-  - [C.1 General](#c1-general)
-  - [C.2 Local Database](#c2-local-database)
-  - [C.3 Remote Database](#c3-remote-database)
-  - [C.4 High Availability Setup](#c4-high-availability-setup)
-  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
-  - [C.6 Summary](#c6-summary)
-- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+* [1 Introduction](#1-introduction)
+  * [1.1 Target Audience](#11-target-audience)
+  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  * [1.3 References](#13-references)
+* [2 Installation](#2-installation)
+  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  * [2.2 Reference Data](#22-reference-data)
+    * [2.2.1 Network Diagram](#221-network-diagram)
+  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  * [2.4 Preparing OS](#24-preparing-os)
+  * [2.5 Setup Package Repository](#25-setup-package-repository)
+  * [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  * [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  * [2.8 Security Server Installation](#28-security-server-installation)
+  * [2.9 Post-Installation Checks](#29-post-installation-checks)
+  * [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  * [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  * [3.1 Prerequisites](#31-prerequisites)
+  * [3.2 Reference Data](#32-reference-data)
+  * [3.3 Configuration](#33-configuration)
+  * [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
+* [4 Installation Error handling](#4-installation-error-handling)
+  * [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  * [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
+  * [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+  * [4.6 ERROR: Upgrade supported from version X.Y.Z or newer](#46-error-upgrade-supported-from-version-xyz-or-newer)
+* [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+* [Annex B Default Database Users](#annex-b-default-database-users)
+* [Annex C Deployment Options](#annex-c-deployment-options)
+  * [C.1 General](#c1-general)
+  * [C.2 Local Database](#c2-local-database)
+  * [C.3 Remote Database](#c3-remote-database)
+  * [C.4 High Availability Setup](#c4-high-availability-setup)
+  * [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  * [C.6 Summary](#c6-summary)
+* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -371,17 +371,18 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
-    ```
-    sudo systemctl list-units "xroad*"
+  ```
+  sudo systemctl list-units "xroad-*"
 
-    UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
-    xroad-base.service       loaded active exited  X-Road initialization
-    xroad-confclient.service loaded active running X-Road confclient
-    xroad-monitor.service    loaded active running X-Road Monitor
-    xroad-proxy-ui-api.service loaded active running X-Road Proxy UI REST API
-    xroad-proxy.service      loaded active running X-Road Proxy
-    xroad-signer.service     loaded active running X-Road signer
-    ```
+  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
+  xroad-addon-messagelog.service loaded active running X-Road Messagelog Archiver
+  xroad-base.service             loaded active exited  X-Road initialization
+  xroad-confclient.service       loaded active running X-Road confclient
+  xroad-monitor.service          loaded active running X-Road Monitor
+  xroad-proxy-ui-api.service     loaded active running X-Road Proxy UI REST API
+  xroad-proxy.service            loaded active running X-Road Proxy
+  xroad-signer.service           loaded active running X-Road signer
+  ```
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 ### 2.10 Installing the Support for Hardware Tokens

@@ -665,6 +665,8 @@ public final class SystemProperties {
     public static final String CONF_FILE_ADDON_PATH =
             getConfPath() + "conf.d/addons/";
 
+    public static final String CONF_FILE_MESSAGE_LOG = CONF_FILE_ADDON_PATH + "message-log.ini";
+
     // --------------------------------------------------------------------- //
 
     // For testing purpose only!
