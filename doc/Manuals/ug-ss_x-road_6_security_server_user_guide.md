@@ -1838,7 +1838,9 @@ following configuration:
   - members' sign keys and certificates (that are stored in soft token)
   - security server's internal TLS key and certificate
   - security server's UI key and certificate
-- database credentials.
+- database credentials
+
+Notice that starting from X-Road v7.0, the backup archive file no longer contains the local override file `/etc/xroad/services/local.conf`, but instead `/etc/xroad/services/local.properties` file will be included.
 
 Backups contain sensitive information that must be kept secret (for example, private keys and database credentials).
 In other words, leaking this information could easily lead to full compromise of security server. Therefore, it is
@@ -2331,12 +2333,11 @@ application properties
 Size limit parameters support formats from Formats from [DataSize](https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/util/unit/DataSize.html),
 for example `5MB`.
 
-Command line arguments can be modified using configuration file `local.conf`.
-Example from `/etc/xroad/services/local.conf` with modifications:
+New command line arguments can be added, not replaced, using the configuration file `local.properties`.
+Example of `/etc/xroad/services/local.properties` with modifications:
 
 ```
-XROAD_PROXY_UI_API_PARAMS=" $XROAD_PROXY_UI_API_PARAMS -Dratelimit.requests.per.second=100"
-XROAD_PROXY_UI_API_PARAMS=" $XROAD_PROXY_UI_API_PARAMS -Drequest.sizelimit.binary.upload=1MB"
+XROAD_PROXY_UI_API_PARAMS=-Dratelimit.requests.per.second=100 -Drequest.sizelimit.binary.upload=1MB
 ```
 
 ### 19.1 API key management operations
