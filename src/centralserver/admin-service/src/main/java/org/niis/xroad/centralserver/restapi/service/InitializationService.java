@@ -85,6 +85,17 @@ public class InitializationService {
 
     public InitializationStatusDto getInitializationStatusDto() {
         TokenInitStatusInfo initStatusInfo;
+        initStatusInfo = getTokenInitStatusInfo();
+        InitializationStatusDto statusDto = new InitializationStatusDto();
+
+        statusDto.setInstanceIdentifier(getStoredInstanceIdentifier());
+        statusDto.setCentralServerAddress(getStoredCentralServerAddress());
+        statusDto.setTokenInitStatus(initStatusInfo);
+        return statusDto;
+    }
+
+    private TokenInitStatusInfo getTokenInitStatusInfo() {
+        TokenInitStatusInfo initStatusInfo;
         try {
             if (isSWTokenInitialized()) {
                 initStatusInfo = TokenInitStatusInfo.INITIALIZED;
@@ -95,12 +106,7 @@ public class InitializationService {
             log.info("getInitializationStatusDto - signer was not reachable", notReachableException);
             initStatusInfo = TokenInitStatusInfo.UNKNOWN;
         }
-        InitializationStatusDto statusDto = new InitializationStatusDto();
-
-        statusDto.setInstanceIdentifier(getStoredInstanceIdentifier());
-        statusDto.setCentralServerAddress(getStoredCentralServerAddress());
-        statusDto.setTokenInitStatus(initStatusInfo);
-        return statusDto;
+        return initStatusInfo;
     }
 
 
@@ -124,7 +130,7 @@ public class InitializationService {
             tokenPinValidator.validateSoftwareTokenPin(configDto.getSoftwareTokenPin().toCharArray());
         }
 
-        final boolean isSWTokenInitialized = isSWTokenInitialized();
+        final boolean isSWTokenInitialized = TokenInitStatusInfo.INITIALIZED == getTokenInitStatusInfo();
         final boolean isServerAddressInitialized = !getStoredCentralServerAddress().isEmpty();
         final boolean isInstanceIdentifierInitialized = !getStoredInstanceIdentifier().isEmpty();
         validateConfigParameters(configDto, isSWTokenInitialized, isServerAddressInitialized,
