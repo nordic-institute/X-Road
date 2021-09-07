@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 1.6<br/>
-02.06.2020
+Version: 1.7<br/>
+07.09.2021
 <!-- 3 pages -->
 Doc. ID: ARC-TEC
 
@@ -20,20 +20,24 @@ Doc. ID: ARC-TEC
  12.05.2020 | 1.4     | Add link to X-Road core tech radar                          | Petteri Kivimäki
  15.09.2020 | 1.5     | Updated to match security server REST API architecture      | Janne Mattila
  02.06.2021 | 1.6     | Backup encryption related updates                           | Andres Allkivi
+ 07.09.2021 | 1.7     | Update technologies                                         | Ilkka Seppälä
 
 ## Table of Contents
 
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-- [2 Overview matrix of the X-Road technology](#2-overview-matrix-of-the-x-road-technology)
-- [3 Central server technologies](#3-central-server-technologies)
-- [4 Configuration proxy technologies](#4-configuration-proxy-technologies)
-- [5 Security server technologies](#5-security-server-technologies)
-- [6 Operational monitoring daemon technologies](#6-operational-monitoring-daemon-technologies)
+- [X-Road technologies](#x-road-technologies)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+  - [1.1 Terms and abbreviations](#11-terms-and-abbreviations)
+  - [1.2 References](#12-references)
+  - [2 Overview matrix of the X-Road technology](#2-overview-matrix-of-the-x-road-technology)
+  - [3 Central server technologies](#3-central-server-technologies)
+  - [4 Configuration proxy technologies](#4-configuration-proxy-technologies)
+  - [5 Security server technologies](#5-security-server-technologies)
+  - [6 Operational monitoring daemon technologies](#6-operational-monitoring-daemon-technologies)
 
 <!-- tocstop -->
 
@@ -79,7 +83,7 @@ Table 1. Technology matrix of the X-Road
  JRuby 9                            |                     | X                  |                         |
  Ubuntu 18.04                       | X                   | X                  | X                       | X
  Red Hat Enterprise Linux 7 (RHEL7) | X                   |                    |                         | X
- PostgreSQL 9.4                     |                     | X\[[1](#Ref_1)\]   |                         |
+ Red Hat Enterprise Linux 8 (RHEL8) | X                   |                    |                         | X
  PostgreSQL 10                      | X                   | X                  |                         | X
  nginx                              |                     | X                  | X                       |
  PAM                                | X                   | X                  |                         |
@@ -94,12 +98,9 @@ Table 1. Technology matrix of the X-Road
  Typescript                         | X                   |                    |                         |  
  OpenAPI 3                          | X                   |                    |                         |  
  Embedded Tomcat 9                  | X                   |                    |                         |
- GNU Privacy Guard                  | X                   |                    |                         |
+ GNU Privacy Guard                  | X                   | X                  |                         |
 
 See [[ARC-G]](#ARC-G) for general X-Road architecture details.
-
-<a id="Ref_1" class="anchor"></a>
-\[1\] PostgreSQL 9.4 is used in High-Availability installation of X-Road central server.
 
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
@@ -109,27 +110,30 @@ See [[ARC-G]](#ARC-G) for general X-Road architecture details.
 
 ## 3 Central server technologies
 
-[Table 2](#Ref_Technology_matrix_of_the_central_server) presents the list of technologies used in the security server and the mapping between technologies and central server components.
+[Table 2](#Ref_Technology_matrix_of_the_central_server) presents the list of technologies used in the central server and the mapping between technologies and central server components.
 
 <a id="Ref_Technology_matrix_of_the_central_server" class="anchor"></a>
 Table 2. Technology matrix of the central server
 
- **Technology** | **Signer** | **Web Server** | **Password Store** | **Management Services** | **Database** | **User Interface** | **Servlet Engine**
-----------------|------------|----------------|--------------------|-------------------------|--------------|--------------------|--------------------
- Java 8         | X          |                |                    | X                       |              | X                  | X
- C              |            |                | X                  |                         |              |                    |
- Logback        | X          |                |                    | X                       |              | X                  |
- Akka 2         | X          |                |                    | X                       |              | X                  |
- Jetty 9        |            |                |                    |                         |              |                    | X
- JRuby 9        |            |                |                    |                         |              | X                  |
- Javascript     |            |                |                    |                         |              | X                  |
- PostgreSQL 9.4 |            |                |                    |                         | X\[[1](#Ref_1)\]         |                    |                  
- PostgreSQL 10  |            |                |                    |                         | X            |                    |
- nginx          |            | X              |                    |                         |              |                    |
- PAM            |            |                |                    |                         |              |                    | X
- Liquibase 3    |            |                |                    |                         | X            |                    |
- systemd        | X          | X              |                    |                         |              |                    | X
- PKCS \#11\[[2](#Ref_2)\]   | X          |                |                    |                         |              |                    |                  
+ **Technology**             | **Signer** | **Web Server** | **Password Store** | **Management Services** | **Database** | **User Interface** | **Servlet Engine** | **Backend Scripts** |
+----------------------------|------------|----------------|--------------------|-------------------------|--------------|--------------------|--------------------|---------------------|
+ Java 8                     | X          |                |                    | X                       |              | X                  | X                  |                     |
+ C                          |            |                | X                  |                         |              |                    |                    |                     |
+ Logback                    | X          |                |                    | X                       |              | X                  |                    |                     |
+ Akka 2                     | X          |                |                    | X                       |              | X                  |                    |                     |
+ Jetty 9                    |            |                |                    |                         |              |                    | X                  |                     |
+ JRuby 9                    |            |                |                    |                         |              | X                  |                    |                     |
+ Javascript                 |            |                |                    |                         |              | X                  |                    |                     |
+ PostgreSQL 10              |            |                |                    |                         | X            |                    |                    |                     |
+ nginx                      |            | X              |                    |                         |              |                    |                    |                     |
+ PAM                        |            |                |                    |                         |              |                    | X                  |                     |
+ Liquibase 3                |            |                |                    |                         | X            |                    |                    |                     |
+ systemd                    | X          | X              |                    |                         |              |                    | X                  |                     |
+ PKCS \#11\[[2](#Ref_2)\]   | X          |                |                    |                         |              |                    |                    |                     |
+ GNU Privacy Guard          |            |                |                    |                         |              |                    |                    | X                   |
+ 
+<a id="Ref_2" class="anchor"></a>
+\[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 See [[ARC-CS]](#ARC-CS) for the central server details.
 
@@ -140,14 +144,14 @@ See [[ARC-CS]](#ARC-CS) for the central server details.
 <a id="Ref_Technology_matrix_of_the_configuration" class="anchor"></a>
 Table 3. Technology matrix of the configuration proxy
 
- **Technology**   | **Web Server**   | **Configuration Processor**   | **Signer**   | **Configuration Client**
------------------ | ---------------- | ----------------------------- | ------------ | ------------------------
- Java 8           |                  | X                             | X            | X
- Logback          |                  | X                             | X            | X
- Akka 2           |                  | X                             | X            |
- nginx            | X                |                               |              |
- systemd          | X                | X                             | X            | X
- PKCS \#11\[[2](#Ref_2)\]   |                |                             | X          |
+ **Technology**           | **Web Server**   | **Configuration Processor**   | **Signer**   | **Configuration Client**
+------------------------- | ---------------- | ----------------------------- | ------------ | ------------------------
+ Java 8                   |                  | X                             | X            | X
+ Logback                  |                  | X                             | X            | X
+ Akka 2                   |                  | X                             | X            |
+ nginx                    | X                |                               |              |
+ systemd                  | X                | X                             | X            | X
+ PKCS \#11\[[2](#Ref_2)\] |                  |                               | X            |
 
 <a id="Ref_2" class="anchor"></a>
 \[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
@@ -183,6 +187,9 @@ Table 4. Technology matrix of the security server
  OpenAPI 3                      |            |           |                    |                  |                       |              |                          | X                           | X            |             |                                      |                                   |      
  Embedded Tomcat 9              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
  GNU Privacy Guard              |            |           |                    |                  |                       |              |                          |                             | X            |             |                                      |                                   |
+
+<a id="Ref_2" class="anchor"></a>
+\[2\] The use of hardware cryptographic devices requires that a PKCS \#11 driver is installed and configured in the system.
 
 See [[ARC-SS]](#ARC-SS) for the security server details.
 
