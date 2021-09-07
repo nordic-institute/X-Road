@@ -53,7 +53,7 @@ public class SystemParameter extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "system_parameter_id_seq")
-    @SequenceGenerator(name = "system_parameter_id_seq", sequenceName = "system_parameter_id_seq", allocationSize = 1)
+    @SequenceGenerator(name = "system_parameter_id_seq", sequenceName = "system_parameters_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
     public int getId() {
         return this.id;
