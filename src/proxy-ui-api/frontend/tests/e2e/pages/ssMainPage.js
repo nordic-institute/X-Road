@@ -288,8 +288,13 @@ var clientServicesCommands = {
     this.click('@cancelAddServiceButton');
     return this;
   },
-  modifyServiceUrl: function (old, url) {
-    this.waitForValue('@newServiceUrl', old);
+  initServiceUrl: function (url) {
+    this.assert.valueContains('@newServiceUrl', "");
+    this.setValue('@newServiceUrl', url);
+    return this;
+  },
+  modifyServiceUrl: function (url) {
+    this.waitForNonEmpty('@newServiceUrl');
     this.clearValue2('@newServiceUrl');
     this.setValue('@newServiceUrl', url);
     return this;
@@ -431,8 +436,13 @@ var serviceDetailsCommands = {
     this.click('@deleteServiceButton');
     return this;
   },
-  modifyServiceUrl: function (old, url) {
-    this.waitForValue('@serviceURL', old);
+  initServiceUrl: function (url) {
+    this.assert.valueContains('@serviceURL', "");
+    this.setValue('@serviceURL', url);
+    return this;
+  },
+  modifyServiceUrl: function (url) {
+    this.waitForNonEmpty('@serviceURL');
     this.clearValue2('@serviceURL');
     this.setValue('@serviceURL', url);
     return this;
@@ -485,12 +495,14 @@ var wsdlOperationCommands = {
     this.click('@verifyCertApplyToAllCheckbox');
     return this;
   },
-  enterUrl: function (url) {
+  modifyUrl: function (url) {
+    this.waitForNonEmpty('@serviceURL');
     this.clearValue2('@serviceURL');
     this.setValue('@serviceURL', url);
     return this;
   },
-  enterTimeout: function (timeout) {
+  modifyTimeout: function (timeout) {
+    this.waitForNonEmpty('@timeout');
     this.clearValue2('@timeout');
     this.setValue('@timeout', timeout);
     return this;
@@ -573,7 +585,15 @@ var restEndpointCommands = {
 };
 
 var addEndpointCommands = {
-  enterPath: function (path) {
+  // previous value must be empty
+  initPath: function (path) {
+    this.assert.valueContains('@requestPath', "");
+    this.setValue('@requestPath', path);
+    return this;
+  },
+  // previous value must be non-empty
+  modifyPath: function (path) {
+    this.waitForNonEmpty('@requestPath');
     this.clearValue2('@requestPath');
     this.setValue('@requestPath', path);
     return this;
@@ -1289,6 +1309,7 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         sslAuthClickarea: {
+          // selector: '//div[@class="v-input--selection-controls__ripple]',
           selector: '//input[@data-test="ssl-auth"]/following-sibling::div',
           locateStrategy: 'xpath',
         },

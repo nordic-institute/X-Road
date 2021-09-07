@@ -76,7 +76,7 @@ const setupServices = (pages) => {
   clientInfo.openServicesTab();
   browser.waitForElementVisible(clientServices);
   clientServices.openAddWSDL();
-  clientServices.modifyServiceUrl('',
+  clientServices.initServiceUrl(
     browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
   );
   clientServices.confirmAddDialog();
