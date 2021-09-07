@@ -293,7 +293,7 @@ module.exports = {
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
       clientServices.openAddWSDL();
-      clientServices.modifyServiceUrl('',
+      clientServices.initServiceUrl(
         browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
       );
       clientServices.confirmAddDialog();
@@ -380,7 +380,7 @@ module.exports = {
 
       // Add first rest service to be used
       clientServices.openAddREST();
-      clientServices.modifyServiceUrl('',
+      clientServices.initServiceUrl(
         browser.globals.testdata + '/' + browser.globals.rest_url_1,
       );
       clientServices.selectRESTPath();
@@ -425,7 +425,7 @@ module.exports = {
       browser.waitForElementVisible(restEndpoints);
       restEndpoints.openAddDialog();
       browser.waitForElementVisible(addEndpointPopup);
-      addEndpointPopup.enterPath('/test');
+      addEndpointPopup.modifyPath('/test');
       addEndpointPopup.selectRequestMethod('POST');
       addEndpointPopup.addSelected();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -536,7 +536,7 @@ module.exports = {
 
     // Add first rest service to be used
     clientServices.openAddREST();
-    clientServices.modifyServiceUrl('',
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();

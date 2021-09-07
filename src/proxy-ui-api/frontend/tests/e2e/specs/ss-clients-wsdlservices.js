@@ -54,17 +54,17 @@ module.exports = {
 
     // Verify empty and malformed URL error messages
     clientServices.openAddWSDL();
-    clientServices.modifyServiceUrl('', 'a');
+    clientServices.initServiceUrl('a');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.modifyServiceUrl('a','');
+    clientServices.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.modifyServiceUrl('', 'foobar');
+    clientServices.initServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
@@ -76,15 +76,14 @@ module.exports = {
     browser.assert.value(clientServices.elements.newServiceUrl, '');
 
     // Verify opening nonexisting URL
-    clientServices.modifyServiceUrl('', 'https://www.niis.org/nosuch.wsdl');
+    clientServices.initServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'WSDL download failed'
     mainPage.closeAlertMessage();
 
     // Verify successful URL open
     clientServices.openAddWSDL();
-    clientServices.modifyServiceUrl(
-        '',
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
     );
     clientServices.confirmAddDialog();
@@ -154,8 +153,8 @@ module.exports = {
 
     // Verify cancel
     operationDetails.toggleCertVerification();
-    operationDetails.enterUrl('https://www.niis.org/nosuch2/');
-    operationDetails.enterTimeout('40');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch2/');
+    operationDetails.modifyTimeout('40');
     operationDetails.toggleVerifyCertApplyToAll();
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
@@ -186,8 +185,8 @@ module.exports = {
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
 
     // Verify change single operation
-    operationDetails.enterUrl('https://www.niis.org/nosuch2/');
-    operationDetails.enterTimeout('40');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch2/');
+    operationDetails.modifyTimeout('40');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.not
       .selected;
     operationDetails.saveParameters();
@@ -239,8 +238,8 @@ module.exports = {
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
     operationDetails.toggleVerifyCertApplyToAll();
-    operationDetails.enterUrl('https://www.niis.org/nosuch3/');
-    operationDetails.enterTimeout('30');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch3/');
+    operationDetails.modifyTimeout('30');
     operationDetails.toggleCertVerification();
     operationDetails.saveParameters();
     browser.waitForElementVisible(sslCheckFail);
@@ -505,15 +504,15 @@ module.exports = {
 
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
-    serviceDetails.modifyServiceUrl(browser.globals.testdata + '/' + browser.globals.wsdl_url_1, '');
+    serviceDetails.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(serviceDetails.elements.URLMessage);
-    serviceDetails.modifyServiceUrl('', 'foobar');
+    serviceDetails.initServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(serviceDetails.elements.URLMessage);
 
     // verify missing file
-    serviceDetails.modifyServiceUrl('foobar', 'https://www.niis.org/nosuch.wsdl');
+    serviceDetails.modifyServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); //  'WSDL download failed', loading a missing file can sometimes take more time before failing
     mainPage.closeAlertMessage();
@@ -534,7 +533,6 @@ module.exports = {
     // Verify cancel
     browser.logMessage('Edit and cancel nosuch.wsdl -> testservice2.wsdl');
     serviceDetails.modifyServiceUrl(
-        'https://www.niis.org/nosuch.wsdl',
       browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.cancelDialog();
@@ -551,7 +549,6 @@ module.exports = {
     clientServices.openServiceDetails();
     browser.logMessage('Edit and confirm nosuch.wsdl -> testservice2.wsdl');
     serviceDetails.modifyServiceUrl(
-        browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
         browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.confirmDialog();
@@ -677,8 +674,7 @@ module.exports = {
 
     // Verify successfull URL open
     clientServices.openAddWSDL();
-    clientServices.modifyServiceUrl(
-        '',
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
     );
     clientServices.confirmAddDialog();
@@ -708,8 +704,8 @@ module.exports = {
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
     operationDetails.toggleVerifyCertApplyToAll();
-    operationDetails.enterUrl('https://www.niis.org/nosuch3/');
-    operationDetails.enterTimeout('30');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch3/');
+    operationDetails.modifyTimeout('30');
     operationDetails.saveParameters();
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
