@@ -2,8 +2,8 @@
 
 **Technical Specification**
 
-Version: 0.5  
-25.08.2021
+Version: 0.6  
+07.09.2021
 
 Doc. ID: ARC-SEC
 
@@ -18,44 +18,48 @@ Doc. ID: ARC-SEC
  29.06.2019 | 0.3     | Editorial changes, updated chapters 5-7, 14-18 | Petteri Kivimäki
  28.02.2021 | 0.4     | Update X-Road security architecture diagram | Petteri Kivimäki
  25.08.2021 | 0.5     | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 07.09.2021 | 0.6     | Update with the new message log features | Ilkka Seppälä
   
 ## Table of Contents
 
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
-  * [1.2 References](#12-references)
-- [2 Environment Assumptions](#2-environment-assumptions)
-- [3 Confidentiality](#3-confidentiality)
-- [4 Integrity](#4-integrity)
-- [5 Availability](#5-availability)
-- [6 Authentication](#6-authentication)
-- [7 Access Control](#7-access-control)
-  * [7.1 Messaging Access Control](#71-messaging-access-control)
-  * [7.2 Web UI Access Control](#72-web-ui-access-control)
-- [8 Input Validation](#8-input-validation)
-  * [8.1 Web UI Input Validation](#81-web-ui-input-validation)
-  * [8.2 Messaging Validation](#82-messaging-validation)
-- [9 Logging](#9-logging)
-- [10 Time-Stamping](#10-time-stamping)
-- [11 Updatability](#11-updatability)
-- [12 Trust Federation](#12-trust-federation)
-- [13 Standardised Protocols](#13-standardised-protocols)
-- [14 Central Server](#14-central-server)
-- [15 Security Server](#15-security-server)
-- [16 Certificates and Keys Management](#16-certificates-and-keys-management) 
-- [17 Monitoring](#17-monitoring)
-  * [17.1 Environmental Monitoring](#171-environmental-monitoring)
-  * [17.2 Operational Monitoring](#172-operational-monitoring) 
-  * [17.3 Controlling Access to Monitoring](#17.3-controlling-access-to-monitoring) 
-- [18 Privacy](#18-privacy)
-  * [18.1 Purpose Limitation](#181-purpose-limitation)
-  * [18.2 Data Minimisation](#182-data-minimisation) 
-- [19 Regulatory Compliance](#19-regulatory-compliance)
-  * [19.1 Common Regulations](#191-common-regulations)
-  * [19.2 Environment and Country-Specific Regulations](#192-environment-and-country-specific-regulations)
+- [X-Road Security Architecture](#x-road-security-architecture)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Terms and Abbreviations](#11-terms-and-abbreviations)
+    - [1.2 References](#12-references)
+  - [2 Environment Assumptions](#2-environment-assumptions)
+  - [3 Confidentiality](#3-confidentiality)
+  - [4 Integrity](#4-integrity)
+  - [5 Availability](#5-availability)
+  - [6 Authentication](#6-authentication)
+  - [7 Access Control](#7-access-control)
+    - [7.1 Messaging Access Control](#71-messaging-access-control)
+    - [7.2 Web UI Access Control](#72-web-ui-access-control)
+  - [8 Input Validation](#8-input-validation)
+    - [8.1 Web UI Input Validation](#81-web-ui-input-validation)
+    - [8.2 Messaging Validation](#82-messaging-validation)
+  - [9 Logging](#9-logging)
+  - [10 Time-Stamping](#10-time-stamping)
+  - [11 Updatability](#11-updatability)
+  - [12 Trust Federation](#12-trust-federation)
+  - [13 Standardised Protocols](#13-standardised-protocols)
+  - [14 Central Server](#14-central-server)
+  - [15 Security Server](#15-security-server)
+  - [16 Certificates and Keys Management](#16-certificates-and-keys-management)
+  - [17 Monitoring](#17-monitoring)
+    - [17.1 Environmental Monitoring](#171-environmental-monitoring)
+    - [17.2 Operational Monitoring](#172-operational-monitoring)
+    - [17.3 Controlling Access to Monitoring](#173-controlling-access-to-monitoring)
+  - [18 Privacy](#18-privacy)
+    - [18.1 Purpose Limitation](#181-purpose-limitation)
+    - [18.2 Data Minimisation](#182-data-minimisation)
+  - [19 Regulatory Compliance](#19-regulatory-compliance)
+    - [19.1 Common Regulations](#191-common-regulations)
+    - [19.2 Environment and Country-Specific Regulations](#192-environment-and-country-specific-regulations)
 
 <!-- tocstop -->
 
@@ -161,7 +165,7 @@ X-Road core handles access control on the organisation level during data exchang
 
 When the end user is successfully authenticated, least privilege-based access control is enforced for access to system resources whereby the frontend receives information about current user's roles and permissions using /api/user resource. The backend defines authorisation rules based on permissions.
 
-Details on Security Server user roles and associated access controls are described in section 15.1 Security Server Roles.
+Details on Security Server user roles and associated access controls are described in section 15 Security Server Roles.
 
 In X-Road, access control starts by denying all access by default. Access will not be allowed to all roles if a new resource is added and authorisation is somehow configured incorrectly.
 
@@ -186,7 +190,7 @@ For compliance with the security principle of non-repudiation, all messages proc
 X-Road incorporates the following logs:
 
   * **Audit log** – log where user-configured changes to the system state or configuration (via the user interface) are logged, regardless of whether the outcome was a success or failure.
-  * **Message log** – provides the means to prove the reception of a regular request or response message to a third party. Messages exchanged between Security Servers are signed and encrypted. For every regular request and response, the Security Server produces a complete signed and timestamped document. Messages are logged and provided with a batch signature. The purpose of the message log is to provide the means to prove to a third party the reception of a request/response message. The Security Server messagelog saves each request and response message sent through the Security Server to the messagelog database. There is one log record inserted per transaction. Periodically (by default every six hours), the log archiver reads all non-archived records from the database, writes them to disk, and updates the records in the database, marking them as archived. Every twelve hours, the log cleaner executes a bulk delete removal of all archived records that are older than a configurable age; the default is thirty days. Message archiving interval lengths are configurable via configuration settings. The Security Server administrator is responsible for transferring the archived log files into long term storage. Such storage components are organisation-specific.
+  * **Message log** – provides the means to prove the reception of a regular request or response message to a third party. Messages exchanged between Security Servers are signed and encrypted. For every regular request and response, the Security Server produces a complete signed and timestamped document. Messages are logged and provided with a batch signature. The purpose of the message log is to provide the means to prove to a third party the reception of a request/response message. The Security Server messagelog saves each request and response message sent through the Security Server to the messagelog database. There is one log record inserted per transaction. Periodically (by default every six hours), the log archiver reads all non-archived records from the database, writes them to disk, and updates the records in the database, marking them as archived. Every twelve hours, the log cleaner executes a bulk delete removal of all archived records that are older than a configurable age; the default is thirty days. Message archiving interval lengths are configurable via configuration settings. The stored messages can be encrypted at rest; the configuration settings allow switching on encryption for messagelog and message archives separately. The Security Server administrator is responsible for transferring the archived log files into long term storage. Such storage components are organisation-specific.
   * **System service log** – log which is made from a running system service of a Security Server, for example from xroad-confclient, -proxy, signer services.
 
 If a message log audit is required, message logs for some time period may be queried; this creates a zip file that contains the logs in a tamper-resistant format (signed hash of the log tree). 
