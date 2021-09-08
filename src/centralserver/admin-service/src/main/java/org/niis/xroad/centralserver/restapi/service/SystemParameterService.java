@@ -116,8 +116,7 @@ public class SystemParameterService {
             newSystemParameter.setKey(lookupKey);
             // now initial value for non-postgresql testing,
             // the real haNodeName will be inserted using Postgresql database trigger.
-            newSystemParameter.setHaNodeName("node_0");
-
+            newSystemParameter.setHaNodeName(currentHaConfigStatus.getCurrentHaNodeName());
             systemParameter = Optional.of(newSystemParameter);
         }
         SystemParameter systemParameterToStore = systemParameter.get();

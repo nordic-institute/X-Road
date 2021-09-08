@@ -62,7 +62,7 @@ public class InitializationApiController implements InitializationApi {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<InitializationStatus> getInitializationStatus() {
         InitializationStatusDto initializationStatusDto =
-                initializationService.getInitializationStatusDto();
+                initializationService.getInitializationStatus();
         return ResponseEntity.ok(
                 initializationStatusConverter.convert(initializationStatusDto)
         );

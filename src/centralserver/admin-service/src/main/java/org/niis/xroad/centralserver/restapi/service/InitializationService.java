@@ -82,7 +82,7 @@ public class InitializationService {
     private final TokenPinValidator tokenPinValidator;
 
 
-    public InitializationStatusDto getInitializationStatusDto() {
+    public InitializationStatusDto getInitializationStatus() {
         TokenInitStatusInfo initStatusInfo;
         initStatusInfo = getTokenInitStatusInfo();
         InitializationStatusDto statusDto = new InitializationStatusDto();
@@ -102,7 +102,7 @@ public class InitializationService {
                 initStatusInfo = TokenInitStatusInfo.NOT_INITIALIZED;
             }
         } catch (SignerNotReachableException notReachableException) {
-            log.info("getInitializationStatusDto - signer was not reachable", notReachableException);
+            log.info("getInitializationStatus - signer was not reachable", notReachableException);
             initStatusInfo = TokenInitStatusInfo.UNKNOWN;
         }
         return initStatusInfo;
