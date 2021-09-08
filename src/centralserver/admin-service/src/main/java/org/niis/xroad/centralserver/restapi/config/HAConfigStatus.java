@@ -26,12 +26,10 @@
  */
 package org.niis.xroad.centralserver.restapi.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Value;
 
-@Data
-@AllArgsConstructor
+@Value
 public class HAConfigStatus {
-    private final String currentHaNodeName;
-    private final boolean isHaConfigured;
+    String currentHaNodeName;
+    boolean isHaConfigured;
 }
