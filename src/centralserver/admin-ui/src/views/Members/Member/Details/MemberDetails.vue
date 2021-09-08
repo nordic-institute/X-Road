@@ -64,7 +64,7 @@
         <div class="xrd-view-title">
           {{ $t('members.member.details.ownedServers') }}
         </div>
-        <xrd-search data-test="search-owned-servers" />
+        <xrd-search v-model="searchServers" data-test="search-owned-servers" />
       </div>
 
       <v-card flat>
@@ -75,10 +75,34 @@
             >{{ $t('members.member.details.addServer') }}
           </xrd-button>
         </div>
-        <v-card-title class="card-title">Server</v-card-title>
-        <v-divider></v-divider>
-        <v-card-text>SS1</v-card-text>
-        <v-divider class="pb-4"></v-divider>
+
+        <!-- Table -->
+        <v-data-table
+          :loading="loading"
+          :headers="serversHeaders"
+          :items="servers"
+          :search="searchServers"
+          :must-sort="true"
+          :items-per-page="-1"
+          class="elevation-0 data-table"
+          item-key="id"
+          :loader-height="2"
+          hide-default-footer
+        >
+          <template #[`item.namef`]="{ item }">
+            <div class="members-table-cell-name" @click="toDetails('netum')">
+              <xrd-icon-base class="xrd-clickable mr-4"
+                ><xrd-icon-folder-outline
+              /></xrd-icon-base>
+
+              {{ item.name }}
+            </div>
+          </template>
+
+          <template #footer>
+            <div class="cs-table-custom-footer"></div>
+          </template>
+        </v-data-table>
       </v-card>
     </div>
 
@@ -88,7 +112,7 @@
         <div class="xrd-view-title">
           {{ $t('members.member.details.globalGroups') }}
         </div>
-        <xrd-search data-test="search-global-groups" />
+        <xrd-search v-model="searchGroups" data-test="search-global-groups" />
       </div>
 
       <v-card flat>
@@ -100,32 +124,31 @@
           </xrd-button>
         </div>
 
-        <v-card-text>
-          <xrd-table id="global-groups-table">
-            <thead>
-              <tr>
-                <th>{{ $t('members.member.details.group') }}</th>
-                <th>{{ $t('global.subsystem') }}</th>
-                <th>{{ $t('members.member.details.addedToGroup') }}</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>security-server-owners</td>
-                <td></td>
-                <td>2020-11-10 18:00</td>
-                <td></td>
-              </tr>
-              <tr>
-                <td>Test data</td>
-                <td>Subsystem</td>
-                <td>2021-09-04 10:15</td>
-                <td class="xrd-clickable">{{ $t('global.delete') }}</td>
-              </tr>
-            </tbody>
-          </xrd-table>
-        </v-card-text>
+        <!-- Table -->
+        <v-data-table
+          :loading="loadingGroups"
+          :headers="groupsHeaders"
+          :items="globalGroups"
+          :search="searchGroups"
+          :must-sort="true"
+          :items-per-page="-1"
+          class="elevation-0 data-table"
+          item-key="id"
+          :loader-height="2"
+          hide-default-footer
+        >
+          <template #[`item.button`]>
+            <div class="cs-table-actions-wrap">
+              <xrd-button text :outlined="false">{{
+                $t('action.delete')
+              }}</xrd-button>
+            </div>
+          </template>
+
+          <template #footer>
+            <div class="cs-table-custom-footer"></div>
+          </template>
+        </v-data-table>
       </v-card>
     </div>
   </main>
@@ -133,17 +156,88 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
 
 /**
  * Component for a Members details view
  */
 export default Vue.extend({
   name: 'MemberDetails',
+  data() {
+    return {
+      searchServers: '',
+      searchGroups: '',
+      loading: false,
+      loadingGroups: false,
+      showOnlyPending: false,
+      servers: [
+        {
+          name: 'SS1',
+        },
+        {
+          name: 'SS2',
+        },
+      ],
+      globalGroups: [
+        {
+          group: 'security-server-owners',
+          subsystem: 'test',
+          added: '2020-11-10 18:00',
+        },
+        {
+          group: 'test data',
+          subsystem: 'subsystem',
+          added: '2021-02-05 17:00',
+        },
+      ],
+    };
+  },
+  computed: {
+    serversHeaders(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('global.server') as string,
+          align: 'start',
+          value: 'name',
+          class: 'xrd-table-header servers-table-header-server',
+        },
+      ];
+    },
+    groupsHeaders(): DataTableHeader[] {
+      return [
+        {
+          value: 'group',
+          text: this.$t('members.member.details.group') as string,
+          align: 'start',
+          class: 'xrd-table-header groups-table-header-group',
+        },
+        {
+          value: 'subsystem',
+          text: this.$t('global.subsystem') as string,
+          align: 'start',
+          class: 'xrd-table-header groups-table-header-subsystem',
+        },
+        {
+          value: 'added',
+          text: this.$t('members.member.details.addedToGroup') as string,
+          align: 'start',
+          class: 'xrd-table-header groups-table-header-added',
+        },
+        {
+          value: 'button',
+          text: '',
+          sortable: false,
+          class: 'xrd-table-header groups-table-header-buttons',
+        },
+      ];
+    },
+  },
 });
 </script>
 
 <style lang="scss" scoped>
 @import '~styles/colors';
+@import '~styles/tables';
 
 .card-title {
   font-size: 12px;

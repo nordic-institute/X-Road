@@ -28,7 +28,7 @@
     <div class="header-row">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
-        <xrd-search />
+        <xrd-search v-model="search" />
       </div>
       <xrd-button data-test="add-member-button" @click="() => {}">
         <xrd-icon-base class="xrd-large-button-icon"
@@ -39,61 +39,86 @@
       >
     </div>
 
-    <v-card flat>
-      <v-card-text>
-        <xrd-table>
-          <thead>
-            <tr>
-              <th class="icon-column"></th>
-              <th>{{ $t('global.memberName') }} (2)</th>
-              <th>
-                {{ $t('global.memberClass') }}
-              </th>
-              <th>
-                {{ $t('global.memberCode') }}
-                <v-icon>mdi-arrow-up</v-icon>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr data-test="niis">
-              <!-- Set member identifier etc. as data-text attribute for real data so that individual member row can be found in e2e-test -->
-              <td data-test="member-icon">
-                <xrd-icon-base class="xrd-clickable"
-                  ><xrd-icon-folder-outline
-                /></xrd-icon-base>
-              </td>
-              <td data-test="member-name" class="xrd-clickable">
-                Nordic Institue for Interoperability Solutions
-              </td>
-              <td data-test="member-class">ORG</td>
-              <td data-test="member-code">555</td>
-            </tr>
-            <tr data-test="netum">
-              <td data-test="member-icon">
-                <xrd-icon-base class="xrd-clickable"
-                  ><xrd-icon-folder-outline
-                /></xrd-icon-base>
-              </td>
-              <td class="xrd-clickable" @click="toDetails('netum')">
-                Netum Oy
-              </td>
-              <td>COM</td>
-              <td>IMAMEMBERCODE</td>
-            </tr>
-          </tbody>
-        </xrd-table>
-      </v-card-text>
-    </v-card>
+    <!-- Table -->
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="members"
+      :search="search"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="elevation-0 data-table"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+    >
+      <template #[`item.name`]="{ item }">
+        <div class="members-table-cell-name" @click="toDetails('netum')">
+          <xrd-icon-base class="xrd-clickable mr-4"
+            ><xrd-icon-folder-outline
+          /></xrd-icon-base>
+
+          {{ item.name }}
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="cs-table-custom-footer"></div>
+      </template>
+    </v-data-table>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { RouteName } from '@/global';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   name: 'MemberList',
+  data() {
+    return {
+      search: '',
+      loading: false,
+      showOnlyPending: false,
+      members: [
+        {
+          name: 'Nordic Institue for Interoperability Solutions',
+          class: 'ORG',
+          code: '555',
+        },
+        {
+          name: 'Netum Oy',
+          class: 'COM',
+          code: 'IMAMEMBERCODE',
+        },
+      ],
+    };
+  },
+  computed: {
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: (this.$t('global.memberName') as string) + ' (8)',
+          align: 'start',
+          value: 'name',
+          class: 'xrd-table-header members-table-header-name',
+        },
+        {
+          text: this.$t('global.memberClass') as string,
+          align: 'start',
+          value: 'class',
+          class: 'xrd-table-header members-table-header-class',
+        },
+        {
+          text: this.$t('global.memberCode') as string,
+          align: 'start',
+          value: 'code',
+          class: 'xrd-table-header members-table-header-code',
+        },
+      ];
+    },
+  },
   methods: {
     toDetails(): void {
       this.$router.push({
@@ -107,8 +132,25 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/colors';
+@import '../../assets/tables';
 
 .icon-column {
   width: 40px;
+}
+
+.members-table-cell-name {
+  color: $XRoad-Purple100;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.members-table-header-icon {
+  width: 20px;
+}
+
+.members-table-cell-id {
+  border: solid 3px red;
+  width: 10px;
 }
 </style>

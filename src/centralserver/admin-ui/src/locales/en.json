@@ -50,6 +50,7 @@
     "type": "Type",
     "created": "Created",
     "status": "Status",
+    "server": "Server",
     "navigation": {
       "back": "Back"
     },

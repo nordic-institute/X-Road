@@ -76,7 +76,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      search: '' as string,
+      search: '',
       loading: false,
       showOnlyPending: false,
       securityServers: [
