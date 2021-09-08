@@ -47,9 +47,8 @@ import java.util.Optional;
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 
-/*
+/**
  *    Class for handling SystemParameter taking HA-setup into account
- *
  */
 public class SystemParameterService {
 
