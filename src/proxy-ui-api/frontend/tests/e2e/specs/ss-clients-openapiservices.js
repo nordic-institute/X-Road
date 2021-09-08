@@ -743,7 +743,7 @@ module.exports = {
 
     // verify missing file
     clientServices.openServiceDetails();
-    openApiServiceDetails.initServiceUrl('https://www.niis.org/nosuch.yaml');
+    openApiServiceDetails.modifyServiceUrl('https://www.niis.org/nosuch.yaml');
     openApiServiceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Parsing OpenApi3 description failed'
     mainPage.closeAlertMessage();
