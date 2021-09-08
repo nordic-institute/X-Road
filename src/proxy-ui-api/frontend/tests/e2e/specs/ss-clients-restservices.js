@@ -743,10 +743,10 @@ module.exports = {
     restServiceDetails.enterServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
     browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
-    restServiceDetails.initServiceUrl('foobar');
+    restServiceDetails.modifyServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
-    restServiceDetails.initServiceUrl('');
+    restServiceDetails.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
 
@@ -770,7 +770,7 @@ module.exports = {
 
     // Verify successful edit
     clientServices.openServiceDetails();
-    restServiceDetails.initServiceUrl(
+    restServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     restServiceDetails.enterServiceCode('s1c2');
