@@ -42,17 +42,17 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @Transactional
-public class CentralServerSystemParameterServiceTest extends AbstractFacadeMockingTestContext {
+public class SystemParameterServiceTest extends AbstractFacadeMockingTestContext {
 
     @Autowired
     SystemParameterRepository systemParameterRepository;
     @Autowired
-    CentralServerSystemParameterService centralServerSystemParameterService;
+    SystemParameterService systemParameterService;
 
     @Autowired
     @Qualifier("testHaConfig")
@@ -67,13 +67,13 @@ public class CentralServerSystemParameterServiceTest extends AbstractFacadeMocki
     public void systemParameterValueStored() {
 
         final String instanceTestValue = "VALID_INSTANCE";
-        SystemParameter systemParameter = centralServerSystemParameterService
+        SystemParameter systemParameter = systemParameterService
                 .updateOrCreateParameter(
                         INSTANCE_IDENTIFIER,
                         instanceTestValue
                 );
         assertEquals(instanceTestValue, systemParameter.getValue());
-        String storedSystemParameterValue = centralServerSystemParameterService
+        String storedSystemParameterValue = systemParameterService
                 .getParameterValue(
                         INSTANCE_IDENTIFIER,
                         "not-from-db");
@@ -86,13 +86,13 @@ public class CentralServerSystemParameterServiceTest extends AbstractFacadeMocki
     @Test
     public void systemParameterValueStoredHaEnabled() {
         final String centralServerAddress = "example.org";
-        SystemParameter systemParameter = centralServerSystemParameterService
+        SystemParameter systemParameter = systemParameterService
                 .updateOrCreateParameter(
                         CENTRAL_SERVER_ADDRESS,
                         centralServerAddress
                 );
         assertEquals(centralServerAddress, systemParameter.getValue());
-        String storedSystemParameterValue = centralServerSystemParameterService
+        String storedSystemParameterValue = systemParameterService
                 .getParameterValue(
                         CENTRAL_SERVER_ADDRESS,
                         "not-from-db");

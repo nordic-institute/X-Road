@@ -51,16 +51,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CENTRAL_SERVER_ADDRESS;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CONF_HASH_ALGO_URI;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.CONF_SIGN_DIGEST_ALGO_ID;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_CONF_HASH_ALGO_URI;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.INSTANCE_IDENTIFIER;
-import static org.niis.xroad.centralserver.restapi.service.CentralServerSystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_HASH_ALGO_URI;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_SIGN_DIGEST_ALGO_ID;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.DEFAULT_CONF_HASH_ALGO_URI;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.DEFAULT_CONF_SIGN_DIGEST_ALGO_ID;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.DEFAULT_SECURITY_SERVER_OWNERS_GROUP_DESC;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.SECURITY_SERVER_OWNERS_GROUP;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_INSTANCE_IDENTIFIER_EXISTS;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_INSTANCE_IDENTIFIER_NOT_PROVIDED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_EXISTS;
@@ -78,7 +78,7 @@ public class InitializationService {
 
     private final SignerProxyService signerProxyService;
     private final GlobalGroupRepository globalGroupRepository;
-    private final CentralServerSystemParameterService centralServerSystemParameterService;
+    private final SystemParameterService systemParameterService;
     private final TokenPinValidator tokenPinValidator;
 
 
@@ -136,11 +136,11 @@ public class InitializationService {
                 isInstanceIdentifierInitialized);
 
 
-        centralServerSystemParameterService.updateOrCreateParameter(
+        systemParameterService.updateOrCreateParameter(
                 CENTRAL_SERVER_ADDRESS,
                 configDto.getCentralServerAddress()
         );
-        centralServerSystemParameterService.updateOrCreateParameter(
+        systemParameterService.updateOrCreateParameter(
                 INSTANCE_IDENTIFIER,
                 configDto.getInstanceIdentifier()
         );
@@ -196,19 +196,19 @@ public class InitializationService {
     }
 
     private void initializeCsSystemParameters() {
-        centralServerSystemParameterService.updateOrCreateParameter(
+        systemParameterService.updateOrCreateParameter(
                 CONF_SIGN_DIGEST_ALGO_ID,
                 DEFAULT_CONF_SIGN_DIGEST_ALGO_ID
         );
-        centralServerSystemParameterService.updateOrCreateParameter(
+        systemParameterService.updateOrCreateParameter(
                 CONF_HASH_ALGO_URI,
                 DEFAULT_CONF_HASH_ALGO_URI
         );
-        centralServerSystemParameterService.updateOrCreateParameter(
+        systemParameterService.updateOrCreateParameter(
                 CONF_SIGN_CERT_HASH_ALGO_URI,
                 DEFAULT_CONF_HASH_ALGO_URI
         );
-        centralServerSystemParameterService.updateOrCreateParameter(
+        systemParameterService.updateOrCreateParameter(
                 SECURITY_SERVER_OWNERS_GROUP,
                 DEFAULT_SECURITY_SERVER_OWNERS_GROUP
         );
@@ -251,14 +251,14 @@ public class InitializationService {
     }
 
     private String getStoredInstanceIdentifier() {
-        return centralServerSystemParameterService.getParameterValue(
+        return systemParameterService.getParameterValue(
                 INSTANCE_IDENTIFIER,
                 ""
         );
     }
 
     private String getStoredCentralServerAddress() {
-        return centralServerSystemParameterService.getParameterValue(
+        return systemParameterService.getParameterValue(
                 CENTRAL_SERVER_ADDRESS,
                 "");
     }

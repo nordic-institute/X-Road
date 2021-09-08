@@ -51,7 +51,7 @@ import java.util.Optional;
  *    Class for handling SystemParameter taking HA-setup into account
  *
  */
-public class CentralServerSystemParameterService {
+public class SystemParameterService {
 
     public static final String INSTANCE_IDENTIFIER = "instanceIdentifier";
     public static final String CENTRAL_SERVER_ADDRESS = "centralServerAddress";
