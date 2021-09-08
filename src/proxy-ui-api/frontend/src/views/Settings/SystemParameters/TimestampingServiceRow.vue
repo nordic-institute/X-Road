@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <tr data-test="system.parameters-timestamping-service-row">
+  <tr data-test="system-parameters-timestamping-service-row">
     <td>{{ timestampingService.name }}</td>
     <td>{{ timestampingService.url }}</td>
     <td class="pr-4">

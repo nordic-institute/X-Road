@@ -44,7 +44,6 @@ const settingsTabCommands = {
 const systemParametersTabCommands = {
   openTimeStampingAddDialog: function () {
     this.click('@timestampingAddButton');
-
     this.api.waitForElementVisible(
       '//input[@value="X-Road Test TSA CN"]/../../label',
     );
@@ -136,13 +135,13 @@ const settingsTab = {
   sections: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
+        '//div[.//a[contains(@class, "v-tab--active") and @data-test="settings"]]//div[@data-test="system-parameters-tab"]',
       locateStrategy: 'xpath',
       commands: systemParametersTabCommands,
       elements: {
         timestampingServiceTableRow: {
           selector:
-            '//tr[@data-test="system.parameters-timestamping-service-row"]',
+            '//tr[@data-test="system-parameters-timestamping-service-row"]',
           locateStrategy: 'xpath',
         },
         timestampingDeleteButton: {
@@ -175,12 +174,12 @@ const settingsTab = {
         },
         timestampingTableFirstCell: {
           selector:
-            '//tr[@data-test="system.parameters-timestamping-service-row"]/td[1]',
+            '//tr[@data-test="system-parameters-timestamping-service-row"]/td[1]',
           locateStrategy: 'xpath',
         },
         timestampingTableSecondCell: {
           selector:
-            '//tr[@data-test="system.parameters-timestamping-service-row"]/td[2]',
+            '//tr[@data-test="system-parameters-timestamping-service-row"]/td[2]',
           locateStrategy: 'xpath',
         },
       },

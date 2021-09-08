@@ -34,7 +34,7 @@ module.exports = {
     // Populate pageObjects for whole test suite
     mainPage = browser.page.ssMainPage();
     settingsTab = mainPage.section.settingsTab;
-    systemParametersTab = settingsTab.sections.systemParametersTab;
+    systemParametersTab = settingsTab.section.systemParametersTab;
     browser.LoginCommand(browser.globals.login_usr, browser.globals.login_pwd);
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
@@ -44,12 +44,9 @@ module.exports = {
     browser.end();
   },
 
-  'User can add new service': (browser) => {
+  'User can add new TSP': (browser) => {
     // when add is clicked, dialog showing available items are being shown
     systemParametersTab.openTimeStampingAddDialog();
-
-    // browser.click(systemParametersTab.elements.timestampingAddButton);
-    // browser.waitForElementVisible('//input[@value="X-Road Test TSA CN"]/../../label');
 
     // only one selection is possible, eg. selection is radio-button
     browser.click('//input[@value="X-Road Test TSA CN"]/../../label');
@@ -83,13 +80,13 @@ module.exports = {
     browser.click('//input[@value="X-Road Test TSA CN"]/../../label');
     browser.click(systemParametersTab.elements.timestampingAddDialogAddButton);
     browser.getText(
-      '//tr[@data-test="system.parameters-timestamping-service-row"]/td[1]',
+      '//tr[@data-test="system-parameters-timestamping-service-row"]/td[1]',
       function (text) {
         assert.equal(text.value, 'X-Road Test TSA CN');
       },
     );
     browser.getText(
-      '//tr[@data-test="system.parameters-timestamping-service-row"]/td[2]',
+      '//tr[@data-test="system-parameters-timestamping-service-row"]/td[2]',
       function (text) {
         assert.equal(text.value, 'http://cs:8899');
       },
@@ -116,13 +113,13 @@ module.exports = {
     );
     // list shows name and url of the service
     browser.getText(
-      '//tr[@data-test="system.parameters-timestamping-service-row"]/td[1]',
+      '//tr[@data-test="system-parameters-timestamping-service-row"]/td[1]',
       function (text) {
         assert.equal(text.value, 'X-Road Test TSA CN');
       },
     );
     browser.getText(
-      '//tr[@data-test="system.parameters-timestamping-service-row"]/td[2]',
+      '//tr[@data-test="system-parameters-timestamping-service-row"]/td[2]',
       function (text) {
         assert.equal(text.value, 'http://cs:8899');
       },
