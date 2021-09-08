@@ -477,16 +477,22 @@ module.exports = {
     );
 
     // Verify enabling
+    browser.logMessage("enabling service...");
     clientServices.toggleEnabled();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
+    browser.logMessage("snackbar closed");
+    browser.logMessage("enabling service done, snackbar should be closed now");
 
     // Verify disabling and canceling disable
+    browser.logMessage("disabling service");
     clientServices.toggleEnabled();
+    browser.logMessage("waiting for disable message popup");
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     clientServices.enterDisableNotice('Message1');
+    browser.logMessage("entered disable notice, cancelling");
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
@@ -679,6 +685,12 @@ module.exports = {
     );
     clientServices.confirmAddDialog();
     browser.assert.containsText(
+        mainPage.elements.snackBarMessage,
+        'WSDL added',
+    );
+    mainPage.closeSnackbar();
+
+    browser.assert.containsText(
       clientServices.elements.serviceDescription,
       browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
     );
@@ -711,6 +723,7 @@ module.exports = {
       mainPage.elements.snackBarMessage,
       'Service saved',
     );
+    browser.logMessage("closing snackbar")
     mainPage.closeSnackbar();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test

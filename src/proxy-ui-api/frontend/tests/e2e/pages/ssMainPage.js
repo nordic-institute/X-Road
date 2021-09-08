@@ -59,6 +59,7 @@ var navigateCommands = {
   },
   closeSnackbar: function () {
     this.click('@snackBarCloseButton');
+    this.click('@snackBarCloseButton');
     return this;
   },
   closeAlertMessage: function () {
@@ -289,7 +290,8 @@ var clientServicesCommands = {
     return this;
   },
   initServiceUrl: function (url) {
-    this.assert.valueContains('@newServiceUrl', "");
+    this.logMessage("initServiceUrl -> " + url);
+    this.assert.value('@newServiceUrl', "");
     this.setValue('@newServiceUrl', url);
     return this;
   },
@@ -437,7 +439,7 @@ var serviceDetailsCommands = {
     return this;
   },
   initServiceUrl: function (url) {
-    this.assert.valueContains('@serviceURL', "");
+    this.assert.value('@serviceURL', "");
     this.setValue('@serviceURL', url);
     return this;
   },

@@ -749,7 +749,7 @@ module.exports = {
     mainPage.closeAlertMessage();
 
     // Verify cancel
-    openApiServiceDetails.initServiceUrl(
+    openApiServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.openapi_url_2,
     );
     openApiServiceDetails.enterServiceCode('s3c2');
@@ -766,7 +766,7 @@ module.exports = {
       '//td[@data-test="service-link" and contains(text(),"s3c1")]',
     );
 
-    // Verify succesfull edit
+    // Verify succesful edit
     clientServices.openServiceDetails();
     openApiServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.openapi_url_2,
