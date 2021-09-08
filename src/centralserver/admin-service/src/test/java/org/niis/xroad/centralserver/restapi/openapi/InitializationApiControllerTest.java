@@ -94,7 +94,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void getInitializationStatusFailingSignerConnection() throws Exception {
 
-        when(signerProxyFacade.getTokens()).thenThrow(RuntimeException.class);
+        when(signerProxyService.getTokens()).thenThrow(RuntimeException.class);
         assertDoesNotThrow(() -> {
             final ResponseEntity<InitializationStatus> response;
             response = initializationApiController.getInitializationStatus();
@@ -107,7 +107,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void getInitializationStatusFromSignerProxy() throws Exception {
-        when(signerProxyFacade.getTokens()).thenReturn(Collections.singletonList(testSWToken));
+        when(signerProxyService.getTokens()).thenReturn(Collections.singletonList(testSWToken));
         ResponseEntity<InitializationStatus> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertTrue(statusResponseEntity.hasBody());
@@ -119,7 +119,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void initCentralServer() throws Exception {
-        when(signerProxyFacade.getTokens()).thenReturn(
+        when(signerProxyService.getTokens()).thenReturn(
                         Collections.emptyList())  // For 1st status query during initCentralServer() call
                 .thenReturn(Collections.singletonList(testSWToken)); // for the getInitializationStatus
 
@@ -157,7 +157,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
                 .centralServerAddress(testAddress)
                 .instanceIdentifier("initCentralServerAlreadyInitialized-instance")
                 .softwareTokenPin("12341234");
-        when(signerProxyFacade.getTokens())
+        when(signerProxyService.getTokens())
                 .thenReturn(Collections.emptyList())
                 .thenReturn(Collections.singletonList(testSWToken));
 

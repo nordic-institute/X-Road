@@ -25,33 +25,32 @@
  */
 package org.niis.xroad.centralserver.restapi.config;
 
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.centralserver.restapi.service.SignerProxyService;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 /**
- * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyService.
- * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
- * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
- *
- * Extending this base class also helps in keeping mock injections standard, and reduce number of different
- * application contexts built for testing.
+ * Enable customization of signer IP address when development profile is active.
+ * Otherwise use 127.0.0.1
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@WithMockUser
-public abstract class AbstractFacadeMockingTestContext {
-    @MockBean
-    protected GlobalConfFacade globalConfFacade;
-    @MockBean
-    protected SignerProxyService signerProxyService;
+@Configuration
+public class SignerIpAddressConfiguration {
+
+    @Value("${custom.signer.ip:127.0.0.1}")
+    private String customIp;
+
+    @SuppressWarnings("SameReturnValue")
+    @Bean(name = "signer-ip")
+    @Profile("!development")
+    public String defaultBean() {
+        return "127.0.0.1";
+    }
+
+    @Bean(name = "signer-ip")
+    @Profile("development")
+    public String customBean() {
+        return customIp;
+    }
 
 }

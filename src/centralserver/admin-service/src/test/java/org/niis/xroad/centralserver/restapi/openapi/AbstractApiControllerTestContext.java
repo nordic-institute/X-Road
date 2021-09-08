@@ -45,7 +45,7 @@ import static org.mockito.Mockito.validateMockitoUsage;
  * - mocking depends on a case by case basis when @SpyBean is used. Some tests use 100% real implementation, others
  * mock some parts
  *
- * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerProxyService) via {@link AbstractFacadeMockingTestContext}
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {

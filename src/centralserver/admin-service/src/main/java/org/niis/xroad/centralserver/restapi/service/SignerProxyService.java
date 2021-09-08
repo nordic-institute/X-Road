@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -23,7 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.facade;
+package org.niis.xroad.centralserver.restapi.service;
 
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.commonui.SignerProxy;
@@ -36,20 +36,54 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenInfoAndKeyId;
 import ee.ria.xroad.signer.protocol.message.CertificateRequestFormat;
 
+import akka.actor.ActorSystem;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import java.util.Date;
 import java.util.List;
 
 /**
- * SignerProxy facade.
- * Pure facade / wrapper, just delegates to SignerProxy. Zero business logic.
+ * SignerProxy Service
+ * Mainly facade / wrapper, just to delegate to SignerProxy.
+ *
  * Exists to make testing easier by offering non-static methods.
  */
 @Slf4j
-@Component
-public class SignerProxyFacade {
+@Service
+public class SignerProxyService {
+
+    private final String signerIp;
+
+    /**
+      * handling akka remoting feature
+      */
+
+    private ActorSystem actorSystem;
+
+    public SignerProxyService(@Qualifier("signer-ip") String signerIp) {
+        this.signerIp = signerIp;
+    }
+
+    @PostConstruct
+    void init() {
+        Config config = ConfigFactory.load().getConfig("admin-service").withFallback(ConfigFactory.load());
+        actorSystem = ActorSystem.create("SignerService", config);
+        SignerClient.init(actorSystem, signerIp);
+    }
+
+    @PreDestroy
+    void cleanUp() {
+        actorSystem.terminate();
+    }
+
+
     /**
      * {@link SignerProxy#initSoftwareToken(char[])}
      */
@@ -110,7 +144,7 @@ public class SignerProxyFacade {
      * {@link SignerProxy#generateSelfSignedCert(String, ClientId, KeyUsageInfo, String, Date, Date)}
      */
     public byte[] generateSelfSignedCert(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
-            String commonName, Date notBefore, Date notAfter) throws Exception {
+                                         String commonName, Date notBefore, Date notAfter) throws Exception {
         return SignerProxy.generateSelfSignedCert(keyId, memberId, keyUsage,
                 commonName, notBefore, notAfter);
     }
@@ -148,7 +182,8 @@ public class SignerProxyFacade {
      * String, CertificateRequestFormat)}
      */
     public GeneratedCertRequestInfo generateCertRequest(String keyId, ClientId memberId, KeyUsageInfo keyUsage,
-            String subjectName, CertificateRequestFormat format) throws Exception {
+                                                        String subjectName, CertificateRequestFormat format)
+            throws Exception {
         return SignerProxy.generateCertRequest(keyId, memberId, keyUsage, subjectName, format);
     }
 
