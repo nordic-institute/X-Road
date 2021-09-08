@@ -34,7 +34,7 @@ module.exports = {
     // Populate pageObjects for whole test suite
     mainPage = browser.page.ssMainPage();
     settingsTab = mainPage.section.settingsTab;
-    systemParametersTab = settingsTab.sections.systemParametersTab;
+    systemParametersTab = settingsTab.section.systemParametersTab;
     browser.LoginCommand(browser.globals.login_usr, browser.globals.login_pwd);
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);

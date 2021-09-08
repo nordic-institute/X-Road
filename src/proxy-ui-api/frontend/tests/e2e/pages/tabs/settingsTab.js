@@ -45,7 +45,7 @@ const systemParametersTabCommands = {
   openTimeStampingAddDialog: function () {
     this.click('@timestampingAddButton');
 
-    this.api.waitForElementVisible(
+    this.waitForElementVisible(
       '//input[@value="X-Road Test TSA CN"]/../../label',
     );
     return this;
@@ -136,7 +136,7 @@ const settingsTab = {
   sections: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
+        '//div[.//a[contains(@class, "v-tab--active") and @data-test="settings"]]//div[contains(@class, "base-full-width")]',
       locateStrategy: 'xpath',
       commands: systemParametersTabCommands,
       elements: {
