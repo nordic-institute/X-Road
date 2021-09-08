@@ -48,6 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 public class InitializationApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
 
     private final ObjectMapper testObjectMapper = new ObjectMapper();
@@ -143,7 +144,6 @@ public class InitializationApiControllerRestTemplateTest extends AbstractApiCont
     }
 
     @Test
-    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     public void correctInitializationOK() {
         InitialServerConf validConf = new InitialServerConf()
                 .centralServerAddress("valid.domain.org")
