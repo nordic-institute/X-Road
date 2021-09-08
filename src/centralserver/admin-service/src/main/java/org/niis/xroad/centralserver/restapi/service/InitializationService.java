@@ -216,7 +216,7 @@ public class InitializationService {
 
     private void initializeGlobalGroupForSecurityServerOwners() {
         Optional<GlobalGroup> securityServerOwnersGlobalGroup = globalGroupRepository
-                .getGlobalGroupByGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
+                .getByGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);
         if (securityServerOwnersGlobalGroup.isEmpty()) {
             GlobalGroup defaultSsOwnersGlobalGroup = new GlobalGroup();
             defaultSsOwnersGlobalGroup.setGroupCode(DEFAULT_SECURITY_SERVER_OWNERS_GROUP);

@@ -32,11 +32,12 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Repository("SystemParameterRepository")
 @Transactional
 public interface SystemParameterRepository extends CrudRepository<SystemParameter, Integer>  {
-    List<SystemParameter> findSystemParameterByKeyAndHaNodeName(String key, String haNodeName);
-    List<SystemParameter> findSystemParametersByKey(String key);
+    Optional<SystemParameter> findByKeyAndHaNodeName(String key, String haNodeName);
+    List<SystemParameter> findByKey(String key);
 }

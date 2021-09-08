@@ -64,7 +64,6 @@ public class SignerProxyService {
     /**
       * handling akka remoting feature
       */
-
     private ActorSystem actorSystem;
 
     public SignerProxyService(@Qualifier("signer-ip") String signerIp) {
@@ -76,6 +75,7 @@ public class SignerProxyService {
         Config config = ConfigFactory.load().getConfig("admin-service").withFallback(ConfigFactory.load());
         actorSystem = ActorSystem.create("SignerService", config);
         SignerClient.init(actorSystem, signerIp);
+        log.info("SignerService actorSystem initialized with admin-service config");
     }
 
     @PreDestroy

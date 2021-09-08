@@ -37,5 +37,5 @@ import java.util.Optional;
 @Transactional
 public interface GlobalGroupRepository extends CrudRepository<GlobalGroup, Integer> {
 
-    Optional<GlobalGroup> getGlobalGroupByGroupCode(String code);
+    Optional<GlobalGroup> getByGroupCode(String code);
 }

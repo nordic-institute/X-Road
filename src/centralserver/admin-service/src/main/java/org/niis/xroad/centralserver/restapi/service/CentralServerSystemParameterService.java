@@ -78,20 +78,22 @@ public class CentralServerSystemParameterService {
     private final HAConfigStatus currentHaConfigStatus;
 
     public String getParameterValue(String key, String defaultValue) {
-        List<SystemParameter> valueInDb;
+        Optional<SystemParameter> valueInDb;
         log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
         if (currentHaConfigStatus.isHaConfigured()
                 && isNodeLocalParameter(key)
         ) {
-            valueInDb = systemParameterRepository.findSystemParameterByKeyAndHaNodeName(
+            valueInDb = systemParameterRepository.findByKeyAndHaNodeName(
                     key,
                     currentHaConfigStatus.getCurrentHaNodeName()
             );
         } else {
-            valueInDb = systemParameterRepository.findSystemParametersByKey(key);
+            List<SystemParameter> systemParameters = systemParameterRepository.findByKey(key);
+            valueInDb = systemParameters.stream().findFirst();
+            assert 1 >= systemParameters.size();
         }
-        if (!valueInDb.isEmpty()) {
-            String valueFromDb = valueInDb.iterator().next().getValue();
+        if (valueInDb.isPresent()) {
+            String valueFromDb = valueInDb.get().getValue();
             log.trace("getParameterValue found a {} SystemParameter value {}  ", key, valueFromDb);
             return valueFromDb;
         }
@@ -103,11 +105,11 @@ public class CentralServerSystemParameterService {
         Optional<SystemParameter> systemParameter;
         if (currentHaConfigStatus.isHaConfigured() && isNodeLocalParameter(lookupKey)) {
             String haNodeName = currentHaConfigStatus.getCurrentHaNodeName();
-            systemParameter = systemParameterRepository.findSystemParameterByKeyAndHaNodeName(lookupKey, haNodeName)
+            systemParameter = systemParameterRepository.findByKeyAndHaNodeName(lookupKey, haNodeName)
                     .stream().findFirst();
 
         } else {
-            systemParameter = systemParameterRepository.findSystemParametersByKey(lookupKey)
+            systemParameter = systemParameterRepository.findByKey(lookupKey)
                     .stream().findFirst();
         }
         if (systemParameter.isEmpty()) {
