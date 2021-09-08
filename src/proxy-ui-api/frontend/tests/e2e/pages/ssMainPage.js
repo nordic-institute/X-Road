@@ -59,6 +59,7 @@ var navigateCommands = {
   },
   closeSnackbar: function () {
     this.click('@snackBarCloseButton');
+    this.click('@snackBarCloseButton');
     return this;
   },
   closeAlertMessage: function () {
