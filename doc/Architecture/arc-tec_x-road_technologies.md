@@ -75,13 +75,15 @@ Table 1. Technology matrix of the X-Road
 
  **Technology**                     | **Security server** | **Central server** | **Configuration proxy** | **Operational Monitoring Daemon**
 ----------------------------------- | ------------------- | ------------------ | ----------------------- | -------------------
- Java 8                             | X                   | X                  | X                       | X
+ Java 8                             |                     | X                  |                         |  
+ Java 11                            | X                   |                    | X                       | X
  C                                  | X                   | X                  |                         |
  Logback                            | X                   | X                  | X                       | X
  Akka 2                             | X                   | X                  | X                       | X
  Jetty 9                            | X\[[3](#Ref_3)\]    | X                  |                         |
  JRuby 9                            |                     | X                  |                         |
  Ubuntu 18.04                       | X                   | X                  | X                       | X
+ Ubuntu 20.04                       | X                   | X                  | X                       | X
  Red Hat Enterprise Linux 7 (RHEL7) | X                   |                    |                         | X
  Red Hat Enterprise Linux 8 (RHEL8) | X                   |                    |                         | X
  PostgreSQL 10                      | X                   | X                  |                         | X
@@ -146,7 +148,7 @@ Table 3. Technology matrix of the configuration proxy
 
  **Technology**           | **Web Server**   | **Configuration Processor**   | **Signer**   | **Configuration Client**
 ------------------------- | ---------------- | ----------------------------- | ------------ | ------------------------
- Java 8                   |                  | X                             | X            | X
+ Java 11                  |                  | X                             | X            | X
  Logback                  |                  | X                             | X            | X
  Akka 2                   |                  | X                             | X            |
  nginx                    | X                |                               |              |
@@ -167,7 +169,7 @@ Table 4. Technology matrix of the security server
 
  **Technology**                 | **Signer** | **Proxy** | **Password Store** | **Message Log**  | **Metadata Services** | **Database** | **Configuration Client** | **User Interface frontend** | **REST API** | **Monitor** | **Environmental Monitoring Service** | **Operational Monitoring Buffer** | **Operational Monitoring Services**
 ------------------------------- | ---------- | --------- | ------------------ | ---------------- | --------------------- | ------------ | ------------------------ | --------------------------- | ------------ | ----------- | ------------------------------------ | --------------------------------- | ---
- Java 8                         | X          | X         |                    | X                | X                     |              | X                        |                             | X            | X           | X                                    | X                                 | X
+ Java 11                        | X          | X         |                    | X                | X                     |              | X                        |                             | X            | X           | X                                    | X                                 | X
  C                              |            |           | X                  |                  |                       |              |                          |                             |              |             |                                      |                                   |
  Logback                        | X          | X         |                    | X                | X                     |              | X                        |                             | X            |             | X                                    | X                                 | X
  Akka 2                         | X          | X         |                    | X                |                       |              |                          |                             | X            | X           | X                                    | X                                 |
@@ -204,7 +206,7 @@ Table 5. Technology matrix of the operational monitoring daemon
 
 Technology           | Op. Mon.<br/>Daemon Main | Op. Mon.<br/>Database | Op. Mon.<br/>Service | Configuration<br/>Client
 :------------------- | :----------------------: | :-------------------: | :------------------: | :---:
-Java 8               | X                        | X                     | X                    | X
+Java 11              | X                        | X                     | X                    | X
 Logback              | X                        | X                     | X                    | X
 Akka 2               | X                        | X                     |                      |
 PostgreSQL 10        | X                        | X                     |                      |
