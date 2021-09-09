@@ -81,7 +81,7 @@ var signAuthKeysTabCommands = {
   },
   deleteAuthCSRForKey: function (keyname) {
     this.api.click(
-      '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//tbody[.//div[contains(@class, "clickable-link") and .//*[contains(text(), "' +
+      '//div[@data-test="auth-keys-table"]//tbody[.//div[contains(@class, "clickable-link") and .//*[contains(text(), "' +
         keyname +
         '")]]]//tr[.//div[contains(@class, "name-wrap")]//div[text()="Request"]]//button[.//*[contains(text(), "Delete CSR")]]',
     );
