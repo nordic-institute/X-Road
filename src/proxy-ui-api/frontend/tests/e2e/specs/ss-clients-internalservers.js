@@ -109,14 +109,14 @@ module.exports = {
       clientInternalServers.elements.tlsCertificate,
       '29:F4:6E:58:F2:ED:A0:6A:AC:37:10:95:35:F8:7A:79:B6:C3:70:0E',
     );
-    browser.logMessage("closing snackbar soon");
     clientInternalServers.addCert(
       browser.globals.e2etest_testdata + '/' + browser.globals.test_cert,
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Certificate already exists'
-    mainPage.closeSnackbar();
 
-    browser.logMessage("closed snackbar");
+    browser.logMessage("closing alertMessage now");
+
+    mainPage.closeAlertMessage();
 
     // Open and verify certificate info
     clientInternalServers.openTLSCert();
