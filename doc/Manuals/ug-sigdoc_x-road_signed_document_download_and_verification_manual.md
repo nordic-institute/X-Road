@@ -77,7 +77,7 @@ The security server offers the asic web service for downloading its signed docum
 
 where `SECURITYSERVER` is the actual address of the security server.
 
-Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter `keep-records-for`). The documents are transparently decoded where needed (parameter `messagelog-encryption-enabled` controls the message log encryption) and provided to the user in unencrypted format.
+Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter `keep-records-for`). Depending on the parameter `messagelog-encryption-enabled` the messages are provided to the user in unencrypted or encrypted format.
 
 
 ### 2.1 Retrieving Signed Documents of the Entire Transaction
