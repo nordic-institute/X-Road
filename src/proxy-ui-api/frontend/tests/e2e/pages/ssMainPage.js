@@ -59,26 +59,6 @@ var navigateCommands = {
   },
   closeSnackbar: function (doubleClick) {
     this.click('@snackBarCloseButton');
-    if (doubleClick == undefined) {
-      doubleClick = true; // by default, attempt to click 2 times if snackbar is still visible
-    }
-    if (doubleClick) {
-      // allow snackbar to fade away
-      this.api.pause(1000);
-
-      // sometimes one click is not enough https://github.com/nightwatchjs/nightwatch/issues/1221
-      this.api.elements('xpath', '@snackBarCloseButton',
-          function(results) {
-            if (results.value.length > 0) {
-              this.logMessage("close button still exists for second click, clicking");
-              this.click('@snackBarCloseButton');
-            } else {
-              this.logMessage("close button does not exist");
-            }
-          }
-      );
-    }
-
     return this;
   },
   closeAlertMessage: function () {
