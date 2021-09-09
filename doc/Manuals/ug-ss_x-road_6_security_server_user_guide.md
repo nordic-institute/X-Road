@@ -1710,7 +1710,7 @@ To view the encrypted messages at some later stage, use the ASIC web service doc
 
 9.  `archive-gpg-home-directory` - GPG home directory for archive file encryption (default `/etc/xroad/gpghome`)
 
-10. `archive-encryption-keys-dir` - Directory for archive file encryption (recipient) PGP keys (default same as `gpg-home-directory`). Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key)
+10. `archive-encryption-keys-dir` - directory for archive file encryption (recipient) PGP keys (default same as `gpg-home-directory`). Per-member keys can be used when grouping is by `member` or `subsystem` (subsystems use the member's key). When per-member keys are used, it's recommended to store them in a directory under `/etc/xroad` other than the default `/etc/xroad/gpghome` so that the keys are included in the security server configuration backups.
 
 11. `archive-default-encryption-key` - Default archive encryption key (in `archive-encryption-keys-dir`) if there is no grouping or a encryption key for a member is not present. If not defined, the primary GPG encryption key is used.
 
@@ -1942,8 +1942,9 @@ following configuration:
   - members' sign keys and certificates (that are stored in soft token)
   - security server's internal TLS key and certificate
   - security server's UI key and certificate
-  - messagelog signing and encryption keys
 - database credentials.
+
+**N.B.** Message log database encryption keys, and message log archives encryption and signing keys are included in the backups only if they are stored under the `/etc/xroad` directory. However, they should not be stored in the `/etc/xroad/gpghome` subdirectory since it is excluded from the backups.
 
 Backups contain sensitive information that must be kept secret (for example, private keys and database credentials).
 In other words, leaking this information could easily lead to full compromise of security server. Therefore, it is
