@@ -332,7 +332,7 @@ sudo debconf-set-selections <<< 'xroad-addon-messagelog xroad-addon-messagelog/e
 
 ### 2.8 Security Server Installation
 
-Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland etc.):
+Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
 
 ```
 sudo apt install xroad-securityserver
