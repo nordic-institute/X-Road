@@ -58,7 +58,7 @@
             data-test="close-snackbar"
             @click="closeSuccess(notification.timeAdded)"
           >
-            <v-icon dark>icon-Close</v-icon>
+            <xrd-icon-base><XrdIconClose /> </xrd-icon-base>
           </v-btn>
         </div>
       </v-snackbar>
