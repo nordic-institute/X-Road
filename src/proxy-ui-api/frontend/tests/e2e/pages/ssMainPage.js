@@ -57,22 +57,27 @@ var navigateCommands = {
     this.click('@logoutOKButton');
     return this;
   },
-  closeSnackbar: function () {
+  closeSnackbar: function (doubleClick) {
     this.click('@snackBarCloseButton');
-    // allow snackbar to fade away
-    this.api.pause(1000);
+    if (doubleClick == undefined) {
+      doubleClick = true; // by default, attempt to click 2 times if snackbar is still visible
+    }
+    if (doubleClick) {
+      // allow snackbar to fade away
+      this.api.pause(1000);
 
-    // sometimes one click is not enough https://github.com/nightwatchjs/nightwatch/issues/1221
-    this.api.elements('xpath', '@snackBarCloseButton',
-      function(results) {
-        if (results.value.length > 0) {
-          this.logMessage("close button still exists for second click, clicking");
-          this.click('@snackBarCloseButton');
-        } else {
-          this.logMessage("close button does not exist");
-        }
-      }
-    );
+      // sometimes one click is not enough https://github.com/nightwatchjs/nightwatch/issues/1221
+      this.api.elements('xpath', '@snackBarCloseButton',
+          function(results) {
+            if (results.value.length > 0) {
+              this.logMessage("close button still exists for second click, clicking");
+              this.click('@snackBarCloseButton');
+            } else {
+              this.logMessage("close button does not exist");
+            }
+          }
+      );
+    }
 
     return this;
   },
@@ -719,7 +724,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     alertCloseButton: {
-      selector: '//button[@data-test="close-snackbar"]',
+      selector: '//button[@data-test="close-alert"]',
       locateStrategy: 'xpath',
     },
     alertMessage: {
