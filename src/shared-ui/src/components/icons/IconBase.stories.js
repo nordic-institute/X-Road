@@ -161,9 +161,44 @@ const Template = (args, { argTypes }) => ({
   <icon-svg icon-name="changeOwner"></icon-svg>
   <br><br>
 
-<br>SVG icons<br>
+  <br>Font icons - Used in Security Server - old "deprecated" way - 
+  Check the src/assets/icons.html file for the generated example file<br>
+  <v-icon v-bind="$props">icon-Add</v-icon>
+  <v-icon v-bind="$props">icon-Cancel</v-icon>
+  <v-icon v-bind="$props">icon-Certificate</v-icon>
+  <v-icon v-bind="$props">icon-Checked</v-icon>
+  <v-icon v-bind="$props">icon-Checker</v-icon>
+  <v-icon v-bind="$props">icon-Checkmark</v-icon>
+  <v-icon v-bind="$props">icon-Close</v-icon>
+  <v-icon v-bind="$props">icon-Copy</v-icon>
+  <v-icon v-bind="$props">icon-Database-backup</v-icon>
+  <v-icon v-bind="$props">icon-Database</v-icon>
+  <v-icon v-bind="$props">icon-Datepicker</v-icon>
+  <v-icon v-bind="$props">icon-Declined</v-icon>
+  <v-icon v-bind="$props">icon-Download</v-icon>
+  <v-icon v-bind="$props">icon-Dropdown-open</v-icon>
+  <v-icon v-bind="$props">icon-Edit</v-icon>
+  <v-icon v-bind="$props">icon-Error-notification</v-icon>
+  <v-icon v-bind="$props">icon-Error</v-icon>
+  <v-icon v-bind="$props">icon-Folder-outline</v-icon>
+  <v-icon v-bind="$props">icon-Folder</v-icon>
+  <v-icon v-bind="$props">icon-Import</v-icon>
+  <v-icon v-bind="$props">icon-In-progress</v-icon>
+  <v-icon v-bind="$props">icon-Key</v-icon>
+  <v-icon v-bind="$props">icon-Menu</v-icon>
+  <v-icon v-bind="$props">icon-Plus</v-icon>
+  <v-icon v-bind="$props">icon-Search</v-icon>
+  <v-icon v-bind="$props">icon-Security-Server</v-icon>
+  <v-icon v-bind="$props">icon-Sorting-arrow</v-icon>
+  <v-icon v-bind="$props">icon-Table-backup</v-icon>
+  <v-icon v-bind="$props">icon-Tooltip</v-icon>
+  <v-icon v-bind="$props">icon-Upload</v-icon>
+  <v-icon v-bind="$props">icon-Warning</v-icon>
+
+  <br>
+
+<br>SVG icons - Used in Central Server new UI and the preferred "new" way<br>
 <icon-base icon-name="XrdIconAdd" v-bind="$props"><XrdIconAdd /></icon-base>
-<icon-base icon-name="XrdIconAddUser" v-bind="$props"><XrdIconAddUser /></icon-base>
 <icon-base icon-name="XrdIconCancel" v-bind="$props"><XrdIconCancel /></icon-base>
 <icon-base icon-name="XrdIconCertificate" v-bind="$props"><XrdIconCertificate /></icon-base>
 <icon-base icon-name="XrdIconChecked" v-bind="$props"><XrdIconChecked /></icon-base>
@@ -193,7 +228,7 @@ const Template = (args, { argTypes }) => ({
 <icon-base icon-name="XrdIconTooltip" v-bind="$props"><XrdIconTooltip /></icon-base>
 <icon-base icon-name="XrdIconUpload" v-bind="$props"><XrdIconUpload /></icon-base>
 <icon-base icon-name="XrdIconWarning" v-bind="$props"><XrdIconWarning /></icon-base>
-
+<br>
 <br>Multicolor SVG icons<br>
 <icon-base icon-name="XrdIconChangeOwner" v-bind="$props"><XrdIconChangeOwner /></icon-base>
 <icon-base icon-name="XrdIconAddUser" v-bind="$props"><XrdIconAddUser /></icon-base>
