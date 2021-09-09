@@ -147,7 +147,9 @@ module.exports = {
       mainPage.elements.snackBarMessage,
       'Local group added',
     );
+    browser.logMessage("closing 'local group added' snackbar");
     mainPage.closeSnackbar();
+    browser.logMessage("closed");
     // Close also alert, this cannot be closed while the popup is active
     mainPage.closeAlertMessage();
 
