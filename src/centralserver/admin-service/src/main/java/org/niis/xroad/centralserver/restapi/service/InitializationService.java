@@ -135,25 +135,31 @@ public class InitializationService {
         validateConfigParameters(configDto, isSWTokenInitialized, isServerAddressInitialized,
                 isInstanceIdentifierInitialized);
 
+        if (!isServerAddressInitialized) {
+            systemParameterService.updateOrCreateParameter(
+                    CENTRAL_SERVER_ADDRESS,
+                    configDto.getCentralServerAddress()
+            );
+        }
 
-        systemParameterService.updateOrCreateParameter(
-                CENTRAL_SERVER_ADDRESS,
-                configDto.getCentralServerAddress()
-        );
-        systemParameterService.updateOrCreateParameter(
-                INSTANCE_IDENTIFIER,
-                configDto.getInstanceIdentifier()
-        );
+        if (!isInstanceIdentifierInitialized) {
+            systemParameterService.updateOrCreateParameter(
+                    INSTANCE_IDENTIFIER,
+                    configDto.getInstanceIdentifier()
+            );
+        }
 
         initializeGlobalGroupForSecurityServerOwners();
 
         initializeCsSystemParameters();
 
-        try {
-            signerProxyService.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
-        } catch (Exception e) {
-            log.warn("Software token initialization failed", e);
-            throw new SoftwareTokenInitException("Software token initialization failed", e);
+        if (!isSWTokenInitialized) {
+            try {
+                signerProxyService.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
+            } catch (Exception e) {
+                log.warn("Software token initialization failed", e);
+                throw new SoftwareTokenInitException("Software token initialization failed", e);
+            }
         }
     }
 
