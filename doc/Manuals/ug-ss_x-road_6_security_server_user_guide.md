@@ -1745,6 +1745,8 @@ By default, the produced archive files contain messages from all the security se
 
 When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files and is automatically generated during the security server installation. In case grouping is `none` or no per-member key is available, the `archive-default-encryption-key` is used to encrypt archive files. When grouping is set to `member` or `subsystem`, the archiving process uses per-member keys if they are available in `archive-encryption-keys-dir`. The security server administrator is responsible for generating and configuring per-member keys - they are not generated automatically. The following paragraphs explain how to do it.
 
+**Generating per-member keys for archive encryption**
+
 Archive encryption keys must be OpenPGP public keys suitable for encryption. In the following example, we generate a new keypair for a member with defaults and no expiration. The second gpg-command exports the public key.
 
 ```
