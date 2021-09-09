@@ -26,9 +26,9 @@
  */
 @font-face {
     font-family: "icons";
-    src: url("./icons.eot?e6668743ba253d936fad5be00988697f#iefix") format("embedded-opentype"),
-url("./icons.woff2?e6668743ba253d936fad5be00988697f") format("woff2"),
-url("./icons.woff?e6668743ba253d936fad5be00988697f") format("woff");
+    src: url("./icons.eot?079159c8469dda20a14109c847b9b879#iefix") format("embedded-opentype"),
+url("./icons.woff2?079159c8469dda20a14109c847b9b879") format("woff2"),
+url("./icons.woff?079159c8469dda20a14109c847b9b879") format("woff");
 }
 
 i[class^="icon-"]:before, i[class*=" icon-"]:before {
@@ -46,105 +46,93 @@ i[class^="icon-"]:before, i[class*=" icon-"]:before {
 .icon-Add:before {
     content: "\f101";
 }
-.icon-AddCertificate:before {
+.icon-Cancel:before {
     content: "\f102";
 }
-.icon-AddUser:before {
+.icon-Certificate:before {
     content: "\f103";
 }
-.icon-Cancel:before {
+.icon-Checked:before {
     content: "\f104";
 }
-.icon-Certificate:before {
+.icon-Checker:before {
     content: "\f105";
 }
-.icon-ChangeOwner:before {
+.icon-Checkmark:before {
     content: "\f106";
 }
-.icon-Checked:before {
+.icon-Close:before {
     content: "\f107";
 }
-.icon-Checker:before {
+.icon-Copy:before {
     content: "\f108";
 }
-.icon-Checkmark:before {
+.icon-Database-backup:before {
     content: "\f109";
 }
-.icon-Close:before {
+.icon-Database:before {
     content: "\f10a";
 }
-.icon-Copy:before {
+.icon-Datepicker:before {
     content: "\f10b";
 }
-.icon-Database-backup:before {
+.icon-Declined:before {
     content: "\f10c";
 }
-.icon-Database:before {
+.icon-Download:before {
     content: "\f10d";
 }
-.icon-Datepicker:before {
+.icon-Dropdown-open:before {
     content: "\f10e";
 }
-.icon-Declined:before {
+.icon-Edit:before {
     content: "\f10f";
 }
-.icon-Download:before {
+.icon-Error-notification:before {
     content: "\f110";
 }
-.icon-Dropdown-open:before {
+.icon-Error:before {
     content: "\f111";
 }
-.icon-Error-notification:before {
+.icon-Folder-outline:before {
     content: "\f112";
 }
-.icon-Error:before {
+.icon-Folder:before {
     content: "\f113";
 }
-.icon-Folder-outline:before {
+.icon-Import:before {
     content: "\f114";
 }
-.icon-Folder:before {
+.icon-In-progress:before {
     content: "\f115";
 }
-.icon-Import:before {
+.icon-Key:before {
     content: "\f116";
 }
-.icon-In-progress:before {
+.icon-Menu:before {
     content: "\f117";
 }
-.icon-Key:before {
+.icon-Plus:before {
     content: "\f118";
 }
-.icon-Menu:before {
+.icon-Search:before {
     content: "\f119";
 }
-.icon-Plus:before {
+.icon-Security-Server:before {
     content: "\f11a";
 }
-.icon-RemoveCertificate:before {
+.icon-Sorting-arrow:before {
     content: "\f11b";
 }
-.icon-RemoveUser:before {
+.icon-Table-backup:before {
     content: "\f11c";
 }
-.icon-Search:before {
+.icon-Tooltip:before {
     content: "\f11d";
 }
-.icon-Security-Server:before {
+.icon-Upload:before {
     content: "\f11e";
 }
-.icon-Sorting-arrow:before {
-    content: "\f11f";
-}
-.icon-Table-backup:before {
-    content: "\f120";
-}
-.icon-Tooltip:before {
-    content: "\f121";
-}
-.icon-Upload:before {
-    content: "\f122";
-}
 .icon-Warning:before {
-    content: "\f123";
+    content: "\f11f";
 }
