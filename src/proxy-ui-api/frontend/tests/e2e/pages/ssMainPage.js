@@ -1330,7 +1330,6 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         sslAuthClickarea: {
-          // selector: '//div[@class="v-input--selection-controls__ripple]',
           selector: '//input[@data-test="ssl-auth"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
