@@ -1741,7 +1741,7 @@ Finally, switching to archive grouping by subsystem gives:
 
 The archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). The encryption is enabled/disabled on a security server level - it's not possible to enable/disable it for specific subsystems only. Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
 
-By default, the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`.
+By default, the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`. The grouping is enabled/disabled on a security server level - it is either enabled or disabled for all the members and subsystems.
 
 When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files and is automatically generated during the security server installation. In case grouping is `none` or no per-member key is available, the `archive-default-encryption-key` is used to encrypt archive files. When grouping is set to `member` or `subsystem`, the archiving process uses per-member keys if they are available in `archive-encryption-keys-dir`.
 
