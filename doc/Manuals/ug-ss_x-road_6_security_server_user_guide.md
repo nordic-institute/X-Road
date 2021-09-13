@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.60  
+Version: 2.61  
 Doc. ID: UG-SS
 
 ---
@@ -93,6 +93,7 @@ Doc. ID: UG-SS
  11.08.2021 | 2.58    | Minor updates to backup archive contents and encryption | Petteri Kivimäki
  13.08.2021 | 2.59    | Add documentation about message log archive grouping and encryption | Jarkko Hyöty
  25.08.2021 | 2.60    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 13.09.2021 | 2.61    | Added a new chapter about custom command line arguments [21](#21-adding-command-line-arguments) | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -220,6 +221,7 @@ Doc. ID: UG-SS
   * [19.4 Validation errors](#194-validation-errors)
   * [19.5 Warning responses](#195-warning-responses)
 * [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
+* [21 Adding command line arguments](#21-adding-command-line-arguments)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -2659,3 +2661,27 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
     ```
     systemctl start "xroad*"
     ```
+
+## 21 Adding command line arguments
+
+If you need to add command line arguments for the Security Server, for example if you wish to increase Java's maximum heap size, you can do it with the properties file `/etc/xroad/services/local.properties`. The file is also included in the backup archive file when taking a backup of the Security Server's configuration.
+
+Example of `/etc/xroad/services/local.properties` with modifications that override the default Java memory parameters:
+
+```
+XROAD_PROXY_PARAMS=-Xms150m -Xmx1024m
+```
+
+All possible properties to adjust in this file are
+```
+XROAD_SIGNER_PARAMS
+XROAD_ADDON_PARAMS
+XROAD_CONFCLIENT_PARAM
+XROAD_CONFPROXY_PARAM
+XROAD_JETTY_PARAMS
+XROAD_MONITOR_PARAM
+XROAD_OPMON_PARAM
+XROAD_PROXY_PARAM
+XROAD_PROXY_UI_API_PARAM
+XROAD_SIGNER_CONSOLE_PARAM
+```
