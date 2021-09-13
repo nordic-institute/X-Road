@@ -41,10 +41,8 @@ import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.util.JobManager;
-import ee.ria.xroad.common.util.MessageSendingJob;
 
 import akka.actor.ActorRef;
-import akka.actor.ActorSelection;
 import akka.actor.Cancellable;
 import akka.actor.Props;
 import akka.actor.UntypedAbstractActor;
@@ -52,8 +50,6 @@ import akka.pattern.Patterns;
 import akka.util.Timeout;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.input.BoundedInputStream;
-import org.quartz.JobDataMap;
-import org.quartz.SchedulerException;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -115,13 +111,11 @@ public class LogManager extends AbstractLogManager {
     }
 
     private ActorRef createTimestamper() {
-        ActorRef ref = getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
-        return ref;
+        return getContext().actorOf(getTimestamperImpl(), TIMESTAMPER_NAME);
     }
 
     private ActorRef createTimestamperJob() {
-        ActorRef ref = getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
-        return ref;
+        return getContext().actorOf(Props.create(TimestamperJob.class, getTimestamperJobInitialDelay()));
     }
 
     /**
@@ -184,7 +178,7 @@ public class LogManager extends AbstractLogManager {
         log.trace("onReceive({})", message);
 
         try {
-            if (message instanceof String && CommonMessages.TIMESTAMP_STATUS.equals(message)) {
+            if (CommonMessages.TIMESTAMP_STATUS.equals(message)) {
                 getSender().tell(statusMap, getSelf());
             } else if (message instanceof SetTimestampingStatusMessage) {
                 setTimestampingStatus((SetTimestampingStatusMessage)message);
@@ -325,7 +319,7 @@ public class LogManager extends AbstractLogManager {
     }
 
 
-    private static TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) throws Exception {
+    private static TimestampRecord createTimestampRecord(Timestamper.TimestampSucceeded message) {
         TimestampRecord timestampRecord = new TimestampRecord();
         timestampRecord.setTime(new Date().getTime());
         timestampRecord.setTimestamp(encodeBase64(message.getTimestampDer()));
@@ -384,17 +378,6 @@ public class LogManager extends AbstractLogManager {
         }
     }
 
-    private void registerCronJob(JobManager jobManager, String actorName, Object message, String cronExpression) {
-        ActorSelection actor = getContext().actorSelection(actorName);
-        JobDataMap jobData = MessageSendingJob.createJobData(actor, message);
-
-        try {
-            jobManager.registerJob(MessageSendingJob.class, actorName + "Job", cronExpression, jobData);
-        } catch (SchedulerException e) {
-            log.error("Unable to schedule job", e);
-        }
-    }
-
     static String signatureHash(String signatureXml) throws Exception {
         return encodeBase64(getInputHash(signatureXml));
     }
@@ -411,7 +394,7 @@ public class LogManager extends AbstractLogManager {
         private static final int MAX_INTERVAL_SECONDS = 60 * 60 * 24;
         private static final int TIMESTAMP_RETRY_DELAY_SECONDS = getTimestampRetryDelay();
 
-        private FiniteDuration initialDelay;
+        private final FiniteDuration initialDelay;
         private Cancellable tick;
         // Flag for indicating backoff retry state
         private boolean retryMode = false;
@@ -421,7 +404,7 @@ public class LogManager extends AbstractLogManager {
         }
 
         @Override
-        public void onReceive(Object message) throws Exception {
+        public void onReceive(Object message) {
             log.trace("onReceive({})", message);
 
             if (START_TIMESTAMPING.equals(message)) {

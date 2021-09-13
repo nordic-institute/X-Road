@@ -55,6 +55,18 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Helper class for applying message log encryption/decryption to a message record.
+ *
+ * Implementation note:
+ * The cipher used is AES-CTR, column keys are deterministically derived from the master key
+ * using HKDF (RFC 5869) and the CTR initial counter value (iv) is derived from message record id
+ * (database primary key); first 64 bits are id (big endian) and the rest are initially zero.
+ * Since there can not be two message records with the same id in the database, the (key, counter) pair is
+ * unique (as required by AES-CTR security) as long as each message is shorter than ~2^68 bytes.
+ *
+ * The implementation is a bit convoluted, mostly due to JPA and Blob (large object) handling.
+ */
 @Slf4j
 public final class MessageRecordEncryption {
 
@@ -69,7 +81,7 @@ public final class MessageRecordEncryption {
     private final String currentKeyId = MessageLogProperties.getMessageLogKeyId();
     private final boolean encryptionEnabled = MessageLogProperties.isMessageLogEncryptionEnabled();
 
-    MessageRecordEncryption() {
+    private MessageRecordEncryption() {
         try {
             Map<String, SecretKeySpec> tmpMessageKeys = new HashMap<>();
             Map<String, SecretKeySpec> tmpAttachmentKeys = new HashMap<>();
@@ -136,25 +148,15 @@ public final class MessageRecordEncryption {
     }
 
     /**
-     * Functions for applying message log encryption/decryption to the message record.
+     * Prepares a message record for decryption.
      *
-     * The Cipher is AES-CTR, column keys are deterministically derived from the master key
-     * using HKDF (RFC 5869) and the CTR initial counter value (iv) is derived from message record id
-     * (database primary key); first 64 bits are id (big endian) and the rest are initially zero.
-     * Since there can not be two message records with the same id in the database, the (key, counter) pair is
-     * unique (as required by AES-CTR security) as long as each message is shorter than ~2^68 bytes.
-     *
-     * The implementation is a bit convoluted, mostly due to JPA and Blob (large object) handling.
-     *
-     * When encrypting (assumes new message record not yet persisted to database), the message is encrypted and
-     * the attachment stream is wrapped to a CipherStream so that persisting the record will eventually encrypt
-     * the contents. In order to be able to use record id as IV, we need to defer setup until transaction is active.
-     *
-     * When decrypting, just populates the transient cipher fields -- decryption is (lazily) done when the record
-     * is converted to an asic container. We must not change the entity state it is managed by JPA. Also,
-     * we try to avoid reading the blob contents to memory because it can be large (up to 2GiB).
+     * Just populates the transient cipher fields — decryption is (lazily) done when the record
+     * is converted to an asic container. Does not change the entity state as it is managed by JPA. Also,
+     * avoids reading the blob contents to memory prematurely (can be large, up to 2 GiB).
+     * @param messageRecord record to decrypt
+     * @return the message record prepared for decryption
+     * @throws GeneralSecurityException if setting up the encryption fails.
      */
-
     public MessageRecord prepareDecryption(MessageRecord messageRecord) throws GeneralSecurityException {
         if (messageRecord != null && messageRecord.getKeyId() != null) {
             final Cipher messageCipher = createCipher(Cipher.DECRYPT_MODE, messageRecord.getId(),
@@ -170,6 +172,16 @@ public final class MessageRecordEncryption {
         return messageRecord;
     }
 
+    /**
+     * Prepares a message record for encryption.
+     *
+     * Assumes a new message record not yet persisted to database. The message is encrypted and the attachment stream
+     * (if any) is wrapped to a CipherStream so that persisting the record will eventually encrypt the contents. In
+     * order to be able to use record id sequence as IV, the setup needs to be deferred until transaction is active.
+     * @param messageRecord message record to encrypt
+     * @return the message record prepared for encryption
+     * @throws GeneralSecurityException if setting up the encryption fails.
+     */
     public MessageRecord prepareEncryption(MessageRecord messageRecord) throws GeneralSecurityException {
         if (messageRecord == null) {
             return null;
@@ -215,7 +227,9 @@ public final class MessageRecordEncryption {
         return cipher;
     }
 
-    //future feature: instance can be replaced if configuration changes. for now, for testing
+    /**
+     * Reloads the encryption configuration.
+     */
     public static synchronized void reload() {
         instance = new MessageRecordEncryption();
     }

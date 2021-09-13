@@ -85,7 +85,7 @@ public class LogArchiver extends UntypedAbstractActor {
 
         if (START_ARCHIVING.equals(message)) {
             try {
-                Long maxRecordId = doInTransaction(session -> getMaxRecordId(session));
+                Long maxRecordId = doInTransaction(this::getMaxRecordId);
                 if (maxRecordId != null) {
                     while (handleArchive(maxRecordId)) {
                         // body intentionally empty
@@ -182,7 +182,7 @@ public class LogArchiver extends UntypedAbstractActor {
     }
 
     protected int markTimestampRecordsArchived(Session session) {
-        final Query query = session
+        final Query<?> query = session
                 .createQuery(""
                         + "UPDATE TimestampRecord t SET t.archived = true "
                         + "WHERE t.archived = false AND NOT EXISTS ("

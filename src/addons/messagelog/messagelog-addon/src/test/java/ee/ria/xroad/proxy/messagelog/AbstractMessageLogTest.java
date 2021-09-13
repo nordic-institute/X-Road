@@ -90,7 +90,7 @@ abstract class AbstractMessageLogTest {
 
     public static class DeadLetterActor extends UntypedAbstractActor {
 
-        private AbstractMessageLogTest test;
+        private final AbstractMessageLogTest test;
 
         DeadLetterActor(AbstractMessageLogTest test) {
             this.test = test;
@@ -118,7 +118,7 @@ abstract class AbstractMessageLogTest {
 
         System.setProperty(MessageLogProperties.TIMESTAMP_IMMEDIATELY, timestampImmediately ? "true" : "false");
 
-        System.setProperty(MessageLogProperties.SOAP_BODY_LOGGING_ENABLED, "true");
+        System.setProperty(MessageLogProperties.MESSAGE_BODY_LOGGING_ENABLED, "true");
 
         logManagerRef = TestActorRef.create(actorSystem, Props.create(getLogManagerImpl(), jobManager),
                 MessageLog.LOG_MANAGER);
@@ -149,13 +149,12 @@ abstract class AbstractMessageLogTest {
         return LogManager.class;
     }
 
-    void initLogManager() throws Exception {
+    void initLogManager() {
         signalTimestampingStatus(SetTimestampingStatusMessage.Status.SUCCESS);
     }
 
     /**
      * Sends time stamping status message to LogManager
-     *
      * @param status status message
      */
     private void signalTimestampingStatus(SetTimestampingStatusMessage.Status status) {
@@ -164,11 +163,6 @@ abstract class AbstractMessageLogTest {
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
         logManager.log(new SoapLogMessage(message, signature, true));
-    }
-
-    protected void log(SoapMessageImpl message, SignatureData signature, String xRequestId)
-            throws Exception {
-        logManager.log(new SoapLogMessage(message, signature, true, xRequestId));
     }
 
     TimestampRecord timestamp(MessageRecord record) throws Exception {
@@ -191,7 +185,7 @@ abstract class AbstractMessageLogTest {
         Await.result(actorSystem.whenTerminated(), Duration.Inf());
     }
 
-    static void assertMessageRecord(Object o, String queryId) throws Exception {
+    static void assertMessageRecord(Object o, String queryId) {
         assertNotNull(o);
         assertTrue(o instanceof MessageRecord);
 
@@ -199,7 +193,4 @@ abstract class AbstractMessageLogTest {
         assertEquals(queryId, messageRecord.getQueryId());
     }
 
-    private static String component(String name) {
-        return "/user/" + MessageLog.LOG_MANAGER + "/" + name;
-    }
 }

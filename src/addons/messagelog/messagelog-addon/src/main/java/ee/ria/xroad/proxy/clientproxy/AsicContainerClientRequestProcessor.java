@@ -121,7 +121,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     }
 
     @Override
-    public void process() throws Exception {
+    public void process() {
         try {
             switch (target) {
                 case ASIC:
