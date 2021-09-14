@@ -45,37 +45,25 @@ module.exports = {
   'User can add new timestamping service': (browser) => {
     systemParametersTab.openTimeStampingAddDialog();
     // adding can be cancelled
-    browser.click(
-      systemParametersTab.elements.timestampingAddDialogCancelButton,
-    );
-    browser.waitForElementNotVisible(
-      systemParametersTab.elements.timestampingAddDialogCancelButton,
-    );
-    browser.waitForElementNotPresent(
-      systemParametersTab.elements.timestampingServiceTableRow,
-    );
+    systemParametersTab.click('@timestampingAddDialogCancelButton');
+    systemParametersTab.waitForElementNotVisible('@timestampingAddDialogCancelButton');
+    systemParametersTab.waitForElementNotPresent('@timestampingServiceTableRow');
 
     // cancelling after selecting doesn't yet add server
-    browser.click(systemParametersTab.elements.timestampingAddButton);
-    browser.click(systemParametersTab.elements.timestampingAddDialogServiceSelection);
-    browser.click(
-      systemParametersTab.elements.timestampingAddDialogCancelButton,
-    );
-    browser.waitForElementNotPresent(
-      systemParametersTab.elements.timestampingServiceTableRow,
-    );
+    systemParametersTab.click('@timestampingAddButton');
+    systemParametersTab.click('@timestampingAddDialogServiceSelection');
+    systemParametersTab.click('@timestampingAddDialogCancelButton');
+    systemParametersTab.waitForElementNotPresent('@timestampingServiceTableRow');
 
     // clicking 'add' updates table, closes dialog and gives success message.
-    browser.click(systemParametersTab.elements.timestampingAddButton);
-    browser.click(systemParametersTab.elements.timestampingAddDialogServiceSelection);
-    browser.click(systemParametersTab.elements.timestampingAddDialogAddButton);
+    systemParametersTab.click('@timestampingAddButton');
+    systemParametersTab.click('@timestampingAddDialogServiceSelection');
+    systemParametersTab.click('@timestampingAddDialogAddButton');
     systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN', 'http://cs:8899');
 
     // add button is disabled if there is no room for new services
-    browser.waitForElementVisible(
-      systemParametersTab.elements.timestampingServiceTableRow,
-    );
-    browser.waitForElementPresent(systemParametersTab.elements.timestampingAddButton);
+    systemParametersTab.waitForElementVisible('@timestampingServiceTableRow');
+    systemParametersTab.waitForElementPresent('@timestampingAddButton');
   },
 
   'Timestamp-table is visible': (browser) => {
@@ -84,8 +72,8 @@ module.exports = {
   },
   'service deletion can be cancelled': (browser) => {
     systemParametersTab.openTimeStampingDeleteDialog();
-    browser.waitForElementVisible(systemParametersTab.elements.timestampingDeleteDialogCancelButton);
-    browser.click(systemParametersTab.elements.timestampingDeleteDialogCancelButton);
+    systemParametersTab.waitForElementVisible('@timestampingDeleteDialogCancelButton');
+    systemParametersTab.click('@timestampingDeleteDialogCancelButton');
     systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN', 'http://cs:8899');
   },
   'timestamping service can be deleted': () => {
