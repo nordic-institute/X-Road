@@ -32,6 +32,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
@@ -42,6 +43,8 @@ import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsE
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
 import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
 import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.service.SignerNotReachableException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -80,6 +83,8 @@ public class InitializationService {
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterService systemParameterService;
     private final TokenPinValidator tokenPinValidator;
+    private final AuditDataHelper auditDataHelper;
+    private final HAConfigStatus currentHaConfigStatus;
 
 
     public InitializationStatusDto getInitializationStatus() {
@@ -114,6 +119,10 @@ public class InitializationService {
             WeakPinException, InvalidInitParamsException {
 
         log.debug("initializing server with {}", configDto);
+
+        auditDataHelper.put(RestApiAuditProperty.CENTRAL_SERVER_ADDRESS, configDto.getCentralServerAddress());
+        auditDataHelper.put(RestApiAuditProperty.INSTANCE_IDENTIFIER, configDto.getInstanceIdentifier());
+        auditDataHelper.put(RestApiAuditProperty.HA_NODE, currentHaConfigStatus.getCurrentHaNodeName());
 
         if (null == configDto.getSoftwareTokenPin()) {
             configDto.setSoftwareTokenPin("");

@@ -40,6 +40,8 @@ import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsE
 import org.niis.xroad.centralserver.restapi.service.exception.ServerAlreadyFullyInitializedException;
 import org.niis.xroad.centralserver.restapi.service.exception.SoftwareTokenInitException;
 import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +72,7 @@ public class InitializationApiController implements InitializationApi {
 
     @Override
     @PreAuthorize("hasAuthority('INIT_CONFIG')")
+    @AuditEventMethod(event = RestApiAuditEvent.INIT_CENTRAL_SERVER)
     public ResponseEntity<Void> initCentralServer(@Validated InitialServerConf initialServerConf) {
         InitializationConfigDto configDto = new InitializationConfigDto();
         configDto.setInstanceIdentifier(initialServerConf.getInstanceIdentifier());

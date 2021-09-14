@@ -104,14 +104,18 @@ public enum RestApiAuditProperty {
     SERVER_CODE,
 
     API_KEY_ID,
-    API_KEY_ROLES;
+    API_KEY_ROLES,
+
+    INSTANCE_IDENTIFIER,
+    CENTRAL_SERVER_ADDRESS,
+    HA_NODE;
 
     /**
      * Gets logged property name for the enum value.
      * Returns enum name converted to lower camel case.
      * For example CLIENT_IDENTIFIER -> clientIdentifier
      *
-     * @return
+     * @return enum name converted to lower camel case.
      */
     @JsonValue
     String getPropertyName() {
