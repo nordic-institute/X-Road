@@ -1,0 +1,3 @@
+#!/bin/bash
+. /etc/xroad/services/messagelog-archiver.conf
+exec java ${XROAD_PARAMS} ${XROAD_MESSAGELOG_ARCHIVER_PARAMS} -jar /usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
