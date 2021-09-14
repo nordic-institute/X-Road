@@ -201,12 +201,14 @@ var localGroupPopupCommands = {
     this.waitForValue('@localGroupDescription', value);
     return this;
   },
-  changeCode: function (code) {
+  modifyCode: function (code) {
+    this.waitForNonEmpty('@localGroupCode');
     this.clearValue2('@localGroupCode');
     this.setValue('@localGroupCode', code);
     return this;
   },
-  changeDescription: function (description) {
+  modifyDescription: function (description) {
+    this.waitForNonEmpty('@localGroupDescription');
     this.clearValue2('@localGroupDescription');
     this.setValue('@localGroupDescription', description);
     return this;
@@ -321,7 +323,14 @@ var clientServicesCommands = {
     this.setValue('@newServiceUrl', url);
     return this;
   },
-  enterServiceCode: function (code) {
+  initServiceCode: function (code) {
+    this.assert.value('@newServiceCode', "");
+    this.clearValue2('@newServiceCode');
+    this.setValue('@newServiceCode', code);
+    return this;
+  },
+  modifyServiceCode: function (code) {
+    this.waitForNonEmpty('@newServiceCode');
     this.clearValue2('@newServiceCode');
     this.setValue('@newServiceCode', code);
     return this;
@@ -350,7 +359,14 @@ var clientServicesCommands = {
     this.click('@serviceEnableToggle');
     return this;
   },
-  enterDisableNotice: function (notice) {
+  initDisableNotice: function (notice) {
+    this.assert.value('@disableNotice', "");
+    this.clearValue2('@disableNotice');
+    this.setValue('@disableNotice', notice);
+    return this;
+  },
+  modifyDisableNotice: function (notice) {
+    this.waitForNonEmpty('@disableNotice');
     this.clearValue2('@disableNotice');
     this.setValue('@disableNotice', notice);
     return this;
@@ -406,12 +422,14 @@ var clientLocalGroupsCommands = {
     this.click('@cancelAddButton');
     return this;
   },
-  enterCode: function (code) {
+  initCode: function (code) {
+    this.assert.value('@groupCode', "");
     this.clearValue2('@groupCode');
     this.setValue('@groupCode', code);
     return this;
   },
-  enterDescription: function (description) {
+  initDescription: function (description) {
+    this.assert.value('@groupDescription', "");
     this.clearValue2('@groupDescription');
     this.setValue('@groupDescription', description);
     return this;
@@ -469,7 +487,14 @@ var serviceDetailsCommands = {
     this.setValue('@serviceURL', url);
     return this;
   },
-  enterServiceCode: function (code) {
+  initServiceCode: function (code) {
+    this.assert.value('@serviceCode', "");
+    this.clearValue2('@serviceCode');
+    this.setValue('@serviceCode', code);
+    return this;
+  },
+  modifyServiceCode: function (code) {
+    this.waitForNonEmpty('@serviceCode');
     this.clearValue2('@serviceCode');
     this.setValue('@serviceCode', code);
     return this;

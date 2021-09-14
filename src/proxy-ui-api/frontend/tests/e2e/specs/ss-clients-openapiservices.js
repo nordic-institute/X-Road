@@ -63,13 +63,13 @@ module.exports = {
       '//div[contains(@class, "v-messages__message")]',
     );
     clientServices.initServiceUrl('http://example.com');
-    clientServices.enterServiceCode('a');
-    clientServices.enterServiceCode('');
+    clientServices.initServiceCode('a');
+    clientServices.modifyServiceCode('');
     // Verify there's an error message, something like 'The Service Code field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceCode('s3c1');
+    clientServices.initServiceCode('s3c1');
     clientServices.selectOpenApi();
     clientServices.cancelAddDialog();
 
@@ -88,7 +88,7 @@ module.exports = {
     const urlToTest = 'https://www.niis.org/nosuchopenapi.yaml';
     clientServices.selectOpenApi();
     clientServices.initServiceUrl(urlToTest);
-    clientServices.enterServiceCode('s3c1');
+    clientServices.initServiceCode('s3c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); // loading a missing file can sometimes take more time before failing
     browser.assert.containsText(mainPage.elements.alertMessage, urlToTest);
@@ -100,7 +100,7 @@ module.exports = {
       browser.globals.testdata + '/' + browser.globals.openapi_url_1,
     );
     clientServices.selectOpenApi();
-    clientServices.enterServiceCode('/');
+    clientServices.initServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
 
@@ -117,7 +117,7 @@ module.exports = {
       browser.globals.testdata + '/' + browser.globals.openapi_url_1,
     );
     clientServices.selectOpenApi();
-    clientServices.enterServiceCode('s3c1');
+    clientServices.initServiceCode('s3c1');
     clientServices.confirmAddDialog();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'OpenApi3 service added'
@@ -694,12 +694,12 @@ module.exports = {
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
     browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
-    clientServices.enterDisableNotice('Message1');
+    clientServices.initDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     browser.assert.value(clientServices.elements.disableNotice, '');
-    clientServices.enterDisableNotice('Notice1');
+    clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
     mainPage.closeSnackbar();
@@ -710,14 +710,14 @@ module.exports = {
       openApiServiceDetails.elements.serviceType,
       'OpenAPI 3',
     );
-    openApiServiceDetails.enterServiceCode('/');
+    openApiServiceDetails.modifyServiceCode('/');
     browser.expect.element(openApiServiceDetails.elements.confirmDialogButton)
       .to.not.be.enabled;
 
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
     browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
-    openApiServiceDetails.enterServiceCode('');
+    openApiServiceDetails.modifyServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
     browser.waitForElementVisible(openApiServiceDetails.elements.codeMessage);
 
@@ -752,7 +752,7 @@ module.exports = {
     openApiServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.openapi_url_2,
     );
-    openApiServiceDetails.enterServiceCode('s3c2');
+    openApiServiceDetails.modifyServiceCode('s3c2');
     openApiServiceDetails.cancelDialog();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -771,7 +771,7 @@ module.exports = {
     openApiServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.openapi_url_2,
     );
-    openApiServiceDetails.enterServiceCode('s3c2');
+    openApiServiceDetails.modifyServiceCode('s3c2');
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     await browser.perform(function () {

@@ -491,7 +491,7 @@ module.exports = {
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
-    clientServices.enterDisableNotice('Message1');
+    clientServices.initDisableNotice('Message1');
     browser.logMessage("entered disable notice, cancelling");
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
@@ -499,7 +499,7 @@ module.exports = {
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
-    clientServices.enterDisableNotice('Notice1');
+    clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
     mainPage.closeSnackbar();
