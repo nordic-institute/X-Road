@@ -642,6 +642,7 @@ module.exports = {
     clientServices.openServiceDetails();
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
+    browser.logMessage('delete was confirmed');
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();

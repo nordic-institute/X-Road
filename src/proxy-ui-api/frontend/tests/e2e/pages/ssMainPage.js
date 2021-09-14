@@ -58,6 +58,7 @@ var navigateCommands = {
     return this;
   },
   closeSnackbar: function (doubleClick) {
+    this.logMessage("first click on close button");
     this.click('@snackBarCloseButton');
     if (doubleClick == undefined) {
       doubleClick = true; // by default, attempt to click 2 times if snackbar is still visible
@@ -73,7 +74,7 @@ var navigateCommands = {
               this.logMessage("close button still exists for second click, clicking");
               this.click('@snackBarCloseButton');
             } else {
-              this.logMessage("close button does not exist");
+              this.logMessage("second click: close button does not exist, skipping");
             }
           }
       );
@@ -1130,8 +1131,8 @@ module.exports = {
         },
       },
     },
-    serviceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog"]',
+    serviceDetails: { //TODO: rename wsdlServiceDetails
+      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1175,7 +1176,7 @@ module.exports = {
       },
     },
     restServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="rest-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1233,7 +1234,7 @@ module.exports = {
       },
     },
     openApiServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog"]',
+      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="openapi-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1330,7 +1331,6 @@ module.exports = {
           locateStrategy: 'xpath',
         },
         sslAuthClickarea: {
-          // selector: '//div[@class="v-input--selection-controls__ripple]',
           selector: '//input[@data-test="ssl-auth"]/following-sibling::div',
           locateStrategy: 'xpath',
         },
