@@ -33,10 +33,10 @@ dependencies {
 }
 
 jar {
-  manifest {
-    attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
-  }
-  enabled = false
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.signer.SignerMain'
+    }
+    archiveClassifier = 'plain'
 }
 
 shadowJar {
@@ -46,15 +46,15 @@ shadowJar {
     from rootProject.file("LICENSE.txt")
 }
 
-build.finalizedBy shadowJar
+assemble.dependsOn shadowJar
 
-task createDirs () {
+task createDirs() {
     doLast {
         project.ext.schemaTargetDir.mkdirs()
     }
 }
 
-task xjc(dependsOn:[':common-util:xjc',':common-verifier:xjc']) {
+task xjc(dependsOn: [':common-util:xjc', ':common-verifier:xjc']) {
     inputs.files files('src/main/resources/*.xsd')
     outputs.dir project.ext.schemaTargetDir
 
@@ -88,20 +88,20 @@ task runSignerMain(type: JavaExec) {
     classpath += files('../addons/hwtoken/build/libs/hwtoken-1.0.jar')
 
     description = "Starts signer main program.\nNote: " +
-       "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
-       "directory\n{JAVA_HOME}/jre/lib/i386 (analogous directory for 64-bit " +
-       "OS). Otherwise use\nnext property to detemine your library path:\n" +
-       "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
+        "Be sure that appropriate libpkcs11wrapper.so is installed to the " +
+        "directory\n{JAVA_HOME}/jre/lib/i386 (analogous directory for 64-bit " +
+        "OS). Otherwise use\nnext property to detemine your library path:\n" +
+        "jvmArgs '-Djava.library.path=/foo/bar/iaik/bin/unix/linux-x86/release'";
 }
 
 xjc.dependsOn createDirs
 compileJava.dependsOn xjc
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }

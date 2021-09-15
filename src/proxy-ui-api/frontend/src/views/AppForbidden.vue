@@ -42,8 +42,8 @@
                 test-data="go-back-button"
                 color="primary"
                 large
-                @click="goBack"
                 rounded
+                @click="goBack"
                 >{{ $t('403.goBack') }}</xrd-button
               >
 
@@ -52,9 +52,9 @@
                 color="primary"
                 outlined
                 large
-                @click="home"
                 class="ml-4"
                 rounded
+                @click="home"
                 >{{ $t('action.goToFront') }}</xrd-button
               >
             </div>

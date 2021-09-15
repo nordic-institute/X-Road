@@ -127,6 +127,7 @@ export default Vue.extend({
   background-color: #f3ec78;
   background-image: linear-gradient(108deg, #e29ae6 5.28%, #663bdb 94.72%);
   background-size: 100%;
+  background-clip: text;
   -webkit-background-clip: text;
   -moz-background-clip: text;
   -webkit-text-fill-color: transparent;

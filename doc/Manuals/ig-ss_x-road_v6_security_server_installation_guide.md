@@ -65,7 +65,8 @@ Doc. ID: IG-SS
  25.08.2021 | 2.39    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  26.08.2021 | 2.40    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
  03.08.2021 | 2.41    | Minor fixes | Ilkka Seppälä
- 
+ 06.09.2021 | 2.42    | Update list of running services | Jarkko Hyöty
+
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/
@@ -373,17 +374,18 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
-    ```
-    sudo systemctl list-units "xroad*"
+  ```
+  sudo systemctl list-units "xroad-*"
 
-    UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
-    xroad-base.service       loaded active exited  X-Road initialization
-    xroad-confclient.service loaded active running X-Road confclient
-    xroad-monitor.service    loaded active running X-Road Monitor
-    xroad-proxy-ui-api.service loaded active running X-Road Proxy UI REST API
-    xroad-proxy.service      loaded active running X-Road Proxy
-    xroad-signer.service     loaded active running X-Road signer
-    ```
+  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
+  xroad-addon-messagelog.service loaded active running X-Road Messagelog Archiver
+  xroad-base.service             loaded active exited  X-Road initialization
+  xroad-confclient.service       loaded active running X-Road confclient
+  xroad-monitor.service          loaded active running X-Road Monitor
+  xroad-proxy-ui-api.service     loaded active running X-Road Proxy UI REST API
+  xroad-proxy.service            loaded active running X-Road Proxy
+  xroad-signer.service           loaded active running X-Road signer
+  ```
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
 
 ### 2.10 Installing the Support for Hardware Tokens
