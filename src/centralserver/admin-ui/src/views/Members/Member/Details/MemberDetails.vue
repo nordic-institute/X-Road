@@ -89,16 +89,6 @@
           :loader-height="2"
           hide-default-footer
         >
-          <template #[`item.namef`]="{ item }">
-            <div class="members-table-cell-name" @click="toDetails('netum')">
-              <xrd-icon-base class="xrd-clickable mr-4"
-                ><xrd-icon-folder-outline
-              /></xrd-icon-base>
-
-              {{ item.name }}
-            </div>
-          </template>
-
           <template #footer>
             <div class="cs-table-custom-footer"></div>
           </template>
