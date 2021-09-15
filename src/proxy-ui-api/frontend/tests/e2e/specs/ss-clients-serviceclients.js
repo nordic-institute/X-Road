@@ -384,7 +384,7 @@ module.exports = {
         browser.globals.testdata + '/' + browser.globals.rest_url_1,
       );
       clientServices.selectRESTPath();
-      clientServices.enterServiceCode('s1c1');
+      clientServices.initServiceCode('s1c1');
       clientServices.confirmAddDialog();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
       mainPage.closeSnackbar();
@@ -540,7 +540,7 @@ module.exports = {
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();
-    clientServices.enterServiceCode('s1c1');
+    clientServices.initServiceCode('s1c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // Service added successfully
     mainPage.closeSnackbar();

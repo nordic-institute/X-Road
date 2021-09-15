@@ -193,6 +193,7 @@ if (!project.hasProperty("runHeadless")) {
     ext.runHeadless = ""
 }
 
+// TODO: rename these to "e2e"
 if (!project.hasProperty("testscript")) {
     ext.testscript = ""
 }
@@ -201,6 +202,9 @@ if (!project.hasProperty("testcase")) {
     ext.testcase = ""
 }
 
+if (!project.hasProperty("testverbose")) {
+    ext.testverbose = ""
+}
 
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
@@ -217,6 +221,12 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     outputs.dir("frontend/dist")
 
     args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
+
+    if (!testverbose.isEmpty()) {
+        if (testverbose == "true") {
+            args.add("--verbose")
+        }
+    }
 
     if (!runHeadless.isEmpty()) {
       if (runHeadless == "true") {

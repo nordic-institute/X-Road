@@ -100,9 +100,9 @@ module.exports = {
     clientLocalGroups.verifyGroupListRow(7, 'cbb');
 
     clientLocalGroups.openAddDialog();
-    clientLocalGroups.enterCode('abc');
+    clientLocalGroups.initCode('abc');
     browser.assert.valueContains(clientLocalGroups.elements.groupCode, 'abc');
-    clientLocalGroups.enterDescription('addDesc');
+    clientLocalGroups.initDescription('addDesc');
     clientLocalGroups.cancelAddDialog();
 
     clientLocalGroups.verifyGroupListRow(2, '1122');
@@ -118,7 +118,7 @@ module.exports = {
     browser.assert.value(clientLocalGroups.elements.groupDescription, '');
 
     // Verify that add is disabled if only Code is entered
-    clientLocalGroups.enterCode('abc');
+    clientLocalGroups.initCode('abc');
     browser.waitForElementVisible(
       '//button[@data-test="dialog-save-button" and @disabled="disabled"]',
     );
@@ -126,13 +126,13 @@ module.exports = {
 
     // Verify that add is disabled if only description is entered
     clientLocalGroups.openAddDialog();
-    clientLocalGroups.enterDescription('addDesc');
+    clientLocalGroups.initDescription('addDesc');
     browser.waitForElementVisible(
       '//button[@data-test="dialog-save-button" and @disabled="disabled"]',
     );
 
     // Verify that trying to add a group with existing code results in an error message
-    clientLocalGroups.enterCode('abb');
+    clientLocalGroups.initCode('abb');
     clientLocalGroups.confirmAddDialog();
     browser.assert.containsText(
       mainPage.elements.alertMessage,
@@ -140,8 +140,8 @@ module.exports = {
     );
 
     // Add a new group and verify
-    clientLocalGroups.enterCode('abc');
-    clientLocalGroups.enterDescription('addDesc');
+    clientLocalGroups.initCode('abc');
+    clientLocalGroups.initDescription('addDesc');
     clientLocalGroups.confirmAddDialog();
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
@@ -311,7 +311,7 @@ module.exports = {
     localGroupPopup.waitForDescription('Group4');
 
     // Change description
-    localGroupPopup.changeDescription('');
+    localGroupPopup.modifyDescription('');
     browser.keys(browser.Keys.ENTER); // Enter keypress needed after data entry to trigger validation
     browser.assert.containsText(
       mainPage.elements.alertMessage,
@@ -326,7 +326,7 @@ module.exports = {
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription('Group4');
-    localGroupPopup.changeDescription(
+    localGroupPopup.modifyDescription(
       browser.globals.test_string_300.slice(0, 256),
     );
     browser.keys(browser.Keys.ENTER);
@@ -343,7 +343,7 @@ module.exports = {
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription('Group4');
     let maxLengthDescription = browser.globals.test_string_300.slice(0, 255);
-    localGroupPopup.changeDescription(
+    localGroupPopup.modifyDescription(
       maxLengthDescription,
     );
     browser.keys(browser.Keys.ENTER);
@@ -361,7 +361,7 @@ module.exports = {
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription(maxLengthDescription);
-    localGroupPopup.changeDescription('Group4');
+    localGroupPopup.modifyDescription('Group4');
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,

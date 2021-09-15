@@ -63,13 +63,13 @@ module.exports = {
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceCode('a');
-    clientServices.enterServiceCode('');
+    clientServices.initServiceCode('a');
+    clientServices.modifyServiceCode('');
     // Verify there's an error message, something like 'The Service Code field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceCode('s1c1');
+    clientServices.initServiceCode('s1c1');
     clientServices.selectRESTPath();
     clientServices.cancelAddDialog();
 
@@ -89,7 +89,7 @@ module.exports = {
     clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
-    clientServices.enterServiceCode('/');
+    clientServices.initServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
@@ -104,7 +104,7 @@ module.exports = {
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();
-    clientServices.enterServiceCode('s1c1');
+    clientServices.initServiceCode('s1c1');
     clientServices.confirmAddDialog();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'REST service added'
@@ -705,14 +705,14 @@ module.exports = {
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
-    clientServices.enterDisableNotice('Message1');
+    clientServices.initDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
-    clientServices.enterDisableNotice('Notice1');
+    clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
@@ -723,7 +723,7 @@ module.exports = {
       restServiceDetails.elements.serviceType,
       'REST API',
     );
-    restServiceDetails.enterServiceCode('/');
+    restServiceDetails.modifyServiceCode('/');
     browser.expect.element(restServiceDetails.elements.confirmDialogButton).to
       .not.be.enabled;
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
@@ -740,7 +740,7 @@ module.exports = {
       }
     });
 
-    restServiceDetails.enterServiceCode('');
+    restServiceDetails.modifyServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
     browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
     restServiceDetails.modifyServiceUrl('foobar');
@@ -754,7 +754,7 @@ module.exports = {
     restServiceDetails.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
-    restServiceDetails.enterServiceCode('s1c2');
+    restServiceDetails.initServiceCode('s1c2');
     restServiceDetails.cancelDialog();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -773,7 +773,7 @@ module.exports = {
     restServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
-    restServiceDetails.enterServiceCode('s1c2');
+    restServiceDetails.modifyServiceCode('s1c2');
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     await browser.perform(function () {

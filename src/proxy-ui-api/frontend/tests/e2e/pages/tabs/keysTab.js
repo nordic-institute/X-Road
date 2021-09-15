@@ -175,7 +175,8 @@ var keyDetailsCommands = {
     this.click('@deleteButton');
     return this;
   },
-  enterFriendlyName: function (name) {
+  modifyFriendlyName: function (name) {
+    this.waitForNonEmpty('@friendlyName');
     this.clearValue2('@friendlyName');
     this.setValue('@friendlyName', name);
     return this;
