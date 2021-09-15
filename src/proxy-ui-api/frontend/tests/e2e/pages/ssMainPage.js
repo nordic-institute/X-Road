@@ -63,6 +63,7 @@ var navigateCommands = {
     if (doubleClick == undefined) {
       doubleClick = true; // by default, attempt to click 2 times if snackbar is still visible
     }
+    doubleClick = false;
     if (doubleClick) {
       // allow snackbar to fade away
       this.api.pause(1000);
