@@ -103,6 +103,10 @@ Doc. ID: ARC-SS
     - [3.7.3 Messaging](#373-messaging)
     - [3.7.4 Input/output ports](#374-inputoutput-ports)
     - [3.7.5 Persistent data](#375-persistent-data)
+  - [3.8 xroad-addon-messagelog](#38-xroad-addon-messagelog)
+    - [3.7.1 Role and responsibilities](#371-role-and-responsibilities-1)
+    - [3.7.2 Encapsulated data](#372-encapsulated-data-1)
+    - [3.7.3 Persistent data](#373-persistent-data)
 - [4 Interfaces](#4-interfaces)
   - [4.1 Management Services](#41-management-services)
   - [4.2 Download Configuration](#42-download-configuration)
@@ -558,6 +562,20 @@ The input ports for query, store, and JMX access of operational monitoring data 
 #### 3.7.5 Persistent data
 
 Xroad-opmonitor persists data to postgresql database.
+
+### 3.8 xroad-addon-messagelog
+
+#### 3.7.1 Role and responsibilities
+
+Xroad-addon-messagelog handles the archiving and cleaning of the message logs.
+
+#### 3.7.2 Encapsulated data
+
+Xroad-addon-messagelog operates on the shared data in the postgresql messagelog database.
+
+#### 3.7.3 Persistent data
+
+Xroad-addon-messagelog persists data to postgresql messagelog database.
 
 
 ## 4 Interfaces
