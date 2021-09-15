@@ -92,6 +92,7 @@ else
     ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
     /usr/share/xroad/scripts/setup_messagelog_db.sh
 fi
+%systemd_post xroad-addon-messagelog.service
 
 %postun
 %systemd_postun_with_restart xroad-proxy.service
