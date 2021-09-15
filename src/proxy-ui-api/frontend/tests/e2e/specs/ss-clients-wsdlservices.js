@@ -444,7 +444,7 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const servicesPopup = mainPage.section.servicesWarningPopup;
-    const serviceDetails = mainPage.section.serviceDetails;
+    const serviceDetails = mainPage.section.wsdlServiceDetails;
 
     var startTime, startTimestamp;
 
@@ -605,7 +605,7 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
-    const serviceDetails = mainPage.section.serviceDetails;
+    const serviceDetails = mainPage.section.wsdlServiceDetails;
 
     // Open SUT and check that page is loaded
     frontPage.navigate();
