@@ -26,20 +26,39 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.junit.Test;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
-@Getter
-@RequiredArgsConstructor
-@EqualsAndHashCode
-class EncryptionConfig {
-    private final boolean enabled;
-    private final Path gpgHomeDir;
-    private final Set<String> encryptionKeys;
+import static org.junit.Assert.assertEquals;
 
-    static final EncryptionConfig DISABLED = new EncryptionConfig(false, null, null);
+public class MemberEncryptionConfigProviderTest {
+    private final Map<String, Set<String>> expected = new HashMap<>();
+
+    {
+        expected.put("INSTANCE/memberClass/memberCode", setOf("B23B8E993AC4632A896D39A27BE94D3451C16D33"));
+        expected.put("withEquals=", setOf("=Föö <foo@example.org>"));
+        expected.put("test", setOf("key#1", "key#2"));
+        expected.put("#comment escape#", setOf("#42"));
+        expected.put("backslash\\=equals", setOf("1"));
+        expected.put("backslash\\#hash", setOf("1"));
+    }
+
+    @Test
+    public void shouldParseMappings() throws IOException {
+        final Map<String, Set<String>> mappings = MemberEncryptionConfigProvider.readKeyMappings(
+                Paths.get("build/gpg/keys.ini"));
+        assertEquals(expected, mappings);
+    }
+
+    private static Set<String> setOf(String... elem) {
+        return elem.length == 1 ? Collections.singleton(elem[0]) : new HashSet<>(Arrays.asList(elem));
+    }
 }
