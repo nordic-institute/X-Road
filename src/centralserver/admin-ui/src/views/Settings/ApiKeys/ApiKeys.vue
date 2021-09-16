@@ -38,7 +38,7 @@
         <xrd-icon-base class="xrd-large-button-icon"
           ><XrdIconAdd
         /></xrd-icon-base>
-        {{ $t('apiKeys.create') }}</xrd-button
+        {{ $t('apiKey.createApiKey.title') }}</xrd-button
       >
     </div>
 
@@ -63,12 +63,7 @@
       </template>
 
       <template #[`item.roles`]="{ item }">
-        <!-- eslint-disable-next-line vue/require-v-for-key -->
-
         {{ translateRoles(item.roles) | commaSeparate }}
-        <!---  <span v-for="role in item.roles">
-          {{ role }}
-        </span> -->
       </template>
 
       <template #[`item.button`]="{ item }">
@@ -78,7 +73,7 @@
           }}</xrd-button>
 
           <xrd-button text :outlined="false">{{
-            $t('apiKeys.revokeKey')
+            $t('apiKey.table.action.revoke.button')
           }}</xrd-button>
         </div>
       </template>
@@ -88,6 +83,7 @@
       </template>
     </v-data-table>
 
+    <!-- Edit dialog -->
     <xrd-simple-dialog
       v-if="showEditDialog"
       :dialog="showEditDialog"
@@ -127,6 +123,7 @@
       </div>
     </xrd-simple-dialog>
 
+    <!-- Confirm revoke dialog -->
     <xrd-confirm-dialog
       v-if="confirmRevoke"
       :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
@@ -241,11 +238,12 @@ export default Vue.extend({
       this.confirmRevoke = false;
       return api
         .remove(`/api-keys/${api.encodePathParameter(this.selectedKey.id)}`)
-        .then(() => {
+        .then((response) => {
+          const key = response.data as ApiKey;
           this.$store.dispatch(
             'showSuccessRaw',
             this.$t('apiKey.table.action.revoke.success', {
-              id: this.selectedKey.id,
+              id: key.id,
             }),
           );
         })
@@ -265,11 +263,12 @@ export default Vue.extend({
           `/api-keys/${api.encodePathParameter(this.selectedKey.id)}`,
           this.selectedRoles,
         )
-        .then(() => {
+        .then((response) => {
+          const key = response.data as ApiKey;
           this.$store.dispatch(
             'showSuccessRaw',
             this.$t('apiKey.table.action.edit.success', {
-              id: this.selectedKey.id,
+              id: key.id,
             }),
           );
         })
@@ -285,6 +284,7 @@ export default Vue.extend({
   },
 });
 </script>
+
 <style lang="scss" scoped>
 @import '~styles/tables';
 
