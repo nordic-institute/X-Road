@@ -215,8 +215,7 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-// @import '~styles/detail-views';
-@import '~styles/wizards';
+@import '~styles/forms';
 @import '~styles/colors';
 
 .stepper {
