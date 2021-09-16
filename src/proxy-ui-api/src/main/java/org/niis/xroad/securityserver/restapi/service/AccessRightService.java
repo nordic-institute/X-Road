@@ -667,7 +667,7 @@ public class AccessRightService {
 
     private List<ServiceClientDto> getGlobalGroupsAsDtos(String instance) {
         List<ServiceClientDto> globalGroups = new ArrayList<>();
-        List<String> globalGroupInstances = globalConfFacade.getInstanceIdentifiers();
+        Set<String> globalGroupInstances = globalConfFacade.getInstanceIdentifiers();
         List<GlobalGroupInfo> globalGroupInfos = null;
         // core throws CodedException if nothing is found for the provided instance/instances
         try {

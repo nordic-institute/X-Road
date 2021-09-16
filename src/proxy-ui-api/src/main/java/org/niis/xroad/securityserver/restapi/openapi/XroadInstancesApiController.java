@@ -34,7 +34,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * controller for xroad instance identifiers
@@ -49,8 +49,8 @@ public class XroadInstancesApiController implements XroadInstancesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_XROAD_INSTANCES')")
-    public ResponseEntity<List<String>> getXroadInstances() {
-        List<String> xroadInstances = globalConfFacade.getInstanceIdentifiers();
+    public ResponseEntity<Set<String>> getXroadInstances() {
+        Set<String> xroadInstances = globalConfFacade.getInstanceIdentifiers();
         return new ResponseEntity<>(xroadInstances, HttpStatus.OK);
     }
 }

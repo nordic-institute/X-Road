@@ -58,7 +58,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -138,7 +137,7 @@ public class EndpointsApiController implements EndpointsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ENDPOINT_ACL')")
-    public ResponseEntity<List<ServiceClient>> getEndpointServiceClients(String id) {
+    public ResponseEntity<Set<ServiceClient>> getEndpointServiceClients(String id) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
         List<ServiceClientDto> serviceClientsByEndpoint;
         try {
@@ -148,15 +147,14 @@ public class EndpointsApiController implements EndpointsApi {
         } catch (ClientNotFoundException e) {
             throw new ConflictException(e);
         }
-        List<ServiceClient> serviceClients = serviceClientConverter
+        Set<ServiceClient> serviceClients = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        Collections.sort(serviceClients, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('EDIT_ENDPOINT_ACL')")
-    public ResponseEntity<List<ServiceClient>> addEndpointServiceClients(String id, ServiceClients serviceClients) {
+    public ResponseEntity<Set<ServiceClient>> addEndpointServiceClients(String id, ServiceClients serviceClients) {
         Long endpointId = FormatUtils.parseLongIdOrThrowNotFound(id);
         List<ServiceClientDto> serviceClientsByEndpoint = null;
 
@@ -174,9 +172,8 @@ public class EndpointsApiController implements EndpointsApi {
             throw serviceClientHelper.wrapInBadRequestException(e);
         }
 
-        List<ServiceClient> serviceClientsResult = serviceClientConverter
+        Set<ServiceClient> serviceClientsResult = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
     }
 

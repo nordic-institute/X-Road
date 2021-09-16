@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * security servers listing controller
@@ -73,13 +74,13 @@ public class SecurityServersApiController implements SecurityServersApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
-    public ResponseEntity<List<SecurityServer>> getSecurityServers(Boolean currentServer) {
+    public ResponseEntity<Set<SecurityServer>> getSecurityServers(Boolean currentServer) {
         boolean getOnlyCurrentServer = Boolean.TRUE.equals(currentServer);
-        List<SecurityServer> securityServers = null;
+        Set<SecurityServer> securityServers = null;
         if (getOnlyCurrentServer) {
             SecurityServerId currentSecurityServerId = serverConfService.getSecurityServerId();
             SecurityServer currentSecurityServer = securityServerConverter.convert(currentSecurityServerId);
-            securityServers = Collections.singletonList(currentSecurityServer);
+            securityServers = Collections.singleton(currentSecurityServer);
         } else {
             List<SecurityServerId> securityServerIds = globalConfFacade.getSecurityServers();
             securityServers = securityServerConverter.convert(securityServerIds);

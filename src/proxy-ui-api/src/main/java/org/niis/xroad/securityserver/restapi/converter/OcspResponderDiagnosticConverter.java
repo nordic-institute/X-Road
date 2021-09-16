@@ -37,6 +37,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -55,10 +56,10 @@ public class OcspResponderDiagnosticConverter {
         return ocspResponderDiagnostics;
     }
 
-    public List<OcspResponderDiagnostics> convert(Iterable<OcspResponderDiagnosticsStatus> statuses)  {
+    public Set<OcspResponderDiagnostics> convert(Iterable<OcspResponderDiagnosticsStatus> statuses)  {
         return Streams.stream(statuses)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     private OcspResponder convertOcspResponder(DiagnosticsStatus diagnosticsStatus) {

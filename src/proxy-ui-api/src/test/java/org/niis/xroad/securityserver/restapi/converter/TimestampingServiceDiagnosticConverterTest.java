@@ -38,6 +38,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -79,20 +80,27 @@ public class TimestampingServiceDiagnosticConverterTest {
                 new DiagnosticsStatus(DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, prevUpdate2);
         diagnosticsStatus2.setDescription(URL_2);
         List<DiagnosticsStatus> list = new ArrayList<>(Arrays.asList(diagnosticsStatus1, diagnosticsStatus2));
-        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
+        Set<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = timestampingServiceDiagnosticConverter
                 .convert(list);
 
         assertEquals(2, timestampingServiceDiagnostics.size());
+        TimestampingServiceDiagnostics firstDiagnostic = timestampingServiceDiagnostics
+                .stream()
+                .filter(item -> item.getUrl().equals(URL_1))
+                .findFirst()
+                .orElse(null);
 
-        assertEquals(URL_1, timestampingServiceDiagnostics.get(0).getUrl());
-        assertEquals(TimestampingStatus.ERROR_CODE_INTERNAL, timestampingServiceDiagnostics.get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
-        assertEquals(prevUpdate, timestampingServiceDiagnostics.get(0).getPrevUpdateAt());
+        TimestampingServiceDiagnostics secondDiagnostic = timestampingServiceDiagnostics
+                .stream()
+                .filter(item -> item.getUrl().equals(URL_2))
+                .findFirst()
+                .orElse(null);
+        assertEquals(TimestampingStatus.ERROR_CODE_INTERNAL, firstDiagnostic.getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, firstDiagnostic.getStatusClass());
+        assertEquals(prevUpdate, firstDiagnostic.getPrevUpdateAt());
 
-        assertEquals(URL_2, timestampingServiceDiagnostics.get(1).getUrl());
-        assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED, timestampingServiceDiagnostics.get(1)
-                .getStatusCode());
-        assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(1).getStatusClass());
-        assertEquals(prevUpdate2, timestampingServiceDiagnostics.get(1).getPrevUpdateAt());
+        assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED, secondDiagnostic.getStatusCode());
+        assertEquals(DiagnosticStatusClass.WAITING, secondDiagnostic.getStatusClass());
+        assertEquals(prevUpdate2, secondDiagnostic.getPrevUpdateAt());
     }
 }

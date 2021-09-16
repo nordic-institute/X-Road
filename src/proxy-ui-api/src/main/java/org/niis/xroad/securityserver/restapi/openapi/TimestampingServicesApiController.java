@@ -40,7 +40,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 /**
  * timestamping services api controller
@@ -57,8 +57,8 @@ public class TimestampingServicesApiController implements TimestampingServicesAp
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
-    public ResponseEntity<List<TimestampingService>> getApprovedTimestampingServices() {
-        List<TimestampingService> timestampingServices;
+    public ResponseEntity<Set<TimestampingService>> getApprovedTimestampingServices() {
+        Set<TimestampingService> timestampingServices;
         Collection<TspType> tsps = globalConfService.getApprovedTspsForThisInstance();
         timestampingServices = timestampingServiceConverter.convert(tsps);
 
