@@ -1157,7 +1157,7 @@ module.exports = {
         },
       },
     },
-    serviceDetails: { //TODO: rename wsdlServiceDetails
+    wsdlServiceDetails: {
       selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],

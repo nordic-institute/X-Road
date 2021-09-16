@@ -261,7 +261,7 @@ module.exports = {
       const clientInfo = mainPage.section.clientInfo;
       const operationDetails = mainPage.section.wsdlOperationDetails;
       const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-      const serviceDetails = mainPage.section.serviceDetails;
+      const serviceDetails = mainPage.section.wsdlServiceDetails;
       const clientServices = clientInfo.section.services;
 
       // Open SUT and check that page is loaded

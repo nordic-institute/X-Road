@@ -43,7 +43,7 @@ const getPages = (browser) => {
     clientInfo,
     clientsTab: mainPage.section.clientsTab,
     clientServices: clientInfo.section.services,
-    serviceDetails: mainPage.section.serviceDetails,
+    serviceDetails: mainPage.section.wsdlServiceDetails,
   };
 };
 
