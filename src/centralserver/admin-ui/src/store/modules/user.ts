@@ -48,6 +48,7 @@ export const getDefaultState = (): State => {
 // Initial state. The state can be reseted with this.
 const moduleState = getDefaultState();
 
+// noinspection JSUnusedLocalSymbols
 export const userGetters: GetterTree<State, RootState> = {
   [StoreTypes.getters.IS_AUTHENTICATED](state) {
     return state.authenticated;
@@ -61,6 +62,9 @@ export const userGetters: GetterTree<State, RootState> = {
   [StoreTypes.getters.HAS_PERMISSION](state, value: string) {
     return true; // Mock. Until there is a real permission system.
   },
+  [StoreTypes.getters.SERVER_VERSION](state) {
+    return state.serverVersion;
+  }
 };
 
 export const mutations: MutationTree<State> = {
@@ -120,10 +124,11 @@ export const actions: ActionTree<State, RootState> = {
       });
   },
 
-  async [StoreTypes.actions.FETCH_USER_DATA]() {
+  async [StoreTypes.actions.FETCH_USER_DATA]({commit}) {
     return axios
       .get('/user')
-      .then(() => {
+      .then((user) => {
+        commit(StoreTypes.mutations.SET_USERNAME, user?.data?.username);
         // do something
       })
       .catch((error) => {

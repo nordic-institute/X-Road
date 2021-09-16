@@ -64,7 +64,7 @@ export default Vue.extend({
 
   created() {
     // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
+    // this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
   },
 });
 </script>
