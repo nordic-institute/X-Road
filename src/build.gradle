@@ -64,6 +64,17 @@ dependencyCheck {
 
 
 allprojects {
+    buildscript {
+      repositories {
+        mavenCentral()
+      }
+    }
+
+    repositories {
+      mavenCentral()
+      mavenLocal()
+    }
+
     jacoco {
         toolVersion = "0.8.7"
     }
@@ -90,20 +101,6 @@ subprojects {
     apply plugin: 'jacoco'
     group = 'ee.ria.xroad'
     version = '1.0'
-
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        // XXX In case mavenCentral is unreachable, use this mirror instead
-        // maven {
-        //     url "http://mirrors.ibiblio.org/pub/mirrors/maven2"
-        // }
-
-        // iaikPkcs11Wrapper is located there
-        //maven {
-        //    url "http://ground.zero.ee/maven2"
-        //}
-    }
 
     configurations {
         testArtifacts.extendsFrom testRuntime
