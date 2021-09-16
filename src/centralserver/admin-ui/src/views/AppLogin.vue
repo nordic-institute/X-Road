@@ -104,8 +104,8 @@
               :disabled="isDisabled"
               :loading="loading"
               @click="submit"
-              >{{ $t('login.logIn') }}</xrd-button
-            >
+              >{{ $t('login.logIn') }}
+            </xrd-button>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -115,9 +115,10 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { RouteName, StoreTypes } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import {swallowRedirectedNavigationError} from "@/util/helpers";
 
 export default (
   Vue as VueConstructor<
@@ -143,14 +144,9 @@ export default (
   },
   computed: {
     isDisabled() {
-      if (
-        this.username.length < 1 ||
+      return this.username.length < 1 ||
         this.password.length < 1 ||
-        this.loading
-      ) {
-        return true;
-      }
-      return false;
+        this.loading;
     },
   },
   methods: {
@@ -173,58 +169,77 @@ export default (
       this.$refs.form.reset();
       this.loading = true;
 
-      this.$store.dispatch(StoreTypes.actions.LOGIN, loginData).then(
-        () => {
-          // Auth ok. Start phase 2 (fetch user data and current security server info).
-          this.fetchUserData();
-          this.fetchServerVersion();
-        },
-        (error) => {
-          // Display invalid username/password error in inputs
-          if (error?.response?.status === 401) {
-            // Clear inputs
-            this.username = '';
-            this.password = '';
-            this.$refs.form.reset();
-
-            // The whole view needs to be rendered so the "required" rule doesn't block
-            // "wrong unsername or password" error in inputs
-            this.$nextTick(() => {
-              // Set inputs to error state
-              this.$refs.form.setErrors({
-                username: [''],
-                password: [this.$t('login.errorMsg401') as string],
+      this.$store
+        .dispatch(StoreTypes.actions.LOGIN, loginData)
+        .then(
+          () => {
+            // Auth ok. Start phase 2 (fetch user data and current security server info).
+            this.fetchUserData()
+              .then(this.fetchServerVersion)
+              .then(this.fetchInitializationData)
+              .then(() => {
+                this.$router.replace({
+                  name: RouteName.Members,
+                }).catch(swallowRedirectedNavigationError);
+                this.loading = false;
+              })
+              .catch((error) => {
+                this.$store.dispatch(
+                  StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE,
+                  error,
+                );
+                this.loading = false;
               });
-            });
-          }
+          },
+          (error) => {
+            // Display invalid username/password error in inputs
+            if (error?.response?.status === 401) {
+              // Clear inputs
+              this.username = '';
+              this.password = '';
+              this.$refs.form.reset();
+
+              // The whole view needs to be rendered so the "required" rule doesn't block
+              // "wrong unsername or password" error in inputs
+              this.$nextTick(() => {
+                // Set inputs to error state
+                this.$refs.form.setErrors({
+                  username: [''],
+                  password: [this.$t('login.errorMsg401') as string],
+                });
+              });
+            }
+            this.$store.dispatch(
+              StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE,
+              'login.generalError',
+            );
+            // Clear loading state
+            this.loading = false;
+          },
+        )
+        .catch((error) => {
           this.$store.dispatch(
-            StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE,
-            'login.generalError',
+            StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW,
+            error,
           );
-          // Clear loading state
           this.loading = false;
-        },
-      );
+        });
     },
-    fetchUserData() {
+    async fetchUserData() {
       // do something later
       this.$refs.form.reset();
       this.loading = true;
-
-      this.$router.replace({
-        name: RouteName.Members,
-      });
+      return this.$store.dispatch(StoreTypes.actions.FETCH_USER_DATA);
     },
 
-    fetchInitializationData() {
-      // do something later
+    async fetchInitializationData() {
+      return this.$store.dispatch(
+        StoreTypes.actions.INITIALIZATION_STATUS_REQUEST,
+      );
     },
+
     async fetchServerVersion() {
-      this.$store
-        .dispatch(StoreTypes.actions.FETCH_SERVER_VERSION)
-        .catch((error) =>
-          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
-        );
+      return this.$store.dispatch(StoreTypes.actions.FETCH_SERVER_VERSION);
     },
   },
 });

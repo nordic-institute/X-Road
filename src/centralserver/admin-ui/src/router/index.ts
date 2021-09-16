@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router, { NavigationGuardNext, Route } from 'vue-router';
-import { sync } from 'vuex-router-sync';
+import Router, {NavigationGuardNext, Route} from 'vue-router';
+import {sync} from 'vuex-router-sync';
 import store from '@/store';
 import routes from './routes';
-import { RouteName, StoreTypes } from '@/global';
+import {RouteName, StoreTypes} from '@/global';
 
 // Create the router
 const router = new Router({
@@ -42,7 +42,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
   }
 
   // Clear error notifications when the route is changed
-  store.commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
+  // store.commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
 
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
@@ -52,19 +52,21 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     store.getters[StoreTypes.getters.IS_AUTHENTICATED]
   ) {
     // Server is not initialized
-    /*
-    Check initialisation status here
-    */
-    if( store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED] ) {
-      next( {
+    if (
+      !store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED] &&
+      to.name != RouteName.Initialisation
+    ) {
+      next({
         name: RouteName.Initialisation,
-      })
-    }
-
-    next();
-    /*
+      });
+    } else {
+      /*
     Check permissions here
     */
+      next();
+    }
+
+
     return;
   } else {
     next({

@@ -136,10 +136,9 @@
 import Vue, { VueConstructor } from 'vue';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import i18n from '@/i18n';
-import { StoreTypes } from '@/global';
-import {
-  InitialServerConf,
-} from '@/openapi-types';
+import { RouteName, StoreTypes } from '@/global';
+import { InitialServerConf } from '@/openapi-types';
+import {swallowRedirectedNavigationError} from "@/util/helpers";
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -175,16 +174,6 @@ export default (
     };
   },
   computed: {
-    isSubmitDisabled() {
-      if (
-        this.instanceIdentifier.length < 1 ||
-        this.address.length < 1 ||
-        this.pin.length < 1
-      ) {
-        return true;
-      }
-      return false;
-    },
   },
   methods: {
     async submit() {
@@ -196,11 +185,13 @@ export default (
         software_token_pin: this.pin,
       };
 
-      await this.$store.dispatch(
-        StoreTypes.actions.INITIALIZATION_REQUEST,
-        formData,
-      );
-      this.$store.commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
+      await this.$store
+        .dispatch(StoreTypes.actions.INITIALIZATION_REQUEST, formData)
+        .then(() => {
+          this.$router.push({
+            name: RouteName.Members,
+          }).catch(swallowRedirectedNavigationError);
+        });
     },
   },
 });
