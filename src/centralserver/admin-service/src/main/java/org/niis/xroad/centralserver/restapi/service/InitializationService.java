@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.commonui.SignerProxy;
 import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 import ee.ria.xroad.signer.protocol.dto.TokenStatusInfo;
@@ -54,6 +55,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_HASH_ALGO_URI;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
@@ -241,27 +243,24 @@ public class InitializationService {
 
     private boolean isSWTokenInitialized() {
         boolean isSWTokenInitialized = false;
-        List<TokenInfo> tokenInfos;
+        TokenInfo tokenInfo;
         try {
-            tokenInfos = signerProxyService.getTokens();
+            tokenInfo = signerProxyService.getToken(SignerProxy.SSL_TOKEN_ID);
+            if (null != tokenInfo) {
+                isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
+            }
         } catch (Exception e) {
-            throw new SignerNotReachableException("could not list all tokens", e);
-        }
-        Optional<TokenInfo> firstSWToken = tokenInfos.stream()
-                .filter(tokenInfo -> tokenInfo.getId().equals(SignerProxy.SSL_TOKEN_ID))
-                .findFirst();
-
-        if (firstSWToken.isPresent()) {
-            TokenInfo tokenInfo = firstSWToken.get();
-            log.debug("sw token with SSL_TOKEN_ID obtained:{}, w/ label:{}, @status:{}",
-                    tokenInfo.getFriendlyName(),
-                    tokenInfo.getLabel(),
-                    tokenInfo.getStatus()
+            if ((e instanceof CodedException && X_INTERNAL_ERROR.equals(((CodedException) e).getFaultCode()))) {
+                throw new SignerNotReachableException("could not list all tokens", e);
+            }
+            log.debug("isSWTokenInitialized ignored exception {}, interpreting: \"token not initialized\", cause: ",
+                    e.getMessage(),
+                    e.getCause()
             );
-            isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
         }
         return isSWTokenInitialized;
     }
+
 
     private String getStoredInstanceIdentifier() {
         return systemParameterService.getParameterValue(
