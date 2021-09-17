@@ -25,7 +25,7 @@
  -->
 <template>
   <xrd-simple-dialog
-    :dialog="dialog"
+    :dialog="true"
     title="services.disableTitle"
     save-button-text="action.ok"
     @save="save"
@@ -50,10 +50,6 @@ import Vue from 'vue';
 
 export default Vue.extend({
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
     subject: {
       type: Object,
       required: true,
