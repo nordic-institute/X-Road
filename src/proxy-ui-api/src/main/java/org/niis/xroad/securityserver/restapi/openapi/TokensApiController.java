@@ -69,6 +69,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * tokens controller
@@ -89,9 +90,9 @@ public class TokensApiController implements TokensApi {
 
     @PreAuthorize("hasAuthority('VIEW_KEYS')")
     @Override
-    public ResponseEntity<List<Token>> getTokens() {
+    public ResponseEntity<Set<Token>> getTokens() {
         List<TokenInfo> tokenInfos = tokenService.getAllTokens();
-        List<Token> tokens = tokenConverter.convert(tokenInfos);
+        Set<Token> tokens = tokenConverter.convert(tokenInfos);
         return new ResponseEntity<>(tokens, HttpStatus.OK);
     }
 
