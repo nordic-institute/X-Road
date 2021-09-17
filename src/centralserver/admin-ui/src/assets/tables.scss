@@ -81,3 +81,16 @@
   background-color: $XRoad-WarmGrey10;
   height: 72px;
 }
+
+// Wrapper for actions at the end of a row
+.cs-table-actions-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+}
+
+// Add a small paddding with border at the end of a Vuetify data table footer
+.cs-table-custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
+}
