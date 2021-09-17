@@ -42,7 +42,7 @@ module.exports = {
     browser.end();
   },
 
-  'User can add new timestamping service': (browser) => {
+  'User can add new timestamping service': () => {
     systemParametersTab.openTimeStampingAddDialog();
     // adding can be cancelled
     systemParametersTab.click('@timestampingAddDialogCancelButton');
@@ -66,11 +66,11 @@ module.exports = {
     systemParametersTab.waitForElementPresent('@timestampingAddButton');
   },
 
-  'Timestamp-table is visible': (browser) => {
+  'Timestamp-table is visible': () => {
     // list shows name and url of the service
     systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN', 'http://cs:8899');
   },
-  'service deletion can be cancelled': (browser) => {
+  'service deletion can be cancelled': () => {
     systemParametersTab.openTimeStampingDeleteDialog();
     systemParametersTab.waitForElementVisible('@timestampingDeleteDialogCancelButton');
     systemParametersTab.click('@timestampingDeleteDialogCancelButton');
