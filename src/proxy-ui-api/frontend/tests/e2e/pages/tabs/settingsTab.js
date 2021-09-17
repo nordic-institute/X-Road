@@ -25,7 +25,7 @@
  */
 
 const path = require('path');
-var assert = require('assert');
+const assert = require('assert');
 
 const settingsTabCommands = {
   openSystemParameters: function () {
@@ -73,11 +73,9 @@ const systemParametersTabCommands = {
       assert.equal(foundName.value, expectedName);
     });
     this.getText('@timestampingTableSecondCell', function (foundUrl) {
-      console.log(foundUrl.value);
       assert.equal(foundUrl.value, expectedUrl);
     });
     return this;
-
   },
 };
 
