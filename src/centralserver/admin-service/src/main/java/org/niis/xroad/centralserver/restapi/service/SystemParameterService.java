@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 import javax.xml.crypto.dsig.DigestMethod;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -77,40 +76,15 @@ public class SystemParameterService {
     private final HAConfigStatus currentHaConfigStatus;
 
     public String getParameterValue(String key, String defaultValue) {
-        Optional<SystemParameter> valueInDb;
         log.debug("getParameterValue() - getting value for key:{} with default value:{}", key, defaultValue);
-        if (currentHaConfigStatus.isHaConfigured()
-                && isNodeLocalParameter(key)
-        ) {
-            valueInDb = systemParameterRepository.findByKeyAndHaNodeName(
-                    key,
-                    currentHaConfigStatus.getCurrentHaNodeName()
-            );
-        } else {
-            List<SystemParameter> systemParameters = systemParameterRepository.findByKey(key);
-            valueInDb = systemParameters.stream().findFirst();
-            assert 1 >= systemParameters.size();
-        }
-        if (valueInDb.isPresent()) {
-            String valueFromDb = valueInDb.get().getValue();
-            log.trace("getParameterValue found a {} SystemParameter value {}  ", key, valueFromDb);
-            return valueFromDb;
-        }
-        log.trace("getParameterValue returns given default value for key {}", key);
-        return defaultValue;
+        Optional<SystemParameter> valueInDb = getSystemParameterOptional(key);
+        return valueInDb.map(SystemParameter::getValue).orElse(defaultValue);
     }
 
     public SystemParameter updateOrCreateParameter(String lookupKey, String updateValue) {
-        Optional<SystemParameter> systemParameter;
-        if (currentHaConfigStatus.isHaConfigured() && isNodeLocalParameter(lookupKey)) {
-            String haNodeName = currentHaConfigStatus.getCurrentHaNodeName();
-            systemParameter = systemParameterRepository.findByKeyAndHaNodeName(lookupKey, haNodeName)
-                    .stream().findFirst();
+        Optional<SystemParameter> systemParameter =
+                getSystemParameterOptional(lookupKey);
 
-        } else {
-            systemParameter = systemParameterRepository.findByKey(lookupKey)
-                    .stream().findFirst();
-        }
         if (systemParameter.isEmpty()) {
             SystemParameter newSystemParameter = new SystemParameter();
             newSystemParameter.setKey(lookupKey);
@@ -125,6 +99,19 @@ public class SystemParameterService {
                 lookupKey, updateValue, systemParameterToStore.getHaNodeName()
         );
         return systemParameterRepository.save(systemParameterToStore);
+    }
+
+    private Optional<SystemParameter> getSystemParameterOptional(String lookupKey) {
+        Optional<SystemParameter> systemParameter;
+        if (currentHaConfigStatus.isHaConfigured() && isNodeLocalParameter(lookupKey)) {
+            String haNodeName = currentHaConfigStatus.getCurrentHaNodeName();
+            systemParameter = systemParameterRepository.findByKeyAndHaNodeName(lookupKey, haNodeName)
+                    .stream().findFirst();
+        } else {
+            systemParameter = systemParameterRepository.findByKey(lookupKey)
+                    .stream().findFirst();
+        }
+        return systemParameter;
     }
 
     private boolean isNodeLocalParameter(String key) {
