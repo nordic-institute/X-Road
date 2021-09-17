@@ -202,9 +202,7 @@ public class InitializationService {
             errorMetadata.add(ERROR_METADATA_INSTANCE_IDENTIFIER_NOT_PROVIDED);
         }
         if (!errorMetadata.isEmpty()) {
-            log.debug("collected errors {}", errorMetadata.stream().reduce(
-                    (String result, String toAdd) -> result.concat(", " + toAdd)
-            ).orElse("none"));
+            log.debug("collected errors {}", String.join(", ", errorMetadata));
             throw new InvalidInitParamsException("Empty, missing or redundant parameters provided for initialization",
                     errorMetadata);
         }
