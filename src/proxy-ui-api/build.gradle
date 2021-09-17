@@ -20,7 +20,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR10")
+    set('springCloudVersion', "2020.0.3")
 }
 
 sourceSets {
@@ -38,10 +38,6 @@ bootRun {
         def params = project.args.tokenize(',')
         args = params
     }
-}
-
-bootJar {
-    excludeDevtools = true
 }
 
 processResources {
@@ -317,7 +313,6 @@ dependencies {
     implementation project(':serverconf')
     implementation project(':common-ui')
     implementation project(':common-rest-api')
-
 
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
