@@ -37,7 +37,7 @@ sonarqube {
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
-        //property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoAggregateReport/jacocoAggregateReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
 
