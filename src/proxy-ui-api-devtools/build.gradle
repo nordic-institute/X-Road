@@ -12,9 +12,9 @@ bootJar {
 }
 
 dependencies {
-    implementation files('$buildDir/../../proxy-ui-api/build/libs/proxy-ui-api-1.0-plainDependency.jar')
-    implementation project(path: ':proxy-ui-api')
+    implementation project(':proxy-ui-api')
     implementation project(':common-rest-api')
+
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
