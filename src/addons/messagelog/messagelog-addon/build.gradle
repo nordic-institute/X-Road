@@ -18,3 +18,7 @@ jar {
     archiveVersion = ''
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
 }
+
+jacocoTestReport {
+    additionalClassDirs(configurations.runtimeClasspath.filter{it.path.contains("/messagelog")})
+}
