@@ -136,7 +136,7 @@ const confirmationDialog = {
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and @data-test="settings"]]//div[contains(@class, "base-full-width")]',
+    '//div[@data-test="settings-tab-view"]',
   locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
@@ -154,7 +154,7 @@ const settingsTab = {
   sections: {
     systemParametersTab: {
       selector:
-        '//div[.//a[contains(@class, "v-tab--active") and @data-test="settings"]]//div[contains(@class, "base-full-width")]',
+        '//div[@data-test="system-parameters-tab-view"]',
       locateStrategy: 'xpath',
       commands: systemParametersTabCommands,
       elements: {

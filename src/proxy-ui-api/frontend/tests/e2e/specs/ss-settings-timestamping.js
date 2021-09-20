@@ -46,20 +46,29 @@ module.exports = {
     systemParametersTab.openTimeStampingAddDialog();
     // adding can be cancelled
     systemParametersTab.click('@timestampingAddDialogCancelButton');
-    systemParametersTab.waitForElementNotVisible('@timestampingAddDialogCancelButton');
-    systemParametersTab.waitForElementNotPresent('@timestampingServiceTableRow');
+    systemParametersTab.waitForElementNotVisible(
+      '@timestampingAddDialogCancelButton',
+    );
+    systemParametersTab.waitForElementNotPresent(
+      '@timestampingServiceTableRow',
+    );
 
     // cancelling after selecting doesn't yet add server
     systemParametersTab.click('@timestampingAddButton');
     systemParametersTab.click('@timestampingAddDialogServiceSelection');
     systemParametersTab.click('@timestampingAddDialogCancelButton');
-    systemParametersTab.waitForElementNotPresent('@timestampingServiceTableRow');
+    systemParametersTab.waitForElementNotPresent(
+      '@timestampingServiceTableRow',
+    );
 
     // clicking 'add' updates table, closes dialog and gives success message.
     systemParametersTab.click('@timestampingAddButton');
     systemParametersTab.click('@timestampingAddDialogServiceSelection');
     systemParametersTab.click('@timestampingAddDialogAddButton');
-    systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN', 'http://cs:8899');
+    systemParametersTab.assertTimestampingTableContents(
+      'X-Road Test TSA CN',
+      'http://cs:8899',
+    );
 
     // add button is disabled if there is no room for new services
     systemParametersTab.waitForElementVisible('@timestampingServiceTableRow');
@@ -68,13 +77,21 @@ module.exports = {
 
   'Timestamp-table is visible': () => {
     // list shows name and url of the service
-    systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN', 'http://cs:8899');
+    systemParametersTab.assertTimestampingTableContents(
+      'X-Road Test TSA CN',
+      'http://cs:8899',
+    );
   },
   'service deletion can be cancelled': () => {
     systemParametersTab.openTimeStampingDeleteDialog();
-    systemParametersTab.waitForElementVisible('@timestampingDeleteDialogCancelButton');
+    systemParametersTab.waitForElementVisible(
+      '@timestampingDeleteDialogCancelButton',
+    );
     systemParametersTab.click('@timestampingDeleteDialogCancelButton');
-    systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN', 'http://cs:8899');
+    systemParametersTab.assertTimestampingTableContents(
+      'X-Road Test TSA CN',
+      'http://cs:8899',
+    );
   },
   'timestamping service can be deleted': () => {
     // when user confirms:
