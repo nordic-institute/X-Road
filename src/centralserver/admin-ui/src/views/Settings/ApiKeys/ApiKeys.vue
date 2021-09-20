@@ -46,7 +46,7 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="certificationServices"
+      :items="apiKeys"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
@@ -165,7 +165,7 @@ export default Vue.extend({
       savingChanges: false,
       removingApiKey: false,
       roles: Roles,
-      certificationServices: [
+      apiKeys: [
         {
           id: 3897387478,
           roles: [
