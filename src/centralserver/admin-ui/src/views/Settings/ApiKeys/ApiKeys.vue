@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
+  <xrd-sub-view-container>
     <!-- Title and button -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -34,7 +34,7 @@
         /></xrd-icon-base>
       </div>
 
-      <xrd-button data-test="add-certification-service" @click="createApiKey()">
+      <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
         <xrd-icon-base class="xrd-large-button-icon"
           ><XrdIconAdd
         /></xrd-icon-base>
@@ -68,13 +68,23 @@
 
       <template #[`item.button`]="{ item }">
         <div class="button-wrap">
-          <xrd-button text :outlined="false" @click="editKey(item)">{{
-            $t('action.edit')
-          }}</xrd-button>
+          <xrd-button
+            v-if="canEdit"
+            text
+            :data-test="`api-key-row-${item.id}-edit-button`"
+            :outlined="false"
+            @click="editKey(item)"
+            >{{ $t('action.edit') }}</xrd-button
+          >
 
-          <xrd-button text :outlined="false">{{
-            $t('apiKey.table.action.revoke.button')
-          }}</xrd-button>
+          <xrd-button
+            v-if="canRevoke"
+            text
+            :data-test="`api-key-row-${item.id}-revoke-button`"
+            :outlined="false"
+            @click="showRevokeDialog(item)"
+            >{{ $t('apiKey.table.action.revoke.button') }}</xrd-button
+          >
         </div>
       </template>
 
@@ -131,10 +141,11 @@
       title="apiKey.table.action.revoke.confirmationDialog.title"
       text="apiKey.table.action.revoke.confirmationDialog.message"
       :data="{ id: selectedKey.id }"
+      :loading="removingApiKey"
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-  </sub-view-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -187,16 +198,25 @@ export default Vue.extend({
     };
   },
   computed: {
+    canCreateApiKey(): boolean {
+      return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
+    },
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+    },
+    canRevoke(): boolean {
+      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
+    },
     headers(): DataTableHeader[] {
       return [
         {
-          text: this.$t('global.id') as string,
+          text: this.$t('apiKey.table.header.id') as string,
           align: 'start',
           value: 'id',
           class: 'xrd-table-header ts-table-header-server-code',
         },
         {
-          text: this.$t('apiKeys.roles') as string,
+          text: this.$t('apiKey.table.header.roles') as string,
           align: 'start',
           value: 'roles',
           class: 'xrd-table-header ts-table-header-valid-from',
@@ -211,6 +231,9 @@ export default Vue.extend({
       ];
     },
   },
+  created(): void {
+    this.loadKeys();
+  },
 
   methods: {
     loadKeys(): void {
@@ -220,6 +243,10 @@ export default Vue.extend({
       this.selectedKey = apiKey;
       this.selectedRoles = [...this.selectedKey.roles];
       this.showEditDialog = true;
+    },
+    showRevokeDialog(apiKey: ApiKey): void {
+      this.selectedKey = apiKey;
+      this.confirmRevoke = true;
     },
     createApiKey(): void {
       this.$router.push({
@@ -232,10 +259,9 @@ export default Vue.extend({
         : roles.map((role) => this.$t(`apiKey.role.${role}`) as string);
     },
     async revokeApiKey() {
-      if (this.selectedKey === undefined) return;
+      if (!this.selectedKey) return;
 
       this.removingApiKey = true;
-      this.confirmRevoke = false;
       return api
         .remove(`/api-keys/${api.encodePathParameter(this.selectedKey.id)}`)
         .then((response) => {
@@ -251,12 +277,13 @@ export default Vue.extend({
           this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
         )
         .finally(() => {
+          this.confirmRevoke = false;
           this.removingApiKey = false;
           this.loadKeys();
         });
     },
     async save() {
-      if (this.selectedKey === undefined) return;
+      if (!this.selectedKey) return;
       this.savingChanges = true;
       return api
         .put(
