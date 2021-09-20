@@ -122,14 +122,6 @@ jacoco {
     applyTo runProxyTest
 }
 
-jacocoTestReport {
-    additionalClassDirs(configurations.runtimeClasspath.filter{
-        it.path.startsWith(rootProject.rootDir.path)
-    })
-    dependsOn test, integrationTest, runProxyTest
-    executionData test, integrationTest, runProxyTest
-}
-
 task runBatchSigner(type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
 
