@@ -55,7 +55,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
+import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_HASH_ALGO_URI;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
@@ -250,13 +250,11 @@ public class InitializationService {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }
         } catch (Exception e) {
-            if ((e instanceof CodedException && X_INTERNAL_ERROR.equals(((CodedException) e).getFaultCode()))) {
+            if (!(e instanceof CodedException
+                    && X_KEY_NOT_FOUND.equals(((CodedException) e).getFaultCode())
+            )) {
                 throw new SignerNotReachableException("could not list all tokens", e);
             }
-            log.debug("isSWTokenInitialized ignored exception {}, interpreting: \"token not initialized\", cause: ",
-                    e.getMessage(),
-                    e.getCause()
-            );
         }
         return isSWTokenInitialized;
     }
