@@ -62,7 +62,7 @@ class GPGOutputStream extends FilterOutputStream {
     private final Process gpg;
     private final Path statusTmp;
 
-    private Object closeLock = new Object();
+    private final Object closeLock = new Object();
     private boolean closed = false;
 
     /**

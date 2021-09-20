@@ -135,7 +135,9 @@ public class LogArchiveWriter implements Closeable {
         try {
             saveArchive();
         } finally {
-            logArchiveCache.close();
+            if (logArchiveCache != null) {
+                logArchiveCache.close();
+            }
             clearTempArchive();
         }
     }
@@ -166,7 +168,7 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private void saveArchive() throws IOException {
-        if (logArchiveCache.isEmpty()) {
+        if (logArchiveCache == null || logArchiveCache.isEmpty()) {
             return;
         }
         Path archiveFile = getUniqueArchiveFilename();

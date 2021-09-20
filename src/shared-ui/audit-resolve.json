@@ -195,6 +195,66 @@
     "1751|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
       "decision": "ignore",
       "madeAt": 1629389825521
+    },
+    "1779|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051345
+    },
+    "1779|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1779|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1779|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/manager-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1779|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/manager-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1780|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1780|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1780|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1780|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/manager-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1780|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/manager-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1781|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1781|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1781|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1781|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/manager-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
+    },
+    "1781|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/manager-webpack4>terser-webpack-plugin>cacache>tar": {
+      "decision": "ignore",
+      "madeAt": 1631196051346
     }
   },
   "rules": {},
