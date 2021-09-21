@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-/* 
+/*
 Initialises the Vuex store.
 Adds store modules and plugins.
 */
@@ -34,6 +34,7 @@ import { module as notifications } from './modules/notifications';
 import { RootState } from '@/global';
 import { module as user } from './modules/user';
 import { module as tokens } from './modules/tokens';
+import { module as initialization } from './modules/initialization';
 
 import VuexPersistence from 'vuex-persist';
 
@@ -52,6 +53,7 @@ const store: StoreOptions<RootState> = {
     notifications,
     user,
     tokens,
+    initialization,
   },
   plugins: [vuexLocal.plugin],
 };

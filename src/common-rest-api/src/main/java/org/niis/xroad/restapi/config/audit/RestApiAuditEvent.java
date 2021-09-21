@@ -42,6 +42,7 @@ public enum RestApiAuditEvent {
 
     INIT_ANCHOR("Initialize anchor"),
     INIT_SERVER_CONFIGURATION("Initialize server configuration"),
+    INIT_CENTRAL_SERVER("Initialize central server"),
 
     // clients events
     ADD_CLIENT("Add client"),

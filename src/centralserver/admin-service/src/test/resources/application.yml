@@ -1,0 +1,34 @@
+---
+debug: true
+logging:
+  config: classpath:centralserver-admin-service-test-logback.xml
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure: INFO
+        security: DEBUG
+        transaction:
+          interceptor: DEBUG
+cache:
+  simple:
+    ttl: 5
+
+common-module-endpoints:
+  base-path: /api
+
+spring:
+  jpa:
+    open-in-view: false
+    mapping-resources:
+      - apikey.hbm.xml
+      - META-INF/orm.xml
+    hibernate:
+      ddl-auto: create
+    generate-ddl: true
+    show-sql: true
+  profiles:
+    active: test
+  main:
+    lazy-initialization: true
+

@@ -1,5 +1,7 @@
 {
   "ignore": [
+    ".idea",
+    "frontend.iml",
     ".gradle",
     "**/*.md",
     "**/*.svg",
