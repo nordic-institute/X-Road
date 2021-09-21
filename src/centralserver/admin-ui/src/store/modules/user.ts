@@ -58,7 +58,7 @@ export const userGetters: GetterTree<State, RootState> = {
   [StoreTypes.getters.USERNAME](state) {
     return state.username;
   },
-  [StoreTypes.getters.HAS_PERMISSION](state, value: string) {
+  [StoreTypes.getters.HAS_PERMISSION]: (state) => (permission: string) => {
     return true; // Mock. Until there is a real permission system.
   },
 };

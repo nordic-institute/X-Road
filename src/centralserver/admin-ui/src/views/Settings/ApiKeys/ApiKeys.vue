@@ -199,13 +199,19 @@ export default Vue.extend({
   },
   computed: {
     canCreateApiKey(): boolean {
-      return this.$store.getters.hasPermission(Permissions.MOCK_PERMISSION1);
+      return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
+        Permissions.MOCK_PERMISSION1,
+      );
     },
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.MOCK_PERMISSION1);
+      return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
+        Permissions.MOCK_PERMISSION1,
+      );
     },
     canRevoke(): boolean {
-      return this.$store.getters.hasPermission(Permissions.MOCK_PERMISSION1);
+      return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
+        Permissions.MOCK_PERMISSION1,
+      );
     },
     headers(): DataTableHeader[] {
       return [
