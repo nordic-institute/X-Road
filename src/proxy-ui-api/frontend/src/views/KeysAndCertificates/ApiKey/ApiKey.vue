@@ -151,7 +151,7 @@
 
 <script lang="ts">
 /**
- * View for 'trust services' tab
+ * View for 'API keys' tab
  */
 import Vue from 'vue';
 

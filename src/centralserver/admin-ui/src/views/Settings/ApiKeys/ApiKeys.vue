@@ -150,10 +150,9 @@
 
 <script lang="ts">
 /**
- * View for 'trust services' tab
+ * View for 'API keys' tab
  */
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import { DataTableHeader } from 'vuetify';
 import { ApiKey } from '@/global-types';
 import { RouteName, Roles } from '@/global';
@@ -161,9 +160,6 @@ import * as api from '@/util/api';
 import { StoreTypes, Permissions } from '@/global';
 
 export default Vue.extend({
-  components: {
-    SubViewContainer,
-  },
   data() {
     return {
       search: '' as string,
