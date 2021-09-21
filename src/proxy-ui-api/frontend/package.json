@@ -21,7 +21,8 @@
     "audit-check-ui-lib": "cd ../../shared-ui && npm run check-audit",
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",
-    "build-all": "npm run install-build-ui-lib && npm install && npm run build"
+    "build-all": "npm run install-build-ui-lib && npm install && npm run build",
+    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.5.0",
