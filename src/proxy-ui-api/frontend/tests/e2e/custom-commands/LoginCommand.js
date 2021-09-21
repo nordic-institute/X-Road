@@ -41,5 +41,10 @@ module.exports = class LoginCommand {
       .signin();
     // Check that correct username is displayed on topbar
     mainPage.verifyCurrentUser(username);
+    // turn on e2eTestingMode to make snackbars stay open forever
+    this.api.execute(function setE2eTestingMode() {
+      window.e2eTestingMode = true;
+    }, []);
+    this.logMessage("LoginCommand set e2eTestingMode = true");
   }
 }

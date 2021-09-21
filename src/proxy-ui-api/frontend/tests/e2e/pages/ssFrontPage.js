@@ -55,6 +55,12 @@ var loginCommands = {
     this.setValue('@usernameInput', this.api.globals.login_usr);
     this.setValue('@passwordInput', this.api.globals.login_pwd);
     this.click('@loginButton');
+    // wait for login to complete, and then set e2eTestingMode
+    this.api.page.ssMainPage().verifyCurrentUser(this.api.globals.login_usr);
+    this.api.execute(function testing1() {
+      window.e2eTestingMode = true;
+    }, []);
+    this.logMessage("signinDefaultUser set e2eTestingMode = true");
     return this;
   },
 };
