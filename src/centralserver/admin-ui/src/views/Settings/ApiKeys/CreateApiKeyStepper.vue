@@ -24,8 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
-    <!-- <v-container class="xrd-view-common justify-center wrapper"> -->
+  <xrd-sub-view-container data-test="create-api-key-stepper-view">
     <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
@@ -44,7 +43,11 @@
         }}</v-stepper-step>
       </v-stepper-header>
       <v-stepper-items>
-        <v-stepper-content step="1" class="pa-0 centered">
+        <v-stepper-content
+          data-test="create-api-key-step-1"
+          step="1"
+          class="pa-0 centered"
+        >
           <v-container class="wide-width">
             <v-row class="mt-4">
               <v-col
@@ -75,16 +78,24 @@
           </v-container>
 
           <v-row class="button-footer mt-12" no-gutters>
-            <xrd-button outlined @click="close">
+            <xrd-button data-test="cancel-button" outlined @click="close">
               {{ $t('action.cancel') }}
             </xrd-button>
 
-            <xrd-button :disabled="nextButtonDisabled" @click="step++">
+            <xrd-button
+              data-test="next-button"
+              :disabled="nextButtonDisabled"
+              @click="step++"
+            >
               {{ $t('action.next') }}
             </xrd-button>
           </v-row>
         </v-stepper-content>
-        <v-stepper-content step="2" class="pa-0">
+        <v-stepper-content
+          data-test="create-api-key-step-2"
+          step="2"
+          class="pa-0"
+        >
           <v-container class="wide-width mb-8">
             <v-row class="mt-4">
               <v-col
@@ -95,6 +106,7 @@
               <v-spacer></v-spacer>
 
               <xrd-button
+                data-test="create-key-button"
                 :disabled="keyGenerated"
                 :loading="generatingKey"
                 @click="generateKey"
@@ -139,6 +151,7 @@
           </v-container>
           <v-row class="button-footer mt-12" no-gutters>
             <xrd-button
+              data-test="cancel-button"
               outlined
               :disabled="keyGenerated || generatingKey"
               @click="close"
@@ -147,6 +160,7 @@
             </xrd-button>
 
             <xrd-button
+              data-test="previous-button"
               outlined
               class="mr-5"
               :disabled="keyGenerated || generatingKey"
@@ -154,29 +168,28 @@
             >
               {{ $t('action.previous') }}
             </xrd-button>
-            <xrd-button :disabled="!keyGenerated" @click="close">
+            <xrd-button
+              data-test="finish-button"
+              :disabled="!keyGenerated"
+              @click="close"
+            >
               {{ $t('action.finish') }}
             </xrd-button>
           </v-row>
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
-  </sub-view-container>
-  <!-- </v-container> -->
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/global-types';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import * as api from '@/util/api';
 
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
-  components: {
-    SubViewContainer,
-  },
   data() {
     return {
       step: 1,
@@ -221,26 +234,25 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/forms';
+@import '~styles/detail-views';
+@import '~styles/wizards';
 @import '~styles/colors';
 
 .stepper {
   box-shadow: unset;
   box-shadow: $XRoad-DefaultShadow;
 }
+
 .stepper-header {
   box-shadow: unset;
   width: 50%;
   margin: auto;
 }
-.stepper-item-footer {
-  margin-top: 20px;
-  padding-top: 30px;
-  border-top: 1px solid $XRoad-WarmGrey10;
-}
+
 .underline {
   border-bottom: solid 1px $XRoad-WarmGrey30;
 }
+
 .api-key-label {
   font-weight: 500;
 }
