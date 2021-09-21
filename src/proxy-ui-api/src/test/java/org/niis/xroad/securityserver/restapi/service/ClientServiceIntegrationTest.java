@@ -168,7 +168,6 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      * - FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
      */
     private List<CertificateInfo> createSimpleSignCertList() {
-        List<CertificateInfo> certificateInfos = new ArrayList<>();
 
         CertificateTestUtils.CertificateInfoBuilder certificateInfoBuilder =
                 new CertificateTestUtils.CertificateInfoBuilder();
@@ -190,9 +189,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         certificateInfoBuilder.clientId(clientId3).ocspStatus(new UnknownStatus());
         CertificateInfo cert3 = certificateInfoBuilder.build();
 
-        certificateInfos.addAll(Arrays.asList(cert2, cert3, cert1));
-
-        return certificateInfos;
+        return Arrays.asList(cert2, cert3, cert1);
     }
 
     /**
@@ -210,7 +207,6 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      * - EE:PRO:M3 does not have any sign certs
      */
     private List<CertificateInfo> createComplexSignCertList() {
-        List<CertificateInfo> certificateInfos = new ArrayList<>();
 
         // FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
         ClientId clientIdFiGovM1 = ClientId.create("FI", "GOV", "M1");
@@ -251,8 +247,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
         // EE:PRO:M3 does not have any sign certs
 
-        certificateInfos.addAll(Arrays.asList(cert1, cert2, cert3, cert4, cert5, cert6));
-        return certificateInfos;
+        return Arrays.asList(cert1, cert2, cert3, cert4, cert5, cert6);
     }
 
     private int countIdentifiers() {
@@ -877,11 +872,11 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void findClientsByHasValidLocalSignCertSimpleScenario() throws Exception {
-        /**
-         * FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
-         * FI:GOV:M1 has a sign cert "cert2" with ocsp status REVOKED
-         * FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
+    public void findClientsByHasValidLocalSignCertSimpleScenario() {
+        /*
+          FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
+          FI:GOV:M1 has a sign cert "cert2" with ocsp status REVOKED
+          FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
          */
         when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createSimpleSignCertList());
         // all local clients FI:GOV:M1:* have a valid sign cert
@@ -901,33 +896,33 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
      * @throws Exception
      */
     @Test
-    public void findClientsByHasValidLocalSignCertComplexScenario() throws Exception {
+    public void findClientsByHasValidLocalSignCertComplexScenario() {
 
-        /**
-         * Test data:
-         * Clients that match hasValidLocalSignCert parameter
-         * A = hasValidLocalSignCert = true (must have valid local sign cert)
-         * B = hasValidLocalSignCert = false (must not have valid local sign cert)
-         * hasValidLocalSignCert = null = union of A & B
-         *
-         * local clients:
-         * A -- FI:GOV:M1
-         * A -- FI:GOV:M1:SS1
-         * A -- FI:GOV:M1:SS2
-         * B  -- FI:GOV:M2:SS5
-         * B  -- FI:GOV:M2:SS6
-         * B  -- DUMMY:PRO:M2:SS6
-         * B  -- FI:DUMMY:M2:SS6
-         *
-         * global-only clients:
-         * B  -- FI:GOV:M2
-         * B  -- FI:GOV:M3
-         * B  -- FI:GOV:M3:SS1
-         * A  -- EE:PRO:M1
-         * A  -- EE:PRO:M1:SS1
-         * B  -- EE:PRO:M2
-         * B  -- EE:PRO:M2:SS3
-         * B  -- EE:PRO:M3
+        /*
+          Test data:
+          Clients that match hasValidLocalSignCert parameter
+          A = hasValidLocalSignCert = true (must have valid local sign cert)
+          B = hasValidLocalSignCert = false (must not have valid local sign cert)
+          hasValidLocalSignCert = null = union of A & B
+
+          local clients:
+          A -- FI:GOV:M1
+          A -- FI:GOV:M1:SS1
+          A -- FI:GOV:M1:SS2
+          B  -- FI:GOV:M2:SS5
+          B  -- FI:GOV:M2:SS6
+          B  -- DUMMY:PRO:M2:SS6
+          B  -- FI:DUMMY:M2:SS6
+
+          global-only clients:
+          B  -- FI:GOV:M2
+          B  -- FI:GOV:M3
+          B  -- FI:GOV:M3:SS1
+          A  -- EE:PRO:M1
+          A  -- EE:PRO:M1:SS1
+          B  -- EE:PRO:M2
+          B  -- EE:PRO:M2:SS3
+          B  -- EE:PRO:M3
          */
 
         Set<ClientId> localGroupAClientIds = createSortedClientIdSet(new HashSet<>());
@@ -997,10 +992,13 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
 
     /**
      * Convenience wrapper for clientService.findClients which takes only relevant params and returns client ids
-     * @param hasValidLocalSignCert
-     * @param excludeLocal
-     * @param internalSearch
-     * @return
+     * @param hasValidLocalSignCert see {@link ClientService#findClients(String, String, String, String, String,
+     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @param excludeLocal          see {@link ClientService#findClients(String, String, String, String, String,
+     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @param internalSearch        see {@link ClientService#findClients(String, String, String, String, String,
+     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @return matching clientIds
      */
     private SortedSet<ClientId> findClientIds(Boolean hasValidLocalSignCert,
             boolean excludeLocal, boolean internalSearch) {

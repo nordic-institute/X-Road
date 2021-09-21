@@ -308,10 +308,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
 
   // set AddMemberWizardModes.CERTIFICATE_EXISTS and/or AddMemberWizardModes.CSR_EXISTS to correct values
   // to adjust how add client wizard works
-  // AddMemberWizardModes.CERTIFICATE_EXISTS = a valid sign cert exists for this member on this SS
-  // AddMemberWizardModes.CSR_EXISTS = a sign CSR exists for this member on this SS
-  // (only checked if CERTIFICATE_EXISTS = false)
-  // both can be true, even if this member is not yet a local client in this SS
+  // both values are possible even if this member is not yet a local client in this SS
   async searchTokens(
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
