@@ -45,6 +45,6 @@ module.exports = class LoginCommand {
     this.api.execute(function setE2eTestingMode() {
       window.e2eTestingMode = true;
     }, []);
-    this.logMessage("LoginCommand set e2eTestingMode = true");
+    this.api.logMessage("LoginCommand set e2eTestingMode = true");
   }
 }
