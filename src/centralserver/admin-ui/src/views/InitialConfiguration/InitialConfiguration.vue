@@ -137,9 +137,7 @@ import Vue, { VueConstructor } from 'vue';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import i18n from '@/i18n';
 import { StoreTypes } from '@/global';
-import {
-  InitialServerConf,
-} from '@/openapi-types';
+import { InitialServerConf } from '@/openapi-types';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 

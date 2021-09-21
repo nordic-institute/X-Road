@@ -232,7 +232,6 @@ import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-
   data() {
     return {
       search: '' as string,
