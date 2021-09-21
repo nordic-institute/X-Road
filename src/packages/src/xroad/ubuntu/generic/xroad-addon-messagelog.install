@@ -1,14 +1,19 @@
-../../../../src/xroad/common/addon/proxy/messagelog.conf usr/share/xroad/jlib/addon/proxy/
-../../../../../addons/messagelog/build/libs/messagelog-1.0.jar usr/share/xroad/jlib/addon/proxy/
-../../../../../addons/messagelog/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
+../../../../src/xroad/common/addon/proxy/messagelog.conf.default usr/share/xroad/jlib/addon/proxy/
+../../../../src/xroad/common/addon/proxy/messagelog-archiver.conf etc/xroad/services/
+../../../../src/xroad/common/addon/proxy/xroad-messagelog-archiver usr/share/xroad/bin/
+../../../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar usr/share/xroad/jlib/addon/proxy/
+../../../../../addons/messagelog/messagelog-addon/scripts/keyname.sh usr/share/xroad/scripts/
+../../../../../addons/messagelog/messagelog-archiver/scripts/archive-http-transporter.sh usr/share/xroad/scripts/
+../../../../../addons/messagelog/messagelog-archiver/build/libs/messagelog-archiver.jar usr/share/xroad/jlib/addon/proxy/
 
 ../../../../src/xroad/default-configuration/addons/message-log.ini etc/xroad/conf.d/addons/
+../../../../src/xroad/default-configuration/addons/messagelog-archiver-logback.xml etc/xroad/conf.d/addons/
 
 ../../../../src/xroad/common/addon/proxy/messagelog-changelog.xml usr/share/xroad/db/
 ../../../../src/xroad/common/addon/proxy/messagelog/ usr/share/xroad/db/
 ../../../../src/xroad/common/addon/proxy/setup_messagelog_db.sh usr/share/xroad/scripts/
 
-../../../../../addons/messagelog/scripts/demo-upload.pl usr/share/doc/xroad-addon-messagelog/archive-server/
+../../../../../addons/messagelog/messagelog-archiver/scripts/demo-upload.pl usr/share/doc/xroad-addon-messagelog/archive-server/
 ../../../../../../doc/archive-hashchain-verifier.rb usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/
 ../../../../../../doc/archive-hashchain-verifier.README usr/share/doc/xroad-addon-messagelog/archive-hashchain-verifier/README
 

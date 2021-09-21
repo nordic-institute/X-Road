@@ -162,7 +162,7 @@
       @cancel="cancelAddRest"
     />
     <disableServiceDescDialog
-      :dialog="disableDescDialog"
+      v-if="disableDescDialog"
       :subject="selectedServiceDesc"
       :subject-index="selectedIndex"
       @cancel="disableDescCancel"

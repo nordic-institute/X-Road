@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -178,7 +179,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @Test
     @WithMockUser(authorities = { "VIEW_ENDPOINT_ACL" })
     public void getEndpointAccesRights() {
-        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         assertTrue(serviceClients.stream()
                 .anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS6)));
@@ -190,7 +191,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL" })
     public void removeExistingEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
-        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         ServiceClients deletedScs = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS6).serviceClientType(
@@ -206,7 +207,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     @WithMockUser(authorities = { "EDIT_ENDPOINT_ACL", "VIEW_ENDPOINT_ACL" })
     public void removeInexistingEndpointAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
-        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
+        Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         ServiceClients deletedScs = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS1).serviceClientType(
@@ -233,7 +234,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         doReturn(true).when(globalConfService).globalGroupsExist(any());
 
         // add access rights for a subsystem and global group to endpoint
-        List<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
+        Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
         assertTrue(serviceClients.size() == 1);
         ServiceClients added = new ServiceClients()
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS5).serviceClientType(
@@ -249,7 +250,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.DB_GLOBALGROUP_ID)));
 
         // add access rights for a local group to endpoint
-        List<ServiceClient> localGroupTestServiceClients = endpointsApiController
+        Set<ServiceClient> localGroupTestServiceClients = endpointsApiController
                 .getEndpointServiceClients("3").getBody();
         assertTrue(localGroupTestServiceClients.size() == 1);
         ServiceClients localGroupScs = new ServiceClients()

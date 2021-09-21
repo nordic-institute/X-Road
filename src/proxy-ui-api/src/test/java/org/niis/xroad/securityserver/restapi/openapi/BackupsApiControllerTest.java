@@ -53,7 +53,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -101,15 +101,23 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "BACKUP_CONFIGURATION" })
     public void getBackups() throws Exception {
-        ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
+        ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<Backup> backups = response.getBody();
+        Set<Backup> backups = response.getBody();
         assertEquals(2, backups.size());
-        assertEquals(BACKUP_FILE_1_NAME, backups.get(0).getFilename());
-        assertEquals(BACKUP_FILE_1_CREATED_AT, backups.get(0).getCreatedAt().toString());
-        assertEquals(BACKUP_FILE_2_NAME, backups.get(1).getFilename());
-        assertEquals(BACKUP_FILE_2_CREATED_AT, backups.get(1).getCreatedAt().toString());
+        Backup firstBackup = response.getBody()
+                .stream()
+                .filter(backup -> backup.getCreatedAt().toString().equals(BACKUP_FILE_1_CREATED_AT))
+                .findFirst()
+                .orElse(null);
+        Backup secondBackup = response.getBody()
+                .stream()
+                .filter(backup -> backup.getCreatedAt().toString().equals(BACKUP_FILE_2_CREATED_AT))
+                .findFirst()
+                .orElse(null);
+        assertEquals(BACKUP_FILE_1_NAME, firstBackup.getFilename());
+        assertEquals(BACKUP_FILE_2_NAME, secondBackup.getFilename());
     }
 
     @Test
@@ -117,10 +125,10 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
     public void getBackupsEmptyList() {
         when(backupService.getBackupFiles()).thenReturn(new ArrayList<>());
 
-        ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
+        ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<Backup> backups = response.getBody();
+        Set<Backup> backups = response.getBody();
         assertEquals(0, backups.size());
     }
 
@@ -130,7 +138,7 @@ public class BackupsApiControllerTest extends AbstractApiControllerTestContext {
         when(backupService.getBackupFiles()).thenThrow(new RuntimeException());
 
         try {
-            ResponseEntity<List<Backup>> response = backupsApiController.getBackups();
+            ResponseEntity<Set<Backup>> response = backupsApiController.getBackups();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
             // success

@@ -36,6 +36,7 @@ import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -124,9 +125,9 @@ public class KeyConverter {
      * @param keyInfos
      * @return List of {@link KeyInfo keyInfos}
      */
-    public List<Key> convert(Iterable<KeyInfo> keyInfos, TokenInfo tokenInfo) {
+    public Set<Key> convert(Iterable<KeyInfo> keyInfos, TokenInfo tokenInfo) {
         return Streams.stream(keyInfos)
                 .map(k -> convert(k, tokenInfo))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

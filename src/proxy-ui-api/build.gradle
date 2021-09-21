@@ -2,7 +2,7 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 
 buildscript {
     ext {
-        openapiGeneratorVersion = '4.2.1'
+        openapiGeneratorVersion = '5.2.1'
         nodePluginVersion = '2.2.4'
         nodeVersion = '12.21.0'
         swaggerParserVersion = '2.0.21'
@@ -249,7 +249,7 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
-    systemProperties = [
+    globalProperties = [
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
@@ -341,6 +341,7 @@ dependencies {
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
+    implementation 'io.springfox:springfox-core:3.0.0'
     // /openapi-generator related
 }
 

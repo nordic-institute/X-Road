@@ -35,8 +35,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
@@ -97,10 +97,7 @@ public class ExceptionTranslator {
         if (deviation != null) {
             result.setCode(deviation.getCode());
             if (deviation.getMetadata() != null && !deviation.getMetadata().isEmpty()) {
-                List<String> metadata = new ArrayList<>();
-                for (String metadataItem: deviation.getMetadata()) {
-                    metadata.add(metadataItem);
-                }
+                Set<String> metadata = new HashSet<>(deviation.getMetadata());
                 result.setMetadata(metadata);
             }
         }

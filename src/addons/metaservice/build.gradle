@@ -1,11 +1,10 @@
 dependencies {
-    //"shadow" includes also transitive dependencies
-    implementation(project(path: ':proxy', configuration: 'shadow'))
-
-    //workaround for Idea (does not seem to understand the shadow configuration)
+    implementation project(':proxy')
     implementation project(':common-util')
     implementation project(':serverconf')
-    ///workaround
+    implementation project(":common-op-monitoring")
+    implementation project(":common-verifier")
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${project.property('jackson.version')}"
 
     testImplementation project(':common-test')
     testImplementation project (path: ":proxy", configuration: 'testArtifacts')
@@ -47,4 +46,8 @@ task runMetaserviceTest(type: JavaExec) {
 
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
+}
+
+jacoco {
+  applyTo runMetaserviceTest
 }

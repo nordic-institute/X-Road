@@ -42,6 +42,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -97,10 +98,10 @@ public class ServiceClientConverter {
      * @param serviceClientDtos
      * @return
      */
-    public List<ServiceClient> convertServiceClientDtos(Iterable<ServiceClientDto> serviceClientDtos) {
+    public Set<ServiceClient> convertServiceClientDtos(Iterable<ServiceClientDto> serviceClientDtos) {
         return Streams.stream(serviceClientDtos)
                 .map(this::convertServiceClientDto)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     /**

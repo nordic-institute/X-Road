@@ -6,8 +6,8 @@
 # X-Road: Use Case Model for Member Management
 **Analysis**
 
-Version: 1.7  
-06.03.2018
+Version: 1.9  
+25.08.2021
 <!--  63 pages -->
 Doc. ID: UC-MEMBER
 
@@ -31,6 +31,7 @@ Doc. ID: UC-MEMBER
  23.02.2017 | 1.6     | Converted to Github flavoured Markdown, added license text, adjusted tables and identification for better output in PDF | Toomas Mölder 
  06.03.2018 | 1.7     | Moved terms to term doc, added term doc reference and link, added internal MD-doc links | Tatu Repo
  06.02.2019 | 1.8     | Minor update to [UC_MEMBER\_48](#245-uc-member_48-register-a-security-server-client) | Petteri Kivimäki
+ 25.08.2021 | 1.9     | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents
 
@@ -141,9 +142,9 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
+1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\] X-Road 7. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
-2.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
+2.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] X-Road 7. Security Server Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
 
 3.  <a id="Ref_PR-MSERV" class="anchor"></a>\[PR-MSERV\] X-Road: Protocol for Management Services. Document ID: [PR-MSERV](../Protocols/pr-mserv_x-road_protocol_for_management_services.md).
 
@@ -157,7 +158,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 8.  <a id="Ref_UC-SS" class="anchor"></a>\[UC-SS\] X-Road: Use Case Model for Security Server Management. Document ID: [UC-SS](uc-ss_x-road_use_case_model_for_security_server_management_1.4_Y-883-4.md).
 
-9.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: [UG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md).
+9.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md).
 
 10. <a id="Ref_X509" class="anchor"></a>\[X509\] Internet X.509 Public Key Infrastructure Certificate and Certificate Revocation List (CRL) Profile, Internet Engineering Task Force, 2008.
 
@@ -203,7 +204,7 @@ The use cases do not describe the organizational aspects of these processes.
 
 **Main Success Scenario**:
 
-1.  SS administrator installs and initializes a security server following the instructions given in the document “X-Road 6. Security Server Installation Guide” \[[IG-SS](#Ref_IG-SS)\].
+1.  SS administrator installs and initializes a security server following the instructions given in the document “X-Road 7. Security Server Installation Guide” \[[IG-SS](#Ref_IG-SS)\].
 
 2.  SS administrator adds one or more timestamping services for the security server: UC SS\_07 \[[UC-SS](#Ref_UC-SS)\].
 

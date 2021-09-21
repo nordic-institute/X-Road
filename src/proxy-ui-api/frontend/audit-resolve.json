@@ -2,43 +2,43 @@
   "decisions": {
     "1500|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
-      "madeAt": 1628770609040
+      "madeAt": 1629389273635
     },
     "1751|@vue/cli-plugin-babel>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-plugin-eslint>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-plugin-typescript>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-service>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-plugin-eslint>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-plugin-typescript>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-service>copy-webpack-plugin>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-service>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     },
     "1751|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1628770612850
+      "madeAt": 1629389279308
     }
   },
   "rules": {},

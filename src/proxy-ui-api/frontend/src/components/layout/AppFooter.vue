@@ -25,9 +25,9 @@
  -->
 <template>
   <v-footer class="footer">
-    <v-container>
+    <v-container class="pb-13">
       <v-row>
-        <v-col cols="6" sm="3" class="pt-6">
+        <v-col cols="2" class="pt-4">
           <v-img
             :src="require('../../assets/xroad7_logo.svg')"
             height="35"

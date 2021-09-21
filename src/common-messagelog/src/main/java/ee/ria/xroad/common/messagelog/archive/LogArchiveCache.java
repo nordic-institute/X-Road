@@ -56,8 +56,6 @@ import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM
 @Slf4j
 class LogArchiveCache implements Closeable {
 
-    private Path gpgHome = MessageLogProperties.getGPGHome();
-
     private enum State {
         NEW,
         ADDING,
@@ -78,7 +76,8 @@ class LogArchiveCache implements Closeable {
     private Date minCreationTime;
     private Date maxCreationTime;
     private long archivesTotalSize;
-    private EncryptionConfig encryptionConfig;
+
+    private final EncryptionConfig encryptionConfig;
 
     LogArchiveCache(Supplier<String> randomGenerator,
             LinkingInfoBuilder linkingInfoBuilder,
@@ -89,12 +88,6 @@ class LogArchiveCache implements Closeable {
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
         resetCacheState();
-    }
-
-    LogArchiveCache(Supplier<String> randomGenerator,
-            LinkingInfoBuilder linkingInfoBuilder,
-            Path workingDir) {
-        this(randomGenerator, linkingInfoBuilder, EncryptionConfig.DISABLED, workingDir);
     }
 
     void add(MessageRecord messageRecord) throws Exception {

@@ -26,6 +26,7 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -34,6 +35,7 @@ import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
+@EqualsAndHashCode
 class EncryptionConfig {
     private final boolean enabled;
     private final Path gpgHomeDir;

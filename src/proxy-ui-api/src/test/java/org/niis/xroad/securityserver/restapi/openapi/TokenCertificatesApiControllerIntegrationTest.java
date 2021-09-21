@@ -459,8 +459,10 @@ public class TokenCertificatesApiControllerIntegrationTest extends AbstractApiCo
         assertTrue(certificateDetails.getSignature().startsWith("a11c4675cf4e2fa1664464"));
         assertTrue(certificateDetails.getRsaPublicKeyModulus().startsWith("92e952dfc1d84648c2873"));
         assertEquals(new Integer(65537), certificateDetails.getRsaPublicKeyExponent());
-        assertEquals(Arrays.asList(KeyUsage.DIGITAL_SIGNATURE, KeyUsage.KEY_ENCIPHERMENT, KeyUsage.DATA_ENCIPHERMENT,
-                KeyUsage.KEY_AGREEMENT), new ArrayList<>(certificateDetails.getKeyUsages()));
+        assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.DIGITAL_SIGNATURE));
+        assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.KEY_ENCIPHERMENT));
+        assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.DATA_ENCIPHERMENT));
+        assertTrue(new HashSet<>(certificateDetails.getKeyUsages()).contains(KeyUsage.KEY_AGREEMENT));
     }
 
     @Test

@@ -66,7 +66,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -135,7 +134,7 @@ public class ServicesApiController implements ServicesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_SERVICE_ACL')")
-    public ResponseEntity<List<ServiceClient>> getServiceServiceClients(String encodedServiceId) {
+    public ResponseEntity<Set<ServiceClient>> getServiceServiceClients(String encodedServiceId) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
         List<ServiceClientDto> serviceClientDtos = null;
@@ -144,8 +143,7 @@ public class ServicesApiController implements ServicesApi {
         } catch (ClientNotFoundException | ServiceNotFoundException | EndpointNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        Collections.sort(serviceClients, serviceClientSortingComparator);
+        Set<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -171,7 +169,7 @@ public class ServicesApiController implements ServicesApi {
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
     @Override
     @AuditEventMethod(event = RestApiAuditEvent.ADD_SERVICE_ACCESS_RIGHTS)
-    public ResponseEntity<List<ServiceClient>> addServiceServiceClients(String encodedServiceId,
+    public ResponseEntity<Set<ServiceClient>> addServiceServiceClients(String encodedServiceId,
             ServiceClients serviceClients) {
         ClientId clientId = serviceConverter.parseClientId(encodedServiceId);
         String fullServiceCode = serviceConverter.parseFullServiceCode(encodedServiceId);
@@ -189,9 +187,8 @@ public class ServicesApiController implements ServicesApi {
         } catch (ServiceClientIdentifierConverter.BadServiceClientIdentifierException e) {
             throw serviceClientHelper.wrapInBadRequestException(e);
         }
-        List<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
+        Set<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
                 serviceClientDtos);
-        Collections.sort(serviceClientsResult, serviceClientSortingComparator);
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 

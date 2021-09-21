@@ -106,14 +106,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.CertificateException;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT_INTERNAL_CERT;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_LOCAL_GROUP;
@@ -180,15 +178,14 @@ public class ClientsApiController implements ClientsApi {
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENTS')")
-    public ResponseEntity<List<Client>> findClients(String name, String instance, String memberClass,
+    public ResponseEntity<Set<Client>> findClients(String name, String instance, String memberClass,
             String memberCode, String subsystemCode, Boolean showMembers, Boolean internalSearch,
             Boolean localValidSignCert, Boolean excludeLocal) {
         boolean unboxedShowMembers = Boolean.TRUE.equals(showMembers);
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
-        List<Client> clients = clientConverter.convert(clientService.findClients(name,
+        Set<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 excludeLocal, localValidSignCert));
-        Collections.sort(clients, clientSortingComparator);
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
@@ -219,10 +216,10 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_DETAILS')")
-    public ResponseEntity<List<TokenCertificate>> getClientSignCertificates(String encodedId) {
+    public ResponseEntity<Set<TokenCertificate>> getClientSignCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<CertificateInfo> certificateInfos = tokenService.getSignCertificates(clientType);
-        List<TokenCertificate> certificates = tokenCertificateConverter.convert(certificateInfos);
+        Set<TokenCertificate> certificates = new HashSet<>(tokenCertificateConverter.convert(certificateInfos));
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
@@ -311,12 +308,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_INTERNAL_CERTS')")
-    public ResponseEntity<List<CertificateDetails>> getClientTlsCertificates(String encodedId) {
+    public ResponseEntity<Set<CertificateDetails>> getClientTlsCertificates(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<CertificateDetails> certificates = clientService.getLocalClientIsCerts(clientType.getIdentifier())
+        Set<CertificateDetails> certificates = clientService.getLocalClientIsCerts(clientType.getIdentifier())
                 .stream()
                 .map(certificateDetailsConverter::convert)
-                .collect(toList());
+                .collect(toSet());
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
@@ -340,19 +337,18 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_LOCAL_GROUPS')")
-    public ResponseEntity<List<LocalGroup>> getClientLocalGroups(String encodedId) {
+    public ResponseEntity<Set<LocalGroup>> getClientLocalGroups(String encodedId) {
         ClientType clientType = getClientType(encodedId);
         List<LocalGroupType> localGroupTypes = clientService.getLocalClientLocalGroups(clientType.getIdentifier());
-        List<LocalGroup> localGroups = localGroupConverter.convert(localGroupTypes);
-        localGroups.sort(Comparator.comparing(LocalGroup::getCode, String.CASE_INSENSITIVE_ORDER));
+        Set<LocalGroup> localGroups = localGroupConverter.convert(localGroupTypes);
         return new ResponseEntity<>(localGroups, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
-    public ResponseEntity<List<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
+    public ResponseEntity<Set<ServiceDescription>> getClientServiceDescriptions(String encodedId) {
         ClientType clientType = getClientType(encodedId);
-        List<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
+        Set<ServiceDescription> serviceDescriptions = serviceDescriptionConverter.convert(
                 clientService.getLocalClientServiceDescriptions(clientType.getIdentifier()));
 
         return new ResponseEntity<>(serviceDescriptions, HttpStatus.OK);
@@ -429,7 +425,7 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public ResponseEntity<List<ServiceClient>> findServiceClientCandidates(String encodedClientId,
+    public ResponseEntity<Set<ServiceClient>> findServiceClientCandidates(String encodedClientId,
             String memberNameOrGroupDescription,
             ServiceClientType serviceClientType, String instance, String memberClass, String memberGroupCode,
             String subsystemCode) {
@@ -443,8 +439,7 @@ public class ClientsApiController implements ClientsApi {
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        List<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        Collections.sort(serviceClients, serviceClientSortingComparator);
+        Set<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
         return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
@@ -578,13 +573,12 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
-    public ResponseEntity<List<ServiceClient>> getClientServiceClients(String id) {
+    public ResponseEntity<Set<ServiceClient>> getClientServiceClients(String id) {
         ClientId clientId = clientConverter.convertId(id);
-        List<ServiceClient> serviceClients = null;
+        Set<ServiceClient> serviceClients = null;
         try {
             serviceClients = serviceClientConverter.
                     convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
-            Collections.sort(serviceClients, serviceClientSortingComparator);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
@@ -611,9 +605,9 @@ public class ClientsApiController implements ClientsApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_ACL_SUBJECT_OPEN_SERVICES')")
-    public ResponseEntity<List<AccessRight>> getServiceClientAccessRights(String id, String scId) {
+    public ResponseEntity<Set<AccessRight>> getServiceClientAccessRights(String id, String scId) {
         ClientId clientIdentifier = clientConverter.convertId(id);
-        List<AccessRight> accessRights = null;
+        Set<AccessRight> accessRights = null;
         try {
             XRoadId serviceClientId = serviceClientHelper.processServiceClientXRoadId(scId);
             accessRights = accessRightConverter.convert(
@@ -629,7 +623,7 @@ public class ClientsApiController implements ClientsApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_ACL_SUBJECT_OPEN_SERVICES')")
     @AuditEventMethod(event = ADD_SERVICE_CLIENT_ACCESS_RIGHTS)
-    public ResponseEntity<List<AccessRight>> addServiceClientAccessRights(String encodedClientId,
+    public ResponseEntity<Set<AccessRight>> addServiceClientAccessRights(String encodedClientId,
             String endcodedServiceClientId, AccessRights accessRights) {
         ClientId clientId = clientConverter.convertId(encodedClientId);
         Set<String> serviceCodes = getServiceCodes(accessRights);

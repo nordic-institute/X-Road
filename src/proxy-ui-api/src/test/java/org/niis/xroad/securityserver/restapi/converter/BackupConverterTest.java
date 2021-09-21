@@ -33,6 +33,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -66,7 +67,7 @@ public class BackupConverterTest {
         List<BackupFile> files = new ArrayList<>(Arrays.asList(new BackupFile(BACKUP_FILE_1),
                 new BackupFile(BACKUP_FILE_2),
                 new BackupFile(BACKUP_FILE_3)));
-        List<Backup> backups = backupConverter.convert(files);
+        Set<Backup> backups = backupConverter.convert(files);
 
         assertEquals(3, backups.size());
     }
@@ -74,7 +75,7 @@ public class BackupConverterTest {
     @Test
     public void convertMEmptyList() {
         List<BackupFile> files = new ArrayList<>();
-        List<Backup> backups = backupConverter.convert(files);
+        Set<Backup> backups = backupConverter.convert(files);
 
         assertEquals(0, backups.size());
     }

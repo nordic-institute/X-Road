@@ -55,10 +55,5 @@ public enum GroupingStrategy {
         public boolean includes(MessageRecord record) {
             return true;
         }
-
-        @Override
-        public String name() {
-            return null;
-        }
     };
 }

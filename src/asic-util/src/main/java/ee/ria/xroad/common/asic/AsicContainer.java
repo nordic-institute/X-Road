@@ -249,6 +249,10 @@ public class AsicContainer {
             b.addFile(entryName, MimeTypes.TEXT_XML); // assume files are XML
         }
 
+        if (attachment != null) {
+            b.addFile(ENTRY_ATTACHMENT + "1", MimeTypes.BINARY);
+        }
+
         put(ENTRY_MANIFEST, b.build());
     }
 
@@ -312,7 +316,7 @@ public class AsicContainer {
         }
     }
 
-    InputStream getAttachment() {
+    public InputStream getAttachment() {
         return attachment;
     }
 }
