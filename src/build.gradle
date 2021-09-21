@@ -13,6 +13,7 @@ plugins {
     id 'org.sonarqube' version '3.3'
     id 'org.owasp.dependencycheck' version '6.2.2'
     id 'jacoco'
+    id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
     id 'org.springframework.boot' version "${springBootVersion}" apply false
@@ -32,6 +33,7 @@ sonarqube {
         property "sonar.dependencyCheck.reportPath", "build/reports/owasp-dependency-check/dependency-check-report.xml"
         property "sonar.dependencyCheck.htmlReportPath", "build/reports/owasp-dependency-check/dependency-check-report.html"
         property "sonar.exclusions", "**/build/generated-sources/**"
+        property "sonar.coverage.jacoco.xmlReportPaths", "${rootProject.buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }
 
@@ -70,6 +72,17 @@ dependencyCheck {
 allprojects {
     group = 'org.niis.xroad'
     version = '1.0'
+    
+    buildscript {
+      repositories {
+        mavenCentral()
+      }
+    }
+
+    repositories {
+      mavenCentral()
+      mavenLocal()
+    }
 
     jacoco {
         toolVersion = "0.8.7"
@@ -104,20 +117,6 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
 
     tasks.withType(JavaCompile) {
       options.encoding = 'UTF-8'
-    }
-
-    repositories {
-        mavenCentral()
-        mavenLocal()
-        // XXX In case mavenCentral is unreachable, use this mirror instead
-        // maven {
-        //     url "http://mirrors.ibiblio.org/pub/mirrors/maven2"
-        // }
-
-        // iaikPkcs11Wrapper is located there
-        //maven {
-        //    url "http://ground.zero.ee/maven2"
-        //}
     }
 
     configurations {
@@ -174,9 +173,7 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     }
 
     jacocoTestReport {
-        reports {
-            xml.enabled true
-        }
+        enabled = false
     }
 
     apply plugin: 'com.github.hierynomus.license'
@@ -193,6 +190,15 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
 
 }
 
-task clean(type: Delete) {
-    delete "${rootDir}/packages/build"
+clean.delete << "${rootDir}/packages/build"
+
+jacocoTestReport {
+    def javaProjects = subprojects.findAll{it.plugins.hasPlugin(JavaPlugin)}
+    dependsOn javaProjects.check
+    reports {
+        xml.required = true
+    }
+    classDirectories.setFrom files(javaProjects.sourceSets.main.java.outputDir)
+    sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
+    executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
 }

@@ -69,7 +69,7 @@
       </template>
 
       <template #[`item.button`]>
-        <div class="button-wrap">
+        <div class="cs-table-actions-wrap">
           <xrd-button text :outlined="false">{{
             $t('action.approve')
           }}</xrd-button>
@@ -81,7 +81,7 @@
       </template>
 
       <template #footer>
-        <div class="custom-footer"></div>
+        <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
   </sub-view-container>
@@ -93,8 +93,8 @@
  */
 import Vue from 'vue';
 import SubViewContainer from '@/components/layout/SubViewContainer.vue';
-import StatusCell from './StatusCell.vue';
-import TypeCell from './TypeCell.vue';
+import StatusCell from '../../components/managementRequests/StatusCell.vue';
+import TypeCell from '../../components/managementRequests/TypeCell.vue';
 import XrdFilter from './XrdFilter.vue';
 import { DataTableHeader } from 'vuetify';
 
@@ -221,11 +221,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.button-wrap {
-  width: 100%;
-  display: flex;
-  justify-content: flex-end;
-}
 .request-id {
   color: $XRoad-Purple100;
   font-weight: 600;
@@ -238,11 +233,6 @@ export default Vue.extend({
 
 .margin-fix {
   margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 
 .custom-checkbox {

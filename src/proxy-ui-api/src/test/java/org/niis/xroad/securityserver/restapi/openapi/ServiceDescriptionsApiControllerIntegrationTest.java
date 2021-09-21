@@ -46,7 +46,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -119,7 +118,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
 
     }
 
-    private Optional<ServiceDescription> getServiceDescription(List<ServiceDescription> serviceDescriptions,
+    private Optional<ServiceDescription> getServiceDescription(Set<ServiceDescription> serviceDescriptions,
             String id) {
         return serviceDescriptions.stream()
                 .filter(serviceDescription -> serviceDescription.getId().equals(id))
@@ -167,7 +166,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
         Client client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
         assertNotNull(client);
         serviceDescriptionsApiController.deleteServiceDescription("2");
-        List<ServiceDescription> serviceDescriptions =
+        Set<ServiceDescription> serviceDescriptions =
                 clientsApiController.getClientServiceDescriptions(TestUtils.CLIENT_ID_SS1).getBody();
         assertEquals(CLIENT_ID_SS1_INITIAL_SERVICEDESCRIPTION_COUNT - 1, serviceDescriptions.size());
         client = clientsApiController.getClient(TestUtils.CLIENT_ID_SS1).getBody();
@@ -291,10 +290,10 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
     @Test
     @WithMockUser(authorities = { "VIEW_CLIENT_SERVICES" })
     public void getServiceDescriptionServices() {
-        ResponseEntity<List<Service>> response =
+        ResponseEntity<Set<Service>> response =
                 serviceDescriptionsApiController.getServiceDescriptionServices("1");
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<Service> services = response.getBody();
+        Set<Service> services = response.getBody();
         assertEquals(4, services.size());
         Service getRandomService = getService(services, TestUtils.CLIENT_ID_SS1 + ":"
                 + TestUtils.FULL_SERVICE_CODE_GET_RANDOM);
@@ -334,7 +333,7 @@ public class ServiceDescriptionsApiControllerIntegrationTest extends AbstractApi
                 .collect(Collectors.toSet());
     }
 
-    private Service getService(List<Service> services, String id) {
+    private Service getService(Set<Service> services, String id) {
         return services.stream()
                 .filter(s -> id.equals(s.getId()))
                 .findFirst().get();

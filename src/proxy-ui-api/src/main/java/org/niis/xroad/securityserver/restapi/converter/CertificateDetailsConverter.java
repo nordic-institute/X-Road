@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
-import java.util.ArrayList;
+import java.util.HashSet;
 
 /**
  * Converter for CertificateDetails related data between openapi and service domain classes
@@ -108,7 +108,7 @@ public class CertificateDetailsConverter {
         certificate.setSignatureAlgorithm(x509Certificate.getSigAlgName());
         certificate.setPublicKeyAlgorithm(x509Certificate.getPublicKey().getAlgorithm());
 
-        certificate.setKeyUsages(new ArrayList<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
+        certificate.setKeyUsages(new HashSet<>(keyUsageConverter.convert(x509Certificate.getKeyUsage())));
 
         PublicKey publicKey = x509Certificate.getPublicKey();
         if (publicKey instanceof RSAPublicKey) {

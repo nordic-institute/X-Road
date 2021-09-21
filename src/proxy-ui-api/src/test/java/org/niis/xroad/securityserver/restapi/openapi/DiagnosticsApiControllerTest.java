@@ -45,7 +45,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -166,18 +168,23 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 DiagnosticsErrorCodes.RETURN_SUCCESS, PREVIOUS_UPDATE);
         diagnosticsStatus.setDescription(TSA_URL_1);
 
-        when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
+        when(diagnosticService.queryTimestampingStatus()).thenReturn(
+                new HashSet<>(Collections.singletonList(diagnosticsStatus)));
 
-        ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<TimestampingServiceDiagnostics>> response = diagnosticsApiController
                 .getTimestampingServicesDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
-        assertEquals(1, timestampingServiceDiagnostics.size());
-        assertEquals(TimestampingStatus.SUCCESS, timestampingServiceDiagnostics.get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE, timestampingServiceDiagnostics.get(0).getPrevUpdateAt());
-        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+        Set<TimestampingServiceDiagnostics> timestampingServiceDiagnosticsSet = response.getBody();
+        assertEquals(1, timestampingServiceDiagnosticsSet.size());
+        TimestampingServiceDiagnostics timestampingServiceDiagnostics = timestampingServiceDiagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
+        assertEquals(TimestampingStatus.SUCCESS, timestampingServiceDiagnostics.getStatusCode());
+        assertEquals(DiagnosticStatusClass.OK, timestampingServiceDiagnostics.getStatusClass());
+        assertEquals(PREVIOUS_UPDATE, timestampingServiceDiagnostics.getPrevUpdateAt());
+        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.getUrl());
     }
 
     @Test
@@ -187,19 +194,24 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 DiagnosticsErrorCodes.ERROR_CODE_TIMESTAMP_UNINITIALIZED, PREVIOUS_UPDATE);
         diagnosticsStatus.setDescription(TSA_URL_1);
 
-        when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
+        when(diagnosticService.queryTimestampingStatus()).thenReturn(
+                new HashSet<>(Collections.singletonList(diagnosticsStatus)));
 
-        ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<TimestampingServiceDiagnostics>> response = diagnosticsApiController
                 .getTimestampingServicesDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
-        assertEquals(1, timestampingServiceDiagnostics.size());
+        Set<TimestampingServiceDiagnostics> timestampingServiceDiagnosticsSet = response.getBody();
+        assertEquals(1, timestampingServiceDiagnosticsSet.size());
+        TimestampingServiceDiagnostics timestampingServiceDiagnostics = timestampingServiceDiagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
         assertEquals(TimestampingStatus.ERROR_CODE_TIMESTAMP_UNINITIALIZED,
-                timestampingServiceDiagnostics.get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE, timestampingServiceDiagnostics.get(0).getPrevUpdateAt());
-        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+                timestampingServiceDiagnostics.getStatusCode());
+        assertEquals(DiagnosticStatusClass.WAITING, timestampingServiceDiagnostics.getStatusClass());
+        assertEquals(PREVIOUS_UPDATE, timestampingServiceDiagnostics.getPrevUpdateAt());
+        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.getUrl());
     }
 
     @Test
@@ -209,19 +221,26 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
                 DiagnosticsErrorCodes.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL, PREVIOUS_UPDATE_MIDNIGHT);
         diagnosticsStatus.setDescription(TSA_URL_1);
 
-        when(diagnosticService.queryTimestampingStatus()).thenReturn(Arrays.asList(diagnosticsStatus));
+        when(diagnosticService.queryTimestampingStatus()).thenReturn(
+                new HashSet<>(Collections.singletonList(diagnosticsStatus)));
 
-        ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<TimestampingServiceDiagnostics>> response = diagnosticsApiController
                 .getTimestampingServicesDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingServiceDiagnostics> timestampingServiceDiagnostics = response.getBody();
-        assertEquals(1, timestampingServiceDiagnostics.size());
+        Set<TimestampingServiceDiagnostics> timestampingServiceDiagnosticsSet = response.getBody();
+        assertEquals(1, timestampingServiceDiagnosticsSet.size());
+
+        TimestampingServiceDiagnostics timestampingServiceDiagnostics = timestampingServiceDiagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
+
         assertEquals(TimestampingStatus.ERROR_CODE_MALFORMED_TIMESTAMP_SERVER_URL,
-                timestampingServiceDiagnostics.get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE_MIDNIGHT, timestampingServiceDiagnostics.get(0).getPrevUpdateAt());
-        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.get(0).getUrl());
+                timestampingServiceDiagnostics.getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, timestampingServiceDiagnostics.getStatusClass());
+        assertEquals(PREVIOUS_UPDATE_MIDNIGHT, timestampingServiceDiagnostics.getPrevUpdateAt());
+        assertEquals(TSA_URL_1, timestampingServiceDiagnostics.getUrl());
     }
 
     @Test
@@ -230,7 +249,7 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
         when(diagnosticService.queryTimestampingStatus()).thenThrow(new RuntimeException());
 
         try {
-            ResponseEntity<List<TimestampingServiceDiagnostics>> response = diagnosticsApiController
+            ResponseEntity<Set<TimestampingServiceDiagnostics>> response = diagnosticsApiController
                     .getTimestampingServicesDiagnostics();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
@@ -249,20 +268,25 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
         when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(status));
 
-        ResponseEntity<List<OcspResponderDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<OcspResponderDiagnostics> diagnostics = response.getBody();
-        assertEquals(1, diagnostics.size());
-        assertEquals(1, diagnostics.get(0).getOcspResponders().size());
+        Set<OcspResponderDiagnostics> diagnosticsSet = response.getBody();
 
-        assertEquals(CA_NAME_1, diagnostics.get(0).getDistinguishedName());
-        assertEquals(OcspStatus.SUCCESS, diagnostics.get(0).getOcspResponders().get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.OK, diagnostics.get(0).getOcspResponders().get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE, diagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE, diagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_1, diagnostics.get(0).getOcspResponders().get(0).getUrl());
+        assertEquals(1, diagnosticsSet.size());
+        OcspResponderDiagnostics diagnostics = diagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
+        assertEquals(1, diagnostics.getOcspResponders().size());
+
+        assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
+        assertEquals(OcspStatus.SUCCESS, diagnostics.getOcspResponders().get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.OK, diagnostics.getOcspResponders().get(0).getStatusClass());
+        assertEquals(PREVIOUS_UPDATE, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
+        assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().get(0).getUrl());
     }
 
     @Test
@@ -276,21 +300,25 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
         when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(status));
 
-        ResponseEntity<List<OcspResponderDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<OcspResponderDiagnostics> diagnostics = response.getBody();
-        assertEquals(1, diagnostics.size());
-        assertEquals(1, diagnostics.get(0).getOcspResponders().size());
+        Set<OcspResponderDiagnostics> diagnosticsSet = response.getBody();
+        assertEquals(1, diagnosticsSet.size());
+        OcspResponderDiagnostics diagnostics = diagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
+        assertEquals(1, diagnostics.getOcspResponders().size());
 
-        assertEquals(CA_NAME_2, diagnostics.get(0).getDistinguishedName());
-        assertEquals(OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED, diagnostics.get(0).getOcspResponders()
+        assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_UNINITIALIZED, diagnostics.getOcspResponders()
                 .get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.WAITING, diagnostics.get(0).getOcspResponders().get(0).getStatusClass());
-        assertEquals(null, diagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE, diagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_2, diagnostics.get(0).getOcspResponders().get(0).getUrl());
+        assertEquals(DiagnosticStatusClass.WAITING, diagnostics.getOcspResponders().get(0).getStatusClass());
+        assertEquals(null, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
+        assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().get(0).getUrl());
     }
 
     @Test
@@ -304,21 +332,25 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
         when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(status));
 
-        ResponseEntity<List<OcspResponderDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<OcspResponderDiagnostics> diagnostics = response.getBody();
-        assertEquals(1, diagnostics.size());
-        assertEquals(1, diagnostics.get(0).getOcspResponders().size());
+        Set<OcspResponderDiagnostics> diagnosticsSet = response.getBody();
+        assertEquals(1, diagnosticsSet.size());
+        OcspResponderDiagnostics diagnostics = diagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
+        assertEquals(1, diagnostics.getOcspResponders().size());
 
-        assertEquals(CA_NAME_1, diagnostics.get(0).getDistinguishedName());
-        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, diagnostics.get(0).getOcspResponders()
+        assertEquals(CA_NAME_1, diagnostics.getDistinguishedName());
+        assertEquals(OcspStatus.ERROR_CODE_OCSP_RESPONSE_INVALID, diagnostics.getOcspResponders()
                 .get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.get(0).getOcspResponders().get(0).getStatusClass());
-        assertEquals(null, diagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_1, diagnostics.get(0).getOcspResponders().get(0).getUrl());
+        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.getOcspResponders().get(0).getStatusClass());
+        assertEquals(null, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
+        assertEquals(OCSP_URL_1, diagnostics.getOcspResponders().get(0).getUrl());
     }
 
     @Test
@@ -332,20 +364,24 @@ public class DiagnosticsApiControllerTest extends AbstractApiControllerTestConte
 
         when(diagnosticService.queryOcspResponderStatus()).thenReturn(Arrays.asList(status));
 
-        ResponseEntity<List<OcspResponderDiagnostics>> response = diagnosticsApiController
+        ResponseEntity<Set<OcspResponderDiagnostics>> response = diagnosticsApiController
                 .getOcspRespondersDiagnostics();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<OcspResponderDiagnostics> diagnostics = response.getBody();
-        assertEquals(1, diagnostics.size());
-        assertEquals(1, diagnostics.get(0).getOcspResponders().size());
+        Set<OcspResponderDiagnostics> diagnosticsSet = response.getBody();
+        assertEquals(1, diagnosticsSet.size());
 
-        assertEquals(CA_NAME_2, diagnostics.get(0).getDistinguishedName());
-        assertEquals(OcspStatus.UNKNOWN, diagnostics.get(0).getOcspResponders().get(0).getStatusCode());
-        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.get(0).getOcspResponders().get(0).getStatusClass());
-        assertEquals(PREVIOUS_UPDATE_MIDNIGHT, diagnostics.get(0).getOcspResponders().get(0).getPrevUpdateAt());
-        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.get(0).getOcspResponders().get(0).getNextUpdateAt());
-        assertEquals(OCSP_URL_2, diagnostics.get(0).getOcspResponders().get(0).getUrl());
+        OcspResponderDiagnostics diagnostics = diagnosticsSet
+                .stream()
+                .findFirst()
+                .orElse(null);
+        assertEquals(1, diagnostics.getOcspResponders().size());
+        assertEquals(CA_NAME_2, diagnostics.getDistinguishedName());
+        assertEquals(OcspStatus.UNKNOWN, diagnostics.getOcspResponders().get(0).getStatusCode());
+        assertEquals(DiagnosticStatusClass.FAIL, diagnostics.getOcspResponders().get(0).getStatusClass());
+        assertEquals(PREVIOUS_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getPrevUpdateAt());
+        assertEquals(NEXT_UPDATE_MIDNIGHT, diagnostics.getOcspResponders().get(0).getNextUpdateAt());
+        assertEquals(OCSP_URL_2, diagnostics.getOcspResponders().get(0).getUrl());
     }
 
     @Test

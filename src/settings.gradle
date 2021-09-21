@@ -45,7 +45,9 @@ include "common-test"
 
 // Addons
 include "addons:hwtoken"
-include "addons:messagelog"
+include "addons:messagelog:messagelog-addon"
+include "addons:messagelog:messagelog-archiver"
+include "addons:messagelog:messagelog-db"
 include "addons:metaservice"
 
 include "addons:proxymonitor-common"

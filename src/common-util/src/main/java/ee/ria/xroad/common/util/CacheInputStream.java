@@ -27,6 +27,7 @@ package ee.ria.xroad.common.util;
 
 import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.channels.SeekableByteChannel;
 
@@ -37,8 +38,12 @@ public final class CacheInputStream extends FilterInputStream {
     private final long size;
 
     CacheInputStream(SeekableByteChannel ch) throws IOException {
-        super(Channels.newInputStream(ch.position(0)));
-        size = ch.size();
+        this(Channels.newInputStream(ch.position(0)), ch.size());
+    }
+
+    public CacheInputStream(InputStream is, long size) {
+        super(is);
+        this.size = size;
     }
 
     public long size() {

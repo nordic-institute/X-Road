@@ -5110,8 +5110,6 @@ components:
           description: access right given at
           example: '2018-12-15T00:00:00.001Z'
           readOnly: true
-          minLength: 24
-          maxLength: 24
     AccessRights:
       type: object
       description: object containing and array of AccessRights
@@ -6432,8 +6430,6 @@ components:
           description: time when access right were given at. When listing client's service clients without specifying the service, the time when first service access right was given to this service client for any service. When listing service clients for a specific service, time when service client was added permission to that service.
           example: '2018-12-15T00:00:00.001Z'
           readOnly: true
-          minLength: 24
-          maxLength: 24
     ServiceClients:
       type: object
       description: object containing and array of ServiceClients

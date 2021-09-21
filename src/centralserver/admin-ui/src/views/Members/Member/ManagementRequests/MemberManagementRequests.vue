@@ -26,72 +26,179 @@
 <template>
   <main id="member-management-requests">
     <div id="management-request-filters">
-      <xrd-search class="search" :label="$t('global.search')"></xrd-search>
+      <xrd-search
+        v-model="search"
+        class="search"
+        :label="$t('global.search')"
+      ></xrd-search>
       <v-checkbox
         class="show-only-waiting"
         :label="$t('members.member.managementRequests.showOnlyWaiting')"
         :background-color="colors.Purple100100"
-        :input-value="showOnlyWaitingRequests"
+        :input-value="showOnlyPending"
       />
     </div>
 
-    <v-card class="mt-4" flat>
-      <v-card-text>
-        <xrd-table>
-          <thead>
-            <tr>
-              <th>
-                {{ $t('members.member.managementRequests.id') }}
-                <v-icon>icon-Sorting-arrow</v-icon>
-              </th>
-              <th>{{ $t('members.member.managementRequests.created') }}</th>
-              <th>{{ $t('members.member.managementRequests.type') }}</th>
-              <th>{{ $t('members.member.managementRequests.status') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>2</td>
-              <td>2021-09-04 10:15</td>
-              <td>Client registration</td>
-              <td class="status">
-                <v-icon :color="colors.Yellow">icon-Error</v-icon> waiting
-              </td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>2021-09-04 10:15</td>
-              <td>Client deletion</td>
-              <td class="status">
-                <v-icon :color="colors.Success100">icon-Error</v-icon> approved
-              </td>
-            </tr>
-          </tbody>
-        </xrd-table>
-      </v-card-text>
-    </v-card>
+    <!-- Table -->
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="managementRequests"
+      :search="search"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="elevation-0 data-table"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+    >
+      <template #[`item.id`]="{ item }">
+        <div class="request-id">{{ item.id }}</div>
+      </template>
+
+      <template #[`item.type`]="{ item }">
+        <type-cell :status="item.type" />
+      </template>
+
+      <template #[`item.status`]="{ item }">
+        <status-cell :status="item.status" />
+      </template>
+
+      <template #[`item.button`]>
+        <div class="cs-table-actions-wrap">
+          <xrd-button text :outlined="false">{{
+            $t('action.approve')
+          }}</xrd-button>
+
+          <xrd-button text :outlined="false">{{
+            $t('action.decline')
+          }}</xrd-button>
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="cs-table-custom-footer"></div>
+      </template>
+    </v-data-table>
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { Colors } from '@/global';
+import StatusCell from '@/components/managementRequests/StatusCell.vue';
+import TypeCell from '@/components/managementRequests/TypeCell.vue';
+import { DataTableHeader } from 'vuetify';
 
 /**
  * Component for Member management requests
  */
 export default Vue.extend({
   name: 'MemberManagementRequests',
+
+  components: {
+    StatusCell,
+    TypeCell,
+  },
   data() {
     return {
       colors: Colors,
-      showOnlyWaitingRequests: false as boolean,
+      search: '' as string,
+      loading: false,
+      showOnlyPending: false,
+      managementRequests: [
+        {
+          id: '938726',
+          created: '2021-02-01',
+          type: 'change_owner',
+          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
+          serverOnwerId: 'DEV-333',
+          serverCode: 'sidecar',
+          status: 'APPROVED',
+        },
+        {
+          id: '736287',
+          created: '2021-05-05',
+          type: 'delete_certificate',
+          serverOwnerName: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
+          serverOnwerId: 'COM-777',
+          serverCode: 'SS1',
+          status: 'REJECTED',
+        },
+        {
+          id: '234234',
+          created: '2021-03-12',
+          type: 'delete_client',
+          serverOwnerName: 'Helsingin kristillisen koulun kannatusyhdistys',
+          serverOnwerId: 'COM-666',
+          serverCode: 'SS2',
+          status: 'PENDING',
+        },
+        {
+          id: '987283',
+          created: '2021-04-22',
+          type: 'register_certificate',
+          serverOwnerName: 'Siseministeerium',
+          serverOnwerId: 'DEV-444',
+          serverCode: 'SS2',
+          status: 'APPROVED',
+        },
+        {
+          id: '123235',
+          created: '2021-01-21',
+          type: 'register_client',
+          serverOwnerName: 'Turvallisuus- ja kemikaalivirasto',
+          serverOnwerId: 'COM-555',
+          serverCode: 'dev-toolkit-confidential.i.x-road',
+          status: 'PENDING',
+        },
+      ],
     };
+  },
+  computed: {
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('global.id') as string,
+          align: 'start',
+          value: 'id',
+          class: 'xrd-table-header member-mr-table-header-id',
+        },
+        {
+          text: this.$t('global.created') as string,
+          align: 'start',
+          value: 'created',
+          class: 'xrd-table-header member-mr-table-header-created',
+        },
+        {
+          text: this.$t('global.type') as string,
+          align: 'start',
+          value: 'type',
+          class: 'xrd-table-header member-mr-table-header-type',
+        },
+
+        {
+          text: this.$t('global.status') as string,
+          align: 'start',
+          value: 'status',
+          class: 'xrd-table-header member-mr-table-header-status',
+        },
+
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header member-mr-table-header-buttons',
+        },
+      ];
+    },
   },
 });
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/tables';
+
 .status {
   text-transform: uppercase;
   font-weight: bold;

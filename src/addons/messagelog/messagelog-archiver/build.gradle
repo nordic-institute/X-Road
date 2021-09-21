@@ -1,0 +1,32 @@
+plugins {
+    id 'com.github.johnrengelman.shadow'
+}
+
+dependencies {
+
+    implementation(project(':common-util'))
+    implementation(project(':common-db'))
+    implementation(project(':common-messagelog'))
+    implementation(project(':addons:messagelog:messagelog-db'))
+    implementation(project(':asic-util'))
+
+    testImplementation project(':common-test')
+    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ee.ria.xroad.messagelog.archiver.LogArchiverMain'
+    }
+}
+
+shadowJar {
+    archiveVersion = ''
+    archiveClassifier = ''
+    exclude('**/module-info.class')
+    append('reference.conf')
+    from rootProject.file("LICENSE.txt")
+}
+
+assemble.dependsOn shadowJar

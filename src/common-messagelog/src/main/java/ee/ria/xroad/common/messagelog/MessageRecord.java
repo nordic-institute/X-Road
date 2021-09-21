@@ -30,7 +30,6 @@ import ee.ria.xroad.common.asic.TimestampData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.signature.SignatureData;
-import ee.ria.xroad.common.util.CryptoUtils;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -40,11 +39,12 @@ import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.InputStream;
-import java.sql.Blob;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
 
-import static ee.ria.xroad.common.util.CryptoUtils.MD5_ID;
-import static ee.ria.xroad.common.util.CryptoUtils.hexDigest;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
 
 /**
  * A message log record.
@@ -116,11 +116,23 @@ public class MessageRecord extends AbstractLogRecord {
     @Setter
     private String xRequestId;
 
+    @Getter
+    @Setter
+    private String keyId;
+
+    private byte[] cipherMessage;
+
+    @Setter
+    private transient Cipher messageCipher;
+
+    @Setter
+    private transient Cipher attachmentCipher;
+
     /**
      * Constructs a message record.
      *
-     * @param msg      the message
-     * @param sig      the signature
+     * @param msg the message
+     * @param sig the signature
      * @param clientId message sender client identifier
      * @param xRequestId common id between a request and it's response
      * @throws Exception in case of any errors
@@ -133,9 +145,9 @@ public class MessageRecord extends AbstractLogRecord {
     /**
      * Constructs a message record.
      *
-     * @param qid      the query ID
-     * @param msg      the message
-     * @param sig      the signature
+     * @param qid the query ID
+     * @param msg the message
+     * @param sig the signature
      * @param response whether this record is for a response
      * @param clientId message sender client identifier
      * @param xRequestId common id between a request and it's response
@@ -158,13 +170,13 @@ public class MessageRecord extends AbstractLogRecord {
                 memberClass, memberCode, subsystemCode};
     }
 
-    /**
-     * @return an ASiC container constructed from this message record
-     * @throws Exception in case of any errors
-     */
     public AsicContainer toAsicContainer() throws Exception {
-        SignatureData signatureData =
-                new SignatureData(signature, hashChainResult, hashChain);
+        final boolean encrypted = keyId != null;
+        final SignatureData signatureData = new SignatureData(signature, hashChainResult, hashChain);
+
+        if (encrypted && (messageCipher == null || attachmentCipher == null)) {
+            throw new IllegalStateException("Encrypted message record has not been prepared for decryption");
+        }
 
         TimestampData timestamp = null;
 
@@ -175,8 +187,21 @@ public class MessageRecord extends AbstractLogRecord {
                     timestampHashChain);
         }
 
-        return new AsicContainer(message, signatureData, timestamp,
-                (attachment != null) ? attachment.getBinaryStream() : null);
+        final String plaintextMessage;
+        if (encrypted) {
+            plaintextMessage = new String(messageCipher.doFinal(cipherMessage), StandardCharsets.UTF_8);
+        } else {
+            plaintextMessage = message;
+        }
+
+        final InputStream plainAttachment;
+        if (encrypted && attachment != null) {
+            plainAttachment = new CipherInputStream(attachment.getBinaryStream(), attachmentCipher);
+        } else {
+            plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
+        }
+
+        return new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment);
     }
 
     public void setAttachmentStream(InputStream stream, long size) {
@@ -184,18 +209,9 @@ public class MessageRecord extends AbstractLogRecord {
         this.attachmentStreamSize = size;
     }
 
-    /**
-     * @param queryId the query ID
-     * @return MD5 hex digest of the given query ID
-     * @throws Exception if any errors occur
-     */
-    public static String hashQueryId(String queryId) throws Exception {
-        return hexDigest(MD5_ID, queryId);
-    }
-
-    static String decodeBase64(String base64Encoded) {
-        return (base64Encoded != null && !base64Encoded.isEmpty())
-                ? new String(CryptoUtils.decodeBase64(base64Encoded)) : null;
+    public void setCipherMessage(byte[] msg) {
+        this.cipherMessage = msg;
+        this.message = null;
     }
 
 }

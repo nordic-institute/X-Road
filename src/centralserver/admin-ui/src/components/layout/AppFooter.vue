@@ -25,9 +25,9 @@
  -->
 <template>
   <v-footer class="footer">
-    <v-layout align-left justify-left class="footer-inner">
+    <v-container class="pb-13">
       <v-row>
-        <v-col cols="6" sm="3" class="pt-6">
+        <v-col cols="2" class="pt-4">
           <v-img
             :src="require('../../assets/xroad7_logo.svg')"
             height="35"
@@ -97,7 +97,7 @@
           </v-row>
         </v-col>
       </v-row>
-    </v-layout>
+    </v-container>
   </v-footer>
 </template>
 
@@ -119,27 +119,20 @@ $text-color: $XRoad-Black100;
   display: flex;
   flex-direction: column;
   align-items: center;
+}
 
-  .footer-inner {
-    max-width: 1000px;
-    width: 100%;
-    margin-left: 0;
-    margin-right: 0;
+.footer-title {
+  color: $text-color;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
 
-    .footer-title {
-      color: $text-color;
-      font-size: 0.9rem;
-      font-weight: bold;
-    }
+.footer-col {
+  color: $text-color;
+  font-size: 0.875rem;
+}
 
-    .footer-col {
-      color: $text-color;
-      font-size: 0.875rem;
-    }
-
-    .footer-link {
-      color: $XRoad-Purple100;
-    }
-  }
+.footer-link {
+  color: $XRoad-Purple100;
 }
 </style>
