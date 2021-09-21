@@ -34,7 +34,7 @@
     role="presentation"
     :fill="color"
   >
-    <title :id="iconName" lang="en">{{ iconName }} icon</title>
+    <title :id="iconName" lang="en">{{ iconName }}</title>
     <slot :fillColor="color" />
   </svg>
 </template>

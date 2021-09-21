@@ -26,11 +26,8 @@
  */
 export type IconsId =
   | 'Add'
-  | 'AddCertificate'
-  | 'AddUser'
   | 'Cancel'
   | 'Certificate'
-  | 'ChangeOwner'
   | 'Checked'
   | 'Checker'
   | 'Checkmark'
@@ -42,6 +39,7 @@ export type IconsId =
   | 'Declined'
   | 'Download'
   | 'Dropdown-open'
+  | 'Edit'
   | 'Error-notification'
   | 'Error'
   | 'Folder-outline'
@@ -51,8 +49,6 @@ export type IconsId =
   | 'Key'
   | 'Menu'
   | 'Plus'
-  | 'RemoveCertificate'
-  | 'RemoveUser'
   | 'Search'
   | 'Security-Server'
   | 'Sorting-arrow'
@@ -63,11 +59,8 @@ export type IconsId =
 
 export type IconsKey =
   | 'Add'
-  | 'AddCertificate'
-  | 'AddUser'
   | 'Cancel'
   | 'Certificate'
-  | 'ChangeOwner'
   | 'Checked'
   | 'Checker'
   | 'Checkmark'
@@ -79,6 +72,7 @@ export type IconsKey =
   | 'Declined'
   | 'Download'
   | 'DropdownOpen'
+  | 'Edit'
   | 'ErrorNotification'
   | 'Error'
   | 'FolderOutline'
@@ -88,8 +82,6 @@ export type IconsKey =
   | 'Key'
   | 'Menu'
   | 'Plus'
-  | 'RemoveCertificate'
-  | 'RemoveUser'
   | 'Search'
   | 'SecurityServer'
   | 'SortingArrow'
@@ -100,11 +92,8 @@ export type IconsKey =
 
 export enum Icons {
   Add = 'Add',
-  AddCertificate = 'AddCertificate',
-  AddUser = 'AddUser',
   Cancel = 'Cancel',
   Certificate = 'Certificate',
-  ChangeOwner = 'ChangeOwner',
   Checked = 'Checked',
   Checker = 'Checker',
   Checkmark = 'Checkmark',
@@ -116,6 +105,7 @@ export enum Icons {
   Declined = 'Declined',
   Download = 'Download',
   DropdownOpen = 'Dropdown-open',
+  Edit = 'Edit',
   ErrorNotification = 'Error-notification',
   Error = 'Error',
   FolderOutline = 'Folder-outline',
@@ -125,8 +115,6 @@ export enum Icons {
   Key = 'Key',
   Menu = 'Menu',
   Plus = 'Plus',
-  RemoveCertificate = 'RemoveCertificate',
-  RemoveUser = 'RemoveUser',
   Search = 'Search',
   SecurityServer = 'Security-Server',
   SortingArrow = 'Sorting-arrow',
@@ -138,38 +126,34 @@ export enum Icons {
 
 export const ICONS_CODEPOINTS: { [key in Icons]: string } = {
   [Icons.Add]: '61697',
-  [Icons.AddCertificate]: '61698',
-  [Icons.AddUser]: '61699',
-  [Icons.Cancel]: '61700',
-  [Icons.Certificate]: '61701',
-  [Icons.ChangeOwner]: '61702',
-  [Icons.Checked]: '61703',
-  [Icons.Checker]: '61704',
-  [Icons.Checkmark]: '61705',
-  [Icons.Close]: '61706',
-  [Icons.Copy]: '61707',
-  [Icons.DatabaseBackup]: '61708',
-  [Icons.Database]: '61709',
-  [Icons.Datepicker]: '61710',
-  [Icons.Declined]: '61711',
-  [Icons.Download]: '61712',
-  [Icons.DropdownOpen]: '61713',
-  [Icons.ErrorNotification]: '61714',
-  [Icons.Error]: '61715',
-  [Icons.FolderOutline]: '61716',
-  [Icons.Folder]: '61717',
-  [Icons.Import]: '61718',
-  [Icons.InProgress]: '61719',
-  [Icons.Key]: '61720',
-  [Icons.Menu]: '61721',
-  [Icons.Plus]: '61722',
-  [Icons.RemoveCertificate]: '61723',
-  [Icons.RemoveUser]: '61724',
-  [Icons.Search]: '61725',
-  [Icons.SecurityServer]: '61726',
-  [Icons.SortingArrow]: '61727',
-  [Icons.TableBackup]: '61728',
-  [Icons.Tooltip]: '61729',
-  [Icons.Upload]: '61730',
-  [Icons.Warning]: '61731',
+  [Icons.Cancel]: '61698',
+  [Icons.Certificate]: '61699',
+  [Icons.Checked]: '61700',
+  [Icons.Checker]: '61701',
+  [Icons.Checkmark]: '61702',
+  [Icons.Close]: '61703',
+  [Icons.Copy]: '61704',
+  [Icons.DatabaseBackup]: '61705',
+  [Icons.Database]: '61706',
+  [Icons.Datepicker]: '61707',
+  [Icons.Declined]: '61708',
+  [Icons.Download]: '61709',
+  [Icons.DropdownOpen]: '61710',
+  [Icons.Edit]: '61711',
+  [Icons.ErrorNotification]: '61712',
+  [Icons.Error]: '61713',
+  [Icons.FolderOutline]: '61714',
+  [Icons.Folder]: '61715',
+  [Icons.Import]: '61716',
+  [Icons.InProgress]: '61717',
+  [Icons.Key]: '61718',
+  [Icons.Menu]: '61719',
+  [Icons.Plus]: '61720',
+  [Icons.Search]: '61721',
+  [Icons.SecurityServer]: '61722',
+  [Icons.SortingArrow]: '61723',
+  [Icons.TableBackup]: '61724',
+  [Icons.Tooltip]: '61725',
+  [Icons.Upload]: '61726',
+  [Icons.Warning]: '61727',
 };

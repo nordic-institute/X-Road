@@ -161,45 +161,80 @@ const Template = (args, { argTypes }) => ({
   <icon-svg icon-name="changeOwner"></icon-svg>
   <br><br>
 
-<br>SVG icons<br>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconAdd /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconAddUser /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconCancel /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconCertificate /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconChecked /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconChecker /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconCheckmark /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconClose /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconCopy /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconDatabase /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconDatabaseBackup /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconDeclined /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconFolder /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconFolderOutline /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconDownload /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconDropdownOpen /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconEdit /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconError /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconErrorNotification /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconImport /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconInProgress /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconKey /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconMenu /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconPlus /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconSearch /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconSecurityServer /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconSortingArrow /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconTableBackup /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconTooltip /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconUpload /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconWarning /></icon-base>
+  <br>Font icons - Used in Security Server - old "deprecated" way - 
+  Check the src/assets/icons.html file for the generated example file<br>
+  <v-icon v-bind="$props">icon-Add</v-icon>
+  <v-icon v-bind="$props">icon-Cancel</v-icon>
+  <v-icon v-bind="$props">icon-Certificate</v-icon>
+  <v-icon v-bind="$props">icon-Checked</v-icon>
+  <v-icon v-bind="$props">icon-Checker</v-icon>
+  <v-icon v-bind="$props">icon-Checkmark</v-icon>
+  <v-icon v-bind="$props">icon-Close</v-icon>
+  <v-icon v-bind="$props">icon-Copy</v-icon>
+  <v-icon v-bind="$props">icon-Database-backup</v-icon>
+  <v-icon v-bind="$props">icon-Database</v-icon>
+  <v-icon v-bind="$props">icon-Datepicker</v-icon>
+  <v-icon v-bind="$props">icon-Declined</v-icon>
+  <v-icon v-bind="$props">icon-Download</v-icon>
+  <v-icon v-bind="$props">icon-Dropdown-open</v-icon>
+  <v-icon v-bind="$props">icon-Edit</v-icon>
+  <v-icon v-bind="$props">icon-Error-notification</v-icon>
+  <v-icon v-bind="$props">icon-Error</v-icon>
+  <v-icon v-bind="$props">icon-Folder-outline</v-icon>
+  <v-icon v-bind="$props">icon-Folder</v-icon>
+  <v-icon v-bind="$props">icon-Import</v-icon>
+  <v-icon v-bind="$props">icon-In-progress</v-icon>
+  <v-icon v-bind="$props">icon-Key</v-icon>
+  <v-icon v-bind="$props">icon-Menu</v-icon>
+  <v-icon v-bind="$props">icon-Plus</v-icon>
+  <v-icon v-bind="$props">icon-Search</v-icon>
+  <v-icon v-bind="$props">icon-Security-Server</v-icon>
+  <v-icon v-bind="$props">icon-Sorting-arrow</v-icon>
+  <v-icon v-bind="$props">icon-Table-backup</v-icon>
+  <v-icon v-bind="$props">icon-Tooltip</v-icon>
+  <v-icon v-bind="$props">icon-Upload</v-icon>
+  <v-icon v-bind="$props">icon-Warning</v-icon>
 
+  <br>
+
+<br>SVG icons - Used in Central Server new UI and the preferred "new" way<br>
+<icon-base icon-name="XrdIconAdd" v-bind="$props"><XrdIconAdd /></icon-base>
+<icon-base icon-name="XrdIconCancel" v-bind="$props"><XrdIconCancel /></icon-base>
+<icon-base icon-name="XrdIconCertificate" v-bind="$props"><XrdIconCertificate /></icon-base>
+<icon-base icon-name="XrdIconChecked" v-bind="$props"><XrdIconChecked /></icon-base>
+<icon-base icon-name="XrdIconChecker" v-bind="$props"><XrdIconChecker /></icon-base>
+<icon-base icon-name="XrdIconCheckmark" v-bind="$props"><XrdIconCheckmark /></icon-base>
+<icon-base icon-name="XrdIconClose" v-bind="$props"><XrdIconClose /></icon-base>
+<icon-base icon-name="XrdIconCopy" v-bind="$props"><XrdIconCopy /></icon-base>
+<icon-base icon-name="XrdIconDatabase" v-bind="$props"><XrdIconDatabase /></icon-base>
+<icon-base icon-name="XrdIconDatabaseBackup" v-bind="$props"><XrdIconDatabaseBackup /></icon-base>
+<icon-base icon-name="XrdIconDeclined" v-bind="$props"><XrdIconDeclined /></icon-base>
+<icon-base icon-name="XrdIconFolder" v-bind="$props"><XrdIconFolder /></icon-base>
+<icon-base icon-name="XrdIconFolderOutline" v-bind="$props"><XrdIconFolderOutline /></icon-base>
+<icon-base icon-name="XrdIconDownload" v-bind="$props"><XrdIconDownload /></icon-base>
+<icon-base icon-name="XrdIconDropdownOpen" v-bind="$props"><XrdIconDropdownOpen /></icon-base>
+<icon-base icon-name="XrdIconEdit" v-bind="$props"><XrdIconEdit /></icon-base>
+<icon-base icon-name="XrdIconError" v-bind="$props"><XrdIconError /></icon-base>
+<icon-base icon-name="XrdIconErrorNotification" v-bind="$props"><XrdIconErrorNotification /></icon-base>
+<icon-base icon-name="XrdIconImport" v-bind="$props"><XrdIconImport /></icon-base>
+<icon-base icon-name="XrdIconInProgress" v-bind="$props"><XrdIconInProgress /></icon-base>
+<icon-base icon-name="XrdIconKey" v-bind="$props"><XrdIconKey /></icon-base>
+<icon-base icon-name="XrdIconMenu" v-bind="$props"><XrdIconMenu /></icon-base>
+<icon-base icon-name="XrdIconPlus" v-bind="$props"><XrdIconPlus /></icon-base>
+<icon-base icon-name="XrdIconSearch" v-bind="$props"><XrdIconSearch /></icon-base>
+<icon-base icon-name="XrdIconSecurityServer" v-bind="$props"><XrdIconSecurityServer /></icon-base>
+<icon-base icon-name="XrdIconSortingArrow" v-bind="$props"><XrdIconSortingArrow /></icon-base>
+<icon-base icon-name="XrdIconTableBackup" v-bind="$props"><XrdIconTableBackup /></icon-base>
+<icon-base icon-name="XrdIconTooltip" v-bind="$props"><XrdIconTooltip /></icon-base>
+<icon-base icon-name="XrdIconUpload" v-bind="$props"><XrdIconUpload /></icon-base>
+<icon-base icon-name="XrdIconWarning" v-bind="$props"><XrdIconWarning /></icon-base>
+<br>
 <br>Multicolor SVG icons<br>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconChangeOwner /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconAddUser /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconAddCertificate /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconRemoveCertificate /></icon-base>
-<icon-base icon-name="folder outline" v-bind="$props"><XrdIconRemoveUser /></icon-base>
+<icon-base icon-name="XrdIconChangeOwner" v-bind="$props"><XrdIconChangeOwner /></icon-base>
+<icon-base icon-name="XrdIconAddUser" v-bind="$props"><XrdIconAddUser /></icon-base>
+<icon-base icon-name="XrdIconAddCertificate" v-bind="$props"><XrdIconAddCertificate /></icon-base>
+<icon-base icon-name="XrdIconRemoveCertificate" v-bind="$props"><XrdIconRemoveCertificate /></icon-base>
+<icon-base icon-name="XrdIconRemoveUser" v-bind="$props"><XrdIconRemoveUser /></icon-base>
 </p>`,
 });
 

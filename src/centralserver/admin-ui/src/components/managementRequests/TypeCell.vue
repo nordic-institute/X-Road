@@ -28,7 +28,14 @@
     <v-tooltip top>
       <template #activator="{ on, attrs }">
         <div v-bind="attrs" v-on="on">
-          <icon-svg v-bind="attrs" :icon-name="status" v-on="on"></icon-svg>
+          <xrd-icon-base v-bind="attrs" v-on="on">
+            <!-- Decide what icon to show -->
+            <XrdIconChangeOwner v-if="status === 'change_owner'" />
+            <XrdIconAddUser v-if="status === 'register_client'" />
+            <XrdIconRemoveUser v-if="status === 'delete_client'" />
+            <XrdIconRemoveCertificate v-if="status === 'delete_certificate'" />
+            <XrdIconAddCertificate v-if="status === 'register_certificate'" />
+          </xrd-icon-base>
         </div>
       </template>
       <span>{{ getStatusText() }}</span>
@@ -38,41 +45,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import IconSvg from './IconSvg.vue';
 
 export default Vue.extend({
-  components: {
-    IconSvg,
-  },
   props: {
     status: {
       type: String,
       default: undefined,
     },
   },
-
-  computed: {
-    iconName(): string {
-      if (!this.status) {
-        return '';
-      }
-      switch (this.status) {
-        case 'change_owner':
-          return 'icon-ChangeOwner';
-        case 'delete_certificate':
-          return 'icon-RemoveCertificate';
-        case 'delete_client':
-          return 'icon-RemoveUser';
-        case 'register_certificate':
-          return 'icon-AddCertificate';
-        case 'register_client':
-          return 'icon-AddUser';
-        default:
-          return 'error';
-      }
-    },
-  },
-
   methods: {
     getStatusText() {
       if (!this.status) {
@@ -104,15 +84,5 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.status-text {
-  font-style: normal;
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 16px;
-  color: $XRoad-WarmGrey100;
-  margin-left: 2px;
-  text-transform: uppercase;
 }
 </style>
