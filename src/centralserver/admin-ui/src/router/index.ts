@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router, {NavigationGuardNext, Route} from 'vue-router';
-import {sync} from 'vuex-router-sync';
+import Router, { NavigationGuardNext, Route } from 'vue-router';
+import { sync } from 'vuex-router-sync';
 import store from '@/store';
 import routes from './routes';
-import {RouteName, StoreTypes} from '@/global';
+import { RouteName, StoreTypes } from '@/global';
 
 // Create the router
 const router = new Router({
@@ -54,7 +54,8 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     // Server is not initialized
     if (
       !store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED] &&
-      to.name != RouteName.Initialisation
+      to.name != RouteName.Initialisation &&
+      from.name != RouteName.Initialisation
     ) {
       next({
         name: RouteName.Initialisation,
@@ -65,7 +66,6 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     */
       next();
     }
-
 
     return;
   } else {

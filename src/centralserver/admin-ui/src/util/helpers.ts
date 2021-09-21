@@ -25,7 +25,7 @@
  */
 
 // Filters an array of objects excluding specified object key
-import {NavigationFailure} from "vue-router";
+import { NavigationFailure } from 'vue-router';
 
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
@@ -91,10 +91,14 @@ export function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-export function swallowRedirectedNavigationError(error:NavigationFailure) {
+export function swallowRedirectedNavigationError(
+  error: NavigationFailure,
+): void {
   // NavigationFailureType.redirected = 2, but does not work here?
-  if( 2 == error.type) {
+  if (2 == error.type) {
     // ignore errors caused by redirect in beforeEach route guard
+    // eslint-disable-next-line no-console
+    console.debug('Redirected navigation error ignored', error);
     return;
   }
   throw error;

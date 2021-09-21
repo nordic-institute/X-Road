@@ -80,13 +80,9 @@ export const mutations: MutationTree<State> = {
 
 export const actions: ActionTree<State, RootState> = {
   async [StoreTypes.actions.INITIALIZATION_REQUEST]({ commit }, formData) {
-    return post('/initialization', formData)
-      .then(() => {
-        commit(StoreTypes.mutations.SET_CONTINUE_INIT);
-      })
-      .catch((error) => {
-        commit(StoreTypes.mutations.SET_ERROR_MESSAGE_RAW, error);
-      });
+    return post('/initialization', formData).then(() => {
+      return commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
+    });
   },
 
   async [StoreTypes.actions.INITIALIZATION_STATUS_REQUEST]({ commit }) {

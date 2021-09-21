@@ -25,7 +25,7 @@
  -->
 <template>
   <main id="initial-configuration" class="form-view-wrap">
-    <ValidationObserver ref="form1" v-slot="{ invalid }">
+    <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
       <div class="form-content-wrap">
         <div class="form-main-title">{{ $t('init.initialConfiguration') }}</div>
 
@@ -38,7 +38,7 @@
 
           <ValidationProvider
             v-slot="{ errors }"
-            ref="memberCodeVP"
+            ref="initializationParamsVP"
             name="init.identifier"
             rules="required"
           >
@@ -62,7 +62,7 @@
 
           <ValidationProvider
             v-slot="{ errors }"
-            ref="memberCodeVP"
+            ref="initializationParamsVP"
             name="init.address"
             rules="required"
           >
@@ -125,8 +125,8 @@
           :disabled="invalid"
           data-test="submit-button"
           @click="submit"
-          >{{ $t('action.submit') }}</xrd-button
-        >
+          >{{ $t('action.submit') }}
+        </xrd-button>
       </div>
     </ValidationObserver>
   </main>
@@ -134,11 +134,12 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
+import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
 import { RouteName, StoreTypes } from '@/global';
-import { InitialServerConf } from '@/openapi-types';
-import {swallowRedirectedNavigationError} from "@/util/helpers";
+import { ErrorInfo, InitialServerConf } from '@/openapi-types';
+import { swallowRedirectedNavigationError } from '@/util/helpers';
+import { AxiosError } from 'axios';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -151,11 +152,26 @@ extend('password', {
   message: PASSWORD_MATCH_ERROR,
 });
 
+function getTranslatedValidationErrors(
+  fieldName: string,
+  fieldError: Record<string, string[]>,
+): string[] {
+  let errors: string[] = fieldError[fieldName];
+  if (errors) {
+    return errors.map((errorKey: string) => {
+      return i18n.t(`validationError.${errorKey}`).toString();
+    });
+  } else {
+    return [];
+  }
+}
+
 export default (
   Vue as VueConstructor<
     Vue & {
       $refs: {
-        memberCodeVP: InstanceType<typeof ValidationProvider>;
+        initializationParamsVP: InstanceType<typeof ValidationProvider>;
+        initializationForm: InstanceType<typeof ValidationObserver>;
       };
     }
   >
@@ -173,8 +189,7 @@ export default (
       pinConfirm: '',
     };
   },
-  computed: {
-  },
+  computed: {},
   methods: {
     async submit() {
       // validate inputs
@@ -185,13 +200,54 @@ export default (
         software_token_pin: this.pin,
       };
 
+      await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
       await this.$store
         .dispatch(StoreTypes.actions.INITIALIZATION_REQUEST, formData)
-        .then(() => {
-          this.$router.push({
-            name: RouteName.Members,
-          }).catch(swallowRedirectedNavigationError);
+        .then(
+          () => {
+            this.$router
+              .push({
+                name: RouteName.Members,
+              })
+              .catch(swallowRedirectedNavigationError);
+          },
+          (error: AxiosError) => {
+            let errorInfo: ErrorInfo = error.response?.data || { status: 0 };
+
+            if (isFieldError(errorInfo)) {
+              let fieldErrors = errorInfo.error?.validation_errors;
+              if (fieldErrors) {
+                let identifierErrors: string[] = getTranslatedValidationErrors(
+                  'initialServerConf.instanceIdentifier',
+                  fieldErrors,
+                );
+                let addressErrors: string[] = getTranslatedValidationErrors(
+                  'initialServerConf.centralServerAddress',
+                  fieldErrors,
+                );
+                this.$refs.initializationForm.setErrors({
+                  'init.identifier': identifierErrors,
+                  'init.address': addressErrors,
+                });
+                this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              }
+              return;
+            }
+          },
+        )
+        .catch((error) => {
+          return this.$store.dispatch(
+            StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW,
+            error,
+          );
         });
+
+      function isFieldError(error: ErrorInfo) {
+        let errorStatus = error.status;
+        return (
+          400 === errorStatus && 'validation_failure' === error?.error?.code
+        );
+      }
     },
   },
 });

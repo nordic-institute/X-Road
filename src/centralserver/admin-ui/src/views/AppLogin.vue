@@ -118,7 +118,7 @@ import Vue, { VueConstructor } from 'vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { RouteName, StoreTypes } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import {swallowRedirectedNavigationError} from "@/util/helpers";
+import { swallowRedirectedNavigationError } from '@/util/helpers';
 
 export default (
   Vue as VueConstructor<
@@ -142,13 +142,7 @@ export default (
       password: '' as string,
     };
   },
-  computed: {
-    isDisabled() {
-      return this.username.length < 1 ||
-        this.password.length < 1 ||
-        this.loading;
-    },
-  },
+  computed: {},
   methods: {
     async submit() {
       // Clear error notifications when route is changed
@@ -178,9 +172,11 @@ export default (
               .then(this.fetchServerVersion)
               .then(this.fetchInitializationData)
               .then(() => {
-                this.$router.replace({
-                  name: RouteName.Members,
-                }).catch(swallowRedirectedNavigationError);
+                this.$router
+                  .replace({
+                    name: RouteName.Members,
+                  })
+                  .catch(swallowRedirectedNavigationError);
                 this.loading = false;
               })
               .catch((error) => {
