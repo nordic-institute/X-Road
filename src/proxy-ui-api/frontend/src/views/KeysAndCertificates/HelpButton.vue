@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common xrd-sub-view-wrapper" @click="helpClick()">
+  <div class="help-wrap" @click="helpClick()">
     <v-hover v-slot="{ hover }">
       <v-icon :color="hover ? '#663cdc' : '#575169'" dark class="help-icon"
         >icon-Tooltip</v-icon
@@ -77,6 +77,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+.help-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 .help-icon {
   margin-left: 20px;
   margin-bottom: 4px;

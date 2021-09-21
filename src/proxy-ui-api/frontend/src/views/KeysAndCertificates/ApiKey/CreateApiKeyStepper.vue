@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="xrd-view-common justify-center wrapper">
+  <xrd-sub-view-container>
     <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
@@ -43,24 +43,36 @@
         }}</v-stepper-step>
       </v-stepper-header>
       <v-stepper-items>
-        <v-stepper-content step="1" class="pa-0">
-          <div class="px-6">
+        <v-stepper-content step="1" class="pa-0 centered">
+          <v-container class="wide-width">
+            <v-row class="mt-4">
+              <v-col
+                ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
+              >
+            </v-row>
+          </v-container>
+          <v-container class="narrow-width">
             <v-row class="mb-5">
               <v-col>
-                <h3>{{ $t('apiKey.createApiKey.step.roles.description') }}</h3>
+                <h4>{{ $t('apiKey.createApiKey.step.roles.selectRoles') }}</h4>
+                <br />
+                {{ $t('apiKey.createApiKey.step.roles.description') }}
+              </v-col>
+              <v-col>
+                <v-row v-for="role in roles" :key="role" no-gutters>
+                  <v-col class="underline">
+                    <v-checkbox
+                      v-model="selectedRoles"
+                      height="10px"
+                      :value="role"
+                      :label="$t(`apiKey.role.${role}`)"
+                    />
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
-            <v-row v-for="role in roles" :key="role" no-gutters>
-              <v-col class="checkbox-wrapper">
-                <v-checkbox
-                  v-model="selectedRoles"
-                  height="10px"
-                  :value="role"
-                  :label="$t(`apiKey.role.${role}`)"
-                />
-              </v-col>
-            </v-row>
-          </div>
+          </v-container>
+
           <v-row class="button-footer mt-12" no-gutters>
             <xrd-button outlined @click="close">
               {{ $t('action.cancel') }}
@@ -72,21 +84,29 @@
           </v-row>
         </v-stepper-content>
         <v-stepper-content step="2" class="pa-0">
-          <div class="px-6">
-            <v-row>
-              <v-col class="text-right">
-                <xrd-button
-                  :disabled="keyGenerated"
-                  :loading="generatingKey"
-                  @click="generateKey"
-                >
-                  {{
-                    $t('apiKey.createApiKey.step.keyDetails.createKeyButton')
-                  }}
-                </xrd-button>
-              </v-col>
+          <v-container class="wide-width mb-8">
+            <v-row class="mt-4">
+              <v-col
+                ><h3>
+                  {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
+                </h3></v-col
+              >
+              <v-spacer></v-spacer>
+
+              <xrd-button
+                :disabled="keyGenerated"
+                :loading="generatingKey"
+                @click="generateKey"
+              >
+                <xrd-icon-base class="xrd-large-button-icon"
+                  ><XrdIconAdd
+                /></xrd-icon-base>
+                {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
+              </xrd-button>
             </v-row>
-            <v-row>
+          </v-container>
+          <v-container class="narrow-width">
+            <v-row class="underline">
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
               </v-col>
@@ -94,7 +114,7 @@
                 {{ apiKey.key }}
               </v-col>
             </v-row>
-            <v-row>
+            <v-row class="underline">
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
               </v-col>
@@ -102,7 +122,7 @@
                 {{ apiKey.id }}
               </v-col>
             </v-row>
-            <v-row>
+            <v-row class="underline">
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.assignedRoles') }}
               </v-col>
@@ -115,7 +135,7 @@
                 {{ $t('apiKey.createApiKey.step.keyDetails.note') }}
               </v-col>
             </v-row>
-          </div>
+          </v-container>
           <v-row class="button-footer mt-12" no-gutters>
             <xrd-button
               outlined
@@ -140,7 +160,7 @@
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
-  </v-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -194,15 +214,12 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 @import '~styles/detail-views';
 @import '~styles/wizards';
-.wrapper {
-  max-width: 850px;
-  height: 100%;
-  width: 100%;
-  color: $XRoad-Grey60;
-}
+
+@import '~styles/colors';
+
 .stepper {
   box-shadow: unset;
   box-shadow: $XRoad-DefaultShadow;
@@ -215,16 +232,32 @@ export default Vue.extend({
 .stepper-item-footer {
   margin-top: 20px;
   padding-top: 30px;
-  border-top: 1px solid $XRoad-Grey40;
+  border-top: 1px solid $XRoad-WarmGrey10;
 }
-.checkbox-wrapper {
-  border-bottom: solid 1px $XRoad-Grey10;
+.underline {
+  border-bottom: solid 1px $XRoad-WarmGrey30;
 }
 .api-key-label {
   font-weight: 500;
 }
+
+.wide-width {
+  max-width: 1040px;
+}
+
+.narrow-width {
+  max-width: 840px;
+}
+
 h3 {
-  color: $XRoad-Grey60;
-  font-weight: 400;
+  color: $XRoad-Black100;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+h4 {
+  color: $XRoad-Black100;
+  font-size: 14px;
+  font-weight: 700;
 }
 </style>

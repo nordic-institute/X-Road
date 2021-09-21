@@ -25,77 +25,199 @@
  -->
 <template>
   <div class="mt-3">
-    <div class="title-row">
-      <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
-      <div>
+    <div class="table-toolbar mt-0 pl-0">
+      <div class="xrd-title-search">
+        <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
+
         <help-button
           help-image="api_keys.png"
           help-title="keys.helpTitleApi"
           help-text="keys.helpTextApi"
         ></help-button>
       </div>
-    </div>
-
-    <div class="details-view-tools">
-      <xrd-button
-        v-if="canCreateApiKey"
-        class="button-spacing"
-        outlined
-        data-test="api-key-create-key-button"
-        @click="createApiKey"
-        >{{ $t('apiKey.createApiKey.button') }}</xrd-button
+      <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
+        <xrd-icon-base class="xrd-large-button-icon"
+          ><XrdIconAdd
+        /></xrd-icon-base>
+        {{ $t('apiKey.createApiKey.title') }}</xrd-button
       >
     </div>
 
-    <v-card flat>
-      <table class="xrd-table" data-test="api-key-keys-table">
-        <thead>
-          <tr class="keytable-header">
-            <td>&nbsp;</td>
-            <td>{{ $t('apiKey.table.header.id') }}</td>
-            <td>{{ $t('apiKey.table.header.roles') }}</td>
-            <td>&nbsp;</td>
-          </tr>
-        </thead>
-        <tbody>
-          <api-key-row
-            v-for="apiKey in apiKeys"
-            :key="apiKey.id"
-            :api-key="apiKey"
-            @change="loadKeys"
-          />
-        </tbody>
-      </table>
-    </v-card>
+    <!-- Table -->
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="apiKeys"
+      :search="search"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="elevation-0 data-table"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+    >
+      <template #[`item.id`]="{ item }">
+        <div class="server-code">
+          <xrd-icon-base class="mr-4"><XrdIconKey /></xrd-icon-base>
+          {{ item.id }}
+        </div>
+      </template>
+
+      <template #[`item.roles`]="{ item }">
+        {{ translateRoles(item.roles) | commaSeparate }}
+      </template>
+
+      <template #[`item.button`]="{ item }">
+        <div class="button-wrap">
+          <xrd-button
+            v-if="canEdit"
+            text
+            :data-test="`api-key-row-${item.id}-edit-button`"
+            :outlined="false"
+            @click="editKey(item)"
+            >{{ $t('action.edit') }}</xrd-button
+          >
+
+          <xrd-button
+            v-if="canRevoke"
+            text
+            :data-test="`api-key-row-${item.id}-revoke-button`"
+            :outlined="false"
+            @click="showRevokeDialog(item)"
+            >{{ $t('apiKey.table.action.revoke.button') }}</xrd-button
+          >
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="custom-footer"></div>
+      </template>
+    </v-data-table>
+
+    <!-- Edit dialog -->
+    <xrd-simple-dialog
+      v-if="showEditDialog"
+      :dialog="showEditDialog"
+      save-button-text="action.save"
+      :disable-save="selectedRoles.length === 0"
+      @save="save"
+      @cancel="showEditDialog = false"
+    >
+      <span
+        slot="title"
+        class="headline"
+        :data-test="`api-key-row-${selectedKey.id}-edit-dialog-title`"
+      >
+        {{
+          $t('apiKey.table.action.edit.dialog.title', { id: selectedKey.id })
+        }}
+      </span>
+      <div
+        slot="content"
+        :data-test="`api-key-row-${selectedKey.id}-edit-dialog-content`"
+      >
+        <v-row class="mt-12">
+          <v-col>
+            {{ $t('apiKey.table.action.edit.dialog.message') }}
+          </v-col>
+        </v-row>
+        <v-row v-for="role in roles" :key="role" no-gutters>
+          <v-col class="checkbox-wrapper">
+            <v-checkbox
+              v-model="selectedRoles"
+              height="10px"
+              :value="role"
+              :label="$t(`apiKey.role.${role}`)"
+            />
+          </v-col>
+        </v-row>
+      </div>
+    </xrd-simple-dialog>
+
+    <!-- Confirm revoke dialog -->
+    <xrd-confirm-dialog
+      v-if="confirmRevoke"
+      :data-test="`api-key-row-${selectedKey.id}-revoke-confirmation`"
+      :dialog="confirmRevoke"
+      title="apiKey.table.action.revoke.confirmationDialog.title"
+      text="apiKey.table.action.revoke.confirmationDialog.message"
+      :data="{ id: selectedKey.id }"
+      :loading="removingApiKey"
+      @cancel="confirmRevoke = false"
+      @accept="revokeApiKey"
+    />
   </div>
 </template>
 
 <script lang="ts">
+/**
+ * View for 'trust services' tab
+ */
 import Vue from 'vue';
-import * as api from '@/util/api';
-import { RouteName, Permissions } from '@/global';
+
+import { DataTableHeader } from 'vuetify';
 import { ApiKey } from '@/global-types';
-import ApiKeyRow from '@/views/KeysAndCertificates/ApiKey/ApiKeyRow.vue';
 import HelpButton from '../HelpButton.vue';
+import { RouteName, Roles, Permissions } from '@/global';
+import * as api from '@/util/api';
 
 export default Vue.extend({
   components: {
-    ApiKeyRow,
     HelpButton,
   },
   data() {
     return {
       apiKeys: new Array<ApiKey>(),
+      search: '' as string,
+      loading: false,
+      showOnlyPending: false,
+      selectedKey: undefined as undefined | ApiKey,
+      selectedRoles: [] as string[],
+      showEditDialog: false,
+      confirmRevoke: false,
+      savingChanges: false,
+      removingApiKey: false,
+      roles: Roles,
     };
   },
   computed: {
     canCreateApiKey(): boolean {
       return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
     },
+    canEdit(): boolean {
+      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+    },
+    canRevoke(): boolean {
+      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
+    },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('apiKey.table.header.id') as string,
+          align: 'start',
+          value: 'id',
+          class: 'xrd-table-header ts-table-header-server-code',
+        },
+        {
+          text: this.$t('apiKey.table.header.roles') as string,
+          align: 'start',
+          value: 'roles',
+          class: 'xrd-table-header ts-table-header-valid-from',
+        },
+
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header mr-table-header-buttons',
+        },
+      ];
+    },
   },
   created(): void {
     this.loadKeys();
   },
+
   methods: {
     loadKeys(): void {
       if (this.$store.getters.hasPermission(Permissions.VIEW_API_KEYS)) {
@@ -105,28 +227,91 @@ export default Vue.extend({
           .catch((error) => this.$store.dispatch('showError', error));
       }
     },
+    editKey(apiKey: ApiKey): void {
+      this.selectedKey = apiKey;
+      this.selectedRoles = [...this.selectedKey.roles];
+      this.showEditDialog = true;
+    },
+    showRevokeDialog(apiKey: ApiKey): void {
+      this.selectedKey = apiKey;
+      this.confirmRevoke = true;
+    },
     createApiKey(): void {
       this.$router.push({
         name: RouteName.CreateApiKey,
       });
+    },
+    translateRoles(roles: string[]): string[] {
+      return !roles
+        ? []
+        : roles.map((role) => this.$t(`apiKey.role.${role}`) as string);
+    },
+    async revokeApiKey() {
+      if (!this.selectedKey) return;
+
+      this.removingApiKey = true;
+      return api
+        .remove(`/api-keys/${api.encodePathParameter(this.selectedKey.id)}`)
+        .then((response) => {
+          const key = response.data as ApiKey;
+          this.$store.dispatch(
+            'showSuccessRaw',
+            this.$t('apiKey.table.action.revoke.success', {
+              id: key.id,
+            }),
+          );
+        })
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.confirmRevoke = false;
+          this.removingApiKey = false;
+          this.loadKeys();
+        });
+    },
+    async save() {
+      if (!this.selectedKey) return;
+      this.savingChanges = true;
+      return api
+        .put(
+          `/api-keys/${api.encodePathParameter(this.selectedKey.id)}`,
+          this.selectedRoles,
+        )
+        .then((response) => {
+          const key = response.data as ApiKey;
+          this.$store.dispatch(
+            'showSuccessRaw',
+            this.$t('apiKey.table.action.edit.success', {
+              id: key.id,
+            }),
+          );
+        })
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => {
+          this.savingChanges = false;
+          this.showEditDialog = false;
+          this.loadKeys();
+        });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/detail-views';
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/tables';
 
-.keytable-header {
-  font-weight: 500;
-  color: $XRoad-Black;
+.button-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
 }
 
-.title-row {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-end;
+.server-code {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
 }
 </style>
