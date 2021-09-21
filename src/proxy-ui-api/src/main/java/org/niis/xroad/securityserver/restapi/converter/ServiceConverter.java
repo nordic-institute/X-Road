@@ -39,8 +39,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -69,11 +69,10 @@ public class ServiceConverter {
      * @param serviceTypes
      * @return
      */
-    public List<Service> convertServices(Iterable<ServiceType> serviceTypes, ClientId clientId) {
+    public Set<Service> convertServices(Iterable<ServiceType> serviceTypes, ClientId clientId) {
         return Streams.stream(serviceTypes)
                 .map(serviceType -> convert(serviceType, clientId))
-                .sorted(Comparator.comparing(Service::getFullServiceCode))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     /**

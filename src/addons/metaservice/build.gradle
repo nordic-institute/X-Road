@@ -47,3 +47,7 @@ task runMetaserviceTest(type: JavaExec) {
     main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
 }
+
+jacoco {
+  applyTo runMetaserviceTest
+}

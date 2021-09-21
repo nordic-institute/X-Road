@@ -32,7 +32,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.CsrSubjectFieldDescri
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -66,17 +67,17 @@ public class CsrSubjectFieldDescriptionConverter {
      * @param dnFieldDescriptions
      * @return
      */
-    public List<CsrSubjectFieldDescription> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
+    public Set<CsrSubjectFieldDescription> convert(Iterable<DnFieldDescription> dnFieldDescriptions) {
         return Streams.stream(dnFieldDescriptions)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
     /**
      * convert an array of DnFieldDescriptions into a list of CsrSubjectFieldDescriptions
      * @param dnFieldDescriptions
      * @return
      */
-    public List<CsrSubjectFieldDescription> convert(DnFieldDescription[] dnFieldDescriptions) {
-        return convert(Arrays.asList(dnFieldDescriptions));
+    public Set<CsrSubjectFieldDescription> convert(DnFieldDescription[] dnFieldDescriptions) {
+        return convert(new HashSet<>(Arrays.asList(dnFieldDescriptions)));
     }
 }

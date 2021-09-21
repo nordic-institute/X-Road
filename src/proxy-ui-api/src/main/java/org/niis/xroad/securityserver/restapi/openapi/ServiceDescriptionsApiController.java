@@ -59,9 +59,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toList;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DELETE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.DISABLE_SERVICE_DESCRIPTION;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.EDIT_SERVICE_DESCRIPTION;
@@ -230,13 +230,13 @@ public class ServiceDescriptionsApiController implements ServiceDescriptionsApi 
      */
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
-    public ResponseEntity<List<Service>> getServiceDescriptionServices(String id) {
+    public ResponseEntity<Set<Service>> getServiceDescriptionServices(String id) {
         ServiceDescriptionType serviceDescriptionType =
                 getServiceDescriptionType(id);
         ClientId clientId = serviceDescriptionType.getClient().getIdentifier();
-        List<Service> services = serviceDescriptionType.getService().stream()
+        Set<Service> services = serviceDescriptionType.getService().stream()
                 .map(serviceType -> serviceConverter.convert(serviceType, clientId))
-                .collect(toList());
+                .collect(Collectors.toSet());
         return new ResponseEntity<>(services, HttpStatus.OK);
     }
 

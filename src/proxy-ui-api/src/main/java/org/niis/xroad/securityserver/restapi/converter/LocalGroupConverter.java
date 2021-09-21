@@ -40,7 +40,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupAdd;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -66,7 +66,7 @@ public class LocalGroupConverter {
         group.setDescription(localGroupType.getDescription());
         group.setUpdatedAt(FormatUtils.fromDateToOffsetDateTime(localGroupType.getUpdated()));
         group.setMemberCount(localGroupType.getGroupMember().size());
-        group.setMembers(localGroupType.getGroupMember().stream().map(this::convert).collect(Collectors.toList()));
+        group.setMembers(localGroupType.getGroupMember().stream().map(this::convert).collect(Collectors.toSet()));
 
         return group;
     }
@@ -76,9 +76,9 @@ public class LocalGroupConverter {
      * @param localGroupTypes
      * @return
      */
-    public List<LocalGroup> convert(Iterable<LocalGroupType> localGroupTypes) {
+    public Set<LocalGroup> convert(Iterable<LocalGroupType> localGroupTypes) {
         return Streams.stream(localGroupTypes)
-                .map(this::convert).collect(Collectors.toList());
+                .map(this::convert).collect(Collectors.toSet());
     }
 
     /**

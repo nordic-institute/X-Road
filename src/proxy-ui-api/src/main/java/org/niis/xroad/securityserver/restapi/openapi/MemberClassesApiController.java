@@ -37,8 +37,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * member classes controller
@@ -55,23 +55,23 @@ public class MemberClassesApiController implements MemberClassesApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<List<String>> getMemberClasses(Boolean currentInstance) {
-        List<String> memberClasses = null;
+    public ResponseEntity<Set<String>> getMemberClasses(Boolean currentInstance) {
+        Set<String> memberClasses = null;
         if (currentInstance) {
-            memberClasses = new ArrayList(globalConfService.getMemberClassesForThisInstance());
+            memberClasses = new HashSet<>(globalConfService.getMemberClassesForThisInstance());
         } else {
-            memberClasses = new ArrayList(globalConfFacade.getMemberClasses());
+            memberClasses = new HashSet<>(globalConfFacade.getMemberClasses());
         }
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
-    public ResponseEntity<List<String>> getMemberClassesForInstance(String instanceId) {
+    public ResponseEntity<Set<String>> getMemberClassesForInstance(String instanceId) {
         if (!globalConfFacade.getInstanceIdentifiers().contains(instanceId)) {
             throw new ResourceNotFoundException("instance identifier not found: " + instanceId);
         }
-        List<String> memberClasses = new ArrayList(globalConfFacade.getMemberClasses(instanceId));
+        Set<String> memberClasses = new HashSet(globalConfFacade.getMemberClasses(instanceId));
         return new ResponseEntity<>(memberClasses, HttpStatus.OK);
     }
 }
