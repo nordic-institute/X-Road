@@ -380,7 +380,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_KEY", "GENERATE_AUTH_CERT_REQ", "GENERATE_SIGN_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_KEY", "GENERATE_AUTH_CERT_REQ", "GENERATE_SIGN_CERT_REQ"})
     public void addKeyAndCsrWithControlCharacter() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL,

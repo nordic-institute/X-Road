@@ -45,6 +45,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * diagnostics api
@@ -70,14 +71,14 @@ public class DiagnosticsApiController implements DiagnosticsApi {
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<List<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
-        List<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
+    public ResponseEntity<Set<TimestampingServiceDiagnostics>> getTimestampingServicesDiagnostics() {
+        Set<DiagnosticsStatus> statuses = diagnosticService.queryTimestampingStatus();
         return new ResponseEntity<>(timestampingServiceDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }
 
     @Override
     @PreAuthorize("hasAuthority('DIAGNOSTICS')")
-    public ResponseEntity<List<OcspResponderDiagnostics>> getOcspRespondersDiagnostics() {
+    public ResponseEntity<Set<OcspResponderDiagnostics>> getOcspRespondersDiagnostics() {
         List<OcspResponderDiagnosticsStatus> statuses = diagnosticService.queryOcspResponderStatus();
         return new ResponseEntity<>(ocspResponderDiagnosticConverter.convert(statuses), HttpStatus.OK);
     }

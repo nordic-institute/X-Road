@@ -41,7 +41,8 @@
           <tr>
             <th>
               {{ $t('members.member.subsystems.subsystemcode') }}
-              <v-icon class="mb-1">icon-Sorting-arrow</v-icon>
+
+              <xrd-icon-base><XrdIconSortingArrow /> </xrd-icon-base>
             </th>
             <th>{{ $t('members.member.subsystems.servercode') }}</th>
             <th>{{ $t('members.member.subsystems.serverOwner') }}</th>
@@ -55,9 +56,10 @@
             <td class="xrd-clickable">NIIS-SS1</td>
             <td></td>
             <td class="status">
-              <v-icon :small="true" :color="colors.Success100"
-                >icon-Checked</v-icon
-              >
+              <xrd-icon-base
+                ><XrdIconChecked :color="colors.Success100" />
+              </xrd-icon-base>
+
               Registered
             </td>
             <td class="subsystem-actions">
@@ -68,7 +70,9 @@
             <td>RR</td>
             <td></td>
             <td></td>
-            <td class="status"><v-icon>icon-Error</v-icon> Unregistered</td>
+            <td class="status">
+              <xrd-icon-base><XrdIconError /> </xrd-icon-base> Unregistered
+            </td>
             <td class="subsystem-actions">
               <span class="xrd-clickable">Register</span>
               <span class="xrd-clickable">Delete</span>
@@ -79,9 +83,9 @@
             <td class="xrd-clickable">NIIS-SS1</td>
             <td class="xrd-clickable">NIIS</td>
             <td class="status">
-              <v-icon :small="true" :color="colors.Success100"
-                >icon-Checked</v-icon
-              >
+              <xrd-icon-base
+                ><XrdIconChecked :color="colors.Success100" />
+              </xrd-icon-base>
               Registered
             </td>
             <td class="subsystem-actions">
@@ -92,9 +96,9 @@
             <td class="xrd-clickable">NIIS-FUTU</td>
             <td class="xrd-clickable">FUTU</td>
             <td class="status">
-              <v-icon :small="true" :color="colors.Success100"
-                >icon-In-progress</v-icon
-              >
+              <xrd-icon-base
+                ><XrdIconInProgress :color="colors.Success100" />
+              </xrd-icon-base>
               Pending approval
             </td>
             <td class="subsystem-actions">

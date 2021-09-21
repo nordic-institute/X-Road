@@ -33,7 +33,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -53,10 +53,10 @@ public class ServiceDescriptionConverter {
      * @param serviceDescriptionTypes
      * @return
      */
-    public List<ServiceDescription> convert(Iterable<ServiceDescriptionType> serviceDescriptionTypes) {
+    public Set<ServiceDescription> convert(Iterable<ServiceDescriptionType> serviceDescriptionTypes) {
         return Streams.stream(serviceDescriptionTypes)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     /**

@@ -63,7 +63,7 @@ public class ApiValidationRestTemplateTest extends AbstractApiControllerTestCont
      * @throws Exception
      */
     @Test
-    @WithMockUser(authorities = { "ADD_LOCAL_GROUP" })
+    @WithMockUser(authorities = {"ADD_LOCAL_GROUP"})
     public void validationWorksForAddLocalGroup() throws Exception {
         LocalGroupAdd groupWithTooLongCode = new LocalGroupAdd()
                 .code(RandomStringUtils.randomAlphabetic(256))

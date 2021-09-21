@@ -47,6 +47,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -95,10 +96,10 @@ public class ClientConverter {
      * @param clientTypes
      * @return
      */
-    public List<Client> convert(Iterable<ClientType> clientTypes) {
+    public Set<Client> convert(Iterable<ClientType> clientTypes) {
         return Streams.stream(clientTypes)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     /**

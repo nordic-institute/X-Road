@@ -58,7 +58,6 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import javax.servlet.http.Cookie;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,7 +80,7 @@ public class CsrfWebMvcTest {
     private final String username = "xroad-user";
     private final String tokenValue = "token";
     private final CsrfToken csrfToken = new DefaultCsrfToken(XSRF_HEADER, CSRF_PARAM, tokenValue);
-    private List<String> userPermissions;
+    private Set<String> userPermissions;
 
     @Autowired
     private MockMvc mockMvc;
@@ -105,7 +104,7 @@ public class CsrfWebMvcTest {
                 .filter(grantedAuthority -> !grantedAuthority.getAuthority()
                         .equals(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
         Authentication mockAuth = new UsernamePasswordAuthenticationToken(username, "pass", authorities);
         SecurityContext securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(mockAuth);
@@ -138,7 +137,7 @@ public class CsrfWebMvcTest {
     public void getUser() throws Exception {
         User expectedUser = new User()
                 .username(username)
-                .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .roles(Collections.singleton(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
         String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
@@ -195,7 +194,7 @@ public class CsrfWebMvcTest {
     public void getUserNoSession() throws Exception {
         User expectedUser = new User()
                 .username(username)
-                .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .roles(Collections.singleton(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
                 .permissions(userPermissions);
         String expectedUserJsonString = JsonUtils.getObjectWriter().writeValueAsString(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user");
