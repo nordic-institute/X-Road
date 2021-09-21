@@ -2,7 +2,9 @@
 # test runtime has a separate application.properties
 spring:
   jpa:
-    mapping-resources: apikey.hbm.xml
+    mapping-resources:
+      - apikey.hbm.xml
+      - META-INF/orm.xml
     open-in-view: false
     hibernate:
       ddl-auto: none

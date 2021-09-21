@@ -137,6 +137,9 @@ import Vue, { VueConstructor } from 'vue';
 import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
 import i18n from '@/i18n';
 import { StoreTypes } from '@/global';
+import {
+  InitialServerConf,
+} from '@/openapi-types';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -171,10 +174,32 @@ export default (
       pinConfirm: '',
     };
   },
-  computed: {},
+  computed: {
+    isSubmitDisabled() {
+      if (
+        this.instanceIdentifier.length < 1 ||
+        this.address.length < 1 ||
+        this.pin.length < 1
+      ) {
+        return true;
+      }
+      return false;
+    },
+  },
   methods: {
-    submit(): void {
-      // Add submit actions
+    async submit() {
+      // validate inputs
+
+      const formData: InitialServerConf = {
+        instance_identifier: this.instanceIdentifier,
+        central_server_address: this.address,
+        software_token_pin: this.pin,
+      };
+
+      await this.$store.dispatch(
+        StoreTypes.actions.INITIALIZATION_REQUEST,
+        formData,
+      );
       this.$store.commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
     },
   },

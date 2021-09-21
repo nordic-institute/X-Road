@@ -82,7 +82,7 @@ export const mutations: MutationTree<State> = {
 };
 
 export const actions: ActionTree<State, RootState> = {
-  [StoreTypes.actions.LOGIN]({ commit }, authData) {
+  [StoreTypes.actions.LOGIN]({ commit, dispatch }, authData) {
     const data = `username=${encodeURIComponent(
       authData.username,
     )}&password=${encodeURIComponent(authData.password)}`;
@@ -96,8 +96,10 @@ export const actions: ActionTree<State, RootState> = {
       data,
     })
       .then(() => {
+
         commit(StoreTypes.mutations.AUTH_USER);
         commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
+        dispatch(StoreTypes.actions.INITIALIZATION_STATUS_REQUEST);
       })
       .catch((error) => {
         throw error;
