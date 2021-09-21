@@ -33,7 +33,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -49,7 +50,7 @@ public class XroadInstancesApiControllerIntegrationTest extends AbstractApiContr
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";
-    private static final List<String> INSTANCE_IDS = Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C);
+    private static final Set<String> INSTANCE_IDS = new HashSet<>(Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C));
 
     @Before
     public void setup() {
@@ -59,7 +60,7 @@ public class XroadInstancesApiControllerIntegrationTest extends AbstractApiContr
     @Test
     @WithMockUser(authorities = { "VIEW_XROAD_INSTANCES" })
     public void getMemberClassesForInstance() {
-        ResponseEntity<List<String>> response = xroadInstancesApiController.getXroadInstances();
+        ResponseEntity<Set<String>> response = xroadInstancesApiController.getXroadInstances();
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(INSTANCE_IDS, response.getBody());
     }

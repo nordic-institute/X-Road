@@ -15,6 +15,6 @@ fi
 
 UTIL_CP="/usr/share/xroad/jlib/configuration-proxy.jar"
 
-java ${XROAD_PARAMS} ${CONFPROXY_PARAMS} -cp ${UTIL_CP} \
+java ${XROAD_PARAMS} ${XROAD_CONFPROXY_PARAMS} -cp ${UTIL_CP} \
 ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain ee.ria.xroad.confproxy.commandline.ConfProxyUtilDelSigningKey $@
 

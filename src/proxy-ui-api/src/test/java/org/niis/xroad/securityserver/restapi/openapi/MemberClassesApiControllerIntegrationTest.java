@@ -60,8 +60,8 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
     private static final String INSTANCE_A = "instance_a";
     private static final String INSTANCE_B = "instance_b";
     private static final String INSTANCE_C = "instance_c";
-    private static final List<String> INSTANCE_IDS =
-            Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C);
+    private static final Set<String> INSTANCE_IDS = new HashSet<>(
+            Arrays.asList(INSTANCE_A, INSTANCE_B, INSTANCE_C));
 
     private static final List<String> A_MEMBER_CLASSES = Arrays.asList("CODE1", "CODE2");
     private static final List<String> B_MEMBER_CLASSES = Arrays.asList("CODE3", "CODE2");
@@ -99,7 +99,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
     @Test
     @WithMockUser(authorities = { "VIEW_MEMBER_CLASSES" })
     public void getMemberClassesForInstance() {
-        ResponseEntity<List<String>> response =
+        ResponseEntity<Set<String>> response =
                 memberClassesApiController.getMemberClassesForInstance(INSTANCE_A);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat("List equality without order",
@@ -112,7 +112,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
 
         response = memberClassesApiController.getMemberClassesForInstance(INSTANCE_C);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(new ArrayList<>(), response.getBody());
+        assertEquals(new HashSet<>(), response.getBody());
 
         try {
             memberClassesApiController.getMemberClassesForInstance("instance which does not exist");
@@ -125,7 +125,7 @@ public class MemberClassesApiControllerIntegrationTest extends AbstractApiContro
     @Test
     @WithMockUser(authorities = { "VIEW_MEMBER_CLASSES" })
     public void getMemberClasses() {
-        ResponseEntity<List<String>> response =
+        ResponseEntity<Set<String>> response =
                 memberClassesApiController.getMemberClasses(true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertThat("List equality without order",

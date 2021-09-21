@@ -30,7 +30,7 @@ import org.niis.xroad.securityserver.restapi.dto.ApprovedCaDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateAuthority;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -63,9 +63,9 @@ public class CertificateAuthorityConverter {
      * @param approvedCaDtos
      * @return
      */
-    public List<CertificateAuthority> convert(Iterable<ApprovedCaDto> approvedCaDtos) {
+    public Set<CertificateAuthority> convert(Iterable<ApprovedCaDto> approvedCaDtos) {
         return Streams.stream(approvedCaDtos)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

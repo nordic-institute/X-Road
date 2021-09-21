@@ -61,7 +61,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
+import java.util.Set;
 
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertEquals;
@@ -163,11 +163,11 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
                 Arrays.asList(TestUtils.createTspType(TSA_1_URL, TSA_1_NAME),
                         TestUtils.createTspType(TSA_2_URL, TSA_2_NAME))));
 
-        ResponseEntity<List<TimestampingService>> response =
+        ResponseEntity<Set<TimestampingService>> response =
                 systemApiController.getConfiguredTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingService> timestampingServices = response.getBody();
+        Set<TimestampingService> timestampingServices = response.getBody();
 
         assertEquals(2, timestampingServices.size());
     }
@@ -177,11 +177,11 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     public void getConfiguredTimestampingServicesEmptyList() {
         when(systemService.getConfiguredTimestampingServices()).thenReturn(new ArrayList<TspType>());
 
-        ResponseEntity<List<TimestampingService>> response =
+        ResponseEntity<Set<TimestampingService>> response =
                 systemApiController.getConfiguredTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingService> timestampingServices = response.getBody();
+        Set<TimestampingService> timestampingServices = response.getBody();
 
         assertEquals(0, timestampingServices.size());
     }

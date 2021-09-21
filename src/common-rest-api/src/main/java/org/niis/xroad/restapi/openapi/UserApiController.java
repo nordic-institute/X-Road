@@ -38,7 +38,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -68,8 +68,8 @@ public class UserApiController implements UserApi {
         User user = new User();
         user.setUsername(usernameHelper.getUsername());
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        user.setPermissions(new ArrayList<>(getAuthorities(authentication, name -> !name.startsWith(ROLE_PREFIX))));
-        user.setRoles(new ArrayList<>(getAuthorities(authentication, name -> name.startsWith(ROLE_PREFIX))));
+        user.setPermissions(new HashSet<>(getAuthorities(authentication, name -> !name.startsWith(ROLE_PREFIX))));
+        user.setRoles(new HashSet<>(getAuthorities(authentication, name -> name.startsWith(ROLE_PREFIX))));
         return new ResponseEntity<>(user, HttpStatus.OK);
     }
 

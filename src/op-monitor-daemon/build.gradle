@@ -61,7 +61,7 @@ task xjc() {
 
 shadowJar {
     append('reference.conf')
-    classifier = ''
+    archiveClassifier = ''
     exclude('**/module-info.class')
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OpMonitorDaemonMain'
@@ -69,7 +69,7 @@ shadowJar {
 }
 
 task testsJar(type: Jar, dependsOn: testClasses) {
-    classifier = 'tests'
+    archiveClassifier = 'tests'
     manifest {
         attributes 'Main-Class': 'ee.ria.xroad.opmonitordaemon.OperationalDataRecordsGenerator'
     }
@@ -79,8 +79,8 @@ task testsJar(type: Jar, dependsOn: testClasses) {
 }
 
 jar.enabled = false
-build.dependsOn shadowJar
-build.dependsOn testsJar
+assemble.dependsOn shadowJar
+assemble.dependsOn testsJar
 buildall.dependsOn shadowJar
 buildall.dependsOn testsJar
 
@@ -105,18 +105,3 @@ xjc.mustRunAfter processResources
 
 compileJava.dependsOn xjc
 compileJava.dependsOn processResources
-
-test {
-    jacoco {
-        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-    }
-    finalizedBy jacocoTestReport
-}
-
-jacocoTestReport {
-    reports {
-        xml.enabled false
-        csv.enabled false
-        html.enabled true
-    }
-}

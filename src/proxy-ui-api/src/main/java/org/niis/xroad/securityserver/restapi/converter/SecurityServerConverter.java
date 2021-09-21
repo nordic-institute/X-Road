@@ -37,7 +37,7 @@ import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.SecurityServer;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -115,10 +115,10 @@ public class SecurityServerConverter {
      * @param securityServerIds
      * @return
      */
-    public List<SecurityServer> convert(Iterable<SecurityServerId> securityServerIds) {
+    public Set<SecurityServer> convert(Iterable<SecurityServerId> securityServerIds) {
         return Streams.stream(securityServerIds)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
 }

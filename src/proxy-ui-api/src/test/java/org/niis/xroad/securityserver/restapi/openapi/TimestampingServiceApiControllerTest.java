@@ -39,8 +39,8 @@ import org.springframework.security.test.context.support.WithMockUser;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.doReturn;
@@ -79,11 +79,11 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = { "VIEW_TSPS" })
     public void getApprovedTimestampingServices() {
-        ResponseEntity<List<TimestampingService>> response =
+        ResponseEntity<Set<TimestampingService>> response =
                 timestampingServicesApiController.getApprovedTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingService> timestampingServices = response.getBody();
+        Set<TimestampingService> timestampingServices = response.getBody();
 
         assertEquals(APPROVED_TIMESTAMPING_SERVICES.keySet().size(), timestampingServices.size());
     }
@@ -93,11 +93,11 @@ public class TimestampingServiceApiControllerTest extends AbstractApiControllerT
     public void getApprovedTimestampingServicesEmptyList() {
         when(globalConfService.getApprovedTspsForThisInstance()).thenReturn(new ArrayList<TspType>());
 
-        ResponseEntity<List<TimestampingService>> response =
+        ResponseEntity<Set<TimestampingService>> response =
                 timestampingServicesApiController.getApprovedTimestampingServices();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
-        List<TimestampingService> timestampingServices = response.getBody();
+        Set<TimestampingService> timestampingServices = response.getBody();
 
         assertEquals(0, timestampingServices.size());
     }

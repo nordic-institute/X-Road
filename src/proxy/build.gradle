@@ -38,7 +38,7 @@ shadowJar {
 }
 
 testJar.enabled = true
-build.finalizedBy shadowJar
+assemble.finalizedBy shadowJar
 
 task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
@@ -88,7 +88,9 @@ task integrationTest(type: Test) {
     description = 'Runs integration tests.'
     group = 'verification'
     shouldRunAfter test
-
+    jacoco {
+        destinationFile = file("$buildDir/jacoco/integrationTest.exec")
+    }
     useJUnit {
         includeCategories 'ee.ria.xroad.proxy.testutil.IntegrationTest'
     }
@@ -120,17 +122,6 @@ jacoco {
     applyTo runProxyTest
 }
 
-task mergedJacoco(dependsOn: 'runProxyTest', type: JacocoMerge) {
-    // merge jacoco results from normal tests and runProxyTest
-    destinationFile = file("$buildDir/jacoco/test.exec")
-    executionData test, integrationTest, runProxyTest
-}
-
-jacocoTestReport {
-  shouldRunAfter mergedJacoco
-  executionData file("$buildDir/jacoco/test.exec")
-}
-
 task runBatchSigner(type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
 
@@ -138,5 +129,4 @@ task runBatchSigner(type: JavaExec) {
     classpath = sourceSets.test.runtimeClasspath
 }
 
-runProxyTest.finalizedBy mergedJacoco
 check.dependsOn integrationTest

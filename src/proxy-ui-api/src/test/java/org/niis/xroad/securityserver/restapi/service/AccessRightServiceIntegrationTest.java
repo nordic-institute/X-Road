@@ -91,7 +91,7 @@ public class AccessRightServiceIntegrationTest extends AbstractServiceIntegratio
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.DB_GLOBALGROUP_CODE),
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_FI, TestUtils.GLOBALGROUP_CODE1),
             TestUtils.getGlobalGroupInfo(TestUtils.INSTANCE_EE, TestUtils.DB_GLOBALGROUP_CODE)));
-    private List<String> instanceIdentifiers = new ArrayList<>(Arrays.asList(
+    private Set<String> instanceIdentifiers = new HashSet<>(Arrays.asList(
             TestUtils.INSTANCE_FI,
             TestUtils.INSTANCE_EE));
 
