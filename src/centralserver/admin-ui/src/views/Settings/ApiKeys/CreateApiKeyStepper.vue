@@ -47,7 +47,9 @@
         <v-stepper-content step="1" class="pa-0 centered">
           <v-container class="wide-width">
             <v-row class="mt-4">
-              <v-col><h3>Roles</h3></v-col>
+              <v-col
+                ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
+              >
             </v-row>
           </v-container>
           <v-container class="narrow-width">
@@ -85,7 +87,11 @@
         <v-stepper-content step="2" class="pa-0">
           <v-container class="wide-width mb-8">
             <v-row class="mt-4">
-              <v-col><h3>Key Details</h3></v-col>
+              <v-col
+                ><h3>
+                  {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
+                </h3></v-col
+              >
               <v-spacer></v-spacer>
 
               <xrd-button
