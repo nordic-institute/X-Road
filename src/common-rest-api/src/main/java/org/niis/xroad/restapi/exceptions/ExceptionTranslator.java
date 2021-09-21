@@ -35,9 +35,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
-import java.util.HashSet;
-import java.util.Set;
-
 import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
 /**
@@ -74,31 +71,27 @@ public class ExceptionTranslator {
                 errorDto.setError(convert(errorCodedException.getErrorDeviation()));
             }
             if (errorCodedException.getWarningDeviations() != null) {
-                for (Deviation warning: errorCodedException.getWarningDeviations()) {
+                for (Deviation warning : errorCodedException.getWarningDeviations()) {
                     errorDto.addWarningsItem(convert(warning));
-
                 }
             }
         } else if (e instanceof CodedException) {
             // map fault code and string from core CodedException
             CodedException c = (CodedException) e;
-            Deviation deviation = new Deviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(),
-                    c.getFaultString());
+            Deviation deviation = new Deviation(CORE_CODED_EXCEPTION_PREFIX + c.getFaultCode(), c.getFaultString());
             errorDto.setError(convert(deviation));
         } else if (e instanceof MethodArgumentNotValidException) {
             errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));
         }
-        return new ResponseEntity<ErrorInfo>(errorDto, status);
+        return new ResponseEntity<>(errorDto, status);
     }
-
 
     private CodeWithDetails convert(Deviation deviation) {
         CodeWithDetails result = new CodeWithDetails();
         if (deviation != null) {
             result.setCode(deviation.getCode());
             if (deviation.getMetadata() != null && !deviation.getMetadata().isEmpty()) {
-                Set<String> metadata = new HashSet<>(deviation.getMetadata());
-                result.setMetadata(metadata);
+                result.setMetadata(deviation.getMetadata());
             }
         }
         return result;
