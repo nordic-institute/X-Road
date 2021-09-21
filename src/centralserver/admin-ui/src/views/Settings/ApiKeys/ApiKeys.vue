@@ -158,7 +158,7 @@ import { DataTableHeader } from 'vuetify';
 import { ApiKey } from '@/global-types';
 import { RouteName, Roles } from '@/global';
 import * as api from '@/util/api';
-import { StoreTypes } from '@/global';
+import { StoreTypes, Permissions } from '@/global';
 
 export default Vue.extend({
   components: {
@@ -199,13 +199,13 @@ export default Vue.extend({
   },
   computed: {
     canCreateApiKey(): boolean {
-      return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
+      return this.$store.getters.hasPermission(Permissions.MOCK_PERMISSION1);
     },
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+      return this.$store.getters.hasPermission(Permissions.MOCK_PERMISSION1);
     },
     canRevoke(): boolean {
-      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
+      return this.$store.getters.hasPermission(Permissions.MOCK_PERMISSION1);
     },
     headers(): DataTableHeader[] {
       return [
