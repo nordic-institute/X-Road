@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
+  <xrd-sub-view-container>
     <!-- Toolbar buttons -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-title-search align-fix mt-0 pt-0">
@@ -84,7 +84,7 @@
         <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
-  </sub-view-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -92,7 +92,6 @@
  * View for 'management requests' tab
  */
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import StatusCell from '../../components/managementRequests/StatusCell.vue';
 import TypeCell from '../../components/managementRequests/TypeCell.vue';
 import XrdFilter from './XrdFilter.vue';
@@ -100,7 +99,6 @@ import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   components: {
-    SubViewContainer,
     StatusCell,
     TypeCell,
     XrdFilter,

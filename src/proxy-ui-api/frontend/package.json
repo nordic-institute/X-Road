@@ -22,7 +22,8 @@
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",
     "build-all": "npm run install-build-ui-lib && npm install && npm run build",
-    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-definition.yaml"
+    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-definition.yaml",
+    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.5.0",
