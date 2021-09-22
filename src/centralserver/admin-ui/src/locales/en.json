@@ -128,7 +128,8 @@
       "identifier": "Instance Identifier",
       "address": "Central Server Address",
       "pin": "PIN",
-      "repeatPin": "Repeat PIN"
+      "repeatPin": "Repeat PIN",
+      "confirmPin": "Repeat PIN"
     },
     "initialServerConf": {
       "centralServerAddress": "Central Server Address",

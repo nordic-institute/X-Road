@@ -46,6 +46,7 @@
               v-model="instanceIdentifier"
               class="form-input"
               type="text"
+              :label="$t('fields.init.identifier')"
               :error-messages="errors"
               outlined
               autofocus
@@ -70,6 +71,7 @@
               v-model="address"
               class="form-input"
               type="text"
+              :label="$t('fields.init.address')"
               :error-messages="errors"
               outlined
               data-test="address-input"
@@ -86,13 +88,14 @@
           <ValidationProvider
             v-slot="{ errors }"
             name="init.pin"
-            rules="required|password:@init.confirmPin"
+            rules="required"
           >
             <v-text-field
               v-model="pin"
               class="form-input"
               type="text"
               name="init.pin"
+              :label="$t('fields.init.pin')"
               :error-messages="errors"
               outlined
               data-test="pin-input"
@@ -101,18 +104,20 @@
         </div>
 
         <div class="form-row-wrap">
-          <xrd-form-label :label-text="$t('fields.init.repeatPin')" />
+          <xrd-form-label :label-text="$t('fields.init.confirmPin')" />
 
           <ValidationProvider
             v-slot="{ errors }"
             name="init.confirmPin"
-            rules="required"
+            rules="required|password:@init.pin"
           >
             <v-text-field
               v-model="pinConfirm"
               class="form-input"
               type="text"
               name="init.confirmPin"
+              :append-icon="iconChecked"
+              :label="$t('fields.init.confirmPin')"
               :error-messages="errors"
               outlined
               data-test="confirm-pin-input"
