@@ -112,16 +112,24 @@
             rules="required|password:@init.pin"
           >
             <v-text-field
+              ref="confirmPinField"
               v-model="pinConfirm"
               class="form-input"
               type="text"
               name="init.confirmPin"
-              :append-icon="iconChecked"
               :label="$t('fields.init.confirmPin')"
               :error-messages="errors"
               outlined
               data-test="confirm-pin-input"
-            ></v-text-field>
+            >
+              <xrd-icon-base
+                v-if="isPinCorrected()"
+                slot="append"
+                :color="colors.Success100"
+              >
+                <XrdIconChecked />
+              </xrd-icon-base>
+            </v-text-field>
           </ValidationProvider>
         </div>
       </div>
@@ -141,7 +149,7 @@
 import Vue, { VueConstructor } from 'vue';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
-import { RouteName, StoreTypes } from '@/global';
+import { Colors, RouteName, StoreTypes } from '@/global';
 import { ErrorInfo, InitialServerConf } from '@/openapi-types';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
@@ -192,10 +200,17 @@ export default (
       instanceIdentifier: '',
       pin: '',
       pinConfirm: '',
+      colors: Colors,
     };
   },
   computed: {},
   methods: {
+    isPinCorrected(): boolean {
+      return (
+        this.$refs?.confirmPinField?.isDirty &&
+        !this.$refs?.confirmPinField?.hasError
+      );
+    },
     async submit() {
       // validate inputs
 

@@ -142,7 +142,13 @@ export default (
       password: '' as string,
     };
   },
-  computed: {},
+  computed: {
+    isDisabled() {
+      return (
+        this.username.length < 1 || this.password.length < 1 || this.loading
+      );
+    },
+  },
   methods: {
     async submit() {
       // Clear error notifications when route is changed
