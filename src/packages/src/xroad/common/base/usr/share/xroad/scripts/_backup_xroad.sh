@@ -35,21 +35,21 @@ create_database_backup () {
 }
 
 create_backup_tarball () {
+
   if [ "$ENCRYPT_MODE" = "encrypt" ] || [ "$ENCRYPT_MODE" = "signonly" ] ; then
+    local ENCRYPTION_ARGS=()
     if [ "$ENCRYPT_MODE" = "encrypt" ] ; then
       echo "CREATING ENCRYPTED AND SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
       local PUBCOUNT=0
-      if [ -d "${PUBKEYS_FOLDER}" ] ; then
-        local ENCRYPTION_ARGS
-
-        if [ -d "$DIR" ] ; then
-          for keyfile in "$PUBKEYS_FOLDER"/* ; do
-            (( PUBCOUNT++ )) || true
-            ENCRYPTION_ARGS+=(-f "${keyfile}")
-          done
-        fi
-        echo "Encrypting archive with servers public key and $PUBCOUNT extra public keys"
-        local SELF_ARGS=(--encrypt -r "${SECURITY_SERVER_ID}")
+      ENCRYPTION_ARGS=(--encrypt --trust-model direct --cipher-algo AES256 --no-auto-key-locate -r "${SECURITY_SERVER_ID}")
+      if [ -n "${GPG_KEYIDS}" ] ; then
+        local recipients=()
+        IFS=", " read -ra recipients <<< "${GPG_KEYIDS}"
+        for keyid in "${recipients[@]}"; do
+          (( PUBCOUNT++ )) || true
+          ENCRYPTION_ARGS+=(-r "$keyid")
+        done
+        echo "Encrypting archive with servers public key and $PUBCOUNT extra recipients"
       fi
     else
       echo "CREATING SIGNED TAR ARCHIVE TO ${BACKUP_FILENAME}"
@@ -61,7 +61,7 @@ create_backup_tarball () {
         --exclude="/etc/xroad/postgresql" \
         --exclude="/etc/xroad/gpghome"  \
         "${BACKED_UP_PATHS[@]}" \
-    | gpg --batch --no-tty --homedir /etc/xroad/gpghome --sign "${SELF_ARGS[@]}" "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
+    | gpg --batch --no-tty --homedir /etc/xroad/gpghome --sign --digest-algo SHA256 "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"
@@ -106,7 +106,7 @@ while getopts ":t:i:s:n:f:E:k:bS" opt ; do
       ENCRYPT_MODE=$OPTARG
       ;;
     k)
-      PUBKEYS_FOLDER=$OPTARG
+      GPG_KEYIDS=$OPTARG
       ;;
     \?)
       echo "Invalid option $OPTARG -- did you use the correct wrapper script?"

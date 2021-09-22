@@ -274,8 +274,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
 | enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
-| backup-encrypted                                 | false                                      |   |   | Whether the security server configuration backups are encrypted. |
-| backup-public-key-path                           | /etc/xroad/backupkeys                      |   |   | Directory where additional backup encryption keys are stored. |
+| backup-encryption-enabled                        | false                                      |   |   | Whether to encrypt security server backup files using server's OpenPGP key. |
+| backup-encryption-keyids                         |                                            |   |   | Comma-separated list of additional recipient OpenPGP key identifiers. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:
