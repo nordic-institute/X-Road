@@ -41,6 +41,7 @@ import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.OK;
 import static ee.ria.xroad.common.util.healthcheck.HealthCheckResult.failure;
 import static ee.ria.xroad.common.util.healthcheck.HealthChecks.cacheResultFor;
 import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkAuthKeyOcspStatus;
+import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkGlobalConfStatus;
 import static ee.ria.xroad.common.util.healthcheck.HealthChecks.checkServerConfDatabaseStatus;
 
 /**
@@ -78,6 +79,9 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
         final int errorValidFor = 30;
 
         return Arrays.asList(
+                checkGlobalConfStatus()
+                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Global conf validity"))
+                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
                 checkAuthKeyOcspStatus()
                         .map(withTimeout(timeout, TimeUnit.SECONDS, "Authentication key OCSP status"))
                         .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
