@@ -57,6 +57,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import javax.servlet.http.Cookie;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -137,8 +138,9 @@ public class CsrfWebMvcTest {
     public void getUser() throws Exception {
         User expectedUser = new User()
                 .username(username)
-                .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
-                .permissions(userPermissions);
+                .roles(Collections.singleton(
+                        Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .permissions(new HashSet<>(userPermissions));
         String expectedUserJsonString = new Gson().toJson(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user")
                 .session(getMockSession())
@@ -194,8 +196,9 @@ public class CsrfWebMvcTest {
     public void getUserNoSession() throws Exception {
         User expectedUser = new User()
                 .username(username)
-                .roles(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
-                .permissions(userPermissions);
+                .roles(Collections.singleton(
+                        Role.XROAD_SECURITYSERVER_OBSERVER.getGrantedAuthorityName()))
+                .permissions(new HashSet<>(userPermissions));
         String expectedUserJsonString = new Gson().toJson(expectedUser);
         MockHttpServletRequestBuilder mockRequest = MockMvcRequestBuilders.get("/api/v1/user");
         mockMvc.perform(mockRequest)

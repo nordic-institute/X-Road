@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -101,8 +102,8 @@ public class GlobalConfFacade {
     /**
      * {@link GlobalConf#getInstanceIdentifiers()}
      */
-    public List<String> getInstanceIdentifiers() {
-        return GlobalConf.getInstanceIdentifiers();
+    public Set<String> getInstanceIdentifiers() {
+        return new HashSet<>(GlobalConf.getInstanceIdentifiers());
     }
 
     /**

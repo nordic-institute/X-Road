@@ -56,7 +56,6 @@ components:
           type: array
           description: array containing metadata associated with the item. For example names of services
             were attempted to add, but failed
-          uniqueItems: true
           items:
             type: string
             format: text
@@ -90,7 +89,6 @@ components:
         warnings:
           type: array
           description: warnings that could be ignored
-          uniqueItems: true
           items:
             $ref: '#/components/schemas/CodeWithDetails'
 security:

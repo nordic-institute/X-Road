@@ -26,9 +26,14 @@
 <template>
   <div>
     <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact>{{
-        $t(tab.name)
-      }}</v-tab>
+      <v-tab
+        v-for="tab in tabs"
+        :key="tab.key"
+        :to="tab.to"
+        :data-test="tab.key"
+        exact
+        >{{ $t(tab.name) }}</v-tab
+      >
     </sub-tabs>
   </div>
 </template>
@@ -52,7 +57,7 @@ export default Vue.extend({
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
-          key: 'system',
+          key: 'system-parameters-tab-button',
           name: 'tab.settings.systemParameters',
           to: {
             name: RouteName.SystemParameters,
@@ -60,7 +65,7 @@ export default Vue.extend({
           permissions: [Permissions.VIEW_SYS_PARAMS],
         },
         {
-          key: 'backup',
+          key: 'backupandrestore-tab-button',
           name: 'tab.settings.backupAndRestore',
           to: {
             name: RouteName.BackupAndRestore,

@@ -37,8 +37,8 @@ import org.niis.xroad.securityserver.restapi.service.PossibleActionsRuleEngine;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -100,9 +100,9 @@ public class TokenConverter {
      * @param tokenInfos
      * @return List of {@link TokenInfo tokenInfos}
      */
-    public List<Token> convert(Iterable<TokenInfo> tokenInfos) {
+    public Set<Token> convert(Iterable<TokenInfo> tokenInfos) {
         return Streams.stream(tokenInfos)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

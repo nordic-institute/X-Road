@@ -33,8 +33,8 @@ import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingServiceDi
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingStatus;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -59,9 +59,9 @@ public class TimestampingServiceDiagnosticConverter {
         return timestampingServiceDiagnostics;
     }
 
-    public List<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> statuses)  {
+    public Set<TimestampingServiceDiagnostics> convert(Iterable<DiagnosticsStatus> statuses)  {
         return Streams.stream(statuses)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

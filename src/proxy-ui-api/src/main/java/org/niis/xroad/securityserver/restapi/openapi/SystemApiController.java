@@ -68,6 +68,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
+import java.util.Set;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_FILE_NOT_FOUND;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_INTERNAL_KEY_CERT_INTERRUPTED;
@@ -129,8 +130,8 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_TSPS')")
-    public ResponseEntity<List<TimestampingService>> getConfiguredTimestampingServices() {
-        List<TimestampingService> timestampingServices;
+    public ResponseEntity<Set<TimestampingService>> getConfiguredTimestampingServices() {
+        Set<TimestampingService> timestampingServices;
         List<TspType> tsps = systemService.getConfiguredTimestampingServices();
         timestampingServices = timestampingServiceConverter.convert(tsps);
 

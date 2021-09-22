@@ -30,6 +30,7 @@ import org.niis.xroad.securityserver.restapi.openapi.model.AccessRight;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Component
@@ -43,9 +44,9 @@ public class AccessRightConverter {
         return accessRight;
     }
 
-    public List<AccessRight> convert(List<ServiceClientAccessRightDto> dtos) {
+    public Set<AccessRight> convert(List<ServiceClientAccessRightDto> dtos) {
         return dtos.stream()
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

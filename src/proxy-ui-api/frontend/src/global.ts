@@ -207,6 +207,10 @@ export enum ClientTypes {
 }
 
 // Different modes for the add member wizard
+// AddMemberWizardModes.CERTIFICATE_EXISTS = a valid sign cert exists for this member on this SS
+// (skip key and CSR creation)
+// AddMemberWizardModes.CSR_EXISTS = a sign CSR exists for this member on this SS
+// (skip key creation)
 export enum AddMemberWizardModes {
   CSR_EXISTS = 'CSR_EXISTS',
   CERTIFICATE_EXISTS = 'CERTIFICATE_EXISTS',
