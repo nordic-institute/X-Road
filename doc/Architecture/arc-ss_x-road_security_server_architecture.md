@@ -567,7 +567,7 @@ Xroad-opmonitor persists data to postgresql database.
 
 #### 3.7.1 Role and responsibilities
 
-Xroad-addon-messagelog handles the archiving and cleaning of the message logs.
+Xroad-addon-messagelog handles message logging, timestamping of the messages, and archiving and cleaning of the message logs.
 
 #### 3.7.2 Encapsulated data
 
