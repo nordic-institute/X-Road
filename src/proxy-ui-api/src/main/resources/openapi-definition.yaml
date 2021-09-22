@@ -2,7 +2,7 @@
 openapi: 3.0.0
 info:
   description: X-Road Security Server Admin API. Note that the error metadata responses described in some endpoints are subjects to change and may be updated in upcoming versions.
-  version: "1.0.32"
+  version: "2.0.0"
   title: X-Road Security Server Admin API
   contact:
     name: Nordic Institute for Interoperability Solutions (NIIS)
@@ -783,11 +783,13 @@ paths:
             default: true
         - in: query
           name: local_valid_sign_cert
-          description: to search only local clients with valid sign cert
+          description:
+            To search only clients that have (or don't have) a valid (registered, OCSP response GOOD) sign cert stored on this security server.
+            Can be used to search both local and global clients, and can be combined with <code>internal_search</code> and <code>exclude_local</code> parameters.
+            True = limit to clients that have a valid local sign cert, false = limit to clients that don't have a valid local sign cert.
           required: false
           schema:
             type: boolean
-            default: false
         - in: query
           name: exclude_local
           description: to search only clients that are not added to this security server
@@ -5601,7 +5603,7 @@ components:
           readOnly: true
         has_valid_local_sign_cert:
           type: boolean
-          description: if this client is local and has a valid sign cert
+          description: if this client has a valid (registered and with good OCSP response) sign cert stored on this security server
           example: false
           readOnly: true
         connection_type:

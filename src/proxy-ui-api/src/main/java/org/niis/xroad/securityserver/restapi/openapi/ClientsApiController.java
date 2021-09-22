@@ -167,7 +167,12 @@ public class ClientsApiController implements ClientsApi {
      * @param memberClass
      * @param memberCode
      * @param subsystemCode
-     * @param showMembers include members (without susbsystemCode) in the results
+     * @param showMembers include members (without subsystemCode) in the results
+     * @param localValidSignCert true = include only clients who have local valid sign cert (registered & OCSP good)
+     *                              false = include only clients who don't have a local valid sign cert
+     *                              null = don't care whether client has a local valid sign cert
+     *                              NOTE: parameter does not have an effect on whether local or global clients are
+     *                              searched
      * @param internalSearch search only in the local clients
      * @return
      */
@@ -180,7 +185,7 @@ public class ClientsApiController implements ClientsApi {
         boolean unboxedInternalSearch = Boolean.TRUE.equals(internalSearch);
         Set<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
-                localValidSignCert, excludeLocal));
+                excludeLocal, localValidSignCert));
         return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
