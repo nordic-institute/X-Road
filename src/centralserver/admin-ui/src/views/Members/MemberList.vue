@@ -131,8 +131,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/tables';
+@import '~styles/colors';
+@import '~styles/tables';
 
 .icon-column {
   width: 40px;
