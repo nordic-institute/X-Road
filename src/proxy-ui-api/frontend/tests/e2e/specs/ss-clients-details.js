@@ -35,7 +35,7 @@ module.exports = {
     const certificatePopup = mainPage.section.certificatePopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials

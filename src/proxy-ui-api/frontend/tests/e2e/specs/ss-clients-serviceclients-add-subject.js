@@ -50,7 +50,7 @@ const getPages = (browser) => {
 const signinToClientsTab = (pages) => {
   const { browser, frontPage, mainPage, clientsTab } = pages;
   // Open SUT and check that page is loaded
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   // Enter valid credentials
   frontPage.signinDefaultUser();
@@ -69,7 +69,7 @@ const setupServices = (pages) => {
   } = pages;
 
   // Add wsdl
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
@@ -98,7 +98,7 @@ const clearServices = (pages) => {
     mainPage,
   } = pages;
   // Remove WSDL service description
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
@@ -121,7 +121,7 @@ const navigateToAddSubjectDialog = (pages) => {
     serviceClientsPage,
     addSubjectMemberStepPage,
   } = pages;
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);

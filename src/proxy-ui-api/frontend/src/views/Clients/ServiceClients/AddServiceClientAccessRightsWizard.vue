@@ -32,7 +32,7 @@
       class="pa-4"
     />
 
-    <v-stepper v-model="step" :alt-labels="true" class="stepper noshadow no-transition">
+    <v-stepper v-model="step" :alt-labels="true" class="stepper noshadow">
       <v-stepper-header class="noshadow stepper-header">
         <v-stepper-step :complete="step > 1" step="1">{{
           $t('serviceClients.memberGroupStep')
@@ -179,10 +179,6 @@ export default Vue.extend({
   -webkit-box-shadow: none;
   -moz-box-shadow: none;
   box-shadow: none;
-}
-
-.no-transition .v-stepper__content {
-  transition: none;
 }
 
 .full-width {

@@ -31,7 +31,7 @@ module.exports = class LoginCommand {
   ) {
     const frontPage = this.api.page.ssFrontPage();
     const mainPage = this.api.page.ssMainPage();
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     this.api.waitForElementVisible('//*[@id="app"]');
     frontPage
       .clearUsername()
@@ -41,10 +41,7 @@ module.exports = class LoginCommand {
       .signin();
     // Check that correct username is displayed on topbar
     mainPage.verifyCurrentUser(username);
-    // turn on e2eTestingMode to make snackbars stay open forever
-    this.api.execute(function setE2eTestingMode() {
-      window.e2eTestingMode = true;
-    }, []);
-    this.api.logMessage("LoginCommand set e2eTestingMode = true");
+    // disable transitions and turn on e2eTestingMode
+    this.api.makeTestable();
   }
 }

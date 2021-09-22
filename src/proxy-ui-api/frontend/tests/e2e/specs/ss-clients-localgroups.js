@@ -34,7 +34,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -77,7 +77,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -171,7 +171,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -225,7 +225,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -292,7 +292,7 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -383,7 +383,7 @@ module.exports = {
     const localGroupPopup = mainPage.section.localGroupPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials

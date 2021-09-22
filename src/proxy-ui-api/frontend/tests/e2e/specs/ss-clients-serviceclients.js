@@ -58,7 +58,7 @@ module.exports = {
     };
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -108,7 +108,7 @@ module.exports = {
     };
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -197,7 +197,7 @@ module.exports = {
     };
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -265,7 +265,7 @@ module.exports = {
       const clientServices = clientInfo.section.services;
 
       // Open SUT and check that page is loaded
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
 
       // Enter valid credentials
@@ -317,7 +317,7 @@ module.exports = {
       operationDetails.close();
 
       // Verify SOAP service client when it has access permissions
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
       mainPage.openClientsTab();
       browser.waitForElementVisible(clientsTab);
@@ -364,7 +364,7 @@ module.exports = {
       const serviceDetails = mainPage.section.restServiceDetails;
 
       // Open SUT and check that page is loaded
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
 
       // Enter valid credentials
@@ -403,7 +403,7 @@ module.exports = {
       restOperationDetails.close();
 
       // Verify REST service client when it has access permissions
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
       mainPage.openClientsTab();
       browser.waitForElementVisible(clientsTab);
@@ -481,7 +481,7 @@ module.exports = {
 
       // Verify service client doesn't exist when REST service has only endpoint level access rights
       restOperationDetails.close();
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
       mainPage.openClientsTab();
       browser.waitForElementVisible(clientsTab);
@@ -520,7 +520,7 @@ module.exports = {
     const serviceDetails = mainPage.section.restServiceDetails;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -562,7 +562,7 @@ module.exports = {
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
