@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
+        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
@@ -16,7 +16,7 @@ plugins {
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.3.12.RELEASE' apply false
+    id 'org.springframework.boot' version '2.5.4' apply false
 }
 
 repositories {
@@ -113,11 +113,11 @@ subprojects {
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation 'junit:junit:4.13.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.18'
-        annotationProcessor 'org.projectlombok:lombok:1.18.18'
+        compileOnly 'org.projectlombok:lombok:1.18.20'
+        annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.18'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
+        testCompileOnly 'org.projectlombok:lombok:1.18.20'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
     }
 
     task testJar(type: Jar) {

@@ -44,7 +44,7 @@ task runMetaserviceTest(type: JavaExec) {
             '-Dxroad.proxy.clientHandlers=ee.ria.xroad.proxy.clientproxy.MetadataHandler',
             '-Dproxy.akka.remote.artery.canonical.port=0'
 
-    main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
+    mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
 }
 
