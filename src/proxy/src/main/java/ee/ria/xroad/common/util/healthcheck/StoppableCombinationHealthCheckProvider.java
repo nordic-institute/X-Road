@@ -79,14 +79,14 @@ public class StoppableCombinationHealthCheckProvider implements StoppableHealthC
         final int errorValidFor = 30;
 
         return Arrays.asList(
+                checkGlobalConfStatus()
+                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Global conf validity"))
+                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
                 checkAuthKeyOcspStatus()
                         .map(withTimeout(timeout, TimeUnit.SECONDS, "Authentication key OCSP status"))
                         .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
                 checkServerConfDatabaseStatus()
                         .map(withTimeout(timeout, TimeUnit.SECONDS, "Server conf database status"))
-                        .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS)),
-                checkGlobalConfStatus()
-                        .map(withTimeout(timeout, TimeUnit.SECONDS, "Global conf validity"))
                         .map(cacheResultFor(resultValidFor, errorValidFor, TimeUnit.SECONDS))
 
         );
