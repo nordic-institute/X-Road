@@ -165,15 +165,26 @@ extend('password', {
   message: PASSWORD_MATCH_ERROR,
 });
 
-function getTranslatedValidationErrors(
+function getTranslatedFieldErrors(
   fieldName: string,
   fieldError: Record<string, string[]>,
 ): string[] {
   let errors: string[] = fieldError[fieldName];
   if (errors) {
     return errors.map((errorKey: string) => {
-      return i18n.t(`validationError.${errorKey}`).toString();
+      return i18n.t(`validationError.${errorKey}Field`).toString();
     });
+  } else {
+    return [];
+  }
+}
+
+function invalidParamsErrors(errorInfo: ErrorInfo): Array<string> {
+  if (
+    400 === errorInfo.status &&
+    'invalid_init_params' === errorInfo.error?.code
+  ) {
+    return errorInfo.error.metadata || [];
   } else {
     return [];
   }
@@ -230,11 +241,11 @@ export default (
             if (isFieldError(errorInfo)) {
               let fieldErrors = errorInfo.error?.validation_errors;
               if (fieldErrors) {
-                let identifierErrors: string[] = getTranslatedValidationErrors(
+                let identifierErrors: string[] = getTranslatedFieldErrors(
                   'initialServerConf.instanceIdentifier',
                   fieldErrors,
                 );
-                let addressErrors: string[] = getTranslatedValidationErrors(
+                let addressErrors: string[] = getTranslatedFieldErrors(
                   'initialServerConf.centralServerAddress',
                   fieldErrors,
                 );
@@ -246,6 +257,11 @@ export default (
               }
               return;
             }
+            if (invalidParamsErrors(errorInfo).length > 0) {
+              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              return;
+            }
+            throw error;
           },
         )
         .catch((error) => {
