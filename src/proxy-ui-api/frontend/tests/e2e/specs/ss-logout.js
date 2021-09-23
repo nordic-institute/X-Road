@@ -27,6 +27,7 @@
 let mainPage, frontPage;
 
 module.exports = {
+  '@disabled': true, // (shortened) session timeout does not work at the moment
   tags: ['ss', 'logout'],
   before: function (browser) {
     mainPage = browser.page.ssMainPage();
