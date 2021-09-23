@@ -2,4 +2,6 @@
   with_inventory_hostnames: ss_servers, cs_servers, cp_servers
   lxd_container:
     name: "{{item}}"
+    url: "{{ lxd_url | default('unix:/var/lib/lxd/unix.socket') }}"
+    snap_url: "{{ lxd_url | default('unix:/var/lib/lxd/unix.socket') }}"
     state: restarted
