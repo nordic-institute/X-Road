@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.15.0') {
+        classpath('gradle.plugin.com.hierynomus.gradle.plugins:license-gradle-plugin:0.16.1') {
             exclude group: 'org.springframework', module: 'spring-core'
         }
     }
@@ -128,11 +128,11 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation "junit:junit:$junitVersion"
 
-        compileOnly 'org.projectlombok:lombok:1.18.18'
-        annotationProcessor 'org.projectlombok:lombok:1.18.18'
+        compileOnly 'org.projectlombok:lombok:1.18.20'
+        annotationProcessor 'org.projectlombok:lombok:1.18.20'
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.18'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.18'
+        testCompileOnly 'org.projectlombok:lombok:1.18.20'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
     }
 
     task testJar(type: Jar) {

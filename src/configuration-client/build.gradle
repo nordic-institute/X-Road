@@ -34,7 +34,7 @@ buildall.dependsOn shadowJar
 task runConfigurationClient(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=build/',
             '-Dxroad.distributedfiles.signatureFreshness=-1' // disable freshness checking since we read local file
-    main = mainClassName
+    mainClass = mainClassName
     classpath = sourceSets.main.runtimeClasspath
 }
 

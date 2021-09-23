@@ -64,7 +64,8 @@ Doc. ID: IG-SS
  18.08.2021 | 2.38    | Minor updates to Annex D | Ilkka Seppälä
  25.08.2021 | 2.39    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  26.08.2021 | 2.40    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
- 06.09.2021 | 2.41    | Update list of running services | Jarkko Hyöty
+ 03.08.2021 | 2.41    | Minor fixes | Ilkka Seppälä
+ 06.09.2021 | 2.42    | Update list of running services | Jarkko Hyöty
 
 ## License
 
@@ -75,45 +76,46 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2 Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-    * [2.2.1 Network Diagram](#221-network-diagram)
-  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Setup Package Repository](#25-setup-package-repository)
-  * [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  * [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
-  * [2.8 Security Server Installation](#28-security-server-installation)
-  * [2.9 Post-Installation Checks](#29-post-installation-checks)
-  * [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
-  * [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
-* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Reference Data](#32-reference-data)
-  * [3.3 Configuration](#33-configuration)
-  * [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
-* [4 Installation Error handling](#4-installation-error-handling)
-  * [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
-  * [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
-  * [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
-  * [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
-  * [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
-  * [4.6 ERROR: Upgrade supported from version X.Y.Z or newer](#46-error-upgrade-supported-from-version-xyz-or-newer)
-* [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-* [Annex B Default Database Users](#annex-b-default-database-users)
-* [Annex C Deployment Options](#annex-c-deployment-options)
-  * [C.1 General](#c1-general)
-  * [C.2 Local Database](#c2-local-database)
-  * [C.3 Remote Database](#c3-remote-database)
-  * [C.4 High Availability Setup](#c4-high-availability-setup)
-  * [C.5 Load Balancing Setup](#c5-load-balancing-setup)
-  * [C.6 Summary](#c6-summary)
-* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2 Installation](#2-installation)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  - [2.2 Reference Data](#22-reference-data)
+    - [2.2.1 Network Diagram](#221-network-diagram)
+  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
+  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  - [3.1 Prerequisites](#31-prerequisites)
+  - [3.2 Reference Data](#32-reference-data)
+  - [3.3 Configuration](#33-configuration)
+  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
+- [4 Installation Error handling](#4-installation-error-handling)
+  - [4.1 Cannot Set LC\_ALL to Default Locale](#41-cannot-set-lc_all-to-default-locale)
+  - [4.2 PostgreSQL Is Not UTF8 Compatible](#42-postgresql-is-not-utf8-compatible)
+  - [4.3 Could Not Create Default Cluster](#43-could-not-create-default-cluster)
+  - [4.4 Is Postgres Running On Port 5432?](#44-is-postgres-running-on-port-5432)
+  - [4.5 Different versions of xroad-\* packages after successful upgrade](#45-different-versions-of-xroad--packages-after-successful-upgrade)
+  - [4.6 ERROR: Upgrade supported from version X.Y.Z or newer](#46-error-upgrade-supported-from-version-xyz-or-newer)
+- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+- [Annex B Default Database Users](#annex-b-default-database-users)
+- [Annex C Deployment Options](#annex-c-deployment-options)
+  - [C.1 General](#c1-general)
+  - [C.2 Local Database](#c2-local-database)
+  - [C.3 Remote Database](#c3-remote-database)
+  - [C.4 High Availability Setup](#c4-high-availability-setup)
+  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  - [C.6 Summary](#c6-summary)
+- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -170,7 +172,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 
  **Ref** |                                        | **Explanation**
  ------ | --------------------------------------- | ----------------------------------------------------------
- 1.0    | Ubuntu 18.04, x86-64<br>3 GB RAM, 3 GB free disk space | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.
+ 1.0    | Ubuntu 18.04, Ubuntu 20.04 (x86-64)<br>3 GB RAM, 3 GB free disk space | Minimum requirements without the `monitoring` and `op-monitoring` add-ons. With the add-ons minimum of 4 GB of RAM is required.
  1.1    | https://artifactory.niis.org/xroad-release-deb               | X-Road package repository
  1.2    | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
  1.3    |                                         | Account name in the user interface
@@ -331,7 +333,8 @@ sudo debconf-set-selections <<< 'xroad-addon-messagelog xroad-addon-messagelog/e
 
 ### 2.8 Security Server Installation
 
-Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
+
 ```
 sudo apt install xroad-securityserver
 ```
@@ -362,7 +365,7 @@ Upon the first installation of the packages, the system asks for the following i
 
             IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld
 
-The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. Both meta-packages `xroad-securityserver-ee` and `xroad-securityserver-fi` install operational data monitoring module `xroad-addon-opmonitoring`.
+The meta-package `xroad-securityserver` also installs metaservices module `xroad-addon-metaservices`, messagelog module `xroad-addon-messagelog` and WSDL validator module `xroad-addon-wsdlvalidator`. The meta-packages `xroad-securityserver-ee`, `xroad-securityserver-fi`, `xroad-securityserver-is`, and `xroad-securityserver-fo` install operational data monitoring module `xroad-addon-opmonitoring`.
 
 **N.B.** In case configuration specific to Estonia (package `xroad-securityserver-ee`) is installed, connections from client applications are restricted to localhost by default. To enable client application connections from external sources, the value of the `connector-host` property must be overridden in the `/etc/xroad/conf.d/local.ini` configuration file. Changing the system parameter values is explained in the System Parameters User Guide \[[UG-SS](#Ref_UG-SS)\].
 

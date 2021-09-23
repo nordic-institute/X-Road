@@ -4,7 +4,6 @@ plugins {
 }
 
 bootJar {
-    excludeDevtools = true
     manifest {
         attributes(
             'Implementation-Title'   : 'xroad-centralserver',

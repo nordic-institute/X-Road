@@ -88,7 +88,6 @@ licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
 
 bootJar {
-    excludeDevtools = true
     manifest {
         attributes(
             'Implementation-Title': 'X-Road Central Server Admin Service' ,
