@@ -1,17 +1,7 @@
 ---
 cs_modules:
-  center-ui:
-    dir: center-ui
-    build: warble
-    lib: center-ui.war
-    target: /usr/share/xroad/jlib/webapps
-  center-service-war:
-    dir: center-service
-    build: warble
-    lib: center-service.war
-    target: /usr/share/xroad/jlib/webapps
-  center-service:
-    dir: center-service
+  centralserver-admin-service:
+    dir: centralserver/admin-service
     build: build
-    lib: center-service-1.0.jar
+    lib: centralserver-admin-service-1.0.jar
     target: /usr/share/xroad/jlib
