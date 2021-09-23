@@ -3,7 +3,7 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 buildscript {
     ext {
         // currently duplicate with proxy-ui-api build.gradle, probably should fix
-        openapiGeneratorVersion = '4.2.1'
+        openapiGeneratorVersion = '5.2.1'
         swaggerParserVersion = '2.0.21'
     }
     repositories {
@@ -75,7 +75,7 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.restapi.openapi"
     modelPackage = "org.niis.xroad.restapi.openapi.model"
-    systemProperties = [
+    globalProperties = [
             modelDocs: "false",
             apis     : "false",
             models   : "", // must use empty strings instead of "true":

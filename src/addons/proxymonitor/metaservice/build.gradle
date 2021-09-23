@@ -13,14 +13,11 @@ sourceSets {
 }
 
 dependencies {
-    //"shadow" includes also transitive dependencies
-    implementation project(path: ':proxy', configuration: 'shadow')
-
-    //workaround for Idea
+    implementation project(':proxy')
     implementation project(':common-util')
     implementation project(":serverconf")
     implementation project(":common-op-monitoring")
-    //workaround
+    implementation project(":common-verifier")
 
     implementation project(':monitor-common')
     implementation project(':monitoring-conf')
@@ -43,11 +40,11 @@ task createDirs() {
     }
 }
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }
@@ -78,25 +75,28 @@ buildall.dependsOn shadowJar
 compileJava.dependsOn processResources
 
 task runProxymonitorMetaserviceTest(type: JavaExec) {
-
     if (System.getProperty('DEBUG', 'false') == 'true') {
         jvmArgs '-Xdebug',
-                '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
+            '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005'
     }
 
     jvmArgs '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
-            '-Dxroad.tempFiles.path=build/attach-tmp',
-            '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml',
-            '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml',
-            '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml',
-            '-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml',
-            '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml',
-            '-Dxroad.proxy.client-connector-so-linger=-1',
-            '-Dxroad.proxy.client-httpclient-so-linger=-1',
-            '-Dxroad.proxy.server-connector-so-linger=-1',
-            '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
-            '-Dproxy.akka.remote.artery.canonical.port=0'
+        '-Dxroad.tempFiles.path=build/attach-tmp',
+        '-Dxroad.proxy.configurationFile=../../systemtest/conf/local_test/serverconf_producer.xml',
+        '-Dxroad.proxy.jetty-serverproxy-configuration-file=src/test/resources/serverproxy.xml',
+        '-Dxroad.proxy.jetty-clientproxy-configuration-file=src/test/resources/clientproxy.xml',
+        '-Dlogback.configurationFile=src/test/resources/logback-metaservicetest.xml',
+        '-Dxroad.proxy.jetty-ocsp-responder-configuration-file=src/test/resources/ocsp-responder.xml',
+        '-Dxroad.proxy.client-connector-so-linger=-1',
+        '-Dxroad.proxy.client-httpclient-so-linger=-1',
+        '-Dxroad.proxy.server-connector-so-linger=-1',
+        '-Dxroad.proxy.serverServiceHandlers=ee.ria.xroad.proxy.serverproxy.ProxyMonitorServiceHandlerImpl',
+        '-Dproxy.akka.remote.artery.canonical.port=0'
 
-    main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
+    mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
+}
+
+jacoco {
+    applyTo runProxymonitorMetaserviceTest
 }

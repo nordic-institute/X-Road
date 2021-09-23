@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.60  
+Version: 2.63  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -70,6 +70,9 @@ Doc. ID: UG-SYSPAR
 | 13.10.2020 | 2.58     | Add new parameter *akka-use-secure-remote-transport* | Jarkko Hyöty |
 | 11.02.2021 | 2.59     | Add new parameter *auto-update-timestamp-service-url* | Ilkka Seppälä |
 | 01.06.2021 | 2.60     | Add new parameter *messagelog.archive-grouping* | Jarkko Hyöty |
+| 04.08.2021 | 2.61     | Add new parameters for messagelog archive encryption | Jarkko Hyöty |
+| 25.08.2021 | 2.62     | Update X-Road references from version 6 to 7 | Caro Hautamäki |
+| 31.08.2021 | 2.63     | Update messagelog and proxy parameters | Ilkka Seppälä |
 
 ## Table of Contents
 
@@ -126,7 +129,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 1.  <a id="Ref_INI"></a>\[INI\] INI file, [http://en.wikipedia.org/wiki/INI_file](http://en.wikipedia.org/wiki/INI_file).
 2.  <a id="Ref_CRON"></a>\[CRON\] Quartz Scheduler
-    CRON expression, [http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html](http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/crontrigger.html).
+    CRON expression, [http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html](http://www.quartz-scheduler.org/documentation/quartz-2.3.0/tutorials/tutorial-lesson-06.html).
 3.  <a id="Ref_PR-MESS"></a>\[PR-MESS\] [X-Road Message Protocol v. 4.0](../Protocols/pr-mess_x-road_message_protocol.md).
 4.  <a id="Ref_PR-TARGETSS"></a>\[PR-TARGETSS\] [Security Server Targeting Extension for the X-Road Message Protocol](../Protocols/SecurityServerExtension/pr-targetss_security_server_targeting_extension_for_the_x-road_protocol.md).
 5.  <a id="Ref_PR-SECTOKEN"></a>\[PR-SECTOKEN\] [Security Token Extension for the X-Road Message Protocol](../Protocols/SecurityTokenExtension/pr-sectoken_security_token_extension_for_the_x-road_protocol.md).
@@ -134,7 +137,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 7.  <a id="Ref_CRONMAN"></a>\[CRONMAN\] [http://linux.die.net/man/8/cron](http://linux.die.net/man/8/cron).
 8.  <a id="Ref_CRONHOW"></a>\[CRONHOW\] Cron format specifications [https://help.ubuntu.com/community/CronHowto](https://help.ubuntu.com/community/CronHowto).
 9.  <a id="Ref_PR-REST"></a>\[PR-REST\] [X-Road Message Protocol for REST v. 1.0](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
-10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 
 ## 2 Changing the System Parameter Values
 
@@ -238,9 +241,9 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-listen-address                            | 0.0.0.0                                    |   |   | IP address on which the service provider's security server listens for connections from the service client's security servers. The value 0.0.0.0 allows listening on all IPv4 interfaces. |
 | server-listen-port                               | 5500                                       |   |   | TCP port on which the service provider's security server listens for connections from the service client's security server. |
 | server-port                                      | 5500                                       |   |   | Destination TCP port for outgoing queries in the service client's security server. |
-| jetty-clientproxy-configuration-file             | /etc/xroad/jetty/clientproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service client's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
-| jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
-| jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://wiki.eclipse.org/Jetty/Reference/jetty.xml\_usage. |
+| jetty-clientproxy-configuration-file             | /etc/xroad/jetty/clientproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service client's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html. |
+| jetty-serverproxy-configuration-file             | /etc/xroad/jetty/serverproxy.xml           |   |   | Absolute filename of the Jetty configuration file for the service provider's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html. |
+| jetty-ocsp-responder-configuration-file          | /etc/xroad/jetty/ocsp-responder.xml        |   |   | Absolute filename of the Jetty configuration file for the OCSP responder of the service provider's security server. For more information about configuring Jetty server, see https://www.eclipse.org/jetty/documentation/jetty-9/index.html. |
 | ssl-enabled                                      | true                                       |   |   | If true, TLS is used for connections between the service client's and service provider's security servers. |
 | client-tls-ciphers                               | See [1](#Ref_note1)                        |   |   | TLS ciphers (comma-separated list) enabled on the client-side interfaces (for both incoming and outgoing requests). (since version 6.7) |
 | xroad-tls-ciphers                                | See [2](#Ref_note2)                        |   |   | TLS ciphers (comma-separated list in preferred order) accepted on requests between security servers, and between operational monitoring daemon and client. (since version 6.20)  |
@@ -271,6 +274,8 @@ This chapter describes the system parameters used by the components of the X-Roa
 | server-conf-service-cache-size                   | 1000                                       |   |   | Maximum number of services to keep cached |
 | server-conf-acl-cache-size                       | 100000                                     |   |   | Maximum number of access rights to keep cached in memory. |
 | enforce-client-is-cert-validity-period-check     | false                                      |   |   | Whether to reject a request when client information system certificate is expired or not yet valid. |
+| backup-encrypted                                 | false                                      |   |   | Whether the security server configuration backups are encrypted. |
+| backup-public-key-path                           | /etc/xroad/backupkeys                      |   |   | Directory where additional backup encryption keys are stored. |
 
 Note about `database-properties` file: Management REST API module uses the same database-properties file, but
 limits the configuration parameters usage:
@@ -343,11 +348,19 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | timestamper-client-connect-timeout               | 20000                                      |   |   | The timestamper client connect timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamper-client-read-timeout                  | 60000                                      |   |   | The timestamper client read timeout in milliseconds. A timeout of zero is interpreted as an infinite timeout. |
 | timestamp-retry-delay                            | 60                                         |   |   | Time-stamp retry delay in seconds when batch time-stamping fails. After failing to batch time-stamp, the timestamper waits for the time period defined by "timestamp-retry-delay" before trying again. This is repeated until fetching a time-stamp succeeds. After successfully fetching a time-stamp, the timestamper returns to normal time-stamping schedule. If the value of "timestamp-retry-delay" is higher than the value of the central server system parameter "timeStampingIntervalSeconds", the value of "timeStampingIntervalSeconds" is used. If the value of "timestamp-retry-delay" is zero, the value of "timeStampingIntervalSeconds" is used. |
-| archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size).
+| archive-transaction-batch                        | 10000                                      |   |   | Size of transaction batch for archiving messagelog. This size is not exact because it will always make sure that last archived batch includes timestamp also (this might mean that it will go over transaction size). |
 | max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
-| archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). 
+| archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). |
+| archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using gpg |
+| archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys |
+| archive-encryption-keys-dir                      | /etc/xroad/gpghome                         |   |   | Directory for archive file encryption (recipient) PGP keys. Per-member keys can be used when grouping is by `member` or `subsystem` (subsystems use the member's key). When per-member keys are used, it's recommended to store them in a directory under `/etc/xroad` other than the default `/etc/xroad/gpghome` so that the keys are included in the security server configuration backups. |
+| archive-default-encryption-key                   |                                            |   |   | Default PGP public key for archive encryption (if not defined, the primary gpg encryption key is used) |
+| messagelog-encryption-enabled                    | false                                      |   |   | If true, message bodies are stored to the database in an encrypted format |
+| messagelog-keystore                              |                                            |   |   | Path to the keystore containing the key used in messagelog encryption |
+| messagelog-keystore-password                     |                                            |   |   | Messagelog keystore password |
+| messagelog-keyid                                 |                                            |   |   | Identifier of the messagelog encryption key |
 
 #### 3.7.1 Note on logged X-Road message headers
 
@@ -391,7 +404,7 @@ the message log.
 | auto-update-timestamp-service-url                | false                                      | If enabled, makes the security server update the timestamping service URLs when they are changed on the central server. In case there are multiple timestamping services with the same name, the update will not be done and a warning is logged instead. |
 
 Configurable SSL connection parameters are those
-[Spring Boot's common application properties](.https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
+[Spring Boot's common application properties](https://docs.spring.io/spring-boot/docs/current/reference/html/common-application-properties.html)
 that start with `server.ssl`.
 
 ssl.properties can be used to override any `server.ssl.*` property, also those that do not have default values. However, the result of merging default properties
@@ -460,7 +473,7 @@ This section describes the system parameters used by the X-Road central server. 
 | confExpireIntervalSeconds   | integer        | 600                                      | Time in seconds of the validity of the configuration after creation. |
 | confHashAlgoUri             | string         | http://www.w3.org/2001/04/xmlenc#sha512  | URI of the algorithm used for calculating the hash values of the global configuration files.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512. |
 | confSignDigestAlgoId        | string         | SHA-512                                  | Identifier of the digest algorithm used for signing the global configuration.<br/>Possible values are<br/>-   SHA-256,<br/>-   SHA-384,<br/>-   SHA-512. |
-| confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512  | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc\#sha256,<br/>http://www.w3.org/2001/04/xmlenc\#sha512. |
+| confSignCertHashAlgoUri     | string         | http://www.w3.org/2001/04/xmlenc#sha512  | URI of the algorithm used for calculating the hash value of the certificate used to sign the global configuration.<br/>Possible values are<br/>http://www.w3.org/2001/04/xmlenc#sha256,<br/>http://www.w3.org/2001/04/xmlenc#sha512. |
 | ocspFreshnessSeconds        | integer        | 3600                                     | Defines the validity period (in seconds) for the OCSP responses retrieved from the OCSP responders. OCSP responses older than the validity period are considered expired and cannot be used for certificate verification. |
 | timeStampingIntervalSeconds | integer        | 60                                       | Defines the interval of time-stamping service calls. Interval in seconds after which message log records must be timestamped. The interval must be between 60 and 86400 seconds. **Note: this value must be less than *ocspFreshnessSeconds.*** |
 

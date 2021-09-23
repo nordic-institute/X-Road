@@ -55,6 +55,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_DIAGNOSTIC_REQUEST_FAILED;
@@ -104,12 +105,12 @@ public class DiagnosticService {
      *
      * @return
      */
-    public List<DiagnosticsStatus> queryTimestampingStatus() {
+    public Set<DiagnosticsStatus> queryTimestampingStatus() {
         log.info("Query timestamper status");
         try {
             JsonObject json = sendGetRequest(diagnosticsTimestampingServicesUrl);
             return json.entrySet().stream().filter(e -> e.getValue() instanceof JsonObject)
-                    .map(this::parseTimestampingStatus).collect(Collectors.toList());
+                    .map(this::parseTimestampingStatus).collect(Collectors.toSet());
         } catch (DiagnosticRequestException e) {
             throw new DeviationAwareRuntimeException(e, e.getErrorDeviation());
         }

@@ -1,17 +1,27 @@
 #!/bin/bash
 . /usr/share/debconf/confmodule
 
-if [[ "$1" == configure ]]; then
+if [[ "$1" == configure || "$1" == reconfigure ]]; then
   RET=
-  db_get xroad-common/database-host || RET=""
-  /usr/share/xroad/scripts/setup_messagelog_db.sh "$RET"
+  db_get xroad-addon-messagelog/enable-messagelog || RET=true
+
+  if [ "$RET" = false ]; then
+    rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+  else
+    if [ ! -e /usr/share/xroad/jlib/addon/proxy/messagelog.conf ]; then
+      ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+    fi
+
+    RET=
+    db_get xroad-common/database-host || RET=""
+    /usr/share/xroad/scripts/setup_messagelog_db.sh "$RET"
+  fi
+
   db_stop
 
   invoke-rc.d xroad-proxy try-restart || true
 fi
 
-if [ "$1" = abort-upgrade ]; then
-  exit 0
-fi
+#DEBHELPER#
 
 exit 0

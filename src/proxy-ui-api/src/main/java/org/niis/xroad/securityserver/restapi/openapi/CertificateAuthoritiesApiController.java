@@ -59,7 +59,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.Collection;
-import java.util.List;
+import java.util.Set;
 
 /**
  * certificate authorities api controller
@@ -90,7 +90,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + " or #keyUsageType == null))"
             + "or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING)")
-    public ResponseEntity<List<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
+    public ResponseEntity<Set<CertificateAuthority>> getApprovedCertificateAuthorities(KeyUsageType keyUsageType,
             Boolean includeIntermediateCas) {
         KeyUsageInfo keyUsageInfo = KeyUsageTypeMapping.map(keyUsageType).orElse(null);
         Collection<ApprovedCaDto> caDtos = null;
@@ -99,7 +99,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
         } catch (CertificateAuthorityService.InconsistentCaDataException e) {
             throw new InternalServerErrorException(e);
         }
-        List<CertificateAuthority> cas = certificateAuthorityConverter.convert(caDtos);
+        Set<CertificateAuthority> cas = certificateAuthorityConverter.convert(caDtos);
         return new ResponseEntity<>(cas, HttpStatus.OK);
     }
 
@@ -109,7 +109,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             + " (#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).AUTHENTICATION))"
             + " or (hasAuthority('GENERATE_SIGN_CERT_REQ') and "
             + "(#keyUsageType == T(org.niis.xroad.securityserver.restapi.openapi.model.KeyUsageType).SIGNING))")
-    public ResponseEntity<List<CsrSubjectFieldDescription>> getSubjectFieldDescriptions(
+    public ResponseEntity<Set<CsrSubjectFieldDescription>> getSubjectFieldDescriptions(
             String caName,
             KeyUsageType keyUsageType,
             String keyId,
@@ -147,7 +147,7 @@ public class CertificateAuthoritiesApiController implements CertificateAuthoriti
             CertificateProfileInfo profileInfo;
             profileInfo = certificateAuthorityService.getCertificateProfile(
                     caName, keyUsageInfo, memberId, isNewMember);
-            List<CsrSubjectFieldDescription> converted = subjectConverter.convert(
+            Set<CsrSubjectFieldDescription> converted = subjectConverter.convert(
                     profileInfo.getSubjectFields());
             return new ResponseEntity<>(converted, HttpStatus.OK);
 

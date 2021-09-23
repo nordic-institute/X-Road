@@ -2,9 +2,9 @@
 
 ---
 # Signed Document Download and Verification Manual
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.7  
+Version: 1.9  
 Doc. ID: UG-SIGDOC
 
 ---
@@ -25,24 +25,29 @@ Doc. ID: UG-SIGDOC
  03.11.2018 | 1.5     | Convert from Word to Markdown. Asicverifier supports extracting messages when verification fails | Petteri Kivimäki
  07.01.2019 | 1.6     | Asicverifier version option. Updated asicverifier usage and jar name | Caro Hautamäki
  07.03.2019 | 1.7     | REST support modifications | Jarkko Hyöty
+ 25.08.2021 | 1.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 03.09.2021 | 1.9     | Minor updates | Ilkka Seppälä
 
 ## Table of Contents
 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 References](#11-references)
-* [2 Signed Document Download Service](#2-signed-document-download-service)
-  * [2.1 Retrieving Signed Documents of the Entire Transaction](#21-retrieving-signed-documents-of-the-entire-transaction)
-  * [2.2 Retrieving a Single Signed Document](#22-retrieving-a-single-signed-document)
-  * [2.3 Forcing Missing Timestamps To Be Created](#23-forcing-missing-timestamps-to-be-created)
-  * [2.4 Authentication](#24-authentication)
-  * [2.5 Error Conditions](#25-error-conditions)
-* [3 Signed Document Verification Tool](#3-signed-document-verification-tool)
-  * [3.1 Usage](#31-usage)
-  * [3.2 Verification Configuration](#32-verification-configuration)
+- [Signed Document Download and Verification Manual](#signed-document-download-and-verification-manual)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 References](#11-references)
+  - [2 Signed Document Download Service](#2-signed-document-download-service)
+    - [2.1 Retrieving Signed Documents of the Entire Transaction](#21-retrieving-signed-documents-of-the-entire-transaction)
+    - [2.2 Retrieving a Single Signed Document](#22-retrieving-a-single-signed-document)
+    - [2.3 Forcing Missing Timestamps To Be Created](#23-forcing-missing-timestamps-to-be-created)
+    - [2.4 Authentication](#24-authentication)
+    - [2.5 Error Conditions](#25-error-conditions)
+  - [3 Signed Document Verification Tool](#3-signed-document-verification-tool)
+    - [3.1 Usage](#31-usage)
+    - [3.2 Verification Configuration](#32-verification-configuration)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -72,7 +77,7 @@ The security server offers the asic web service for downloading its signed docum
 
 where `SECURITYSERVER` is the actual address of the security server.
 
-Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter keep-records-for in the configuration file `/etc/xroad/conf.d/addons/message-log.ini`).
+Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter `keep-records-for`). Depending on the parameter `messagelog-encryption-enabled` the messages are provided to the user in unencrypted or encrypted format.
 
 
 ### 2.1 Retrieving Signed Documents of the Entire Transaction

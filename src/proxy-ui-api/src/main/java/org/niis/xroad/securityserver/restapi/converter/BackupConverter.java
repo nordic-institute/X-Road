@@ -30,7 +30,7 @@ import org.niis.xroad.securityserver.restapi.dto.BackupFile;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,9 +46,9 @@ public class BackupConverter {
         return backup;
     }
 
-    public List<Backup> convert(Iterable<BackupFile> files)  {
+    public Set<Backup> convert(Iterable<BackupFile> files)  {
         return Streams.stream(files)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

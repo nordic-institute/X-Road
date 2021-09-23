@@ -50,11 +50,16 @@ import org.springframework.test.jdbc.JdbcTestUtils;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_DELINPROG;
 import static ee.ria.xroad.common.conf.serverconf.model.ClientType.STATUS_GLOBALERR;
@@ -157,34 +162,92 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
         assertTrue(sqlFileBytes.length > 1);
     }
 
-    private List<CertificateInfo> createCertificateInfoList() {
-        List<CertificateInfo> certificateInfos = new ArrayList<>();
+    /**
+     * - FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
+     * - FI:GOV:M1 has a sign cert "cert2" with ocsp status REVOKED
+     * - FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
+     */
+    private List<CertificateInfo> createSimpleSignCertList() {
 
         CertificateTestUtils.CertificateInfoBuilder certificateInfoBuilder =
                 new CertificateTestUtils.CertificateInfoBuilder();
 
         // Create cert with good ocsp response status
-        // This certificate is valid for all subsystems owned by the member "FI/GOV/M1".
-        ClientId clientId1 = ClientId.create("FI", "GOV", "M1", "SS1");
+        // This certificate is valid for all subsystems owned by the member "FI:GOV:M1".
+        ClientId clientId1 = ClientId.create("FI", "GOV", "M1");
         certificateInfoBuilder.clientId(clientId1);
         CertificateInfo cert1 = certificateInfoBuilder.build();
 
         // Create cert with revoked ocsp response status
-        // N.B. This cert is ignored, and SS2 is considered to have valid sign cert since SS1 and SS2 have the
-        // same owner, and sign certs are issued to members and not subsystems. Therefore, the certificate issued
-        // to SS1 applies to SS2 too.
-        ClientId clientId2 = ClientId.create("FI", "GOV", "M1", "SS2");
+        // N.B. This cert is ignored, and FI:GOV:M1 is considered to have valid sign cert since there's also a valid one
+        ClientId clientId2 = ClientId.create("FI", "GOV", "M1");
         certificateInfoBuilder.clientId(clientId2).ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold));
         CertificateInfo cert2 = certificateInfoBuilder.build();
 
         // Create cert with unknown ocsp response status
-        ClientId clientId3 = ClientId.create("FI", "GOV", "M2", "SS5");
+        ClientId clientId3 = ClientId.create("FI", "GOV", "M2");
         certificateInfoBuilder.clientId(clientId3).ocspStatus(new UnknownStatus());
         CertificateInfo cert3 = certificateInfoBuilder.build();
 
-        certificateInfos.addAll(Arrays.asList(cert2, cert3, cert1));
+        return Arrays.asList(cert2, cert3, cert1);
+    }
 
-        return certificateInfos;
+    /**
+     * local sign certificates for local clients:
+     * - FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
+     * - FI:GOV:M1 has a sign cert "cert2" with ocsp status REVOKED
+     * ---> FI:GOV:M1 has both GOOD and REVOKED certs
+     * - FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
+     * - FI:DUMMY:M2 has a sign cert "cert4" with ocsp status REVOKED
+     * - DUMMY:PRO:M2 does not have any sign certs
+     *
+     * local sign certificates for global-only clients (not local clients of this SS):
+     * - EE:PRO:M1 has a sign cert "cert5" with ocsp status GOOD
+     * - EE:PRO:M2 has a sign cert "cert6" with ocsp status REVOKED
+     * - EE:PRO:M3 does not have any sign certs
+     */
+    private List<CertificateInfo> createComplexSignCertList() {
+
+        // FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
+        ClientId clientIdFiGovM1 = ClientId.create("FI", "GOV", "M1");
+        CertificateInfo cert1 = new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(clientIdFiGovM1)
+                .build();
+
+        // FI:GOV:M1 has a sign cert "cert2" with ocsp status REVOKED
+        CertificateInfo cert2 = new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(clientIdFiGovM1)
+                .ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold))
+                .build();
+
+        // FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
+        CertificateInfo cert3 = new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(ClientId.create("FI", "GOV", "M2"))
+                .ocspStatus(new UnknownStatus())
+                .build();
+
+        // FI:DUMMY:M2 has a sign cert "cert4" with ocsp status REVOKED
+        CertificateInfo cert4 = new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(ClientId.create("FI", "DUMMY", "M2"))
+                .ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold))
+                .build();
+
+        // DUMMY:PRO:M2 does not have any sign certs
+
+        // EE:PRO:M1 has a sign cert "cert5" with ocsp status GOOD
+        CertificateInfo cert5 = new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(ClientId.create("EE", "PRO", "M1"))
+                .build();
+
+        // EE:PRO:M2 has a sign cert "cert6" with ocsp status REVOKED
+        CertificateInfo cert6 = new CertificateTestUtils.CertificateInfoBuilder()
+                .clientId(ClientId.create("EE", "PRO", "M2"))
+                .ocspStatus(new RevokedStatus(new Date(), CRLReason.certificateHold))
+                .build();
+
+        // EE:PRO:M3 does not have any sign certs
+
+        return Arrays.asList(cert1, cert2, cert3, cert4, cert5, cert6);
     }
 
     private int countIdentifiers() {
@@ -726,10 +789,10 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     @Test
     public void findClientsWithOnlyLocallyMissingClients() {
         List<ClientType> allFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, false, false);
+                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, false, null);
         assertEquals(5, allFiGovClients.size());
         List<ClientType> locallyMissingFiGovClients = clientService.findClients(null, TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, false, true);
+                TestUtils.MEMBER_CLASS_GOV, null, null, false, false, true, null);
         assertEquals(1, locallyMissingFiGovClients.size());
     }
 
@@ -809,20 +872,150 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     }
 
     @Test
-    public void findLocalClientsByOnlyLocalClientsWithValidSignCert() throws Exception {
-        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createCertificateInfoList());
+    public void findClientsByHasValidLocalSignCertSimpleScenario() {
+        /*
+          FI:GOV:M1 has a sign cert "cert1" with ocsp status GOOD
+          FI:GOV:M1 has a sign cert "cert2" with ocsp status REVOKED
+          FI:GOV:M2 has a sign cert "cert3" with ocsp status UNKNOWN
+         */
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos()).thenReturn(createSimpleSignCertList());
+        // all local clients FI:GOV:M1:* have a valid sign cert
         List<ClientType> clients = clientService.findLocalClients(null, null, null, null, null, false, true);
         assertEquals(2, clients.size());
         assertTrue("GOV".equals(clients.get(0).getIdentifier().getMemberClass()));
         assertTrue("M1".equals(clients.get(0).getIdentifier().getMemberCode()));
         assertTrue("SS1".equals(clients.get(0).getIdentifier().getSubsystemCode()));
-        // SS2 has an invalid cert in the createCertificateInfoList. Since sign
-        // certificates are issued to members (not to subsystems), and M1 has a valid sign cert created
-        // for SS1, the certificate applies to SS2 too, because both SS1 and SS2 belong to the
-        // same member.
         assertTrue("GOV".equals(clients.get(1).getIdentifier().getMemberClass()));
         assertTrue("M1".equals(clients.get(1).getIdentifier().getMemberCode()));
         assertTrue("SS2".equals(clients.get(1).getIdentifier().getSubsystemCode()));
+    }
+
+    /**
+     * Test hasValidLocalSignCert parameter in
+     * {@link ClientService#findClients(String, String, String, String, String, boolean, boolean, boolean, Boolean)}
+     * @throws Exception
+     */
+    @Test
+    public void findClientsByHasValidLocalSignCertComplexScenario() {
+
+        /*
+          Test data:
+          Clients that match hasValidLocalSignCert parameter
+          A = hasValidLocalSignCert = true (must have valid local sign cert)
+          B = hasValidLocalSignCert = false (must not have valid local sign cert)
+          hasValidLocalSignCert = null = union of A & B
+
+          local clients:
+          A -- FI:GOV:M1
+          A -- FI:GOV:M1:SS1
+          A -- FI:GOV:M1:SS2
+          B  -- FI:GOV:M2:SS5
+          B  -- FI:GOV:M2:SS6
+          B  -- DUMMY:PRO:M2:SS6
+          B  -- FI:DUMMY:M2:SS6
+
+          global-only clients:
+          B  -- FI:GOV:M2
+          B  -- FI:GOV:M3
+          B  -- FI:GOV:M3:SS1
+          A  -- EE:PRO:M1
+          A  -- EE:PRO:M1:SS1
+          B  -- EE:PRO:M2
+          B  -- EE:PRO:M2:SS3
+          B  -- EE:PRO:M3
+         */
+
+        Set<ClientId> localGroupAClientIds = createSortedClientIdSet(new HashSet<>());
+        localGroupAClientIds.add(TestUtils.getClientId("FI:GOV:M1"));
+        localGroupAClientIds.add(TestUtils.getClientId("FI:GOV:M1:SS1"));
+        localGroupAClientIds.add(TestUtils.getClientId("FI:GOV:M1:SS2"));
+
+        Set<ClientId> globalGroupAClientIds = createSortedClientIdSet(new HashSet<>());
+        globalGroupAClientIds.add(TestUtils.getClientId("EE:PRO:M1"));
+        globalGroupAClientIds.add(TestUtils.getClientId("EE:PRO:M1:SS1"));
+
+        Set<ClientId> groupAClientIds = createSortedClientIdSet(new HashSet<>());
+        groupAClientIds.addAll(localGroupAClientIds);
+        groupAClientIds.addAll(globalGroupAClientIds);
+
+        Set<ClientId> localGroupBClientIds = createSortedClientIdSet(new HashSet<>());
+        localGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M2:SS5"));
+        localGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M2:SS6"));
+        localGroupBClientIds.add(TestUtils.getClientId("DUMMY:PRO:M2:SS6"));
+        localGroupBClientIds.add(TestUtils.getClientId("FI:DUMMY:M2:SS6"));
+
+        Set<ClientId> globalGroupBClientIds = createSortedClientIdSet(new HashSet<>());
+        globalGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M2"));
+        globalGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M3"));
+        globalGroupBClientIds.add(TestUtils.getClientId("FI:GOV:M3:SS1"));
+        globalGroupBClientIds.add(TestUtils.getClientId("EE:PRO:M2"));
+        globalGroupBClientIds.add(TestUtils.getClientId("EE:PRO:M2:SS3"));
+        globalGroupBClientIds.add(TestUtils.getClientId("EE:PRO:M3"));
+
+        Set<ClientId> groupBClientIds = createSortedClientIdSet(new HashSet<>());
+        groupBClientIds.addAll(localGroupBClientIds);
+        groupBClientIds.addAll(globalGroupBClientIds);
+
+        Set<ClientId> allClientIds = createSortedClientIdSet(new HashSet<>());
+        allClientIds.addAll(groupAClientIds);
+        allClientIds.addAll(groupBClientIds);
+
+        when(currentSecurityServerSignCertificates.getSignCertificateInfos())
+                .thenReturn(createComplexSignCertList());
+
+        // (1) test hasValidLocalSignCert in isolation
+        // find clients with valid local sign cert
+        SortedSet<ClientId> clientIds = findClientIds(true, false, false);
+        assertEquals(groupAClientIds, clientIds);
+
+        // find clients without valid local sign cert
+        clientIds = findClientIds(false, false, false);
+        assertEquals(groupBClientIds, clientIds);
+
+        // find all clients
+        clientIds = findClientIds(null, false, false);
+        assertEquals(allClientIds, clientIds);
+
+        // (2) combine hasValidLocalSignCert with internalSearch and excludeLocal
+        clientIds = findClientIds(true, false, true);
+        assertEquals(localGroupAClientIds, clientIds);
+
+        clientIds = findClientIds(true, true, false);
+        assertEquals(globalGroupAClientIds, clientIds);
+
+        clientIds = findClientIds(false, false, true);
+        assertEquals(localGroupBClientIds, clientIds);
+
+        clientIds = findClientIds(false, true, false);
+        assertEquals(globalGroupBClientIds, clientIds);
+    }
+
+    /**
+     * Convenience wrapper for clientService.findClients which takes only relevant params and returns client ids
+     * @param hasValidLocalSignCert see {@link ClientService#findClients(String, String, String, String, String,
+     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @param excludeLocal          see {@link ClientService#findClients(String, String, String, String, String,
+     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @param internalSearch        see {@link ClientService#findClients(String, String, String, String, String,
+     *                                                                   boolean, boolean, boolean, Boolean)}
+     * @return matching clientIds
+     */
+    private SortedSet<ClientId> findClientIds(Boolean hasValidLocalSignCert,
+            boolean excludeLocal, boolean internalSearch) {
+        List<ClientType> clients = clientService.findClients(null, null, null, null, null, true, internalSearch,
+                excludeLocal, hasValidLocalSignCert);
+        return createSortedClientIdSet(clients.stream()
+                .map(client -> client.getIdentifier())
+                .collect(Collectors.toSet()));
+    }
+
+    /**
+     * Convenience sorted set, sorting based on client id short string, for easier debugging
+     */
+    private SortedSet<ClientId> createSortedClientIdSet(Collection<ClientId> clientIds) {
+        SortedSet<ClientId> s = new TreeSet<>(Comparator.comparing(ClientId::toShortString));
+        s.addAll(clientIds);
+        return s;
     }
 
     /* Test GLOBAL client search */
@@ -830,28 +1023,28 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findGlobalClientsByNameIncludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
                 null,
-                null, null, true);
+                null, null, true, null);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceIncludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_EE, null,
-                null, null, true);
+                null, null, true, null);
         assertEquals(5, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassIncludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
-                null, null, true);
+                null, null, true, null);
         assertEquals(6, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeIncludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_FI, null,
-                TestUtils.MEMBER_CODE_M1, null, true);
+                TestUtils.MEMBER_CODE_M1, null, true, null);
         assertEquals(3, clients.size());
     }
 
@@ -859,7 +1052,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findGlobalClientsByAllTermsIncludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true);
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, true, null);
         assertEquals(1, clients.size());
     }
 
@@ -867,28 +1060,28 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findGlobalClientsByNameExcludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1, null,
                 null,
-                null, null, false);
+                null, null, false, null);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceExcludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_EE, null,
-                null, null, false);
+                null, null, false, null);
         assertEquals(2, clients.size());
     }
 
     @Test
     public void findGlobalClientsByClassExcludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(null, null, TestUtils.MEMBER_CLASS_GOV,
-                null, null, false);
+                null, null, false, null);
         assertEquals(3, clients.size());
     }
 
     @Test
     public void findGlobalClientsByInstanceAndMemberCodeExcludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(null, TestUtils.INSTANCE_FI, null,
-                TestUtils.MEMBER_CODE_M1, null, false);
+                TestUtils.MEMBER_CODE_M1, null, false, null);
         assertEquals(2, clients.size());
     }
 
@@ -896,7 +1089,7 @@ public class ClientServiceIntegrationTest extends AbstractServiceIntegrationTest
     public void findGlobalClientsByAllTermsExcludeMembers() {
         List<ClientType> clients = clientService.findGlobalClients(TestUtils.NAME_FOR + TestUtils.SUBSYSTEM1,
                 TestUtils.INSTANCE_FI,
-                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false);
+                TestUtils.MEMBER_CLASS_GOV, TestUtils.MEMBER_CODE_M1, TestUtils.SUBSYSTEM1, false, null);
         assertEquals(1, clients.size());
     }
 

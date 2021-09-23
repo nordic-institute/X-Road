@@ -1,0 +1,7 @@
+dependencies {
+    implementation(project(':common-db'))
+    implementation(project(':common-messagelog'))
+    implementation "org.bouncycastle:bcpkix-jdk15on:${bouncyCastleVersion}"
+    implementation 'org.slf4j:slf4j-api:1.7.30'
+}
+

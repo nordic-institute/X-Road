@@ -4,9 +4,9 @@
 
 # Security Server Installation Guide for Red Hat Enterprise Linux <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.18  
+Version: 1.22  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -35,6 +35,10 @@ Doc. ID: IG-SS-RHEL
  01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
  11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
  18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
+ 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
+ 03.09.2021 | 1.21    | Minor fixes | Ilkka Seppälä
+ 06.09.2021 | 1.22    | Update list of running services | Jarkko Hyöty
 
 ## License
 
@@ -59,10 +63,11 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
   - [2.4 Preparing OS](#24-preparing-os)
   - [2.5 Setup Package Repository](#25-setup-package-repository)
   - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  - [2.7 Security Server Installation](#27-security-server-installation)
-    - [2.7.1 Configure Proxy Ports](#271-configure-proxy-ports)
-    - [2.7.2 Start Security Server](#272-start-security-server)
-  - [2.8 Post-Installation Checks](#28-post-installation-checks)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
+    - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
+    - [2.8.2 Start Security Server](#282-start-security-server)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
@@ -103,7 +108,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -118,7 +123,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
-* Ubuntu Server 18.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 18.04 and 20.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -192,7 +197,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (v7.3 or newer) x86-64 operating system;
+* an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -226,7 +231,7 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
   ```
 
-If you are installing the default setup with local PostgreSQL database, continue at section 2.7. If you need to customize database properties and e.g. use a remote database, read on.
+If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.
 
 ### 2.6 Remote Database Setup (optional)
 
@@ -290,9 +295,19 @@ Before continuing, test that the connection to the database works, e.g.
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
 
-### 2.7 Security Server Installation
+### 2.7 Disable the Messagelog Addon before Installation (optional)
 
-Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+It is possible to preconfigure the Security Server installation so that the messagelog addon will be automatically disabled after the installation process is done. This also skips the creation of the messagelog database.
+
+In order to skip messagelog database creation and disable the messagelog addon, run the following command to create a configuration file before installing the Security Server 
+
+```
+echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
+```
+
+### 2.8 Security Server Installation
+
+Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
 
   ```
   sudo yum install xroad-securityserver
@@ -307,7 +322,7 @@ Add system user (**reference data: 1.3**) whom all roles in the user interface a
 User roles are discussed in detail in X-Road Security Server User Guide \[[UG-SS](#Ref_UG-SS)\].
 
 
-#### 2.7.1 Configure Proxy Ports
+#### 2.8.1 Configure Proxy Ports
 
 **This is an optional step.** Change `xroad-proxy` to use ports 80 and 443.
 
@@ -321,7 +336,7 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
   client-https-port=443
   ```
 
-#### 2.7.2 Start Security Server
+#### 2.8.2 Start Security Server
 
 Once the installation is completed, start the security server
 
@@ -330,22 +345,23 @@ Once the installation is completed, start the security server
   ```
 
 
-### 2.8 Post-Installation Checks
+### 2.9 Post-Installation Checks
 
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
-  
+
   ```
   sudo systemctl list-units "xroad-*"
 
-  UNIT                       LOAD   ACTIVE SUB     DESCRIPTION
-  xroad-confclient.service   loaded active running X-Road confclient
-  xroad-monitor.service      loaded active running X-Road Monitor
-  xroad-opmonitor.service    loaded active running X-Road opmonitor daemon
-  xroad-proxy-ui-api.service loaded active running X-Road Proxy UI REST API
-  xroad-proxy.service        loaded active running X-Road Proxy
-  xroad-signer.service       loaded active running X-Road signer
+  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
+  xroad-addon-messagelog.service loaded active running X-Road Messagelog Archiver
+  xroad-base.service             loaded active exited  X-Road initialization
+  xroad-confclient.service       loaded active running X-Road confclient
+  xroad-monitor.service          loaded active running X-Road Monitor
+  xroad-proxy-ui-api.service     loaded active running X-Road Proxy UI REST API
+  xroad-proxy.service            loaded active running X-Road Proxy
+  xroad-signer.service           loaded active running X-Road signer
   ```
 
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.

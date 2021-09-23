@@ -1,8 +1,8 @@
 # X-Road Terms and Abbreviations
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 0.7  
+Version: 0.8  
 Doc. ID:  TA-TERMS
 
 ## Version history
@@ -16,6 +16,7 @@ Doc. ID:  TA-TERMS
  03.01.2019 | 0.5     | Minor changes - typos fixed. | Yamato Kataoka |
  16.04.2019 | 0.6     | Add description of REST services. | Petteri Kivimäki |
  02.06.2021 | 0.7     | Add backup encryption related terms. | Andres Allkivi |
+ 25.08.2021 | 0.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents
 
