@@ -48,6 +48,7 @@
               type="text"
               :label="$t('fields.init.identifier')"
               :error-messages="errors"
+              :disabled="disabledFields.instanceIdentifier"
               outlined
               autofocus
               data-test="instance-identifier--input"
@@ -73,6 +74,7 @@
               type="text"
               :label="$t('fields.init.address')"
               :error-messages="errors"
+              :disabled="disabledFields.address"
               outlined
               data-test="address-input"
             ></v-text-field>
@@ -97,6 +99,7 @@
               name="init.pin"
               :label="$t('fields.init.pin')"
               :error-messages="errors"
+              :disabled="disabledFields.pin"
               outlined
               data-test="pin-input"
             ></v-text-field>
@@ -119,6 +122,7 @@
               name="init.confirmPin"
               :label="$t('fields.init.confirmPin')"
               :error-messages="errors"
+              :disabled="disabledFields.pin"
               outlined
               data-test="confirm-pin-input"
             >
@@ -150,9 +154,10 @@ import Vue, { VueConstructor } from 'vue';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
 import { Colors, RouteName, StoreTypes } from '@/global';
-import { ErrorInfo, InitialServerConf } from '@/openapi-types';
+import { ErrorInfo, InitialServerConf, TokenInitStatus } from '@/openapi-types';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
+import { State } from '@/store/modules/initialization';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -164,7 +169,11 @@ extend('password', {
   },
   message: PASSWORD_MATCH_ERROR,
 });
-
+const statusState = {
+  instanceId: 'instanceIdentifier',
+  serverAddress: 'address',
+  tokenInit: 'pin',
+} as const;
 function getTranslatedFieldErrors(
   fieldName: string,
   fieldError: Record<string, string[]>,
@@ -211,9 +220,31 @@ export default (
       pin: '',
       pinConfirm: '',
       colors: Colors,
+      disabledFields: {
+        address: false,
+        instanceIdentifier: false,
+        pin: false,
+      },
     };
   },
   computed: {},
+  created: function () {
+    let statusAtFirst: State =
+      this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
+
+    if (TokenInitStatus.INITIALIZED == statusAtFirst?.tokenInit) {
+      this.disabledFields.pin = true;
+      this.pin = '****';
+    }
+    if (statusAtFirst?.serverAddress.length > 0) {
+      this.disabledFields.address = true;
+      this.address = statusAtFirst?.serverAddress;
+    }
+    if (statusAtFirst?.instanceId.length > 0) {
+      this.disabledFields.instanceIdentifier = true;
+      this.instanceIdentifier = statusAtFirst.instanceId;
+    }
+  },
   methods: {
     async submit() {
       // validate inputs
@@ -268,6 +299,11 @@ export default (
           return this.$store.dispatch(
             StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW,
             error,
+          );
+        })
+        .finally(() => {
+          return this.$store.dispatch(
+            StoreTypes.actions.INITIALIZATION_STATUS_REQUEST,
           );
         });
 

@@ -51,7 +51,7 @@ export const getDefaultState = (): State => {
 const moduleState = getDefaultState();
 
 export const userGetters: GetterTree<State, RootState> = {
-  [StoreTypes.getters.INITIALIZATION_STATUS](state) {
+  [StoreTypes.getters.INITIALIZATION_STATUS](state): State {
     return {
       instanceId: state.instanceId,
       serverAddress: state.serverAddress,
