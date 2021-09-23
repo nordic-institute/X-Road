@@ -64,7 +64,7 @@ export const userGetters: GetterTree<State, RootState> = {
   },
   [StoreTypes.getters.SERVER_VERSION](state) {
     return state.serverVersion;
-  }
+  },
 };
 
 export const mutations: MutationTree<State> = {
@@ -100,7 +100,6 @@ export const actions: ActionTree<State, RootState> = {
       data,
     })
       .then(() => {
-
         commit(StoreTypes.mutations.AUTH_USER);
         commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
         dispatch(StoreTypes.actions.INITIALIZATION_STATUS_REQUEST);
@@ -124,7 +123,7 @@ export const actions: ActionTree<State, RootState> = {
       });
   },
 
-  async [StoreTypes.actions.FETCH_USER_DATA]({commit}) {
+  async [StoreTypes.actions.FETCH_USER_DATA]({ commit }) {
     return axios
       .get('/user')
       .then((user) => {

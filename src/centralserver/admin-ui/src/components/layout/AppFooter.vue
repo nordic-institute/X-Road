@@ -47,7 +47,9 @@
           <v-row>
             <v-col class="py-0">
               {{ $t('footer.software.versionPrefix') }}&nbsp;
-              <span data-test="app-footer-server-version">{{ version.info }}</span>
+              <span data-test="app-footer-server-version">{{
+                version.info
+              }}</span>
             </v-col>
           </v-row>
           <v-row>
@@ -103,18 +105,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import {StoreTypes} from "@/global";
+import { StoreTypes } from '@/global';
 
 export default Vue.extend({
   name: 'AppFooter',
-  data: function() {
+  data: function () {
     return {
-      version:"",
+      version: '',
     };
   },
   created: function () {
     this.version = this.$store.getters[StoreTypes.getters.SERVER_VERSION];
-  }
+  },
 });
 </script>
 

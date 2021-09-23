@@ -107,12 +107,12 @@
           <xrd-form-label :label-text="$t('fields.init.confirmPin')" />
 
           <ValidationProvider
-            v-slot="{ errors }"
+            v-slot="{ errors, passed }"
+            ref="confirmPinFieldVP"
             name="init.confirmPin"
             rules="required|password:@init.pin"
           >
             <v-text-field
-              ref="confirmPinField"
               v-model="pinConfirm"
               class="form-input"
               type="text"
@@ -123,7 +123,7 @@
               data-test="confirm-pin-input"
             >
               <xrd-icon-base
-                v-if="isPinCorrected()"
+                v-if="passed"
                 slot="append"
                 :color="colors.Success100"
               >
@@ -183,7 +183,6 @@ export default (
   Vue as VueConstructor<
     Vue & {
       $refs: {
-        initializationParamsVP: InstanceType<typeof ValidationProvider>;
         initializationForm: InstanceType<typeof ValidationObserver>;
       };
     }
@@ -205,12 +204,6 @@ export default (
   },
   computed: {},
   methods: {
-    isPinCorrected(): boolean {
-      return (
-        this.$refs?.confirmPinField?.isDirty &&
-        !this.$refs?.confirmPinField?.hasError
-      );
-    },
     async submit() {
       // validate inputs
 

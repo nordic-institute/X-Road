@@ -144,9 +144,16 @@ export default (
   },
   computed: {
     isDisabled() {
-      return (
-        this.username.length < 1 || this.password.length < 1 || this.loading
-      );
+      // beware: simplified one-liner fails at runtime
+      if (
+        this.username.length < 1 ||
+        this.password.length < 1 ||
+        this.loading
+      ) {
+        return true;
+      } else {
+        return false;
+      }
     },
   },
   methods: {
@@ -249,6 +256,7 @@ export default (
 
 <style lang="scss" scoped>
 @import '~styles/colors';
+
 .alerts {
   top: 40px;
   left: 0;
