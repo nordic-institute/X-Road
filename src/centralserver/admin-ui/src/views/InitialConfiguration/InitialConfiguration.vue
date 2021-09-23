@@ -249,12 +249,16 @@ export default (
     async submit() {
       // validate inputs
 
-      const formData: InitialServerConf = {
-        instance_identifier: this.instanceIdentifier,
-        central_server_address: this.address,
-        software_token_pin: this.pin,
-      };
-
+      const formData: InitialServerConf = {};
+      if (!this.disabledFields.instanceIdentifier) {
+        formData.instance_identifier = this.instanceIdentifier;
+      }
+      if (!this.disabledFields.address) {
+        formData.central_server_address = this.address;
+      }
+      if (!this.disabledFields.pin) {
+        formData.software_token_pin = this.pin;
+      }
       await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
       await this.$store
         .dispatch(StoreTypes.actions.INITIALIZATION_REQUEST, formData)
