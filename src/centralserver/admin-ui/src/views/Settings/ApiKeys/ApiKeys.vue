@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
+  <div data-test="api-keys-view">
     <!-- Title and button -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -145,7 +145,7 @@
       @cancel="confirmRevoke = false"
       @accept="revokeApiKey"
     />
-  </xrd-sub-view-container>
+  </div>
 </template>
 
 <script lang="ts">
@@ -260,14 +260,16 @@ export default Vue.extend({
         ? []
         : roles.map((role) => this.$t(`apiKey.role.${role}`) as string);
     },
-    async revokeApiKey() {
+    revokeApiKey() {
       if (!this.selectedKey) return;
 
       this.removingApiKey = true;
       return api
-        .remove(`/api-keys/${api.encodePathParameter(this.selectedKey.id)}`)
+        .remove<ApiKey>(
+          `/api-keys/${api.encodePathParameter(this.selectedKey.id)}`,
+        )
         .then((response) => {
-          const key = response.data as ApiKey;
+          const key = response.data;
           this.$store.dispatch(
             'showSuccessRaw',
             this.$t('apiKey.table.action.revoke.success', {
@@ -284,7 +286,7 @@ export default Vue.extend({
           this.loadKeys();
         });
     },
-    async save() {
+    save() {
       if (!this.selectedKey) return;
       this.savingChanges = true;
       return api

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3">
+  <div class="mt-3" data-test="api-keys-view">
     <div class="table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
@@ -246,14 +246,16 @@ export default Vue.extend({
         ? []
         : roles.map((role) => this.$t(`apiKey.role.${role}`) as string);
     },
-    async revokeApiKey() {
+    revokeApiKey() {
       if (!this.selectedKey) return;
 
       this.removingApiKey = true;
       return api
-        .remove(`/api-keys/${api.encodePathParameter(this.selectedKey.id)}`)
+        .remove<ApiKey>(
+          `/api-keys/${api.encodePathParameter(this.selectedKey.id)}`,
+        )
         .then((response) => {
-          const key = response.data as ApiKey;
+          const key = response.data;
           this.$store.dispatch(
             'showSuccessRaw',
             this.$t('apiKey.table.action.revoke.success', {
@@ -268,11 +270,11 @@ export default Vue.extend({
           this.loadKeys();
         });
     },
-    async save() {
+    save() {
       if (!this.selectedKey) return;
       this.savingChanges = true;
       return api
-        .put(
+        .put<ApiKey>(
           `/api-keys/${api.encodePathParameter(this.selectedKey.id)}`,
           this.selectedRoles,
         )
