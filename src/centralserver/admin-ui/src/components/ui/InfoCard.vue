@@ -23,21 +23,57 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-
 <template>
-  <sub-view-container>
-    <router-view data-test="security-servers-view"></router-view>
-  </sub-view-container>
+  <v-card class="details-card" flat>
+    <v-card-title class="card-title">{{ titleText }}</v-card-title>
+    <v-divider></v-divider>
+    <v-card-text :data-test="dataTest" class="card-content"
+      ><div>{{ infoText }}</div>
+      <slot></slot
+    ></v-card-text>
+    <v-divider class="pb-4"></v-divider>
+  </v-card>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
+import { mapGetters } from 'vuex';
+import { StoreTypes } from '@/global';
 
-/**
- * Security servers main view wrapping content all from 'Security servers' main tab
- */
 export default Vue.extend({
-  components: { SubViewContainer },
+  name: 'InfoCard',
+  props: {
+    titleText: {
+      type: String,
+      required: true,
+    },
+    infoText: {
+      type: String,
+      required: true,
+    },
+    // For e2e testing
+    dataTest: {
+      type: String,
+      required: true,
+    },
+  },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/colors';
+
+.card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: $XRoad-Black70;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.card-content {
+  display: flex;
+  justify-content: space-between;
+}
+</style>
