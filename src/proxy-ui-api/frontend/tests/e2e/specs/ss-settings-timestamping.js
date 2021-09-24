@@ -27,6 +27,7 @@
 let mainPage, settingsTab, systemParametersTab;
 
 module.exports = {
+  '@disabled': true, // assumes timestamping is not set yet, which is not true in aws emvironment
   tags: ['ss', 'settings', 'timestamping'],
   before: function (browser) {
     // Populate pageObjects for whole test suite
