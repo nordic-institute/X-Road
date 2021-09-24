@@ -42,6 +42,11 @@ module.exports = {
     browser.end();
   },
 
+  'timestamping service can be deleted': () => {
+    // when user confirms:
+    systemParametersTab.deleteCurrentTimestampingService();
+  },
+
   'User can add new timestamping service': () => {
     systemParametersTab.openTimeStampingAddDialog();
     // adding can be cancelled
@@ -93,8 +98,5 @@ module.exports = {
       'http://cs:8899',
     );
   },
-  'timestamping service can be deleted': () => {
-    // when user confirms:
-    systemParametersTab.deleteCurrentTimestampingService();
-  },
+
 };
