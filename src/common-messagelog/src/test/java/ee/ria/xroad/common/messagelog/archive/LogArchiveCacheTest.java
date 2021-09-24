@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -108,6 +109,8 @@ public class LogArchiveCacheTest {
 
     @Before
     public void setup() {
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
+
         if (encrypted) {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
         }

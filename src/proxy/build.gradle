@@ -66,8 +66,8 @@ task runProxyMain(type: JavaExec) {
         '-Dxroad.appLog.path=log',
         '-Dlogback.configurationFile=src/test/resources/logback-test.xml'
 
-    //main = 'ee.ria.xroad.proxy.ProxyMain'
-    main = 'ee.ria.xroad.proxy.TestProxyMain'
+    //mainClass = 'ee.ria.xroad.proxy.ProxyMain'
+    mainClass = 'ee.ria.xroad.proxy.TestProxyMain'
     classpath = sourceSets.main.runtimeClasspath
     classpath += sourceSets.test.runtimeClasspath
     classpath += files('src/test/resources')
@@ -114,7 +114,7 @@ task runProxyTest(type: JavaExec) {
         '-Dproxy.akka.remote.artery.canonical.port=0'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
-    main = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
+    mainClass = 'ee.ria.xroad.proxy.testsuite.ProxyTestSuite'
     classpath = sourceSets.test.runtimeClasspath
 }
 
@@ -125,7 +125,7 @@ jacoco {
 task runBatchSigner(type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/logback-batchsigner.xml'
 
-    main = 'ee.ria.xroad.common.signature.BatchSigner'
+    mainClass = 'ee.ria.xroad.common.signature.BatchSigner'
     classpath = sourceSets.test.runtimeClasspath
 }
 

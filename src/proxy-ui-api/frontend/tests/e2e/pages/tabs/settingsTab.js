@@ -25,6 +25,7 @@
  */
 
 const path = require('path');
+const assert = require('assert');
 
 const settingsTabCommands = {
   openSystemParameters: function () {
@@ -41,7 +42,42 @@ const settingsTabCommands = {
   },
 };
 
-const systemParametersCommands = {};
+const systemParametersTabCommands = {
+  openTimeStampingAddDialog: function () {
+    this.click('@timestampingAddButton');
+    this.waitForElementVisible('@timestampingAddDialogServiceSelection');
+    return this;
+  },
+  openTimeStampingDeleteDialog: function () {
+    this.waitForElementVisible('@timestampingDeleteButton');
+    this.click('@timestampingDeleteButton');
+    this.waitForElementVisible('@timestampingDeleteDialog');
+    return this;
+  },
+  deleteCurrentTimestampingService: function () {
+    this.click('@timestampingDeleteButton');
+    this.waitForElementVisible('@timestampingDeleteDialogSaveButton');
+    this.click('@timestampingDeleteDialogSaveButton');
+
+    this.waitForElementNotPresent('@timestampingDeleteDialog');
+    this.waitForElementNotPresent('@timestampingServiceTableRow');
+    return this;
+  },
+
+  assertTimestampingTableContents: function (expectedName, expectedUrl) {
+    // Service table row is visible
+    this.waitForElementVisible('@timestampingServiceTableRow');
+    // Delete button is visible in row
+    this.waitForElementVisible('@timestampingDeleteButton');
+    this.getText('@timestampingTableFirstCell', function (foundName) {
+      assert.equal(foundName.value, expectedName);
+    });
+    this.getText('@timestampingTableSecondCell', function (foundUrl) {
+      assert.equal(foundUrl.value, expectedUrl);
+    });
+    return this;
+  },
+};
 
 const backupAndRestoreCommands = {
   enterFilterInput: function (input) {
@@ -67,9 +103,9 @@ const backupAndRestoreCommands = {
       'xpath',
       `//table[contains(@class, "xrd-table")]/tbody/tr/td[text() = "${backupFilename}"]/..//button[@data-test="backup-download"]`,
     );
-
     return this;
   },
+
   clickRestoreForBackup: function (backupFilename) {
     this.click(
       'xpath',
@@ -100,27 +136,87 @@ const confirmationDialog = {
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
   selector:
-    '//div[.//a[contains(@class, "v-tab--active") and @data-test="settings"]]//div[contains(@class, "base-full-width")]',
+    '//div[@data-test="settings-tab-view"]',
   locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "System Parameters")]',
+        '//a[@data-test="system-parameters-tab-button"]',
       locateStrategy: 'xpath',
     },
     backupAndRestoreTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Backup And Restore")]',
+        '//a[@data-test="backupandrestore-tab-button"]',
       locateStrategy: 'xpath',
     },
   },
   sections: {
     systemParametersTab: {
       selector:
-        '//div[contains(@class, "v-tabs-bar__content")]//a[@data-test="system"]',
+        '//div[@data-test="system-parameters-tab-view"]',
       locateStrategy: 'xpath',
-      commands: systemParametersCommands,
+      commands: systemParametersTabCommands,
+      elements: {
+        timestampingServiceTableRow: {
+          selector:
+            '//tr[@data-test="system.parameters-timestamping-service-row"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingDeleteButton: {
+          selector:
+            '//button[@data-test="system-parameters-timestamping-service-delete-button"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingAddButton: {
+          selector:
+            '//button[@data-test="system-parameters-timestamping-services-add-button"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingAddButtonDisabled: {
+          selector:
+            '//button[@data-test="system-parameters-timestamping-services-add-button" and @disabled="disabled"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingDeleteDialog: {
+          selector: '//div[@data-test="dialog-simple"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingDeleteDialogCancelButton: {
+          selector:
+            '//button[@data-test="dialog-cancel-button"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingDeleteDialogSaveButton: {
+          selector: '//button[@data-test="dialog-save-button"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingAddDialogAddButton: {
+          selector:
+            '//button[@data-test="system-parameters-add-timestamping-service-dialog-add-button"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingAddDialogCancelButton: {
+          selector:
+            '//button[@data-test="system-parameters-add-timestamping-service-dialog-cancel-button"]',
+          locateStrategy: 'xpath',
+        },
+        timestampingAddDialogServiceSelection: {
+          selector:
+            '//input[@value="X-Road Test TSA CN"]/../../label',
+          locateStrategy: 'xpath',
+        },
+        timestampingTableFirstCell: {
+          selector:
+            '//tr[@data-test="system.parameters-timestamping-service-row"]/td[1]',
+          locateStrategy: 'xpath',
+        },
+        timestampingTableSecondCell: {
+          selector:
+            '//tr[@data-test="system.parameters-timestamping-service-row"]/td[2]',
+          locateStrategy: 'xpath',
+        },
+      },
     },
     backupAndRestoreTab: {
       selector:
