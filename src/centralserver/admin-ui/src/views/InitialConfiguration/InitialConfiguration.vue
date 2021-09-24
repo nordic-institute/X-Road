@@ -95,7 +95,7 @@
             <v-text-field
               v-model="pin"
               class="form-input"
-              type="text"
+              type="password"
               name="init.pin"
               :label="$t('fields.init.pin')"
               :error-messages="errors"
@@ -118,7 +118,7 @@
             <v-text-field
               v-model="pinConfirm"
               class="form-input"
-              type="text"
+              type="password"
               name="init.confirmPin"
               :label="$t('fields.init.confirmPin')"
               :error-messages="errors"
