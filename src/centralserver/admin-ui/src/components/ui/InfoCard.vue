@@ -29,7 +29,7 @@
     <v-divider></v-divider>
     <v-card-text :data-test="dataTest" class="card-content"
       ><div>{{ infoText }}</div>
-      <slot></slot
+      <slot name="actions"></slot
     ></v-card-text>
     <v-divider class="pb-4"></v-divider>
   </v-card>

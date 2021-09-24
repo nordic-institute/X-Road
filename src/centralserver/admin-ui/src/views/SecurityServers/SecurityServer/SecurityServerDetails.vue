@@ -62,7 +62,9 @@
       :info-text="securityServer.address"
       data-test="security-server-owner-code"
     >
-      <xrd-button text :outlined="false">{{ $t('action.edit') }}</xrd-button>
+      <template #actions>
+        <xrd-button text :outlined="false">{{ $t('action.edit') }}</xrd-button>
+      </template>
     </info-card>
 
     <info-card
