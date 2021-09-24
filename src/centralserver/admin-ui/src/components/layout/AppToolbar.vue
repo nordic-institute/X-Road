@@ -35,7 +35,11 @@
   >
     <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">X-ROAD CENTRAL SERVER</div>
-      <div v-show="!isInitialized" data-test="app-toolbar-server-init-phase-id">
+      <div
+        v-show="!isInitialized"
+        class="initialization-phase-title"
+        data-test="app-toolbar-server-init-phase-id"
+      >
         {{ $t('init.initialConfiguration') }}
       </div>
       <div
@@ -106,6 +110,9 @@ export default Vue.extend({
   align-items: center;
   width: 100%;
 
+  .initialization-phase-title {
+    margin: 20px;
+  }
   .server-name {
     margin: 20px;
     margin-right: 10px;
