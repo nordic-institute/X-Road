@@ -27,7 +27,7 @@ package org.niis.xroad.securityserver.restapi.config;
 
 import brave.Tracer;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.sleuth.instrument.web.TraceWebServletAutoConfiguration;
+import org.springframework.cloud.sleuth.autoconfig.instrument.web.SleuthWebProperties;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -47,14 +47,13 @@ import java.io.IOException;
 @Order(AddCorrelationIdFilter.CORRELATION_ID_FILTER_ORDER)
 @RequiredArgsConstructor
 public class AddCorrelationIdFilter implements Filter {
-    public static final int CORRELATION_ID_FILTER_ORDER = TraceWebServletAutoConfiguration.TRACING_FILTER_ORDER + 1;
+    public static final int CORRELATION_ID_FILTER_ORDER = SleuthWebProperties.TRACING_FILTER_ORDER + 1;
     public static final String CORRELATION_ID_HEADER_NAME = "x-road-ui-correlation-id";
 
     private final Tracer tracer;
 
     public String getCorrelationId() {
-        if (tracer != null && tracer.currentSpan() != null
-                    && tracer.currentSpan().context() != null) {
+        if (tracer != null && tracer.currentSpan() != null && tracer.currentSpan().context() != null) {
             return tracer.currentSpan().context().traceIdString();
         } else {
             return null;
@@ -65,8 +64,7 @@ public class AddCorrelationIdFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response,
             FilterChain chain) throws IOException, ServletException {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-        httpServletResponse.setHeader(
-                CORRELATION_ID_HEADER_NAME, getCorrelationId());
+        httpServletResponse.setHeader(CORRELATION_ID_HEADER_NAME, getCorrelationId());
         chain.doFilter(request, response);
     }
 }

@@ -50,8 +50,8 @@ import javax.net.ssl.SSLHandshakeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -310,23 +310,24 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL" })
     public void getServiceAccessRights() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
-        ServiceClient serviceClient = getServiceClientByType(serviceClients, TestUtils.GLOBALGROUP).get();
+        ServiceClient serviceClient = getServiceClientByTypeExceptId(
+                serviceClients, TestUtils.GLOBALGROUP, "FI:test-globalgroup").get();
         assertEquals(TestUtils.NAME_FOR + TestUtils.DB_GLOBALGROUP_CODE,
                 serviceClient.getName());
         assertEquals(TestUtils.DB_GLOBALGROUP_ID, serviceClient.getId());
         assertEquals(TestUtils.GLOBALGROUP, serviceClient.getServiceClientType().name());
 
-        serviceClient = getServiceClientByType(serviceClients, TestUtils.LOCALGROUP).get();
+        serviceClient = getServiceClientByTypeExceptId(serviceClients, TestUtils.LOCALGROUP, null).get();
         assertEquals(TestUtils.DB_LOCAL_GROUP_ID_1, serviceClient.getId());
         assertEquals(TestUtils.DB_LOCAL_GROUP_CODE, serviceClient.getLocalGroupCode());
         assertEquals(FOO, serviceClient.getName());
         assertEquals(TestUtils.LOCALGROUP, serviceClient.getServiceClientType().name());
 
-        serviceClient = getServiceClientByType(serviceClients, TestUtils.SUBSYSTEM).get();
+        serviceClient = getServiceClientByTypeExceptId(serviceClients, TestUtils.SUBSYSTEM, null).get();
         assertEquals(TestUtils.NAME_FOR + TestUtils.CLIENT_ID_SS2,
                 serviceClient.getName());
         assertEquals(TestUtils.CLIENT_ID_SS2, serviceClient.getId());
@@ -354,10 +355,12 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         }
     }
 
-    private Optional<ServiceClient> getServiceClientByType(List<ServiceClient> serviceClients, String type) {
+    private Optional<ServiceClient> getServiceClientByTypeExceptId(
+            Set<ServiceClient> serviceClients, String type, String exceptId) {
         return serviceClients
                 .stream()
-                .filter(serviceClient -> serviceClient.getServiceClientType().name().equals(type))
+                .filter(serviceClient -> serviceClient.getServiceClientType().name().equals(type)
+                        & !serviceClient.getId().equals(exceptId))
                 .findFirst();
     }
 
@@ -367,7 +370,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
 
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -386,7 +389,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
 
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -407,7 +410,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
 
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -425,7 +428,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRightsWrongTypeIgnored() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -444,7 +447,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRightsWrongTypeLocalGroupIgnored() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -466,7 +469,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
 
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -491,7 +494,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
 
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -513,7 +516,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRightsWrongLocalGroupId() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -530,7 +533,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @Test(expected = BadRequestException.class)
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void deleteServiceAccessRightsWrongLocalGroupType() {
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -547,7 +550,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     public void addAccessRights() {
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_CALCULATE_PRIME).getBody();
         int calculatePrimeClientsBefore = 1;
         assertEquals(calculatePrimeClientsBefore, serviceClients.size());
@@ -560,7 +563,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                 .addItemsItem(new ServiceClient().id(TestUtils.CLIENT_ID_SS2).serviceClientType(
                         ServiceClientType.SUBSYSTEM));
 
-        List<ServiceClient> updatedServiceClients = servicesApiController
+        Set<ServiceClient> updatedServiceClients = servicesApiController
                 .addServiceServiceClients(TestUtils.SS1_CALCULATE_PRIME, clientsToAdd).getBody();
 
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
@@ -571,7 +574,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     public void addDuplicateAccessRight() throws Exception {
         doReturn(true).when(globalConfService).clientsExist(any());
         doReturn(true).when(globalConfService).globalGroupsExist(any());
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
@@ -598,13 +601,13 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     @WithMockUser(authorities = { "VIEW_SERVICE_ACL", "EDIT_SERVICE_ACL" })
     public void addDuplicateIdenticalAccessrights() {
         // try adding two identical localgroups
-        List<ServiceClient> itemsBefore =
+        Set<ServiceClient> itemsBefore =
                 servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         ServiceClient localGroup = new ServiceClient().id(TestUtils.DB_LOCAL_GROUP_ID_2).serviceClientType(
                 ServiceClientType.LOCALGROUP);
         ServiceClients duplicateLocalGroups = new ServiceClients().addItemsItem(localGroup).addItemsItem(localGroup);
         servicesApiController.addServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1, duplicateLocalGroups);
-        List<ServiceClient> itemsAfter =
+        Set<ServiceClient> itemsAfter =
                 servicesApiController.getServiceServiceClients(TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertTrue(itemsBefore.size() + 1 == itemsAfter.size());
         assertTrue(itemsAfter.stream()
@@ -617,7 +620,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
     public void addBogusAccessRight() {
         doReturn(false).when(globalConfService).clientsExist(any());
         doReturn(false).when(globalConfService).globalGroupsExist(any());
-        List<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
+        Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 

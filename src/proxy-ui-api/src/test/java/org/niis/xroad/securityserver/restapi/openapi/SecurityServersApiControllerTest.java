@@ -38,7 +38,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,20 +102,20 @@ public class SecurityServersApiControllerTest extends AbstractApiControllerTestC
     @Test
     @WithMockUser(authorities = { "VIEW_SECURITY_SERVERS" })
     public void getAllSecurityServers() {
-        ResponseEntity<List<SecurityServer>> response = securityServersApiController
+        ResponseEntity<Set<SecurityServer>> response = securityServersApiController
                 .getSecurityServers(false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<SecurityServer> securityServers = response.getBody();
+        Set<SecurityServer> securityServers = response.getBody();
         assertEquals(2, securityServers.size());
     }
 
     @Test
     @WithMockUser(authorities = { "VIEW_SECURITY_SERVERS" })
     public void getCurrentSecurityServer() {
-        ResponseEntity<List<SecurityServer>> response = securityServersApiController
+        ResponseEntity<Set<SecurityServer>> response = securityServersApiController
                 .getSecurityServers(true);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<SecurityServer> securityServers = response.getBody();
+        Set<SecurityServer> securityServers = response.getBody();
         assertEquals(1, securityServers.size());
     }
 }

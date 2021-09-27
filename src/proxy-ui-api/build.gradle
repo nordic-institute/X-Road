@@ -2,7 +2,7 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 
 buildscript {
     ext {
-        openapiGeneratorVersion = '4.2.1'
+        openapiGeneratorVersion = '5.2.1'
         nodePluginVersion = '2.2.4'
         nodeVersion = '12.21.0'
         swaggerParserVersion = '2.0.21'
@@ -20,7 +20,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR10")
+    set('springCloudVersion', "2020.0.3")
 }
 
 sourceSets {
@@ -38,10 +38,6 @@ bootRun {
         def params = project.args.tokenize(',')
         args = params
     }
-}
-
-bootJar {
-    excludeDevtools = true
 }
 
 processResources {
@@ -249,7 +245,7 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
-    systemProperties = [
+    globalProperties = [
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
@@ -318,7 +314,6 @@ dependencies {
     implementation project(':common-ui')
     implementation project(':common-rest-api')
 
-
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
@@ -341,6 +336,7 @@ dependencies {
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
+    implementation 'io.springfox:springfox-core:3.0.0'
     // /openapi-generator related
 }
 
@@ -349,7 +345,7 @@ task copyDeps(type: Copy) {
     from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
 }
 
-build.dependsOn copyDeps
+assemble.dependsOn copyDeps
 
 test {
     maxHeapSize = "1g"

@@ -31,13 +31,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.stubbing.Answer;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientAdd;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
 import org.niis.xroad.securityserver.restapi.openapi.model.CsrGenerate;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
-import org.niis.xroad.securityserver.restapi.openapi.model.ErrorInfo;
 import org.niis.xroad.securityserver.restapi.openapi.model.InitialServerConf;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabel;
 import org.niis.xroad.securityserver.restapi.openapi.model.KeyLabelWithCsrGenerate;
@@ -380,7 +380,7 @@ public class IdentifierValidationRestTemplateTest extends AbstractApiControllerT
     }
 
     @Test
-    @WithMockUser(authorities = { "GENERATE_KEY", "GENERATE_AUTH_CERT_REQ", "GENERATE_SIGN_CERT_REQ" })
+    @WithMockUser(authorities = {"GENERATE_KEY", "GENERATE_AUTH_CERT_REQ", "GENERATE_SIGN_CERT_REQ"})
     public void addKeyAndCsrWithControlCharacter() {
         Map<String, List<String>> expectedFieldValidationErrors = new HashMap<>();
         expectedFieldValidationErrors.put(FIELD_KEYLABELWITHCSRGENERATE_KEYLABEL,

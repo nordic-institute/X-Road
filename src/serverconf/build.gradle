@@ -60,7 +60,7 @@ task schemaExport () {
 
 task runServerConfCRUDTest (type: JavaExec) {
     jvmArgs '-Dlogback.configurationFile=src/test/resources/logback-crudtest.xml'
-    main = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
+    mainClass = 'ee.ria.xroad.proxy.conf.ServerConfCRUDTest'
     classpath = sourceSets.test.runtimeClasspath
     standardInput = System.in;
 }
