@@ -1758,6 +1758,8 @@ In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file 
   * `=` is written as `\=` (a literal `\=` becomes `\\=`)
   * `#` is written as `\#` (a literal `\#` becomes `\\#`)
 
+Warning. The archiving process fails if a required key is not present in the gpg keyring. Therefore, it is important to verify that the mappings are correct.
+
 For example, generate a keypair for encryption with defaults and no expiration and export the public key:
 ```
 gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
