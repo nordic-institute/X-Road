@@ -42,47 +42,49 @@ import javax.security.auth.x500.X500Principal;
 import java.security.cert.X509Certificate;
 
 /**
- * Generic certificate profile
+ * Basic certificate profile
  */
-public class GenericCertificateProfileInfoProvider
+public class BasicCertificateProfileInfoProvider
         implements CertificateProfileInfoProvider {
 
     @Override
     public AuthCertificateProfileInfo getAuthCertProfile(AuthCertificateProfileInfo.Parameters params) {
-        return new GenericAuthCertificateProfileInfo(params);
+        return new BasicAuthCertificateProfileInfo(params);
     }
 
     @Override
     public SignCertificateProfileInfo getSignCertProfile(SignCertificateProfileInfo.Parameters params) {
-        return new GenericSignCertificateProfileInfo(params);
+        return new BasicSignCertificateProfileInfo(params);
     }
 
     /**
      * Auth cert
      *
-     * CN = serverCode
+     * CN = server DNS
      * C = country
      * serialNumber = memberCode
      * O = memberName
      */
-    private static class GenericAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
+    private static class BasicAuthCertificateProfileInfo extends AbstractCertificateProfileInfo
             implements AuthCertificateProfileInfo {
 
-        GenericAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters params) {
+        BasicAuthCertificateProfileInfo(AuthCertificateProfileInfo.Parameters params) {
             super(new DnFieldDescription[] {
-                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_CODE,
-                        params.getServerId().getServerCode())
-                        .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.SERVER_DNS_NAME,
+                        "")
+                        .setReadOnly(false),
                 new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.MEMBER_CODE_SN,
                         params.getServerId().getMemberCode())
                         .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "")
+                        .setReadOnly(false),
                 new EnumLocalizedFieldDescriptionImpl("O", DnFieldLabelLocalizationKey.ORGANIZATION_NAME,
                         params.getMemberName())
                         .setReadOnly(true)}
             );
         }
     }
-
     /**
      * Sign cert
      *
@@ -92,12 +94,12 @@ public class GenericCertificateProfileInfoProvider
      * C = country
      * serialNumber = memberCode
      */
-    private static class GenericSignCertificateProfileInfo extends AbstractCertificateProfileInfo
+    private static class BasicSignCertificateProfileInfo extends AbstractCertificateProfileInfo
             implements SignCertificateProfileInfo {
 
         private final String instanceIdentifier;
 
-        GenericSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters params) {
+        BasicSignCertificateProfileInfo(SignCertificateProfileInfo.Parameters params) {
             super(new DnFieldDescription[] {
 
                 new EnumLocalizedFieldDescriptionImpl("CN", DnFieldLabelLocalizationKey.ORGANIZATION_NAME_CN,
@@ -109,6 +111,9 @@ public class GenericCertificateProfileInfoProvider
                 new EnumLocalizedFieldDescriptionImpl("businessCategory", DnFieldLabelLocalizationKey.MEMBER_CLASS_BC,
                         params.getClientId().getMemberClass())
                         .setReadOnly(true),
+                new EnumLocalizedFieldDescriptionImpl("C", DnFieldLabelLocalizationKey.COUNTRY_CODE,
+                        "")
+                        .setReadOnly(false),
                 new EnumLocalizedFieldDescriptionImpl("serialNumber", DnFieldLabelLocalizationKey.MEMBER_CODE_SN,
                         params.getClientId().getMemberCode())
                         .setReadOnly(true) }
