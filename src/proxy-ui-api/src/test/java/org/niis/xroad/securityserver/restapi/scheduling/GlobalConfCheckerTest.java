@@ -171,6 +171,7 @@ public class GlobalConfCheckerTest extends AbstractFacadeMockingTestContext {
         // Verify initial state
         assertEquals(OWNER_MEMBER.toString(), serverConfService.getSecurityServerOwnerId().toString());
         ClientType owner = clientService.getLocalClient(OWNER_MEMBER);
+        log.debug("Owner {}", owner.getIdentifier());
         assertEquals(ClientType.STATUS_REGISTERED, owner.getClientStatus());
         ClientType subsystem = clientService.getLocalClient(SUBSYSTEM);
         assertEquals(ClientType.STATUS_REGISTERED, subsystem.getClientStatus());

@@ -56,6 +56,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_BACKUP_RESTORE_INTERRUPTED;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_GENERATE_BACKUP_INTERRUPTED;
@@ -76,7 +77,7 @@ public class BackupsApiController implements BackupsApi {
 
     @Override
     @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
-    public ResponseEntity<List<Backup>> getBackups() {
+    public ResponseEntity<Set<Backup>> getBackups() {
         List<BackupFile> backupFiles = backupService.getBackupFiles();
 
         return new ResponseEntity<>(backupConverter.convert(backupFiles), HttpStatus.OK);

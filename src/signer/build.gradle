@@ -83,7 +83,7 @@ task runSignerMain(type: JavaExec) {
         '-Dlogback.configurationFile=src/test/resources/logback-signer.xml',
         '-Djava.library.path=../passwordstore:../libs',
         '-Dxroad.signer.moduleManagerImpl=ee.ria.xroad.signer.tokenmanager.module.HardwareModuleManagerImpl'
-    main = 'ee.ria.xroad.signer.SignerMain'
+    mainClass = 'ee.ria.xroad.signer.SignerMain'
     classpath = sourceSets.main.runtimeClasspath
     classpath += files('../addons/hwtoken/build/libs/hwtoken-1.0.jar')
 

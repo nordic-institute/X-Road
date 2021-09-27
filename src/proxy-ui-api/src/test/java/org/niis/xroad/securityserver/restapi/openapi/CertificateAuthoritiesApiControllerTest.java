@@ -49,6 +49,7 @@ import javax.security.auth.x500.X500Principal;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -117,7 +118,7 @@ public class CertificateAuthoritiesApiControllerTest extends AbstractApiControll
         // basically test that these do not throw exceptions
         caController.getApprovedCertificateAuthorities(KeyUsageType.AUTHENTICATION, false);
         caController.getApprovedCertificateAuthorities(null, false);
-        ResponseEntity<List<CertificateAuthority>> response =
+        ResponseEntity<Set<CertificateAuthority>> response =
                 caController.getApprovedCertificateAuthorities(KeyUsageType.SIGNING, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
     }

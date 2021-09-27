@@ -46,6 +46,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.SIGNER_X;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
@@ -135,9 +136,9 @@ public class TokensApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "VIEW_KEYS" })
     public void getTokens() {
-        ResponseEntity<List<Token>> response = tokensApiController.getTokens();
+        ResponseEntity<Set<Token>> response = tokensApiController.getTokens();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        List<Token> tokens = response.getBody();
+        Set<Token> tokens = response.getBody();
         assertEquals(allTokens.size(), tokens.size());
         Token token = tokens.iterator().next();
         assertEquals(TokenStatus.OK, token.getStatus());

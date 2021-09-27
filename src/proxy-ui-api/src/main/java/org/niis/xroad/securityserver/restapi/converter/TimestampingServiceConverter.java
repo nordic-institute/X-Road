@@ -31,7 +31,7 @@ import com.google.common.collect.Streams;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -47,10 +47,10 @@ public class TimestampingServiceConverter {
         return timestampingService;
     }
 
-    public List<TimestampingService> convert(Iterable<TspType> tsps)  {
+    public Set<TimestampingService> convert(Iterable<TspType> tsps)  {
         return Streams.stream(tsps)
                 .map(this::convert)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     public TspType convert(TimestampingService timestampingService)  {

@@ -35,6 +35,7 @@ import org.niis.xroad.securityserver.restapi.util.TestUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
@@ -73,7 +74,7 @@ public class TimestampingServiceConverterTest {
     public void convertEmptyTspTypeList() {
         List<TspType> tspTypes = new ArrayList<>();
 
-        List<TimestampingService> timestampingService = timestampingServiceConverter.convert(tspTypes);
+        Set<TimestampingService> timestampingService = timestampingServiceConverter.convert(tspTypes);
 
         assertEquals(0, timestampingService.size());
     }
@@ -83,7 +84,7 @@ public class TimestampingServiceConverterTest {
         List<TspType> tspTypes = new ArrayList<>(Arrays.asList(TestUtils.createTspType(
                 TSA_1_URL, TSA_1_NAME), TestUtils.createTspType(TSA_2_URL, TSA_2_NAME)));
 
-        List<TimestampingService> timestampingServices = timestampingServiceConverter.convert(tspTypes);
+        Set<TimestampingService> timestampingServices = timestampingServiceConverter.convert(tspTypes);
 
         assertEquals(2, timestampingServices.size());
     }
