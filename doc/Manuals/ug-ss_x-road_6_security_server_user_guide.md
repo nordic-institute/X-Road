@@ -2054,7 +2054,9 @@ backup-encryption-keyids = <keyid1>, <keyid2>, ...
 ```
 
 To turn backup encryption on, change the `backup-encryption-enabled` property to true. Additional
-encryption keys can be imported in the `/etc/xroad/gpghome` keyring and key identifiers listed using the `backup-encryption-keyids` parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator to check that private keys used are sufficiently strong, there are no automatic checks.
+encryption keys can be imported in the `/etc/xroad/gpghome` keyring and key identifiers listed using the `backup-encryption-keyids` parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator to check that keys used are sufficiently strong, there are no automatic checks.
+
+Warning. All keys listed in `backup-encryption-keyids` must be present in the gpg keyring or backup fails.
 
 Additional keys for backup encryption should be generated and stored outside security server in a secure environment.
 After gpg keypair has been generated, public key can be exported to a file (backupadmin@example.org is the name of the
