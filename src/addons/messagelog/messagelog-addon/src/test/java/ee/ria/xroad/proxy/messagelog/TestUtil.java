@@ -159,12 +159,12 @@ final class TestUtil {
     static RestRequest createRestRequest(String queryId, String xRequestId) {
         return new RestRequest(
                 "POST",
-                String.format("/r%d/Instance/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
+                String.format("/r%d/XRD/Class/Member/SubSystem/ServiceCode", RestMessage.PROTOCOL_VERSION),
                 null,
                 Arrays.asList(
-                        new BasicHeader("X-Road-Client", "Instance/Class/Member/SubSystem"),
+                        new BasicHeader("X-Road-Client", "XRD/Class/Member/SubSystem"),
                         new BasicHeader("X-Road-Id", queryId),
-                        new BasicHeader("X-Road-ServerId", "Instance/Class/Member/ServerCode")),
+                        new BasicHeader("X-Road-ServerId", "XRD/Class/Member/ServerCode")),
                 xRequestId
         );
     }

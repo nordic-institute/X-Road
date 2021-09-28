@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * Outputstream that pipes output to an external GnuPG process for signing and encryption
  */
 @Slf4j
-class GPGOutputStream extends FilterOutputStream {
+public class GPGOutputStream extends FilterOutputStream {
 
     private static final String[] DEFAULT_ARGS = {
             "--batch",

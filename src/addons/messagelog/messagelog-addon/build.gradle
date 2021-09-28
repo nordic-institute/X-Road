@@ -12,9 +12,18 @@ dependencies {
     testImplementation project(':addons:messagelog:messagelog-archiver')
     testImplementation 'org.hsqldb:hsqldb:2.5.1'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation "org.bouncycastle:bcpg-jdk15on:${bouncyCastleVersion}"
 }
 
 jar {
     archiveVersion = ''
     from project(':addons:messagelog:messagelog-db').sourceSets.main.output
 }
+
+task copyGpg(type: Copy) {
+    from 'src/test/gpg'
+    into 'build/gpg'
+}
+
+test.dependsOn copyGpg
+

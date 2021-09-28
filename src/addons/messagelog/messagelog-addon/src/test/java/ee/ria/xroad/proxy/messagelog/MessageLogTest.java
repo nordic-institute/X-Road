@@ -45,12 +45,10 @@ import ee.ria.xroad.common.messagelog.archive.GroupingStrategy;
 import ee.ria.xroad.common.signature.SignatureData;
 import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.CryptoUtils;
-import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.messagelog.database.MessageRecordEncryption;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampFailed;
 import ee.ria.xroad.proxy.messagelog.Timestamper.TimestampSucceeded;
 
-import akka.actor.Props;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
@@ -60,8 +58,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import scala.concurrent.duration.Duration;
-import scala.concurrent.duration.FiniteDuration;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -80,8 +76,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -455,6 +449,8 @@ public class MessageLogTest extends AbstractMessageLogTest {
         log(createMessage(), createSignature());
     }
 
+
+
     // ------------------------------------------------------------------------
 
     /**
@@ -515,13 +511,14 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.clearProperty(MessageLogProperties.MESSAGELOG_KEYSTORE_PASSWORD);
         System.clearProperty(MessageLogProperties.MESSAGELOG_KEYSTORE);
         System.clearProperty(MessageLogProperties.MESSAGELOG_KEY_ID);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
 
         testTearDown();
         cleanUpDatabase();
     }
 
     @Override
-    protected Class<? extends AbstractLogManager> getLogManagerImpl() throws Exception {
+    protected Class<? extends AbstractLogManager> getLogManagerImpl() {
         return TestLogManager.class;
     }
 
@@ -533,7 +530,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         logRecordTime = getDate(atDate);
         log(message, signature);
     }
-    
+
     protected void log(Instant instant, RestRequest message, SignatureData signatureData, byte[] body)
             throws Exception {
         final ByteArrayInputStream bos = new ByteArrayInputStream(body);
@@ -628,7 +625,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
     }
 
     private String getArchiveFilePath() {
-        File outputDir = new File("build");
+        File outputDir = archivesPath.toFile();
 
         FileFilter fileFilter = new RegexFileFilter("^mlog.*-\\d+-\\d+-.\\w+\\.zip$");
 
@@ -653,22 +650,6 @@ public class MessageLogTest extends AbstractMessageLogTest {
         return former == null || former.lastModified() < candidate.lastModified();
     }
 
-    private static Object waitForMessageInTaskQueue() throws Exception {
-        assertTrue(TestTaskQueue.waitForMessage());
-
-        Object message = TestTaskQueue.getLastMessage();
-        assertNotNull("Did not get message from task queue", message);
-
-        return message;
-    }
-
-    private static TimestampSucceeded waitForTimestampSuccessful() throws Exception {
-        Object result = waitForMessageInTaskQueue();
-        assertTrue("Got " + result, result instanceof TimestampSucceeded);
-
-        return (TimestampSucceeded) result;
-    }
-
     private static Date getDate(String dateStr) throws Exception {
         return new SimpleDateFormat("dd-MM-yyyy HH:mm:ss.SSS").parse(dateStr);
     }
@@ -683,87 +664,4 @@ public class MessageLogTest extends AbstractMessageLogTest {
         });
     }
 
-    private static class TestLogManager extends LogManager {
-        // Countdownlatch for waiting for next timestamp record save.
-        private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
-
-        TestLogManager(JobManager jobManager) throws Exception {
-            super(jobManager);
-        }
-
-        static void initSetTimestampingStatusLatch() {
-            log.trace("initSetTimestampingStatusLatch()");
-
-            setTimestampingStatusLatch = new CountDownLatch(1);
-        }
-
-        /**
-         * Tests expect that they can control when timestamping starts, as in:
-         * @return
-         * @Test public void timestampingFailed() throws Exception {
-         *         TestTimestamperWorker.failNextTimestamping(true);
-         *         log(createMessage(), createSignature);
-         *         log(createMessage(), createSignature());
-         *         log(createMessage(), createSignature());
-         *         assertTaskQueueSize(3);
-         *         startTimestamping();
-         *
-         *
-         *         Now if TimestamperJob starts somewhere before startTimestamping (which
-         *         is a likely outcome with the default initial delay of 1 sec) the results
-         *         will not be what the test expects.
-         *
-         *         To avoid this problem, tests have "long enough" initial delay for TimestamperJob.
-         */
-        @Override
-        protected FiniteDuration getTimestamperJobInitialDelay() {
-            return Duration.create(1, TimeUnit.MINUTES);
-        }
-
-        @Override
-        protected Props getTaskQueueImpl() {
-            return Props.create(TestTaskQueue.class);
-        }
-
-        /**
-         * This method is synchronized in the test class
-         */
-        @Override
-        synchronized void setTimestampSucceeded() {
-            super.setTimestampSucceeded();
-        }
-
-        @Override
-        protected Props getTimestamperImpl() {
-            return Props.create(TestTimestamper.class);
-        }
-
-        @Override
-        protected MessageRecord saveMessageRecord(MessageRecord messageRecord) throws Exception {
-            log.info("saving message record");
-
-            if (logRecordTime != null) {
-                messageRecord.setTime(logRecordTime.getTime());
-            }
-
-            return super.saveMessageRecord(messageRecord);
-        }
-
-        @Override
-        void setTimestampingStatus(SetTimestampingStatusMessage statusMessage) {
-            super.setTimestampingStatus(statusMessage);
-
-            setTimestampingStatusLatch.countDown();
-        }
-
-        static boolean waitForSetTimestampingStatus() throws Exception {
-            log.trace("waitForSetTimestampingStatus()");
-
-            try {
-                return setTimestampingStatusLatch.await(5, TimeUnit.SECONDS);
-            } finally {
-                setTimestampingStatusLatch = new CountDownLatch(1);
-            }
-        }
-    }
 }

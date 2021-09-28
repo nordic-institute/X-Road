@@ -26,7 +26,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
@@ -34,7 +33,7 @@ import lombok.Getter;
 
 import java.util.Objects;
 
-interface Grouping {
+public interface Grouping {
     default ClientId getClientId() {
         return null;
     }
@@ -51,8 +50,8 @@ class MemberGrouping implements Grouping {
     @Getter
     private final ClientId clientId;
 
-    MemberGrouping(MessageRecord record) {
-        clientId = ClientId.create(GlobalConf.getInstanceIdentifier(), record.getMemberClass(), record.getMemberCode());
+    MemberGrouping(ClientId clientId) {
+        this.clientId = clientId.getMemberId();
     }
 
     /**
@@ -74,9 +73,8 @@ class SubsystemGrouping implements Grouping {
     @Getter
     private final ClientId clientId;
 
-    SubsystemGrouping(MessageRecord record) {
-        clientId = ClientId.create(GlobalConf.getInstanceIdentifier(),
-                record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode());
+    SubsystemGrouping(ClientId clientId) {
+        this.clientId = clientId;
     }
 
     /**

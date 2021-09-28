@@ -115,6 +115,7 @@ public class LogArchiveCacheTest {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
         }
         cache = createCache(getMockRandomGenerator());
+        
     }
 
     @After
