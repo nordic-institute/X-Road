@@ -89,7 +89,7 @@ import TypeCell from '@/components/managementRequests/TypeCell.vue';
 import { DataTableHeader } from 'vuetify';
 
 /**
- * Component for Security server management requests
+ * General component for Management requests
  */
 export default Vue.extend({
   name: 'ManagementRequests',
