@@ -186,6 +186,7 @@ public class ServerConf {
             serviceDetails.setServiceCode(serviceId.getServiceCode());
             serviceDetails.setObjectType(XRoadObjectType.SERVICE);
             serviceDetails.setServiceType(RestServiceType.REST);
+            restServiceDetailsList.getService().add(serviceDetails);
         }
         List<ServiceId> openApiServices =
                 getInstance().getServicesByDescriptionType(serviceProvider, DescriptionType.OPENAPI3);
@@ -198,6 +199,7 @@ public class ServerConf {
             serviceDetails.setServiceCode(serviceId.getServiceCode());
             serviceDetails.setObjectType(XRoadObjectType.SERVICE);
             serviceDetails.setServiceType(RestServiceType.OPENAPI);
+            restServiceDetailsList.getService().add(serviceDetails);
         }
         return restServiceDetailsList;
     }
