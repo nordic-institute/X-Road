@@ -99,7 +99,7 @@ export default Vue.extend({
   },
   props: {
     managementRequests: {
-      type: Object,
+      type: Array,
       required: true,
     },
   },

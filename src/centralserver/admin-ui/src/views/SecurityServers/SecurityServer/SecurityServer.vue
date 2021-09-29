@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="memberview">
+  <div data-test="security-server-view">
     <div class="navigation-back" data-test="navigation-back">
       <router-link to="/security-servers">
         <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
@@ -58,7 +58,7 @@ import { Colors, RouteName } from '@/global';
 export default Vue.extend({
   components: { PageNavigation },
   props: {
-    memberid: {
+    id: {
       type: String,
       required: true,
     },
@@ -72,27 +72,27 @@ export default Vue.extend({
     memberNavigationItems(): NavigationItem[] {
       return [
         {
-          url: `/security-servers/${this.memberid}/details`,
+          url: `/security-servers/${this.id}/details`,
           label: this.$t(
             'securityServers.securityServer.tabs.details',
           ) as string,
         },
         {
-          url: `/security-servers/${this.memberid}/clients`,
+          url: `/security-servers/${this.id}/clients`,
           label: this.$t(
             'securityServers.securityServer.tabs.clients',
           ) as string,
         },
 
         {
-          url: `/security-servers/${this.memberid}/authenticationcertificates`,
+          url: `/security-servers/${this.id}/authenticationcertificates`,
           label: this.$t(
             'securityServers.securityServer.tabs.authCertificates',
           ) as string,
         },
 
         {
-          url: `/security-servers/${this.memberid}/managementrequests`,
+          url: `/security-servers/${this.id}/managementrequests`,
           label: this.$t(
             'members.member.pagenavigation.managementRequests',
           ) as string,

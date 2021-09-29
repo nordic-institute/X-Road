@@ -24,7 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
+  <div
+    data-test="security-server-authentication-certificates-view"
+    class="mt-8"
+  >
     <!-- Table -->
     <v-data-table
       :loading="loading"
@@ -57,7 +60,7 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
-  </sub-view-container>
+  </div>
 </template>
 
 <script lang="ts">
@@ -65,13 +68,9 @@
  * View for 'security server authentication certificates' tab
  */
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  components: {
-    SubViewContainer,
-  },
   data() {
     return {
       search: '' as string,

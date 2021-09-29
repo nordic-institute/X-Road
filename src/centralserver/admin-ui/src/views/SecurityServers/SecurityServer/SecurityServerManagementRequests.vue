@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="member-management-requests">
+  <main data-test="security-server-management-requests-view">
     <ManagementRequests :management-requests="managementRequests" />
   </main>
 </template>
@@ -98,5 +98,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-

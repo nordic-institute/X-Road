@@ -27,7 +27,7 @@
   Member details view
 -->
 <template>
-  <main id="member-details-content">
+  <main data-test="security-server-details-view" class="mt-8">
     <!-- Security Server Details -->
     <div id="security-server-details">
       <info-card

@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="security-server-clients-view">
     <div id="clients-filter">
       <xrd-search v-model="search" />
     </div>
