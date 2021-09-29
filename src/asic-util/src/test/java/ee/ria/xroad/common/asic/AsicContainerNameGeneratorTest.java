@@ -27,6 +27,7 @@ package ee.ria.xroad.common.asic;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -45,23 +46,25 @@ public class AsicContainerNameGeneratorTest {
 
     @Test
     public void testGeneratedFilename() {
-        AsicContainerNameGenerator nameGenerator = new AsicContainerNameGenerator(
-                AsicContainerNameGeneratorTest::generateRandomPart, 10);
-        String s1 = nameGenerator.createFilenameWithRandom(LONG_QUERY_ID, QUERY_TYPE_REQUEST);
+        AsicContainerNameGenerator nameGenerator = new AsicContainerNameGenerator(0);
+        String s1 = nameGenerator.getArchiveFilename(LONG_QUERY_ID, QUERY_TYPE_REQUEST);
         assertTrue("The generated filename was too long", s1.length() <= FILENAME_MAX);
-        String s2 = nameGenerator.createFilenameWithRandom(LONG_QUERY_ID, QUERY_TYPE_RESPONSE);
+        String s2 = nameGenerator.getArchiveFilename(LONG_QUERY_ID, QUERY_TYPE_RESPONSE);
         assertTrue("The generated filename was too long", s2.length() <= FILENAME_MAX);
-        String s3 = nameGenerator.createFilenameWithRandom(SHORT_QUERY_ID, QUERY_TYPE_REQUEST);
+        String s3 = nameGenerator.getArchiveFilename(SHORT_QUERY_ID, QUERY_TYPE_REQUEST);
         assertTrue("The generated filename was too long", s3.length() <= FILENAME_MAX);
-        String s4 = nameGenerator.createFilenameWithRandom(SHORT_QUERY_ID, QUERY_TYPE_RESPONSE);
+        String s4 = nameGenerator.getArchiveFilename(SHORT_QUERY_ID, QUERY_TYPE_RESPONSE);
         assertTrue("The generated filename was too long", s4.length() <= FILENAME_MAX);
     }
 
-    /**
-     *
-     * @return 10-letter string for the test
-     */
-    private static String generateRandomPart() {
-        return "qwerty1234";
+    @Test
+    public void testWrapping() {
+        final AsicContainerNameGenerator generator = new AsicContainerNameGenerator(
+                AsicContainerNameGenerator.MAX_NAMES - 1);
+        assertEquals(String.format("1-request-%010x.asice", AsicContainerNameGenerator.MAX_NAMES - 1),
+                generator.getArchiveFilename("1", QUERY_TYPE_REQUEST));
+
+        assertEquals(String.format("2-request-%010x.asice", 0),
+                generator.getArchiveFilename("2", QUERY_TYPE_REQUEST));
     }
 }

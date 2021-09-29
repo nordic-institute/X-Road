@@ -49,7 +49,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,7 +58,9 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -175,10 +176,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void handleAsicRequest(ClientId clientId) throws Exception {
         String queryId = getParameter(PARAM_QUERY_ID, false);
-
-        AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator(
-                AsicContainerClientRequestProcessor::getRandomAlphanumeric, MAX_RANDOM_GEN_ATTEMPTS);
-
+        AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator(Integer.toUnsignedLong(queryId.hashCode()));
         boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
         boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
         if (requestOnly && responseOnly) {
@@ -249,7 +247,9 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     messageRecordEncryption.prepareDecryption(record);
                     String type = record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
                             : AsicContainerNameGenerator.TYPE_REQUEST;
-                    zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
+                    final ZipEntry entry = new ZipEntry(nameGen.getArchiveFilename(queryId, type));
+                    entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
+                    zos.putNextEntry(entry);
 
                     try (EntryStream es = new EntryStream(zos)) {
                         record.toAsicContainer().write(es);
@@ -344,10 +344,6 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     @Override
     public MessageInfo createRequestMessageInfo() {
         return null; // nothing to return
-    }
-
-    private static String getRandomAlphanumeric() {
-        return RandomStringUtils.randomAlphanumeric(RANDOM_LENGTH);
     }
 
     private static class VerificationConfWriter implements FileConsumer, Closeable {

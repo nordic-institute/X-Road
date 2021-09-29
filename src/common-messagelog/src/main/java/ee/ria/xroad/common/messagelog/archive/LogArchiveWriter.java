@@ -39,7 +39,6 @@ import java.text.SimpleDateFormat;
 import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.apache.commons.io.FileUtils.deleteQuietly;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 
 /**
  * Class for writing log records to zip file containing ASiC containers
@@ -50,7 +49,7 @@ public class LogArchiveWriter implements Closeable {
 
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
-    public static final int MAX_RANDOM_GEN_ATTEMPTS = 1000;
+    public static final int MAX_RANDOM_GEN_ATTEMPTS = 10;
 
     private static final int RANDOM_LENGTH = 10;
 
@@ -122,7 +121,6 @@ public class LogArchiveWriter implements Closeable {
         grouping = groupingStrategy.forRecord(logRecord);
         linkingInfoBuilder.reset(archiveBase.loadLastArchive(grouping.name()));
         logArchiveCache = new LogArchiveCache(
-                () -> randomAlphanumeric(RANDOM_LENGTH),
                 linkingInfoBuilder,
                 encryptionConfigProvider.forGrouping(grouping),
                 outputPath);
@@ -149,7 +147,7 @@ public class LogArchiveWriter implements Closeable {
         archiveTmp = null;
     }
 
-    protected String getArchiveFilename(String random) {
+    protected String getArchiveFilename(String digest) {
         final String groupName = escape(grouping.name());
         final String suffix = encryptionConfigProvider.isEncryptionEnabled() ? "zip.gpg" : "zip";
 
@@ -157,7 +155,7 @@ public class LogArchiveWriter implements Closeable {
                 groupName == null ? "" : groupName + "-",
                 simpleDateFormat.format(logArchiveCache.getStartTime()),
                 simpleDateFormat.format(logArchiveCache.getEndTime()),
-                random,
+                digest,
                 suffix);
     }
 
@@ -171,26 +169,21 @@ public class LogArchiveWriter implements Closeable {
         if (logArchiveCache == null || logArchiveCache.isEmpty()) {
             return;
         }
-        Path archiveFile = getUniqueArchiveFilename();
+        final String digest = linkingInfoBuilder.getLastDigest();
+        Path archiveFile = getUniqueArchiveFilename(digest);
         archiveTmp = logArchiveCache.getArchiveFile();
         atomicMove(archiveTmp, archiveFile);
-        final DigestEntry digestEntry = new DigestEntry(linkingInfoBuilder.getLastDigest(),
-                archiveFile.getFileName().toString());
+        final DigestEntry digestEntry = new DigestEntry(digest, archiveFile.getFileName().toString());
         archiveBase.markArchiveCreated(grouping.name(), digestEntry);
         linkingInfoBuilder.reset(digestEntry);
         archiveTmp = null;
         log.info("Created archive file {}", archiveFile);
     }
 
-    private Path getUniqueArchiveFilename() {
-        Path archive = outputPath.resolve(getArchiveFilename(randomAlphanumeric(RANDOM_LENGTH)));
-        int attempts = 0;
-        while (archive.toFile().exists()) {
-            if (++attempts > MAX_RANDOM_GEN_ATTEMPTS) {
-                throw new IllegalStateException("Could not generate unique file in "
-                        + MAX_RANDOM_GEN_ATTEMPTS + " attempts");
-            }
-            archive = outputPath.resolve(getArchiveFilename(randomAlphanumeric(RANDOM_LENGTH)));
+    private Path getUniqueArchiveFilename(String digest) {
+        Path archive = outputPath.resolve(getArchiveFilename(digest));
+        if (archive.toFile().exists()) {
+            log.warn("Existing archive file {} will be replaced", archive);
         }
         return archive;
     }

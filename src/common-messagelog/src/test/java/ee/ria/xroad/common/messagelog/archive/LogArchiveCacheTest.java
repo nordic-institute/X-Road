@@ -32,7 +32,6 @@ import ee.ria.xroad.common.messagelog.MessageRecord;
 
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -57,16 +56,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,20 +80,19 @@ import static org.mockito.Mockito.when;
  * Actually tests inner class of LogArchive.
  */
 @RunWith(Parameterized.class)
-@Slf4j
 public class LogArchiveCacheTest {
     private static final int TOO_LARGE_CONTAINER_SIZE = 10000;
     private static final int ARCHIVE_SIZE_SMALL = 50;
     private static final int ARCHIVE_SIZE_MEDIUM = 350;
 
     private static final String ENTRY_NAME_REQUEST_NORMAL =
-            "ID1-request-RANDOM.asice";
+            String.format("ID1-request-");
     private static final String ENTRY_NAME_REQUEST_LARGE =
-            "ID2-request-RANDOM.asice";
+            String.format("ID2-request-");
     private static final String ENTRY_NAME_RESPONSE_NORMAL =
-            "ID3-response-RANDOM.asice";
+            String.format("ID3-response-");
     private static final String ENTRY_NAME_REQUEST_CONFLICTING =
-            "ID1-request-RANDOM-0.asice";
+            String.format("ID1-request-");
 
     private static final long LOG_TIME_REQUEST_NORMAL_LATEST = 1428664947372L;
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
@@ -114,7 +115,7 @@ public class LogArchiveCacheTest {
         if (encrypted) {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
         }
-        cache = createCache(getMockRandomGenerator());
+        cache = createCache();
     }
 
     @After
@@ -126,7 +127,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure one entry of normal size can be added successfully.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -149,7 +149,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure log archive is rotated if an entry is too large.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -161,15 +160,12 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordTooLarge());
 
         // Then
-        assertTrue(
-                "Entry is so large that rotation must take place",
-                cache.isRotating());
+        assertTrue("Entry is so large that rotation must take place", cache.isRotating());
         assertZip(expectedLargeSizeRequestEntryName(), getArchiveBytes());
     }
 
     /**
      * Test to ensure null message records are not allowed.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = IllegalArgumentException.class)
@@ -179,7 +175,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure the log archive is rotated inbetween log entry additions.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -209,7 +204,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure name clash is avoided when fileName already exists in ZIP.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -217,15 +211,41 @@ public class LogArchiveCacheTest {
             throws Exception {
         setMaxArchiveSizeDefault();
 
-        // Create cache with more realistic random generator
         cache.close();
-        cache = createCache(new TestRandomGenerator());
+        cache = createCache();
 
         // First record
         cache.add(createRequestRecordNormal());
         // Record with conflicting name
         cache.add(createRequestRecordNormal());
         assertZip(expectedConflictingEntryNames(), getArchiveBytes());
+    }
+
+    @Test
+    public void archivingShouldBeDeterministic() throws Exception {
+        cache.close();
+        final LinkingInfoBuilder builder1 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
+        cache = createCache(builder1);
+        cache.add(createRequestRecordNormal());
+        final byte[] bytes1 = getArchiveBytes();
+        cache.close();
+
+        final LinkingInfoBuilder builder2 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
+        cache = createCache(builder2);
+        cache.add(createRequestRecordNormal());
+        final byte[] bytes2 = getArchiveBytes();
+        cache.close();
+
+        assertTrue(Arrays.equals(bytes1, bytes2));
+        assertEquals(builder1.getLastDigest(), builder2.getLastDigest());
+
+        final LinkingInfoBuilder builder3 = new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
+        cache = createCache(builder3);
+        cache.add(createRequestRecordNormal());
+        final byte[] bytes3 = getArchiveBytes();
+
+        assertFalse(Arrays.equals(bytes1, bytes3));
+        assertNotEquals(builder1.getLastDigest(), builder3.getLastDigest());
     }
 
     private byte[] getArchiveBytes() throws IOException {
@@ -334,7 +354,6 @@ public class LogArchiveCacheTest {
         return container;
     }
 
-
     private Date normalRequestCreationTime() {
         return new Date(LOG_TIME_REQUEST_NORMAL_LATEST);
     }
@@ -353,6 +372,7 @@ public class LogArchiveCacheTest {
             fail("Bytes of zip archive must not be empty");
         }
 
+        Set<String> names = new HashSet<>();
         InputStream archiveBytesInput = new ByteArrayInputStream(archiveBytes);
 
         try (ZipInputStream zip = new ZipInputStream(archiveBytesInput)) {
@@ -361,6 +381,7 @@ public class LogArchiveCacheTest {
 
                 assertNotNull(getZipEntryNotPresentMessage(i), entry);
                 assertThat(entry.getName(), isIn(expectedEntryNames));
+                assertTrue("No duplicate names", names.add(entry.getName()));
             }
 
             ZipEntry linkingInfoEntry = zip.getNextEntry();
@@ -425,17 +446,16 @@ public class LogArchiveCacheTest {
     }
 
     private LinkingInfoBuilder mockLinkingInfoBuilder() {
-        LinkingInfoBuilder builder = mock(LinkingInfoBuilder.class);
-
-        when(builder.build()).thenReturn("DUMMY".getBytes());
-
-        return builder;
+        return new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
     }
 
-    private LogArchiveCache createCache(Supplier<String> randomGenerator) {
+    private LogArchiveCache createCache() {
+        return createCache(mockLinkingInfoBuilder());
+    }
+
+    private LogArchiveCache createCache(LinkingInfoBuilder builder) {
         return new LogArchiveCache(
-                randomGenerator,
-                mockLinkingInfoBuilder(),
+                builder,
                 encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null)
                         : EncryptionConfig.DISABLED,
                 Paths.get("build/tmp/")
@@ -449,7 +469,7 @@ public class LogArchiveCacheTest {
 
         @Override
         protected boolean matchesSafely(String item) {
-            return listOfElements.contains(item);
+            return listOfElements.stream().anyMatch(item::startsWith);
         }
 
         @Override
@@ -466,25 +486,5 @@ public class LogArchiveCacheTest {
         private boolean response;
         private byte[] bytes;
         private long creationTime;
-    }
-
-    /**
-     * Generates different random only on certain invocation.
-     */
-    private static class TestRandomGenerator implements Supplier<String> {
-        private static final int DIFFERENT_ON_INVOCATION = 3;
-        int invocations = 0;
-
-        @Override
-        public String get() {
-            invocations++;
-            String result = "RANDOM";
-
-            if (invocations == DIFFERENT_ON_INVOCATION) {
-                result = String.format("%s-0", result);
-            }
-
-            return result;
-        }
     }
 }

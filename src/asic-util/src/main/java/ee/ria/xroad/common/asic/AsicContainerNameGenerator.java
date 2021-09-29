@@ -25,25 +25,32 @@
  */
 package ee.ria.xroad.common.asic;
 
-import lombok.RequiredArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
-
 /**
- * Generates unique filenames for a set of ASiC containers.
+ * Generates up to 2^40 unique filenames for a set of ASiC containers.
+ *
+ * The filename consists of query id and query type and a counter
+ * which is a 40 bit (10 hex digits) value starting from the provided seed value.
  */
-@RequiredArgsConstructor
+@SuppressWarnings("checkstyle:MagicNumber")
 public class AsicContainerNameGenerator {
 
     public static final String TYPE_RESPONSE = "response";
     public static final String TYPE_REQUEST = "request";
+    public static final long MAX_NAMES = 1L << 40;
 
     private static final int MAX_QUERY_LENGTH = 225;
-    private final Supplier<String> randomGenerator;
-    private final int maxAttempts;
-    private final List<String> existingFilenames = new ArrayList<>();
+    private long counter;
+
+    public AsicContainerNameGenerator(long seed) {
+        if (seed < 0) {
+            throw new IllegalArgumentException("Seed must be a positive integer");
+        }
+        this.counter = seed % MAX_NAMES;
+    }
+
+    public AsicContainerNameGenerator(String digest) {
+        this(seed(digest));
+    }
 
     /**
      * Attempts to generate a unique filename with a random part and given
@@ -51,20 +58,24 @@ public class AsicContainerNameGenerator {
      * @return the generated filename
      */
     public String getArchiveFilename(String queryId, String queryType) {
-        String result = createFilenameWithRandom(queryId, queryType);
-
-        int attempts = 0;
-        while (existingFilenames.contains(result) && attempts++ < maxAttempts) {
-            result = createFilenameWithRandom(queryId, queryType);
-        }
-
-        existingFilenames.add(result);
-        return result;
-    }
-
-    public String createFilenameWithRandom(String queryId, String queryType) {
         String processedQueryId = AsicUtils.truncate(AsicUtils.escapeString(queryId), MAX_QUERY_LENGTH);
-        return String.format("%s-%s", processedQueryId, queryType) + String.format("-%s.asice", randomGenerator.get());
+        return String.format("%s-%s-%010x.asice", processedQueryId, queryType, counter());
     }
 
+    private long counter() {
+        long current = counter;
+        counter = (counter + 1) % MAX_NAMES;
+        return current;
+    }
+
+    /**
+     * Generete a seed value from the provided hex digest
+     */
+    public static long seed(String digest) {
+        if (digest.isEmpty()) {
+            return 0;
+        } else {
+            return Long.valueOf(digest.substring(0, Math.min(10, digest.length())), 16);
+        }
+    }
 }
