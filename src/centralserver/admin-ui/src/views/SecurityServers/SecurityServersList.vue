@@ -153,6 +153,8 @@ export default Vue.extend({
   },
 
   methods: {
+    // Add the type later when it exists
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     toDetails(securityServer: any): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,

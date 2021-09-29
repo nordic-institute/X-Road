@@ -58,7 +58,6 @@ import SecurityServerClients from '@/views/SecurityServers/SecurityServer/Securi
 import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
 import SecurityServerManagementRequests from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
 
-
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 
 import GlobalConfiguration from '@/views/GlobalConfiguration/GlobalConfiguration.vue';

@@ -96,7 +96,6 @@ export const actions: ActionTree<State, RootState> = {
       data,
     })
       .then(() => {
-
         commit(StoreTypes.mutations.AUTH_USER);
         commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
         dispatch(StoreTypes.actions.INITIALIZATION_STATUS_REQUEST);

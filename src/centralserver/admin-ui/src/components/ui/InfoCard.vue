@@ -27,34 +27,50 @@
   <v-card class="details-card" flat>
     <v-card-title class="card-title">{{ titleText }}</v-card-title>
     <v-divider></v-divider>
-    <v-card-text :data-test="dataTest" class="card-content"
+    <v-card-text class="card-content"
       ><div>{{ infoText }}</div>
-      <slot name="actions"></slot
-    ></v-card-text>
+      <!-- Use action prop & emit for one button. Use "actions" slot if more customisation is needed. -->
+      <slot name="actions">
+        <xrd-button
+          v-if="actionText"
+          text
+          :outlined="false"
+          class="btn-adjust"
+          @click="emitActionClick"
+          >{{ actionText }}</xrd-button
+        ></slot
+      ></v-card-text
+    >
     <v-divider class="pb-4"></v-divider>
   </v-card>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { StoreTypes } from '@/global';
 
 export default Vue.extend({
   name: 'InfoCard',
   props: {
+    // Text for the title
     titleText: {
       type: String,
       required: true,
     },
+    // Information text
     infoText: {
       type: String,
       required: true,
     },
-    // For e2e testing
-    dataTest: {
+    // Action in the right end
+    actionText: {
       type: String,
-      required: true,
+      required: false,
+      default: undefined,
+    },
+  },
+  methods: {
+    emitActionClick(): void {
+      this.$emit('actionClicked');
     },
   },
 });
@@ -75,5 +91,11 @@ export default Vue.extend({
 .card-content {
   display: flex;
   justify-content: space-between;
+}
+
+/* v-card-text has so much padding that this is needed for the button. Without it the height would not be even. */
+.btn-adjust {
+  margin-top: -9px;
+  margin-bottom: -9px;
 }
 </style>

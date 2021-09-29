@@ -34,6 +34,8 @@
         :title-text="$t('securityServers.ownerName')"
         :info-text="securityServer.ownerName"
         data-test="security-server-owner-name"
+        :action-text="$t('action.edit')"
+        @actionClicked="editOwnerName"
       />
 
       <info-card
@@ -53,24 +55,22 @@
       class="mb-6"
       :title-text="$t('securityServers.serverCode')"
       :info-text="securityServer.serverCode"
-      data-test="security-server-owner-code"
+      data-test="security-server-server-code"
     />
 
     <info-card
       class="mb-6"
       :title-text="$t('securityServers.address')"
       :info-text="securityServer.address"
-      data-test="security-server-owner-code"
-    >
-      <template #actions>
-        <xrd-button text :outlined="false">{{ $t('action.edit') }}</xrd-button>
-      </template>
-    </info-card>
+      data-test="security-server-address"
+      :action-text="$t('action.edit')"
+      @actionClicked="editAddress"
+    />
 
     <info-card
       :title-text="$t('securityServers.registered')"
       :info-text="securityServer.registered"
-      data-test="security-server-owner-code"
+      data-test="security-server-registered"
     />
   </main>
 </template>
@@ -104,7 +104,15 @@ export default Vue.extend({
       },
     };
   },
-  computed: {},
+
+  methods: {
+    editOwnerName(): void {
+      // do something
+    },
+    editAddress(): void {
+      // do something
+    },
+  },
 });
 </script>
 
