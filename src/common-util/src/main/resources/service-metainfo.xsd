@@ -25,6 +25,12 @@
                 name="service" type="id:XRoadServiceIdentifierType" />
         </xs:sequence>
     </xs:complexType>
+    <xs:complexType name="RestServiceDetailsListType">
+        <xs:sequence>
+            <xs:element maxOccurs="unbounded" minOccurs="0"
+                        name="service" type="id:XRoadRestServiceDetailsType" />
+        </xs:sequence>
+    </xs:complexType>
     <xs:complexType name="ClientType">
         <xs:sequence>
             <xs:element name="id" type="id:XRoadClientIdentifierType"/>

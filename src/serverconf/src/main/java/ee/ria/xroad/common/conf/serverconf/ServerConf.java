@@ -31,6 +31,10 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
+import ee.ria.xroad.common.metadata.RestServiceType;
+import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -162,6 +166,40 @@ public class ServerConf {
         log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
 
         return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @return all the REST services (REST base path, OpenAPI) offered by a service provider
+     */
+    public static RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
+        log.trace("getRestServices({})", serviceProvider);
+        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
+        List<ServiceId> restServices =
+                getInstance().getServicesByDescriptionType(serviceProvider, DescriptionType.REST);
+        for (ServiceId serviceId : restServices) {
+            XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+            serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+            serviceDetails.setMemberClass(serviceId.getMemberClass());
+            serviceDetails.setMemberCode(serviceId.getMemberCode());
+            serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+            serviceDetails.setServiceCode(serviceId.getServiceCode());
+            serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+            serviceDetails.setServiceType(RestServiceType.REST);
+        }
+        List<ServiceId> openApiServices =
+                getInstance().getServicesByDescriptionType(serviceProvider, DescriptionType.OPENAPI3);
+        for (ServiceId serviceId : openApiServices) {
+            XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+            serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+            serviceDetails.setMemberClass(serviceId.getMemberClass());
+            serviceDetails.setMemberCode(serviceId.getMemberCode());
+            serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+            serviceDetails.setServiceCode(serviceId.getServiceCode());
+            serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+            serviceDetails.setServiceType(RestServiceType.OPENAPI);
+        }
+        return restServiceDetailsList;
     }
 
     /**
