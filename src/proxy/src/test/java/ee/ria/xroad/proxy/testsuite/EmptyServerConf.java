@@ -130,7 +130,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId service) {
-        return null;
+        return emptyList();
     }
 
     @Override
