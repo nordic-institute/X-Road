@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -179,6 +180,12 @@ public interface ServerConfProvider {
      * @return the service description url
      */
     String getServiceDescriptionURL(ServiceId service);
+
+    /**
+     * @param service the service identifier
+     * @return list of endpoints
+     */
+    List<Endpoint> getServiceEndpoints(ServiceId service);
 
     /**
      * Log serverconf statistics

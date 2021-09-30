@@ -187,6 +187,7 @@ public class ServerConf {
                 serviceDetails.setServiceCode(serviceId.getServiceCode());
                 serviceDetails.setObjectType(XRoadObjectType.SERVICE);
                 serviceDetails.setServiceType(RestServiceType.REST);
+                serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
                 restServiceDetailsList.getService().add(serviceDetails);
             }
         }

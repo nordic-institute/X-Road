@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
 
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
@@ -124,6 +125,11 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public String getServiceDescriptionURL(ServiceId service) {
+        return null;
+    }
+
+    @Override
+    public List<Endpoint> getServiceEndpoints(ServiceId service) {
         return null;
     }
 

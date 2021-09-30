@@ -44,27 +44,12 @@
             <xs:enumeration value="OPENAPI"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:simpleType name="HttpMethod">
-        <xs:annotation>
-            <xs:documentation>Enumeration for HTTP request methods.</xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="DELETE"/>
-            <xs:enumeration value="GET"/>
-            <xs:enumeration value="HEAD"/>
-            <xs:enumeration value="OPTIONS"/>
-            <xs:enumeration value="PATCH"/>
-            <xs:enumeration value="POST"/>
-            <xs:enumeration value="PUT"/>
-            <xs:enumeration value="TRACE"/>
-        </xs:restriction>
-    </xs:simpleType>
     <xs:complexType name="Endpoint">
         <xs:annotation>
             <xs:documentation>Service endpoint containing HTTP method and path.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
-            <xs:element name="httpMethod" type="HttpMethod"/>
+            <xs:element name="method" type="xs:string"/>
             <xs:element name="path" type="xs:string"/>
         </xs:sequence>
     </xs:complexType>

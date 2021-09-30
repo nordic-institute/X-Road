@@ -51,6 +51,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,6 +66,7 @@ import javax.persistence.criteria.Root;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -295,6 +297,23 @@ public class ServerConfImpl implements ServerConfProvider {
                 return serviceType.getServiceDescription().getUrl();
             }
             return null;
+        });
+    }
+
+    @Override
+    public List<Endpoint> getServiceEndpoints(ServiceId service) {
+        return tx(session -> {
+            List<EndpointType> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
+                    .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
+                    .collect(Collectors.toList());
+            List<Endpoint> results = new ArrayList<>();
+            for (EndpointType endpointType : endpoints) {
+                Endpoint e = new Endpoint();
+                e.setMethod(endpointType.getMethod());
+                e.setPath(endpointType.getPath());
+                results.add(e);
+            }
+            return results;
         });
     }
 
