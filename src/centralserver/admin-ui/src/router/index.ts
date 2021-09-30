@@ -55,10 +55,10 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     /*
     Check initialisation status here
     */
-    if( store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED] ) {
-      next( {
+    if (store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED]) {
+      next({
         name: RouteName.Initialisation,
-      })
+      });
     }
 
     next();

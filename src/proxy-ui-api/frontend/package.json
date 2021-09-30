@@ -17,7 +17,7 @@
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "install-ui-lib": "cd ../../shared-ui && npm install",
     "build-ui-lib": "cd ../../shared-ui && npm run build-lib",
-    "install-build-ui-lib": "cd ../../shared-ui && npm install && npm run build-lib",
+    "install-build-ui-lib": "cd ../../shared-ui && npm install && npm run build-lib && npm pack",
     "audit-check-ui-lib": "cd ../../shared-ui && npm run check-audit",
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",

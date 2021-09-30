@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
+  <xrd-sub-view-container>
     <!-- Title  -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -221,7 +221,7 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
-  </sub-view-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -229,13 +229,9 @@
  * View for 'system settings' tab
  */
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  components: {
-    SubViewContainer,
-  },
   data() {
     return {
       search: '' as string,

@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,52 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-/*
- TypeScript typings that are used in UI, but not in backend.
- These are not in openapi definitions.
-*/
-import { Client } from '@/openapi-types';
-import { Location } from 'vue-router';
+import XrdSubViewContainer from '@/components/XrdSubViewContainer';
 
-// Interface for Tab data
-export interface Tab {
-  key: string; // Unique key needed for v-for looping
-  name: string; // Localisation key for the name
-  to: Location; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
-  permissions?: string[]; // Permissions needed to view this tab
-}
-
-// Extension for Client
-export type ExtendedClient = Client & {
-  visibleName: string;
-  isFiltered?: boolean;
-  type: string;
-  id: string;
+export default {
+  title: 'X-Road/SubViewContainer',
+  component: XrdSubViewContainer,
 };
 
-// Used in service clients views for listing services than can be granted access rights to
-export interface ServiceCandidate {
-  service_code: string;
-  service_title?: string;
-  id: string;
-}
+const Template = (args, { argTypes }) => ({
+  props: Object.keys(argTypes),
+  components: { XrdSubViewContainer },
+  template: `
+    <XrdSubViewContainer>
+      <div>A container with the base styles for a view</div>
+    </XrdSubViewContainer>
+  `,
+});
 
-// The result of the FileUpload components fileChanged event
-export type FileUploadResult = {
-  buffer: ArrayBuffer;
-  file: File;
-};
-
-// Data for snackbar notification
-export interface Notification {
-  timeAdded: number;
-  timeout: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject?: any;
-  errorMessageCode?: string;
-  errorMessageRaw?: string;
-  successMessageCode?: string;
-  successMessageRaw?: string;
-  show: boolean;
-  count: number;
-}
+export const subView = Template.bind({});

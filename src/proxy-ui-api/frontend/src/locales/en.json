@@ -626,6 +626,7 @@
       "step": {
         "roles": {
           "name": "Roles",
+          "selectRoles": "Select roles",
           "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key."
         },
         "keyDetails": {

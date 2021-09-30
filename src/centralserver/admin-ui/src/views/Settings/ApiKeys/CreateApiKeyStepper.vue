@@ -184,7 +184,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Roles } from '@/global';
+import { Roles, StoreTypes } from '@/global';
 import { ApiKey } from '@/global-types';
 import * as api from '@/util/api';
 
@@ -224,9 +224,14 @@ export default Vue.extend({
         .post<ApiKey>('/api-keys', this.selectedRoles)
         .then((resp) => {
           this.apiKey = resp.data;
-          this.$store.dispatch('showSuccess', 'apiKey.createApiKey.success');
+          this.$store.dispatch(
+            StoreTypes.actions.SHOW_SUCCESS,
+            'apiKey.createApiKey.success',
+          );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) =>
+          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
+        )
         .finally(() => (this.generatingKey = false));
     },
   },
@@ -234,8 +239,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/detail-views';
-@import '~styles/wizards';
+@import '~styles/forms';
 @import '~styles/colors';
 
 .stepper {

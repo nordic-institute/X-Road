@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <sub-view-container>
+  <xrd-sub-view-container>
     <!-- Toolbar buttons -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-title-search align-fix mt-0 pt-0">
@@ -59,7 +59,7 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
-  </sub-view-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -67,13 +67,9 @@
  * View for 'security servers' tab
  */
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  components: {
-    SubViewContainer,
-  },
   data() {
     return {
       search: '',
