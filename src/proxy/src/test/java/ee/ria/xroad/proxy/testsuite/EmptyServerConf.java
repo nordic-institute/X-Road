@@ -36,6 +36,7 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +50,12 @@ import static java.util.Collections.emptySet;
 public class EmptyServerConf implements ServerConfProvider {
 
     private static final int SERVICE_TIMEOUT = 300;
+    private static final String EXPECTED_XR_INSTANCE = "EE";
+    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+            "1234TEST_CLIENT", "SUBCODE5");
+    private static final String SERVICE1 = "SERVICE1";
+    private static final String SERVICE2 = "SERVICE2";
+    private static final String SERVICE3 = "SERVICE3";
 
     @Override
     public boolean serviceExists(ServiceId service) {
@@ -132,7 +139,11 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId> getAllServices(ClientId serviceProvider) {
-        return emptyList();
+        List<ServiceId> list = new ArrayList<>();
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        return list;
     }
 
     @Override

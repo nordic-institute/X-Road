@@ -40,6 +40,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -175,31 +176,19 @@ public class ServerConf {
     public static RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
         log.trace("getRestServices({})", serviceProvider);
         RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-        List<ServiceId> restServices =
-                getInstance().getServicesByDescriptionType(serviceProvider, DescriptionType.REST);
-        for (ServiceId serviceId : restServices) {
-            XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
-            serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
-            serviceDetails.setMemberClass(serviceId.getMemberClass());
-            serviceDetails.setMemberCode(serviceId.getMemberCode());
-            serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
-            serviceDetails.setServiceCode(serviceId.getServiceCode());
-            serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-            serviceDetails.setServiceType(RestServiceType.REST);
-            restServiceDetailsList.getService().add(serviceDetails);
-        }
-        List<ServiceId> openApiServices =
-                getInstance().getServicesByDescriptionType(serviceProvider, DescriptionType.OPENAPI3);
-        for (ServiceId serviceId : openApiServices) {
-            XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
-            serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
-            serviceDetails.setMemberClass(serviceId.getMemberClass());
-            serviceDetails.setMemberCode(serviceId.getMemberCode());
-            serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
-            serviceDetails.setServiceCode(serviceId.getServiceCode());
-            serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-            serviceDetails.setServiceType(RestServiceType.OPENAPI);
-            restServiceDetailsList.getService().add(serviceDetails);
+        EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
+        for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
+            if (restTypes.contains(getDescriptionType(serviceId))) {
+                XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+                serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+                serviceDetails.setMemberClass(serviceId.getMemberClass());
+                serviceDetails.setMemberCode(serviceId.getMemberCode());
+                serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+                serviceDetails.setServiceCode(serviceId.getServiceCode());
+                serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+                serviceDetails.setServiceType(RestServiceType.REST);
+                restServiceDetailsList.getService().add(serviceDetails);
+            }
         }
         return restServiceDetailsList;
     }

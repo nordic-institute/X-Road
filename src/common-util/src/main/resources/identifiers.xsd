@@ -59,9 +59,9 @@
             <xs:enumeration value="TRACE"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:complexType name="HttpMethodAndPath">
+    <xs:complexType name="Endpoint">
         <xs:annotation>
-            <xs:documentation>HTTP method and path.</xs:documentation>
+            <xs:documentation>Service endpoint containing HTTP method and path.</xs:documentation>
         </xs:annotation>
         <xs:sequence>
             <xs:element name="httpMethod" type="HttpMethod"/>
@@ -113,7 +113,7 @@
             <xs:documentation>Code that uniquely identifies security server offered by a given X-Road member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="httpMethodAndPath" type="HttpMethodAndPath">
+    <xs:element name="endpointList" type="Endpoint">
         <xs:annotation>
             <xs:documentation>HTTP method and path.</xs:documentation>
         </xs:annotation>
@@ -159,7 +159,7 @@
             <xs:element minOccurs="0" ref="subsystemCode"/>
             <xs:element ref="serviceCode"/>
             <xs:element minOccurs="0" ref="serviceVersion"/>
-            <xs:element minOccurs="0" maxOccurs="unbounded" ref="httpMethodAndPath"/>
+            <xs:element minOccurs="0" maxOccurs="unbounded" ref="endpointList"/>
         </xs:sequence>
         <xs:attribute ref="objectType" use="required" fixed="SERVICE"/>
         <xs:attribute ref="serviceType" use="required"/>
