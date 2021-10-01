@@ -98,6 +98,8 @@ public class LogArchiveCacheTest {
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
     private static final long LOG_TIME_RESPONSE_NORMAL = 1428664927050L;
 
+    private long id = 0;
+
     @Parameter(0)
     public boolean encrypted;
 
@@ -116,6 +118,7 @@ public class LogArchiveCacheTest {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
         }
         cache = createCache();
+        id = 0;
     }
 
     @After
@@ -224,12 +227,14 @@ public class LogArchiveCacheTest {
     @Test
     public void archivingShouldBeDeterministic() throws Exception {
         cache.close();
+
         final LinkingInfoBuilder builder1 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
         cache = createCache(builder1);
         cache.add(createRequestRecordNormal());
         final byte[] bytes1 = getArchiveBytes();
         cache.close();
 
+        id = 0;
         final LinkingInfoBuilder builder2 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
         cache = createCache(builder2);
         cache.add(createRequestRecordNormal());
@@ -239,6 +244,7 @@ public class LogArchiveCacheTest {
         assertTrue(Arrays.equals(bytes1, bytes2));
         assertEquals(builder1.getLastDigest(), builder2.getLastDigest());
 
+        id = 0;
         final LinkingInfoBuilder builder3 = new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
         cache = createCache(builder3);
         cache.add(createRequestRecordNormal());
@@ -295,6 +301,7 @@ public class LogArchiveCacheTest {
 
     private MessageRecord createRequestRecordNormal() throws Exception {
         AsicContainerParams containerParams = new AsicContainerParams(
+                id++,
                 "ID1",
                 false,
                 containerOfNormalSize(),
@@ -305,6 +312,7 @@ public class LogArchiveCacheTest {
 
     private MessageRecord createRequestRecordTooLarge() throws Exception {
         AsicContainerParams containerParams = new AsicContainerParams(
+                id++,
                 "ID2",
                 false,
                 containerTooLarge(),
@@ -315,7 +323,11 @@ public class LogArchiveCacheTest {
 
     private MessageRecord createResponseRecordNormal() throws Exception {
         AsicContainerParams containerParams = new AsicContainerParams(
-                "ID3", true, containerOfNormalSize(), LOG_TIME_RESPONSE_NORMAL);
+                id++,
+                "ID3",
+                true,
+                containerOfNormalSize(),
+                LOG_TIME_RESPONSE_NORMAL);
 
         return createMessageRecord(containerParams);
     }
@@ -323,7 +335,8 @@ public class LogArchiveCacheTest {
     private MessageRecord createMessageRecord(
             AsicContainerParams params) throws Exception {
         MessageRecord record = mock(MessageRecord.class);
-        when(record.getQueryId()).thenReturn(params.getId());
+        when(record.getId()).thenReturn(params.getId());
+        when(record.getQueryId()).thenReturn(params.getQueryId());
         when(record.isResponse()).thenReturn(params.isResponse());
         when(record.getTime()).thenReturn(params.getCreationTime());
 
@@ -482,7 +495,8 @@ public class LogArchiveCacheTest {
 
     @Value
     private static class AsicContainerParams {
-        private String id;
+        private Long id;
+        private String queryId;
         private boolean response;
         private byte[] bytes;
         private long creationTime;

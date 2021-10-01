@@ -176,7 +176,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void handleAsicRequest(ClientId clientId) throws Exception {
         String queryId = getParameter(PARAM_QUERY_ID, false);
-        AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator(Integer.toUnsignedLong(queryId.hashCode()));
+        AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator();
         boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
         boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
         if (requestOnly && responseOnly) {
@@ -245,9 +245,8 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                         continue;
                     }
                     messageRecordEncryption.prepareDecryption(record);
-                    String type = record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
-                            : AsicContainerNameGenerator.TYPE_REQUEST;
-                    final ZipEntry entry = new ZipEntry(nameGen.getArchiveFilename(queryId, type));
+                    final ZipEntry entry = new ZipEntry(
+                            nameGen.getArchiveFilename(queryId, record.isResponse(), record.getId()));
                     entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
                     zos.putNextEntry(entry);
 
@@ -289,10 +288,6 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
             boolean response) throws Exception {
-        String filename = nameGen.getArchiveFilename(queryId,
-                response ? AsicContainerNameGenerator.TYPE_RESPONSE : AsicContainerNameGenerator.TYPE_REQUEST);
-        servletResponse.setContentType(MimeTypes.ASIC_ZIP);
-        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
 
         LogRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
@@ -304,6 +299,11 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
                 }
                 MessageRecordEncryption.getInstance().prepareDecryption(record);
+
+                String filename = nameGen.getArchiveFilename(record.getQueryId(), record.isResponse(), record.getId());
+                servletResponse.setContentType(MimeTypes.ASIC_ZIP);
+                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
                 record.toAsicContainer().write(servletResponse.getOutputStream());
             } catch (CodedException ce) {
                 throw ce;

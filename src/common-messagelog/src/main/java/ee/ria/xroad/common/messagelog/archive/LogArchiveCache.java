@@ -122,7 +122,7 @@ class LogArchiveCache implements Closeable {
     private void addLinkingInfoToArchive(ZipOutputStream zipOut)
             throws IOException {
         ZipEntry linkingInfoEntry = new ZipEntry("linkinginfo");
-        linkingInfoEntry.setTime(maxCreationTime.getTime());
+        linkingInfoEntry.setLastModifiedTime(FileTime.from(maxCreationTime.toInstant()));
         zipOut.putNextEntry(linkingInfoEntry);
         zipOut.write(linkingInfoBuilder.build());
         zipOut.closeEntry();
@@ -186,10 +186,8 @@ class LogArchiveCache implements Closeable {
     }
 
     private void addContainerToArchive(MessageRecord record) throws Exception {
-        String archiveFilename =
-                nameGenerator.getArchiveFilename(record.getQueryId(),
-                        record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
-                                : AsicContainerNameGenerator.TYPE_REQUEST);
+        String archiveFilename = nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse(),
+                record.getId());
 
         final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
         final ZipEntry entry = new ZipEntry(archiveFilename);
@@ -252,7 +250,7 @@ class LogArchiveCache implements Closeable {
         maxCreationTime = null;
         state = State.NEW;
         archivesTotalSize = 0;
-        nameGenerator = new AsicContainerNameGenerator(linkingInfoBuilder.getLastDigest());
+        nameGenerator = new AsicContainerNameGenerator();
     }
 
     static class EntryStream extends FilterOutputStream {

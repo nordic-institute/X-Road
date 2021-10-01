@@ -27,7 +27,6 @@ package ee.ria.xroad.common.asic;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -40,31 +39,21 @@ public class AsicContainerNameGeneratorTest {
             + "2Fa.b%2F+http%3A%2F%2Flj8x2nig9nwry1gc2kw5maxtgkmcacy4lvdj2.burpcollaborator.net%2Fuox.xsd%22%3Euox%3C%2"
             + "Fuox%3E";
     private static final String SHORT_QUERY_ID = "myquery1234";
-    private static final String QUERY_TYPE_REQUEST = "request";
-    private static final String QUERY_TYPE_RESPONSE = "response";
+    private static final boolean QUERY_TYPE_REQUEST = false;
+    private static final boolean QUERY_TYPE_RESPONSE = true;
     private static final int FILENAME_MAX = 255;
 
     @Test
     public void testGeneratedFilename() {
-        AsicContainerNameGenerator nameGenerator = new AsicContainerNameGenerator(0);
-        String s1 = nameGenerator.getArchiveFilename(LONG_QUERY_ID, QUERY_TYPE_REQUEST);
+        AsicContainerNameGenerator nameGenerator = new AsicContainerNameGenerator();
+        String s1 = nameGenerator.getArchiveFilename(LONG_QUERY_ID, QUERY_TYPE_REQUEST, Long.MAX_VALUE);
         assertTrue("The generated filename was too long", s1.length() <= FILENAME_MAX);
-        String s2 = nameGenerator.getArchiveFilename(LONG_QUERY_ID, QUERY_TYPE_RESPONSE);
+        assertTrue("The sequence was not present", s1.contains(Long.toString(Long.MAX_VALUE, 32)));
+        String s2 = nameGenerator.getArchiveFilename(LONG_QUERY_ID, QUERY_TYPE_RESPONSE, Long.MAX_VALUE);
         assertTrue("The generated filename was too long", s2.length() <= FILENAME_MAX);
-        String s3 = nameGenerator.getArchiveFilename(SHORT_QUERY_ID, QUERY_TYPE_REQUEST);
+        String s3 = nameGenerator.getArchiveFilename(SHORT_QUERY_ID, QUERY_TYPE_REQUEST, Long.MAX_VALUE);
         assertTrue("The generated filename was too long", s3.length() <= FILENAME_MAX);
-        String s4 = nameGenerator.getArchiveFilename(SHORT_QUERY_ID, QUERY_TYPE_RESPONSE);
+        String s4 = nameGenerator.getArchiveFilename(SHORT_QUERY_ID, QUERY_TYPE_RESPONSE, Long.MAX_VALUE);
         assertTrue("The generated filename was too long", s4.length() <= FILENAME_MAX);
-    }
-
-    @Test
-    public void testWrapping() {
-        final AsicContainerNameGenerator generator = new AsicContainerNameGenerator(
-                AsicContainerNameGenerator.MAX_NAMES - 1);
-        assertEquals(String.format("1-request-%010x.asice", AsicContainerNameGenerator.MAX_NAMES - 1),
-                generator.getArchiveFilename("1", QUERY_TYPE_REQUEST));
-
-        assertEquals(String.format("2-request-%010x.asice", 0),
-                generator.getArchiveFilename("2", QUERY_TYPE_REQUEST));
     }
 }

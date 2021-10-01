@@ -25,57 +25,33 @@
  */
 package ee.ria.xroad.common.asic;
 
+import static ee.ria.xroad.common.asic.AsicUtils.escapeString;
+import static ee.ria.xroad.common.asic.AsicUtils.truncate;
+
 /**
- * Generates up to 2^40 unique filenames for a set of ASiC containers.
+ * Generates filenames for ASiC containers.
  *
- * The filename consists of query id and query type and a counter
- * which is a 40 bit (10 hex digits) value starting from the provided seed value.
+ * The filename consists of query id, query type and a sequence value
  */
 @SuppressWarnings("checkstyle:MagicNumber")
 public class AsicContainerNameGenerator {
 
     public static final String TYPE_RESPONSE = "response";
     public static final String TYPE_REQUEST = "request";
-    public static final long MAX_NAMES = 1L << 40;
 
-    private static final int MAX_QUERY_LENGTH = 225;
-    private long counter;
-
-    public AsicContainerNameGenerator(long seed) {
-        if (seed < 0) {
-            throw new IllegalArgumentException("Seed must be a positive integer");
-        }
-        this.counter = seed % MAX_NAMES;
-    }
-
-    public AsicContainerNameGenerator(String digest) {
-        this(seed(digest));
-    }
+    private static final int MAX_QUERY_LENGTH = 255 - 8 /*delims+asice*/ - 13 /*sequence*/ - 8/*response*/;
 
     /**
-     * Attempts to generate a unique filename with a random part and given
-     * static parts, formatted as "{static#1}-...-{static#N}-{random}.asice".
+     * Generates a filename for an asic container with the format "queryid-type-seq.asice"
+     *
      * @return the generated filename
      */
-    public String getArchiveFilename(String queryId, String queryType) {
-        String processedQueryId = AsicUtils.truncate(AsicUtils.escapeString(queryId), MAX_QUERY_LENGTH);
-        return String.format("%s-%s-%010x.asice", processedQueryId, queryType, counter());
-    }
-
-    private long counter() {
-        long current = counter;
-        counter = (counter + 1) % MAX_NAMES;
-        return current;
-    }
-
-    /**
-     * Generete a seed value from the provided hex digest
-     */
-    public static long seed(String digest) {
-        if (digest.isEmpty()) {
-            return 0;
-        } else {
-            return Long.valueOf(digest.substring(0, Math.min(10, digest.length())), 16);
-        }
+    public String getArchiveFilename(String queryId, boolean response, long seq) {
+        return truncate(escapeString(queryId), MAX_QUERY_LENGTH)
+                + '-'
+                + (response ? TYPE_RESPONSE : TYPE_REQUEST)
+                + '-'
+                + Long.toUnsignedString(seq, 32)
+                + ".asice";
     }
 }
