@@ -251,7 +251,8 @@
       "certificationAuthority": "Certification Authority",
       "serialNumber": "Serial Number",
       "subject": "Subject",
-      "expires": "Expires"
+      "expires": "Expires",
+      "deleteServer": "Delete server"
     }
   },
   "trustServices": {

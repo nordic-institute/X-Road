@@ -26,7 +26,7 @@
 <template>
   <div data-test="security-server-clients-view">
     <div id="clients-filter">
-      <xrd-search v-model="search" />
+      <xrd-search v-model="search" class="mb-4" />
     </div>
     <!-- Table -->
     <v-data-table
