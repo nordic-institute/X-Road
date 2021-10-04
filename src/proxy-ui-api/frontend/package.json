@@ -17,12 +17,13 @@
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
     "install-ui-lib": "cd ../../shared-ui && npm install",
     "build-ui-lib": "cd ../../shared-ui && npm run build-lib",
-    "install-build-ui-lib": "cd ../../shared-ui && npm install && npm run build-lib",
+    "install-build-ui-lib": "cd ../../shared-ui && npm install && npm run build-lib && npm pack",
     "audit-check-ui-lib": "cd ../../shared-ui && npm run check-audit",
     "license-check-ui-lib": "cd ../../shared-ui && npm run license-check",
     "serve-only": "vue-cli-service serve",
     "build-all": "npm run install-build-ui-lib && npm install && npm run build",
-    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-definition.yaml"
+    "bundle-openapi": "swagger-cli bundle -t yaml -o ../build/openapi/openapi-definition-bundled.yaml ../src/main/resources/openapi-definition.yaml",
+    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.5.0",
@@ -53,7 +54,7 @@
     "@vue/eslint-config-prettier": "~6.0.0",
     "@vue/eslint-config-typescript": "~7.0.0",
     "@vue/test-utils": "~1.2.0",
-    "chromedriver": "^87.0.5",
+    "chromedriver": "^93.0.0",
     "eslint": "6.8.0",
     "eslint-plugin-prettier": "~3.4.0",
     "eslint-plugin-vue": "~7.17.0",

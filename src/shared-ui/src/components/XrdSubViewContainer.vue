@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-sub-view-wrapper">
-    <v-container class="xrd-view-common mt-7">
+  <div class="xrd-sub-view-outer-wrapper">
+    <v-container class="xrd-default-font-size mt-7">
       <slot></slot>
     </v-container>
   </div>
@@ -39,3 +39,19 @@ import Vue from 'vue';
  */
 export default Vue.extend({});
 </script>
+
+<style lang="scss" scoped>
+@import '../assets/colors';
+
+.xrd-sub-view-outer-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Use this to set up font etc. common things for normal views */
+.xrd-default-font-size {
+  font-size: $XRoad-DefaultFontSize;
+}
+</style>

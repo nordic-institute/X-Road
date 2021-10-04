@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.13  
+Version: 1.14  
 Doc. ID: IG-XLB
 
 
@@ -20,6 +20,7 @@ Doc. ID: IG-XLB
 | 23.12.2020  | 1.11        | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                 |
 | 02.07.2021  | 1.12        | Updates for state sync                                                                                                   | Jarkko Hyöty                 |
 | 25.08.2021  | 1.13        | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki               |
+| 17.09.2021  | 1.14        | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki               |
 
 ## Table of Contents
 
@@ -362,6 +363,7 @@ In addition to implicitly verifying that the `xroad-proxy` service is running, t
 * The server authentication key is accessible and that the OCSP response for the certificate is `good`. This requires a
 running `xroad-signer` service in good condition.
 * The `serverconf` database is accessible.
+* The `global configuration` is valid and not expired.
 
 Each of these status checks has a separate timeout of 5 seconds. If the status check fails to produce a response in this
 time, it will be considered a health check failure and will cause a `HTTP 500` response.

@@ -32,6 +32,9 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * Cached sign certificate details for this SS. See {@link CurrentSecurityServerConfig}
+ */
 @Data
 @AllArgsConstructor
 public class CurrentSecurityServerSignCertificates {

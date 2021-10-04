@@ -38,6 +38,7 @@ import StatusIcon from './components/StatusIcon.vue';
 import SubViewTitle from './components/SubViewTitle.vue';
 import XrdSearch from './components/XrdSearch.vue';
 import XrdTable from './components/XrdTable.vue';
+import XrdSubViewContainer from './components/XrdSubViewContainer.vue';
 // Icons
 import IconBase from './components/icons/IconBase.vue';
 import XrdIconAdd from './components/icons/XrdIconAdd.vue';
@@ -131,6 +132,7 @@ const SharedComponents = {
     Vue.component('XrdIconTooltip', XrdIconTooltip);
     Vue.component('XrdIconUpload', XrdIconUpload);
     Vue.component('XrdIconWarning', XrdIconWarning);
+    Vue.component('XrdSubViewContainer', XrdSubViewContainer);
   },
 };
 

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,34 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi;
-
-import ee.ria.xroad.common.Version;
-
-import org.niis.xroad.securityserver.restapi.service.VersionService;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
-
-/**
- * main spring boot application.
- */
-@ServletComponentScan
-@SpringBootApplication(scanBasePackages = { "org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi" })
-@EnableCaching
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
-
-    private static final String APP_NAME = "xroad-proxy-ui-api";
-
-    /**
-     * start application
-     */
-    public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME, VersionService.MIN_SUPPORTED_JAVA_VERSION,
-                VersionService.MAX_SUPPORTED_JAVA_VERSION);
-        SpringApplication.run(RestApiApplication.class, args
-        );
-    }
+// Used in api-keys endpoints, but not defined in OpenAPI definitions
+export interface ApiKey {
+  id: number;
+  roles: string[];
+  key?: string;
 }

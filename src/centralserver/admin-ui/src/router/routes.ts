@@ -47,6 +47,9 @@ import PageNavigation from '@/components/layout/PageNavigation.vue';
 import MemberManagementRequests from '@/views/Members/Member/ManagementRequests/MemberManagementRequests.vue';
 import MemberSubsystems from '@/views/Members/Member/Subsystems/MemberSubsystems.vue';
 import BackupAndRestore from '@/views/Settings/BackupAndRestore/BackupAndRestore.vue';
+import ApiKeys from '@/views/Settings/ApiKeys/ApiKeys.vue';
+import CreateApiKeyStepper from '@/views/Settings/ApiKeys/CreateApiKeyStepper.vue';
+
 import SystemSettings from '@/views/Settings/SystemSettings/SystemSettings.vue';
 import SecurityServers from '@/views/SecurityServers/SecurityServers.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
@@ -106,7 +109,27 @@ const routes: RouteConfig[] = [
             props: true,
             meta: { permissions: [Permissions.MOCK_PERMISSION1] },
           },
+          {
+            name: RouteName.ApiKeys,
+            path: 'apikeys',
+            component: ApiKeys,
+            props: true,
+            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+          },
         ],
+      },
+
+      {
+        name: RouteName.CreateApiKey,
+        path: '/keys/apikey/create',
+        components: {
+          default: CreateApiKeyStepper,
+          alerts: AlertsContainer,
+        },
+        props: {
+          default: true,
+        },
+        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
       },
 
       {

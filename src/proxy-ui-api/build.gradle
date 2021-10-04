@@ -66,10 +66,6 @@ bootRun {
     }
 }
 
-bootJar {
-    excludeDevtools = true
-}
-
 processResources {
     from('frontend/dist/') {
         into 'public/'
@@ -301,7 +297,7 @@ task copyDeps(type: Copy) {
     from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
 }
 
-build.dependsOn copyDeps
+assemble.dependsOn copyDeps
 
 test {
     maxHeapSize = "1g"

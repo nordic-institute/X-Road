@@ -24,17 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3" data-test="api-keys-view">
-    <div class="table-toolbar mt-0 pl-0">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
-
-        <help-button
-          help-image="api_keys.png"
-          help-title="keys.helpTitleApi"
-          help-text="keys.helpTextApi"
-        ></help-button>
+  <div data-test="api-keys-view">
+    <!-- Title and button -->
+    <div class="table-toolbar align-fix mt-0 pl-0">
+      <div class="xrd-view-title align-fix">
+        {{ $t('tab.settings.apiKeys') }}
+        <xrd-icon-base class="xrd-large-button-icon ml-3"
+          ><XrdIconTooltip
+        /></xrd-icon-base>
       </div>
+
       <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
         <xrd-icon-base class="xrd-large-button-icon"
           ><XrdIconAdd
@@ -154,20 +153,15 @@
  * View for 'API keys' tab
  */
 import Vue from 'vue';
-
 import { DataTableHeader } from 'vuetify';
 import { ApiKey } from '@/global-types';
-import HelpButton from '../HelpButton.vue';
-import { RouteName, Roles, Permissions } from '@/global';
+import { RouteName, Roles } from '@/global';
 import * as api from '@/util/api';
+import { StoreTypes, Permissions } from '@/global';
 
 export default Vue.extend({
-  components: {
-    HelpButton,
-  },
   data() {
     return {
-      apiKeys: new Array<ApiKey>(),
       search: '' as string,
       loading: false,
       showOnlyPending: false,
@@ -178,17 +172,42 @@ export default Vue.extend({
       savingChanges: false,
       removingApiKey: false,
       roles: Roles,
+      apiKeys: [
+        {
+          id: 3897387478,
+          roles: [
+            'XROAD_SECURITY_OFFICER',
+            'XROAD_SECURITYSERVER_OBSERVER',
+            'XROAD_SYSTEM_ADMINISTRATOR',
+          ],
+          key: 'iugyuidfguiygffg89',
+        },
+        {
+          id: 19383837,
+          roles: [
+            'XROAD_SECURITYSERVER_OBSERVER',
+            'XROAD_SYSTEM_ADMINISTRATOR',
+          ],
+          key: 'jhdfg7jgjkghhj',
+        },
+      ] as ApiKey[],
     };
   },
   computed: {
     canCreateApiKey(): boolean {
-      return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
+      return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
+        Permissions.MOCK_PERMISSION1,
+      );
     },
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.UPDATE_API_KEY);
+      return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
+        Permissions.MOCK_PERMISSION1,
+      );
     },
     canRevoke(): boolean {
-      return this.$store.getters.hasPermission(Permissions.REVOKE_API_KEY);
+      return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
+        Permissions.MOCK_PERMISSION1,
+      );
     },
     headers(): DataTableHeader[] {
       return [
@@ -220,12 +239,7 @@ export default Vue.extend({
 
   methods: {
     loadKeys(): void {
-      if (this.$store.getters.hasPermission(Permissions.VIEW_API_KEYS)) {
-        api
-          .get<ApiKey[]>('/api-keys')
-          .then((resp) => (this.apiKeys = resp.data))
-          .catch((error) => this.$store.dispatch('showError', error));
-      }
+      // Implement loading later
     },
     editKey(apiKey: ApiKey): void {
       this.selectedKey = apiKey;
@@ -263,7 +277,9 @@ export default Vue.extend({
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) =>
+          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
+        )
         .finally(() => {
           this.confirmRevoke = false;
           this.removingApiKey = false;
@@ -274,7 +290,7 @@ export default Vue.extend({
       if (!this.selectedKey) return;
       this.savingChanges = true;
       return api
-        .put<ApiKey>(
+        .put(
           `/api-keys/${api.encodePathParameter(this.selectedKey.id)}`,
           this.selectedRoles,
         )
@@ -287,7 +303,9 @@ export default Vue.extend({
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) =>
+          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
+        )
         .finally(() => {
           this.savingChanges = false;
           this.showEditDialog = false;
@@ -310,6 +328,14 @@ export default Vue.extend({
 .server-code {
   font-weight: 600;
   font-size: 14px;
+}
+
+.align-fix {
+  align-items: center;
+}
+
+.margin-fix {
+  margin-top: -10px;
 }
 
 .custom-footer {

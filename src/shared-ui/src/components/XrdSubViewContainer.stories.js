@@ -1,5 +1,6 @@
-/**
+/*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,34 +24,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi;
+import XrdSubViewContainer from '@/components/XrdSubViewContainer';
 
-import ee.ria.xroad.common.Version;
+export default {
+  title: 'X-Road/SubViewContainer',
+  component: XrdSubViewContainer,
+};
 
-import org.niis.xroad.securityserver.restapi.service.VersionService;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.web.servlet.ServletComponentScan;
-import org.springframework.cache.annotation.EnableCaching;
+const Template = (args, { argTypes }) => ({
+  props: Object.keys(argTypes),
+  components: { XrdSubViewContainer },
+  template: `
+    <XrdSubViewContainer>
+      <div>A container with the base styles for a view</div>
+    </XrdSubViewContainer>
+  `,
+});
 
-/**
- * main spring boot application.
- */
-@ServletComponentScan
-@SpringBootApplication(scanBasePackages = { "org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi" })
-@EnableCaching
-@SuppressWarnings("checkstyle:HideUtilityClassConstructor")
-public class RestApiApplication {
-
-    private static final String APP_NAME = "xroad-proxy-ui-api";
-
-    /**
-     * start application
-     */
-    public static void main(String[] args) {
-        Version.outputVersionInfo(APP_NAME, VersionService.MIN_SUPPORTED_JAVA_VERSION,
-                VersionService.MAX_SUPPORTED_JAVA_VERSION);
-        SpringApplication.run(RestApiApplication.class, args
-        );
-    }
-}
+export const subView = Template.bind({});

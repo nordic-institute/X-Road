@@ -4,7 +4,6 @@ plugins {
 }
 
 bootJar {
-    excludeDevtools = true
     manifest {
         attributes(
             'Implementation-Title': 'X-Road Central Server Management Service' ,
