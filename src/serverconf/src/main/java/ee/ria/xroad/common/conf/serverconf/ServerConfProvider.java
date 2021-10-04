@@ -188,6 +188,13 @@ public interface ServerConfProvider {
     List<Endpoint> getServiceEndpoints(ServiceId service);
 
     /**
+     * @param service the service identifier
+     * @param client the service client
+     * @return list of allowed endpoints
+     */
+    List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client);
+
+    /**
      * Log serverconf statistics
      */
     default void logStatistics() {

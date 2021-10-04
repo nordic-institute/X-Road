@@ -246,8 +246,9 @@ public class RestMetadataServiceHandlerTest {
         assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = handlerToTest.getRestResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MethodListType methodListType = MAPPER.readValue(restResponseBody.getCachedContents(), MethodListType.class);
-        assertEquals(2, methodListType.getService().size());
+        RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
+                RestServiceDetailsListType.class);
+        assertEquals(3, restServiceDetailsList.getService().size());
     }
 
     @Test

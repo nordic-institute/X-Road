@@ -31,7 +31,6 @@ import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.metadata.MethodListType;
 import ee.ria.xroad.common.metadata.ObjectFactory;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
@@ -167,16 +166,10 @@ public class RestMetadataServiceHandlerImpl implements RestServiceHandler {
 
     private void handleAllowedMethods(ProxyMessage requestProxyMessage) throws IOException {
         restResponse.getHeaders().add(new BasicHeader(MimeUtils.HEADER_CONTENT_TYPE, MimeTypes.JSON));
-        MethodListType methodList = OBJECT_FACTORY.createMethodListType();
-        methodList.getService().addAll(ServerConf.getAllowedServicesByDescriptionType(
-                requestProxyMessage.getRest().getServiceId().getClientId(),
-                requestProxyMessage.getRest().getClientId(),
-                DescriptionType.REST));
-        methodList.getService().addAll(ServerConf.getAllowedServicesByDescriptionType(
-                requestProxyMessage.getRest().getServiceId().getClientId(),
-                requestProxyMessage.getRest().getClientId(),
-                DescriptionType.OPENAPI3));
-        MAPPER.writeValue(restResponseBody, methodList);
+        MAPPER.writeValue(restResponseBody,
+                ServerConf.getAllowedRestServices(requestProxyMessage.getRest().getServiceId().getClientId(),
+                        requestProxyMessage.getRest().getClientId())
+        );
     }
 
     private void handleGetOpenApi(ProxyMessage requestProxyMessage) throws IOException,

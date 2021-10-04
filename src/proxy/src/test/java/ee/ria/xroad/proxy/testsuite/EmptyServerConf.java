@@ -134,6 +134,11 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client) {
+        return emptyList();
+    }
+
+    @Override
     public boolean isSslAuthentication(ServiceId service) {
         return false;
     }

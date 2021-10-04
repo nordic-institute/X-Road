@@ -196,6 +196,50 @@ public class ServerConf {
 
     /**
      * @param serviceProvider the service provider identifier
+     * @param client the client identifier
+     * @return all the REST services (REST base path, OpenAPI) offered by a service provider
+     */
+    public static RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
+        log.trace("getRestServices({})", serviceProvider);
+        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
+        EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
+
+        // where access has been granted on the service level
+        List<ServiceId> allowedServices = getInstance().getAllowedServices(serviceProvider, client);
+        for (ServiceId serviceId : allowedServices) {
+            if (restTypes.contains(getDescriptionType(serviceId))) {
+                XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+                serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+                serviceDetails.setMemberClass(serviceId.getMemberClass());
+                serviceDetails.setMemberCode(serviceId.getMemberCode());
+                serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+                serviceDetails.setServiceCode(serviceId.getServiceCode());
+                serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+                serviceDetails.setServiceType(RestServiceType.REST);
+                serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
+                restServiceDetailsList.getService().add(serviceDetails);
+            }
+        }
+        // where access has been granted on the endpoint level
+        for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
+            if (!allowedServices.contains(serviceId) && restTypes.contains(getDescriptionType(serviceId))) {
+                XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+                serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+                serviceDetails.setMemberClass(serviceId.getMemberClass());
+                serviceDetails.setMemberCode(serviceId.getMemberCode());
+                serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+                serviceDetails.setServiceCode(serviceId.getServiceCode());
+                serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+                serviceDetails.setServiceType(RestServiceType.REST);
+                serviceDetails.getEndpointList().addAll(getInstance().getAllowedServiceEndpoints(serviceId, client));
+                restServiceDetailsList.getService().add(serviceDetails);
+            }
+        }
+        return restServiceDetailsList;
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
      * @param client          the client identifier
      * @return all the services by a service provider that the caller
      * has permission to invoke.

@@ -317,6 +317,26 @@ public class ServerConfImpl implements ServerConfProvider {
         });
     }
 
+    @Override
+    public List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client) {
+        return tx(session -> {
+            List<EndpointType> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
+                    .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
+                    .collect(Collectors.toList());
+            List<Endpoint> results = new ArrayList<>();
+            for (EndpointType endpointType : endpoints) {
+                if (internalIsQueryAllowed(session, client, service, endpointType.getMethod(),
+                        endpointType.getPath())) {
+                    Endpoint e = new Endpoint();
+                    e.setMethod(endpointType.getMethod());
+                    e.setPath(endpointType.getPath());
+                    results.add(e);
+                }
+            }
+            return results;
+        });
+    }
+
     // ------------------------------------------------------------------------
 
     protected ServerConfType getConf(Session session) {
