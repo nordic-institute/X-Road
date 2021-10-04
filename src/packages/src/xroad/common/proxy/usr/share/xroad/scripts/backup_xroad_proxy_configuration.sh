@@ -82,6 +82,8 @@ while getopts ":s:f:Sbh" opt ; do
   esac
 done
 
+warn_about_incompatibility
+
 ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encrypted" false)
 echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
 PUBKEYS_FOLDER=$(get_proxy_prop proxy.ini proxy "backup-public-key-path")
