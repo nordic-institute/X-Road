@@ -26,32 +26,33 @@
 const Events = require('events');
 
 module.exports = class WaitFor extends Events {
-    // async command(f) {
-    async command(selector, expectedValue) {
-        console.log('waitForValue, waiting for "' + expectedValue + '"');
-        const interval = 100;
-        const timeout = 5000;
-        let counter = 0;
-        while ((counter * interval) < timeout) {
-            let value = null;
-            await this.api.getValue(selector, (result) => {
-                let equality = (result.value === expectedValue);
-                value = equality;
-            })
-            if (value) {
-                console.log("wait complete");
-                let returnValue = {
-                    status: 1,
-                };
-                this.emit('complete', returnValue);
-                return returnValue;
-            }
-            await new Promise(r => setTimeout(r, interval));
-            counter++;
-        }
-        // var err = new Error().stack
-        // this command does not know the stacktrace (which test the command was called from)
-        // maybe changing it to be non-async (it that makes sense) would help?
-        this.emit("error", new Error(`Timeout exceeded while waiting for value [${expectedValue}] using selector [${selector}]`));
+  // async command(f) {
+  async command(selector, expectedValue) {
+    console.log('waitForValue, waiting for "' + expectedValue + '"');
+    const interval = 100;
+    const timeout = 5000;
+    let counter = 0;
+    while (counter * interval < timeout) {
+      const result = await this.api.getValue(selector);
+      if (result.value === expectedValue) {
+        console.log('wait complete');
+        const returnValue = {
+          status: 1,
+        };
+        this.emit('complete', returnValue);
+        return returnValue;
+      }
+      await new Promise((r) => setTimeout(r, interval));
+      counter++;
     }
-}
+    // var err = new Error().stack
+    // this command does not know the stacktrace (which test the command was called from)
+    // maybe changing it to be non-async (it that makes sense) would help?
+    this.emit(
+      'error',
+      new Error(
+        `Timeout exceeded while waiting for value [${expectedValue}] using selector [${selector}]`,
+      ),
+    );
+  }
+};

@@ -57,7 +57,7 @@ var navigateCommands = {
     this.click('@logoutOKButton');
     return this;
   },
-  closeSnackbar: function (doubleClick) {
+  closeSnackbar: function () {
     this.click('@snackBarCloseButton');
     return this;
   },

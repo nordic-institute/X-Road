@@ -242,8 +242,7 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
             // to run specific testcase, your need to also define -Ptestscript, otherwise nightwatch ignores this parameter
             throw new GradleException('Tried to use -Ptestcase without -Ptestscript, that will not work.')
         }
-        args.add("--testcase");
-        args.add(testcase);
+        args.add("--testcase=" + testcase);
         println 'set testcase arg to value [' + testcase + ']'
 
     }

@@ -24,9 +24,9 @@
  * THE SOFTWARE.
  */
 module.exports.command = function (message) {
-    return this.perform(function (browser, done) {
-        console.log("\033[32m✓✓✓\033[0m " + message);
-        console.log("\033[32m ✓✓\033[0m"); // for some reason last log message disappears
-        done();
-    });
+  return this.perform(function (browser, done) {
+    console.log('\033[32m✓✓✓\033[0m ' + message);
+    console.log('\033[32m ✓✓\033[0m'); // for some reason last log message disappears
+    done();
+  });
 };

@@ -37,7 +37,7 @@ let mainPage,
   restoreConfirmationDialog;
 
 module.exports = {
-  tags: ['x1736','ss', 'backupandrestore'],
+  tags: ['ss', 'backupandrestore'],
   before: function (browser) {
     // Page object variable declarations
     mainPage = browser.page.ssMainPage();

@@ -27,7 +27,7 @@
 var fs = require('fs');
 
 module.exports = {
-  tags: ['x1736','ss', 'clients', 'internalservers'],
+  tags: ['ss', 'clients', 'internalservers'],
   'Security server client internal servers page': (browser) => {
     const frontPage = browser.page.ssFrontPage();
     const mainPage = browser.page.ssMainPage();
