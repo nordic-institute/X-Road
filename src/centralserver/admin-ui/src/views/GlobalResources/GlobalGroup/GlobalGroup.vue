@@ -56,9 +56,10 @@
           {{ $t('globalGroup.groupMembers') }}
         </div>
         <xrd-search v-model="search" class="margin-fix" />
-        <!-- <xrd-filter v-model="search" class="ml-4 margin-fix" /> -->
-
-        <v-icon class="ml-4 margin-fix" @click="showFilterDialog = true"
+        <v-icon
+          color="primary"
+          class="ml-4 mt-1"
+          @click="showFilterDialog = true"
           >mdi-filter-outline</v-icon
         >
       </div>
@@ -103,42 +104,12 @@
     </v-data-table>
 
     <!-- Dialogs -->
-
     <FilterDialog
       :dialog="showFilterDialog"
       cancel-button-text="action.cancel"
       title="globalResources.addGlobalGroup"
       @cancel="showFilterDialog = false"
     ></FilterDialog>
-    <!--
-    <xrd-simple-dialog
-      :dialog="showFilterDialog"
-      cancel-button-text="action.cancel"
-      title="globalResources.addGlobalGroup"
-      @cancel="clearFilter"
-    >
-      <template #content>
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="code"
-            outlined
-            :label="$t('globalResources.code')"
-            autofocus
-            data-test="add-local-group-code-input"
-          ></v-text-field>
-        </div>
-
-        <div class="dlg-input-width">
-          <v-text-field
-            v-model="description"
-            hint
-            :label="$t('globalResources.description')"
-            outlined
-            data-test="add-local-group-description-input"
-          ></v-text-field>
-        </div>
-      </template>
-    </xrd-simple-dialog> -->
   </div>
 </template>
 
@@ -147,7 +118,6 @@ import Vue from 'vue';
 
 import { DataTableHeader } from 'vuetify';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import XrdFilter from '@/components/ui/XrdFilter.vue';
 import FilterDialog from '@/components/ui/FilterDialog.vue';
 
 import { Colors } from '@/global';
@@ -261,7 +231,7 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/colors';
-
+@import '~styles/tables';
 .navigation-back {
   color: $XRoad-Link;
   cursor: pointer;

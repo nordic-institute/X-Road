@@ -25,19 +25,16 @@
  -->
 
 <template>
-  <sub-view-container>
+  <xrd-sub-view-container>
     <router-view data-test="global-resources-view"></router-view>
-  </sub-view-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 
 /**
  * Security servers main view wrapping content all from 'Security servers' main tab
  */
-export default Vue.extend({
-  components: { SubViewContainer },
-});
+export default Vue.extend({});
 </script>
