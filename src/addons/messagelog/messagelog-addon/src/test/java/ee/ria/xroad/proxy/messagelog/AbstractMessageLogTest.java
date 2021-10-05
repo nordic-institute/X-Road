@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.messagelog;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
@@ -106,6 +107,8 @@ abstract class AbstractMessageLogTest {
     }
 
     protected void testSetUp(boolean timestampImmediately) throws Exception {
+        System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
+
         jobManager = new JobManager();
         clearDeadLetters();
 

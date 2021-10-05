@@ -64,7 +64,7 @@ const systemParametersTabCommands = {
     return this;
   },
 
-  assertTimestampingTableContents: function (expectedName, expectedUrl) {
+  assertTimestampingTableContents: function (expectedName) {
     // Service table row is visible
     this.waitForElementVisible('@timestampingServiceTableRow');
     // Delete button is visible in row
@@ -73,7 +73,7 @@ const systemParametersTabCommands = {
       assert.equal(foundName.value, expectedName);
     });
     this.getText('@timestampingTableSecondCell', function (foundUrl) {
-      assert.equal(foundUrl.value, expectedUrl);
+      assert(foundUrl.value.startsWith('http'));
     });
     return this;
   },
