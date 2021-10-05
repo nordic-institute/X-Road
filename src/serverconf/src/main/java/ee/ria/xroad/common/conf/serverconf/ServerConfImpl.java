@@ -310,7 +310,11 @@ public class ServerConfImpl implements ServerConfProvider {
             for (EndpointType endpointType : endpoints) {
                 Endpoint e = new Endpoint();
                 e.setMethod(endpointType.getMethod());
-                e.setPath(endpointType.getPath());
+                if (endpointType.getPath().equals("**")) {
+                    e.setPath("/");
+                } else {
+                    e.setPath(endpointType.getPath());
+                }
                 results.add(e);
             }
             return results;
@@ -329,7 +333,11 @@ public class ServerConfImpl implements ServerConfProvider {
                         endpointType.getPath())) {
                     Endpoint e = new Endpoint();
                     e.setMethod(endpointType.getMethod());
-                    e.setPath(endpointType.getPath());
+                    if (endpointType.getPath().equals("**")) {
+                        e.setPath("/");
+                    } else {
+                        e.setPath(endpointType.getPath());
+                    }
                     results.add(e);
                 }
             }
