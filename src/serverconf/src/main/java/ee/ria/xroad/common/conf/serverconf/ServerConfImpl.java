@@ -305,16 +305,13 @@ public class ServerConfImpl implements ServerConfProvider {
         return tx(session -> {
             List<EndpointType> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
                     .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
+                    .filter(e -> !e.getPath().equals("**"))
                     .collect(Collectors.toList());
             List<Endpoint> results = new ArrayList<>();
             for (EndpointType endpointType : endpoints) {
                 Endpoint e = new Endpoint();
                 e.setMethod(endpointType.getMethod());
-                if (endpointType.getPath().equals("**")) {
-                    e.setPath("/");
-                } else {
-                    e.setPath(endpointType.getPath());
-                }
+                e.setPath(endpointType.getPath());
                 results.add(e);
             }
             return results;
@@ -326,6 +323,7 @@ public class ServerConfImpl implements ServerConfProvider {
         return tx(session -> {
             List<EndpointType> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
                     .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
+                    .filter(e -> !e.getPath().equals("**"))
                     .collect(Collectors.toList());
             List<Endpoint> results = new ArrayList<>();
             for (EndpointType endpointType : endpoints) {
@@ -333,11 +331,7 @@ public class ServerConfImpl implements ServerConfProvider {
                         endpointType.getPath())) {
                     Endpoint e = new Endpoint();
                     e.setMethod(endpointType.getMethod());
-                    if (endpointType.getPath().equals("**")) {
-                        e.setPath("/");
-                    } else {
-                        e.setPath(endpointType.getPath());
-                    }
+                    e.setPath(endpointType.getPath());
                     results.add(e);
                 }
             }
