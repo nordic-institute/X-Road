@@ -24,21 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header-row">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('members.header') }}</div>
-        <xrd-search v-model="search" />
-      </div>
-      <xrd-button data-test="add-member-button" @click="() => {}">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><xrd-icon-add
-        /></xrd-icon-base>
-
-        {{ $t('members.addMember') }}</xrd-button
-      >
+  <div data-test="security-server-clients-view">
+    <div id="clients-filter">
+      <xrd-search v-model="search" class="mb-4" />
     </div>
-
     <!-- Table -->
     <v-data-table
       :loading="loading"
@@ -53,7 +42,7 @@
       hide-default-footer
     >
       <template #[`item.name`]="{ item }">
-        <div class="members-table-cell-name" @click="toDetails('netum')">
+        <div class="table-cell-name" @click="toDetails('netum')">
           <xrd-icon-base class="xrd-clickable mr-4"
             ><xrd-icon-folder-outline
           /></xrd-icon-base>
@@ -70,27 +59,29 @@
 </template>
 
 <script lang="ts">
+/**
+ * View for 'security server clients' tab
+ */
 import Vue from 'vue';
-import { RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  name: 'MemberList',
   data() {
     return {
       search: '',
       loading: false,
-      showOnlyPending: false,
       members: [
         {
           name: 'Nordic Institue for Interoperability Solutions',
           class: 'ORG',
           code: '555',
+          subsystem: 'Subsystem X',
         },
         {
           name: 'Netum Oy',
           class: 'COM',
           code: 'IMAMEMBERCODE',
+          subsystem: 'Subsystem B',
         },
       ],
     };
@@ -102,29 +93,32 @@ export default Vue.extend({
           text: (this.$t('global.memberName') as string) + ' (8)',
           align: 'start',
           value: 'name',
-          class: 'xrd-table-header members-table-header-name',
+          class: 'xrd-table-header clients-table-header-name',
         },
         {
-          text: this.$t('global.memberClass') as string,
+          text: this.$t('global.class') as string,
           align: 'start',
           value: 'class',
-          class: 'xrd-table-header members-table-header-class',
+          class: 'xrd-table-header clients-table-header-class',
         },
         {
-          text: this.$t('global.memberCode') as string,
+          text: this.$t('global.code') as string,
           align: 'start',
           value: 'code',
-          class: 'xrd-table-header members-table-header-code',
+          class: 'xrd-table-header clients-table-header-code',
+        },
+        {
+          text: this.$t('global.subsystem') as string,
+          align: 'start',
+          value: 'code',
+          class: 'xrd-table-header clients-table-header-subsystem',
         },
       ];
     },
   },
   methods: {
     toDetails(): void {
-      this.$router.push({
-        name: RouteName.MemberDetails,
-        params: { memberid: 'netum' },
-      });
+      // Implement later
     },
   },
 });
@@ -134,23 +128,15 @@ export default Vue.extend({
 @import '~styles/colors';
 @import '~styles/tables';
 
-.icon-column {
-  width: 40px;
-}
-
-.members-table-cell-name {
+.table-cell-name {
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
 }
 
-.members-table-header-icon {
-  width: 20px;
-}
-
-.members-table-cell-id {
-  border: solid 3px red;
-  width: 10px;
+#clients-filter {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

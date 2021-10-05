@@ -24,26 +24,15 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <div class="header-row">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('members.header') }}</div>
-        <xrd-search v-model="search" />
-      </div>
-      <xrd-button data-test="add-member-button" @click="() => {}">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><xrd-icon-add
-        /></xrd-icon-base>
-
-        {{ $t('members.addMember') }}</xrd-button
-      >
-    </div>
-
+  <div
+    data-test="security-server-authentication-certificates-view"
+    class="mt-8"
+  >
     <!-- Table -->
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="members"
+      :items="certificationServices"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
@@ -52,45 +41,53 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.name`]="{ item }">
-        <div class="members-table-cell-name" @click="toDetails('netum')">
-          <xrd-icon-base class="xrd-clickable mr-4"
-            ><xrd-icon-folder-outline
-          /></xrd-icon-base>
+      <template #[`item.certificationAuthority`]="{ item }">
+        <div class="icon-cell">
+          <xrd-icon-base class="mr-4"><XrdIconCertificate /></xrd-icon-base>
+          {{ item.certificationAuthority }}
+        </div>
+      </template>
 
-          {{ item.name }}
+      <template #[`item.button`]>
+        <div class="cs-table-actions-wrap">
+          <xrd-button text :outlined="false">{{
+            $t('action.delete')
+          }}</xrd-button>
         </div>
       </template>
 
       <template #footer>
-        <div class="cs-table-custom-footer"></div>
+        <div class="custom-footer"></div>
       </template>
     </v-data-table>
   </div>
 </template>
 
 <script lang="ts">
+/**
+ * View for 'security server authentication certificates' tab
+ */
 import Vue from 'vue';
-import { RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
-  name: 'MemberList',
   data() {
     return {
-      search: '',
+      search: '' as string,
       loading: false,
       showOnlyPending: false,
-      members: [
+      certificationServices: [
         {
-          name: 'Nordic Institue for Interoperability Solutions',
-          class: 'ORG',
-          code: '555',
+          certificationAuthority: 'X-Road test',
+          serialNumber: '12',
+          subject: '/C=/FI/O=NIIS/CN=xroad-lxd-ss1',
+          expires: '2024-04-08',
         },
         {
-          name: 'Netum Oy',
-          class: 'COM',
-          code: 'IMAMEMBERCODE',
+          certificationAuthority: 'Test CA CN',
+          serialNumber: '4',
+          subject: '/C=/FI/O=NIIS/CN=xroad-lxd-ss3',
+          expires: '2024-03-13',
         },
       ],
     };
@@ -99,58 +96,63 @@ export default Vue.extend({
     headers(): DataTableHeader[] {
       return [
         {
-          text: (this.$t('global.memberName') as string) + ' (8)',
+          text: this.$t(
+            'securityServers.securityServer.certificationAuthority',
+          ) as string,
           align: 'start',
-          value: 'name',
-          class: 'xrd-table-header members-table-header-name',
+          value: 'certificationAuthority',
+          class: 'xrd-table-header',
         },
         {
-          text: this.$t('global.memberClass') as string,
+          text: this.$t(
+            'securityServers.securityServer.serialNumber',
+          ) as string,
           align: 'start',
-          value: 'class',
-          class: 'xrd-table-header members-table-header-class',
+          value: 'serialNumber',
+          class: 'xrd-table-header',
         },
         {
-          text: this.$t('global.memberCode') as string,
+          text: this.$t('securityServers.securityServer.subject') as string,
           align: 'start',
-          value: 'code',
-          class: 'xrd-table-header members-table-header-code',
+          value: 'subject',
+          class: 'xrd-table-header',
+        },
+        {
+          text: this.$t('securityServers.securityServer.expires') as string,
+          align: 'start',
+          value: 'expires',
+          class: 'xrd-table-header',
+        },
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header',
         },
       ];
     },
   },
-  methods: {
-    toDetails(): void {
-      this.$router.push({
-        name: RouteName.MemberDetails,
-        params: { memberid: 'netum' },
-      });
-    },
-  },
 });
 </script>
-
 <style lang="scss" scoped>
-@import '~styles/colors';
 @import '~styles/tables';
 
-.icon-column {
-  width: 40px;
-}
-
-.members-table-cell-name {
+.icon-cell {
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
-  cursor: pointer;
 }
 
-.members-table-header-icon {
-  width: 20px;
+.align-fix {
+  align-items: center;
 }
 
-.members-table-cell-id {
-  border: solid 3px red;
-  width: 10px;
+.margin-fix {
+  margin-top: -10px;
+}
+
+.custom-footer {
+  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
+  height: 16px;
 }
 </style>

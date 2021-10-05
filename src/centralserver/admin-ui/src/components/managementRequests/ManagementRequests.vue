@@ -25,25 +25,23 @@
  -->
 <template>
   <div>
-    <div class="header-row">
-      <div class="xrd-title-search">
-        <div class="xrd-view-title">{{ $t('members.header') }}</div>
-        <xrd-search v-model="search" />
-      </div>
-      <xrd-button data-test="add-member-button" @click="() => {}">
-        <xrd-icon-base class="xrd-large-button-icon"
-          ><xrd-icon-add
-        /></xrd-icon-base>
-
-        {{ $t('members.addMember') }}</xrd-button
-      >
+    <div id="management-request-filters">
+      <xrd-search
+        v-model="search"
+        class="search"
+        :label="$t('global.search')"
+      ></xrd-search>
+      <v-checkbox
+        class="show-only-waiting"
+        :label="$t('members.member.managementRequests.showOnlyWaiting')"
+        :background-color="colors.Purple100100"
+        :input-value="showOnlyPending"
+      />
     </div>
-
-    <!-- Table -->
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="members"
+      :items="managementRequests"
       :search="search"
       :must-sort="true"
       :items-per-page="-1"
@@ -52,13 +50,27 @@
       :loader-height="2"
       hide-default-footer
     >
-      <template #[`item.name`]="{ item }">
-        <div class="members-table-cell-name" @click="toDetails('netum')">
-          <xrd-icon-base class="xrd-clickable mr-4"
-            ><xrd-icon-folder-outline
-          /></xrd-icon-base>
+      <template #[`item.id`]="{ item }">
+        <div class="request-id">{{ item.id }}</div>
+      </template>
 
-          {{ item.name }}
+      <template #[`item.type`]="{ item }">
+        <type-cell :status="item.type" />
+      </template>
+
+      <template #[`item.status`]="{ item }">
+        <status-cell :status="item.status" />
+      </template>
+
+      <template #[`item.button`]>
+        <div class="cs-table-actions-wrap">
+          <xrd-button text :outlined="false">{{
+            $t('action.approve')
+          }}</xrd-button>
+
+          <xrd-button text :outlined="false">{{
+            $t('action.decline')
+          }}</xrd-button>
         </div>
       </template>
 
@@ -71,86 +83,78 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName } from '@/global';
+import { Colors } from '@/global';
+import StatusCell from '@/components/managementRequests/StatusCell.vue';
+import TypeCell from '@/components/managementRequests/TypeCell.vue';
 import { DataTableHeader } from 'vuetify';
 
+/**
+ * General component for Management requests
+ */
 export default Vue.extend({
-  name: 'MemberList',
+  name: 'ManagementRequests',
+  components: {
+    StatusCell,
+    TypeCell,
+  },
+  props: {
+    managementRequests: {
+      type: Array,
+      required: true,
+    },
+  },
   data() {
     return {
-      search: '',
+      colors: Colors,
+      search: '' as string,
       loading: false,
       showOnlyPending: false,
-      members: [
-        {
-          name: 'Nordic Institue for Interoperability Solutions',
-          class: 'ORG',
-          code: '555',
-        },
-        {
-          name: 'Netum Oy',
-          class: 'COM',
-          code: 'IMAMEMBERCODE',
-        },
-      ],
     };
   },
   computed: {
     headers(): DataTableHeader[] {
       return [
         {
-          text: (this.$t('global.memberName') as string) + ' (8)',
+          text: this.$t('global.id') as string,
           align: 'start',
-          value: 'name',
-          class: 'xrd-table-header members-table-header-name',
+          value: 'id',
+          class: 'xrd-table-header mr-table-header-id',
         },
         {
-          text: this.$t('global.memberClass') as string,
+          text: this.$t('global.created') as string,
           align: 'start',
-          value: 'class',
-          class: 'xrd-table-header members-table-header-class',
+          value: 'created',
+          class: 'xrd-table-header mr-table-header-created',
         },
         {
-          text: this.$t('global.memberCode') as string,
+          text: this.$t('global.type') as string,
           align: 'start',
-          value: 'code',
-          class: 'xrd-table-header members-table-header-code',
+          value: 'type',
+          class: 'xrd-table-header mr-table-header-type',
+        },
+        {
+          text: this.$t('global.status') as string,
+          align: 'start',
+          value: 'status',
+          class: 'xrd-table-header mr-table-header-status',
+        },
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header mr-table-header-buttons',
         },
       ];
-    },
-  },
-  methods: {
-    toDetails(): void {
-      this.$router.push({
-        name: RouteName.MemberDetails,
-        params: { memberid: 'netum' },
-      });
     },
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
 @import '~styles/tables';
 
-.icon-column {
-  width: 40px;
-}
-
-.members-table-cell-name {
-  color: $XRoad-Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.members-table-header-icon {
-  width: 20px;
-}
-
-.members-table-cell-id {
-  border: solid 3px red;
-  width: 10px;
+#management-request-filters {
+  display: flex;
+  justify-content: space-between;
 }
 </style>

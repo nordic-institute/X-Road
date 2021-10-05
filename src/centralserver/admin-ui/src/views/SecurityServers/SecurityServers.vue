@@ -23,152 +23,18 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
   <xrd-sub-view-container>
-    <!-- Toolbar buttons -->
-    <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-title-search align-fix mt-0 pt-0">
-        <div class="xrd-view-title align-fix">
-          {{ $t('tab.main.securityServers') }}
-        </div>
-        <xrd-search v-model="search" class="margin-fix" />
-      </div>
-    </div>
-
-    <!-- Table -->
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="securityServers"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      hide-default-footer
-    >
-      <template #[`item.serverCode`]="{ item }">
-        <div class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconSecurityServer /></xrd-icon-base>
-          <div>{{ item.serverCode }}</div>
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="custom-footer"></div>
-      </template>
-    </v-data-table>
+    <router-view data-test="security-servers-view"></router-view>
   </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
-/**
- * View for 'security servers' tab
- */
 import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
 
-export default Vue.extend({
-  data() {
-    return {
-      search: '',
-      loading: false,
-      showOnlyPending: false,
-      securityServers: [
-        {
-          serverCode: '938726',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerCode: '333',
-          serverOnwerClass: 'DEV',
-        },
-
-        {
-          serverCode: '12323',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerCode: '444',
-          serverOnwerClass: 'DEV',
-        },
-        {
-          serverCode: '837478',
-          serverOwnerName: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
-          serverOnwerCode: '444',
-          serverOnwerClass: 'DEV',
-        },
-        {
-          serverCode: '63533',
-          serverOwnerName: 'Helsingin kristillisen koulun kannatusyhdistys',
-          serverOnwerCode: '222',
-          serverOnwerClass: 'FI',
-        },
-        {
-          serverCode: '98370',
-          serverOwnerName: 'Siseministeerium',
-          serverOnwerCode: '999',
-          serverOnwerClass: 'COM',
-        },
-        {
-          serverCode: '63352',
-          serverOwnerName: 'Turvallisuus- ja kemikaalivirasto',
-          serverOnwerCode: '777',
-          serverOnwerClass: 'COM',
-        },
-      ],
-    };
-  },
-  computed: {
-    headers(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('securityServers.serverCode') as string,
-          align: 'start',
-          value: 'serverCode',
-          class: 'xrd-table-header ss-table-header-sercer-code',
-        },
-        {
-          text: this.$t('securityServers.ownerName') as string,
-          align: 'start',
-          value: 'serverOwnerName',
-          class: 'xrd-table-header ss-table-header-owner-name',
-        },
-        {
-          text: this.$t('securityServers.ownerCode') as string,
-          align: 'start',
-          value: 'serverOnwerCode',
-          class: 'xrd-table-header ss-table-header-owner-code',
-        },
-        {
-          text: this.$t('securityServers.ownerClass') as string,
-          align: 'start',
-          value: 'serverOnwerClass',
-          class: 'xrd-table-header ss-table-header-owner-class',
-        },
-      ];
-    },
-  },
-});
+/**
+ * Security servers main view wrapping content all from 'Security servers' main tab
+ */
+export default Vue.extend({});
 </script>
-<style lang="scss" scoped>
-@import '~styles/tables';
-
-.server-code {
-  color: $XRoad-Purple100;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-}
-
-.align-fix {
-  align-items: center;
-}
-
-.margin-fix {
-  margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
-</style>

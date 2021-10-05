@@ -39,6 +39,8 @@
     "searching": "Searching..."
   },
   "global": {
+    "class": "Class",
+    "code": "Code",
     "subsystem": "Subsystem",
     "memberName": "Member name",
     "memberClass": "Member class",
@@ -236,7 +238,22 @@
     "serverCode": "Server Code",
     "ownerName": "Owner Name",
     "ownerClass": "Owner Class",
-    "ownerCode": "Owner Code"
+    "ownerCode": "Owner Code",
+    "address": "Address",
+    "registered": "Registered",
+    "securityServer": {
+      "tabs": {
+        "details": "Details",
+        "clients": "Clients",
+        "authCertificates": "Authentication Certificates",
+        "managementRequests": "Management Requests"
+      },
+      "certificationAuthority": "Certification Authority",
+      "serialNumber": "Serial Number",
+      "subject": "Subject",
+      "expires": "Expires",
+      "deleteServer": "Delete server"
+    }
   },
   "trustServices": {
     "certificationServices": "Certification Services",

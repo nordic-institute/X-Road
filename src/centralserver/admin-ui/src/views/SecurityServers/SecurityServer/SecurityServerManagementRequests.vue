@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <main id="member-management-requests">
+  <main data-test="security-server-management-requests-view">
     <ManagementRequests :management-requests="managementRequests" />
   </main>
 </template>
@@ -35,9 +35,8 @@ import { Colors } from '@/global';
 import ManagementRequests from '@/components/managementRequests/ManagementRequests.vue';
 
 /**
- * Component for Member Management requests
+ * Component for Security server management requests
  */
-
 export default Vue.extend({
   name: 'MemberManagementRequests',
 

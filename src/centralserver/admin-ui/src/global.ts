@@ -123,6 +123,10 @@ export enum RouteName {
   TrustedAnchors = 'trusted-anchors',
   Login = 'login',
   Initialisation = 'init',
+  SecurityServerDetails = 'security-server-details',
+  SecurityServerManagementRequests = 'security-server-management-requests',
+  SecurityServerAuthenticationCertificates = 'security-server-authentication-certificates',
+  SecurityServerClients = 'security-server-clients',
 }
 
 // A "single source of truth" for permission strings

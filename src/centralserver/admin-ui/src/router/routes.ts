@@ -54,6 +54,13 @@ import SystemSettings from '@/views/Settings/SystemSettings/SystemSettings.vue';
 import SecurityServers from '@/views/SecurityServers/SecurityServers.vue';
 import TrustServices from '@/views/TrustServices/TrustServices.vue';
 
+import SecurityServersList from '@/views/SecurityServers/SecurityServersList.vue';
+import SecurityServer from '@/views/SecurityServers/SecurityServer/SecurityServer.vue';
+import SecurityServerDetails from '@/views/SecurityServers/SecurityServer/SecurityServerDetails.vue';
+import SecurityServerClients from '@/views/SecurityServers/SecurityServer/SecurityServerClients.vue';
+import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
+import SecurityServerManagementRequests from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
+
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 
 import GlobalConfiguration from '@/views/GlobalConfiguration/GlobalConfiguration.vue';
@@ -172,7 +179,6 @@ const routes: RouteConfig[] = [
       },
 
       {
-        name: RouteName.SecurityServers,
         path: '/security-servers',
         components: {
           default: SecurityServers,
@@ -180,6 +186,48 @@ const routes: RouteConfig[] = [
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        children: [
+          {
+            name: RouteName.SecurityServers,
+            path: '',
+            component: SecurityServersList,
+          },
+          {
+            path: ':id',
+            components: {
+              default: SecurityServer,
+              pageNavigation: PageNavigation,
+            },
+            props: { default: true },
+            redirect: '/security-servers/:id/details',
+            children: [
+              {
+                name: RouteName.SecurityServerDetails,
+                path: 'details',
+                component: SecurityServerDetails,
+                props: { default: true },
+              },
+              {
+                name: RouteName.SecurityServerManagementRequests,
+                path: 'managementrequests',
+                component: SecurityServerManagementRequests,
+                props: { default: true },
+              },
+              {
+                name: RouteName.SecurityServerAuthenticationCertificates,
+                path: 'authenticationcertificates',
+                component: SecurityServerAuthenticationCertificates,
+                props: { default: true },
+              },
+              {
+                name: RouteName.SecurityServerClients,
+                path: 'clients',
+                component: SecurityServerClients,
+                props: { default: true },
+              },
+            ],
+          },
+        ],
       },
 
       {

@@ -24,20 +24,20 @@
    THE SOFTWARE.
  -->
 <template>
-  <div id="memberview">
+  <div data-test="security-server-view">
     <div class="navigation-back" data-test="navigation-back">
-      <router-link to="/members">
+      <router-link to="/security-servers">
         <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
         {{ $t('global.navigation.back') }}
       </router-link>
     </div>
     <div class="header-row">
       <div class="title-search">
-        <div class="xrd-view-title">NETUM</div>
+        <div class="xrd-view-title">FOO 1</div>
       </div>
       <xrd-button data-test="remove-member-button"
         ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
-        {{ $t('members.deleteMember') }}</xrd-button
+        {{ $t('securityServers.securityServer.deleteServer') }}</xrd-button
       >
     </div>
     <PageNavigation :items="memberNavigationItems"></PageNavigation>
@@ -50,16 +50,15 @@ import Vue from 'vue';
 import PageNavigation, {
   NavigationItem,
 } from '@/components/layout/PageNavigation.vue';
-import { Colors } from '@/global';
+import { Colors, RouteName } from '@/global';
 
 /**
- * Wrapper component for a member view
+ * Wrapper component for a security server view
  */
 export default Vue.extend({
-  name: 'Member',
   components: { PageNavigation },
   props: {
-    memberid: {
+    id: {
       type: String,
       required: true,
     },
@@ -73,19 +72,31 @@ export default Vue.extend({
     memberNavigationItems(): NavigationItem[] {
       return [
         {
-          url: `/members/${this.memberid}/details`,
-          label: this.$t('members.member.pagenavigation.details') as string,
+          url: `/security-servers/${this.id}/details`,
+          label: this.$t(
+            'securityServers.securityServer.tabs.details',
+          ) as string,
         },
         {
-          url: `/members/${this.memberid}/managementrequests`,
+          url: `/security-servers/${this.id}/clients`,
+          label: this.$t(
+            'securityServers.securityServer.tabs.clients',
+          ) as string,
+        },
+
+        {
+          url: `/security-servers/${this.id}/authenticationcertificates`,
+          label: this.$t(
+            'securityServers.securityServer.tabs.authCertificates',
+          ) as string,
+        },
+
+        {
+          url: `/security-servers/${this.id}/managementrequests`,
           label: this.$t(
             'members.member.pagenavigation.managementRequests',
           ) as string,
           showAttention: true,
-        },
-        {
-          url: `/members/${this.memberid}/subsystems`,
-          label: this.$t('members.member.pagenavigation.subsystems') as string,
         },
       ];
     },

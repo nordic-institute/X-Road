@@ -24,72 +24,78 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app class="xrd-app">
-    <!-- Dont show toolbar or footer in login view -->
-    <app-toolbar v-if="loginView" />
-    <v-main app>
-      <transition name="fade" mode="out-in">
-        <router-view />
-      </transition>
-    </v-main>
-    <snackbar />
-    <app-footer v-if="loginView" />
-  </v-app>
+  <v-card class="details-card" flat>
+    <v-card-title class="card-title">{{ titleText }}</v-card-title>
+    <v-divider></v-divider>
+    <v-card-text class="card-content"
+      ><div>{{ infoText }}</div>
+      <!-- Use action prop & emit for one button. Use "actions" slot if more customisation is needed. -->
+      <slot name="actions">
+        <xrd-button
+          v-if="actionText"
+          text
+          :outlined="false"
+          class="btn-adjust"
+          @click="emitActionClick"
+          >{{ actionText }}</xrd-button
+        ></slot
+      ></v-card-text
+    >
+    <v-divider class="pb-4"></v-divider>
+  </v-card>
 </template>
 
 <script lang="ts">
-// The root component of the Vue app
 import Vue from 'vue';
-import Snackbar from '@/components/ui/Snackbar.vue';
-import AppFooter from '@/components/layout/AppFooter.vue';
-import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'App',
-
-  components: {
-    AppFooter,
-    AppToolbar,
-    Snackbar,
-  },
-  computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
-    loginView(): boolean {
-      return this.$route.name !== RouteName.Login;
+  name: 'InfoCard',
+  props: {
+    // Text for the title
+    titleText: {
+      type: String,
+      required: true,
+    },
+    // Information text
+    infoText: {
+      type: String,
+      required: true,
+    },
+    // Action in the right end
+    actionText: {
+      type: String,
+      required: false,
+      default: undefined,
     },
   },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
+  methods: {
+    emitActionClick(): void {
+      this.$emit('actionClicked');
+    },
   },
 });
 </script>
 
-<style lang="scss">
-@import './assets/global-style';
-</style>
-
 <style lang="scss" scoped>
 @import '~styles/colors';
 
-.fade-enter-active,
-.fade-leave-active {
-  transition-duration: 0.2s;
-  transition-property: opacity;
-  transition-timing-function: ease;
+.card-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  color: $XRoad-Black70;
+  font-weight: bold;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
-.fade-enter,
-.fade-leave-active {
-  opacity: 0;
+.card-content {
+  display: flex;
+  justify-content: space-between;
 }
 
-// Set the app background color
-.theme--light.v-application.xrd-app {
-  background: $XRoad-WarmGrey30;
+/* v-card-text has so much padding that this is needed for the button. Without it the height would not be even. */
+.btn-adjust {
+  margin-top: -9px;
+  margin-bottom: -9px;
 }
 </style>
