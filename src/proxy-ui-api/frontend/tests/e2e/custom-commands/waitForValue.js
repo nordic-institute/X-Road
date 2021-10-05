@@ -46,10 +46,14 @@ module.exports = class WaitFor extends Events {
     // var err = new Error().stack
     // this command does not know the stacktrace (which test the command was called from)
     // maybe changing it to be non-async (it that makes sense) would help?
+    let selectorDescForError = selector;
+    if (selector.hasOwnProperty('selector')) {
+      selectorDescForError = selector.selector;
+    }
     this.emit(
       'error',
       new Error(
-        `Timeout exceeded while waiting for value [${expectedValue}] using selector [${selector}]`,
+        `Timeout exceeded while waiting for value [${expectedValue}] using selector [${selectorDescForError}]`,
       ),
     );
   }
