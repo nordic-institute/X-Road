@@ -95,7 +95,7 @@ import Vue from 'vue';
 import SubViewContainer from '@/components/layout/SubViewContainer.vue';
 import StatusCell from '../../components/managementRequests/StatusCell.vue';
 import TypeCell from '../../components/managementRequests/TypeCell.vue';
-import XrdFilter from './XrdFilter.vue';
+import XrdFilter from '../../components/ui/XrdFilter.vue';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
