@@ -16,7 +16,7 @@ plugins {
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.5.4' apply false
+    id 'org.springframework.boot' version '2.5.5' apply false
 }
 
 repositories {
@@ -238,7 +238,7 @@ jacocoTestReport {
     reports {
         xml.required = true
     }
-    classDirectories.setFrom files(javaProjects.sourceSets.main.java.outputDir)
+    classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
     executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
 }

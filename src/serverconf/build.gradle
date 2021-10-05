@@ -30,7 +30,7 @@ dependencies {
     schema "org.hibernate:hibernate-hikaricp:$hibernateVersion"
     schema "org.hibernate:hibernate-tools:$hibernateVersion"
     schema 'commons-collections:commons-collections:3.2.2'
-    schema 'ch.qos.logback:logback-classic:1.2.3'
+    schema 'ch.qos.logback:logback-classic:1.2.6'
     schema 'org.hsqldb:hsqldb:2.5.1'
 }
 
