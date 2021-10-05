@@ -32,6 +32,7 @@ import FileUpload from './components/FileUpload.vue';
 import FormLabel from './components/FormLabel.vue';
 import HelpDialog from './components/HelpDialog.vue';
 import HelpIcon from './components/HelpIcon.vue';
+import CloseButton from './components/CloseButton.vue';
 import Button from './components/Button.vue';
 import SimpleDialog from './components/SimpleDialog.vue';
 import StatusIcon from './components/StatusIcon.vue';
@@ -89,6 +90,7 @@ const SharedComponents = {
     Vue.component('XrdFormLabel', FormLabel);
     Vue.component('XrdHelpDialog', HelpDialog);
     Vue.component('XrdHelpIcon', HelpIcon);
+    Vue.component('XrdCloseButton', CloseButton);
     Vue.component('XrdButton', Button);
     Vue.component('XrdSimpleDialog', SimpleDialog);
     Vue.component('XrdStatusIcon', StatusIcon);

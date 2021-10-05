@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div data-test="security-server-view">
+  <div data-test="global-group-view">
     <div class="navigation-back" data-test="navigation-back">
       <router-link to="/settings/globalresources">
         <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
@@ -33,11 +33,11 @@
     </div>
     <div class="header-row">
       <div class="title-search">
-        <div class="xrd-view-title">Gruppen</div>
+        <div class="xrd-view-title">{{ globalGroup.name }}</div>
       </div>
-      <xrd-button data-test="remove-member-button"
+      <xrd-button data-test="remove-group-button"
         ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
-        {{ $t('members.deleteMember') }}</xrd-button
+        {{ $t('globalGroup.deleteGroup') }}</xrd-button
       >
     </div>
 
@@ -63,9 +63,7 @@
         >
       </div>
       <div class="only-pending mt-0">
-        <xrd-button
-          data-test="remove-member-button"
-          @click="showAddDialog = true"
+        <xrd-button data-test="add-member-button" @click="showAddDialog = true"
           ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
           {{ $t('globalGroup.addMembers') }}</xrd-button
         >
@@ -160,7 +158,6 @@ import { Colors } from '@/global';
 export default Vue.extend({
   components: {
     InfoCard,
-    XrdFilter,
     FilterDialog,
   },
   props: {
@@ -173,7 +170,7 @@ export default Vue.extend({
   data() {
     return {
       colors: Colors,
-      globalGroup: { description: 'uliuli' },
+      globalGroup: { description: 'uliuli', name: 'Group named X' },
       showFilterDialog: false,
       search: '',
       loading: false,
