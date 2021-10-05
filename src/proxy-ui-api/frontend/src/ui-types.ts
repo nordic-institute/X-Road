@@ -32,10 +32,10 @@ import { Location } from 'vue-router';
 
 // Interface for Tab data
 export interface Tab {
-  key: string;
-  name: string;
-  to: Location; // Same type as https://router.vuejs.org/api/#to
-  permissions?: string[];
+  key: string; // Unique key needed for v-for looping
+  name: string; // Localisation key for the name
+  to: Location; // Contains the path or path name for router. Same type as https://router.vuejs.org/api/#to
+  permissions?: string[]; // Permissions needed to view this tab
 }
 
 // Extension for Client

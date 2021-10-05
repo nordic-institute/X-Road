@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 1.21  
+Version: 1.22  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -37,7 +37,8 @@ Doc. ID: IG-SS-RHEL
  18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
  25.08.2021 | 1.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
- 06.09.2021 | 1.21    | Update list of running services | Jarkko Hyöty
+ 03.09.2021 | 1.21    | Minor fixes | Ilkka Seppälä
+ 06.09.2021 | 1.22    | Update list of running services | Jarkko Hyöty
 
 ## License
 
@@ -49,42 +50,43 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 <!-- toc -->
 <!-- vim-markdown-toc GFM -->
 
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-  * [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-* [2 Installation](#2-installation)
-  * [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
-  * [2.2 Reference Data](#22-reference-data)
-    * [2.2.1 Network Diagram](#221-network-diagram)
-  * [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
-  * [2.4 Preparing OS](#24-preparing-os)
-  * [2.5 Setup Package Repository](#25-setup-package-repository)
-  * [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
-  * [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
-  * [2.8 Security Server Installation](#28-security-server-installation)
-    * [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
-    * [2.8.2 Start Security Server](#282-start-security-server)
-  * [2.9 Post-Installation Checks](#29-post-installation-checks)
-  * [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
-  * [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
-* [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
-  * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Reference Data](#32-reference-data)
-  * [3.3 Configuration](#33-configuration)
-  * [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
-* [4 Installation Error handling](#4-installation-error-handling)
-  * [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
-* [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
-* [Annex B Database Users](#annex-b-database-users)
-* [Annex C Deployment Options](#annex-c-deployment-options)
-  * [C.1 General](#c1-general)
-  * [C.2 Local Database](#c2-local-database)
-  * [C.3 Remote Database](#c3-remote-database)
-  * [C.4 High Availability Setup](#c4-high-availability-setup)
-  * [C.5 Load Balancing Setup](#c5-load-balancing-setup)
-  * [C.6 Summary](#c6-summary)
-* [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+- [License](#license)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+  - [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
+  - [1.3 References](#13-references)
+- [2 Installation](#2-installation)
+  - [2.1 Prerequisites to Installation](#21-prerequisites-to-installation)
+  - [2.2 Reference Data](#22-reference-data)
+    - [2.2.1 Network Diagram](#221-network-diagram)
+  - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
+  - [2.4 Preparing OS](#24-preparing-os)
+  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
+    - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
+    - [2.8.2 Start Security Server](#282-start-security-server)
+  - [2.9 Post-Installation Checks](#29-post-installation-checks)
+  - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
+  - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
+- [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
+  - [3.1 Prerequisites](#31-prerequisites)
+  - [3.2 Reference Data](#32-reference-data)
+  - [3.3 Configuration](#33-configuration)
+  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
+- [4 Installation Error handling](#4-installation-error-handling)
+  - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
+- [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
+- [Annex B Database Users](#annex-b-database-users)
+- [Annex C Deployment Options](#annex-c-deployment-options)
+  - [C.1 General](#c1-general)
+  - [C.2 Local Database](#c2-local-database)
+  - [C.3 Remote Database](#c3-remote-database)
+  - [C.4 High Availability Setup](#c4-high-availability-setup)
+  - [C.5 Load Balancing Setup](#c5-load-balancing-setup)
+  - [C.6 Summary](#c6-summary)
+- [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -121,7 +123,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
-* Ubuntu Server 18.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 18.04 and 20.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -195,7 +197,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (v7.3 or newer) x86-64 operating system;
+* an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -305,7 +307,7 @@ echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
 
 ### 2.8 Security Server Installation
 
-Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
 
   ```
   sudo yum install xroad-securityserver

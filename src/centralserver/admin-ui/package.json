@@ -13,7 +13,8 @@
     "resolve-audit": "resolve-audit",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
-    "bundle-openapi": "swagger-cli bundle -t yaml -o ../admin-service/build/openapi/openapi-definition-bundled.yaml ../admin-service/src/main/resources/openapi-definition.yaml"
+    "bundle-openapi": "swagger-cli bundle -t yaml -o ../admin-service/build/openapi/openapi-definition-bundled.yaml ../admin-service/src/main/resources/openapi-definition.yaml",
+    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules"
   },
   "dependencies": {
     "@fontsource/open-sans": "~4.4.5",

@@ -306,6 +306,9 @@ export const actions: ActionTree<AddClientState, RootState> = {
     });
   },
 
+  // set AddMemberWizardModes.CERTIFICATE_EXISTS and/or AddMemberWizardModes.CSR_EXISTS to correct values
+  // to adjust how add client wizard works
+  // both values are possible even if this member is not yet a local client in this SS
   async searchTokens(
     { commit, dispatch },
     { instanceId, memberClass, memberCode },
@@ -315,6 +318,7 @@ export const actions: ActionTree<AddClientState, RootState> = {
         instance: instanceId,
         member_class: memberClass,
         member_code: memberCode,
+        internal_search: false,
         local_valid_sign_cert: true,
       },
     });
@@ -331,10 +335,12 @@ export const actions: ActionTree<AddClientState, RootState> = {
     );
 
     if (matchingClient) {
-      // There is a client with valid sign certificate
+      // There is a valid sign certificate for given member (which may or may not have local clients)
       commit('setAddMemberWizardMode', AddMemberWizardModes.CERTIFICATE_EXISTS);
       return;
     }
+
+    // CERTIFICATE_EXISTS is ok, check for CSR_EXISTS next
 
     // Fetch tokens from backend
     const tokenResponse = await api.get<Token[]>('/tokens');
@@ -345,23 +351,6 @@ export const actions: ActionTree<AddClientState, RootState> = {
     tokenResponse.data.some((token: Token) => {
       return token.keys.some((key: Key) => {
         if (key.usage === KeyUsageType.SIGNING) {
-          // Go through the keys certificates
-          const foundCert: boolean = key.certificates.some(
-            (certificate: TokenCertificate) => {
-              if (ownerId === certificate.owner_id) {
-                commit(
-                  'setAddMemberWizardMode',
-                  AddMemberWizardModes.CERTIFICATE_EXISTS,
-                );
-                return true;
-              }
-            },
-          );
-
-          if (foundCert) {
-            return true;
-          }
-
           // Go through the keys CSR:s
           key.certificate_signing_requests.some(
             (csr: TokenCertificateSigningRequest) => {

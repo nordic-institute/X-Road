@@ -37,7 +37,7 @@
       </div>
       <xrd-button data-test="remove-member-button"
         ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
-        {{ $t('members.deleteMember') }}</xrd-button
+        {{ $t('securityServers.securityServer.deleteServer') }}</xrd-button
       >
     </div>
     <PageNavigation :items="memberNavigationItems"></PageNavigation>

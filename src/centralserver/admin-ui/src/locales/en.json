@@ -95,7 +95,8 @@
     },
     "settings": {
       "systemSettings": "System Settings",
-      "backupAndRestore": "Backup And Restore"
+      "backupAndRestore": "Backup And Restore",
+      "apiKeys": "API Keys"
     },
     "globalConf": {
       "internalConf": "Internal Configuration",
@@ -180,6 +181,59 @@
       }
     }
   },
+  "apiKey": {
+    "role": {
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
+      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+    },
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "title": "Create API key",
+      "step": {
+        "roles": {
+          "name": "Roles",
+          "selectRoles": "Select roles",
+          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key."
+        },
+        "keyDetails": {
+          "name": "Key Details",
+          "createKeyButton": "Create Key",
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
+        }
+      },
+      "success": "API key successfully created"
+    },
+    "table": {
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      },
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "title": "Edit API Key (ID: {id})",
+            "message": "Roles associated with the API key:"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "success": "API key with ID {id} successfully revoked",
+          "confirmationDialog": {
+            "title": "Are you sure?",
+            "message": "Are you sure you want to revoke the API key with ID {id}?"
+          }
+        }
+      }
+    }
+  },
   "securityServers": {
     "serverCode": "Server Code",
     "ownerName": "Owner Name",
@@ -197,7 +251,8 @@
       "certificationAuthority": "Certification Authority",
       "serialNumber": "Serial Number",
       "subject": "Subject",
-      "expires": "Expires"
+      "expires": "Expires",
+      "deleteServer": "Delete server"
     }
   },
   "trustServices": {

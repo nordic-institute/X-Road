@@ -43,7 +43,7 @@ export default Vue.extend({
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
 .alerts-wrapper {
   width: 1000px;
   padding: 0;

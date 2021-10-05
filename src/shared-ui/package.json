@@ -13,7 +13,8 @@
     "storybook": "start-storybook -p 6006",
     "build-storybook": "build-storybook",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
-    "license-add": "license-check-and-add add -f license-check-and-add-config.json"
+    "license-add": "license-check-and-add add -f license-check-and-add-config.json",
+    "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules"
   },
   "main": "./dist/shared-ui.common.js",
   "types": "src/lib.d.ts",

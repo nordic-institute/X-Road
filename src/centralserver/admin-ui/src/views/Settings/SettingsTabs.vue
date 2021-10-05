@@ -75,6 +75,14 @@ export default Vue.extend({
           },
           permissions: [Permissions.MOCK_PERMISSION1],
         },
+        {
+          key: 'apikeys',
+          name: 'tab.settings.apiKeys',
+          to: {
+            name: RouteName.ApiKeys,
+          },
+          permissions: [Permissions.MOCK_PERMISSION1],
+        },
       ];
       return allTabs; // needs to be filtered with permissions
     },
