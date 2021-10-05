@@ -5,7 +5,7 @@
 # X-Road: Service Metadata Protocol for REST <!-- omit in toc --> 
 **Technical Specification**  
 
-Version: 0.4  
+Version: 0.5  
 Doc. ID: PR-MREST  
 
 ---
@@ -18,6 +18,7 @@ Doc. ID: PR-MREST
  06.08.2019 | 0.2     | Add getOpenAPI description                                      | Ilkka Seppälä
  09.10.2019 | 0.3     | Clarify the listCentralServices response type                   | Jarkko Hyöty
  07.11.2019 | 0.4     | Clarify getOpenAPI description                                  | Ilkka Seppälä
+ 05.10.2021 | 0.5     | Update listMethods and allowedMethods                           | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc --> 
 
@@ -72,11 +73,11 @@ Note. The listCentralServices metaservice ignores the Accept header and returns 
 
 ## 4 Retrieving List of Services
 
-X-Road provides two methods for getting the list of services offered by an X-Road client:
+X-Road provides two methods for getting the list of services and service endpoints offered by an X-Road client:
 
-* `listMethods` lists all REST services offered by a service provider.
+* `listMethods` lists all REST services and service endpoints offered by a service provider.
 
-* `allowedMethods` lists all REST services offered by a service provider that the caller has permission to invoke.
+* `allowedMethods` lists all REST services and service endpoints offered by a service provider that the caller has permission to invoke.
 
 Both methods are invoked as regular X-Road REST services (see specification \[[PR-REST](#Ref_PR-REST)\] for details on the X-Road REST protocol).
 
@@ -91,7 +92,7 @@ HTTP request headers
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
 
-The body of the response message MUST contain a list of services provided by the service provider (in case of listMethods) or open to the given client (in case of allowedMethods). The response SHALL NOT contain names of the metainfo services.
+The body of the response message MUST contain a list of services and service endpoints provided by the service provider (in case of listMethods) or open to the given client (in case of allowedMethods). The response SHALL NOT contain names of the metainfo services.
 
 Annex [A](#annex-a-service-descriptions-for-rest-metadata-services) contains the OpenAPI description of the REST metadata services.
 
@@ -132,7 +133,7 @@ Annex [B.3](#b3-getopenapi-response) contains an example response message for th
 openapi: 3.0.0
 info:
   title: X-Road Service Metadata API for REST
-  version: '0.2'
+  version: '0.3'
 servers:
   - url: https://{securityserver}/r1
     variables:
@@ -149,7 +150,7 @@ paths:
     get:
       tags:
         - metaservices
-      summary: List REST services for a service provider
+      summary: List REST services and endpoints for a service provider
       operationId: listMethods
       parameters:
         - name: serviceId
@@ -162,11 +163,11 @@ paths:
             type: string
       responses:
         '200':
-          description: List of REST services
+          description: List of REST services and endpoints for a service provider
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/methodList'
+                $ref: '#/components/schemas/restServiceDetailsListType'
   /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/allowedMethods:
     parameters:
       - $ref: '#/components/parameters/xRoadInstance'
@@ -176,7 +177,7 @@ paths:
     get:
       tags:
         - metaservices
-      summary: List of allowed REST services for a service provider
+      summary: List of allowed REST services and endpoints for a service provider
       operationId: allowedMethods
       parameters:
         - name: serviceId
@@ -189,11 +190,11 @@ paths:
             type: string
       responses:
         '200':
-          description: List of allowed REST services
+          description: List of allowed REST services and endpoints for a service provider
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/methodList'
+                $ref: '#/components/schemas/restServiceDetailsListType'
   /{xRoadInstance}/{memberClass}/{memberCode}/{subsystemCode}/getOpenAPI:
     get:
       tags:
@@ -211,7 +212,7 @@ paths:
             type: string
       responses:
         '200':
-        description: OpenAPI description of the specified REST service
+          description: OpenAPI description of the specified REST service
           content:
             application/json:
               schema:
@@ -220,9 +221,9 @@ paths:
               schema:
                 type: string
         '400':
-        description: Error in request
+          description: Error in request
         '500':
-        description: Internal error
+          description: Internal error
 components:
   parameters:
     xRoadInstance:
@@ -250,17 +251,17 @@ components:
       schema:
         type: string
   schemas:
-    methodList:
+    restServiceDetailsListType:
       type: object
       properties:
         member:
           type: array
           items:
-            $ref: '#/components/schemas/serviceId'
-    serviceId:
+            $ref: '#/components/schemas/xroadRestServiceDetailsType'
+    xroadRestServiceDetailsType:
       type: object
       properties:
-        type:
+        objectType:
           type: object
           properties:
             object_type:
@@ -274,17 +275,33 @@ components:
                 - SERVICE
                 - CENTRALSERVICE
                 - LOCALGROUP
+        serviceType:
+          type: string
         xRoadInstance:
           type: string
         memberClass:
           type: string
         memberCode:
           type: string
-        serviceVersion:
-          type: string
         subsystemCode:
           type: string
         serviceCode:
+          type: string
+        serviceVersion:
+          type: string
+        endpointList:
+          type: object
+          properties:
+            member:
+              type: array
+              items:
+                $ref: '#/components/schemas/endpoint'
+    endpoint:
+      type: object
+      properties:
+        method:
+          type: string
+        path:
           type: string
 ```
 
@@ -302,16 +319,110 @@ components:
             "member_code": "MEMBER2",
             "object_type": "SERVICE",
             "service_code": "payloadgen",
+            "service_type": "OPENAPI",
             "subsystem_code": "SUBSYSTEM2",
-            "xroad_instance": "INSTANCE"
+            "xroad_instance": "INSTANCE",
+            "endpoint_list": [
+              {
+                "method": "PUT",
+                "path": "/pet"
+              },
+              {
+                "method": "POST",
+                "path": "/pet"
+              },
+              {
+                "method": "GET",
+                "path": "/pet/findByStatus"
+              },
+              {
+                "method": "GET",
+                "path": "/pet/findByTags"
+              },
+              {
+                "method": "GET",
+                "path": "/pet/*"
+              },
+              {
+                "method": "POST",
+                "path": "/pet/*"
+              },
+              {
+                "method": "DELETE",
+                "path": "/pet/*"
+              },
+              {
+                "method": "POST",
+                "path": "/pet/*/uploadImage"
+              },
+              {
+                "method": "GET",
+                "path": "/store/inventory"
+              },
+              {
+                "method": "POST",
+                "path": "/store/order"
+              },
+              {
+                "method": "GET",
+                "path": "/store/order/*"
+              },
+              {
+                "method": "DELETE",
+                "path": "/store/order/*"
+              },
+              {
+                "method": "POST",
+                "path": "/user"
+              },
+              {
+                "method": "POST",
+                "path": "/user/createWithList"
+              },
+              {
+                "method": "GET",
+                "path": "/user/login"
+              },
+              {
+                "method": "GET",
+                "path": "/user/logout"
+              },
+              {
+                "method": "GET",
+                "path": "/user/*"
+              },
+              {
+                "method": "PUT",
+                "path": "/user/*"
+              },
+              {
+                "method": "DELETE",
+                "path": "/user/*"
+              }
+            ]
         },
         {
             "member_class": "CLASS2",
             "member_code": "MEMBER2",
             "object_type": "SERVICE",
             "service_code": "kore",
+            "service_type": "REST",
             "subsystem_code": "SUBSYSTEM2",
-            "xroad_instance": "INSTANCE"
+            "xroad_instance": "INSTANCE",
+            "endpoint_list": [
+              {
+                "method": "GET",
+                "path": "/school"
+              },
+              {
+                "method": "PUT",
+                "path": "/school"
+              },
+              {
+                "method": "POST",
+                "path": "/school"
+              }
+            ]
         }
     ]
 }
@@ -329,8 +440,23 @@ components:
             "member_code": "MEMBER2",
             "object_type": "SERVICE",
             "service_code": "payloadgen",
+            "service_type": "OPENAPI",
             "subsystem_code": "SUBSYSTEM2",
-            "xroad_instance": "INSTANCE"
+            "xroad_instance": "INSTANCE",
+            "endpoint_list": [
+              {
+                "method": "GET",
+                "path": "/pet/findByStatus"
+              },
+              {
+                "method": "GET",
+                "path": "/pet/findByTags"
+              },
+              {
+                "method": "GET",
+                "path": "/pet/*"
+              }
+            ]
         }
     ]
 }
