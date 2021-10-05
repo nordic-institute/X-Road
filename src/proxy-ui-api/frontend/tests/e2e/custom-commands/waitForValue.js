@@ -28,14 +28,12 @@ const Events = require('events');
 module.exports = class WaitFor extends Events {
   // async command(f) {
   async command(selector, expectedValue) {
-    console.log('waitForValue, waiting for "' + expectedValue + '"');
     const interval = 100;
     const timeout = 5000;
     let counter = 0;
     while (counter * interval < timeout) {
       const result = await this.api.getValue(selector);
       if (result.value === expectedValue) {
-        console.log('wait complete');
         const returnValue = {
           status: 1,
         };

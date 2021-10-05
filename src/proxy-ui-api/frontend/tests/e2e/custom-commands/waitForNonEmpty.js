@@ -28,17 +28,12 @@ const Events = require('events');
 module.exports = class WaitForNonEmpty extends Events {
   // async command(f) {
   async command(selector) {
-    console.log(
-      'waitForValue, waiting for non-empty string value for selector ' +
-        selector,
-    );
     const interval = 100;
     const timeout = 5000;
     let counter = 0;
     while (counter * interval < timeout) {
       const result = await this.api.getValue(selector);
       if (typeof result.value == 'string' && result.value.length > 0) {
-        console.log('wait complete');
         const returnValue = {
           status: 1,
         };
