@@ -32,6 +32,7 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
@@ -209,9 +210,12 @@ public class ServerConf {
         // where access has been granted on the endpoint level
         for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
             if (!allowedServices.contains(serviceId) && restTypes.contains(getDescriptionType(serviceId))) {
-                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
-                serviceDetails.getEndpointList().addAll(getInstance().getAllowedServiceEndpoints(serviceId, client));
-                restServiceDetailsList.getService().add(serviceDetails);
+                List<Endpoint> allowedServiceEndpoints = getInstance().getAllowedServiceEndpoints(serviceId, client);
+                if (!allowedServiceEndpoints.isEmpty()) {
+                    XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
+                    serviceDetails.getEndpointList().addAll(allowedServiceEndpoints);
+                    restServiceDetailsList.getService().add(serviceDetails);
+                }
             }
         }
         return restServiceDetailsList;
