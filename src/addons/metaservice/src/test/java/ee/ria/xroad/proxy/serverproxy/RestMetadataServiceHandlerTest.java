@@ -220,6 +220,7 @@ public class RestMetadataServiceHandlerTest {
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
         assertEquals(3, restServiceDetailsList.getService().size());
+        assertEquals(1, restServiceDetailsList.getService().get(0).getEndpointList().size());
     }
 
     @Test
@@ -248,6 +249,7 @@ public class RestMetadataServiceHandlerTest {
         RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
                 RestServiceDetailsListType.class);
         assertEquals(3, restServiceDetailsList.getService().size());
+        assertEquals(1, restServiceDetailsList.getService().get(0).getEndpointList().size());
     }
 
     @Test

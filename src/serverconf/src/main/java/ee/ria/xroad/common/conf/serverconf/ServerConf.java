@@ -179,14 +179,7 @@ public class ServerConf {
         EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
         for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
             if (restTypes.contains(getDescriptionType(serviceId))) {
-                XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
-                serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
-                serviceDetails.setMemberClass(serviceId.getMemberClass());
-                serviceDetails.setMemberCode(serviceId.getMemberCode());
-                serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
-                serviceDetails.setServiceCode(serviceId.getServiceCode());
-                serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-                serviceDetails.setServiceType(RestServiceType.REST);
+                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                 serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
                 restServiceDetailsList.getService().add(serviceDetails);
             }
@@ -208,14 +201,7 @@ public class ServerConf {
         List<ServiceId> allowedServices = getInstance().getAllowedServices(serviceProvider, client);
         for (ServiceId serviceId : allowedServices) {
             if (restTypes.contains(getDescriptionType(serviceId))) {
-                XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
-                serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
-                serviceDetails.setMemberClass(serviceId.getMemberClass());
-                serviceDetails.setMemberCode(serviceId.getMemberCode());
-                serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
-                serviceDetails.setServiceCode(serviceId.getServiceCode());
-                serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-                serviceDetails.setServiceType(RestServiceType.REST);
+                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                 serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
                 restServiceDetailsList.getService().add(serviceDetails);
             }
@@ -223,19 +209,34 @@ public class ServerConf {
         // where access has been granted on the endpoint level
         for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
             if (!allowedServices.contains(serviceId) && restTypes.contains(getDescriptionType(serviceId))) {
-                XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
-                serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
-                serviceDetails.setMemberClass(serviceId.getMemberClass());
-                serviceDetails.setMemberCode(serviceId.getMemberCode());
-                serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
-                serviceDetails.setServiceCode(serviceId.getServiceCode());
-                serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-                serviceDetails.setServiceType(RestServiceType.REST);
+                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                 serviceDetails.getEndpointList().addAll(getInstance().getAllowedServiceEndpoints(serviceId, client));
                 restServiceDetailsList.getService().add(serviceDetails);
             }
         }
         return restServiceDetailsList;
+    }
+
+    private static XRoadRestServiceDetailsType createRestServiceDetails(ServiceId serviceId) {
+        XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+        serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+        serviceDetails.setMemberClass(serviceId.getMemberClass());
+        serviceDetails.setMemberCode(serviceId.getMemberCode());
+        serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+        serviceDetails.setServiceCode(serviceId.getServiceCode());
+        serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+        serviceDetails.setServiceType(getRestServiceType(getDescriptionType(serviceId)));
+        return serviceDetails;
+    }
+
+    private static RestServiceType getRestServiceType(DescriptionType descriptionType) {
+        if (descriptionType.equals(DescriptionType.REST)) {
+            return RestServiceType.REST;
+        } else if (descriptionType.equals(DescriptionType.OPENAPI3)) {
+            return RestServiceType.OPENAPI;
+        } else {
+            throw new UnsupportedOperationException("The given parameter is not a REST service type!");
+        }
     }
 
     /**

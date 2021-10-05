@@ -130,12 +130,22 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId service) {
-        return emptyList();
+        ArrayList<Endpoint> endpoints = new ArrayList<>();
+        Endpoint e = new Endpoint();
+        e.setMethod("*");
+        e.setPath("/");
+        endpoints.add(e);
+        return endpoints;
     }
 
     @Override
     public List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client) {
-        return emptyList();
+        ArrayList<Endpoint> endpoints = new ArrayList<>();
+        Endpoint e = new Endpoint();
+        e.setMethod("*");
+        e.setPath("/");
+        endpoints.add(e);
+        return endpoints;
     }
 
     @Override
