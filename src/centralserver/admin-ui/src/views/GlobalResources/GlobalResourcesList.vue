@@ -62,7 +62,7 @@
       </template>
 
       <template #footer>
-        <div class="custom-footer"></div>
+        <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
 
@@ -93,7 +93,7 @@
       hide-default-footer
     >
       <template #footer>
-        <div class="custom-footer"></div>
+        <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
 
@@ -275,7 +275,7 @@ export default Vue.extend({
     toDetails(globalGroup: any): void {
       this.$router.push({
         name: RouteName.GlobalGroup,
-        params: { id: 'foo11' },
+        params: { groupId: 'foo11' },
       });
     },
   },
@@ -298,10 +298,5 @@ export default Vue.extend({
 
 .margin-fix {
   margin-top: -10px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 </style>

@@ -35,7 +35,7 @@
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
         <slot name="title">
-          <span data-test="dialog-title">{{
+          <span data-test="dialog-title" class="dialog-title-text">{{
             $t('filters.chooseFilters')
           }}</span>
         </slot>
@@ -49,8 +49,8 @@
       <div class="alert-slot">
         <slot name="alert"></slot>
       </div>
-      <v-card-text class="content-wrapper">
-        <v-container fluid class="test9">
+      <v-card-text class="filters-content-wrapper">
+        <v-container fluid class="ma-0 pa-0 mb-9">
           <!-- By type -->
           <div class="filter-title-row field-title">
             {{ $t('filters.groupMembers.byType') }}
@@ -77,7 +77,7 @@
                 {{ $t('filters.groupMembers.byInstance') }}
               </div>
               <v-select
-                :items="items"
+                :items="instances"
                 :label="$t('filters.groupMembers.instance')"
                 outlined
               ></v-select>
@@ -88,7 +88,7 @@
                 {{ $t('filters.groupMembers.byClass') }}
               </div>
               <v-select
-                :items="items"
+                :items="classes"
                 outlined
                 :label="$t('filters.groupMembers.class')"
               ></v-select>
@@ -178,6 +178,8 @@ export default Vue.extend({
       typeMember: false,
       typeSubsystem: false,
       search: '',
+      instances: ['Insstance 1', 'Instance two'],
+      classes: ['First class', 'second class'],
       subsystems: ['First', 'second', 'third', 'fourth', 'fifth'],
       codes: ['1111', '2222', '33333', '4455', '4466', '5555'],
     };
@@ -201,16 +203,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-.v-dialog > .v-card > .content-wrapper {
+.v-dialog > .v-card > .filters-content-wrapper {
   margin-left: 0;
   margin-right: 0;
   padding-left: 0;
   padding-right: 0;
-}
-
-.test9 {
-  margin: 0px;
-  padding: 0;
 }
 </style>
 
@@ -254,5 +251,12 @@ export default Vue.extend({
   color: $XRoad-WarmGrey100;
   font-weight: 600;
   font-size: 14px;
+}
+
+.dialog-title-text {
+  color: $XRoad-WarmGrey100;
+  font-weight: bold;
+  font-size: 24px;
+  line-height: 32px;
 }
 </style>

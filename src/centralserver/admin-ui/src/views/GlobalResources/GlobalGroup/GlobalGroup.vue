@@ -84,7 +84,7 @@
       hide-default-footer
     >
       <template #[`item.memberName`]="{ item }">
-        <div class="server-code xrd-clickable" @click="toDetails(item)">
+        <div class="member-name xrd-clickable" @click="toDetails(item)">
           <xrd-icon-base class="mr-4"><XrdIconFolderOutline /></xrd-icon-base>
           <div>{{ item.memberName }}</div>
         </div>
@@ -99,7 +99,7 @@
       </template>
 
       <template #footer>
-        <div class="custom-footer"></div>
+        <div class="cs-table-custom-footer"></div>
       </template>
     </v-data-table>
 
@@ -131,7 +131,7 @@ export default Vue.extend({
     FilterDialog,
   },
   props: {
-    id: {
+    groupId: {
       type: String,
       required: true,
     },
@@ -232,6 +232,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/colors';
 @import '~styles/tables';
+
 .navigation-back {
   color: $XRoad-Link;
   cursor: pointer;
@@ -240,6 +241,14 @@ export default Vue.extend({
   a {
     text-decoration: none;
   }
+}
+
+.member-name {
+  color: $XRoad-Purple100;
+  font-weight: 600;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
 }
 
 .align-fix {
