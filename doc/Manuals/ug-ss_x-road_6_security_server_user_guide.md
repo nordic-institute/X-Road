@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.63  
+Version: 2.64  
 Doc. ID: UG-SS
 
 ---
@@ -95,7 +95,8 @@ Doc. ID: UG-SS
  25.08.2021 | 2.60    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  31.08.2021 | 2.61    | Describe new messagelog and message archive functionality | Ilkka Seppälä
  13.09.2021 | 2.62    | Added a new chapter about custom command line arguments [21](#21-adding-command-line-arguments) | Caro Hautamäki
- 05.10.2021 | 2.63    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
+ 22.09.2021 | 2.63    | Update backup encryption instructions | Jarkko Hyöty
+ 05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -2037,33 +2038,25 @@ automatically removed from the server. If needed, the automatic backup policies 
 Backups are always signed, but backup encryption is initially turned off. To turn encryption on, please override the
 default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
-    [proxy]
-    backup-encrypted=false
-    backup-public-key-path=/etc/xroad/backupkeys
+```
+[proxy]
 
-To turn backup encryption on, please change the `backup-encrypted` property value to true. By default, additional
-encryption keys are stored in the `/etc/xroad/backupkeys` directory. The default directory can be changed by modifying
-the `backup-public-key-path` property value.
+backup-encryption-enabled = true
+backup-encryption-keyids = <keyid1>, <keyid2>, ...
+```
 
-Backup encryption keys folder must contain only GPG public key files. In addition to security servers public key backup
-archives are encrypted with all the keys in this folder. It is recommended to use at least one additional public key,
-otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator
-to check that private keys used are sufficiently strong, there are no automatic checks.
+To turn backup encryption on, change the `backup-encryption-enabled` property to true. Additional
+encryption keys can be imported in the `/etc/xroad/gpghome` keyring and key identifiers listed using the `backup-encryption-keyids` parameter. It is recommended to set up at least one additional key, otherwise the backups will be unusable in case security servers private key is lost. It is up to security servers administrator to check that keys used are sufficiently strong, there are no automatic checks.
+
+Warning. All keys listed in `backup-encryption-keyids` must be present in the gpg keyring or backup fails.
 
 Additional keys for backup encryption should be generated and stored outside security server in a secure environment.
-After gpg keypair has been generated, public key can be exported to a file (backupadmin@organisation.eu is the name of the
+After gpg keypair has been generated, public key can be exported to a file (backupadmin@example.org is the name of the
 key being exported) using this command:
 
-    gpg --output backupadmin.publickey --armor --export backupadmin@organisation.eu
+    gpg --output backupadmin.publickey --armor --export backupadmin@example.org
 
-Resulting file `backupadmin.publickey` should be moved to security server and copied to backup encryption keys folder.
-Transfer of the public key does not have to be secure but administrator has to make sure that file is not changed during
-transfer, for example validating file hash. 
-
-Public keys have to be readable by xroad user. This can be done using these commands:
-
-    chown xroad:xroad backupadmin.publickey
-    chmod ug=r, o= backupadmin.publickey
+Resulting file `backupadmin.publickey` should be moved to security server and imported to backup gpg keyring. Administrator should make sure that the key has not been changed during transfer, for example by validating the key fingerprint.
 
 Private keys corresponding to additional backup encryption public keys must be handled safely and kept in secret. Any of
 them can be used to decrypt backups and thus mount attacks on the security servers.
