@@ -138,6 +138,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 8.  <a id="Ref_CRONHOW"></a>\[CRONHOW\] Cron format specifications [https://help.ubuntu.com/community/CronHowto](https://help.ubuntu.com/community/CronHowto).
 9.  <a id="Ref_PR-REST"></a>\[PR-REST\] [X-Road Message Protocol for REST v. 1.0](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+11. <a id="Ref_UG_SS" class="anchor">\[UG-SS\]</a> X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 ## 2 Changing the System Parameter Values
 
@@ -355,7 +356,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). 
 | archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using OpenPGP (GnuPG)
 | archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys
-| archive-encryption-keys-config                   |                                            |   |   | Configuration file for member identifier to OpenPGP key id mapping. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key) |
+| archive-encryption-keys-config                   |                                            |   |   | Configuration file for member identifier to OpenPGP key id mapping. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key). See \[[UG-SS](#Ref_UG_SS)\] for details. |
 | archive-default-encryption-key                   |                                            |   |   | Default OpenPGP key id for archive encryption (if not defined, the primary encryption key is used)
 | messagelog-encryption-enabled                    | false                                      |   |   | If true, message bodies are stored to the database in an encrypted format |
 | messagelog-keystore                              |                                            |   |   | Path to the keystore containing the key used in messagelog encryption |

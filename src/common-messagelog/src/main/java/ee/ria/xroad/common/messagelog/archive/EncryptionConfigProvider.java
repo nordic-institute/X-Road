@@ -41,6 +41,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+/**
+ * A strategy interface for archive encryption configuration providers.
+ * @see DisabledEncryptionConfigProvider
+ * @see ServerEncryptionConfigProvider
+ * @see MemberEncryptionConfigProvider
+ */
 interface EncryptionConfigProvider {
 
     default boolean isEncryptionEnabled() {
@@ -78,7 +84,7 @@ enum DisabledEncryptionConfigProvider implements EncryptionConfigProvider {
 }
 
 /**
- * Encrypts using the security server key
+ * Provides encryption configuration that uses the security server key
  */
 @Slf4j
 final class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
@@ -104,7 +110,7 @@ final class ServerEncryptionConfigProvider implements EncryptionConfigProvider {
 }
 
 /**
- * Encrypts using per-member key, or security server key if the
+ * Provides encryption configuration that uses member keys, or security server key if a
  * member key is not available
  */
 @Slf4j
