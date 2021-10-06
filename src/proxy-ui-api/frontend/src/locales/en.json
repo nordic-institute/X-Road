@@ -1037,5 +1037,11 @@
     "NoForwardslashes": "value should not contain forward slash (/) symbols",
     "NoBackslashes": "value should not contain backslash (\\) symbols",
     "NoPercents": "value should not contain percentage (%) symbols"
+  },
+  "info": {
+    "backups_incompatible": [
+      "The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.",
+      "Also, please note that the \"/etc/xroad/services/local.conf\" file for configuration overrides is deprecated and is not included in the backups anymore. In version 7, the \"/etc/xroad/services/local.properties\" file should be used instead."
+    ]
   }
 }

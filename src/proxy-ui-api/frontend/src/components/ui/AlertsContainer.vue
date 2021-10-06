@@ -24,19 +24,24 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="pa-0">
-    <GlobalAlerts />
-    <ContextualAlerts />
-  </v-container>
+  <div>
+    <StaticNotification />
+    <v-container class="pa-0">
+      <GlobalAlerts />
+      <ContextualAlerts />
+    </v-container>
+  </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import ContextualAlerts from './ContextualAlerts.vue';
 import GlobalAlerts from './GlobalAlerts.vue';
+import StaticNotification from './StaticNotification.vue';
 
 export default Vue.extend({
   components: {
+    StaticNotification,
     ContextualAlerts,
     GlobalAlerts,
   },
