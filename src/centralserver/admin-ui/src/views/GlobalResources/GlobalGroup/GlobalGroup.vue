@@ -42,7 +42,7 @@
     </div>
 
     <info-card
-      :title-text="$t('securityServers.ownerName')"
+      :title-text="$t('globalResources.description')"
       :info-text="globalGroup.description"
       data-test="global-group-description"
       :action-text="$t('action.edit')"
