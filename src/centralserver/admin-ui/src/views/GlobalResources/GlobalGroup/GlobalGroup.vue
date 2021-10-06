@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    <!-- Table 1 - Global Groups -->
+    <!-- Table - Global Groups -->
     <v-data-table
       :loading="loading"
       :headers="globalGroupsHeaders"
@@ -220,9 +220,6 @@ export default Vue.extend({
       this.$router.go(-1);
     },
     editDescription(): void {
-      // Implement later
-    },
-    clearFilter(): void {
       // Implement later
     },
   },

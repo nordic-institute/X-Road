@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="global-resources-list-view">
     <!-- Title and action -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -98,7 +98,6 @@
     </v-data-table>
 
     <!-- Dialogs -->
-
     <xrd-simple-dialog
       v-if="showAddGroupDialog"
       :dialog="showAddGroupDialog"

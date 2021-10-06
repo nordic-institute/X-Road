@@ -31,6 +31,7 @@
     :width="width"
     persistent
     :scrollable="scrollable"
+    data-test="group-members-filter-dialog"
   >
     <v-card class="xrd-card" data-test="dialog-simple">
       <v-card-title>
@@ -203,6 +204,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+/* Override default vuetify paddings so the horizontal line doesn't cut off  */
 .v-dialog > .v-card > .filters-content-wrapper {
   margin-left: 0;
   margin-right: 0;
@@ -239,10 +241,12 @@ export default Vue.extend({
   margin-left: auto;
   margin-right: 0;
 }
+
 .alert-slot {
   margin-left: 20px;
   margin-right: 20px;
 }
+
 .custom-divider {
   width: 100%;
 }
