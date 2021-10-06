@@ -1,6 +1,6 @@
 # X-Road: System Parameters User Guide
 
-Version: 2.63  
+Version: 2.64  
 Doc. ID: UG-SYSPAR
 
 | Date       | Version  | Description                                                                  | Author             |
@@ -73,6 +73,7 @@ Doc. ID: UG-SYSPAR
 | 04.08.2021 | 2.61     | Add new parameters for messagelog archive encryption | Jarkko Hyöty |
 | 25.08.2021 | 2.62     | Update X-Road references from version 6 to 7 | Caro Hautamäki |
 | 31.08.2021 | 2.63     | Update messagelog and proxy parameters | Ilkka Seppälä |
+| 05.10.2021 | 2.64     | Added a new chapter about custom command line arguments [6](#6-adding-command-line-arguments) | Caro Hautamäki
 
 ## Table of Contents
 
@@ -109,6 +110,9 @@ Doc. ID: UG-SYSPAR
   - [5 Configuration Proxy System Parameters](#5-configuration-proxy-system-parameters)
     - [5.1 Configuration proxy module parameters: `[configuration-proxy]`](#51-configuration-proxy-module-parameters-configuration-proxy)
     - [5.2 Signer parameters: `[signer]`](#52-signer-parameters-signer)
+  - [6 Adding command line arguments](#6-adding-command-line-arguments)
+    - [6.1 The configuration file](#61-the-configuration-file)
+    - [6.2 Legacy configuration file support in X-Road v7](#62-legacy-configuration-file-support-in-x-road-v7)
 
 <!-- tocstop -->
 
@@ -532,3 +536,47 @@ TLS_DHE_RSA_WITH_AES_256_CBC_SHA256
 > (see [*https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider*](https://docs.oracle.com/javase/8/docs/technotes/guides/security/SunProviders.html#SunJSSEProvider) for possible values)
 >
 > Note. OpenJDK 8 on RHEL 7 supports ECDHE key agreement protocol starting from RHEL 7.3. In RHEL 7 versions prior to RHEL 7.3 only DHE cipher suites are supported.
+
+## 6 Adding command line arguments
+
+Sometimes you may need to provide command line arguments for Security Server, Central Server or Configuration Proxy, in order to override some parameters. For example if you wish to increase Java's maximum heap size, you can do it with the properties file `/etc/xroad/services/local.properties`. The file is also included in the backup archive file when taking a configuration backup of either Central Server or Security Server.
+
+### 6.1 The configuration file
+
+The file `/etc/xroad/services/local.properties` replaces the file `/etc/xroad/services/local.conf` starting from X-Road version 7. 
+
+The `local.properties` file's contents consists of key-value pairs such as `XROAD_SIGNER_PARAMS=-XX:MaxMetaspaceSize=100m`. Notice that you cannot use quotes in the values. If you have multiple values for one key, use space to separate the values e.g. `XROAD_SIGNER_PARAMS=-Xmx100m -XX:MaxMetaspaceSize=100m`. Also notice that with `local.properties` you can only add new parameters and override old ones – you cannot remove existing default parameters.
+
+Example of `/etc/xroad/services/local.properties` with modifications that override the default Java memory parameters for Security Server:
+
+```
+XROAD_PROXY_PARAMS=-Xms200m -Xmx1024m
+```
+
+Example of `/etc/xroad/services/local.properties` with modifications that override the default Java memory parameters for Central Server:
+
+```
+XROAD_JETTY_PARAMS=-Xms200m -Xmx1024m
+```
+
+All possible properties to adjust in this file:
+
+| Property | Details |
+|--------------------|---------|
+| XROAD_PARAMS | Parameters for all processes |
+| XROAD_SIGNER_PARAMS | Parameters for the Signer |
+| XROAD_ADDON_PARAMS | Parameters for all addons |
+| XROAD_CONFCLIENT_PARAMS | Parameters for the Configuration Client |
+| XROAD_CONFPROXY_PARAMS | Parameters for the Configuration Proxy |
+| XROAD_JETTY_PARAMS | Parameters for the Central Server |
+| XROAD_MONITOR_PARAMS | Parameters for the Environmental Monitor |
+| XROAD_OPMON_PARAMS | Parameters for the Operational Monitor |
+| XROAD_PROXY_PARAMS | Parameters for the Security Server |
+| XROAD_PROXY_UI_API_PARAMS | Parameters for the Security Server's admin API |
+| XROAD_SIGNER_CONSOLE_PARAMS | Parameters for the Signer Console |
+
+### 6.2 Legacy configuration file support in X-Road v7
+
+If you have upgraded from X-Road version 6 to version 7, you might still be using `local.conf` script file with legacy parameters (non *XROAD_* prefixed parameters), which is considered deprecated in X-Road version 7. The legacy file `local.conf` **will not** be included in the configuration backups anymore – the new file `local.properties` will be included instead, therefore it is strongly recommended migrating to the new `local.properties` file.
+
+The legacy file `local.conf` will still be supported along with the legacy parameters. It is possible for both files to exist side-by-side. In this case the values from `local.properties` are appended first and then the `local.conf` file gets executed as a script afterwards. Notice that if your `local.conf` script contains new *XROAD_* prefixed parameters and old legacy parameters, the new *XROAD_* prefixed parameters will always be preferred.

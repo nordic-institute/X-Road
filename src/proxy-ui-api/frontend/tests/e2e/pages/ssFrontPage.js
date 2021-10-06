@@ -49,12 +49,23 @@ var loginCommands = {
     this.assert.visible('@LoginError');
     return this;
   },
+  navigateAndMakeTestable: function () {
+    this.logMessage("navigateAndMakeTestable()");
+    this.navigate();
+    this.waitForElementVisible('//*[@id="app"]');
+    this.makeTestable();
+    this.logMessage("navigateAndMakeTestable() done");
+    return this;
+  },
   signinDefaultUser: function () {
     this.clearValue2('@usernameInput');
     this.clearValue2('@passwordInput');
     this.setValue('@usernameInput', this.api.globals.login_usr);
     this.setValue('@passwordInput', this.api.globals.login_pwd);
     this.click('@loginButton');
+    // wait for login to complete, and disable transitions
+    this.api.page.ssMainPage().verifyCurrentUser(this.api.globals.login_usr);
+    this.makeTestable();
     return this;
   },
 };

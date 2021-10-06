@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.62  
+Version: 2.63  
 Doc. ID: UG-SS
 
 ---
@@ -95,6 +95,7 @@ Doc. ID: UG-SS
  25.08.2021 | 2.60    | Update X-Road references from version 6 to 7 | Caro Hautamäki
  31.08.2021 | 2.61    | Describe new messagelog and message archive functionality | Ilkka Seppälä
  13.09.2021 | 2.62    | Added a new chapter about custom command line arguments [21](#21-adding-command-line-arguments) | Caro Hautamäki
+ 05.10.2021 | 2.63    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
