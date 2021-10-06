@@ -24,7 +24,7 @@ dependencies {
     implementation project(':signer-protocol')
     implementation project(':serverconf')
 
-    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation "org.slf4j:slf4j-api:${slf4jVersion}"
     implementation "io.dropwizard.metrics:metrics-core:$metricsVersion"
     implementation "io.dropwizard.metrics:metrics-jmx:$metricsVersion"
 

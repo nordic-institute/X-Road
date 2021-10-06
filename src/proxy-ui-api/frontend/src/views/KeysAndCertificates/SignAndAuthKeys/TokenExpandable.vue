@@ -127,6 +127,7 @@
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
             @import-cert-by-hash="importCertByHash"
+            data-test="auth-keys-table"
             @refresh-list="fetchData"
           />
         </div>
@@ -150,6 +151,7 @@
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
             @import-cert-by-hash="importCertByHash"
+            data-test="sign-keys-table"
             @refresh-list="fetchData"
           />
         </div>

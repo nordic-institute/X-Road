@@ -20,7 +20,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR10")
+    set('springCloudVersion', "2020.0.3")
 }
 
 sourceSets {
@@ -38,10 +38,6 @@ bootRun {
         def params = project.args.tokenize(',')
         args = params
     }
-}
-
-bootJar {
-    excludeDevtools = true
 }
 
 processResources {
@@ -193,7 +189,18 @@ if (!project.hasProperty("runHeadless")) {
     ext.runHeadless = ""
 }
 
+// TODO: rename these to "e2e"
+if (!project.hasProperty("testscript")) {
+    ext.testscript = ""
+}
 
+if (!project.hasProperty("testcase")) {
+    ext.testcase = ""
+}
+
+if (!project.hasProperty("testverbose")) {
+    ext.testverbose = ""
+}
 
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
@@ -211,16 +218,37 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
 
+    if (!testverbose.isEmpty()) {
+        if (testverbose == "true") {
+            args.add("--verbose")
+        }
+    }
+
     if (!runHeadless.isEmpty()) {
       if (runHeadless == "true") {
-        args += "--headless"
+          args.add("--headless")
       }
     }
 
     if (!failScreenshot.isEmpty()) {
       if (failScreenshot == "true") {
-        args += "--env screenshot"
+        args.add("--env screenshot")
       }
+    }
+
+    // (at least if testcase name has spaces) wrap name in quotes, e.g. -Ptestcase "Security server client add wsdl service"
+    if (!testcase.isEmpty()) {
+        if (testscript.isEmpty()) {
+            // to run specific testcase, your need to also define -Ptestscript, otherwise nightwatch ignores this parameter
+            throw new GradleException('Tried to use -Ptestcase without -Ptestscript, that will not work.')
+        }
+        args.add("--testcase=" + testcase);
+        println 'set testcase arg to value [' + testcase + ']'
+
+    }
+
+    if (!testscript.isEmpty()) {
+        args.add("--test=" + testscript)
     }
 
     execOverrides {
@@ -318,7 +346,6 @@ dependencies {
     implementation project(':common-ui')
     implementation project(':common-rest-api')
 
-
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
@@ -350,7 +377,7 @@ task copyDeps(type: Copy) {
     from configurations.runtimeClasspath.find { it.name.startsWith("postgresql") }
 }
 
-build.dependsOn copyDeps
+assemble.dependsOn copyDeps
 
 test {
     maxHeapSize = "1g"

@@ -1,5 +1,6 @@
 /**
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,41 +24,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.certificateprofile.impl;
+package ee.ria.xroad.common.messagelog.archive;
 
-/**
- * Known DnFieldDescription labelKeys
- */
-public enum DnFieldLabelLocalizationKey {
-    COMMON_NAME("Common Name (CN)"),
-    COUNTRY_CODE("Country Code (C)"),
-    INSTANCE_IDENTIFIER("Instance Identifier (C)"),
-    INSTANCE_IDENTIFIER_O("Instance Identifier (O)"),
-    MEMBER_CLASS("Member Class (O)"),
-    MEMBER_CLASS_OU("Member Class (OU)"),
-    MEMBER_CLASS_BC("Member Class (BC)"),
-    MEMBER_CODE("Member Code (CN)"),
-    MEMBER_CODE_SN("Member Code (SN)"),
-    ORGANIZATION_NAME("Organization Name (O)"),
-    ORGANIZATION_NAME_CN("Organization Name (CN)"),
-    SERIAL_NUMBER("Serial Number"),
-    SERIAL_NUMBER_SN("Serial Number (SN)"),
-    SERVER_CODE("Server Code (CN)"),
-    SERVER_DNS_NAME("Server DNS name (CN)");
+import org.junit.Test;
 
-    private final String compatibilityLabel;
+import java.io.IOException;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
-    DnFieldLabelLocalizationKey(String compatibilityLabel) {
-        this.compatibilityLabel = compatibilityLabel;
+import static org.junit.Assert.assertEquals;
 
+public class MemberEncryptionConfigProviderTest {
+    private final Map<String, Set<String>> expected = new HashMap<>();
+
+    {
+        expected.put("INSTANCE/memberClass/memberCode", setOf("B23B8E993AC4632A896D39A27BE94D3451C16D33"));
+        expected.put("withEquals=", setOf("=Föö <foo@example.org>"));
+        expected.put("test", setOf("key#1", "key#2"));
+        expected.put("#comment escape#", setOf("#42"));
+        expected.put("backslash\\=equals", setOf("1"));
+        expected.put("backslash\\#hash", setOf("1"));
     }
-    /**
-     * For backwards compatibility while we still support old UI.
-     * Remove when old UI support can be removed
-     * @return
-     */
-    @Deprecated
-    public String getLabel() {
-        return compatibilityLabel;
+
+    @Test
+    public void shouldParseMappings() throws IOException {
+        final Map<String, Set<String>> mappings = MemberEncryptionConfigProvider.readKeyMappings(
+                Paths.get("build/gpg/keys.ini"));
+        assertEquals(expected, mappings);
+    }
+
+    private static Set<String> setOf(String... elem) {
+        return elem.length == 1 ? Collections.singleton(elem[0]) : new HashSet<>(Arrays.asList(elem));
     }
 }

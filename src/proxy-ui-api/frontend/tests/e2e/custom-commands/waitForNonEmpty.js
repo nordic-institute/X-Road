@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,41 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.common.certificateprofile.impl;
+const Events = require('events');
 
-/**
- * Known DnFieldDescription labelKeys
- */
-public enum DnFieldLabelLocalizationKey {
-    COMMON_NAME("Common Name (CN)"),
-    COUNTRY_CODE("Country Code (C)"),
-    INSTANCE_IDENTIFIER("Instance Identifier (C)"),
-    INSTANCE_IDENTIFIER_O("Instance Identifier (O)"),
-    MEMBER_CLASS("Member Class (O)"),
-    MEMBER_CLASS_OU("Member Class (OU)"),
-    MEMBER_CLASS_BC("Member Class (BC)"),
-    MEMBER_CODE("Member Code (CN)"),
-    MEMBER_CODE_SN("Member Code (SN)"),
-    ORGANIZATION_NAME("Organization Name (O)"),
-    ORGANIZATION_NAME_CN("Organization Name (CN)"),
-    SERIAL_NUMBER("Serial Number"),
-    SERIAL_NUMBER_SN("Serial Number (SN)"),
-    SERVER_CODE("Server Code (CN)"),
-    SERVER_DNS_NAME("Server DNS name (CN)");
-
-    private final String compatibilityLabel;
-
-    DnFieldLabelLocalizationKey(String compatibilityLabel) {
-        this.compatibilityLabel = compatibilityLabel;
-
+module.exports = class WaitForNonEmpty extends Events {
+  // async command(f) {
+  async command(selector) {
+    const interval = 100;
+    const timeout = 5000;
+    let counter = 0;
+    while (counter * interval < timeout) {
+      const result = await this.api.getValue(selector);
+      if (typeof result.value == 'string' && result.value.length > 0) {
+        const returnValue = {
+          status: 1,
+        };
+        this.emit('complete', returnValue);
+        return returnValue;
+      }
+      await new Promise((r) => setTimeout(r, interval));
+      counter++;
     }
-    /**
-     * For backwards compatibility while we still support old UI.
-     * Remove when old UI support can be removed
-     * @return
-     */
-    @Deprecated
-    public String getLabel() {
-        return compatibilityLabel;
+    // var err = new Error().stack
+    // this command does not know the stacktrace (which test the command was called from)
+    // maybe changing it to be non-async (it that makes sense) would help?
+    let selectorDescForError = selector;
+    if (selector.hasOwnProperty('selector')) {
+      selectorDescForError = selector.selector;
     }
-}
+    this.emit(
+      'error',
+      new Error(
+        `Timeout exceeded while waiting for non-empty string value for selector [${selectorDescForError}]`,
+      ),
+    );
+  }
+};

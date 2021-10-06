@@ -32,7 +32,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * main spring boot application.
@@ -40,7 +39,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @ServletComponentScan
 @SpringBootApplication(scanBasePackages = { "org.niis.xroad.securityserver.restapi", "org.niis.xroad.restapi" })
 @EnableCaching
-@EnableScheduling
 @SuppressWarnings("checkstyle:HideUtilityClassConstructor")
 public class RestApiApplication {
 

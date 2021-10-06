@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.63  
+Version: 2.64  
 Doc. ID: UG-SS
 
 ---
@@ -96,6 +96,7 @@ Doc. ID: UG-SS
  31.08.2021 | 2.61    | Describe new messagelog and message archive functionality | Ilkka Seppälä
  13.09.2021 | 2.62    | Added a new chapter about custom command line arguments [21](#21-adding-command-line-arguments) | Caro Hautamäki
  22.09.2021 | 2.63    | Update backup encryption instructions | Jarkko Hyöty
+ 05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -1696,26 +1697,16 @@ To view the encrypted messages at some later stage, use the ASIC web service doc
 #### 11.1.5 Archiving Parameters
 
 1. `keep-records-for` – time in days for which to keep timestamped and archived records in the database. Defaults to `30`.
-
 2. `archive-max-filesize` – maximum size for archived files in bytes. Reaching the maximum value triggers the file rotation. Defaults to `33554432` (32 MB).
-
 3. `archive-interval` – time interval as Cron expression \[[CRON](#Ref_CRON)\] for archiving timestamped records. Defaults to `0 0 0/6 1/1 * ? *` (fire every 6 hours).
-
 4. `archive-path` – the directory where the timestamped log records are archived. Defaults to `/var/lib/xroad/`.
-
 5. `clean-interval` – time interval as Cron expression \[[CRON](#Ref_CRON)\] for cleaning archived records from the database. Defaults to `0 0 0/12 1/1 * ? *` (fire every 12 hours).
-
 6. `archive-transfer-command` – the command executed after the (periodic) archiving process. This enables one to configure an external script to transfer archive files automatically from the security server. Defaults to no operation.
-
 7. `archive-grouping` - archive file grouping; `none` (default), by `member` or, by `subsystem`.
-
-8.  `archive-encryption-enabled` - archive file encryption enabled: false (default) or true
-
-9.  `archive-gpg-home-directory` - GPG home directory for archive file encryption (default `/etc/xroad/gpghome`)
-
-10. `archive-encryption-keys-dir` - directory for archive file encryption (recipient) PGP keys (default same as `gpg-home-directory`). Per-member keys can be used when grouping is by `member` or `subsystem` (subsystems use the member's key). When per-member keys are used, it's recommended to store them in a directory under `/etc/xroad` other than the default `/etc/xroad/gpghome` so that the keys are included in the security server configuration backups.
-
-11. `archive-default-encryption-key` - Default archive encryption key (in `archive-encryption-keys-dir`) if there is no grouping or a encryption key for a member is not present. If not defined, the primary GPG encryption key is used.
+8.  `archive-encryption-enabled` - archive file encryption enabled: false (default) or true.
+9.  `archive-gpg-home-directory` - GPG home directory for archive file signing and encryption keyring (default `/etc/xroad/gpghome`).
+10. `archive-encryption-keys-config` - Configuration file for member gpg keys.
+11. `archive-default-encryption-key` - Default archive encryption key id.
 
 
 #### 11.1.6 Archive Files
@@ -1742,54 +1733,55 @@ Finally, switching to archive grouping by subsystem gives:
 
 #### 11.1.7 Archive Encryption and Grouping
 
-The archive files can be encrypted (`archive-encryption-enabled = true`) using GnuPG (OpenPGP compatible, RFC 4880). The encryption is enabled/disabled on a security server level - it's not possible to enable/disable it for specific subsystems only. Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation about OpenPGP and GnuPG.
+Archive files can be encrypted (when `archive-encryption-enabled = true`) using GnuPG ("gpg") which implements the OpenPGP (RFC 4880) specification. Please see e.g. [RFC 4880](https://www.ietf.org/rfc/rfc4880.txt) and [GnuPG](https://gnupg.org/) for more infomation. The encryption is enabled/disabled on a security server level - it's not possible to enable/disable it for specific subsystems only.
 
 By default, the produced archive files contain messages from all the security server's members, but it's possible to group the archives by member or by subsystem if needed. The grouping is controlled by the setting `archive-grouping`. The grouping is enabled/disabled on a security server level - it is either enabled or disabled for all the members and subsystems.
 
-When encryption is enabled, the archiving process expects to find a server signing key in `gpg-home-directory`. This key is used to sign the generated archive files and is automatically generated during the security server installation. In case grouping is `none` or no per-member key is available, the `archive-default-encryption-key` is used to encrypt archive files. When grouping is set to `member` or `subsystem`, the archiving process uses per-member keys if they are available in `archive-encryption-keys-dir`. The security server administrator is responsible for generating and configuring per-member keys - they are not generated automatically. The following paragraphs explain how to do it.
+When encryption is enabled, the archiving process expects to find a GnuPG keyring containing the server signing keypair in `archive-gpg-home-directory` (by default this is the same as the backup signing and encryption keypair). This keypair is used to sign the generated archive files, and as a fallback encryption key if no other keys are configured.
 
-**Generating per-member keys for archive encryption**
+The `archive-default-encryption-key` can use used to override the default encryption key id, which is used when `archive-grouping` is `none` or no member gpg key is defined. Changing this parameter requires restarting the xroad-addon-messagelog service.
 
-Archive encryption keys must be OpenPGP public keys suitable for encryption. In the following example, we generate a new keypair for a member with defaults and no expiration. The second gpg-command exports the public key.
-
+In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file `archive-encryption-keys-config` are used (if no key is defined for the member, the default encryption key is used). This file maps member identifiers to gpg key identifiers and has the following format:
 ```
-mkdir ~/xroad-test
-gpg --homedir ~/xroad-test --quick-generate-key INSTANCE/MEMBERCLASS/MEMBERCODE default default never
-gpg --homedir ~/xroad-test --export INSTANCE/MEMBERCLASS/MEMBERCODE >INSTANCE-MEMBERCLASS-MEMBERCODE.pgp
+# This is a comment (ignored)
+# One mapping per line (leading, trailing, and around `=` white space is ignored)
+<member identifier> = <key id>
+
+# Escaping (applies only to the member identifier):
+## Member: test/member=class/\=code
+   test/member\=class/\\=code = ABCD....
+## Member #42/CLASS/#123 has two keys:
+   \#42/CLASS/\#123 = ABCD....
+   \#42/CLASS/\#123 = EF12....
+```
+* There can be several mappings (keys) per member (one mapping per line)
+* Lines _starting with_ `#` are ignored
+* Escaping special characters in the _member identifier_ part:
+  * `=` is written as `\=` (a literal `\=` becomes `\\=`)
+  * `#` is written as `\#` (a literal `\#` becomes `\\#`)
+
+Warning. The archiving process fails if a required key is not present in the gpg keyring. Therefore, it is important to verify that the mappings are correct.
+
+For example, generate a keypair for encryption with defaults and no expiration and export the public key:
+```
+gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
+gpg [--homedir <member gpghome>] --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
 ```
 
-Copy the public key `INSTANCE-MEMBERCLASS-MEMBERCODE.pgp` to `encryption-keys-dir`, and rename it using a name provided by `/usr/share/xroad/scripts/keyname.sh` script (hex-encoded sha-256 digest of the member identifier). Ensure the file access rights are correct. See the steps below.
-
+Import the public key to the gpg keyring in `archive-gpg-home-directory` and take note of the key id.
 ```
-# check that the key is valid and suitable for encryption (has a (sub)key with usage E):
-# note: --show-keys requires gnupg 2.2.8 or later
-gpg --show-keys INSTANCE/MEMBERCLASS/MEMBERCODE.pgp
-  pub   rsa3072 2021-09-02 [SC]
-        196B498858216D2F72FF8663BDA81CBE27F848E2
-  uid                      INSTANCE/MEMBERCLASS/MEMBERCODE
-  sub   rsa3072 2021-09-02 [E]
-
-/usr/share/xroad/scripts/keyname.sh INSTANCE/MEMBERCLASS/MEMBERCODE
-  80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
-
-cp INSTANCE/MEMBERCLASS/MEMBERCODE.pgp /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
-chown xroad:xroad /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
-chmod 600 /etc/xroad/gpghome/80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.pgp
+gpg --homedir <archive-gpg-home-directory> --import INSTANCE-memberClass-memberCode.pgp
 ```
 
-It is possible to define multiple encryption keys per member by adding a qualifier between the member identifier digest and suffix, e.g.:
-
+Add the mapping to `archive-encryption-keys-config` file (mappings can be edited without restarting X-Road services), e.g.:
 ```
-80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.1.pgp  
-80b3f9c17e055617f3da22d6e96bb3597b1845d2cf64987d49d66d30302970ba.2.pgp  
+INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
 ```
 
 To decrypt the encrypted archives, use the following syntax:
-
 ```
 gpg [--homedir <gpghome>] --decrypt <archive name> --output <output file name>
 ```
-
 
 ### 11.2 Transferring the Archive Files from the Security Server
 

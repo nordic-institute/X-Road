@@ -43,14 +43,14 @@ const getPages = (browser) => {
     clientInfo,
     clientsTab: mainPage.section.clientsTab,
     clientServices: clientInfo.section.services,
-    serviceDetails: mainPage.section.serviceDetails,
+    serviceDetails: mainPage.section.wsdlServiceDetails,
   };
 };
 
 const signinToClientsTab = (pages) => {
   const { browser, frontPage, mainPage, clientsTab } = pages;
   // Open SUT and check that page is loaded
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   // Enter valid credentials
   frontPage.signinDefaultUser();
@@ -69,14 +69,14 @@ const setupServices = (pages) => {
   } = pages;
 
   // Add wsdl
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
   clientInfo.openServicesTab();
   browser.waitForElementVisible(clientServices);
   clientServices.openAddWSDL();
-  clientServices.enterServiceUrl(
+  clientServices.initServiceUrl(
     browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
   );
   clientServices.confirmAddDialog();
@@ -98,7 +98,7 @@ const clearServices = (pages) => {
     mainPage,
   } = pages;
   // Remove WSDL service description
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
@@ -121,7 +121,7 @@ const navigateToAddSubjectDialog = (pages) => {
     serviceClientsPage,
     addSubjectMemberStepPage,
   } = pages;
-  frontPage.navigate();
+  frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
@@ -175,16 +175,16 @@ module.exports = {
 
       // Check that all subjects exist
       addSubjectMemberStepPage
-        .verifySubjectListRow(1, '1122')
-        .verifySubjectListRow(2, 'bac')
-        .verifySubjectListRow(3, '2233')
-        .verifySubjectListRow(4, 'abb')
-        .verifySubjectListRow(5, 'cbb')
-        .verifySubjectListRow(6, '1212')
-        .verifySubjectListRow(7, 'security-server-owners')
-        .verifySubjectListRow(8, 'TestClient')
-        .verifySubjectListRow(9, 'TestService')
-        .verifySubjectListRow(10, 'Management');
+        .verifySubjectListRow('1122')
+        .verifySubjectListRow('bac')
+        .verifySubjectListRow('2233')
+        .verifySubjectListRow('abb')
+        .verifySubjectListRow('cbb')
+        .verifySubjectListRow('1212')
+        .verifySubjectListRow('security-server-owners')
+        .verifySubjectListRow('TestClient')
+        .verifySubjectListRow('TestService')
+        .verifySubjectListRow( 'Management');
       // Filter subjects in Add Subjects dialog
       addSubjectMemberStepPage
         .setFilter('TestSe')
@@ -201,16 +201,16 @@ module.exports = {
       // Clear filtering
       addSubjectMemberStepPage
         .setFilter('')
-        .verifySubjectListRow(1, '1122')
-        .verifySubjectListRow(2, 'bac')
-        .verifySubjectListRow(3, '2233')
-        .verifySubjectListRow(4, 'abb')
-        .verifySubjectListRow(5, 'cbb')
-        .verifySubjectListRow(6, '1212')
-        .verifySubjectListRow(7, 'security-server-owners')
-        .verifySubjectListRow(8, 'TestClient')
-        .verifySubjectListRow(9, 'TestService')
-        .verifySubjectListRow(10, 'Management');
+        .verifySubjectListRow('1122')
+        .verifySubjectListRow('bac')
+        .verifySubjectListRow('2233')
+        .verifySubjectListRow('abb')
+        .verifySubjectListRow('cbb')
+        .verifySubjectListRow('1212')
+        .verifySubjectListRow('security-server-owners')
+        .verifySubjectListRow('TestClient')
+        .verifySubjectListRow('TestService')
+        .verifySubjectListRow('Management');
       addSubjectMemberStepPage.assertNextButtonDisabled();
       addSubjectMemberStepPage.assertSelectedSubjectsCount(0);
       addSubjectMemberStepPage.selectSubject('TestService');
@@ -247,16 +247,16 @@ module.exports = {
         .clickNext();
       addSubjectServiceStepPage
         .assertWizardSecondPage()
-        .verifyServiceListRow(1, 'testOp1')
-        .verifyServiceListRow(2, 'testOpA');
+        .verifyServiceListRow('testOp1')
+        .verifyServiceListRow('testOpA');
       addSubjectServiceStepPage
         .setFilter('1')
         .verifyVisibleService('testOp1')
         .verifyNotPresentService('testOpA');
       addSubjectServiceStepPage
         .setFilter('')
-        .verifyServiceListRow(1, 'testOp1')
-        .verifyServiceListRow(2, 'testOpA');
+        .verifyServiceListRow('testOp1')
+        .verifyServiceListRow('testOpA');
       addSubjectServiceStepPage.assertAddSelectedButtonDisabled();
       addSubjectServiceStepPage.selectService('testOp1');
       addSubjectServiceStepPage.assertSelectedServicesCount(1);
