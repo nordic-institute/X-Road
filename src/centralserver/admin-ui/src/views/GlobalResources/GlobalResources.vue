@@ -34,7 +34,7 @@
 import Vue from 'vue';
 
 /**
- * Security servers main view wrapping content all from 'Security servers' main tab
+ * Main view wrapping content all from 'Global resources' main tab
  */
 export default Vue.extend({});
 </script>

@@ -118,12 +118,12 @@ import Vue from 'vue';
 
 import { DataTableHeader } from 'vuetify';
 import InfoCard from '@/components/ui/InfoCard.vue';
-import FilterDialog from '@/components/ui/FilterDialog.vue';
+import FilterDialog from '@/views/GlobalResources/GlobalGroup/GroupMembersFilterDialog.vue';
 
 import { Colors } from '@/global';
 
 /**
- * Wrapper component for a security server view
+ * Global group view
  */
 export default Vue.extend({
   components: {

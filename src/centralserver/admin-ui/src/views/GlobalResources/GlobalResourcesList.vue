@@ -132,7 +132,7 @@
 
 <script lang="ts">
 /**
- * View for 'security servers' tab
+ * View for 'global resources'
  */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
