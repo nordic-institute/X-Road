@@ -25,10 +25,10 @@
  */
 
 module.exports = class PauseExecution {
-  async command() {
+  async command(time) {
     console.log('/nPausing execution, CTRL-C to break');
     //TODO might want figure out a way to make this resumeable
-    this.api.pause(10000000);
+    this.api.pause(time);
   }
 }
 
