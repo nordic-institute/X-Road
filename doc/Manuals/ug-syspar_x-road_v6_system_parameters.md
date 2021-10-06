@@ -562,6 +562,7 @@ All possible properties to adjust in this file:
 
 | Property | Details |
 |--------------------|---------|
+| XROAD_PARAMS | Parameters for all processes |
 | XROAD_SIGNER_PARAMS | Parameters for the Signer |
 | XROAD_ADDON_PARAMS | Parameters for all addons |
 | XROAD_CONFCLIENT_PARAMS | Parameters for the Configuration Client |
@@ -577,4 +578,4 @@ All possible properties to adjust in this file:
 
 If you have upgraded from X-Road version 6 to version 7, you might still be using `local.conf` script file with legacy parameters (non *XROAD_* prefixed parameters), which is considered deprecated in X-Road version 7. The legacy file `local.conf` **will not** be included in the configuration backups anymore – the new file `local.properties` will be included instead, therefore it is strongly recommended migrating to the new `local.properties` file.
 
-The legacy file `local.conf` will still be supported along with the legacy parameters. It is possible for both files to exist side-by-side. In this case the `local.conf` file gets executed as a script and the values from `local.properties` are appended afterwards. Notice that if your `local.conf` script contains new *XROAD_* prefixed parameters and old legacy parameters, the new *XROAD_* prefixed parameters will always be preferred.
+The legacy file `local.conf` will still be supported along with the legacy parameters. It is possible for both files to exist side-by-side. In this case the values from `local.properties` are appended first and then the `local.conf` file gets executed as a script afterwards. Notice that if your `local.conf` script contains new *XROAD_* prefixed parameters and old legacy parameters, the new *XROAD_* prefixed parameters will always be preferred.
