@@ -142,6 +142,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 8.  <a id="Ref_CRONHOW"></a>\[CRONHOW\] Cron format specifications [https://help.ubuntu.com/community/CronHowto](https://help.ubuntu.com/community/CronHowto).
 9.  <a id="Ref_PR-REST"></a>\[PR-REST\] [X-Road Message Protocol for REST v. 1.0](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
 10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+11. <a id="Ref_UG_SS" class="anchor">\[UG-SS\]</a> X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 ## 2 Changing the System Parameter Values
 
@@ -356,11 +357,11 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | max-loggable-body-size                           | 10485760 (10 MiB)                          |   |   | Maximum loggable REST message body size |
 | truncated-body-allowed                           | false                                      |   |   | If the REST message body exceeds the maximum loggable body size, truncate the body in the log (true) or reject the message (false). |
 | clean-transaction-batch                          | 10000                                      |   |   | Maximun number of log records to remove in one transaction. |
-| archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). |
-| archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using gpg |
-| archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys |
-| archive-encryption-keys-dir                      | /etc/xroad/gpghome                         |   |   | Directory for archive file encryption (recipient) PGP keys. Per-member keys can be used when grouping is by `member` or `subsystem` (subsystems use the member's key). When per-member keys are used, it's recommended to store them in a directory under `/etc/xroad` other than the default `/etc/xroad/gpghome` so that the keys are included in the security server configuration backups. |
-| archive-default-encryption-key                   |                                            |   |   | Default PGP public key for archive encryption (if not defined, the primary gpg encryption key is used) |
+| archive-grouping                                 | none                                       |   |   | Archive file grouping, one of 'none', 'member' (group by member), 'subsystem' (group by subsystem). 
+| archive-encryption-enabled                       | false                                      |   |   | If true, archive files are encrypted using OpenPGP (GnuPG)
+| archive-gpg-home-directory                       | /etc/xroad/gpghome                         |   |   | GPG home for archive file signing (and default encryption) keys
+| archive-encryption-keys-config                   |                                            |   |   | Configuration file for member identifier to OpenPGP key id mapping. Per-member keys can be used when grouping is by 'member' or 'subsystem' (subsystems use the member's key). See \[[UG-SS](#Ref_UG_SS)\] for details. |
+| archive-default-encryption-key                   |                                            |   |   | Default OpenPGP key id for archive encryption (if not defined, the primary encryption key is used)
 | messagelog-encryption-enabled                    | false                                      |   |   | If true, message bodies are stored to the database in an encrypted format |
 | messagelog-keystore                              |                                            |   |   | Path to the keystore containing the key used in messagelog encryption |
 | messagelog-keystore-password                     |                                            |   |   | Messagelog keystore password |

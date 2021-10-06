@@ -120,14 +120,14 @@ if [ ! -d "$ARCHIVE_DIR" ]; then
   die "Archive directory '$ARCHIVE_DIR' not found"
 fi
 
-exec 123>$LOCK || die "Cannot aquire lock"
+exec 123>$LOCK || die "Cannot acquire lock"
 flock -n 123 || die "There is archive transporter process already running"
 trap 'rm -f "$LOCK"' EXIT
 
 shopt -s nullglob
-for i in "$ARCHIVE_DIR"/*.zip; do
+for i in "$ARCHIVE_DIR"/*.{zip,zip.gpg}; do
   if ! http_code=$(curl -s -S -o /dev/null -w "%{http_code}" -F file=@"$i" "${HTTPS_OPTIONS[@]}" "$URL"); then
-    # curl alredy wrote error message to stderr.
+    # curl already wrote error message to stderr.
     exit 3
   fi
 
