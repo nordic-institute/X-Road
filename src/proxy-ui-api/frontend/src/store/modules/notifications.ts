@@ -30,12 +30,14 @@ import { Notification } from '@/ui-types';
 export interface NotificationsState {
   errorNotifications: Notification[];
   successNotifications: Notification[];
+  staticNotification: string[]; // only one notification but may have multiple rows – hence the array
 }
 
 const getDefaultState = () => {
   return {
     errorNotifications: [],
     successNotifications: [],
+    staticNotification: [],
   };
 };
 
@@ -127,6 +129,9 @@ export const getters: GetterTree<NotificationsState, RootState> = {
   errorNotifications(state: NotificationsState): Notification[] {
     return state.errorNotifications;
   },
+  staticNotification(state: NotificationsState) {
+    return state.staticNotification;
+  },
 };
 
 export const mutations: MutationTree<NotificationsState> = {
@@ -175,6 +180,15 @@ export const mutations: MutationTree<NotificationsState> = {
   clearErrorNotifications(state: NotificationsState): void {
     state.errorNotifications = [];
   },
+  setStaticNotification(
+    state: NotificationsState,
+    notificationMessages: string[],
+  ): void {
+    state.staticNotification = notificationMessages;
+  },
+  clearStaticNotification(state: NotificationsState): void {
+    state.staticNotification = [];
+  },
 };
 
 export const actions: ActionTree<NotificationsState, RootState> = {
@@ -205,6 +219,12 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     if (errorObject?.response?.status !== 401) {
       commit('setErrorObject', errorObject);
     }
+  },
+  showStaticNotification({ commit }, notifications: string[]) {
+    commit('setStaticNotification', notifications);
+  },
+  clearStaticNotification({ commit }) {
+    commit('clearStaticNotification');
   },
 };
 
