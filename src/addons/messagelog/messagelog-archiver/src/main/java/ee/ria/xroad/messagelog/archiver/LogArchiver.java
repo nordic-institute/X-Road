@@ -40,7 +40,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hibernate.Session;
-import org.hibernate.query.Query;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
@@ -108,36 +107,31 @@ public class LogArchiver extends UntypedAbstractActor {
 
     private boolean handleArchive(long maxRecordId) throws Exception {
         return doInTransaction(session -> {
-            long start = System.currentTimeMillis();
-            int recordsArchived = 0;
             final int limit = getArchiveTransactionBatchSize();
-            log.info("Archiving log records...");
-
-            final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
             final String archiveTransferCommand = getArchiveTransferCommand();
+            final long start = System.currentTimeMillis();
+            final MessageRecordEncryption messageRecordEncryption = MessageRecordEncryption.getInstance();
+
+            int recordsArchived = 0;
+            log.info("Archiving log records...");
 
             try (LogArchiveWriter archiveWriter = createLogArchiveWriter(session)) {
                 List<Long> recordIds = new ArrayList<>(100);
                 try (Stream<MessageRecord> records = getNonArchivedMessageRecords(session, maxRecordId, limit)) {
-                    for (Iterator<MessageRecord> it = records.iterator(); it.hasNext(); ) {
-                        try {
-                            MessageRecord record = it.next();
-                            recordIds.add(record.getId());
-                            messageRecordEncryption.prepareDecryption(record);
-                            if (archiveWriter.write(record)) {
-                                runTransferCommand(archiveTransferCommand);
-                            }
-                            //evict record from persistence context to avoid running out of memory
-                            session.detach(record);
-                            recordsArchived++;
+                    for (Iterator<MessageRecord> it = records.iterator(); it.hasNext();) {
+                        MessageRecord messageRecord = it.next();
+                        recordIds.add(messageRecord.getId());
+                        messageRecordEncryption.prepareDecryption(messageRecord);
+                        if (archiveWriter.write(messageRecord)) {
+                            runTransferCommand(archiveTransferCommand);
+                        }
+                        //evict record from persistence context to avoid running out of memory
+                        session.detach(messageRecord);
+                        recordsArchived++;
 
-                            if (recordsArchived % 100 == 0) {
-                                markArchived(session, recordIds);
-                                recordIds.clear();
-                            }
-
-                        } catch (Exception e) {
-                            throw new CodedException(ErrorCodes.X_INTERNAL_ERROR, e);
+                        if (recordsArchived % 100 == 0) {
+                            markArchived(session, recordIds);
+                            recordIds.clear();
                         }
                     }
                 }
@@ -162,34 +156,33 @@ public class LogArchiver extends UntypedAbstractActor {
         });
     }
 
-    private LogArchiveWriter createLogArchiveWriter(Session session) {
+    private LogArchiveWriter createLogArchiveWriter(Session session) throws IOException {
         return new LogArchiveWriter(
                 getArchivePath(),
                 new HibernateLogArchiveBase(session)
         );
     }
 
-    private Path getArchivePath() {
+    private Path getArchivePath() throws IOException {
         if (!Files.isDirectory(archivePath)) {
-            throw new RuntimeException("Log output path (" + archivePath + ") must be directory");
+            throw new IOException("Log output path (" + archivePath + ") must be directory");
         }
 
         if (!Files.isWritable(archivePath)) {
-            throw new RuntimeException("Log output path (" + archivePath + ") must be writable");
+            throw new IOException("Log output path (" + archivePath + ") must be writable");
         }
 
         return archivePath;
     }
 
     protected int markTimestampRecordsArchived(Session session) {
-        final Query<?> query = session
+        return session
                 .createQuery(""
                         + "UPDATE TimestampRecord t SET t.archived = true "
                         + "WHERE t.archived = false AND NOT EXISTS ("
                         + "SELECT 0 FROM MessageRecord m "
                         + "WHERE m.archived = false and t.id = m.timestampRecord)"
-                );
-        return query.executeUpdate();
+                ).executeUpdate();
     }
 
     protected Long getMaxRecordId(Session session) {
@@ -265,6 +258,9 @@ public class LogArchiver extends UntypedAbstractActor {
                         errorMsg,
                         standardError);
             }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Interrupted while executing transfer command '{}'", transferCommand, e);
         } catch (Exception e) {
             log.error("Failed to execute archive transfer command '{}'", transferCommand, e);
         } finally {

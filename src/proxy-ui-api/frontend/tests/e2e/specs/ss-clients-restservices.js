@@ -34,7 +34,7 @@ module.exports = {
     const clientServices = clientInfo.section.services;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -52,24 +52,24 @@ module.exports = {
     clientServices.openAddREST();
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
-    clientServices.enterServiceUrl('a');
-    clientServices.enterServiceUrl('');
+    clientServices.initServiceUrl('a');
+    clientServices.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('foobar');
+    clientServices.initServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceCode('a');
-    clientServices.enterServiceCode('');
+    clientServices.initServiceCode('a');
+    clientServices.modifyServiceCode('');
     // Verify there's an error message, something like 'The Service Code field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceCode('s1c1');
+    clientServices.initServiceCode('s1c1');
     clientServices.selectRESTPath();
     clientServices.cancelAddDialog();
 
@@ -86,10 +86,10 @@ module.exports = {
 
     // Verify invalid service code
     clientServices.selectRESTPath();
-    clientServices.enterServiceUrl(
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
-    clientServices.enterServiceCode('/');
+    clientServices.initServiceCode('/');
     browser.expect.element(clientServices.elements.confirmAddServiceButton).to
       .not.be.enabled;
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
@@ -100,11 +100,11 @@ module.exports = {
 
     // Verify successful URL open
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();
-    clientServices.enterServiceCode('s1c1');
+    clientServices.initServiceCode('s1c1');
     clientServices.confirmAddDialog();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'REST service added'
@@ -135,7 +135,7 @@ module.exports = {
     const sslCheckFail = mainPage.section.sslCheckFailDialog;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -176,8 +176,8 @@ module.exports = {
     // Verify cancel
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
       .selected;
-    operationDetails.enterUrl('https://niis.org/nosuch/api/');
-    operationDetails.enterTimeout('40');
+    operationDetails.modifyUrl('https://niis.org/nosuch/api/');
+    operationDetails.modifyTimeout('40');
     operationDetails.toggleCertVerification();
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
@@ -201,7 +201,7 @@ module.exports = {
       .selected;
 
     // verify SSL states
-    operationDetails.enterUrl('https://nosuchresttestservice.exists');
+    operationDetails.modifyUrl('https://nosuchresttestservice.exists');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.not
       .selected;
     operationDetails.saveParameters();
@@ -239,10 +239,10 @@ module.exports = {
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
 
     // Verify change operation
-    operationDetails.enterUrl(
+    operationDetails.modifyUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_2,
     );
-    operationDetails.enterTimeout('40');
+    operationDetails.modifyTimeout('40');
     operationDetails.saveParameters();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
@@ -289,7 +289,7 @@ module.exports = {
     const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -373,7 +373,7 @@ module.exports = {
     const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -454,7 +454,7 @@ module.exports = {
     const addEndpointPopup = mainPage.section.addEndpointPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -478,7 +478,7 @@ module.exports = {
 
     // Verify validation rules
     addEndpointPopup.selectRequestMethod('GET');
-    addEndpointPopup.enterPath('');
+    addEndpointPopup.modifyPath('');
 
     // 'The path field is required'
     browser.waitForElementVisible(
@@ -486,7 +486,7 @@ module.exports = {
     );
 
     // test cancel
-    addEndpointPopup.enterPath('/noreq1');
+    addEndpointPopup.initPath('/noreq1');
     addEndpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
     browser.waitForElementNotPresent(
@@ -515,7 +515,7 @@ module.exports = {
     browser.keys(browser.Keys.ESCAPE);
 
     // Verify add
-    addEndpointPopup.enterPath('/testreq2');
+    addEndpointPopup.modifyPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -525,7 +525,7 @@ module.exports = {
 
     // Verify uniqueness
     restEndpoints.openAddDialog();
-    addEndpointPopup.enterPath('/testreq2');
+    addEndpointPopup.modifyPath('/testreq2');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
@@ -533,7 +533,7 @@ module.exports = {
 
     // verify sorting of added
     restEndpoints.openAddDialog();
-    addEndpointPopup.enterPath('/testreq1');
+    addEndpointPopup.modifyPath('/testreq1');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -542,7 +542,7 @@ module.exports = {
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq1');
 
     restEndpoints.openAddDialog();
-    addEndpointPopup.enterPath('/testreq3');
+    addEndpointPopup.modifyPath('/testreq3');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -551,7 +551,7 @@ module.exports = {
     restEndpoints.verifyEndpointRow(3, 'POST', '/testreq3');
 
     restEndpoints.openAddDialog();
-    addEndpointPopup.enterPath('/testreq1');
+    addEndpointPopup.modifyPath('/testreq1');
     addEndpointPopup.selectRequestMethod('DELETE');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -560,7 +560,7 @@ module.exports = {
     restEndpoints.verifyEndpointRow(1, 'DELETE', '/testreq1');
 
     restEndpoints.openAddDialog();
-    addEndpointPopup.enterPath('/');
+    addEndpointPopup.modifyPath('/');
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -581,7 +581,7 @@ module.exports = {
     const endpointPopup = mainPage.section.editEndpointPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -607,12 +607,12 @@ module.exports = {
     browser.assert.containsText(endpointPopup.elements.methodDropdown, 'POST');
 
     // Verify validation rules
-    endpointPopup.enterPath('');
+    endpointPopup.modifyPath('');
     // Verify there's an error message, something like 'The path field is required'
     browser.waitForElementVisible(endpointPopup.elements.requestPathMessage);
 
     // test cancel
-    endpointPopup.enterPath('/newreq1');
+    endpointPopup.initPath('/newreq1');
     endpointPopup.selectRequestMethod('PUT');
     endpointPopup.cancel();
     browser.waitForElementVisible(restEndpoints);
@@ -623,13 +623,13 @@ module.exports = {
 
     // Verify uniqueness
     restEndpoints.openEndpoint('POST', '/testreq2');
-    endpointPopup.enterPath('/testreq3');
+    endpointPopup.modifyPath('/testreq3');
     endpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
     mainPage.closeAlertMessage();
 
     // Verify edit
-    endpointPopup.enterPath('/newreq1');
+    endpointPopup.modifyPath('/newreq1');
     endpointPopup.selectRequestMethod('PUT');
     endpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Changes to endpoint saved successfully'
@@ -671,7 +671,7 @@ module.exports = {
     var startTime, startTimestamp;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -705,14 +705,14 @@ module.exports = {
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
-    clientServices.enterDisableNotice('Message1');
+    clientServices.initDisableNotice('Message1');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
-    clientServices.enterDisableNotice('Notice1');
+    clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
@@ -723,7 +723,7 @@ module.exports = {
       restServiceDetails.elements.serviceType,
       'REST API',
     );
-    restServiceDetails.enterServiceCode('/');
+    restServiceDetails.modifyServiceCode('/');
     browser.expect.element(restServiceDetails.elements.confirmDialogButton).to
       .not.be.enabled;
     // Verify there's an error message, something like 'Identifier value contains illegal characters'
@@ -740,21 +740,21 @@ module.exports = {
       }
     });
 
-    restServiceDetails.enterServiceCode('');
+    restServiceDetails.modifyServiceCode('');
     // Verify there's an error message, something like 'The fields.code_field field is required'
     browser.waitForElementVisible(restServiceDetails.elements.codeMessage);
-    restServiceDetails.enterServiceUrl('foobar');
+    restServiceDetails.modifyServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
-    restServiceDetails.enterServiceUrl('');
+    restServiceDetails.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(restServiceDetails.elements.URLMessage);
 
     // Verify cancel
-    restServiceDetails.enterServiceUrl(
+    restServiceDetails.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
-    restServiceDetails.enterServiceCode('s1c2');
+    restServiceDetails.initServiceCode('s1c2');
     restServiceDetails.cancelDialog();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -770,10 +770,10 @@ module.exports = {
 
     // Verify successful edit
     clientServices.openServiceDetails();
-    restServiceDetails.enterServiceUrl(
+    restServiceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
-    restServiceDetails.enterServiceCode('s1c2');
+    restServiceDetails.modifyServiceCode('s1c2');
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
     await browser.perform(function () {
@@ -822,7 +822,7 @@ module.exports = {
     const restServiceDetails = mainPage.section.restServiceDetails;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials

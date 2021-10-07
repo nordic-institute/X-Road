@@ -26,13 +26,13 @@
 <template>
   <div>
     <!-- Success -->
-    <transition-group name="fade">
+    <transition-group :name="transitionName()">
       <v-snackbar
         v-for="notification in successNotifications"
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="success-snackbar"
-        :timeout="notification.timeout"
+        :timeout="snackbarTimeout(notification)"
         :color="colors.Success10"
         multi-line
         class="success-snackbar"
@@ -67,6 +67,13 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { Colors } from '@/global';
+import { Notification } from '@/ui-types';
+
+declare global {
+  interface Window {
+    e2eTestingMode: boolean;
+  }
+}
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -85,6 +92,20 @@ export default Vue.extend({
   methods: {
     closeSuccess(id: number): void {
       this.$store.commit('deleteSuccessNotification', id);
+    },
+    snackbarTimeout(notification: Notification) {
+      // Check global window value to see if e2e testing mode should be enabled
+      if (window.e2eTestingMode === true) {
+        return -1;
+      }
+      return notification.timeout;
+    },
+    transitionName() {
+      // Check global window value to see if e2e testing mode should be enabled
+      if (window.e2eTestingMode === true) {
+        return 'no-transition'; // Transition class name that doesn't exist
+      }
+      return 'fade'; // Proper transition class name
     },
   },
 });

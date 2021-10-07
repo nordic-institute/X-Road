@@ -143,7 +143,7 @@
             <v-btn
               icon
               color="primary"
-              data-test="close-snackbar"
+              data-test="close-alert"
               @click="closeError(notification.timeAdded)"
             >
               <v-icon dark>icon-Close</v-icon>
