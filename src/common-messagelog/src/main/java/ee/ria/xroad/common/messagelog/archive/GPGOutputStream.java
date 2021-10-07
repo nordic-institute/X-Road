@@ -78,7 +78,7 @@ public class GPGOutputStream extends FilterOutputStream {
      * @param encryptionKeys Zero or more encryption (recipient) key identifiers
      * @throws IOException if setting up the gpg process fails
      */
-    GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys) throws IOException {
+    public GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys) throws IOException {
         super(null);
         statusTmp = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "gpgstatus", ".tmp");
         final ProcessBuilder builder = new ProcessBuilder("/usr/bin/gpg");

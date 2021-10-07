@@ -42,7 +42,7 @@ class TestLogManager extends LogManager {
     // Countdownlatch for waiting for next timestamp record save.
     private static CountDownLatch setTimestampingStatusLatch = new CountDownLatch(1);
 
-    TestLogManager(JobManager jobManager) throws Exception {
+    TestLogManager(JobManager jobManager) {
         super(jobManager);
     }
 

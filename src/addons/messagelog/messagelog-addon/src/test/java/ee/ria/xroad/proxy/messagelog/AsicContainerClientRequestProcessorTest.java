@@ -201,12 +201,12 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         }
 
         @Override
-        public void write(byte[] b, int off, int len) throws IOException {
+        public void write(byte[] b, int off, int len) {
             bos.write(b, off, len);
         }
 
         @Override
-        public void write(int b) throws IOException {
+        public void write(int b) {
             bos.write(b);
         }
     }
@@ -222,7 +222,7 @@ public class AsicContainerClientRequestProcessorTest extends AbstractMessageLogT
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.SUBSYSTEM.name());
 
         System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR, "build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, GroupingStrategy.MEMBER.name());
 

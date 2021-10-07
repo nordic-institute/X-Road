@@ -114,14 +114,13 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private final String target;
 
     private final GroupingStrategy groupingStrategy = MessageLogProperties.getArchiveGrouping();
-    private final EncryptionConfigProvider encryptionConfigProvider =
-            EncryptionConfigProvider.getInstance(groupingStrategy);
+    private final EncryptionConfigProvider encryptionConfigProvider;
 
-    public AsicContainerClientRequestProcessor(String target, HttpServletRequest request,
-            HttpServletResponse response) {
+    public AsicContainerClientRequestProcessor(String target, HttpServletRequest request, HttpServletResponse response)
+            throws IOException {
         super(request, response, null);
-
         this.target = target;
+        this.encryptionConfigProvider = EncryptionConfigProvider.getInstance(groupingStrategy);
     }
 
     public boolean canProcess() {
