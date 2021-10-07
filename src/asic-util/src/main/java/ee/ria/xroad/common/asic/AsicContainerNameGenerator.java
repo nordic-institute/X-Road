@@ -39,7 +39,7 @@ public class AsicContainerNameGenerator {
     public static final String TYPE_RESPONSE = "response";
     public static final String TYPE_REQUEST = "request";
 
-    private static final int MAX_QUERY_LENGTH = 255 - 8 /*delims+asice*/ - 13 /*sequence*/ - 8/*response*/;
+    private static final int MAX_QUERY_LENGTH = 226;
 
     /**
      * Generates a filename for an asic container with the format "queryid-type-seq.asice"

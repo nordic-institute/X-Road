@@ -30,8 +30,8 @@ import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -59,7 +59,6 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -85,14 +84,10 @@ public class LogArchiveCacheTest {
     private static final int ARCHIVE_SIZE_SMALL = 50;
     private static final int ARCHIVE_SIZE_MEDIUM = 350;
 
-    private static final String ENTRY_NAME_REQUEST_NORMAL =
-            String.format("ID1-request-");
-    private static final String ENTRY_NAME_REQUEST_LARGE =
-            String.format("ID2-request-");
-    private static final String ENTRY_NAME_RESPONSE_NORMAL =
-            String.format("ID3-response-");
-    private static final String ENTRY_NAME_REQUEST_CONFLICTING =
-            String.format("ID1-request-");
+    private static final String ENTRY_NAME_REQUEST_NORMAL = "ID1-request-";
+    private static final String ENTRY_NAME_REQUEST_LARGE = "ID2-request-";
+    private static final String ENTRY_NAME_RESPONSE_NORMAL = "ID3-response-";
+    private static final String ENTRY_NAME_REQUEST_CONFLICTING = "ID1-request-";
 
     private static final long LOG_TIME_REQUEST_NORMAL_LATEST = 1428664947372L;
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
@@ -100,7 +95,7 @@ public class LogArchiveCacheTest {
 
     private long id = 0;
 
-    @Parameter(0)
+    @Parameter
     public boolean encrypted;
 
     private LogArchiveCache cache;
@@ -141,9 +136,8 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordNormal());
 
         // Then
-        assertFalse(
-                "Should not rotate, as entry is small enough to fit in.",
-                cache.isRotating());
+        assertFalse("Should not rotate, as entry is small enough to fit in.", cache.isRotating());
+
         Date expectedCreationTime = normalRequestCreationTime();
         assertEquals(expectedCreationTime, cache.getStartTime());
         assertEquals(expectedCreationTime, cache.getEndTime());
@@ -210,8 +204,7 @@ public class LogArchiveCacheTest {
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void avoidNameClashWhenFileWithSameNameIsAlreadyInSameZip()
-            throws Exception {
+    public void avoidNameClashWhenFileWithSameNameIsAlreadyInSameZip() throws Exception {
         setMaxArchiveSizeDefault();
 
         cache.close();
@@ -300,40 +293,33 @@ public class LogArchiveCacheTest {
     }
 
     private MessageRecord createRequestRecordNormal() throws Exception {
-        AsicContainerParams containerParams = new AsicContainerParams(
+        return createMessageRecord(new AsicContainerParams(
                 id++,
                 "ID1",
                 false,
                 containerOfNormalSize(),
-                LOG_TIME_REQUEST_NORMAL_LATEST);
-
-        return createMessageRecord(containerParams);
+                LOG_TIME_REQUEST_NORMAL_LATEST));
     }
 
     private MessageRecord createRequestRecordTooLarge() throws Exception {
-        AsicContainerParams containerParams = new AsicContainerParams(
+        return createMessageRecord(new AsicContainerParams(
                 id++,
                 "ID2",
                 false,
                 containerTooLarge(),
-                LOG_TIME_REQUEST_LARGE_EARLIEST);
-
-        return createMessageRecord(containerParams);
+                LOG_TIME_REQUEST_LARGE_EARLIEST));
     }
 
     private MessageRecord createResponseRecordNormal() throws Exception {
-        AsicContainerParams containerParams = new AsicContainerParams(
+        return createMessageRecord(new AsicContainerParams(
                 id++,
                 "ID3",
                 true,
                 containerOfNormalSize(),
-                LOG_TIME_RESPONSE_NORMAL);
-
-        return createMessageRecord(containerParams);
+                LOG_TIME_RESPONSE_NORMAL));
     }
 
-    private MessageRecord createMessageRecord(
-            AsicContainerParams params) throws Exception {
+    private MessageRecord createMessageRecord(AsicContainerParams params) throws Exception {
         MessageRecord record = mock(MessageRecord.class);
         when(record.getId()).thenReturn(params.getId());
         when(record.getQueryId()).thenReturn(params.getQueryId());
@@ -417,45 +403,27 @@ public class LogArchiveCacheTest {
     }
 
     private String getZipEntryNotPresentMessage(int orderNo) {
-        return String.format(
-                "Zip entry number '%d' is supposed to be present, but is not",
-                orderNo);
+        return String.format("Zip entry number '%d' is supposed to be present, but is not", orderNo);
     }
 
     private List<String> expectedNormalSizeRequestEntryName() {
-        // Format: ID-request-Z.asice
         return Arrays.asList(ENTRY_NAME_REQUEST_NORMAL);
     }
 
     private List<String> expectedLargeSizeRequestEntryName() {
-        // Format: ID-request-Z.asice
         return Arrays.asList(ENTRY_NAME_REQUEST_LARGE);
     }
 
     private List<String> expectedNormalAndLargeRequestEntryNames() {
-        // Format: ID-request-Z.asice
-        return Arrays.asList(
-                ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_LARGE);
+        return Arrays.asList(ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_LARGE);
     }
 
     private List<String> expectedConflictingEntryNames() {
-        // Format: ID-request-Z.asice
-        return Arrays.asList(
-                ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_CONFLICTING);
+        return Arrays.asList(ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_CONFLICTING);
     }
 
     private List<String> expectedNormalSizeResponseEntryName() {
-        // Format: ID-request-Z.asice
         return Arrays.asList(ENTRY_NAME_RESPONSE_NORMAL);
-    }
-
-    @SuppressWarnings("unchecked")
-    private Supplier<String> getMockRandomGenerator() {
-        Supplier<String> generator = mock(Supplier.class);
-
-        when(generator.get()).thenReturn("RANDOM");
-
-        return generator;
     }
 
     private LinkingInfoBuilder mockLinkingInfoBuilder() {
@@ -487,18 +455,17 @@ public class LogArchiveCacheTest {
 
         @Override
         public void describeTo(Description description) {
-            description
-                    .appendText("Some of values in list: ")
-                    .appendValue(listOfElements);
+            description.appendText("Some of values in list: ").appendValue(listOfElements);
         }
     }
 
-    @Value
-    private static class AsicContainerParams {
-        private Long id;
-        private String queryId;
-        private boolean response;
-        private byte[] bytes;
-        private long creationTime;
+    @Getter
+    @RequiredArgsConstructor
+    private static final class AsicContainerParams {
+        private final Long id;
+        private final String queryId;
+        private final boolean response;
+        private final byte[] bytes;
+        private final long creationTime;
     }
 }

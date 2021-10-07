@@ -49,10 +49,6 @@ public class LogArchiveWriter implements Closeable {
 
     private final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
-    public static final int MAX_RANDOM_GEN_ATTEMPTS = 10;
-
-    private static final int RANDOM_LENGTH = 10;
-
     private final Path outputPath;
     private final LogArchiveBase archiveBase;
 

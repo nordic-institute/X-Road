@@ -73,9 +73,6 @@ import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAut
 @Slf4j
 class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
-    private static final int RANDOM_LENGTH = 10;
-    private static final int MAX_RANDOM_GEN_ATTEMPTS = 1000;
-
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
     static final String PARAM_MEMBER_CLASS = "memberClass";
     static final String PARAM_MEMBER_CODE = "memberCode";
@@ -95,9 +92,6 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private static final String MISSING_PARAMETER_FAULT_MESSAGE = "Parameter \"%s\"  must be specified.";
 
     private static final String DOCUMENTS_NOT_FOUND_FAULT_MESSAGE = "No signed documents found";
-
-    private static final String MISSING_TIMESTAMPS_FAULT_MESSAGE =
-            "Some message signatures have not been timestamped yet!";
 
     private static final String MISSING_TIMESTAMP_FAULT_MESSAGE = "Message signature has not been timestamped yet!";
 
