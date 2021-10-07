@@ -19,7 +19,7 @@ if [[ ! -d "build/jetty9-$LOCAL_JETTY_SHA1SUM" ]]; then
     ln -sfn jetty9-$REMOTE_JETTY_SHA1SUM jetty9 
     rm -rf jetty9/lib/setuid
     rm -rf jetty9/demo-base
-    yes | java -Dslf4j.version=1.7.25 -Dlogback.version=1.2.3 -jar jetty9/start.jar --add-to-start=logback-impl,slf4j-logback jetty.base=jetty9
+    yes | java -Dslf4j.version=1.7.32 -Dlogback.version=1.2.6 -jar jetty9/start.jar --add-to-start=logback-impl,slf4j-logback jetty.base=jetty9
     rm jetty9/start.ini
     rm jetty9/resources/logback.xml
 fi

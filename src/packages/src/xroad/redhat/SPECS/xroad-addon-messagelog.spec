@@ -36,7 +36,6 @@ mkdir -p %{buildroot}%{_unitdir}
 cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
-cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/scripts/keyname.sh %{buildroot}/usr/share/xroad/scripts
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/default-configuration/addons/messagelog-archiver-logback.xml %{buildroot}/etc/xroad/conf.d/addons/
 cp -p %{srcdir}/common/addon/proxy/messagelog-changelog.xml %{buildroot}/usr/share/xroad/db/
@@ -74,7 +73,6 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
 /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default
 /usr/share/xroad/scripts/archive-http-transporter.sh
-/usr/share/xroad/scripts/keyname.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-messagelog-archiver
 /usr/share/xroad/jlib/asicverifier.jar

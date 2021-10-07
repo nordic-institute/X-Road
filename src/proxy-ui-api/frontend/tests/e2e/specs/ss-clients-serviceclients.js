@@ -58,7 +58,7 @@ module.exports = {
     };
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -108,7 +108,7 @@ module.exports = {
     };
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -197,7 +197,7 @@ module.exports = {
     };
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -261,11 +261,11 @@ module.exports = {
       const clientInfo = mainPage.section.clientInfo;
       const operationDetails = mainPage.section.wsdlOperationDetails;
       const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-      const serviceDetails = mainPage.section.serviceDetails;
+      const serviceDetails = mainPage.section.wsdlServiceDetails;
       const clientServices = clientInfo.section.services;
 
       // Open SUT and check that page is loaded
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
 
       // Enter valid credentials
@@ -293,7 +293,7 @@ module.exports = {
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
       clientServices.openAddWSDL();
-      clientServices.enterServiceUrl(
+      clientServices.initServiceUrl(
         browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
       );
       clientServices.confirmAddDialog();
@@ -317,7 +317,7 @@ module.exports = {
       operationDetails.close();
 
       // Verify SOAP service client when it has access permissions
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
       mainPage.openClientsTab();
       browser.waitForElementVisible(clientsTab);
@@ -364,7 +364,7 @@ module.exports = {
       const serviceDetails = mainPage.section.restServiceDetails;
 
       // Open SUT and check that page is loaded
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
 
       // Enter valid credentials
@@ -380,11 +380,11 @@ module.exports = {
 
       // Add first rest service to be used
       clientServices.openAddREST();
-      clientServices.enterServiceUrl(
+      clientServices.initServiceUrl(
         browser.globals.testdata + '/' + browser.globals.rest_url_1,
       );
       clientServices.selectRESTPath();
-      clientServices.enterServiceCode('s1c1');
+      clientServices.initServiceCode('s1c1');
       clientServices.confirmAddDialog();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
       mainPage.closeSnackbar();
@@ -403,7 +403,7 @@ module.exports = {
       restOperationDetails.close();
 
       // Verify REST service client when it has access permissions
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
       mainPage.openClientsTab();
       browser.waitForElementVisible(clientsTab);
@@ -425,7 +425,7 @@ module.exports = {
       browser.waitForElementVisible(restEndpoints);
       restEndpoints.openAddDialog();
       browser.waitForElementVisible(addEndpointPopup);
-      addEndpointPopup.enterPath('/test');
+      addEndpointPopup.modifyPath('/test');
       addEndpointPopup.selectRequestMethod('POST');
       addEndpointPopup.addSelected();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
@@ -481,7 +481,7 @@ module.exports = {
 
       // Verify service client doesn't exist when REST service has only endpoint level access rights
       restOperationDetails.close();
-      frontPage.navigate();
+      frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
       mainPage.openClientsTab();
       browser.waitForElementVisible(clientsTab);
@@ -520,7 +520,7 @@ module.exports = {
     const serviceDetails = mainPage.section.restServiceDetails;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -536,11 +536,11 @@ module.exports = {
 
     // Add first rest service to be used
     clientServices.openAddREST();
-    clientServices.enterServiceUrl(
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.rest_url_1,
     );
     clientServices.selectRESTPath();
-    clientServices.enterServiceCode('s1c1');
+    clientServices.initServiceCode('s1c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // Service added successfully
     mainPage.closeSnackbar();
@@ -562,7 +562,7 @@ module.exports = {
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);

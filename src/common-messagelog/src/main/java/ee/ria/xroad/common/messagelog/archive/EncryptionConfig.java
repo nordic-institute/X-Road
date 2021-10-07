@@ -31,7 +31,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ import java.util.List;
 class EncryptionConfig {
     private final boolean enabled;
     private final Path gpgHomeDir;
-    private final List<Path> encryptionKeys;
+    private final Set<String> encryptionKeys;
 
     static final EncryptionConfig DISABLED = new EncryptionConfig(false, null, null);
 }

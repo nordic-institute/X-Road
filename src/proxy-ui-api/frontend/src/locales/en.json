@@ -794,8 +794,11 @@
     "INSTANCE_IDENTIFIER_O": "Instance Identifier (O)",
     "MEMBER_CLASS": "Member Class (O)",
     "MEMBER_CLASS_OU": "Member Class (OU)",
+    "MEMBER_CLASS_BC": "Member Class (BC)",
     "MEMBER_CODE": "Member Code (CN)",
+    "MEMBER_CODE_SN": "Member Code (SN)",
     "ORGANIZATION_NAME": "Organization Name (O)",
+    "ORGANIZATION_NAME_CN": "Organization Name (CN)",
     "SERIAL_NUMBER": "Serial Number",
     "SERIAL_NUMBER_SN": "Serial Number (SN)",
     "SERVER_CODE": "Server Code (CN)",
@@ -1037,5 +1040,11 @@
     "NoForwardslashes": "value should not contain forward slash (/) symbols",
     "NoBackslashes": "value should not contain backslash (\\) symbols",
     "NoPercents": "value should not contain percentage (%) symbols"
+  },
+  "info": {
+    "backups_incompatible": [
+      "The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.",
+      "Also, please note that the \"/etc/xroad/services/local.conf\" file for configuration overrides is deprecated and is not included in the backups anymore. In version 7, the \"/etc/xroad/services/local.properties\" file should be used instead."
+    ]
   }
 }

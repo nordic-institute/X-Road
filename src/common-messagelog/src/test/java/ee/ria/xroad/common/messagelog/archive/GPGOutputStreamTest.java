@@ -40,14 +40,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class GPGOutputStreamTest {
     private static final Path GPG_HOME = Paths.get("build/gpg");
-    private static final List<Path> KEYS = Collections.singletonList(Paths.get(GPG_HOME + "/expired.pub"));
+    private static final Set<String> KEYS = Collections.singleton("AAAA");
 
     @Before
     public void before() {
@@ -56,7 +56,7 @@ public class GPGOutputStreamTest {
     }
 
     @Test(expected = GPGOutputStream.GPGException.class)
-    public void shouldFailIfExpiredKey() throws IOException {
+    public void shouldFailIfInvalidRecipient() throws IOException {
         final Path path = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), null, null);
         try (GPGOutputStream gpgStream = new GPGOutputStream(GPG_HOME, path, KEYS)) {
             gpgStream.write(42);
