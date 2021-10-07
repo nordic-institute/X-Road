@@ -37,7 +37,6 @@ import {
   Key,
   KeyUsageType,
   Token,
-  TokenCertificate,
   TokenCertificateSigningRequest,
 } from '@/openapi-types';
 
