@@ -101,7 +101,7 @@ public class LogArchiveTest {
         Files.createDirectory(Paths.get("build/slog"));
         System.setProperty(SystemProperties.TEMP_FILES_PATH, "build/tmp");
         System.setProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY, "build/gpg");
-        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR, "build/gpg");
+        System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG, "build/gpg/keys.ini");
         System.setProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED, String.valueOf(encrypted));
         System.setProperty(MessageLogProperties.ARCHIVE_GROUPING, groupingStrategy.name());
     }
@@ -109,7 +109,7 @@ public class LogArchiveTest {
     @After
     public void afterTest() {
         System.clearProperty(MessageLogProperties.ARCHIVE_GPG_HOME_DIRECTORY);
-        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_DIR);
+        System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_KEYS_CONFIG);
         System.clearProperty(MessageLogProperties.ARCHIVE_ENCRYPTION_ENABLED);
         System.clearProperty(MessageLogProperties.ARCHIVE_MAX_FILESIZE);
         System.clearProperty(MessageLogProperties.ARCHIVE_GROUPING);
@@ -160,7 +160,7 @@ public class LogArchiveTest {
         }
     }
 
-    private LogArchiveWriter getWriter() {
+    private LogArchiveWriter getWriter() throws IOException {
         return new LogArchiveWriter(
                 Paths.get("build/slog"),
                 dummyLogArchiveBase()) {
