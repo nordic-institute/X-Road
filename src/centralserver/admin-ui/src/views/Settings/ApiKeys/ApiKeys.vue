@@ -177,7 +177,6 @@ export default Vue.extend({
           id: 3897387478,
           roles: [
             'XROAD_SECURITY_OFFICER',
-            'XROAD_SECURITYSERVER_OBSERVER',
             'XROAD_SYSTEM_ADMINISTRATOR',
           ],
           key: 'iugyuidfguiygffg89',
@@ -185,7 +184,6 @@ export default Vue.extend({
         {
           id: 19383837,
           roles: [
-            'XROAD_SECURITYSERVER_OBSERVER',
             'XROAD_SYSTEM_ADMINISTRATOR',
           ],
           key: 'jhdfg7jgjkghhj',

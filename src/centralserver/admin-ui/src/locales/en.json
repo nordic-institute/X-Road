@@ -185,9 +185,7 @@
     "role": {
       "XROAD_SECURITY_OFFICER": "Security Officer",
       "XROAD_REGISTRATION_OFFICER": "Registration Officer",
-      "XROAD_SERVICE_ADMINISTRATOR": "Service Administrator",
-      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator",
-      "XROAD_SECURITYSERVER_OBSERVER": "Server Observer"
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
     },
     "createApiKey": {
       "button": "CREATE API KEY",
