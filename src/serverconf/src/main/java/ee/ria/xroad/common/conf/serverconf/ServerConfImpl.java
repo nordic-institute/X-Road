@@ -66,7 +66,6 @@ import javax.persistence.criteria.Root;
 
 import java.net.URI;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -303,39 +302,32 @@ public class ServerConfImpl implements ServerConfProvider {
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId service) {
         return tx(session -> {
-            List<EndpointType> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
+            List<Endpoint> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
                     .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
                     .filter(e -> !e.getPath().equals("**"))
+                    .map(e -> createEndpoint(e.getMethod(), e.getPath()))
                     .collect(Collectors.toList());
-            List<Endpoint> results = new ArrayList<>();
-            for (EndpointType endpointType : endpoints) {
-                Endpoint e = new Endpoint();
-                e.setMethod(endpointType.getMethod());
-                e.setPath(endpointType.getPath());
-                results.add(e);
-            }
-            return results;
+            return endpoints;
         });
+    }
+
+    private static Endpoint createEndpoint(String method, String path) {
+        Endpoint endpoint = new Endpoint();
+        endpoint.setMethod(method);
+        endpoint.setPath(path);
+        return endpoint;
     }
 
     @Override
     public List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client) {
         return tx(session -> {
-            List<EndpointType> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
+            List<Endpoint> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
                     .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
                     .filter(e -> !e.getPath().equals("**"))
+                    .filter(e -> internalIsQueryAllowed(session, client, service, e.getMethod(), e.getPath()))
+                    .map(e -> createEndpoint(e.getMethod(), e.getPath()))
                     .collect(Collectors.toList());
-            List<Endpoint> results = new ArrayList<>();
-            for (EndpointType endpointType : endpoints) {
-                if (internalIsQueryAllowed(session, client, service, endpointType.getMethod(),
-                        endpointType.getPath())) {
-                    Endpoint e = new Endpoint();
-                    e.setMethod(endpointType.getMethod());
-                    e.setPath(endpointType.getPath());
-                    results.add(e);
-                }
-            }
-            return results;
+            return endpoints;
         });
     }
 
