@@ -120,12 +120,22 @@ has_command () {
     command -v "$1" &>/dev/null
 }
 
-get_proxy_prop() {
+get_proxy_prop () {
   local value
   if ! value=$(crudini --get /etc/xroad/conf.d/local.ini "$2" "$3" 2>/dev/null); then
     value=$(crudini --get /etc/xroad/conf.d/"$1" "$2" "$3" 2>/dev/null || echo "$4")
   fi
   echo "$value"
+}
+
+warn_about_incompatibility () {
+cat << EOF
+
+The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.
+
+Also, please note that the "/etc/xroad/services/local.conf" file for configuration overrides is deprecated and is not included in the backups anymore. In version 7, the "/etc/xroad/services/local.properties" file should be used instead.
+
+EOF
 }
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh
