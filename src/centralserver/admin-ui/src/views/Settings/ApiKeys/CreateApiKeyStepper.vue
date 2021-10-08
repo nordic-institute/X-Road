@@ -127,7 +127,7 @@
                 <div>{{ apiKey.key }}</div>
 
                 <xrd-button
-                  v-if="!apiKey.key"
+                  v-if="apiKey.key"
                   text
                   :outlined="false"
                   class="copy-button"
