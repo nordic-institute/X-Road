@@ -123,8 +123,19 @@
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
               </v-col>
-              <v-col cols="6" sm="9">
-                {{ apiKey.key }}
+              <v-col cols="6" sm="9" class="action-row">
+                <div>{{ apiKey.key }}</div>
+
+                <xrd-button
+                  v-if="apiKey.key"
+                  text
+                  :outlined="false"
+                  class="copy-button"
+                  data-test="copy-key-button"
+                  @click.prevent="copyKey()"
+                  ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
+                  >{{ $t('action.copy') }}</xrd-button
+                >
               </v-col>
             </v-row>
             <v-row class="underline">
@@ -187,6 +198,7 @@ import Vue from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/global-types';
 import * as api from '@/util/api';
+import { toClipboard } from '@/util/helpers';
 
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
@@ -228,6 +240,12 @@ export default Vue.extend({
         })
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.generatingKey = false));
+    },
+    copyKey(): void {
+      const key = this.apiKey.key;
+      if (key) {
+        toClipboard(key);
+      }
     },
   },
 });
@@ -275,5 +293,15 @@ h4 {
   color: $XRoad-Black100;
   font-size: 14px;
   font-weight: 700;
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-between;
+
+  .copy-button {
+    margin-top: -10px;
+    margin-bottom: -10px;
+  }
 }
 </style>
