@@ -31,7 +31,7 @@ module.exports = {
   before: function (browser) {
     frontPage = browser.page.ssFrontPage();
 
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
   },
 
   afterEach: function (browser) {

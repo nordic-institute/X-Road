@@ -38,7 +38,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -53,7 +55,11 @@ class GPGOutputStream extends FilterOutputStream {
             "--yes",
             "--encrypt",
             "--sign",
-            //sane cipher setting overrides (disables negotiation)
+            // use only local keyring
+            "--no-auto-key-locate",
+            // always trust keys in keyring (expired or revoked keys are not used)
+            "--trust-model", "always",
+            // sane cipher setting overrides (disables per-key negotiation)
             "--compress-algo", "none",
             "--cipher-algo", "AES-256",
             "--digest-algo", "SHA256"
@@ -66,14 +72,13 @@ class GPGOutputStream extends FilterOutputStream {
     private boolean closed = false;
 
     /**
-     * Constructs a stream that pipes data to a gpg process encrypting and signing.
-     *
-     * @param gpgHome        GnuPG home directory containing the secret key for signing.
-     * @param output         Path to the output file, overwritten if present.
-     * @param encryptionKeys Zero or more encryption key files in PGP format (see gpg --recipient-file)
+     * Constructs a stream that pipes data to a gpg process for encrypting and signing.
+     * @param gpgHome GnuPG home directory containing the secret key for signing.
+     * @param output Path to the output file, overwritten if present.
+     * @param encryptionKeys Zero or more encryption (recipient) key identifiers
      * @throws IOException if setting up the gpg process fails
      */
-    GPGOutputStream(Path gpgHome, Path output, List<Path> encryptionKeys) throws IOException {
+    GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys) throws IOException {
         super(null);
         statusTmp = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "gpgstatus", ".tmp");
         final ProcessBuilder builder = new ProcessBuilder("/usr/bin/gpg");
@@ -89,12 +94,12 @@ class GPGOutputStream extends FilterOutputStream {
         builder.command().add("--status-file");
         builder.command().add(statusTmp.toString());
 
-        if (encryptionKeys == null || encryptionKeys.size() == 0) {
+        if (encryptionKeys == null || encryptionKeys.isEmpty()) {
             builder.command().add("--default-recipient-self");
         } else {
-            for (Path p : encryptionKeys) {
-                builder.command().add("--recipient-file");
-                builder.command().add(p.toString());
+            for (String key : encryptionKeys) {
+                builder.command().add("--recipient");
+                builder.command().add(key);
             }
         }
 
@@ -104,7 +109,7 @@ class GPGOutputStream extends FilterOutputStream {
         builder.redirectOutput(ProcessBuilder.Redirect.to(Paths.get("/dev/null").toFile()));
         gpg = builder.start();
         if (!gpg.isAlive()) {
-            throw new GPGException("gpg process failed, exit code " + gpg.exitValue(), null, gpg.exitValue());
+            throw new GPGException("gpg process failed, exit code " + gpg.exitValue(), gpg.exitValue());
         }
         out = gpg.getOutputStream();
     }
@@ -118,7 +123,6 @@ class GPGOutputStream extends FilterOutputStream {
      * Closes the encryption stream and waits for the encryption to finish.
      * Tries to ensure that the gpg process is stopped even in a case of failure. No attempt to delete
      * the output file even in failure is made.
-     *
      * @throws GPGException If closing the stream or gpg process exits with error code
      */
     @Override
@@ -145,13 +149,13 @@ class GPGOutputStream extends FilterOutputStream {
             List<String> status = getStatus();
 
             if (gpg.isAlive()) {
-                log.debug("Encryption failed, GPG status: {}", status);
-                throw GPGException.of("Encryption failed, gpg process did not stop", status, -1, suppressed);
+                log.error("Encryption failed, GPG status: {}", status);
+                throw GPGException.of("Encryption failed, gpg process did not stop", -1, suppressed);
             }
-            if (gpg.exitValue() != 0 || suppressed != null) {
-                log.debug("Encryption failed, GPG status: {}", status);
-                throw GPGException.of("Encryption failed, gpg process exit code: " + gpg.exitValue(), status,
-                        gpg.exitValue(), suppressed);
+            final int exitValue = gpg.exitValue();
+            if (exitValue != 0 || suppressed != null) {
+                log.error("Encryption failed: gpg exit code {}, status: {}", exitValue, status);
+                throw GPGException.of("Encryption failed, gpg process exit code: " + exitValue, exitValue, suppressed);
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -171,29 +175,26 @@ class GPGOutputStream extends FilterOutputStream {
         try {
             return Files.readAllLines(statusTmp, StandardCharsets.UTF_8);
         } catch (IOException ioe) {
-            return null;
+            return Collections.emptyList();
         }
     }
 
     @Getter
     static class GPGException extends IOException {
-        private final String[] details;
         private final int exitCode;
 
-        GPGException(String message, List<String> status, int exitCode) {
+        GPGException(String message, int exitCode) {
             super(message);
-            this.details = status == null ? null : status.toArray(new String[0]);
             this.exitCode = exitCode;
         }
 
         GPGException(Throwable cause) {
             super(cause);
-            this.details = null;
             this.exitCode = -1;
         }
 
-        static GPGException of(String message, List<String> status, int exitCode, Throwable suppressed) {
-            final GPGException exception = new GPGException(message, status, exitCode);
+        static GPGException of(String message, int exitCode, Throwable suppressed) {
+            final GPGException exception = new GPGException(message, exitCode);
             if (suppressed != null) {
                 exception.addSuppressed(suppressed);
             }
@@ -208,5 +209,4 @@ class GPGOutputStream extends FilterOutputStream {
             return exception;
         }
     }
-
 }
