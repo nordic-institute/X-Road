@@ -26,34 +26,36 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
 public enum GroupingStrategy {
     NONE {
         @Override
-        Grouping forRecord(MessageRecord record) {
+        public Grouping forClient(ClientId clientId) {
             return NO_GROUPING;
         }
     },
     MEMBER {
         @Override
-        Grouping forRecord(MessageRecord record) {
-            return new MemberGrouping(record);
+        public Grouping forClient(ClientId clientId) {
+            return new MemberGrouping(clientId);
         }
     },
     SUBSYSTEM {
         @Override
-        Grouping forRecord(MessageRecord record) {
-            return new SubsystemGrouping(record);
+        public Grouping forClient(ClientId clientId) {
+            return new SubsystemGrouping(clientId);
         }
     };
 
-    abstract Grouping forRecord(MessageRecord record);
+    public Grouping forRecord(MessageRecord record) {
+        return forClient(ClientId.create(GlobalConf.getInstanceIdentifier(),
+                record.getMemberClass(), record.getMemberCode(), record.getSubsystemCode()));
+    }
 
-    static final Grouping NO_GROUPING = new Grouping() {
-        @Override
-        public boolean includes(MessageRecord record) {
-            return true;
-        }
-    };
+    public abstract Grouping forClient(ClientId clientId);
+
+    static final Grouping NO_GROUPING = record -> true;
 }
