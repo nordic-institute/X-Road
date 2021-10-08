@@ -49,7 +49,6 @@ import ee.ria.xroad.proxy.util.MessageProcessorBase;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -59,7 +58,9 @@ import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -71,9 +72,6 @@ import static ee.ria.xroad.proxy.clientproxy.AbstractClientProxyHandler.getIsAut
 
 @Slf4j
 class AsicContainerClientRequestProcessor extends MessageProcessorBase {
-
-    private static final int RANDOM_LENGTH = 10;
-    private static final int MAX_RANDOM_GEN_ATTEMPTS = 1000;
 
     static final String PARAM_INSTANCE_IDENTIFIER = "xRoadInstance";
     static final String PARAM_MEMBER_CLASS = "memberClass";
@@ -94,9 +92,6 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     private static final String MISSING_PARAMETER_FAULT_MESSAGE = "Parameter \"%s\"  must be specified.";
 
     private static final String DOCUMENTS_NOT_FOUND_FAULT_MESSAGE = "No signed documents found";
-
-    private static final String MISSING_TIMESTAMPS_FAULT_MESSAGE =
-            "Some message signatures have not been timestamped yet!";
 
     private static final String MISSING_TIMESTAMP_FAULT_MESSAGE = "Message signature has not been timestamped yet!";
 
@@ -175,10 +170,7 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void handleAsicRequest(ClientId clientId) throws Exception {
         String queryId = getParameter(PARAM_QUERY_ID, false);
-
-        AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator(
-                AsicContainerClientRequestProcessor::getRandomAlphanumeric, MAX_RANDOM_GEN_ATTEMPTS);
-
+        AsicContainerNameGenerator nameGen = new AsicContainerNameGenerator();
         boolean requestOnly = hasParameter(PARAM_REQUEST_ONLY);
         boolean responseOnly = hasParameter(PARAM_RESPONSE_ONLY);
         if (requestOnly && responseOnly) {
@@ -247,9 +239,10 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                         continue;
                     }
                     messageRecordEncryption.prepareDecryption(record);
-                    String type = record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
-                            : AsicContainerNameGenerator.TYPE_REQUEST;
-                    zos.putNextEntry(new ZipEntry(nameGen.getArchiveFilename(queryId, type)));
+                    final ZipEntry entry = new ZipEntry(
+                            nameGen.getArchiveFilename(queryId, record.isResponse(), record.getId()));
+                    entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
+                    zos.putNextEntry(entry);
 
                     try (EntryStream es = new EntryStream(zos)) {
                         record.toAsicContainer().write(es);
@@ -289,10 +282,6 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
 
     private void writeAsicContainer(ClientId clientId, String queryId, AsicContainerNameGenerator nameGen,
             boolean response) throws Exception {
-        String filename = nameGen.getArchiveFilename(queryId,
-                response ? AsicContainerNameGenerator.TYPE_RESPONSE : AsicContainerNameGenerator.TYPE_REQUEST);
-        servletResponse.setContentType(MimeTypes.ASIC_ZIP);
-        servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
 
         LogRecordManager.getByQueryIdUnique(queryId, clientId, response, record -> {
             try {
@@ -304,6 +293,11 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                     throw new CodedException(X_INTERNAL_ERROR, MISSING_TIMESTAMP_FAULT_MESSAGE);
                 }
                 MessageRecordEncryption.getInstance().prepareDecryption(record);
+
+                String filename = nameGen.getArchiveFilename(record.getQueryId(), record.isResponse(), record.getId());
+                servletResponse.setContentType(MimeTypes.ASIC_ZIP);
+                servletResponse.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"");
+
                 record.toAsicContainer().write(servletResponse.getOutputStream());
             } catch (CodedException ce) {
                 throw ce;
@@ -344,10 +338,6 @@ class AsicContainerClientRequestProcessor extends MessageProcessorBase {
     @Override
     public MessageInfo createRequestMessageInfo() {
         return null; // nothing to return
-    }
-
-    private static String getRandomAlphanumeric() {
-        return RandomStringUtils.randomAlphanumeric(RANDOM_LENGTH);
     }
 
     private static class VerificationConfWriter implements FileConsumer, Closeable {

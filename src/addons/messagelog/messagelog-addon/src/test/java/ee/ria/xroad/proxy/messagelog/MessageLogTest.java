@@ -303,9 +303,9 @@ public class MessageLogTest extends AbstractMessageLogTest {
         System.setProperty(MessageLogProperties.KEEP_RECORDS_FOR, "0");
 
         assertTaskQueueSize(0);
-        log(createMessage(), createSignature());
-        log(createMessage(), createSignature());
-        log(createMessage(), createSignature());
+        log("01-09-2021 12:34:55.100", createMessage(), createSignature());
+        log("01-09-2021 12:34:57.200", createMessage(), createSignature());
+        log("01-09-2021 12:34:59.300", createMessage(), createSignature());
         assertTaskQueueSize(3);
 
         startTimestamping();
@@ -533,7 +533,7 @@ public class MessageLogTest extends AbstractMessageLogTest {
         logRecordTime = getDate(atDate);
         log(message, signature);
     }
-    
+
     protected void log(Instant instant, RestRequest message, SignatureData signatureData, byte[] body)
             throws Exception {
         final ByteArrayInputStream bos = new ByteArrayInputStream(body);
