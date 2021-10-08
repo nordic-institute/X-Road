@@ -30,9 +30,8 @@ import ee.ria.xroad.common.asic.AsicContainer;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -57,16 +56,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -78,26 +79,23 @@ import static org.mockito.Mockito.when;
  * Actually tests inner class of LogArchive.
  */
 @RunWith(Parameterized.class)
-@Slf4j
 public class LogArchiveCacheTest {
     private static final int TOO_LARGE_CONTAINER_SIZE = 10000;
     private static final int ARCHIVE_SIZE_SMALL = 50;
     private static final int ARCHIVE_SIZE_MEDIUM = 350;
 
-    private static final String ENTRY_NAME_REQUEST_NORMAL =
-            "ID1-request-RANDOM.asice";
-    private static final String ENTRY_NAME_REQUEST_LARGE =
-            "ID2-request-RANDOM.asice";
-    private static final String ENTRY_NAME_RESPONSE_NORMAL =
-            "ID3-response-RANDOM.asice";
-    private static final String ENTRY_NAME_REQUEST_CONFLICTING =
-            "ID1-request-RANDOM-0.asice";
+    private static final String ENTRY_NAME_REQUEST_NORMAL = "ID1-request-";
+    private static final String ENTRY_NAME_REQUEST_LARGE = "ID2-request-";
+    private static final String ENTRY_NAME_RESPONSE_NORMAL = "ID3-response-";
+    private static final String ENTRY_NAME_REQUEST_CONFLICTING = "ID1-request-";
 
     private static final long LOG_TIME_REQUEST_NORMAL_LATEST = 1428664947372L;
     private static final long LOG_TIME_REQUEST_LARGE_EARLIEST = 1428664660610L;
     private static final long LOG_TIME_RESPONSE_NORMAL = 1428664927050L;
 
-    @Parameter(0)
+    private long id = 0;
+
+    @Parameter
     public boolean encrypted;
 
     private LogArchiveCache cache;
@@ -114,8 +112,8 @@ public class LogArchiveCacheTest {
         if (encrypted) {
             Assume.assumeTrue(Files.isExecutable(Paths.get("/usr/bin/gpg")));
         }
-        cache = createCache(getMockRandomGenerator());
-        
+        cache = createCache();
+        id = 0;
     }
 
     @After
@@ -127,7 +125,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure one entry of normal size can be added successfully.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -139,9 +136,8 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordNormal());
 
         // Then
-        assertFalse(
-                "Should not rotate, as entry is small enough to fit in.",
-                cache.isRotating());
+        assertFalse("Should not rotate, as entry is small enough to fit in.", cache.isRotating());
+
         Date expectedCreationTime = normalRequestCreationTime();
         assertEquals(expectedCreationTime, cache.getStartTime());
         assertEquals(expectedCreationTime, cache.getEndTime());
@@ -150,7 +146,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure log archive is rotated if an entry is too large.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -162,15 +157,12 @@ public class LogArchiveCacheTest {
         cache.add(createRequestRecordTooLarge());
 
         // Then
-        assertTrue(
-                "Entry is so large that rotation must take place",
-                cache.isRotating());
+        assertTrue("Entry is so large that rotation must take place", cache.isRotating());
         assertZip(expectedLargeSizeRequestEntryName(), getArchiveBytes());
     }
 
     /**
      * Test to ensure null message records are not allowed.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test(expected = IllegalArgumentException.class)
@@ -180,7 +172,6 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure the log archive is rotated inbetween log entry additions.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
@@ -210,23 +201,50 @@ public class LogArchiveCacheTest {
 
     /**
      * Test to ensure name clash is avoided when fileName already exists in ZIP.
-     *
      * @throws Exception in case of any unexpected errors
      */
     @Test
-    public void avoidNameClashWhenFileWithSameNameIsAlreadyInSameZip()
-            throws Exception {
+    public void avoidNameClashWhenFileWithSameNameIsAlreadyInSameZip() throws Exception {
         setMaxArchiveSizeDefault();
 
-        // Create cache with more realistic random generator
         cache.close();
-        cache = createCache(new TestRandomGenerator());
+        cache = createCache();
 
         // First record
         cache.add(createRequestRecordNormal());
         // Record with conflicting name
         cache.add(createRequestRecordNormal());
         assertZip(expectedConflictingEntryNames(), getArchiveBytes());
+    }
+
+    @Test
+    public void archivingShouldBeDeterministic() throws Exception {
+        cache.close();
+
+        final LinkingInfoBuilder builder1 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
+        cache = createCache(builder1);
+        cache.add(createRequestRecordNormal());
+        final byte[] bytes1 = getArchiveBytes();
+        cache.close();
+
+        id = 0;
+        final LinkingInfoBuilder builder2 = new LinkingInfoBuilder("SHA-512", new DigestEntry("deadbeef", "test"));
+        cache = createCache(builder2);
+        cache.add(createRequestRecordNormal());
+        final byte[] bytes2 = getArchiveBytes();
+        cache.close();
+
+        assertTrue(Arrays.equals(bytes1, bytes2));
+        assertEquals(builder1.getLastDigest(), builder2.getLastDigest());
+
+        id = 0;
+        final LinkingInfoBuilder builder3 = new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
+        cache = createCache(builder3);
+        cache.add(createRequestRecordNormal());
+        final byte[] bytes3 = getArchiveBytes();
+
+        assertFalse(Arrays.equals(bytes1, bytes3));
+        assertNotEquals(builder1.getLastDigest(), builder3.getLastDigest());
     }
 
     private byte[] getArchiveBytes() throws IOException {
@@ -275,36 +293,36 @@ public class LogArchiveCacheTest {
     }
 
     private MessageRecord createRequestRecordNormal() throws Exception {
-        AsicContainerParams containerParams = new AsicContainerParams(
+        return createMessageRecord(new AsicContainerParams(
+                id++,
                 "ID1",
                 false,
                 containerOfNormalSize(),
-                LOG_TIME_REQUEST_NORMAL_LATEST);
-
-        return createMessageRecord(containerParams);
+                LOG_TIME_REQUEST_NORMAL_LATEST));
     }
 
     private MessageRecord createRequestRecordTooLarge() throws Exception {
-        AsicContainerParams containerParams = new AsicContainerParams(
+        return createMessageRecord(new AsicContainerParams(
+                id++,
                 "ID2",
                 false,
                 containerTooLarge(),
-                LOG_TIME_REQUEST_LARGE_EARLIEST);
-
-        return createMessageRecord(containerParams);
+                LOG_TIME_REQUEST_LARGE_EARLIEST));
     }
 
     private MessageRecord createResponseRecordNormal() throws Exception {
-        AsicContainerParams containerParams = new AsicContainerParams(
-                "ID3", true, containerOfNormalSize(), LOG_TIME_RESPONSE_NORMAL);
-
-        return createMessageRecord(containerParams);
+        return createMessageRecord(new AsicContainerParams(
+                id++,
+                "ID3",
+                true,
+                containerOfNormalSize(),
+                LOG_TIME_RESPONSE_NORMAL));
     }
 
-    private MessageRecord createMessageRecord(
-            AsicContainerParams params) throws Exception {
+    private MessageRecord createMessageRecord(AsicContainerParams params) throws Exception {
         MessageRecord record = mock(MessageRecord.class);
-        when(record.getQueryId()).thenReturn(params.getId());
+        when(record.getId()).thenReturn(params.getId());
+        when(record.getQueryId()).thenReturn(params.getQueryId());
         when(record.isResponse()).thenReturn(params.isResponse());
         when(record.getTime()).thenReturn(params.getCreationTime());
 
@@ -335,7 +353,6 @@ public class LogArchiveCacheTest {
         return container;
     }
 
-
     private Date normalRequestCreationTime() {
         return new Date(LOG_TIME_REQUEST_NORMAL_LATEST);
     }
@@ -354,6 +371,7 @@ public class LogArchiveCacheTest {
             fail("Bytes of zip archive must not be empty");
         }
 
+        Set<String> names = new HashSet<>();
         InputStream archiveBytesInput = new ByteArrayInputStream(archiveBytes);
 
         try (ZipInputStream zip = new ZipInputStream(archiveBytesInput)) {
@@ -362,6 +380,7 @@ public class LogArchiveCacheTest {
 
                 assertNotNull(getZipEntryNotPresentMessage(i), entry);
                 assertThat(entry.getName(), isIn(expectedEntryNames));
+                assertTrue("No duplicate names", names.add(entry.getName()));
             }
 
             ZipEntry linkingInfoEntry = zip.getNextEntry();
@@ -384,59 +403,40 @@ public class LogArchiveCacheTest {
     }
 
     private String getZipEntryNotPresentMessage(int orderNo) {
-        return String.format(
-                "Zip entry number '%d' is supposed to be present, but is not",
-                orderNo);
+        return String.format("Zip entry number '%d' is supposed to be present, but is not", orderNo);
     }
 
     private List<String> expectedNormalSizeRequestEntryName() {
-        // Format: ID-request-Z.asice
         return Arrays.asList(ENTRY_NAME_REQUEST_NORMAL);
     }
 
     private List<String> expectedLargeSizeRequestEntryName() {
-        // Format: ID-request-Z.asice
         return Arrays.asList(ENTRY_NAME_REQUEST_LARGE);
     }
 
     private List<String> expectedNormalAndLargeRequestEntryNames() {
-        // Format: ID-request-Z.asice
-        return Arrays.asList(
-                ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_LARGE);
+        return Arrays.asList(ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_LARGE);
     }
 
     private List<String> expectedConflictingEntryNames() {
-        // Format: ID-request-Z.asice
-        return Arrays.asList(
-                ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_CONFLICTING);
+        return Arrays.asList(ENTRY_NAME_REQUEST_NORMAL, ENTRY_NAME_REQUEST_CONFLICTING);
     }
 
     private List<String> expectedNormalSizeResponseEntryName() {
-        // Format: ID-request-Z.asice
         return Arrays.asList(ENTRY_NAME_RESPONSE_NORMAL);
     }
 
-    @SuppressWarnings("unchecked")
-    private Supplier<String> getMockRandomGenerator() {
-        Supplier<String> generator = mock(Supplier.class);
-
-        when(generator.get()).thenReturn("RANDOM");
-
-        return generator;
-    }
-
     private LinkingInfoBuilder mockLinkingInfoBuilder() {
-        LinkingInfoBuilder builder = mock(LinkingInfoBuilder.class);
-
-        when(builder.build()).thenReturn("DUMMY".getBytes());
-
-        return builder;
+        return new LinkingInfoBuilder("SHA-512", new DigestEntry("", ""));
     }
 
-    private LogArchiveCache createCache(Supplier<String> randomGenerator) {
+    private LogArchiveCache createCache() {
+        return createCache(mockLinkingInfoBuilder());
+    }
+
+    private LogArchiveCache createCache(LinkingInfoBuilder builder) {
         return new LogArchiveCache(
-                randomGenerator,
-                mockLinkingInfoBuilder(),
+                builder,
                 encrypted ? new EncryptionConfig(true, Paths.get("build/gpg"), null)
                         : EncryptionConfig.DISABLED,
                 Paths.get("build/tmp/")
@@ -450,42 +450,22 @@ public class LogArchiveCacheTest {
 
         @Override
         protected boolean matchesSafely(String item) {
-            return listOfElements.contains(item);
+            return listOfElements.stream().anyMatch(item::startsWith);
         }
 
         @Override
         public void describeTo(Description description) {
-            description
-                    .appendText("Some of values in list: ")
-                    .appendValue(listOfElements);
+            description.appendText("Some of values in list: ").appendValue(listOfElements);
         }
     }
 
-    @Value
-    private static class AsicContainerParams {
-        private String id;
-        private boolean response;
-        private byte[] bytes;
-        private long creationTime;
-    }
-
-    /**
-     * Generates different random only on certain invocation.
-     */
-    private static class TestRandomGenerator implements Supplier<String> {
-        private static final int DIFFERENT_ON_INVOCATION = 3;
-        int invocations = 0;
-
-        @Override
-        public String get() {
-            invocations++;
-            String result = "RANDOM";
-
-            if (invocations == DIFFERENT_ON_INVOCATION) {
-                result = String.format("%s-0", result);
-            }
-
-            return result;
-        }
+    @Getter
+    @RequiredArgsConstructor
+    private static final class AsicContainerParams {
+        private final Long id;
+        private final String queryId;
+        private final boolean response;
+        private final byte[] bytes;
+        private final long creationTime;
     }
 }

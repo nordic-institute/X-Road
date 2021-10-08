@@ -34,6 +34,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.ZipOutputStream;
@@ -69,29 +70,17 @@ public class AsicContainer {
     private final InputStream attachment;
     @Getter
     private final byte[] attachmentDigest;
-
-    AsicContainer(Map<String, String> entries) throws Exception {
-        this(entries, null);
-    }
+    @Getter
+    private final long creationTime;
 
     AsicContainer(Map<String, String> entries, byte[] attachmentDigest) throws Exception {
         this.entries.putAll(entries);
         this.attachment = null;
         this.attachmentDigest = attachmentDigest;
+        this.creationTime = new Date().getTime();
         verifyContents();
     }
 
-    /**
-     * Creates an AsicContainer containing given message and signature.
-     * Attempts to verify it's contents.
-     * @param message content of the signed message
-     * @param signature signature of the message
-     * @throws Exception if container content verification fails
-     */
-    public AsicContainer(String message, SignatureData signature)
-            throws Exception {
-        this(message, signature, null, null);
-    }
 
     /**
      * Creates an AsicContainer containing given message, signature and timestamp.
@@ -99,10 +88,12 @@ public class AsicContainer {
      * @param message content of the signed message
      * @param signature signature of the message
      * @param timestamp timestamp data of the message
+     * @param attachment optional rest message body
+     * @param time logrecord creation time
      * @throws Exception if container content verification fails
      */
     public AsicContainer(String message, SignatureData signature,
-            TimestampData timestamp, InputStream attachment) throws Exception {
+            TimestampData timestamp, InputStream attachment, long time) throws Exception {
         put(ENTRY_MIMETYPE, MIMETYPE);
         put(ENTRY_MESSAGE, message);
         put(ENTRY_SIGNATURE, signature.getSignatureXml());
@@ -110,12 +101,12 @@ public class AsicContainer {
         put(ENTRY_SIG_HASH_CHAIN, signature.getHashChain());
         this.attachment = attachment;
         this.attachmentDigest = null;
+        this.creationTime = time;
 
         if (timestamp != null) {
             if (isNotBlank(timestamp.getHashChainResult())) { // batch ts
                 put(ENTRY_TIMESTAMP, timestamp.getTimestampBase64());
             }
-
             put(ENTRY_TS_HASH_CHAIN, timestamp.getHashChain());
             put(ENTRY_TS_HASH_CHAIN_RESULT, timestamp.getHashChainResult());
         }
