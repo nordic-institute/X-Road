@@ -885,7 +885,7 @@ To display the availability of tokens, the following colors and labels are used 
 
 ### 5.2 Registration States of Certificates
 
-Registration states indicate if and how a certificate can be used in the X-Road system. In the "Keys and Certificates" view, a certificate's registration states (except "Deleted") are displayed in the "Status" column.
+Registration states indicate if and how a certificate can be used in the X-Road system. In the "Keys and Certificates" view, a certificate's registration states (except "Deleted"  for certificates stored on soft token key) are displayed in the "Status" column.
 
 
 #### 5.2.1 Registration States of the Signing Certificate
@@ -894,7 +894,7 @@ A security server signing certificate can be in one of the following registratio
 
 -   **Registered** – the certificate has been imported to the security server and saved to its configuration. A signing certificate in a "Registered" state can be used for signing X-Road messages.
 
--   **Deleted** – the certificate has been deleted from the server configuration. If the certificate is in the "Deleted" state and stored on a soft token key, the certificate will not be displayed in the table. If the certificate is in the "Deleted" state and stored on a hardware key device connected to the security server, the certificate status will be displayed with a **red circle** and a hyphen **-**.
+-   **Deleted** – the certificate has been deleted from the server configuration. If the certificate is in the "Deleted" state and stored on a soft token key, the certificate will not be displayed in the table. If the certificate is in the "Deleted" state and stored on a hardware key device connected to the security server, the certificate status will be displayed with a **red circle** and a text **ONLY IN TOKEN**.
 
 
 #### 5.2.2 Registration States of the Authentication Certificate
@@ -1015,7 +1015,7 @@ An authentication certificate saved in the system configuration can be deleted i
 
 -   if the certificate is saved in the server configuration, then the deletion **deletes the certificate from server configuration**, but not from the security token;
 
--   if the certificate is not saved in the server configuration (certificate's status has a red circle and status "-" (a hyphen)), then the deletion deletes the certificate from the security token (assuming the token supports this operation).
+-   if the certificate is not saved in the server configuration (certificate's status has a red circle and status is "STORED IN TOKEN"), then the deletion deletes the certificate from the security token (assuming the token supports this operation).
 
 **To delete a certificate, follow these steps.**
 
@@ -1046,12 +1046,6 @@ An authentication certificate saved in the system configuration can be deleted i
 -   For signing keys: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
 
 -   For keys without a role: [Security Officer](#xroad-security-officer), [Registration Officer](#xroad-registration-officer)
-
-**The deletion of keys works on two levels:**
-
--   if the key is saved in the server configuration, then the deletion **deletes the key** (and associated certificates) **from server configuration**, but not from the security token;
-
--   if the key is not saved in the server configuration (certificate's status has a red circle and status "-" (a hyphen)), then the deletion **deletes the key from the security token** (assuming the token supports this operation).
 
 To delete a key, follow these steps.
 
