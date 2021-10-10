@@ -32,7 +32,7 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials

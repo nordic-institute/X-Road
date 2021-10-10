@@ -73,7 +73,7 @@ public class LogArchiveWriter implements Closeable {
      * @param outputPath  directory where the log archive is created.
      * @param archiveBase interface to archive database.
      */
-    public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) {
+    public LogArchiveWriter(Path outputPath, LogArchiveBase archiveBase) throws IOException {
         this.outputPath = outputPath;
         this.archiveBase = archiveBase;
         this.linkingInfoBuilder = new LinkingInfoBuilder(MessageLogProperties.getHashAlg());

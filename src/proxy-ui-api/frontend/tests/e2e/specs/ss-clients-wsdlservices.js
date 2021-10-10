@@ -27,6 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'wsdlservices'],
   before: function (browser) {
+    browser.logMessage("copy remote wsdl testservice1.wsdl -> testserviceX.wsdl")
     browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
   },
   'Security server client add wsdl service': (browser) => {
@@ -37,7 +38,7 @@ module.exports = {
     const clientServices = clientInfo.section.services;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -53,17 +54,17 @@ module.exports = {
 
     // Verify empty and malformed URL error messages
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl('a');
+    clientServices.initServiceUrl('a');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('');
+    clientServices.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
     );
-    clientServices.enterServiceUrl('foobar');
+    clientServices.initServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(
       '//div[contains(@class, "v-messages__message")]',
@@ -75,14 +76,14 @@ module.exports = {
     browser.assert.value(clientServices.elements.newServiceUrl, '');
 
     // Verify opening nonexisting URL
-    clientServices.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
+    clientServices.initServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'WSDL download failed'
     mainPage.closeAlertMessage();
 
     // Verify successful URL open
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
     );
     clientServices.confirmAddDialog();
@@ -108,7 +109,7 @@ module.exports = {
     const sslCheckFail = mainPage.section.sslCheckFailDialog;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -152,8 +153,8 @@ module.exports = {
 
     // Verify cancel
     operationDetails.toggleCertVerification();
-    operationDetails.enterUrl('https://www.niis.org/nosuch2/');
-    operationDetails.enterTimeout('40');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch2/');
+    operationDetails.modifyTimeout('40');
     operationDetails.toggleVerifyCertApplyToAll();
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
@@ -184,8 +185,8 @@ module.exports = {
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
 
     // Verify change single operation
-    operationDetails.enterUrl('https://www.niis.org/nosuch2/');
-    operationDetails.enterTimeout('40');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch2/');
+    operationDetails.modifyTimeout('40');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.not
       .selected;
     operationDetails.saveParameters();
@@ -237,8 +238,8 @@ module.exports = {
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
     operationDetails.toggleVerifyCertApplyToAll();
-    operationDetails.enterUrl('https://www.niis.org/nosuch3/');
-    operationDetails.enterTimeout('30');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch3/');
+    operationDetails.modifyTimeout('30');
     operationDetails.toggleCertVerification();
     operationDetails.saveParameters();
     browser.waitForElementVisible(sslCheckFail);
@@ -299,7 +300,7 @@ module.exports = {
     const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -366,7 +367,7 @@ module.exports = {
       mainPage.section.removeAllAccessRightsPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -443,12 +444,12 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
     const servicesPopup = mainPage.section.servicesWarningPopup;
-    const serviceDetails = mainPage.section.serviceDetails;
+    const serviceDetails = mainPage.section.wsdlServiceDetails;
 
     var startTime, startTimestamp;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -476,23 +477,29 @@ module.exports = {
     );
 
     // Verify enabling
+    browser.logMessage("enabling service...");
     clientServices.toggleEnabled();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
+    browser.logMessage("snackbar closed");
+    browser.logMessage("enabling service done, snackbar should be closed now");
 
     // Verify disabling and canceling disable
+    browser.logMessage("disabling service");
     clientServices.toggleEnabled();
+    browser.logMessage("waiting for disable message popup");
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
-    clientServices.enterDisableNotice('Message1');
+    clientServices.initDisableNotice('Message1');
+    browser.logMessage("entered disable notice, cancelling");
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     browser.assert.value(clientServices.elements.disableNotice, '');
-    clientServices.enterDisableNotice('Notice1');
+    clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
     mainPage.closeSnackbar();
@@ -503,21 +510,23 @@ module.exports = {
 
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
-    serviceDetails.enterServiceUrl('');
+    serviceDetails.modifyServiceUrl('');
     // Verify there's an error message, something like 'The URL field is required'
     browser.waitForElementVisible(serviceDetails.elements.URLMessage);
-    serviceDetails.enterServiceUrl('foobar');
+    serviceDetails.initServiceUrl('foobar');
     // Verify there's an error message, something like 'URL is not valid'
     browser.waitForElementVisible(serviceDetails.elements.URLMessage);
 
     // verify missing file
-    serviceDetails.enterServiceUrl('https://www.niis.org/nosuch.wsdl');
+    serviceDetails.modifyServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); //  'WSDL download failed', loading a missing file can sometimes take more time before failing
     mainPage.closeAlertMessage();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
+    browser.logMessage('Starting (part 1) artificial wait to make refresh timestamps differ');
+
     await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -528,7 +537,8 @@ module.exports = {
     });
 
     // Verify cancel
-    serviceDetails.enterServiceUrl(
+    browser.logMessage('Edit and cancel nosuch.wsdl -> testservice2.wsdl');
+    serviceDetails.modifyServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.cancelDialog();
@@ -543,13 +553,15 @@ module.exports = {
 
     // Verify succesful edit
     clientServices.openServiceDetails();
-    serviceDetails.enterServiceUrl(
-      browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
+    browser.logMessage('Edit and confirm nosuch.wsdl -> testservice2.wsdl');
+    serviceDetails.modifyServiceUrl(
+        browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(servicesPopup);
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
+    browser.logMessage('Starting (part 2) artificial wait to make refresh timestamps differ');
     await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -593,10 +605,10 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
-    const serviceDetails = mainPage.section.serviceDetails;
+    const serviceDetails = mainPage.section.wsdlServiceDetails;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -630,6 +642,7 @@ module.exports = {
     clientServices.openServiceDetails();
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
+    browser.logMessage('delete was confirmed');
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
@@ -652,7 +665,7 @@ module.exports = {
     var startTime, startTimestamp;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -668,10 +681,16 @@ module.exports = {
 
     // Verify successfull URL open
     clientServices.openAddWSDL();
-    clientServices.enterServiceUrl(
+    clientServices.initServiceUrl(
       browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
     );
     clientServices.confirmAddDialog();
+    browser.assert.containsText(
+        mainPage.elements.snackBarMessage,
+        'WSDL added',
+    );
+    mainPage.closeSnackbar();
+
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
       browser.globals.testdata + '/' + browser.globals.wsdl_url_x,
@@ -698,17 +717,19 @@ module.exports = {
     operationDetails.toggleUrlApplyToAll();
     operationDetails.toggleTimeoutApplyToAll();
     operationDetails.toggleVerifyCertApplyToAll();
-    operationDetails.enterUrl('https://www.niis.org/nosuch3/');
-    operationDetails.enterTimeout('30');
+    operationDetails.modifyUrl('https://www.niis.org/nosuch3/');
+    operationDetails.modifyTimeout('30');
     operationDetails.saveParameters();
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,
       'Service saved',
     );
+    browser.logMessage("closing snackbar")
     mainPage.closeSnackbar();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
+    browser.logMessage("Part 1 wait until at least 1 min has passed since refresh at the start of the test")
     browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -732,11 +753,13 @@ module.exports = {
     );
 
     // change the wsdl and refresh
+    browser.logMessage("copy remote wsdl testservice3.wsdl -> testserviceX.wsdl")
     browser.perform(function () {
       browser.page.ssMainPage().updateWSDLFileTo('testservice3.wsdl');
     });
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
+    browser.logMessage("Part 2 wait until at least 1 min has passed since refresh at the start of the test")
     browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;

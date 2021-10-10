@@ -46,7 +46,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -122,7 +122,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -199,7 +199,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -298,7 +298,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -391,7 +391,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -497,7 +497,7 @@ module.exports = {
     const deleteCSRPopup = mainPage.section.deleteCSRPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -570,7 +570,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -683,7 +683,7 @@ module.exports = {
     const deleteCSRPopup = mainPage.section.deleteCSRPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -745,7 +745,7 @@ module.exports = {
     const signAuthTab = keysTab.section.signAuthKeysTab;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -811,7 +811,7 @@ module.exports = {
     var initialCerts;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
