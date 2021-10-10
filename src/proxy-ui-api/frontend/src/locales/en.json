@@ -308,6 +308,7 @@
     "search": "Search",
     "add": "Add",
     "copyId": "Copy ID",
+    "copy": "Copy",
     "export": "Export",
     "emptySearch": "Your search for {msg} found no results.",
     "noData": "No data",
