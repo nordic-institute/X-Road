@@ -42,7 +42,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
   }
 
   // Clear error notifications when the route is changed
-  // store.commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
+  /// TODO: reset only errors and notifications   store.commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
 
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
