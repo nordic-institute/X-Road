@@ -32,7 +32,6 @@ import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
-import ee.ria.xroad.common.metadata.Endpoint;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.metadata.RestServiceType;
 import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
@@ -196,26 +195,13 @@ public class ServerConf {
     public static RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
         log.trace("getRestServices({})", serviceProvider);
         RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-        EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
-
-        // where access has been granted on the service level
+        final EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
         List<ServiceId> allowedServices = getInstance().getAllowedServices(serviceProvider, client);
         for (ServiceId serviceId : allowedServices) {
             if (restTypes.contains(getDescriptionType(serviceId))) {
                 XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
                 serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
                 restServiceDetailsList.getService().add(serviceDetails);
-            }
-        }
-        // where access has been granted on the endpoint level
-        for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
-            if (!allowedServices.contains(serviceId) && restTypes.contains(getDescriptionType(serviceId))) {
-                List<Endpoint> allowedServiceEndpoints = getInstance().getAllowedServiceEndpoints(serviceId, client);
-                if (!allowedServiceEndpoints.isEmpty()) {
-                    XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
-                    serviceDetails.getEndpointList().addAll(allowedServiceEndpoints);
-                    restServiceDetailsList.getService().add(serviceDetails);
-                }
             }
         }
         return restServiceDetailsList;

@@ -175,7 +175,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
-        return emptyList();
+        List<ServiceId> list = new ArrayList<>();
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        return list;
     }
 
     @Override
