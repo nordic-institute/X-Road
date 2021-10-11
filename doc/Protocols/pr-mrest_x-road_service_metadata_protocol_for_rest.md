@@ -77,7 +77,7 @@ X-Road provides two methods for getting the list of services and service endpoin
 
 * `listMethods` lists all REST services and service endpoints offered by a service provider.
 
-* `allowedMethods` lists all REST services and service endpoints offered by a service provider that the caller has permission to invoke.
+* `allowedMethods` lists all REST services and service endpoints offered by a service provider that the caller has permission to invoke. Notice that the endpoints may contain wildcards and the amount of concrete endpoints may actually be larger. Generally, fetching the OpenAPI service description is the preferred method for discovering service endpoints.
 
 Both methods are invoked as regular X-Road REST services (see specification \[[PR-REST](#Ref_PR-REST)\] for details on the X-Road REST protocol).
 
