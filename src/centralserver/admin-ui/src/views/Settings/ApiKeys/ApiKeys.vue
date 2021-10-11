@@ -175,17 +175,12 @@ export default Vue.extend({
       apiKeys: [
         {
           id: 3897387478,
-          roles: [
-            'XROAD_SECURITY_OFFICER',
-            'XROAD_SYSTEM_ADMINISTRATOR',
-          ],
+          roles: ['XROAD_SECURITY_OFFICER', 'XROAD_SYSTEM_ADMINISTRATOR'],
           key: 'iugyuidfguiygffg89',
         },
         {
           id: 19383837,
-          roles: [
-            'XROAD_SYSTEM_ADMINISTRATOR',
-          ],
+          roles: ['XROAD_SYSTEM_ADMINISTRATOR'],
           key: 'jhdfg7jgjkghhj',
         },
       ] as ApiKey[],
