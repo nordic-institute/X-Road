@@ -123,11 +123,11 @@
             :keys="getAuthKeys(token.keys)"
             :token-logged-in="token.logged_in"
             :token-type="token.type"
+            data-test="auth-keys-table"
             @key-click="keyClick"
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
             @import-cert-by-hash="importCertByHash"
-            data-test="auth-keys-table"
             @refresh-list="fetchData"
           />
         </div>
@@ -147,11 +147,11 @@
             :keys="getSignKeys(token.keys)"
             :token-logged-in="token.logged_in"
             :token-type="token.type"
+            data-test="sign-keys-table"
             @key-click="keyClick"
             @generate-csr="generateCsr"
             @certificate-click="certificateClick"
             @import-cert-by-hash="importCertByHash"
-            data-test="sign-keys-table"
             @refresh-list="fetchData"
           />
         </div>
