@@ -31,16 +31,12 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
-import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
-import ee.ria.xroad.common.metadata.RestServiceType;
-import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -175,16 +171,7 @@ public class ServerConf {
      */
     public static RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
         log.trace("getRestServices({})", serviceProvider);
-        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-        EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
-        for (ServiceId serviceId : getInstance().getAllServices(serviceProvider)) {
-            if (restTypes.contains(getDescriptionType(serviceId))) {
-                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
-                serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
-                restServiceDetailsList.getService().add(serviceDetails);
-            }
-        }
-        return restServiceDetailsList;
+        return getInstance().getRestServices(serviceProvider);
     }
 
     /**
@@ -194,39 +181,7 @@ public class ServerConf {
      */
     public static RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
         log.trace("getRestServices({})", serviceProvider);
-        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
-        final EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
-        List<ServiceId> allowedServices = getInstance().getAllowedServices(serviceProvider, client);
-        for (ServiceId serviceId : allowedServices) {
-            if (restTypes.contains(getDescriptionType(serviceId))) {
-                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
-                serviceDetails.getEndpointList().addAll(getInstance().getServiceEndpoints(serviceId));
-                restServiceDetailsList.getService().add(serviceDetails);
-            }
-        }
-        return restServiceDetailsList;
-    }
-
-    private static XRoadRestServiceDetailsType createRestServiceDetails(ServiceId serviceId) {
-        XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
-        serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
-        serviceDetails.setMemberClass(serviceId.getMemberClass());
-        serviceDetails.setMemberCode(serviceId.getMemberCode());
-        serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
-        serviceDetails.setServiceCode(serviceId.getServiceCode());
-        serviceDetails.setObjectType(XRoadObjectType.SERVICE);
-        serviceDetails.setServiceType(getRestServiceType(getDescriptionType(serviceId)));
-        return serviceDetails;
-    }
-
-    private static RestServiceType getRestServiceType(DescriptionType descriptionType) {
-        if (descriptionType.equals(DescriptionType.REST)) {
-            return RestServiceType.REST;
-        } else if (descriptionType.equals(DescriptionType.OPENAPI3)) {
-            return RestServiceType.OPENAPI;
-        } else {
-            throw new UnsupportedOperationException("The given parameter is not a REST service type!");
-        }
+        return getInstance().getAllowedRestServices(serviceProvider, client);
     }
 
     /**

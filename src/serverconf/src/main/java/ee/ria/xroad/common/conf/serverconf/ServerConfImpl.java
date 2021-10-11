@@ -52,6 +52,9 @@ import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.identifier.XRoadId;
 import ee.ria.xroad.common.identifier.XRoadObjectType;
 import ee.ria.xroad.common.metadata.Endpoint;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
+import ee.ria.xroad.common.metadata.RestServiceType;
+import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 import ee.ria.xroad.common.util.UriUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -67,6 +70,7 @@ import javax.persistence.criteria.Root;
 import java.net.URI;
 import java.security.cert.X509Certificate;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -132,6 +136,59 @@ public class ServerConfImpl implements ServerConfProvider {
 
             return DEFAULT_SERVICE_TIMEOUT;
         });
+    }
+
+    @Override
+    public RestServiceDetailsListType getRestServices(
+            ClientId serviceProvider) {
+        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
+        EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
+        for (ServiceId serviceId : getAllServices(serviceProvider)) {
+            if (restTypes.contains(getDescriptionType(serviceId))) {
+                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
+                serviceDetails.getEndpointList().addAll(getServiceEndpoints(serviceId));
+                restServiceDetailsList.getService().add(serviceDetails);
+            }
+        }
+        return restServiceDetailsList;
+    }
+
+    @Override
+    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider,
+                                                             ClientId client) {
+        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
+        final EnumSet<DescriptionType> restTypes = EnumSet.of(DescriptionType.REST, DescriptionType.OPENAPI3);
+        List<ServiceId> allowedServices = getAllowedServices(serviceProvider, client);
+        for (ServiceId serviceId : allowedServices) {
+            if (restTypes.contains(getDescriptionType(serviceId))) {
+                XRoadRestServiceDetailsType serviceDetails = createRestServiceDetails(serviceId);
+                serviceDetails.getEndpointList().addAll(getServiceEndpoints(serviceId));
+                restServiceDetailsList.getService().add(serviceDetails);
+            }
+        }
+        return restServiceDetailsList;
+    }
+
+    private XRoadRestServiceDetailsType createRestServiceDetails(ServiceId serviceId) {
+        XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+        serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+        serviceDetails.setMemberClass(serviceId.getMemberClass());
+        serviceDetails.setMemberCode(serviceId.getMemberCode());
+        serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+        serviceDetails.setServiceCode(serviceId.getServiceCode());
+        serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+        serviceDetails.setServiceType(getRestServiceType(getDescriptionType(serviceId)));
+        return serviceDetails;
+    }
+
+    private RestServiceType getRestServiceType(DescriptionType descriptionType) {
+        if (descriptionType.equals(DescriptionType.REST)) {
+            return RestServiceType.REST;
+        } else if (descriptionType.equals(DescriptionType.OPENAPI3)) {
+            return RestServiceType.OPENAPI;
+        } else {
+            throw new UnsupportedOperationException("The given parameter is not a REST service type!");
+        }
     }
 
     @Override
@@ -301,14 +358,11 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<Endpoint> getServiceEndpoints(ServiceId service) {
-        return tx(session -> {
-            List<Endpoint> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
-                    .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
-                    .filter(e -> !e.getPath().equals("**"))
-                    .map(e -> createEndpoint(e.getMethod(), e.getPath()))
-                    .collect(Collectors.toList());
-            return endpoints;
-        });
+        return tx(session -> getClient(session, service.getClientId()).getEndpoint().stream()
+                .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
+                .filter(e -> !e.getPath().equals("**"))
+                .map(e -> createEndpoint(e.getMethod(), e.getPath()))
+                .collect(Collectors.toList()));
     }
 
     private static Endpoint createEndpoint(String method, String path) {
@@ -316,13 +370,6 @@ public class ServerConfImpl implements ServerConfProvider {
         endpoint.setMethod(method);
         endpoint.setPath(path);
         return endpoint;
-    }
-
-    @Override
-    public List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client) {
-        return tx(session -> getEndpoints(session, client, service).stream()
-                .map(e -> createEndpoint(e.getMethod(), e.getPath()))
-                .collect(Collectors.toList()));
     }
 
     // ------------------------------------------------------------------------
