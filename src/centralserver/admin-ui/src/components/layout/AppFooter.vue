@@ -106,22 +106,18 @@
 <script lang="ts">
 import Vue from 'vue';
 import { StoreTypes } from '@/global';
+import { mapGetters } from 'vuex';
 
 export default Vue.extend({
   name: 'AppFooter',
-  data: function () {
-    return {
-      version: '',
-    };
-  },
-  created: function () {
-    this.version = this.$store.getters[StoreTypes.getters.SERVER_VERSION];
+  computed: {
+    ...mapGetters({ version: StoreTypes.getters.SERVER_VERSION }),
   },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
+@import '../../assets/colors';
 $text-color: $XRoad-Black100;
 
 .footer {
