@@ -320,15 +320,9 @@ public class ServerConfImpl implements ServerConfProvider {
 
     @Override
     public List<Endpoint> getAllowedServiceEndpoints(ServiceId service, ClientId client) {
-        return tx(session -> {
-            List<Endpoint> endpoints = getClient(session, service.getClientId()).getEndpoint().stream()
-                    .filter(e -> e.getServiceCode().equals(service.getServiceCode()))
-                    .filter(e -> !e.getPath().equals("**"))
-                    .filter(e -> internalIsQueryAllowed(session, client, service, e.getMethod(), e.getPath()))
-                    .map(e -> createEndpoint(e.getMethod(), e.getPath()))
-                    .collect(Collectors.toList());
-            return endpoints;
-        });
+        return tx(session -> getEndpoints(session, client, service).stream()
+                .map(e -> createEndpoint(e.getMethod(), e.getPath()))
+                .collect(Collectors.toList()));
     }
 
     // ------------------------------------------------------------------------
