@@ -35,24 +35,6 @@
             <xs:enumeration value="CENTRALSERVICE"/>
         </xs:restriction>
     </xs:simpleType>
-    <xs:simpleType name="RestServiceType">
-        <xs:annotation>
-            <xs:documentation>Enumeration for REST service types.</xs:documentation>
-        </xs:annotation>
-        <xs:restriction base="xs:string">
-            <xs:enumeration value="REST"/>
-            <xs:enumeration value="OPENAPI"/>
-        </xs:restriction>
-    </xs:simpleType>
-    <xs:complexType name="Endpoint">
-        <xs:annotation>
-            <xs:documentation>Service endpoint containing HTTP method and path.</xs:documentation>
-        </xs:annotation>
-        <xs:sequence>
-            <xs:element name="method" type="xs:string"/>
-            <xs:element name="path" type="xs:string"/>
-        </xs:sequence>
-    </xs:complexType>
     <xs:element name="xRoadInstance" type="xs:string">
         <xs:annotation>
             <xs:documentation>Identifies the X-Road instance. This field is applicable to all identifier types.</xs:documentation>
@@ -98,13 +80,7 @@
             <xs:documentation>Code that uniquely identifies security server offered by a given X-Road member or subsystem.</xs:documentation>
         </xs:annotation>
     </xs:element>
-    <xs:element name="endpointList" type="Endpoint">
-        <xs:annotation>
-            <xs:documentation>HTTP method and path.</xs:documentation>
-        </xs:annotation>
-    </xs:element>
     <xs:attribute name="objectType" type="XRoadObjectType"/>
-    <xs:attribute name="serviceType" type="RestServiceType"/>
     <xs:complexType name="XRoadClientIdentifierType">
         <xs:complexContent>
             <xs:restriction base="XRoadIdentifierType">
@@ -132,22 +108,6 @@
                 <xs:attribute ref="objectType" use="required" fixed="SERVICE"/>
             </xs:restriction>
         </xs:complexContent>
-    </xs:complexType>
-    <xs:complexType name="XRoadRestServiceDetailsType">
-        <xs:annotation>
-            <xs:documentation>Detailed REST service information.</xs:documentation>
-        </xs:annotation>
-        <xs:sequence>
-            <xs:element ref="xRoadInstance"/>
-            <xs:element ref="memberClass"/>
-            <xs:element ref="memberCode"/>
-            <xs:element minOccurs="0" ref="subsystemCode"/>
-            <xs:element ref="serviceCode"/>
-            <xs:element minOccurs="0" ref="serviceVersion"/>
-            <xs:element minOccurs="0" maxOccurs="unbounded" ref="endpointList"/>
-        </xs:sequence>
-        <xs:attribute ref="objectType" use="required" fixed="SERVICE"/>
-        <xs:attribute ref="serviceType" use="required"/>
     </xs:complexType>
     <xs:complexType name="XRoadSecurityCategoryIdentifierType">
         <xs:complexContent>
