@@ -50,7 +50,7 @@ export const getDefaultState = (): State => {
 // Initial state. The state can be reset with this.
 const moduleState = getDefaultState();
 
-export const userGetters: GetterTree<State, RootState> = {
+export const getters: GetterTree<State, RootState> = {
   [StoreTypes.getters.INITIALIZATION_STATUS](state): State {
     return {
       instanceId: state.instanceId,
@@ -95,7 +95,7 @@ export const actions: ActionTree<State, RootState> = {
 export const module: Module<State, RootState> = {
   namespaced: false,
   state: moduleState,
-  getters: userGetters,
+  getters,
   actions,
   mutations,
 };
