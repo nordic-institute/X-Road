@@ -74,7 +74,7 @@ export default Vue.extend({
 </style>
 
 <style lang="scss" scoped>
-@import './assets/colors';
+@import '~styles/colors';
 
 .fade-enter-active,
 .fade-leave-active {

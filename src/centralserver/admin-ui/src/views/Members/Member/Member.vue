@@ -94,7 +94,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
+@import '~styles/colors';
 
 .navigation-back {
   color: $XRoad-Link;

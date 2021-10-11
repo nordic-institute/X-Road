@@ -20,7 +20,6 @@ OPTIONS:
     -s ID of the security server.
     -f Absolute path of the resulting tar archive.
     -S Skip database backup
-    -E encrypt backup
 EOF
 }
 
@@ -38,8 +37,8 @@ execute_backup () {
     else
       args+=(-E signonly)
     fi
-    if [ -n "$PUBKEYS_FOLDER" ]; then
-      args+=(-k "$PUBKEYS_FOLDER")
+    if [ -n "$GPG_KEYIDS" ]; then
+      args+=(-k "$GPG_KEYIDS")
     fi
     if ! ${COMMON_BACKUP_SCRIPT} "${args[@]}" ; then
       echo "Failed to back up the configuration of the X-Road security server"
@@ -82,14 +81,17 @@ while getopts ":s:f:Sbh" opt ; do
   esac
 done
 
-ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encrypted" false)
-echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
-PUBKEYS_FOLDER=$(get_proxy_prop proxy.ini proxy "backup-public-key-path")
-echo "PUBKEYS_FOLDER=$PUBKEYS_FOLDER"
+warn_about_incompatibility
 
 check_user
 check_security_server_id
 check_backup_file_name
+
+ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encryption-enabled" false)
+echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
+GPG_KEYIDS=$(get_proxy_prop proxy.ini proxy "backup-encryption-keyids")
+echo "GPG_KEYIDS=$GPG_KEYIDS"
+
 execute_backup
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

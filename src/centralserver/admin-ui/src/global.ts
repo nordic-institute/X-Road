@@ -114,11 +114,17 @@ export enum RouteName {
   GlobalResources = 'global-resources',
   SystemSettings = 'system-settings',
   BackupAndRestore = 'backup-and-restore',
+  ApiKeys = 'api-keys',
+  CreateApiKey = 'create-api-key',
   InternalConfiguration = 'internal-configuration',
   ExternalConfiguration = 'external-configuration',
   TrustedAnchors = 'trusted-anchors',
   Login = 'login',
   Initialisation = 'init',
+  SecurityServerDetails = 'security-server-details',
+  SecurityServerManagementRequests = 'security-server-management-requests',
+  SecurityServerAuthenticationCertificates = 'security-server-authentication-certificates',
+  SecurityServerClients = 'security-server-clients',
 }
 
 // A "single source of truth" for permission strings
@@ -126,6 +132,13 @@ export enum Permissions {
   MOCK_PERMISSION1 = 'MOCK_PERMISSION1',
   MOCK_PERMISSION2 = 'MOCK_PERMISSION2', // mock
 }
+
+// A single source of truth for roles
+export const Roles = [
+  'XROAD_REGISTRATION_OFFICER',
+  'XROAD_SECURITY_OFFICER',
+  'XROAD_SYSTEM_ADMINISTRATOR',
+];
 
 export const mainTabs: Tab[] = [
   {

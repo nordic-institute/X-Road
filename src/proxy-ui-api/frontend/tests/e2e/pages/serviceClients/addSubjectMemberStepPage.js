@@ -36,9 +36,9 @@ const commands = [
       this.click('@cancelButton');
       return this;
     },
-    verifySubjectListRow: function (row, subject) {
+    verifySubjectListRow: function (subject) {
       this.api.waitForElementVisible(
-        `(//table[contains(@class, "service-clients-table")]/tbody/tr)[${row}]//td[contains(text(), "${subject}")]`,
+        `(//table[contains(@class, "service-clients-table")]/tbody/tr)//td[contains(text(), "${subject}")]`,
       );
       return this;
     },

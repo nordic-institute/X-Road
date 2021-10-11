@@ -198,7 +198,7 @@ jacocoTestReport {
     reports {
         xml.required = true
     }
-    classDirectories.setFrom files(javaProjects.sourceSets.main.java.outputDir)
+    classDirectories.setFrom files(javaProjects.sourceSets.main.java.classesDirectory)
     sourceDirectories.setFrom files(javaProjects.sourceSets.main.java.srcDirs)
     executionData.setFrom fileTree(dir: '.', include: '**/build/jacoco/*.exec')
 }

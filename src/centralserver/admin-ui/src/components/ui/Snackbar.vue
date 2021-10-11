@@ -26,7 +26,7 @@
 <template>
   <div>
     <!-- Success -->
-    <transition name="fade">
+    <transition-group name="fade">
       <v-snackbar
         v-for="notification in successNotifications"
         :key="notification.timeAdded"
@@ -62,7 +62,7 @@
           </v-btn>
         </div>
       </v-snackbar>
-    </transition>
+    </transition-group>
   </div>
 </template>
 

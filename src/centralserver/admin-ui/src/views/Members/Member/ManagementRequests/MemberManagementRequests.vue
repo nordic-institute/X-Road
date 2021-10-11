@@ -25,87 +25,29 @@
  -->
 <template>
   <main id="member-management-requests">
-    <div id="management-request-filters">
-      <xrd-search
-        v-model="search"
-        class="search"
-        :label="$t('global.search')"
-      ></xrd-search>
-      <v-checkbox
-        class="show-only-waiting"
-        :label="$t('members.member.managementRequests.showOnlyWaiting')"
-        :background-color="colors.Purple100100"
-        :input-value="showOnlyPending"
-      />
-    </div>
-
-    <!-- Table -->
-    <v-data-table
-      :loading="loading"
-      :headers="headers"
-      :items="managementRequests"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      hide-default-footer
-    >
-      <template #[`item.id`]="{ item }">
-        <div class="request-id">{{ item.id }}</div>
-      </template>
-
-      <template #[`item.type`]="{ item }">
-        <type-cell :status="item.type" />
-      </template>
-
-      <template #[`item.status`]="{ item }">
-        <status-cell :status="item.status" />
-      </template>
-
-      <template #[`item.button`]>
-        <div class="cs-table-actions-wrap">
-          <xrd-button text :outlined="false">{{
-            $t('action.approve')
-          }}</xrd-button>
-
-          <xrd-button text :outlined="false">{{
-            $t('action.decline')
-          }}</xrd-button>
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="cs-table-custom-footer"></div>
-      </template>
-    </v-data-table>
+    <ManagementRequests :management-requests="managementRequests" />
   </main>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { Colors } from '@/global';
-import StatusCell from '@/components/managementRequests/StatusCell.vue';
-import TypeCell from '@/components/managementRequests/TypeCell.vue';
-import { DataTableHeader } from 'vuetify';
+import ManagementRequests from '@/components/managementRequests/ManagementRequests.vue';
 
 /**
- * Component for Member management requests
+ * Component for Member Management requests
  */
+
 export default Vue.extend({
   name: 'MemberManagementRequests',
 
   components: {
-    StatusCell,
-    TypeCell,
+    ManagementRequests,
   },
   data() {
     return {
       colors: Colors,
-      search: '' as string,
       loading: false,
-      showOnlyPending: false,
       managementRequests: [
         {
           id: '938726',
@@ -155,57 +97,5 @@ export default Vue.extend({
       ],
     };
   },
-  computed: {
-    headers(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('global.id') as string,
-          align: 'start',
-          value: 'id',
-          class: 'xrd-table-header member-mr-table-header-id',
-        },
-        {
-          text: this.$t('global.created') as string,
-          align: 'start',
-          value: 'created',
-          class: 'xrd-table-header member-mr-table-header-created',
-        },
-        {
-          text: this.$t('global.type') as string,
-          align: 'start',
-          value: 'type',
-          class: 'xrd-table-header member-mr-table-header-type',
-        },
-
-        {
-          text: this.$t('global.status') as string,
-          align: 'start',
-          value: 'status',
-          class: 'xrd-table-header member-mr-table-header-status',
-        },
-
-        {
-          text: '',
-          value: 'button',
-          sortable: false,
-          class: 'xrd-table-header member-mr-table-header-buttons',
-        },
-      ];
-    },
-  },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '~styles/tables';
-
-.status {
-  text-transform: uppercase;
-  font-weight: bold;
-}
-
-#management-request-filters {
-  display: flex;
-  justify-content: space-between;
-}
-</style>

@@ -32,16 +32,19 @@
       <xrd-sub-view-title
         v-if="serviceDesc.type === serviceType.WSDL"
         :title="$t('services.wsdlDetails')"
+        data-test="wsdl-service-description-details-dialog"
         @close="close"
       />
       <xrd-sub-view-title
         v-else-if="serviceDesc.type === serviceType.REST"
         :title="$t('services.restDetails')"
+        data-test="rest-service-description-details-dialog"
         @close="close"
       />
       <xrd-sub-view-title
         v-else-if="serviceDesc.type === serviceType.OPENAPI3"
         :title="$t('services.openapiDetails')"
+        data-test="openapi-service-description-details-dialog"
         @close="close"
       />
 

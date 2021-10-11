@@ -156,7 +156,7 @@ public final class MessageLogProperties {
 
     public static final String ARCHIVE_GPG_HOME_DIRECTORY = PREFIX + "archive-gpg-home-directory";
 
-    public static final String ARCHIVE_ENCRYPTION_KEYS_DIR = PREFIX + "archive-encryption-keys-dir";
+    public static final String ARCHIVE_ENCRYPTION_KEYS_CONFIG = PREFIX + "archive-encryption-keys-config";
 
     public static final String ARCHIVE_DEFAULT_ENCRYPTION_KEY = PREFIX + "archive-default-encryption-key";
 
@@ -358,17 +358,13 @@ public final class MessageLogProperties {
         return Paths.get(System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome"));
     }
 
-    public static Path getArchiveEncryptionKeysDir() {
-        return Paths.get(System.getProperty(ARCHIVE_ENCRYPTION_KEYS_DIR,
-                System.getProperty(ARCHIVE_GPG_HOME_DIRECTORY, "/etc/xroad/gpghome")));
+    public static Path getArchiveEncryptionKeysConfig() {
+        final String property = System.getProperty(ARCHIVE_ENCRYPTION_KEYS_CONFIG);
+        return property == null ? null : Paths.get(property);
     }
 
-    public static Path getArchiveDefaultEncryptionKey() {
-        final String property = System.getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
-        if (property != null) {
-            return Paths.get(property);
-        }
-        return null;
+    public static String getArchiveDefaultEncryptionKey() {
+        return System.getProperty(ARCHIVE_DEFAULT_ENCRYPTION_KEY);
     }
 
     /** @return keystore path for messagelog encryption keys or null if one is not defined */
