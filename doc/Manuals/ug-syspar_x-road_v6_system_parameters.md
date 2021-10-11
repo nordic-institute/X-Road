@@ -365,7 +365,7 @@ Proxy-ui has been removed in version 6.24 and it's parameters are not used anymo
 | messagelog-encryption-enabled                    | false                                      |   |   | If true, message bodies are stored to the database in an encrypted format |
 | messagelog-keystore                              |                                            |   |   | Path to the keystore containing the key used in messagelog encryption |
 | messagelog-keystore-password                     |                                            |   |   | Messagelog keystore password |
-| messagelog-keyid                                 |                                            |   |   | Identifier of the messagelog encryption key |
+| messagelog-key-id                                |                                            |   |   | Identifier of the messagelog encryption key |
 
 #### 3.7.1 Note on logged X-Road message headers
 
