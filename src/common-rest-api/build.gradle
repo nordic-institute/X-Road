@@ -31,7 +31,7 @@ dependencies {
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     implementation('org.kohsuke:libpam4j:1.11')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.2')
+    implementation('io.swagger:swagger-annotations:1.6.3')
     implementation 'io.springfox:springfox-core:3.0.0'
 
     testImplementation project(':common-test')
@@ -106,5 +106,4 @@ validateApiDefinitions {
 }
 
 tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
-
 
