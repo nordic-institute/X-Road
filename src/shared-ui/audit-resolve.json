@@ -853,12 +853,12 @@
       "madeAt": 1633607293224
     },
     "1002401|eslint>strip-ansi>ansi-regex": {
-      "decision": "fix",
-      "madeAt": 1633673495571
+      "decision": "ignore",
+      "madeAt": 1634029986652
     },
     "1002401|eslint>table>string-width>strip-ansi>ansi-regex": {
-      "decision": "fix",
-      "madeAt": 1633673495571
+      "decision": "ignore",
+      "madeAt": 1634029986652
     },
     "1002401|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>yargs>cliui>string-width>strip-ansi>ansi-regex": {
       "decision": "ignore",
