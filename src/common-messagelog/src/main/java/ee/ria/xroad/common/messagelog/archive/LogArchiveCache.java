@@ -40,15 +40,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Date;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
-import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
 
 /**
  * Encapsulates logic of creating log archive from ASiC containers.
@@ -62,7 +62,6 @@ class LogArchiveCache implements Closeable {
         ROTATING;
     }
 
-    private final Supplier<String> randomGenerator;
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final Path workingDir;
 
@@ -79,11 +78,9 @@ class LogArchiveCache implements Closeable {
 
     private final EncryptionConfig encryptionConfig;
 
-    LogArchiveCache(Supplier<String> randomGenerator,
-            LinkingInfoBuilder linkingInfoBuilder,
+    LogArchiveCache(LinkingInfoBuilder linkingInfoBuilder,
             EncryptionConfig encryptionConfig,
             Path workingDir) {
-        this.randomGenerator = randomGenerator;
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
@@ -125,7 +122,7 @@ class LogArchiveCache implements Closeable {
     private void addLinkingInfoToArchive(ZipOutputStream zipOut)
             throws IOException {
         ZipEntry linkingInfoEntry = new ZipEntry("linkinginfo");
-
+        linkingInfoEntry.setLastModifiedTime(FileTime.from(maxCreationTime.toInstant()));
         zipOut.putNextEntry(linkingInfoEntry);
         zipOut.write(linkingInfoBuilder.build());
         zipOut.closeEntry();
@@ -139,7 +136,6 @@ class LogArchiveCache implements Closeable {
     boolean isEmpty() {
         return state == State.NEW;
     }
-
 
     Date getStartTime() {
         return minCreationTime;
@@ -190,16 +186,16 @@ class LogArchiveCache implements Closeable {
     }
 
     private void addContainerToArchive(MessageRecord record) throws Exception {
-        String archiveFilename =
-                nameGenerator.getArchiveFilename(record.getQueryId(),
-                        record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
-                                : AsicContainerNameGenerator.TYPE_REQUEST);
+        String archiveFilename = nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse(),
+                record.getId());
 
         final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
-        archiveTmp.putNextEntry(new ZipEntry(archiveFilename));
+        final ZipEntry entry = new ZipEntry(archiveFilename);
+        entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
+        archiveTmp.putNextEntry(entry);
         try (CountingOutputStream cos = new CountingOutputStream(
                 new DigestOutputStream(new EntryStream(archiveTmp), digest));
-                OutputStream bos = new BufferedOutputStream(cos)) {
+             OutputStream bos = new BufferedOutputStream(cos)) {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)
@@ -254,7 +250,7 @@ class LogArchiveCache implements Closeable {
         maxCreationTime = null;
         state = State.NEW;
         archivesTotalSize = 0;
-        nameGenerator = new AsicContainerNameGenerator(randomGenerator, MAX_RANDOM_GEN_ATTEMPTS);
+        nameGenerator = new AsicContainerNameGenerator();
     }
 
     static class EntryStream extends FilterOutputStream {

@@ -98,7 +98,7 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public IsAuthentication getIsAuthentication(ClientId client) {
-        return null;
+        return IsAuthentication.NOSSL;
     }
 
     @Override
