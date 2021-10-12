@@ -69,6 +69,7 @@ import ExternalConfiguration from '@/views/GlobalConfiguration/ExternalConfigura
 import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfiguration/InternalConfiguration.vue';
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
 import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
+import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -246,7 +247,7 @@ const routes: RouteConfig[] = [
         path: '/init',
         components: {
           default: InitialConfiguration,
-          top: TabsBase,
+          top: TabsBaseEmpty,
           alerts: AlertsContainer,
         },
         meta: { permissions: [Permissions.MOCK_PERMISSION1] },

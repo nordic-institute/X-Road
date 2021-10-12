@@ -61,11 +61,6 @@ export default Vue.extend({
       return this.$route.name !== RouteName.Login;
     },
   },
-
-  created() {
-    // Example of store usage
-    this.$store.commit(StoreTypes.mutations.SET_USERNAME, 'User one');
-  },
 });
 </script>
 

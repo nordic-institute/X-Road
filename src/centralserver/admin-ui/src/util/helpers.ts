@@ -25,6 +25,8 @@
  */
 
 // Filters an array of objects excluding specified object key
+import { NavigationFailure } from 'vue-router';
+
 export function selectedFilter<T, K extends keyof T>(
   arr: T[],
   search: string,
@@ -36,7 +38,7 @@ export function selectedFilter<T, K extends keyof T>(
     return arr;
   }
 
-  const filtered = arr.filter((g) => {
+  return arr.filter((g) => {
     let filteredKeys = Object.keys(g) as K[];
 
     // If there is an excluded key remove it from the keys
@@ -50,14 +52,12 @@ export function selectedFilter<T, K extends keyof T>(
       return String(g[key]).toLowerCase().includes(mysearch);
     });
   });
-
-  return filtered;
 }
 
 // Checks if the given WSDL URL valid
 export function isValidWsdlURL(str: string): boolean {
   const pattern = new RegExp('(^(https?):///?)[-a-zA-Z0-9]');
-  return !!pattern.test(str);
+  return pattern.test(str);
 }
 
 // Checks if the given REST URL is valid
@@ -89,4 +89,17 @@ export function toClipboard(val: string): void {
 // Deep clones an object or array using JSON
 export function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
+}
+
+export function swallowRedirectedNavigationError(
+  error: NavigationFailure,
+): void {
+  // NavigationFailureType.redirected = 2, but does not work here?
+  if (2 == error.type) {
+    // ignore errors caused by redirect in beforeEach route guard
+    // eslint-disable-next-line no-console
+    console.debug('Redirected navigation error ignored', error);
+    return;
+  }
+  throw error;
 }

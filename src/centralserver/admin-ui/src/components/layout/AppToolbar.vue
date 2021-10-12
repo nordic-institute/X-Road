@@ -28,7 +28,7 @@
     app
     dark
     absolute
-    :color="colors.Black70"
+    :color="isInitialized ? colors.Purple100 : colors.Purple70"
     flat
     height="32"
     max-height="32"
@@ -36,16 +36,20 @@
     <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">X-ROAD CENTRAL SERVER</div>
       <div
-        v-show="currentSecurityServer.id"
+        v-show="!isInitialized"
+        class="initialization-phase-title"
+        data-test="app-toolbar-server-init-phase-id"
+      >
+        {{ $t('init.initialConfiguration') }}
+      </div>
+      <div
+        v-show="isInitialized"
         class="server-name"
-        data-test="app-toolbar-server-name"
+        data-test="app-toolbar-server-instance-address"
       >
         {{
-          `${currentSecurityServer.instance_id} : ${currentSecurityServer.server_code}`
+          `${initializationParameters.instanceId} : ${initializationParameters.serverAddress}`
         }}
-      </div>
-      <div data-test="app-toolbar-server-address">
-        {{ currentSecurityServer.server_address }}
       </div>
     </div>
   </v-app-bar>
@@ -53,7 +57,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Colors } from '@/global';
+import { Colors, StoreTypes } from '@/global';
 
 export default Vue.extend({
   name: 'Toolbar',
@@ -63,9 +67,13 @@ export default Vue.extend({
     };
   },
   computed: {
-    currentSecurityServer(): string {
-      return 'Hello CS';
+    initializationParameters() {
+      return this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
     },
+    isInitialized(): boolean {
+      return this.$store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED];
+    },
+
     isAuthenticated(): boolean {
       return true;
     },
@@ -102,6 +110,9 @@ export default Vue.extend({
   align-items: center;
   width: 100%;
 
+  .initialization-phase-title {
+    margin: 20px;
+  }
   .server-name {
     margin: 20px;
     margin-right: 10px;

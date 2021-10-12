@@ -24,9 +24,8 @@
  * THE SOFTWARE.
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '@/global';
-import { Notification, ActionError } from '@/ui-types';
-import { StoreTypes } from '@/global';
+import { RootState, StoreTypes } from '@/global';
+import { ActionError, Notification } from '@/ui-types';
 
 export interface State {
   errorNotifications: Notification[];
@@ -50,7 +49,7 @@ function containsNotification(
   if (!notification || !errorNotifications || errorNotifications.length === 0) {
     return -1;
   }
-  const result = errorNotifications.findIndex((e: Notification) => {
+  return errorNotifications.findIndex((e: Notification) => {
     if (
       notification?.errorObject?.response?.config?.data !==
       e?.errorObject?.response?.config?.data
@@ -83,14 +82,8 @@ function containsNotification(
       return false;
     }
 
-    if (notification?.errorMessageCode !== e?.errorMessageCode) {
-      return false;
-    }
-
-    return true;
+    return notification?.errorMessageCode === e?.errorMessageCode;
   });
-
-  return result;
 }
 
 // Add error notification to the store
@@ -133,7 +126,7 @@ export const getters: GetterTree<State, RootState> = {
 };
 
 export const mutations: MutationTree<State> = {
-  [StoreTypes.mutations.RESET_NOTIFICATIONS_STATE](state): void {
+  [StoreTypes.mutations.SET_NOTIFICATIONS_DEFAULT_STATE](state): void {
     Object.assign(state, getDefaultState());
   },
   [StoreTypes.mutations.SET_SUCCESS_CODE](state: State, val: string): void {
@@ -206,7 +199,7 @@ export const mutations: MutationTree<State> = {
 export const actions: ActionTree<State, RootState> = {
   [StoreTypes.actions.RESET_NOTIFICATIONS_STATE]({ commit }): void {
     // Clear the store state
-    commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
+    commit(StoreTypes.mutations.SET_NOTIFICATIONS_DEFAULT_STATE);
   },
   [StoreTypes.actions.SHOW_SUCCESS](
     { commit },
