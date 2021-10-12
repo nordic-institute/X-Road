@@ -4,7 +4,7 @@ buildscript {
     ext {
         // currently duplicate with proxy-ui-api build.gradle, probably should fix
         openapiGeneratorVersion = '5.2.1'
-        swaggerParserVersion = '2.0.21'
+        swaggerParserVersion = '2.0.28'
     }
     repositories {
         mavenCentral()
@@ -18,7 +18,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR10")
+    set('springCloudVersion', "2020.0.4")
 }
 
 sourceSets {
@@ -49,7 +49,7 @@ dependencies {
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     implementation('org.kohsuke:libpam4j:1.11')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.2')
+    implementation('io.swagger:swagger-annotations:1.6.3')
 
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')

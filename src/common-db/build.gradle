@@ -7,10 +7,10 @@ dependencies {
 
     implementation  project(':common-util')
     implementation  "org.hibernate:hibernate-hikaricp:$hibernateVersion"
-    implementation  'org.postgresql:postgresql:42.2.18'
+    implementation  'org.postgresql:postgresql:42.2.24'
 
     // DB layer tests use HSQLDB with in-memory tables
-    testImplementation  'org.hsqldb:hsqldb:2.5.1'
+    testImplementation  'org.hsqldb:hsqldb:2.5.2'
     testImplementation  project(':common-test')
 }
 

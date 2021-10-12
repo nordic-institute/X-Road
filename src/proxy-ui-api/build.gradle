@@ -3,9 +3,9 @@ import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
 buildscript {
     ext {
         openapiGeneratorVersion = '5.2.1'
-        nodePluginVersion = '2.2.4'
-        nodeVersion = '12.21.0'
-        swaggerParserVersion = '2.0.21'
+        nodePluginVersion = '3.1.1'
+        nodeVersion = '12.22.6'
+        swaggerParserVersion = '2.0.28'
     }
     repositories {
         mavenCentral()
@@ -20,7 +20,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.3")
+    set('springCloudVersion', "2020.0.4")
 }
 
 sourceSets {
@@ -355,7 +355,7 @@ dependencies {
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.apache.commons:commons-compress:1.21')
     implementation('wsdl4j:wsdl4j:1.6.3')
-    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:4.10.0')
+    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:6.3.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
     implementation('io.swagger:swagger-annotations:1.6.2')
 

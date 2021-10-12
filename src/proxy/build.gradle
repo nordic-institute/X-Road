@@ -17,7 +17,7 @@ dependencies {
     testImplementation project(':common-test')
     testImplementation project(path: ':common-util', configuration: 'testArtifacts')
 
-    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation 'org.hsqldb:hsqldb:2.5.2'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
     testImplementation 'io.rest-assured:rest-assured:4.3.1'
     testImplementation 'wsdl4j:wsdl4j:1.6.3'

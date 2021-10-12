@@ -4,7 +4,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.3")
+    set('springCloudVersion', "2020.0.4")
 }
 
 bootJar {
