@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
  * Outputstream that pipes output to an external GnuPG process for signing and encryption
  */
 @Slf4j
-class GPGOutputStream extends FilterOutputStream {
+public class GPGOutputStream extends FilterOutputStream {
 
     private static final String[] DEFAULT_ARGS = {
             "--batch",
@@ -78,7 +78,7 @@ class GPGOutputStream extends FilterOutputStream {
      * @param encryptionKeys Zero or more encryption (recipient) key identifiers
      * @throws IOException if setting up the gpg process fails
      */
-    GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys) throws IOException {
+    public GPGOutputStream(Path gpgHome, Path output, Set<String> encryptionKeys) throws IOException {
         super(null);
         statusTmp = Files.createTempFile(Paths.get(SystemProperties.getTempFilesPath()), "gpgstatus", ".tmp");
         final ProcessBuilder builder = new ProcessBuilder("/usr/bin/gpg");

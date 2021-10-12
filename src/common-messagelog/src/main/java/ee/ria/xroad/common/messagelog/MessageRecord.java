@@ -201,7 +201,7 @@ public class MessageRecord extends AbstractLogRecord {
             plainAttachment = (attachment != null) ? attachment.getBinaryStream() : null;
         }
 
-        return new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment);
+        return new AsicContainer(plaintextMessage, signatureData, timestamp, plainAttachment, getTime());
     }
 
     public void setAttachmentStream(InputStream stream, long size) {
