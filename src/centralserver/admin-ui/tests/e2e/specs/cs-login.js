@@ -30,7 +30,7 @@ module.exports = {
   tags: ['cs', 'login'],
   before(browser) {
     login = browser.page.csLoginPage();
-    members = browser.page.memberspage();
+    members = browser.page.csMembersPage();
   },
   beforeEach() {
     login.navigateAndMakeTestable()
