@@ -29,11 +29,11 @@ const { User } = require('../constants');
 module.exports = {
   tags: ['cs', 'login'],
   before(browser) {
-    login = browser.page.loginpage();
+    login = browser.page.csLoginPage();
     members = browser.page.memberspage();
   },
   beforeEach() {
-    login.navigate();
+    login.navigateAndMakeTestable()
   },
   after(browser) {
     browser.end();
@@ -51,17 +51,5 @@ module.exports = {
       .enterPassword('invalid')
       .signIn()
       .loginErrorMessageIsShown();
-  },
-  'Admin login succeeds': () => {
-    login.signInUser(User.ADMIN);
-    members.membersViewIsVisible();
-  },
-  'Security-officer login succeeds': () => {
-    login.signInUser(User.SECURITY_OFFICER);
-    members.membersViewIsVisible();
-  },
-  'Registration-officer login succeeds': () => {
-    login.signInUser(User.REGISTRATION_OFFICER);
-    members.membersViewIsVisible();
   },
 };
