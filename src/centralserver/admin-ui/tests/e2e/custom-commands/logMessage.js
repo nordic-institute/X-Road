@@ -23,23 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-module.exports = class LoginCommand {
-  async command(
-    username = this.api.globals.login_usr,
-    password = this.api.globals.login_pwd,
-  ) {
-    const loginpage = this.api.page.csLoginPage();
-    const memberspage = this.api.page.csMembersPage();
-    loginpage.navigate();
-    this.api.waitForElementVisible('//*[@id="app"]');
-    loginpage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(username)
-      .enterPassword(password)
-      .signIn();
-    // Check that correct username is displayed on topbar
-    memberspage.verifyCurrentUser(username);
-  }
+module.exports.command = function (message) {
+  return this.perform(function (browser, done) {
+    console.log('\033[32m✓✓✓\033[0m ' + message);
+    console.log('\033[32m ✓✓\033[0m'); // for some reason last log message disappears
+    done();
+  });
 };

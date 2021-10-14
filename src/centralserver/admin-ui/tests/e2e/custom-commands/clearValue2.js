@@ -23,23 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+const Events = require('events');
 
-module.exports = class LoginCommand {
-  async command(
-    username = this.api.globals.login_usr,
-    password = this.api.globals.login_pwd,
-  ) {
-    const loginpage = this.api.page.csLoginPage();
-    const memberspage = this.api.page.csMembersPage();
-    loginpage.navigate();
-    this.api.waitForElementVisible('//*[@id="app"]');
-    loginpage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(username)
-      .enterPassword(password)
-      .signIn();
-    // Check that correct username is displayed on topbar
-    memberspage.verifyCurrentUser(username);
+module.exports = class CustomClear2 extends Events {
+  command(selector) {
+    const { RIGHT_ARROW, BACK_SPACE } = this.api.Keys;
+    return this.api.getValue(selector, (result) => {
+      const chars = result.value.split('');
+      chars.forEach(() => this.api.setValue(selector, RIGHT_ARROW));
+      chars.forEach(() => this.api.setValue(selector, BACK_SPACE));
+      this.emit('complete');
+    });
   }
 };

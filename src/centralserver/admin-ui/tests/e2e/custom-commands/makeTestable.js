@@ -23,23 +23,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+const Events = require('events');
 
-module.exports = class LoginCommand {
-  async command(
-    username = this.api.globals.login_usr,
-    password = this.api.globals.login_pwd,
-  ) {
-    const loginpage = this.api.page.csLoginPage();
-    const memberspage = this.api.page.csMembersPage();
-    loginpage.navigate();
-    this.api.waitForElementVisible('//*[@id="app"]');
-    loginpage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(username)
-      .enterPassword(password)
-      .signIn();
-    // Check that correct username is displayed on topbar
-    memberspage.verifyCurrentUser(username);
+// make UI more testable by
+// 1. setting e2eTestingMode = true -> snackbars stay open forever
+// 2. adding transition:none CSS (disables animations / transitions that make button clicks unreliable)
+module.exports = class MakeTestable extends Events {
+  command() {
+    this.api.execute(function makeUiTestable() {
+      window.e2eTestingMode = true;
+      const style = `
+      <style>
+        *, ::before, ::after {
+            transition:none !important;
+        }
+      </style>`;
+      document.head.insertAdjacentHTML('beforeend', style);
+    }, []);
+    this.api.logMessage("made UI testable by setting window.e2eTestingMode and injecting CSS");
+    this.emit('complete');
   }
 };

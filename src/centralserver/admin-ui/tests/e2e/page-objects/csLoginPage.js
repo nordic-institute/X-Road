@@ -27,11 +27,11 @@
 const { User } = require('../constants/');
 const loginCommands = {
   clearUsername() {
-    this.clearValue('@usernameInput');
+    this.clearValue2('@usernameInput');
     return this;
   },
   clearPassword() {
-    this.clearValue('@passwordInput');
+    this.clearValue2('@passwordInput');
     return this;
   },
   enterUsername(username) {
@@ -42,6 +42,14 @@ const loginCommands = {
     this.setValue('@passwordInput', password);
     return this;
   },
+  navigateAndMakeTestable: function () {
+    this.logMessage('navigateAndMakeTestable()');
+    this.navigate();
+    this.waitForElementVisible('//*[@id="app"]');
+    this.makeTestable();
+    this.logMessage('navigateAndMakeTestable() done');
+    return this;
+  },
   signIn() {
     this.click('@loginButton');
     return this;
@@ -50,23 +58,8 @@ const loginCommands = {
     this.assert.visible('@loginError');
     return this;
   },
-  signInUser(role) {
-    switch (role) {
-      case User.REGISTRATION_OFFICER:
-        return this.api.LoginCommand(
-          this.api.globals.login_registration_officer,
-          this.api.globals.login_pwd,
-        );
-      case User.SECURITY_OFFICER:
-        return this.api.LoginCommand(
-          this.api.globals.login_security_officer,
-          this.api.globals.login_pwd,
-        );
-      case User.ADMIN:
-        return this.api.LoginCommand();
-      default:
-        throw Error('Login role not provided');
-    }
+  signInUser() {
+    return this.LoginCommand();
   },
 };
 

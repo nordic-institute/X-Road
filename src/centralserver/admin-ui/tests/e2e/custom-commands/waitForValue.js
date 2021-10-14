@@ -23,23 +23,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+const Events = require('events');
 
-module.exports = class LoginCommand {
-  async command(
-    username = this.api.globals.login_usr,
-    password = this.api.globals.login_pwd,
-  ) {
-    const loginpage = this.api.page.csLoginPage();
-    const memberspage = this.api.page.csMembersPage();
-    loginpage.navigate();
-    this.api.waitForElementVisible('//*[@id="app"]');
-    loginpage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(username)
-      .enterPassword(password)
-      .signIn();
-    // Check that correct username is displayed on topbar
-    memberspage.verifyCurrentUser(username);
+module.exports = class WaitFor extends Events {
+  // async command(f) {
+  async command(selector, expectedValue) {
+    const interval = 100;
+    const timeout = 5000;
+    let counter = 0;
+    while (counter * interval < timeout) {
+      const result = await this.api.getValue(selector);
+      if (result.value === expectedValue) {
+        const returnValue = {
+          status: 1,
+        };
+        this.emit('complete', returnValue);
+        return returnValue;
+      }
+      await new Promise((r) => setTimeout(r, interval));
+      counter++;
+    }
+    // var err = new Error().stack
+    // this command does not know the stacktrace (which test the command was called from)
+    // maybe changing it to be non-async (it that makes sense) would help?
+    let selectorDescForError = selector;
+    if (selector.hasOwnProperty('selector')) {
+      selectorDescForError = selector.selector;
+    }
+    this.emit(
+      'error',
+      new Error(
+        `Timeout exceeded while waiting for value [${expectedValue}] using selector [${selectorDescForError}]`,
+      ),
+    );
   }
 };
