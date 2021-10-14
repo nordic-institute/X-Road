@@ -1,6 +1,118 @@
 # Change Log
 
 ## 7.0.0 - UNRELEASED
+- XRDDEV-1375: HSM token certificates do not show Deleted status
+- XRDDEV-1461: Permissions handling has inconsistencies when it comes to non-sign-non-auth keys
+- XRDDEV-1466: User interface reports different version than package manager
+- XRDDEV-1468: "Please enter soft token PIN" is illogical on some user roles
+- XRDDEV-1469: Tokens and Certs free text filtering does not consider key id
+- XRDDEV-1470: Buttons hidden in the add service dialog when managing access rights for a producer with a lot of services
+- XRDDEV-1471: Lighthouse analysis shows some possible improvements
+- XRDDEV-1477: Add member usability issues
+- XRDDEV-1551: CertificateDetails view loses usage param when refreshed
+- XRDDEV-1553: NPE in AccessRightService.accessRightTypeToServiceClientDto()
+- XRDDEV-1559: Adding a client to a member with a bad cert ocsp response shows the Register checkbox in the final step of the wizard
+- XRDDEV-1566: Create client wizard does not always take into account cert status and OCSP status - for example offers creation of key & CSR if member has a signer cert with OCSP status REVOKED
+- XRDDEV-1584: As a Developer I want to fix the General conflicts in the new Security Server frontend implementation so that it matches with the Styleguide
+- XRDDEV-1585: As a Developer I want to fix the Table conflicts in the new Security Server frontend implementation so that it matches with the Styleguide
+- XRDDEV-1586: As a Developer I want to fix the "Add client wizard" conflicts in the new Security Server frontend implementation so that it matches with the Styleguide
+- XRDDEV-1590: System settings view is broken when management subsystem member is deleted
+- XRDDEV-1610: Timestamping services have Next update field in the Security Server Diagnostics view
+- XRDDEV-1614: User can't import configuration anchor in security server initialisation
+- XRDDEV-1640: xroad-jetty9 still depends on openjdk-8-jre-headless instead of the more generic dependency in the other modules
+- XRDDEV-1667: Security server API certificate cannot be verified
+- XRDDEV-1669: X-Road properties no longer overridable
+- XRDDEV-1676: Importing invalid certificate chain as the new Internal Security Server TLS Keys' certificate succeeds
+- XRDDEV-1765: OCSP responders that are removed from global configuration are not automatically removed from the Security Server diagnostics view.
+- XRDDEV-1791: Security server presents a warning when importing WSDL
+- XRDDEV-333: As a Security Server Administrator I want that changes in the TSA URL are automatically updated and taken into use by Security Server so that I don't have to re-add the TSA manually.
+- XRDDEV-427: As a Security Server admin I want that Security Server logs x-forwarded-for HTTP headers so that I know the original IP address of a client information system.
+- XRDDEV-541: As a Security Server Administrator I want that the diagnostics view shows the response status (success/failure) of the latest OCSP requests so that I can see the state of OCSP on the Security Server UI.
+- XRDDEV-542: As a Security Server Administrator I want that the diagnostics view shows the response status (success/failure) of the latest TSA request so that I can see the state of TSA on the Security Server UI.
+- XRDDEV-964: As a Security Server Administrator I want the serverconf cache (at least Internal TLS Key) to be invalidated after the configuration changes
+- XRDDEV-1092: As a Server Administrator I want to be able to install the X-Road Security Server or Central Server without a local postgres
+- XRDDEV-1127: As an Architect I want to build X-Road on JDK 11 so that newer language features can be utilized
+- XRDDEV-1184: As a Security Server Administrator I want to be able to change the soft token PIN so that I can rotate the PIN code
+- XRDDEV-1225: As a Security Server Administrator I want to be able to change the soft token PIN so that I can rotate the PIN code
+- XRDDEV-1226: As a Security Server Administrator I want to be able to change the soft token PIN so that I can rotate the PIN code
+- XRDDEV-1282: As a Security Server Administrator I want the installation scripts to be improved so that installing with a remote database is easier
+- XRDDEV-1295: Clarify ServiceFailed.SslAuthenticationFailed error message in two situations
+- XRDDEV-1351: As a Developer I want that the Router and tabs use unified permission data so that there is single source of truth
+- XRDDEV-1397: As a Frontend developer I want to copy the shared Security Server UI components to the new UI library so that sharing the components with other applications is easier
+- XRDDEV-1398: As a Frontend developer I want to apply X-Road 7 style guide to the UI library so that all the shared components are aligned with the style guide
+- XRDDEV-1450: As a Frontend Developer I want to update the general look and feel of the Security Server UI so that it matches the new style guide
+- XRDDEV-1488: As a Software Developer I want to update the Security Server login page so it matches the new style guide
+- XRDDEV-1489: As a Software Developer I want to update the Security Server clients table view so that it matches the new style guide
+- XRDDEV-1490: As a Software Developer I want to update the Security Server client wizards so that they match the new style guide
+- XRDDEV-1491: As a Software Developer I want to update the Security Server client and subsystem subviews so that they match the new style guide
+- XRDDEV-1492: As a Software Developer I want to update the Security Server dialogs and wizards under the client and subsystem subview so that they match the new style guide
+- XRDDEV-1493: As a Software Developer I want to update the Security Server diagnostics and settings views so that they match the new style guide
+- XRDDEV-1494: As a Software Developer I want to update the Security Server keys and certificates view so that it matches the new style guide
+- XRDDEV-1496: As a Security Manager I want to study alternatives for encrypting message payloads in the messagelog database so that the implementation is more secure.
+- XRDDEV-1497: As a Security Manager I want to study alternatives for encrypting messagelog archive files so that the implementation is more secure.
+- XRDDEV-1506: As an Architect I want to analyse how X-Road could support EC keys and ECDSA certificates so that we can improve the performance
+- XRDDEV-1507: As a Product Owner I want to analyse how we could prevent users from updating their X-Road software form an unsupported version so that we would have less issues related to upgrades
+- XRDDEV-1525: As a Security Server Administrator I want to get better visual feedback about key and certificate statuses in the keys and certificates tables in the Security Server UI so that I have a better overview of the status
+- XRDDEV-1544: As a Developer I want update the way messagelog message records are updated so that potential conflicts when multiple nodes are updating the records are avoided
+- XRDDEV-1549: As a Developer I want to have a consistent approach for handling control characters in non-identifier property values
+- XRDDEV-1552: As a Developer I want to have defined strategy for page refreshes and router parameters
+- XRDDEV-1569: As a Security Server Administrator I want to be able to see the information about the JAVA version in use in the diagnostics view so that I can see if there are problems
+- XRDDEV-1581: As a Security Server Administrator I would like to be able to access the API description file used in the software so that I can be sure I am using the right one
+- XRDDEV-1583: As a Developer I want that shared-ui components are named uniformly so that it's easy to recognize them
+- XRDDEV-1591: As a Server Administrator I want there to be documentation available on how to install the Security Server and Central Servere without a local postgres
+- XRDDEV-1597: As a Security Server Administrator I want to be able to use a placeholder value for the service URL in my OpenAPI3 file that would automatically be replaced by the software so that I don't leak the services internal address
+- XRDDEV-1604: As a Security Server Administrator I want the processes to run on JAVA 11 by default so that we can upgrade our runtime
+- XRDDEV-1605: As a Security Expert I want to implement encryption on the backup/restore mechanism for the Security Server so that it wouldn't be vulnerable to tampering
+- XRDDEV-1608: As a Security Manager I want to study alternatives for better message log multi-tenancy support so that archive files of different members could be separated.
+- XRDDEV-1611: As a Security Expert I want to implement verification in the backup/restore mechanism for the Security Server so that it wouldn't be vulnerable to tampering
+- XRDDEV-1612: As a Security Expert I want to update the backup/restore mechanism for the Security Server so that potential remote code execution vulnerabilities would be solved
+- XRDDEV-1626: As an X-Road user I would like to have a generic certificate profile that is compliant with the x.509 standard so that those types of certificates could be used
+- XRDDEV-1629: As a Security Expert I want to fix a XSS vulnerability in the Central Server UI so that potential attack vectors are prevented
+- XRDDEV-1634: As a Developer I want to check the max-width of all the Security Server subviews to make sure they are according to the style guide
+- XRDDEV-1639: As a Security Server Administrator I want to have a better layout for the keys and certificates view so that I can better navigate the information
+- XRDDEV-1641: As a Security Expert I want to design a way to enforce strength rules for the keys we use in backup/restore and message log encryption and signing so that we guide the users to use appropriate keys
+- XRDDEV-1647: As an X-Road user I want X-Road to support OpenAPI 3.1 so that I can use the latest tooling
+- XRDDEV-1648: As an X-Road Security Server administrator I want to be able to group message log archives by members and subsystems so that messages are easier to find and encryption can use different keys
+- XRDDEV-1653: As a Product Owner I want the Security Server 404 not found page to be updated
+- XRDDEV-1654: As a Software Developer I want to extract the authentication code that could be shared with the Central Server into a common module so that the implementations wouldn't go out of sync
+- XRDDEV-1656: As a Developer I want to update the documentation regarding backup and restore to include the new encryption and verification changes so that the documentation is up to date
+- XRDDEV-1659: As a Developer I want to forbid uploading an internal TLS certificate that doesn't belong to the key to safeguard users against mistakes
+- XRDDEV-1660: As a Product Owner I want that the incoming pull request #956 is reviewed so that it can be approved/rejected
+- XRDDEV-1661: As a Security Server Administrator I want the X-Road services to be restarted after a meta-package is installed as this may change certain settings
+- XRDDEV-1663: As Frontend Developer I want to investigate how to generate an API client for the Security Server based on the OpenAPI descriptions so that I can have type checking for API parameters as well
+- XRDDEV-1664: As an X-Road Developer I want the messagelog archiving to happen in a separate process so that the proxy messaging is more resilient to failures
+- XRDDEV-1670: As a Developer I want all X-Road properties to share a common prefix so that managing and whitelisting them would be simpler
+- XRDDEV-1671: As an X-Road Security Server user I want to have a nice permissions denied page so it looks consistent
+- XRDDEV-1679: As a Security Server administrator I want to be able to run the Security Server without the messagelog addon so that I can save resources if I don't need it 
+- XRDDEV-1691: As a Security Server administrator I want the message log archives to be encrypted and signed so that security is improved
+- XRDDEV-1692: As a Security Server administrator I want the messagelog database records to be encrypted so that security is improved
+- XRDDEV-1696: As a Developer I want the last string in the message log archive name to be a part of the digest so that the resulting file names would be deterministic
+- XRDDEV-1697: As a Security Server administrator I want to get a meaningful error when using and incorrect OpenAPI version so that I can understand what goes wrong
+- XRDDEV-1702: As a security expert, I want to add CSP and STS http headers, so that implementation meets secuirty best practises
+- XRDDEV-1704: As a Central Server Administrator I want references to BDR1 to be removed from scripts so that they don't break my BDR3 installation
+- XRDDEV-1705: As a Central Server Administrator I want to be able to skip database restoration during the backup/restore process so that they don't cause issues with my BDR installation
+- XRDDEV-1706: As a Central Server Administrator I want to be able to skip database migrations during the install/upgrade process so that it won't break my BDR setup
+- XRDDEV-1707: As a Central Server Administrator I want to be able to run database migrations manually so that I can have a working BDR setup
+- XRDDEV-1708: As a Security Server administrator I want to be able to configure message log archive encryption keys so that I can set up encruption
+- XRDDEV-1722: As a Developer I want to check if our ASiC containers are correct when a REST message includes a message body that is stored as a MIME attachment
+- XRDDEV-1725: As a Developer I want to upgrade the OpenAPI Generator version to 5.x in the Security Server admin API
+- XRDDEV-1726: As a Developer I want to fix the errors reported by SonarQube so that we pass the quality gate
+- XRDDEV-1743: As a Security Server Administrator I want the generate gpg keypair script doesn't automatically remove the gpg home directory so that I don't accidentally delete the Security Server's existing gpg key.
+- XRDDEV-1744: As a Product Owner I want that the X-Road version number in the documentation is changed from 6 to 7 so that it's up-to-date
+- XRDDEV-1749: As a Security Server Administrator I want the Security Server health check to detect invalid global configuration so that I know when the Security Server is not operational
+- XRDDEV-1752: As a Developer I want to refine the X-Road core release process to include the Sidecar so that the Sidecar is part of the official core release
+- XRDDEV-1753: As a Developer I want to update the Sidecar repository structure so that it has the same structure with the X-Road core
+- XRDDEV-1754: As a Developer I want to plan the Sidecar maintenance process between the releases so that the images include up-to-date dependencies.
+- XRDDEV-1757: As a Security Server Administrator I want to have documentation on how to install messagelogging so that it works correctly
+- XRDDEV-1767: As a Security Server administrator I want to be able to configure message log archive encryption keys using GPG keyring
+- XRDDEV-1768: As a Security Server administrator I want to be able to configure backup encryption keys using GPG keyring
+- XRDDEV-1771: As a Security Server Administrator I want the asic container metaservice to return encrypted archives if I have enabled encryption
+- XRDDEV-1772: As a Security Server Administrator I want to have a migration guide to understand how to upgrade from version 6 to version 7
+- XRDDEV-1778: As a Developer I want to upgrade the Spring Boot library version that we use so that it is supported for the duration of the applications lifetime
+- XRDDEV-1784: As a X-Road software administrator I want to have information on how I can add command-line arguments to the applications in the new local.properties file
+- XRDDEV-1789: As a Security Server administrator I want to have a static reminder about the change from local.conf to local.properties
+- XRDDEV-1811: XRDSD-205: Improvements to the metadata protocol for REST services
+- XRDDEV-1812: Rest metaservice responds incorrectly to "allowedMethods"
 
 ## 6.26.0 - 2021-03-22
 - XRDDEV-1357: Fix various permission check inconsistencies in the Security Server UI frontend implementation
