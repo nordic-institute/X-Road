@@ -34,8 +34,14 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+import ee.ria.xroad.common.metadata.Endpoint;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
+import ee.ria.xroad.common.metadata.RestServiceType;
+import ee.ria.xroad.common.metadata.XRoadRestServiceDetailsType;
 
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -49,6 +55,12 @@ import static java.util.Collections.emptySet;
 public class EmptyServerConf implements ServerConfProvider {
 
     private static final int SERVICE_TIMEOUT = 300;
+    private static final String EXPECTED_XR_INSTANCE = "EE";
+    private static final ClientId DEFAULT_CLIENT = ClientId.create(EXPECTED_XR_INSTANCE, "GOV",
+            "1234TEST_CLIENT", "SUBCODE5");
+    private static final String SERVICE1 = "SERVICE1";
+    private static final String SERVICE2 = "SERVICE2";
+    private static final String SERVICE3 = "SERVICE3";
 
     @Override
     public boolean serviceExists(ServiceId service) {
@@ -83,6 +95,35 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public int getServiceTimeout(ServiceId service) {
         return SERVICE_TIMEOUT;
+    }
+
+    @Override
+    public RestServiceDetailsListType getRestServices(
+            ClientId serviceProvider) {
+        RestServiceDetailsListType restServiceDetailsList = new RestServiceDetailsListType();
+
+        ServiceId serviceId1 = ServiceId.create(DEFAULT_CLIENT, SERVICE1);
+        XRoadRestServiceDetailsType serviceDetails1 = createRestServiceDetails(serviceId1);
+        serviceDetails1.getEndpointList().addAll(getServiceEndpoints(serviceId1));
+        restServiceDetailsList.getService().add(serviceDetails1);
+
+        ServiceId serviceId2 = ServiceId.create(DEFAULT_CLIENT, SERVICE2);
+        XRoadRestServiceDetailsType serviceDetails2 = createRestServiceDetails(serviceId2);
+        serviceDetails2.getEndpointList().addAll(getServiceEndpoints(serviceId2));
+        restServiceDetailsList.getService().add(serviceDetails2);
+
+        ServiceId serviceId3 = ServiceId.create(DEFAULT_CLIENT, SERVICE3);
+        XRoadRestServiceDetailsType serviceDetails3 = createRestServiceDetails(serviceId3);
+        serviceDetails3.getEndpointList().addAll(getServiceEndpoints(serviceId3));
+        restServiceDetailsList.getService().add(serviceDetails3);
+
+        return restServiceDetailsList;
+    }
+
+    @Override
+    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider,
+                                                             ClientId client) {
+        return getRestServices(serviceProvider);
     }
 
     @Override
@@ -121,6 +162,16 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
+    public List<Endpoint> getServiceEndpoints(ServiceId service) {
+        ArrayList<Endpoint> endpoints = new ArrayList<>();
+        Endpoint e = new Endpoint();
+        e.setMethod("*");
+        e.setPath("/");
+        endpoints.add(e);
+        return endpoints;
+    }
+
+    @Override
     public boolean isSslAuthentication(ServiceId service) {
         return false;
     }
@@ -132,7 +183,11 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public List<ServiceId> getAllServices(ClientId serviceProvider) {
-        return emptyList();
+        List<ServiceId> list = new ArrayList<>();
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        return list;
     }
 
     @Override
@@ -143,7 +198,11 @@ public class EmptyServerConf implements ServerConfProvider {
     @Override
     public List<ServiceId> getAllowedServices(ClientId serviceProvider,
             ClientId client) {
-        return emptyList();
+        List<ServiceId> list = new ArrayList<>();
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE1));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE2));
+        list.add(ServiceId.create(DEFAULT_CLIENT, SERVICE3));
+        return list;
     }
 
     @Override
@@ -157,4 +216,25 @@ public class EmptyServerConf implements ServerConfProvider {
         return ClientType.STATUS_REGISTERED;
     }
 
+    private XRoadRestServiceDetailsType createRestServiceDetails(ServiceId serviceId) {
+        XRoadRestServiceDetailsType serviceDetails = new XRoadRestServiceDetailsType();
+        serviceDetails.setXRoadInstance(serviceId.getXRoadInstance());
+        serviceDetails.setMemberClass(serviceId.getMemberClass());
+        serviceDetails.setMemberCode(serviceId.getMemberCode());
+        serviceDetails.setSubsystemCode(serviceId.getSubsystemCode());
+        serviceDetails.setServiceCode(serviceId.getServiceCode());
+        serviceDetails.setObjectType(XRoadObjectType.SERVICE);
+        serviceDetails.setServiceType(getRestServiceType(getDescriptionType(serviceId)));
+        return serviceDetails;
+    }
+
+    private RestServiceType getRestServiceType(DescriptionType descriptionType) {
+        if (descriptionType.equals(DescriptionType.REST)) {
+            return RestServiceType.REST;
+        } else if (descriptionType.equals(DescriptionType.OPENAPI3)) {
+            return RestServiceType.OPENAPI;
+        } else {
+            throw new UnsupportedOperationException("The given parameter is not a REST service type!");
+        }
+    }
 }
