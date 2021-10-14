@@ -43,14 +43,48 @@ const initializationCommands = {
     this.assert.visible('@initializationView');
     return this;
   },
-  initServerAddress: createInitField('@serverAddressInput'),
-  modifyServerAddress: createModifyField('@serverAddressInput'),
-  initInstanceId: createInitField('@instanceIdentifierInput'),
-  modifyInstanceId: createModifyField('@instanceIdentifierInput'),
-  initPin: createInitField('@pinInput'),
-  modifyPin: createModifyField('@pinInput'),
-  initConfirmPin: createInitField('@confirmPinInput'),
-  modifyConfirmPin: createModifyField('@confirmPinInput'),
+  initServerAddress(value) {
+    this.assert.value('@serverAddressInput', '');
+    this.setValue('@serverAddressInput', value);
+    return this;
+  },
+  modifyServerAddress(value) {
+    this.waitForNonEmpty('@serverAddressInput');
+    this.clearValue2('@serverAddressInput');
+    this.setValue('@serverAddressInput', value);
+  },
+  initInstanceId(value) {
+    this.assert.value('@instanceIdentifierInput', '');
+    this.setValue('@instanceIdentifierInput', value);
+    return this;
+  },
+  modifyInstanceId(value) {
+    this.waitForNonEmpty('@instanceIdentifierInput');
+    this.clearValue2('@instanceIdentifierInput');
+    this.setValue('@instanceIdentifierInput', value);
+  },
+  initPin(value) {
+    this.assert.value('@pinInput', '');
+    this.setValue('@pinInput', value);
+    return this;
+  },
+  modifyPin(value) {
+    this.waitForNonEmpty('@pinInput');
+    this.clearValue2('@pinInput');
+    this.setValue('@pinInput', value);
+    return this;
+  },
+  initConfirmPin(value) {
+    this.assert.value('@confirmPinInput', '');
+    this.setValue('@confirmPinInput', value);
+    return this;
+  },
+  modifyConfirmPin(value) {
+    this.waitForNonEmpty('@confirmPinInput');
+    this.clearValue2('@confirmPinInput');
+    this.setValue('@confirmPinInput', value);
+    return this;
+  },
   navigateAndMakeTestable: function () {
     this.logMessage('navigateAndMakeTestable()');
     this.navigate();
