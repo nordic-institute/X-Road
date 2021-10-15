@@ -48,6 +48,7 @@
               ref="initializationParamsVP"
               name="init.identifier"
               rules="required"
+              data-test="instance-identifier--validation"
             >
               <v-text-field
                 v-model="instanceIdentifier"
@@ -74,6 +75,7 @@
               ref="initializationParamsVP"
               name="init.address"
               rules="required"
+              data-test="address--validation"
             >
               <v-text-field
                 v-model="address"
@@ -98,6 +100,7 @@
               v-slot="{ errors }"
               name="init.pin"
               rules="required"
+              data-test="pin--validation"
             >
               <v-text-field
                 v-model="pin"
@@ -122,6 +125,7 @@
               ref="confirmPinFieldVP"
               name="init.confirmPin"
               rules="required|password:@init.pin"
+              data-test="confirm-pin--validation"
             >
               <v-text-field
                 v-model="pinConfirm"

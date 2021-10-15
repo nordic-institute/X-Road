@@ -25,13 +25,27 @@
  */
 let login;
 let initialization;
+let members;
 const { User } = require('../constants');
+
+const STRONG_PIN = 'Valid_Pin_11';
+const WEAK_PIN = '1';
+const VALID_INSTANCE = 'VALID_INSTANCE';
+const INVALID_INSTANCE = 'INVALID&&::INSTANCE';
+const VALID_SERVER_ADDRESS = 'valid.example.org';
+const INVALID_SERVER_ADDRESS = 'invalid...address...fo';
+// To be updated according to localization/en.json (or dig from there?)
+const INSTANCE_INVALID_FIELD_NOTE =
+  'Use valid instance identifier characters only';
+const ADDRESS_INVALID_FIELD_NOTE =
+  'Valid IP address or fully qualified domain name needed';
 module.exports = {
   tags: ['cs', 'initialization'],
   before(browser) {
     // FUTURE STUDY: HOw to ensure we use uninitalized CS for this test?
     login = browser.page.csLoginPage();
     initialization = browser.page.csInitializationPage();
+    members = browser.page.csMembersPage();
   },
   beforeEach() {
     login.navigateAndMakeTestable();
@@ -43,14 +57,12 @@ module.exports = {
   },
   'Central server is not initialized': (browser) => {
     initialization
-      .navigateAndMakeTestable()
       .waitForElementVisible('@initializationView')
       .assert.visible('@initializationPhaseId');
   },
   'Central server PIN repeat field shows check-mark only when it matches with PIN prompt':
     (browser) => {
       initialization
-        .navigateAndMakeTestable()
         .waitForElementVisible('@initializationView')
         .waitForElementVisible('@initializationPhaseId')
         .verify.not.elementPresent('@confirmPinOKIcon')
@@ -62,4 +74,60 @@ module.exports = {
         .modifyConfirmPin('111')
         .verify.not.elementPresent('@confirmPinOKIcon');
     },
+  'Submit enabled only when all fields are filled': (browser) => {
+    initialization
+      .waitForElementVisible('@initializationView')
+      .waitForElementVisible('@initializationPhaseId')
+      .waitForElementVisible('@submitButton')
+      .verify.not.enabled('@submitButton')
+      .initInstanceId(VALID_INSTANCE)
+      .initServerAddress(VALID_SERVER_ADDRESS)
+      .initPin(STRONG_PIN)
+      .initConfirmPin(STRONG_PIN)
+      .verify.enabled('@submitButton')
+      .modifyConfirmPin(STRONG_PIN.concat('err'))
+      .verify.not.enabled('@submitButton')
+      .modifyConfirmPin(STRONG_PIN)
+      .verify.enabled('@submitButton');
+  },
+  'Too weak pin causes error note after submit': (browser) => {
+    initialization
+      .waitForElementVisible('@initializationPhaseId')
+      .waitForElementVisible('@submitButton')
+      .initInstanceId(VALID_INSTANCE)
+      .initServerAddress(VALID_SERVER_ADDRESS)
+      .initPin(WEAK_PIN)
+      .initConfirmPin(WEAK_PIN)
+      .verify.enabled('@submitButton')
+      .click('@submitButton')
+      .waitForElementVisible('@contextualAlertsNote');
+    // To be updated after XRDDEV-1813
+    // .verify.containsText('@contextualAlertsNote', 'weak');
+  },
+  'Invalid address & instance id error': (browser) => {
+    initialization
+      .waitForElementVisible('@initializationPhaseId')
+      .waitForElementVisible('@submitButton')
+      .initInstanceId(INVALID_INSTANCE)
+      .initServerAddress(INVALID_SERVER_ADDRESS)
+      .initPin(STRONG_PIN)
+      .initConfirmPin(STRONG_PIN)
+      .verify.enabled('@submitButton')
+      .click('@submitButton')
+      .waitForElementVisible('@contextualAlertsNote')
+      .verify.containsText('@contextualAlertsNote', 'Validation failure')
+      .verify.containsText(
+        '@instanceIdentifierValidation',
+        INSTANCE_INVALID_FIELD_NOTE,
+      )
+      .verify.containsText(
+        '@serverAddressValidation',
+        ADDRESS_INVALID_FIELD_NOTE,
+      );
+  },
+  'Success message on members page shown after successfull initialisation': (
+    browser,
+  ) => {
+    return true;
+  },
 };

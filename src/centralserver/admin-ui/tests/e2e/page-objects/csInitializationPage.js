@@ -24,20 +24,6 @@
  * THE SOFTWARE.
  */
 
-const createInitField = (fieldSelector) => {
-  return (value) => {
-    this.assert.value(fieldSelector, '');
-    this.setValue(fieldSelector, value);
-    return this;
-  };
-};
-const createModifyField = (fieldSelector) => {
-  return (value) => {
-    this.waitForNonEmpty(fieldSelector);
-    this.clearValue2(fieldSelector);
-    this.setValue(fieldSelector, value);
-  };
-};
 const initializationCommands = {
   initializationViewIsVisible() {
     this.assert.visible('@initializationView');
@@ -116,16 +102,32 @@ module.exports = {
       selector: '//input[@data-test="instance-identifier--input"]',
       locateStrategy: 'xpath',
     },
+    instanceIdentifierValidation: {
+      selector: '//span[@data-test="instance-identifier--validation"]',
+      locateStrategy: 'xpath',
+    },
     serverAddressInput: {
       selector: '//input[@data-test="address--input"]',
+      locateStrategy: 'xpath',
+    },
+    serverAddressValidation: {
+      selector: '//span[@data-test="address--validation"]',
       locateStrategy: 'xpath',
     },
     pinInput: {
       selector: '//input[@data-test="pin--input"]',
       locateStrategy: 'xpath',
     },
+    pinValidation: {
+      selector: '//span[@data-test="pin--validation"]',
+      locateStrategy: 'xpath',
+    },
     confirmPinInput: {
       selector: '//input[@data-test="confirm-pin--input"]',
+      locateStrategy: 'xpath',
+    },
+    confirmPinValidation: {
+      selector: '//span[@data-test="confirm-pin--validation"]',
       locateStrategy: 'xpath',
     },
     confirmPinOKIcon: {
@@ -139,6 +141,9 @@ module.exports = {
     submitButton: {
       selector: '//button[@data-test="submit-button"]',
       locateStrategy: 'xpath',
+    },
+    contextualAlertsNote: {
+      selector: '//div[@data-test="contextual-alert"]',
     },
   },
 };
