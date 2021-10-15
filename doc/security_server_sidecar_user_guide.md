@@ -10,6 +10,7 @@
  10.02.2021 | 1.3     | Modify description of different supported platforms             | Raul Martinez Lopez
  06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
  12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                            | Raul Martinez Lopez
+ 15.10.2021 | 1.6     | Minor documentation updates                                     | Janne Mattila
 
 ## Table of Contents
 
@@ -202,7 +203,7 @@ The script `setup_security_server_sidecar.sh` will:
 
 3. Start a new Security Server Sidecar container from the xroad-sidecar-security-server-image and execute the initial configuration script, which will perform the following configuration steps:
 
-    * Maps ports 4000 (admin UI) and 8080 (HTTP) to user-defined ones (**reference data 1.2**).
+    * Maps ports 4000 (admin UI) and 8080 (HTTP) to user-defined ones (**reference data 1.2**). Admin UI is given as a parameter, HTTP port is set to value (admin UI + 1)
     * Maps port 5588 (proxy health check) to the same host port.
     * Updates Security Server Sidecar configuration on startup if the installed version of the image has been updated.
     * Configures xroad-autologin custom software token PIN code with user-supplied PIN (**reference data 1.3**).
@@ -358,7 +359,9 @@ For example:
 docker run -v sidecar-config:/etc/xroad -v sidecar-config-db:/var/lib/postgresql/12/main -detach -p $2:4000 -p $httpport:8080 -p 5588:5588 --network xroad-network -e XROAD_TOKEN_PIN=$3 -e XROAD_ADMIN_USER=$4 -e XROAD_ADMIN_PASSWORD=$5 -e XROAD_DB_HOST=$postgresqlhost -e XROAD_DB_PORT=$postgresqlport -e XROAD_DB_PWD=$XROAD_DB_PASSWORD --name $1 xroad-sidecar-security-server-image
 ```
 
-This will allow us to create the sidecar-config and sidecar-config-db directories on the host and mount them onto the /etc/xroad and /var/lib/postgresql/12/main config directories respectively in the container.
+This will allow us to store the sidecar-config and sidecar-config-db directories on the host and mount them onto the /etc/xroad and /var/lib/postgresql/12/main config directories respectively in the container.
+
+This example is for configurations using internal database. If you are using [2.7 External database](#27-external-database), volume mapping `/var/lib/postgresql/12/main` is not necessary.
 
 #### 2.9.1 Store sensitive information in volumes
 
