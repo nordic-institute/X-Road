@@ -125,9 +125,20 @@ module.exports = {
         ADDRESS_INVALID_FIELD_NOTE,
       );
   },
-  'Success message on members page shown after successfull initialisation': (
-    browser,
-  ) => {
-    return true;
-  },
+  'Success message on members page shown after successfull initialisation':
+    async (browser) => {
+      await initialization
+        .waitForElementVisible('@initializationView')
+        .waitForElementVisible('@initializationPhaseId')
+        .waitForElementVisible('@submitButton')
+        .initInstanceId(VALID_INSTANCE)
+        .initServerAddress(VALID_SERVER_ADDRESS)
+        .initPin(STRONG_PIN)
+        .initConfirmPin(STRONG_PIN)
+        .verify.enabled('@submitButton')
+        .click('@submitButton');
+      await members
+        .waitForElementVisible('@membersView')
+        .verify.visible('@initNotificationNote');
+    },
 };

@@ -43,6 +43,10 @@ module.exports = {
       selector: '//div[@data-test="members-view"]',
       locateStrategy: 'xpath',
     },
+    initNotificationNote: {
+      selector: '//div[@data-test="continue-init-notification"]',
+      locateStrategy: 'xpath',
+    },
     userMenuButton: {
       selector: '//button[@data-test="username-button"]',
       locateStrategy: 'xpath',
