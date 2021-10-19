@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3">
+  <div class="mt-3" data-test="api-keys-view">
     <div class="title-row">
       <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
       <div>

@@ -94,7 +94,7 @@ describe('Tabs', () => {
       store,
       router,
       mocks: {
-        $t: (key: string) => key, // Mock for vue-i18n lovalisation plugin. Show just the key instead of localisation.
+        $t: (key: string) => key, // Mock for vue-i18n localisation plugin. Show just the key instead of localisation.
       },
       stubs: {
         RouterLink: RouterLinkStub,
