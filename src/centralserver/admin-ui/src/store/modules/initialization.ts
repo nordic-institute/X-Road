@@ -23,114 +23,79 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { post } from '@/util/api';
-import axios, { AxiosResponse } from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
 import {
+  CentralServerAddress,
   InitializationStatus,
-  InitialServerConf,
+  InstanceIdentifier,
   TokenInitStatus,
 } from '@/openapi-types';
+import { get, post } from '@/util/api';
 
 export interface State {
-  serverAddress: string;
-  instanceIdentifier: string;
-  isServerInitialized: boolean | undefined;
+  instanceId: InstanceIdentifier;
+  serverAddress: CentralServerAddress;
+  tokenInit: TokenInitStatus;
 }
 
 export const getDefaultState = (): State => {
   return {
+    instanceId: '',
     serverAddress: '',
-    instanceIdentifier: '',
-    isServerInitialized: false,
+    tokenInit: TokenInitStatus.UNKNOWN,
   };
 };
 
 // Initial state. The state can be reset with this.
 const moduleState = getDefaultState();
 
-export const initializationGetters: GetterTree<State, RootState> = {
-  [StoreTypes.getters.SERVER_ADDRESS](state) {
-    return state.serverAddress;
+export const getters: GetterTree<State, RootState> = {
+  [StoreTypes.getters.INITIALIZATION_STATUS](state): State {
+    return {
+      instanceId: state.instanceId,
+      serverAddress: state.serverAddress,
+      tokenInit: state.tokenInit,
+    };
   },
-  [StoreTypes.getters.INSTANCE_IDENTIFIER](state) {
-    return state.instanceIdentifier;
-  },
-  [StoreTypes.getters.IS_SERVER_INITIALIZED](state) {
-    return state.isServerInitialized;
+  [StoreTypes.getters.IS_SERVER_INITIALIZED](state): boolean {
+    return (
+      0 < state?.instanceId.length &&
+      0 < state?.serverAddress.length &&
+      TokenInitStatus.INITIALIZED == state.tokenInit
+    );
   },
 };
 
 export const mutations: MutationTree<State> = {
-  [StoreTypes.mutations.SET_SERVER_ADDRESS](state, value: string) {
-    state.serverAddress = value;
-  },
-  [StoreTypes.mutations.SET_INSTANCE_IDENTIFIER]: (state, value: string) => {
-    state.instanceIdentifier = value;
-  },
-  [StoreTypes.mutations.SET_SERVER_INITIALIZED]: (state, value: boolean) => {
-    state.isServerInitialized = value;
+  [StoreTypes.mutations.SET_INITIALIZATION_STATUS](
+    state,
+    value: InitializationStatus,
+  ) {
+    state.tokenInit = value.software_token_init_status;
+    state.serverAddress = value.central_server_address;
+    state.instanceId = value.instance_identifier;
   },
 };
 
 export const actions: ActionTree<State, RootState> = {
-  [StoreTypes.actions.INITIALIZATION_REQUEST](
-    { commit },
-    formData: InitialServerConf,
-  ) {
-    return post<void>('/initialization', formData)
-      .then(() => {
-        commit(StoreTypes.mutations.SET_SERVER_INITIALIZED, true);
-      })
-      .catch((error) => {
-        commit(StoreTypes.mutations.SET_ERROR_OBJECT, error);
-        // how to handle "already initialized" ?
-        throw error;
-      });
+  async [StoreTypes.actions.INITIALIZATION_REQUEST]({ commit }, formData) {
+    return post('/initialization', formData).then(() => {
+      return commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
+    });
   },
 
   async [StoreTypes.actions.INITIALIZATION_STATUS_REQUEST]({ commit }) {
-    return axios
-      .get<InitializationStatus>('/initialization/status')
-      .then((res: AxiosResponse<InitializationStatus>) => {
-        commit(
-          StoreTypes.mutations.SET_SERVER_INITIALIZED,
-          isServerInitialized(res.data),
-        );
-        commit(
-          StoreTypes.mutations.SET_SERVER_ADDRESS,
-          res?.data?.central_server_address,
-        );
-        commit(
-          StoreTypes.mutations.SET_INSTANCE_IDENTIFIER,
-          res?.data?.instance_identifier,
-        );
-      })
-      .catch((error) => {
-        throw error;
-      });
+    return get('/initialization/status').then((res) => {
+      commit(StoreTypes.mutations.SET_INITIALIZATION_STATUS, res?.data);
+    });
   },
 };
-
-function isServerInitialized(status: InitializationStatus): boolean {
-  const isAddressInitialized = !!(
-    status?.central_server_address && status.central_server_address.length > 0
-  );
-  const isInstanceInitialized = !!(
-    status?.instance_identifier && status.instance_identifier.length > 0
-  );
-  const isTokenInitialized: boolean =
-    TokenInitStatus.INITIALIZED == status?.software_token_init_status;
-  return (
-    <boolean>isAddressInitialized && isInstanceInitialized && isTokenInitialized
-  );
-}
 
 export const module: Module<State, RootState> = {
   namespaced: false,
   state: moduleState,
-  getters: initializationGetters,
+  getters,
   actions,
   mutations,
 };

@@ -26,13 +26,16 @@
 package ee.ria.xroad.proxy.messagelog;
 
 import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.SoapMessageImpl;
 import ee.ria.xroad.common.messagelog.AbstractLogManager;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
+import ee.ria.xroad.common.messagelog.RestLogMessage;
 import ee.ria.xroad.common.messagelog.SoapLogMessage;
 import ee.ria.xroad.common.messagelog.TimestampRecord;
 import ee.ria.xroad.common.signature.SignatureData;
+import ee.ria.xroad.common.util.CacheInputStream;
 import ee.ria.xroad.common.util.JobManager;
 import ee.ria.xroad.messagelog.archiver.LogArchiver;
 import ee.ria.xroad.messagelog.archiver.LogCleaner;
@@ -48,9 +51,13 @@ import com.typesafe.config.ConfigRenderOptions;
 import com.typesafe.config.ConfigValueFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
+import java.io.ByteArrayInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +72,8 @@ abstract class AbstractMessageLogTest {
     JobManager jobManager;
     ActorSystem actorSystem;
     LogManager logManager;
+
+    protected final Path archivesPath = Paths.get("build/archive");
 
     @Getter
     private TestActorRef<LogManager> logManagerRef;
@@ -126,7 +135,10 @@ abstract class AbstractMessageLogTest {
         logManagerRef = TestActorRef.create(actorSystem, Props.create(getLogManagerImpl(), jobManager),
                 MessageLog.LOG_MANAGER);
 
-        logArchiverRef = TestActorRef.create(actorSystem, Props.create(TestLogArchiver.class, Paths.get("build")));
+        if (!Files.exists(archivesPath)) {
+            Files.createDirectory(archivesPath);
+        }
+        logArchiverRef = TestActorRef.create(actorSystem, Props.create(TestLogArchiver.class, archivesPath));
         logCleanerRef = TestActorRef.create(actorSystem, Props.create(TestLogCleaner.class));
 
         logManager = logManagerRef.underlyingActor();
@@ -146,6 +158,7 @@ abstract class AbstractMessageLogTest {
     void testTearDown() throws Exception {
         jobManager.stop();
         Await.ready(actorSystem.terminate(), Duration.Inf());
+        FileUtils.deleteDirectory(archivesPath.toFile());
     }
 
     protected Class<? extends AbstractLogManager> getLogManagerImpl() throws Exception {
@@ -166,6 +179,21 @@ abstract class AbstractMessageLogTest {
 
     protected void log(SoapMessageImpl message, SignatureData signature) throws Exception {
         logManager.log(new SoapLogMessage(message, signature, true));
+    }
+
+    protected void log(RestRequest message, SignatureData signatureData, byte[] body)
+            throws Exception {
+        final ByteArrayInputStream bos = new ByteArrayInputStream(body);
+        final CacheInputStream cis = new CacheInputStream(bos, bos.available());
+
+        final RestLogMessage logMessage = new RestLogMessage(message.getQueryId(),
+                message.getClientId(),
+                message.getServiceId(),
+                message, signatureData,
+                cis,
+                true,
+                message.getXRequestId());
+        logManager.log(logMessage);
     }
 
     TimestampRecord timestamp(MessageRecord record) throws Exception {
@@ -195,5 +223,22 @@ abstract class AbstractMessageLogTest {
         MessageRecord messageRecord = (MessageRecord) o;
         assertEquals(queryId, messageRecord.getQueryId());
     }
+
+    static Object waitForMessageInTaskQueue() throws Exception {
+        assertTrue(TestTaskQueue.waitForMessage());
+
+        Object message = TestTaskQueue.getLastMessage();
+        assertNotNull("Did not get message from task queue", message);
+
+        return message;
+    }
+
+    static Timestamper.TimestampSucceeded waitForTimestampSuccessful() throws Exception {
+        Object result = waitForMessageInTaskQueue();
+        assertTrue("Got " + result, result instanceof Timestamper.TimestampSucceeded);
+
+        return (Timestamper.TimestampSucceeded) result;
+    }
+
 
 }

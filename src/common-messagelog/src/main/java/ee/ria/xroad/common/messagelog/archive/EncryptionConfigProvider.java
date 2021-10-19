@@ -47,7 +47,7 @@ import java.util.regex.Pattern;
  * @see ServerEncryptionConfigProvider
  * @see MemberEncryptionConfigProvider
  */
-interface EncryptionConfigProvider {
+public interface EncryptionConfigProvider {
 
     default boolean isEncryptionEnabled() {
         return true;

@@ -1,7 +1,9 @@
 {
   "ignore": [
     ".idea",
+    ".gradle/",
     "frontend.iml",
+    "*.iml",
     "**/*.md",
     "**/*.svg",
     "**/*.eot",
@@ -16,6 +18,7 @@
     "**/*.yaml*",
     "**/.*",
     "src/openapi-types/",
+    "src/mock-openapi-types/",
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
     "tests/e2e/testdata/*.gz",

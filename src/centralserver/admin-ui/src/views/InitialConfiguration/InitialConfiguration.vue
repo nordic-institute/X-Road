@@ -25,119 +25,150 @@
  -->
 <template>
   <main id="initial-configuration" class="form-view-wrap">
-    <ValidationObserver ref="form1" v-slot="{ invalid }">
-      <div class="form-content-wrap">
-        <div class="form-main-title">{{ $t('init.initialConfiguration') }}</div>
-
-        <div class="form-sub-title">{{ $t('init.csIdentification') }}</div>
-        <div class="form-row-wrap">
-          <xrd-form-label
-            :label-text="$t('fields.init.identifier')"
-            :help-text="$t('init.instanceIdentifier.info')"
-          />
-
-          <ValidationProvider
-            v-slot="{ errors }"
-            ref="memberCodeVP"
-            name="init.identifier"
-            rules="required"
+    <ValidationObserver ref="initializationForm" v-slot="{ invalid }">
+      <v-form>
+        <div class="form-content-wrap">
+          <div
+            class="form-main-title"
+            data-test="central-server-initialization-page-title"
           >
-            <v-text-field
-              v-model="instanceIdentifier"
-              class="form-input"
-              type="text"
-              :error-messages="errors"
-              outlined
-              autofocus
-              data-test="instance-identifier--input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+            {{ $t('init.initialConfiguration') }}
+          </div>
 
-        <div class="form-row-wrap">
-          <xrd-form-label
-            :label-text="$t('fields.init.address')"
-            :help-text="$t('init.address.info')"
-          />
+          <div class="form-sub-title">{{ $t('init.csIdentification') }}</div>
 
-          <ValidationProvider
-            v-slot="{ errors }"
-            ref="memberCodeVP"
-            name="init.address"
-            rules="required"
-          >
-            <v-text-field
-              v-model="address"
-              class="form-input"
-              type="text"
-              :error-messages="errors"
-              outlined
-              data-test="address-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
-        <div class="form-sub-title">{{ $t('init.softwareToken') }}</div>
-        <div class="form-row-wrap">
-          <xrd-form-label
-            :label-text="$t('fields.init.pin')"
-            :help-text="$t('init.pin.info')"
-          />
+          <div class="form-row-wrap">
+            <xrd-form-label
+              :label-text="$t('fields.init.identifier')"
+              :help-text="$t('init.instanceIdentifier.info')"
+            />
 
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="init.pin"
-            rules="required|password:@init.confirmPin"
-          >
-            <v-text-field
-              v-model="pin"
-              class="form-input"
-              type="text"
+            <ValidationProvider
+              v-slot="{ errors }"
+              ref="initializationParamsVP"
+              name="init.identifier"
+              rules="required"
+            >
+              <v-text-field
+                v-model="instanceIdentifier"
+                class="form-input"
+                type="text"
+                :label="$t('fields.init.identifier')"
+                :error-messages="errors"
+                :disabled="disabledFields.instanceIdentifier"
+                outlined
+                autofocus
+                data-test="instance-identifier--input"
+              ></v-text-field>
+            </ValidationProvider>
+          </div>
+
+          <div class="form-row-wrap">
+            <xrd-form-label
+              :label-text="$t('fields.init.address')"
+              :help-text="$t('init.address.info')"
+            />
+
+            <ValidationProvider
+              v-slot="{ errors }"
+              ref="initializationParamsVP"
+              name="init.address"
+              rules="required"
+            >
+              <v-text-field
+                v-model="address"
+                class="form-input"
+                type="text"
+                :label="$t('fields.init.address')"
+                :error-messages="errors"
+                :disabled="disabledFields.address"
+                outlined
+                data-test="address--input"
+              ></v-text-field>
+            </ValidationProvider>
+          </div>
+          <div class="form-sub-title">{{ $t('init.softwareToken') }}</div>
+          <div class="form-row-wrap">
+            <xrd-form-label
+              :label-text="$t('fields.init.pin')"
+              :help-text="$t('init.pin.info')"
+            />
+
+            <ValidationProvider
+              v-slot="{ errors }"
               name="init.pin"
-              :error-messages="errors"
-              outlined
-              data-test="pin-input"
-            ></v-text-field>
-          </ValidationProvider>
-        </div>
+              rules="required"
+            >
+              <v-text-field
+                v-model="pin"
+                class="form-input"
+                type="password"
+                autocomplete="pin-code"
+                name="init.pin"
+                :label="$t('fields.init.pin')"
+                :error-messages="errors"
+                :disabled="disabledFields.pin"
+                outlined
+                data-test="pin--input"
+              ></v-text-field>
+            </ValidationProvider>
+          </div>
 
-        <div class="form-row-wrap">
-          <xrd-form-label :label-text="$t('fields.init.repeatPin')" />
+          <div class="form-row-wrap">
+            <xrd-form-label :label-text="$t('fields.init.confirmPin')" />
 
-          <ValidationProvider
-            v-slot="{ errors }"
-            name="init.confirmPin"
-            rules="required"
-          >
-            <v-text-field
-              v-model="pinConfirm"
-              class="form-input"
-              type="text"
+            <ValidationProvider
+              v-slot="{ errors, passed }"
+              ref="confirmPinFieldVP"
               name="init.confirmPin"
-              :error-messages="errors"
-              outlined
-              data-test="confirm-pin-input"
-            ></v-text-field>
-          </ValidationProvider>
+              rules="required|password:@init.pin"
+            >
+              <v-text-field
+                v-model="pinConfirm"
+                class="form-input"
+                type="password"
+                autocomplete="pin-code"
+                name="init.confirmPin"
+                :label="$t('fields.init.confirmPin')"
+                :error-messages="errors"
+                :disabled="disabledFields.pin"
+                outlined
+                data-test="confirm-pin--input"
+              >
+                <xrd-icon-base
+                  v-if="passed"
+                  slot="append"
+                  :color="colors.Success100"
+                  data-test="confirm-pin-append-input-icon"
+                >
+                  <XrdIconChecked />
+                </xrd-icon-base>
+              </v-text-field>
+            </ValidationProvider>
+          </div>
         </div>
-      </div>
-      <div class="button-footer">
-        <xrd-button
-          :disabled="invalid"
-          data-test="submit-button"
-          @click="submit"
-          >{{ $t('action.submit') }}</xrd-button
-        >
-      </div>
+        <div class="button-footer">
+          <xrd-button
+            :disabled="invalid"
+            data-test="submit-button"
+            @click="submit"
+            >{{ $t('action.submit') }}
+          </xrd-button>
+        </div>
+      </v-form>
     </ValidationObserver>
   </main>
 </template>
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { ValidationProvider, ValidationObserver, extend } from 'vee-validate';
+import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
-import { StoreTypes } from '@/global';
-import { InitialServerConf } from '@/openapi-types';
+import { Colors, RouteName, StoreTypes } from '@/global';
+import { ErrorInfo, InitialServerConf, TokenInitStatus } from '@/openapi-types';
+import { swallowRedirectedNavigationError } from '@/util/helpers';
+import { AxiosError } from 'axios';
+import { State } from '@/store/modules/initialization';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -149,12 +180,42 @@ extend('password', {
   },
   message: PASSWORD_MATCH_ERROR,
 });
+const statusState = {
+  instanceId: 'instanceIdentifier',
+  serverAddress: 'address',
+  tokenInit: 'pin',
+} as const;
+
+function getTranslatedFieldErrors(
+  fieldName: string,
+  fieldError: Record<string, string[]>,
+): string[] {
+  let errors: string[] = fieldError[fieldName];
+  if (errors) {
+    return errors.map((errorKey: string) => {
+      return i18n.t(`validationError.${errorKey}Field`).toString();
+    });
+  } else {
+    return [];
+  }
+}
+
+function invalidParamsErrors(errorInfo: ErrorInfo): Array<string> {
+  if (
+    400 === errorInfo.status &&
+    'invalid_init_params' === errorInfo.error?.code
+  ) {
+    return errorInfo.error.metadata || [];
+  } else {
+    return [];
+  }
+}
 
 export default (
   Vue as VueConstructor<
     Vue & {
       $refs: {
-        memberCodeVP: InstanceType<typeof ValidationProvider>;
+        initializationForm: InstanceType<typeof ValidationObserver>;
       };
     }
   >
@@ -170,35 +231,105 @@ export default (
       instanceIdentifier: '',
       pin: '',
       pinConfirm: '',
+      colors: Colors,
+      disabledFields: {
+        address: false,
+        instanceIdentifier: false,
+        pin: false,
+      },
     };
   },
-  computed: {
-    isSubmitDisabled() {
-      if (
-        this.instanceIdentifier.length < 1 ||
-        this.address.length < 1 ||
-        this.pin.length < 1
-      ) {
-        return true;
-      }
-      return false;
-    },
+  computed: {},
+  created: function () {
+    let statusAtFirst: State =
+      this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
+
+    if (TokenInitStatus.INITIALIZED == statusAtFirst?.tokenInit) {
+      this.disabledFields.pin = true;
+      this.pin = '****';
+      this.pinConfirm = '****';
+    }
+    if (statusAtFirst?.serverAddress.length > 0) {
+      this.disabledFields.address = true;
+      this.address = statusAtFirst?.serverAddress;
+    }
+    if (statusAtFirst?.instanceId.length > 0) {
+      this.disabledFields.instanceIdentifier = true;
+      this.instanceIdentifier = statusAtFirst.instanceId;
+    }
   },
   methods: {
     async submit() {
       // validate inputs
 
-      const formData: InitialServerConf = {
-        instance_identifier: this.instanceIdentifier,
-        central_server_address: this.address,
-        software_token_pin: this.pin,
-      };
+      const formData: InitialServerConf = {};
+      if (!this.disabledFields.instanceIdentifier) {
+        formData.instance_identifier = this.instanceIdentifier;
+      }
+      if (!this.disabledFields.address) {
+        formData.central_server_address = this.address;
+      }
+      if (!this.disabledFields.pin) {
+        formData.software_token_pin = this.pin;
+      }
+      await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+      await this.$store
+        .dispatch(StoreTypes.actions.INITIALIZATION_REQUEST, formData)
+        .then(
+          () => {
+            this.$router
+              .push({
+                name: RouteName.Members,
+              })
+              .catch(swallowRedirectedNavigationError);
+          },
+          (error: AxiosError) => {
+            let errorInfo: ErrorInfo = error.response?.data || { status: 0 };
 
-      await this.$store.dispatch(
-        StoreTypes.actions.INITIALIZATION_REQUEST,
-        formData,
-      );
-      this.$store.commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
+            if (isFieldError(errorInfo)) {
+              let fieldErrors = errorInfo.error?.validation_errors;
+              if (fieldErrors) {
+                let identifierErrors: string[] = getTranslatedFieldErrors(
+                  'initialServerConf.instanceIdentifier',
+                  fieldErrors,
+                );
+                let addressErrors: string[] = getTranslatedFieldErrors(
+                  'initialServerConf.centralServerAddress',
+                  fieldErrors,
+                );
+                this.$refs.initializationForm.setErrors({
+                  'init.identifier': identifierErrors,
+                  'init.address': addressErrors,
+                });
+                this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              }
+              return;
+            }
+            if (invalidParamsErrors(errorInfo).length > 0) {
+              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              return;
+            }
+            throw error;
+          },
+        )
+        .catch((error) => {
+          return this.$store.dispatch(
+            StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW,
+            error,
+          );
+        })
+        .finally(() => {
+          return this.$store.dispatch(
+            StoreTypes.actions.INITIALIZATION_STATUS_REQUEST,
+          );
+        });
+
+      function isFieldError(error: ErrorInfo) {
+        let errorStatus = error.status;
+        return (
+          400 === errorStatus && 'validation_failure' === error?.error?.code
+        );
+      }
     },
   },
 });

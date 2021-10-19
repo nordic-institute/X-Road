@@ -41,9 +41,6 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     return;
   }
 
-  // Clear error notifications when the route is changed
-  store.commit(StoreTypes.mutations.RESET_NOTIFICATIONS_STATE);
-
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
   // user to be redirected to a view that contains api calls (s)he is not allowed.
@@ -52,19 +49,25 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     store.getters[StoreTypes.getters.IS_AUTHENTICATED]
   ) {
     // Server is not initialized
-    /*
-    Check initialisation status here
-    */
-    if (store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED]) {
+    if (
+      !store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED] &&
+      to.name != RouteName.Initialisation &&
+      from.name != RouteName.Initialisation
+    ) {
       next({
         name: RouteName.Initialisation,
       });
-    }
-
-    next();
-    /*
+    } else {
+      // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
+      if (from.name !== RouteName.Initialisation) {
+        store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+      }
+      /*
     Check permissions here
     */
+      next();
+    }
+
     return;
   } else {
     next({

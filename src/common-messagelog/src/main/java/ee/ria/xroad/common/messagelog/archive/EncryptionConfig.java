@@ -36,7 +36,7 @@ import java.util.Set;
 @Getter
 @RequiredArgsConstructor
 @EqualsAndHashCode
-class EncryptionConfig {
+public class EncryptionConfig {
     private final boolean enabled;
     private final Path gpgHomeDir;
     private final Set<String> encryptionKeys;

@@ -11,7 +11,7 @@ dependencies {
     implementation(project(':asic-util'))
 
     testImplementation project(':common-test')
-    testImplementation 'org.hsqldb:hsqldb:2.5.1'
+    testImplementation 'org.hsqldb:hsqldb:2.5.2'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
 }
 
