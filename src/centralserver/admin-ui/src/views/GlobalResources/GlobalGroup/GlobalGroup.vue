@@ -35,7 +35,7 @@
       <div class="title-search">
         <div class="xrd-view-title">{{ globalGroup.name }}</div>
       </div>
-      <xrd-button data-test="remove-group-button"
+      <xrd-button data-test="remove-group-button" outlined
         ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
         {{ $t('globalGroup.deleteGroup') }}</xrd-button
       >
@@ -53,7 +53,7 @@
     <div class="table-toolbar align-fix mt-8 pl-0">
       <div class="xrd-title-search align-fix mt-0 pt-0">
         <div class="xrd-view-title align-fix">
-          {{ $t('globalGroup.groupMembers') }}
+          {{ $t('globalGroup.groupMembers') }} ({{ memberCount }})
         </div>
         <xrd-search v-model="search" class="margin-fix" />
         <v-icon
@@ -65,7 +65,7 @@
       </div>
       <div class="only-pending mt-0">
         <xrd-button data-test="add-member-button" @click="showAddDialog = true"
-          ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
+          ><v-icon class="xrd-large-button-icon">mdi-plus-circle</v-icon>
           {{ $t('globalGroup.addMembers') }}</xrd-button
         >
       </div>
@@ -144,6 +144,7 @@ export default Vue.extend({
       showFilterDialog: false,
       search: '',
       loading: false,
+      showAddDialog: false,
       globalGroups: [
         {
           memberName: 'Nordic Institute for Interoperability Solutions',
@@ -168,6 +169,9 @@ export default Vue.extend({
     };
   },
   computed: {
+    memberCount(): number {
+      return this.globalGroups.length;
+    },
     globalGroupsHeaders(): DataTableHeader[] {
       return [
         {
