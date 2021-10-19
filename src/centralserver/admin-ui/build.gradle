@@ -137,13 +137,13 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
     if (!runHeadless.isEmpty()) {
         if (runHeadless == "true") {
-            args += "--headless"
+            args.add("--headless")
         }
     }
 
     if (!failScreenshot.isEmpty()) {
         if (failScreenshot == "true") {
-            args += "--env screenshot"
+            args.add("--env screenshot")
         }
     }
 
