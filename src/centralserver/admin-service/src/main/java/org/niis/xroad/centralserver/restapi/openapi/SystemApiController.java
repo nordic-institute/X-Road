@@ -46,6 +46,7 @@ public class SystemApiController implements SystemApi {
     HAConfigStatus currentHaConfigStatus;
 
     @Override
+    @PreAuthorize("hasAuthority('HIGH_AVAILABILITY_STATUS')")
     public ResponseEntity<HighAvailabilityStatus> highAvailabilityStatus() {
         var highAvailabilityStatus = new HighAvailabilityStatus();
         highAvailabilityStatus.setIsHaConfigured(currentHaConfigStatus.isHaConfigured());
