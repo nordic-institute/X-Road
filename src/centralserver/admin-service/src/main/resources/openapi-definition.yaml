@@ -39,6 +39,31 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /system/nodename:
+    get:
+      tags:
+        - system
+      summary: get the high availability node name
+      operationId: systemNodeName
+      responses:
+        '200':
+          description: system node name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeName'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /initialization:
     post:
       tags:
@@ -195,6 +220,10 @@ components:
       type: string
       format: text
       description: Central server’s public DNS name or external IP address
+    NodeName:
+      type: string
+      format: text
+      description: Central server's high availability node name, if available
     Version:
       type: object
       description: version information
