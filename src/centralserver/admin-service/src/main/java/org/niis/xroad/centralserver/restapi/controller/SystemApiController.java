@@ -38,6 +38,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {
+    @PreAuthorize("hasAuthority('VIEW_NODE_NAME')")
+    @Override
+    public ResponseEntity<String> systemNodeName() {
+        return ResponseEntity.ok("0");
+    }
+
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<Version> systemVersion() {
