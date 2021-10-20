@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.controller;
+package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.Version;

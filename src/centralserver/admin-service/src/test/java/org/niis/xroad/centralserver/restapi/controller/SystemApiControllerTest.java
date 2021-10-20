@@ -30,6 +30,7 @@ import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.openapi.AbstractApiControllerTestContext;
+import org.niis.xroad.centralserver.restapi.openapi.SystemApiController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
