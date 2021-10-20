@@ -39,6 +39,32 @@
     "finish": "Finish",
     "searching": "Searching..."
   },
+  "filters": {
+    "chooseFilters": "Choose filters",
+    "clearFields": "Clear fields",
+    "apply": "Apply",
+    "managementRequests": {
+      "byStatus": "By status",
+      "byCreationDate": "By creation date",
+      "byServerOwnerName": "By server owner name",
+      "bySource": "By source",
+      "byServerOwnerClass": "By server owner class",
+      "byServerOwnerCode": "By server owner code",
+      "byServerCode": "By server code",
+      "byRequestType": "By request type"
+    },
+    "groupMembers": {
+      "byType": "By type",
+      "member": "Member",
+      "subsystem": "Subsystem",
+      "byInstance": "By instance",
+      "byClass": "By class",
+      "byCode": "By code",
+      "bySubsystem": "By subsystem",
+      "class": "Class",
+      "instance": "Instance"
+    }
+  },
   "global": {
     "class": "Class",
     "code": "Code",
@@ -50,6 +76,7 @@
     "register": "Register",
     "approve": "Approve",
     "id": "Id",
+    "instance": "Instance",
     "type": "Type",
     "created": "Created",
     "status": "Status",
@@ -58,6 +85,28 @@
       "back": "Back"
     },
     "search": "Search"
+  },
+  "globalGroup": {
+    "addMembers": "Add Members",
+    "deleteGroup": "Delete Group",
+    "groupMembers": "Group members",
+    "memberName": "Member Name"
+  },
+  "globalResources": {
+    "addCentralService": "Add Central Service",
+    "addGlobalGroup": "Add Global Group",
+    "centralServices": "Central Services",
+    "code": "Code",
+    "codeCS": "Code (Central Service)",
+    "codeIS": "Code (Implementing Service)",
+    "description": "Description",
+    "globalGroups": "Global Groups",
+    "memberCount": "Member Count",
+    "providerClass": "Provider Class",
+    "providerCode": "Provider Code",
+    "providerSubsystem": "Provider Subsystem",
+    "updated": "Updated",
+    "version": "Version"
   },
   "footer": {
     "software": {
@@ -97,6 +146,7 @@
     "settings": {
       "systemSettings": "System Settings",
       "backupAndRestore": "Backup And Restore",
+      "globalResources": "Global Resources",
       "apiKeys": "API Keys"
     },
     "globalConf": {

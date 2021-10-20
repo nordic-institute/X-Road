@@ -23,69 +23,18 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
-  <div>
-    <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact>{{
-        $t(tab.name)
-      }}</v-tab>
-    </sub-tabs>
-  </div>
+  <xrd-sub-view-container>
+    <router-view data-test="global-resources-view"></router-view>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
 
-export default Vue.extend({
-  components: {
-    SubTabs,
-  },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
-  },
-  computed: {
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'globalResources',
-          name: 'tab.settings.globalResources',
-          to: {
-            name: RouteName.GlobalResources,
-          },
-          permissions: [Permissions.MOCK_PERMISSION1],
-        },
-        {
-          key: 'system',
-          name: 'tab.settings.systemSettings',
-          to: {
-            name: RouteName.SystemSettings,
-          },
-          permissions: [Permissions.MOCK_PERMISSION1],
-        },
-        {
-          key: 'backup',
-          name: 'tab.settings.backupAndRestore',
-          to: {
-            name: RouteName.BackupAndRestore,
-          },
-          permissions: [Permissions.MOCK_PERMISSION1],
-        },
-        {
-          key: 'apikeys',
-          name: 'tab.settings.apiKeys',
-          to: {
-            name: RouteName.ApiKeys,
-          },
-          permissions: [Permissions.MOCK_PERMISSION1],
-        },
-      ];
-      return allTabs; // needs to be filtered with permissions
-    },
-  },
-});
+/**
+ * Main view wrapping content all from 'Global resources' main tab
+ */
+export default Vue.extend({});
 </script>
