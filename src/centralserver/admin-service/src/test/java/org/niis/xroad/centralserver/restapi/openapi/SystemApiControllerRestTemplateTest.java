@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -58,4 +59,15 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTe
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
     }
 
+    @Test
+    @WithMockUser(authorities = {"HIGH_AVAILABILITY_STATUS"})
+    public void testGetHighAvailabilityStatusRestEndpoint() {
+        ResponseEntity<HighAvailabilityStatus> response =
+                restTemplate.getForEntity("/api/v1/system/high-availability-status", HighAvailabilityStatus.class);
+        assertNotNull(response, "High availability status response must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "High availability response status code must be 200 ");
+        assertNotNull(response.getBody());
+        assertEquals(false, response.getBody().getIsHaConfigured());
+        assertEquals("node_0", response.getBody().getNodeName());
+    }
 }
