@@ -39,19 +39,19 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/nodename:
+  /system/high-availability-status:
     get:
       tags:
         - system
-      summary: get the high availability node name
-      operationId: systemNodeName
+      summary: get the system high availability status
+      operationId: highAvailabilityStatus
       responses:
         '200':
-          description: system node name
+          description: system high availability status
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NodeName'
+                $ref: '#/components/schemas/HighAvailabilityStatus'
         '400':
           description: request was invalid
         '401':
@@ -220,10 +220,23 @@ components:
       type: string
       format: text
       description: Central server’s public DNS name or external IP address
-    NodeName:
-      type: string
-      format: text
-      description: Central server's high availability node name, if available
+    HighAvailabilityStatus:
+      type: object
+      description: Central server's high availability status
+      required:
+        - info
+      properties:
+        is_ha_configured:
+          type: boolean
+          description: indicates if the central server is in high availability mode
+          default: false
+        node_name:
+          type: string
+          format: text
+          description: central server's node name
+          example: node_0
+          minLength: 1
+          maxLength: 255
     Version:
       type: object
       description: version information

@@ -27,21 +27,30 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.niis.xroad.centralserver.openapi.SystemApi;
+import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
+import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 public class SystemApiController implements SystemApi {
-    @PreAuthorize("hasAuthority('VIEW_NODE_NAME')")
+
+    @Autowired
+    HAConfigStatus currentHaConfigStatus;
+
     @Override
-    public ResponseEntity<String> systemNodeName() {
-        return ResponseEntity.ok("0");
+    public ResponseEntity<HighAvailabilityStatus> highAvailabilityStatus() {
+        var highAvailabilityStatus = new HighAvailabilityStatus();
+        highAvailabilityStatus.setIsHaConfigured(currentHaConfigStatus.isHaConfigured());
+        highAvailabilityStatus.setNodeName(currentHaConfigStatus.getCurrentHaNodeName());
+        return ResponseEntity.ok(highAvailabilityStatus);
     }
 
     @Override
