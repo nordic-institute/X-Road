@@ -7,7 +7,7 @@
   "globals_path" : "./tests/e2e/globals.js",
   "live_output" : false,
   "parallel_process_delay" : 10,
-  "disable_colors": false,
+  "disable_colors": true,
   "test_workers" : false,
   "test_settings" : {
     "screenshots" : {
