@@ -32,12 +32,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { CertificateStatus } from '@/openapi-types';
+import { CertificateStatus, TokenCertificate } from '@/openapi-types';
+import { Prop } from 'vue/types/options';
 
 export default Vue.extend({
   props: {
     certificate: {
-      type: Object,
+      type: Object as Prop<TokenCertificate>,
       required: true,
     },
   },
@@ -63,7 +64,11 @@ export default Vue.extend({
           return 'keys.certStatus.globalError';
 
         default:
-          return '-';
+          if (!this.certificate.saved_to_configuration) {
+            return 'keys.certStatus.onlyInHWToken';
+          } else {
+            return '-';
+          }
       }
     },
     statusIconType() {

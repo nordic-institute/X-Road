@@ -132,6 +132,13 @@ export default Vue.extend({
   },
   created(): void {
     this.fetchData();
+    this.$store.dispatch('showStaticNotification', [
+      this.$t('info.backups_incompatible[0]'),
+      this.$t('info.backups_incompatible[1]'),
+    ]);
+  },
+  beforeDestroy() {
+    this.$store.dispatch('clearStaticNotification');
   },
   methods: {
     async fetchData() {

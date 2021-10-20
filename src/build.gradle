@@ -11,7 +11,7 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.2.2'
+    id 'org.owasp.dependencycheck' version '6.3.2'
     id 'jacoco'
     id 'java'
     id 'idea'
@@ -64,7 +64,6 @@ dependencyCheck {
     }
 }
 
-
 allprojects {
     buildscript {
       repositories {
@@ -113,11 +112,11 @@ subprojects {
         testImplementation 'org.hamcrest:hamcrest-library:2.2'
         testImplementation 'junit:junit:4.13.2'
 
-        compileOnly 'org.projectlombok:lombok:1.18.20'
-        annotationProcessor 'org.projectlombok:lombok:1.18.20'
+        compileOnly 'org.projectlombok:lombok:1.18.22'
+        annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
-        testCompileOnly 'org.projectlombok:lombok:1.18.20'
-        testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+        testCompileOnly 'org.projectlombok:lombok:1.18.22'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
     }
 
     task testJar(type: Jar) {

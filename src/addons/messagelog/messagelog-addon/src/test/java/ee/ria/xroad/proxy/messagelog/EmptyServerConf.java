@@ -33,6 +33,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
@@ -83,8 +85,20 @@ public class EmptyServerConf implements ServerConfProvider {
     }
 
     @Override
-    public IsAuthentication getIsAuthentication(ClientId client) {
+    public RestServiceDetailsListType getRestServices(
+            ClientId serviceProvider) {
         return null;
+    }
+
+    @Override
+    public RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider,
+                                                             ClientId client) {
+        return null;
+    }
+
+    @Override
+    public IsAuthentication getIsAuthentication(ClientId client) {
+        return IsAuthentication.NOSSL;
     }
 
     @Override
@@ -114,6 +128,11 @@ public class EmptyServerConf implements ServerConfProvider {
 
     @Override
     public String getServiceDescriptionURL(ServiceId service) {
+        return null;
+    }
+
+    @Override
+    public List<Endpoint> getServiceEndpoints(ServiceId service) {
         return null;
     }
 
