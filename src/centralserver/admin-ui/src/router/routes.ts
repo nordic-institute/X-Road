@@ -61,6 +61,10 @@ import SecurityServerClients from '@/views/SecurityServers/SecurityServer/Securi
 import SecurityServerAuthenticationCertificates from '@/views/SecurityServers/SecurityServer/SecurityServerAuthenticationCertificates.vue';
 import SecurityServerManagementRequests from '@/views/SecurityServers/SecurityServer/SecurityServerManagementRequests.vue';
 
+import GlobalResources from '@/views/GlobalResources/GlobalResources.vue';
+import GlobalResourcesList from '@/views/GlobalResources/GlobalResourcesList.vue';
+import GlobalGroup from '@/views/GlobalResources/GlobalGroup/GlobalGroup.vue';
+
 import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
 
 import GlobalConfiguration from '@/views/GlobalConfiguration/GlobalConfiguration.vue';
@@ -97,8 +101,28 @@ const routes: RouteConfig[] = [
         },
         children: [
           {
+            path: 'globalresources',
+            component: GlobalResources,
+            props: true,
+            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            children: [
+              {
+                name: RouteName.GlobalResources,
+                path: '',
+                component: GlobalResourcesList,
+                props: true,
+              },
+              {
+                name: RouteName.GlobalGroup,
+                path: 'globalgroup/:groupId',
+                component: GlobalGroup,
+                props: true,
+              },
+            ],
+          },
+          {
             name: RouteName.SystemSettings,
-            path: '',
+            path: 'systemsettings',
             component: SystemSettings,
             props: true,
             meta: { permissions: [Permissions.MOCK_PERMISSION1] },

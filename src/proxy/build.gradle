@@ -19,7 +19,7 @@ dependencies {
 
     testImplementation 'org.hsqldb:hsqldb:2.5.2'
     testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
-    testImplementation 'io.rest-assured:rest-assured:4.3.1'
+    testImplementation 'io.rest-assured:rest-assured:4.4.0'
     testImplementation 'wsdl4j:wsdl4j:1.6.3'
 }
 

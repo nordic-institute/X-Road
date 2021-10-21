@@ -219,7 +219,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
     }
 
     @Override
-    protected List<EndpointType> getEndpoints(Session session, ClientId client, ServiceId service) {
+    protected List<EndpointType> getAclEndpoints(Session session, ClientId client, ServiceId service) {
         final AclCacheKey key = new AclCacheKey(client, service);
         try {
             /*
@@ -227,7 +227,7 @@ public class CachingServerConfImpl extends ServerConfImpl {
              * transaction simply joins the current one. However, this is not explicitly promised by the API,
              * so we start a transaction if necessary.
              */
-            return aclCache.get(key, () -> tx(s -> super.getEndpoints(s, client, service)));
+            return aclCache.get(key, () -> tx(s -> super.getAclEndpoints(s, client, service)));
         } catch (ExecutionException e) {
             if (e.getCause() instanceof CodedException) {
                 throw (CodedException) e.getCause();

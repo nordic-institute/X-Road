@@ -23,5 +23,7 @@ module.exports = {
     'vue/no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any':
       process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+    'vue/no-unused-components':
+      process.env.NODE_ENV === 'production' ? 'error' : 'warn',
   },
 };
