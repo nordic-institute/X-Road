@@ -54,7 +54,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-
     }
 
     @Test
@@ -67,4 +66,21 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(false, response.getBody().getIsHaConfigured());
         assertEquals("node_0", response.getBody().getNodeName());
     }
+
+    @Test
+    @WithMockUser(authorities = {"INSTANCE_IDENTIFIER"})
+    public void testGetInstanceIdentifierEndpoint() {
+        ResponseEntity<String> response = systemApiController.instanceidentifier();
+        assertNotNull(response, "Instance identifier response  must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "Instance identifier response status code must be 200 ");
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CENTRAL_SERVER_ADDRESS"})
+    public void testGetCentralServerAddressEndpoint() {
+        ResponseEntity<String> response = systemApiController.centralServerAddress();
+        assertNotNull(response, "Central server address response  must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "Central server address response status code must be 200 ");
+    }
+
 }

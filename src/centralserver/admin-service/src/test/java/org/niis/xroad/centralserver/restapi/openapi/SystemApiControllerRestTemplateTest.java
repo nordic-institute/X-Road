@@ -70,4 +70,22 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTe
         assertEquals(false, response.getBody().getIsHaConfigured());
         assertEquals("node_0", response.getBody().getNodeName());
     }
+
+    @Test
+    @WithMockUser(authorities = {"INSTANCE_IDENTIFIER"})
+    public void testGetInstanceIdentifier() {
+        ResponseEntity<String> response =
+                restTemplate.getForEntity("/api/v1/system/instance-identifier", String.class);
+        assertNotNull(response, "Instance identifier response must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "Instance identifier response status code must be 200 ");
+    }
+
+    @Test
+    @WithMockUser(authorities = {"CENTRAL_SERVER_ADDRESS"})
+    public void testGetCentralServerAddress() {
+        ResponseEntity<String> response =
+                restTemplate.getForEntity("/api/v1/system/central-server-address", String.class);
+        assertNotNull(response, "Central server address response must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "Central server address response status code must be 200 ");
+    }
 }
