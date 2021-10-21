@@ -112,6 +112,7 @@ export enum RouteName {
   TrustServices = 'trust-services',
   Settings = 'settings',
   GlobalResources = 'global-resources',
+  GlobalGroup = 'global-group',
   SystemSettings = 'system-settings',
   BackupAndRestore = 'backup-and-restore',
   ApiKeys = 'api-keys',
@@ -167,7 +168,7 @@ export const mainTabs: Tab[] = [
     name: 'tab.main.globalConfiguration',
   },
   {
-    to: { name: RouteName.SystemSettings }, // name of the firsts child of settings
+    to: { name: RouteName.GlobalResources }, // name of the firsts child of settings
     key: 'settings',
     name: 'tab.main.settings',
     permissions: [Permissions.MOCK_PERMISSION1, Permissions.MOCK_PERMISSION2],

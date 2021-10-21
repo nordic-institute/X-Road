@@ -33,7 +33,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.message.RestRequest;
 import ee.ria.xroad.common.message.RestResponse;
-import ee.ria.xroad.common.metadata.MethodListType;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.proxy.conf.KeyConf;
@@ -217,8 +217,10 @@ public class RestMetadataServiceHandlerTest {
         assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = handlerToTest.getRestResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MethodListType methodListType = MAPPER.readValue(restResponseBody.getCachedContents(), MethodListType.class);
-        assertEquals(3, methodListType.getService().size());
+        RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
+                RestServiceDetailsListType.class);
+        assertEquals(3, restServiceDetailsList.getService().size());
+        assertEquals(1, restServiceDetailsList.getService().get(0).getEndpointList().size());
     }
 
     @Test
@@ -244,8 +246,10 @@ public class RestMetadataServiceHandlerTest {
         assertEquals("OK", restResponse.getReason());
         CachingStream restResponseBody = handlerToTest.getRestResponseBody();
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MethodListType methodListType = MAPPER.readValue(restResponseBody.getCachedContents(), MethodListType.class);
-        assertEquals(2, methodListType.getService().size());
+        RestServiceDetailsListType restServiceDetailsList = MAPPER.readValue(restResponseBody.getCachedContents(),
+                RestServiceDetailsListType.class);
+        assertEquals(3, restServiceDetailsList.getService().size());
+        assertEquals(1, restServiceDetailsList.getService().get(0).getEndpointList().size());
     }
 
     @Test

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -162,6 +163,25 @@ public class ServerConf {
         log.trace("getServicesByDescriptionType({}, {})", serviceProvider, descriptionType);
 
         return getInstance().getServicesByDescriptionType(serviceProvider, descriptionType);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @return all the REST services (REST base path, OpenAPI) offered by a service provider
+     */
+    public static RestServiceDetailsListType getRestServices(ClientId serviceProvider) {
+        log.trace("getRestServices({})", serviceProvider);
+        return getInstance().getRestServices(serviceProvider);
+    }
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client the client identifier
+     * @return all the REST services (REST base path, OpenAPI) offered by a service provider
+     */
+    public static RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client) {
+        log.trace("getRestServices({})", serviceProvider);
+        return getInstance().getAllowedRestServices(serviceProvider, client);
     }
 
     /**
