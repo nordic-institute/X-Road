@@ -26,10 +26,12 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
+import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,13 +39,25 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
+
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class SystemApiController implements SystemApi {
+
+    private final SystemParameterService systemParameterService;
 
     @Autowired
     HAConfigStatus currentHaConfigStatus;
+
+    @Override
+    @PreAuthorize("hasAuthority('CENTRAL_SERVER_ADDRESS')")
+    public ResponseEntity<String> centralServerAddress() {
+        return ResponseEntity.ok(systemParameterService.getParameterValue(CENTRAL_SERVER_ADDRESS, ""));
+    }
 
     @Override
     @PreAuthorize("hasAuthority('HIGH_AVAILABILITY_STATUS')")
@@ -52,6 +66,12 @@ public class SystemApiController implements SystemApi {
         highAvailabilityStatus.setIsHaConfigured(currentHaConfigStatus.isHaConfigured());
         highAvailabilityStatus.setNodeName(currentHaConfigStatus.getCurrentHaNodeName());
         return ResponseEntity.ok(highAvailabilityStatus);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('INSTANCE_IDENTIFIER')")
+    public ResponseEntity<String> instanceidentifier() {
+        return ResponseEntity.ok(systemParameterService.getParameterValue(INSTANCE_IDENTIFIER, ""));
     }
 
     @Override

@@ -64,6 +64,56 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /system/instance-identifier:
+    get:
+      tags:
+        - system
+      summary: get the instance identifier
+      operationId: instanceidentifier
+      responses:
+        '200':
+          description: instance identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceIdentifier'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /system/central-server-address:
+    get:
+      tags:
+        - system
+      summary: get the central server address
+      operationId: centralServerAddress
+      responses:
+        '200':
+          description: central server address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralServerAddress'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /initialization:
     post:
       tags:
