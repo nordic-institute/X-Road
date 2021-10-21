@@ -34,7 +34,7 @@ const VALID_INSTANCE = 'VALID_INSTANCE';
 const INVALID_INSTANCE = 'INVALID&&::INSTANCE';
 const VALID_SERVER_ADDRESS = 'valid.example.org';
 const INVALID_SERVER_ADDRESS = 'invalid...address...fo';
-// To be updated according to localization/en.json (or dig from there?)
+// NOTE: update according to localization/en.json (or dig from there?)
 const INSTANCE_INVALID_FIELD_NOTE =
   'Use valid instance identifier characters only';
 const ADDRESS_INVALID_FIELD_NOTE =
@@ -42,7 +42,6 @@ const ADDRESS_INVALID_FIELD_NOTE =
 module.exports = {
   tags: ['cs', 'initialization'],
   before(browser) {
-    // FUTURE STUDY: HOw to ensure we use uninitalized CS for this test?
     login = browser.page.csLoginPage();
     initialization = browser.page.csInitializationPage();
     members = browser.page.csMembersPage();
