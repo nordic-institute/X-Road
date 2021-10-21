@@ -66,13 +66,14 @@ RUN rm -f /etc/xroad/db.properties \
   && rm -f /etc/xroad/ssl/*.key \
   && rm -f /etc/xroad/ssl/*.p12 \
   && sed -E -i 's/-Xmx[0-9]+./-XX:MaxRAMPercentage=25.0/' /etc/xroad/services/proxy.conf \
-  && mkdir -p /root/etc/xroad /root/backup \
-  && cp -a /etc/xroad/* /root/etc/xroad/ \
-  && mv /root/etc/xroad/conf.d/local.ini \
-    /root/etc/xroad/services/local.conf \
-    /root/etc/xroad/devices.ini /root/backup/ \
-  && dpkg-query --showformat='${Version}' --show xroad-proxy >/root/VERSION \
-  && cp /root/VERSION /etc/xroad/VERSION \
+  && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
+  && cp -a /etc/xroad /usr/share/xroad/config/etc/ \
+  && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
+  && mv /usr/share/xroad/config/etc/xroad/conf.d/local.ini \
+    /usr/share/xroad/config/etc/xroad/devices.ini \
+    /usr/share/xroad/config/backup/ \
+  && dpkg-query --showformat='${Version}' --show xroad-proxy >/usr/share/xroad/config/VERSION \
+  && cp /usr/share/xroad/config/VERSION /etc/xroad/VERSION \
   && sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh \
   && mv /usr/share/xroad/jlib/addon/proxy/messagelog.conf /usr/share/xroad/jlib/addon/proxy/messagelog.conf.disabled \
   && mv /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf /usr/share/xroad/jlib/addon/proxy/opmonitoring.conf.disabled \
