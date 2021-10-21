@@ -418,7 +418,8 @@
       "registration": "Registration in progress",
       "registered": "Registered",
       "deletion": "Deletion in progress",
-      "globalError": "Global error"
+      "globalError": "Global error",
+      "onlyInHWToken": "Only in token"
     },
     "tokenStatus": {
       "available": "",

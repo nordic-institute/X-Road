@@ -57,8 +57,10 @@ import org.junit.runners.model.Statement;
 
 import java.net.ServerSocket;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 /**
  * Base class for proxy integration tests
@@ -66,6 +68,8 @@ import java.util.ServiceLoader;
  */
 @Category(IntegrationTest.class)
 public abstract class AbstractProxyIntegrationTest {
+
+    private static final Set<Integer> RESERVED_PORTS = new HashSet<>();
 
     private static ActorSystem actorSystem;
     private static JobManager jobManager;
@@ -128,7 +132,7 @@ public abstract class AbstractProxyIntegrationTest {
 
         jobManager = new JobManager();
         actorSystem = ActorSystem.create("Proxy", ConfigFactory.load().getConfig("proxy")
-                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(0)));
+                .withValue("akka.remote.artery.canonical.port", ConfigValueFactory.fromAnyRef(getFreePort())));
 
         MessageLog.init(actorSystem, jobManager);
         OpMonitoring.init(actorSystem);
@@ -159,6 +163,7 @@ public abstract class AbstractProxyIntegrationTest {
             svc.join();
         }
         actorSystem.terminate();
+        RESERVED_PORTS.clear();
     }
 
     @After
@@ -168,10 +173,15 @@ public abstract class AbstractProxyIntegrationTest {
     }
 
     static int getFreePort() {
-        try (ServerSocket ss = new ServerSocket(0)) {
-            return ss.getLocalPort();
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+        while (true) {
+            try (ServerSocket ss = new ServerSocket(0)) {
+                final int port = ss.getLocalPort();
+                if (RESERVED_PORTS.add(port)) {
+                    return port;
+                }
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
         }
     }
 }
