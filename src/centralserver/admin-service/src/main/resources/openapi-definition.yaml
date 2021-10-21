@@ -273,8 +273,6 @@ components:
     HighAvailabilityStatus:
       type: object
       description: Central server's high availability status
-      required:
-        - info
       properties:
         is_ha_configured:
           type: boolean
