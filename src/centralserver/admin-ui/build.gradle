@@ -133,17 +133,11 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.files fileTree(".") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("./dist")
 
-    args = ['run', 'test:e2e', '--', '--verbose', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
+    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
 
     if (!runHeadless.isEmpty()) {
         if (runHeadless == "true") {
             args.add("--headless")
-        }
-    }
-
-    if (!failScreenshot.isEmpty()) {
-        if (failScreenshot == "true") {
-            args.add("--env screenshots")
         }
     }
 

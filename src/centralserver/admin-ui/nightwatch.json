@@ -10,12 +10,6 @@
   "disable_colors": true,
   "test_workers" : false,
   "test_settings" : {
-    "screenshots" : {
-      "enabled" : true,
-      "on_failure" : true,
-      "on_error" : true,
-      "path" : "./tests/e2e/screenshots"
-    },
     "default": {
       "use_xpath": true,
       "globals" : {
@@ -30,6 +24,12 @@
         "login_securityserver_observer" : "xrd-obs",
         "logout_timeout_ms" : 60000,
         "e2etest_testdata" : "/../testdata"
+      },
+      "screenshots" : {
+        "enabled" : true,
+        "on_failure" : true,
+        "on_error" : true,
+        "path" : "./tests/e2e/screenshots"
       }
     },
     "chrome": {
