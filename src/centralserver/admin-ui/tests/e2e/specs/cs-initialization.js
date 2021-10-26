@@ -137,10 +137,7 @@ module.exports = {
         .verify.enabled('@submitButton')
         .click('@submitButton');
       await members
-        .waitForElementVisible({
-          selector: '@membersView',
-          time: 20 * 1000,
-        })
+        .waitForElementVisible('@membersView', 60 * 1000)
         .verify.visible('@initNotificationNote');
     },
 };
