@@ -39,6 +39,31 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /system/status:
+    get:
+      tags:
+        - system
+      summary: get the system status
+      operationId: systemStatus
+      responses:
+        '200':
+          description: system status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system/high-availability-status:
     get:
       tags:
@@ -285,6 +310,14 @@ components:
           example: node_0
           minLength: 1
           maxLength: 255
+    SystemStatus:
+      type: object
+      description: Central server's status
+      properties:
+        initialization_status:
+          $ref: '#/components/schemas/InitializationStatus'
+        high_availability_status:
+          $ref: '#/components/schemas/HighAvailabilityStatus'
     Version:
       type: object
       description: version information

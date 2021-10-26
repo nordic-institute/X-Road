@@ -29,8 +29,11 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
+import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
+import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
+import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,8 @@ import static org.niis.xroad.centralserver.restapi.service.SystemParameterServic
 public class SystemApiController implements SystemApi {
 
     private final SystemParameterService systemParameterService;
+    private final InitializationService initializationService;
+    private final InitializationStatusConverter initializationStatusConverter;
 
     @Autowired
     HAConfigStatus currentHaConfigStatus;
@@ -72,6 +77,19 @@ public class SystemApiController implements SystemApi {
     @PreAuthorize("hasAuthority('INSTANCE_IDENTIFIER')")
     public ResponseEntity<String> instanceidentifier() {
         return ResponseEntity.ok(systemParameterService.getParameterValue(INSTANCE_IDENTIFIER, ""));
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
+    public ResponseEntity<SystemStatus> systemStatus() {
+        var systemStatus = new SystemStatus();
+        systemStatus.setInitializationStatus(
+                initializationStatusConverter.convert(initializationService.getInitializationStatus()));
+        systemStatus.setHighAvailabilityStatus(
+                new HighAvailabilityStatus()
+                        .isHaConfigured(currentHaConfigStatus.isHaConfigured())
+                        .nodeName(currentHaConfigStatus.getCurrentHaNodeName()));
+        return ResponseEntity.ok(systemStatus);
     }
 
     @Override

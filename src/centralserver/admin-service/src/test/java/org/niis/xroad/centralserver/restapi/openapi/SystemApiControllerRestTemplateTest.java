@@ -29,6 +29,7 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
+import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -87,5 +88,15 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTe
                 restTemplate.getForEntity("/api/v1/system/central-server-address", String.class);
         assertNotNull(response, "Central server address response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Central server address response status code must be 200 ");
+    }
+
+    @Test
+    @WithMockUser(authorities = {"SYSTEM_STATUS"})
+    public void testGetSystemStatusRestEndpoint() {
+        ResponseEntity<SystemStatus> response =
+                restTemplate.getForEntity("/api/v1/system/status", SystemStatus.class);
+        assertNotNull(response, "System status response must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
+        assertNotNull(response.getBody());
     }
 }
