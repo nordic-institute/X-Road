@@ -26,33 +26,30 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
+@Transactional
+@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTestContext {
 
     @Autowired
     TestRestTemplate restTemplate;
 
-    @Before
-    public void setUp() {
-        addApiKeyAuthorizationHeader(restTemplate);
-    }
-
     @Test
-    @WithMockUser(authorities = {"VIEW_VERSION"})
-    public void testViewVersionRestEndpoint() {
+    public void testGetVersionSucceeds() {
+        addApiKeyAuthorizationHeader(restTemplate);
         ResponseEntity<Version> response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
@@ -61,42 +58,24 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiControllerTe
     }
 
     @Test
-    @WithMockUser(authorities = {"HIGH_AVAILABILITY_STATUS"})
-    public void testGetHighAvailabilityStatusRestEndpoint() {
-        ResponseEntity<HighAvailabilityStatus> response =
-                restTemplate.getForEntity("/api/v1/system/high-availability-status", HighAvailabilityStatus.class);
-        assertNotNull(response, "High availability status response must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "High availability response status code must be 200 ");
-        assertNotNull(response.getBody());
-        assertEquals(false, response.getBody().getIsHaConfigured());
-        assertEquals("node_0", response.getBody().getNodeName());
+    public void testGetVersionFailsIfNotAuthorized() {
+        var response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
     }
 
     @Test
-    @WithMockUser(authorities = {"INSTANCE_IDENTIFIER"})
-    public void testGetInstanceIdentifier() {
-        ResponseEntity<String> response =
-                restTemplate.getForEntity("/api/v1/system/instance-identifier", String.class);
-        assertNotNull(response, "Instance identifier response must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Instance identifier response status code must be 200 ");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"CENTRAL_SERVER_ADDRESS"})
-    public void testGetCentralServerAddress() {
-        ResponseEntity<String> response =
-                restTemplate.getForEntity("/api/v1/system/central-server-address", String.class);
-        assertNotNull(response, "Central server address response must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Central server address response status code must be 200 ");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"SYSTEM_STATUS"})
-    public void testGetSystemStatusRestEndpoint() {
+    public void testGetSystemStatusSucceeds() {
+        addApiKeyAuthorizationHeader(restTemplate);
         ResponseEntity<SystemStatus> response =
                 restTemplate.getForEntity("/api/v1/system/status", SystemStatus.class);
         assertNotNull(response, "System status response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
         assertNotNull(response.getBody());
+    }
+
+    @Test
+    public void testGetSystemStatusFailsIfNotAuthorized() {
+        var response = restTemplate.getForEntity("/api/v1/system/status", SystemStatus.class);
+        assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
     }
 }

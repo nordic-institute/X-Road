@@ -28,8 +28,8 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
-import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
+import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +37,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
@@ -49,39 +50,12 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"VIEW_VERSION"})
-    public void testViewVersionEndpoint() {
+    public void testGetVersionEndpoint() {
         ResponseEntity<Version> response = systemApiController.systemVersion();
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"HIGH_AVAILABILITY_STATUS"})
-    public void testGetHighAvailabilityStatusEndpoint() {
-        ResponseEntity<HighAvailabilityStatus> response = systemApiController.highAvailabilityStatus();
-        assertNotNull(response, "High availability status response must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "High availability response status code must be 200 ");
-        assertNotNull(response.getBody());
-        assertEquals(false, response.getBody().getIsHaConfigured());
-        assertEquals("node_0", response.getBody().getNodeName());
-    }
-
-    @Test
-    @WithMockUser(authorities = {"INSTANCE_IDENTIFIER"})
-    public void testGetInstanceIdentifierEndpoint() {
-        ResponseEntity<String> response = systemApiController.instanceidentifier();
-        assertNotNull(response, "Instance identifier response  must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Instance identifier response status code must be 200 ");
-    }
-
-    @Test
-    @WithMockUser(authorities = {"CENTRAL_SERVER_ADDRESS"})
-    public void testGetCentralServerAddressEndpoint() {
-        ResponseEntity<String> response = systemApiController.centralServerAddress();
-        assertNotNull(response, "Central server address response  must not be null.");
-        assertEquals(200, response.getStatusCodeValue(), "Central server address response status code must be 200 ");
     }
 
     @Test
@@ -91,5 +65,13 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertNotNull(response, "System status response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
         assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getInitializationStatus());
+        assertTrue(response.getBody().getInitializationStatus().getInstanceIdentifier().isEmpty());
+        assertTrue(response.getBody().getInitializationStatus().getCentralServerAddress().isEmpty());
+        assertEquals(TokenInitStatus.NOT_INITIALIZED,
+                response.getBody().getInitializationStatus().getSoftwareTokenInitStatus());
+        assertNotNull(response.getBody().getHighAvailabilityStatus());
+        assertEquals(false, response.getBody().getHighAvailabilityStatus().getIsHaConfigured());
+        assertEquals("node_0", response.getBody().getHighAvailabilityStatus().getNodeName());
     }
 }
