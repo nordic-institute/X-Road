@@ -66,8 +66,10 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getInitializationStatus());
-        assertTrue(response.getBody().getInitializationStatus().getInstanceIdentifier().isEmpty());
-        assertTrue(response.getBody().getInitializationStatus().getCentralServerAddress().isEmpty());
+        final var instanceIdentifier = response.getBody().getInitializationStatus().getInstanceIdentifier();
+        assertTrue(instanceIdentifier == null || instanceIdentifier.isEmpty());
+        final var centralServerAddress = response.getBody().getInitializationStatus().getCentralServerAddress();
+        assertTrue(centralServerAddress == null || centralServerAddress.isEmpty());
         assertEquals(TokenInitStatus.NOT_INITIALIZED,
                 response.getBody().getInitializationStatus().getSoftwareTokenInitStatus());
         assertNotNull(response.getBody().getHighAvailabilityStatus());
