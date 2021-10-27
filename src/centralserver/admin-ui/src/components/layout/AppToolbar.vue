@@ -53,7 +53,7 @@
       </div>
       <div
         v-show="isInitialized"
-        class="server-name"
+        class="node-name"
         data-test="app-toolbar-server-instance-address"
       >
         my-node-information
@@ -123,6 +123,13 @@ export default Vue.extend({
   .server-name {
     margin: 20px;
     margin-right: 10px;
+  }
+
+  .node-name {
+    margin-left: auto;
+    margin-right: 70px;
+    display: flex;
+    align-items: center;
   }
 
   .server-type {
