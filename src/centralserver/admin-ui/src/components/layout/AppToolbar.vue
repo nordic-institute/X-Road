@@ -51,6 +51,13 @@
           `${initializationParameters.instanceId} : ${initializationParameters.serverAddress}`
         }}
       </div>
+      <div
+        v-show="isInitialized"
+        class="server-name"
+        data-test="app-toolbar-server-instance-address"
+      >
+        my-node-information
+      </div>
     </div>
   </v-app-bar>
 </template>
