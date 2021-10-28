@@ -52,7 +52,7 @@
         }}
       </div>
       <div
-        v-show="isInitialized"
+        v-show="isHighAvailabilityConfigured"
         class="node-name"
         data-test="app-toolbar-server-instance-address"
       >
@@ -87,6 +87,9 @@ export default Vue.extend({
     },
     systemStatus() {
       return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS];
+    },
+    isHighAvailabilityConfigured() {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS].high_availability_status.is_ha_configured;
     },
   },
   methods: {
