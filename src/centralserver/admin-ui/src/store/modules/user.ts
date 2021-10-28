@@ -27,13 +27,14 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
-import { Version } from '@/openapi-types';
+import {SystemStatus, Version} from '@/openapi-types';
 
 export interface State {
   authenticated: boolean;
   isSessionAlive: boolean | undefined;
   username: string;
   serverVersion: Version | undefined;
+  systemStatus: SystemStatus | undefined;
 }
 
 export const getDefaultState = (): State => {
@@ -42,6 +43,7 @@ export const getDefaultState = (): State => {
     isSessionAlive: undefined,
     username: '',
     serverVersion: undefined,
+    systemStatus: undefined,
   };
 };
 
@@ -65,6 +67,9 @@ export const userGetters: GetterTree<State, RootState> = {
   [StoreTypes.getters.SERVER_VERSION](state) {
     return state.serverVersion;
   },
+  [StoreTypes.getters.SYSTEM_STATUS](state) {
+    return state.systemStatus;
+  },
 };
 
 export const mutations: MutationTree<State> = {
@@ -82,6 +87,9 @@ export const mutations: MutationTree<State> = {
   },
   [StoreTypes.mutations.SET_SERVER_VERSION]: (state, version: Version) => {
     state.serverVersion = version;
+  },
+  [StoreTypes.mutations.SET_SYSTEM_STATUS]: (state, systemStatus: SystemStatus) => {
+    state.systemStatus = systemStatus;
   },
 };
 
@@ -158,6 +166,17 @@ export const actions: ActionTree<State, RootState> = {
       .get<Version>('/system/version')
       .then((resp) =>
         commit(StoreTypes.mutations.SET_SERVER_VERSION, resp.data),
+      )
+      .catch((error) => {
+        throw error;
+      });
+  },
+
+  async [StoreTypes.actions.FETCH_SYSTEM_STATUS]({ commit }) {
+    return axios
+      .get<Version>('/system/status')
+      .then((resp) =>
+        commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
       )
       .catch((error) => {
         throw error;

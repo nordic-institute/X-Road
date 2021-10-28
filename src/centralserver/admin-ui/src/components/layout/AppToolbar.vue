@@ -56,7 +56,9 @@
         class="node-name"
         data-test="app-toolbar-server-instance-address"
       >
-        my-node-information
+        {{
+          `${systemStatus.high_availability_status.node_name}`
+        }}
       </div>
     </div>
   </v-app-bar>
@@ -80,9 +82,11 @@ export default Vue.extend({
     isInitialized(): boolean {
       return this.$store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED];
     },
-
     isAuthenticated(): boolean {
       return true;
+    },
+    systemStatus() {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS];
     },
   },
   methods: {
