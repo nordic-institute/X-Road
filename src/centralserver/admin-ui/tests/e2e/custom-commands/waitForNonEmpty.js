@@ -47,7 +47,7 @@ module.exports = class WaitForNonEmpty extends Events {
     // this command does not know the stacktrace (which test the command was called from)
     // maybe changing it to be non-async (it that makes sense) would help?
     let selectorDescForError = selector;
-    if (selector.hasOwnProperty('selector')) {
+    if (Object.prototype.hasOwnProperty.call(selector, 'selector')) {
       selectorDescForError = selector.selector;
     }
     this.emit(

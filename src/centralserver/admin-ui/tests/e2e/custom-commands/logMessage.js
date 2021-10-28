@@ -25,7 +25,9 @@
  */
 module.exports.command = function (message) {
   return this.perform(function (browser, done) {
+    // eslint-disable-next-line no-console
     console.log('\033[32m✓✓✓\033[0m ' + message);
+    // eslint-disable-next-line no-console
     console.log('\033[32m ✓✓\033[0m'); // for some reason last log message disappears
     done();
   });

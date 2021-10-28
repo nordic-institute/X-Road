@@ -33,7 +33,7 @@ module.exports = {
     members = browser.page.csMembersPage();
   },
   beforeEach() {
-    login.navigateAndMakeTestable()
+    login.navigateAndMakeTestable();
   },
   after(browser) {
     browser.end();

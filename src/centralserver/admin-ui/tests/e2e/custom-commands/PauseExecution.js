@@ -26,6 +26,7 @@
 
 module.exports = class PauseExecution {
   async command(time) {
+    // eslint-disable-next-line no-console
     console.log('/nPausing execution, CTRL-C to break');
     //TODO might want figure out a way to make this resumeable
     this.api.pause(time);
