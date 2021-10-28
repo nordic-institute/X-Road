@@ -54,7 +54,7 @@
       <div
         v-show="isHighAvailabilityConfigured"
         class="node-name"
-        data-test="app-toolbar-server-instance-address"
+        data-test="app-toolbar-node_name"
       >
         {{
           `${systemStatus.high_availability_status.node_name}`
