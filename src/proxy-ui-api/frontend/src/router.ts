@@ -30,7 +30,6 @@ import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import { Permissions, RouteName } from '@/global';
 import routes from '@/routes';
 import store from '@/store';
-import { sync } from 'vuex-router-sync';
 
 // Route for initialisation view. This is created separeately because it's linked to vuex store and this causes the unit tests to break.
 const initRoute: RouteConfig = {
@@ -114,7 +113,5 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     });
   }
 });
-
-sync(store, router);
 
 export default router;
