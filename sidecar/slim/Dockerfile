@@ -66,12 +66,18 @@ RUN rm -f /etc/xroad/db.properties \
   && rm -f /etc/xroad/ssl/*.key \
   && rm -f /etc/xroad/ssl/*.p12 \
   && sed -E -i 's/-Xmx[0-9]+./-XX:MaxRAMPercentage=25.0/' /etc/xroad/services/proxy.conf \
+##
+# create a backup of the configuration for version migration and
+# for initializing an empty config volume
   && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
   && cp -a /etc/xroad /usr/share/xroad/config/etc/ \
-  && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
+  && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken
+# move files that should not be overwritten during migration to another folder
+# (these are needed when initializing an empty config volume)
   && mv /usr/share/xroad/config/etc/xroad/conf.d/local.ini \
     /usr/share/xroad/config/etc/xroad/devices.ini \
     /usr/share/xroad/config/backup/ \
+##
   && dpkg-query --showformat='${Version}' --show xroad-proxy >/usr/share/xroad/config/VERSION \
   && cp /usr/share/xroad/config/VERSION /etc/xroad/VERSION \
   && sed -i 's/initctl/supervisorctl/g' /usr/share/xroad/scripts/_restore_xroad.sh \

@@ -1,4 +1,18 @@
 #!/bin/bash
+#############################################################################
+#
+# X-Road Security Server container entrypoint script (common part for all
+# image types)
+#
+# Handles necessary initialization in the following cases:
+# * container is run for the first time (no configuration present)
+# * container is run/started with exising configuration
+#   * configuration is up-to-date or
+#   * container image has been updated and configuration needs to be migrated
+#     to the new version
+#
+#############################################################################
+
 log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $1"; }
 warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $1" >&2; }
 
@@ -21,12 +35,17 @@ fi
 LOCAL_DB=
 
 if [ -f /.xroad-reconfigured ]; then
+  # restarted container, skip reconfigure by default
   RECONFIG_REQUIRED=${RECONFIG_REQUIRED:-false}
 else
+  # new container, run reconfigure by default
+  # makes it possible to "upgrade" from "slim" to "full" container
+  # (Disabling reconfigure by setting RECONFIG_REQUIRED to false
+  # when it is known to be unnecessary saves some container startup time)
   RECONFIG_REQUIRED=${RECONFIG_REQUIRED:-true}
 fi
 
-log "Starting X-Road Security Server version $PACKAGED_VERSION"
+log "Starting X-Road Security Server version $INSTALLED_VERSION"
 
 # Configure admin user with user-supplied username and password
 if ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
@@ -51,20 +70,21 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     CONFIG_VERSION=
   fi
   if dpkg --compare-versions "$PACKAGED_VERSION" gt "$CONFIG_VERSION"; then
+    # ensure that the updated stock configuration is present in /etc/xroad
     # handles also the case where configuration is missing (e.g. config volume not automatically populated)
     log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
     cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
     # copy if not exists
     cp -a -n "$PACKAGED_CONFIG"/backup/local.ini /etc/xroad/conf.d/
     cp -a -n "$PACKAGED_CONFIG"/backup/devices.ini /etc/xroad/
-
+    # packages need to be reconfigured (runs possible db and config migrations)
     RECONFIG_REQUIRED=true
   fi
 else
     warn "Installed version ($INSTALLED_VERSION) does not match packaged version ($PACKAGED_VERSION)"
 fi
 
-# Generate internal and admin UI TLS keys and certificates on the first run
+# Generate internal and admin UI TLS keys and certificates if necessary
 if [ ! -f /etc/xroad/ssl/internal.crt ]; then
   log "Generating new internal TLS key and certificate"
   "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -n internal -f -S -p 2>&1 >/dev/null | sed 's/^/    /'
@@ -75,7 +95,7 @@ if [ ! -f /etc/xroad/ssl/proxy-ui-api.crt ]; then
   "$XROAD_SCRIPT_LOCATION/generate_certificate.sh" -n proxy-ui-api -f -S -p 2>&1 >/dev/null | sed 's/^/   /'
 fi
 
-# Recreate serverconf database and properties file with on the first run
+# Create database properties and configure remote db address if necessary
 if [ ! -f ${DB_PROPERTIES} ]; then
   XROAD_DB_PORT="${XROAD_DB_PORT:-5432}"
   XROAD_DB_HOST="${XROAD_DB_HOST:-127.0.0.1}"
@@ -120,8 +140,9 @@ if [ ! -f ${DB_PROPERTIES} ]; then
 fi
 
 if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
-
+  # reconfigure packages (also runs database migrations)
   if [ -z "$LOCAL_DB" ]; then
+    # exising config, determine database location from db.properties
     db_url=$(crudini --get '/etc/xroad/db.properties' "" 'serverconf.hibernate.connection.url' 2>/dev/null)
     pat='^jdbc:postgresql://([^/]*).*'
     db_host=
