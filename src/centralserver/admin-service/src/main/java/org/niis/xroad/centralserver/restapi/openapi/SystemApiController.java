@@ -24,20 +24,48 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.controller;
+package org.niis.xroad.centralserver.restapi.openapi;
 
+import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
+import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
+import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
+import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
+import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
+import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-@RestController
+@Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
+@RequiredArgsConstructor
 public class SystemApiController implements SystemApi {
+
+    private final InitializationService initializationService;
+    private final InitializationStatusConverter initializationStatusConverter;
+
+    @Autowired
+    HAConfigStatus currentHaConfigStatus;
+
+    @Override
+    @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
+    public ResponseEntity<SystemStatus> systemStatus() {
+        var systemStatus = new SystemStatus();
+        systemStatus.setInitializationStatus(
+                initializationStatusConverter.convert(initializationService.getInitializationStatus()));
+        systemStatus.setHighAvailabilityStatus(
+                new HighAvailabilityStatus()
+                        .isHaConfigured(currentHaConfigStatus.isHaConfigured())
+                        .nodeName(currentHaConfigStatus.getCurrentHaNodeName()));
+        return ResponseEntity.ok(systemStatus);
+    }
+
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<Version> systemVersion() {

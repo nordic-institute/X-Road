@@ -24,18 +24,20 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.controller;
+package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
+import org.niis.xroad.centralserver.openapi.model.SystemStatus;
+import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
-import org.niis.xroad.centralserver.restapi.openapi.AbstractApiControllerTestContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
@@ -48,13 +50,30 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"VIEW_VERSION"})
-    public void testViewVersionEndpoint() {
+    public void testGetVersionEndpoint() {
         ResponseEntity<Version> response = systemApiController.systemVersion();
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
         assertEquals(ee.ria.xroad.common.Version.XROAD_VERSION, response.getBody().getInfo());
-
     }
 
+    @Test
+    @WithMockUser(authorities = {"SYSTEM_STATUS"})
+    public void testGetSystemStatusEndpoint() {
+        ResponseEntity<SystemStatus> response = systemApiController.systemStatus();
+        assertNotNull(response, "System status response must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getInitializationStatus());
+        final var instanceIdentifier = response.getBody().getInitializationStatus().getInstanceIdentifier();
+        assertTrue(instanceIdentifier == null || instanceIdentifier.isEmpty());
+        final var centralServerAddress = response.getBody().getInitializationStatus().getCentralServerAddress();
+        assertTrue(centralServerAddress == null || centralServerAddress.isEmpty());
+        assertEquals(TokenInitStatus.NOT_INITIALIZED,
+                response.getBody().getInitializationStatus().getSoftwareTokenInitStatus());
+        assertNotNull(response.getBody().getHighAvailabilityStatus());
+        assertEquals(false, response.getBody().getHighAvailabilityStatus().getIsHaConfigured());
+        assertEquals("node_0", response.getBody().getHighAvailabilityStatus().getNodeName());
+    }
 }
