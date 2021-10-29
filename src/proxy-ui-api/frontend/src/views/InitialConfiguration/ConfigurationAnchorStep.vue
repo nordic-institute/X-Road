@@ -139,10 +139,4 @@ export default Vue.extend({
   margin-top: 20px;
   margin-bottom: 50px;
 }
-
-.readonly-info-field {
-  max-width: 300px;
-  height: 60px;
-  padding-top: 12px;
-}
 </style>

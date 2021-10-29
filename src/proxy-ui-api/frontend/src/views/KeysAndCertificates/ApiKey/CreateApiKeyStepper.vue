@@ -212,11 +212,6 @@ export default Vue.extend({
   width: 50%;
   margin: auto;
 }
-.stepper-item-footer {
-  margin-top: 20px;
-  padding-top: 30px;
-  border-top: 1px solid $XRoad-Grey40;
-}
 .checkbox-wrapper {
   border-bottom: solid 1px $XRoad-Grey10;
 }

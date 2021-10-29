@@ -284,10 +284,6 @@ export default Vue.extend({
   margin-right: 20px;
 }
 
-.clickable {
-  cursor: pointer;
-}
-
 .clickable-link {
   cursor: pointer;
   height: 100%;

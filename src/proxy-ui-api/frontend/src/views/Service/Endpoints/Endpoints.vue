@@ -203,18 +203,6 @@ export default Vue.extend({
 @import '../../../assets/colors';
 @import '../../../assets/tables';
 
-.path-wrapper {
-  white-space: nowrap;
-  min-width: 100px;
-}
-
-.url-wrapper {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
-}
-
 .generated {
   color: $XRoad-Grey40;
 }

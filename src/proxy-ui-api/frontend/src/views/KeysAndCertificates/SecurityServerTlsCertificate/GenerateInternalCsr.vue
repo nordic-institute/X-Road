@@ -148,17 +148,7 @@ $spacing: 12rem;
   margin-top: 20px;
 }
 
-.help-wrapper {
-  display: inline;
-}
-
 .first-action {
-  margin-top: $spacing;
-}
-
-.bottom-buttons-wrapper {
-  border-top: solid 1px $XRoad-Grey40;
-  padding-top: 1rem;
   margin-top: $spacing;
 }
 </style>

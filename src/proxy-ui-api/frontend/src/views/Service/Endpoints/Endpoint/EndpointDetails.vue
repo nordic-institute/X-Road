@@ -213,10 +213,6 @@ export default Vue.extend({
   justify-content: flex-end;
 }
 
-.dlg-edit-row .dlg-row-title {
-  min-width: 200px;
-}
-
 .dlg-row-input {
   max-width: 400px;
 }

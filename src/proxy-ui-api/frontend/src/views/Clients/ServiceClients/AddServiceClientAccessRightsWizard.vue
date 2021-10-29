@@ -180,8 +180,4 @@ export default Vue.extend({
   -moz-box-shadow: none;
   box-shadow: none;
 }
-
-.full-width {
-  width: 100%;
-}
 </style>

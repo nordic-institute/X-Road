@@ -223,9 +223,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-.search-input {
-  max-width: 300px;
-}
 
 .button-spacing {
   margin-left: 20px;

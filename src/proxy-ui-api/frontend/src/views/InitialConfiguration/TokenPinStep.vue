@@ -141,10 +141,4 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
-
-.readonly-info-field {
-  max-width: 300px;
-  height: 60px;
-  padding-top: 12px;
-}
 </style>
