@@ -36,7 +36,7 @@ const initializationCommands = {
   },
   modifyServerAddress(value) {
     this.waitForNonEmpty('@serverAddressInput');
-    this.clearValue2('@serverAddressInput');
+    this.clearWithBackSpace('@serverAddressInput');
     this.setValue('@serverAddressInput', value);
   },
   initInstanceId(value) {
@@ -46,7 +46,7 @@ const initializationCommands = {
   },
   modifyInstanceId(value) {
     this.waitForNonEmpty('@instanceIdentifierInput');
-    this.clearValue2('@instanceIdentifierInput');
+    this.clearWithBackSpace('@instanceIdentifierInput');
     this.setValue('@instanceIdentifierInput', value);
   },
   initPin(value) {
@@ -56,7 +56,7 @@ const initializationCommands = {
   },
   modifyPin(value) {
     this.waitForNonEmpty('@pinInput');
-    this.clearValue2('@pinInput');
+    this.clearWithBackSpace('@pinInput');
     this.setValue('@pinInput', value);
     return this;
   },
@@ -67,7 +67,7 @@ const initializationCommands = {
   },
   modifyConfirmPin(value) {
     this.waitForNonEmpty('@confirmPinInput');
-    this.clearValue2('@confirmPinInput');
+    this.clearWithBackSpace('@confirmPinInput');
     this.setValue('@confirmPinInput', value);
     return this;
   },

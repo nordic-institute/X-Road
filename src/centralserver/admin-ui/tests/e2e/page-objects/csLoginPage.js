@@ -27,11 +27,11 @@
 const { User } = require('../constants/');
 const loginCommands = {
   clearUsername() {
-    this.clearValue2('@usernameInput');
+    this.clearWithBackSpace('@usernameInput');
     return this;
   },
   clearPassword() {
-    this.clearValue2('@passwordInput');
+    this.clearWithBackSpace('@passwordInput');
     return this;
   },
   enterUsername(username) {
