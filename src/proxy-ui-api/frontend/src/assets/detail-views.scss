@@ -41,21 +41,6 @@
   min-width: 120px;
 }
 
-.edit-row {
-  display: flex;
-  align-content: center;
-  align-items: baseline;
-  margin-top: 30px;
-
-  > div {
-    min-width: 120px;
-  }
-
-  .code-input {
-    margin-left: 20px;
-  }
-}
-
 .details-view-tools {
   margin-top: 50px;
   display: flex;
@@ -79,10 +64,6 @@
       margin-right: 20px;
     }
   }
-}
-
-.save-button {
-  margin-left: 20px;
 }
 
 .certificate-details-wrapper {
