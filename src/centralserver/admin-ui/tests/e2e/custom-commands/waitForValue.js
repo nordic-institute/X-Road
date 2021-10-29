@@ -25,7 +25,10 @@
  */
 const Events = require('events');
 
-module.exports = class WaitFor extends Events {
+/*
+ * waitForValue   -- waits until a field has the needed value
+ */
+module.exports = class WaitForValue extends Events {
   // async command(f) {
   async command(selector, expectedValue) {
     const interval = 100;

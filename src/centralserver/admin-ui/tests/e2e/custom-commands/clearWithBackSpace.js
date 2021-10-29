@@ -24,7 +24,10 @@
  * THE SOFTWARE.
  */
 const Events = require('events');
-
+/*
+ * Clears all characters by moving cursor to end with right arrow and
+ * then deleting all characters with backspace
+ */
 module.exports = class ClearWithBackSpace extends Events {
   command(selector) {
     const { RIGHT_ARROW, BACK_SPACE } = this.api.Keys;

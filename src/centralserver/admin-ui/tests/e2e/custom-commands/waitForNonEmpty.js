@@ -25,6 +25,9 @@
  */
 const Events = require('events');
 
+/*
+ * waitForNonEmpty   -- waits until a field has a non-empty value
+ */
 module.exports = class WaitForNonEmpty extends Events {
   // async command(f) {
   async command(selector) {

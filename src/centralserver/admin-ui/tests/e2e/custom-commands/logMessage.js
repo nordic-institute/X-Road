@@ -23,12 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+/*
+ * logMessage - logs through browser action queue,
+ * so that log messages appear in correct place
+ */
 module.exports.command = function (message) {
   return this.perform(function (browser, done) {
     // eslint-disable-next-line no-console
-    console.log('\033[32m✓✓✓\033[0m ' + message);
+    console.log('✓✓✓' + message);
     // eslint-disable-next-line no-console
-    console.log('\033[32m ✓✓\033[0m'); // for some reason last log message disappears
+    console.log(' ✓✓'); // for some reason last log message disappears - occasionally
     done();
   });
 };
