@@ -138,8 +138,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .search-input {
   max-width: 300px;

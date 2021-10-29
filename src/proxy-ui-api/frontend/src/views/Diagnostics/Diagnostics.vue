@@ -353,7 +353,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 @import '~styles/tables';
 

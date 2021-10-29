@@ -58,8 +58,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
-@import '../../assets/colors';
-
 .v-tabs-slider.xrd-main-tabs-slider {
   width: 70px;
   margin-left: auto;

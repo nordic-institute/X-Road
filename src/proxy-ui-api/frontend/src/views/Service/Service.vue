@@ -155,8 +155,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/tables';
+@import '~styles/tables';
 
 .sub-view-title-spacing {
   margin-bottom: 30px;

@@ -306,7 +306,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
 @import '../../assets/wizards';
 </style>

@@ -115,9 +115,9 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/detail-views';
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/detail-views';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .keytable-header {
   font-weight: 500;

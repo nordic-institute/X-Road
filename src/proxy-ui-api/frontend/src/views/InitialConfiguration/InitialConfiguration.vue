@@ -219,7 +219,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/colors';
-@import '~styles/shared';
 @import '~styles/wizards';
 </style>

@@ -110,7 +110,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../assets/shared';
 .base-full-width {
   width: 100%;
   padding-bottom: 40px;
