@@ -146,14 +146,10 @@ export default Vue.extend({
   color: $XRoad-Purple100;
 }
 
-.name-wrap {
+.name-wrap-top {
   display: flex;
   flex-direction: row;
   align-items: center;
-}
-
-.name-wrap-top {
-  @extend .name-wrap;
   align-content: center;
   margin-top: 5px;
   margin-bottom: 5px;
