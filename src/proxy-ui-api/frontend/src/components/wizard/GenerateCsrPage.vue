@@ -112,12 +112,4 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/wizards';
-
-.generate-row {
-  margin-top: 40px;
-  display: flex;
-  flex-direction: row;
-  align-items: baseline;
-  justify-content: space-between;
-}
 </style>
