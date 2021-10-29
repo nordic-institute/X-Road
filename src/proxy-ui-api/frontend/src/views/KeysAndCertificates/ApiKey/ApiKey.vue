@@ -121,7 +121,7 @@ export default Vue.extend({
 
 .keytable-header {
   font-weight: 500;
-  color: $XRoad-Black;
+  color: $XRoad-Black100;
 }
 
 .title-row {

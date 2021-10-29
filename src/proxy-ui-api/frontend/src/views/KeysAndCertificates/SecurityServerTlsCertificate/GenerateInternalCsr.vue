@@ -140,7 +140,7 @@ $spacing: 12rem;
   max-width: 850px;
   height: 100%;
   width: 100%;
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   background-color: $XRoad-White100;
   box-shadow: $XRoad-DefaultShadow;
   border-radius: 4px;

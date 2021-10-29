@@ -204,7 +204,7 @@ export default Vue.extend({
 @import '../../../assets/tables';
 
 .generated {
-  color: $XRoad-Grey40;
+  color: $XRoad-Black50;
 }
 
 .wrap-right-tight {

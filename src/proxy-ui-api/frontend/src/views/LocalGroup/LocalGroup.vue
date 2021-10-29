@@ -48,8 +48,7 @@
           outlined
           :label="$t('localGroup.description')"
           hide-details
-          data-test="ocal-group-edit-description-input"
-          class="description-input"
+          data-test="local-group-edit-description-input"
           @change="saveDescription"
         ></v-text-field>
       </template>
@@ -356,17 +355,6 @@ export default Vue.extend({
   border-radius: 4px;
   box-shadow: $XRoad-DefaultShadow;
   font-size: $XRoad-DefaultFontSize;
-}
-
-.edit-row {
-  display: flex;
-  align-content: center;
-  align-items: baseline;
-  margin-top: 30px;
-
-  .description-input {
-    margin-left: 60px;
-  }
 }
 
 .group-members-row {

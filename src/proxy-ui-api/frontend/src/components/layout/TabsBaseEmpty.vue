@@ -91,8 +91,4 @@ export default Vue.extend({
 .tabs-wrap {
   margin-left: 20px;
 }
-
-.main-tabs {
-  max-width: 1000px;
-}
 </style>

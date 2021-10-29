@@ -104,7 +104,7 @@ export default Vue.extend({
 @import '../../../assets/tables';
 
 tr td {
-  color: $XRoad-Black;
+  color: $XRoad-Black100;
   font-weight: normal !important;
 }
 

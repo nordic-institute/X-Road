@@ -116,7 +116,7 @@
         </div>
       </div>
 
-      <div class="horizontal-line-light"></div>
+      <div class="footer-pad"></div>
     </div>
   </div>
 </template>
@@ -231,7 +231,7 @@ export default Vue.extend({
 }
 
 .content-title {
-  color: $XRoad-Black;
+  color: $XRoad-Black100;
   font-size: $XRoad-DefaultFontSize;
   font-weight: 500;
   margin-top: 40px;
@@ -268,15 +268,14 @@ export default Vue.extend({
 
 .horizontal-line-dark {
   width: 100%;
-  height: 1.5px;
-  border-top: 1px solid $XRoad-Grey40;
-  background-color: $XRoad-Grey10;
+  height: 1px;
+  border-top: 1px solid $XRoad-WarmGrey30;
 }
 
-.horizontal-line-light {
+.footer-pad {
   width: 100%;
-  height: 1px;
-  background-color: $XRoad-Grey10;
+  height: 16px;
+  border-top: 1px solid $XRoad-WarmGrey30;
 }
 
 .icon {

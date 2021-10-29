@@ -179,14 +179,10 @@ export default Vue.extend({
 @import '../../../assets/dialogs';
 @import '../../../assets/colors';
 .option-row {
-  border-bottom: solid 1px $XRoad-Grey10;
+  border-bottom: solid 1px $XRoad-WarmGrey30;
 }
 
 .content-wrapper {
-  color: #000000 !important;
-}
-
-.v-label {
-  color: $XRoad-Black !important;
+  color: $XRoad-Black100 !important;
 }
 </style>

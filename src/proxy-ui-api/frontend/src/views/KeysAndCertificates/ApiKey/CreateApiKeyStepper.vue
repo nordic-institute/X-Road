@@ -201,7 +201,7 @@ export default Vue.extend({
   max-width: 850px;
   height: 100%;
   width: 100%;
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
 }
 .stepper {
   box-shadow: unset;
@@ -213,13 +213,13 @@ export default Vue.extend({
   margin: auto;
 }
 .checkbox-wrapper {
-  border-bottom: solid 1px $XRoad-Grey10;
+  border-bottom: solid 1px $XRoad-WarmGrey30;
 }
 .api-key-label {
   font-weight: 500;
 }
 h3 {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   font-weight: 400;
 }
 </style>

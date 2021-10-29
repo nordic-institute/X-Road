@@ -222,6 +222,6 @@ export default Vue.extend({
 }
 
 .helper-text {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
 }
 </style>
