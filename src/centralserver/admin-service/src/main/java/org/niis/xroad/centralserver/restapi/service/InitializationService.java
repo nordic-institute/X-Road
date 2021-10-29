@@ -56,6 +56,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
+import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_PIN_POLICY_FAILURE;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_HASH_ALGO_URI;
 import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CONF_SIGN_CERT_HASH_ALGO_URI;
@@ -76,7 +77,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SE
 @SuppressWarnings("checkstyle:TodoComment")
 @Slf4j
 @Service
-@Transactional
+@Transactional(rollbackFor = WeakPinException.class)
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
 public class InitializationService {
@@ -168,6 +169,15 @@ public class InitializationService {
             try {
                 signerProxyService.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
             } catch (Exception e) {
+                if (e instanceof CodedException
+                        && ((CodedException) e).getFaultCode().contains(X_TOKEN_PIN_POLICY_FAILURE)) {
+                    log.warn(new StringBuilder().append("Signer saw Token pin policy failure, ")
+                                    .append("remember to restart also the central server after ")
+                                    .append("configuring policy enforcement")
+                                    .toString(),
+                            e);
+                    throw new WeakPinException("Token pin policy failure at Signer");
+                }
                 log.warn("Software token initialization failed", e);
                 throw new SoftwareTokenInitException("Software token initialization failed", e);
             }
@@ -250,9 +260,9 @@ public class InitializationService {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }
         } catch (Exception e) {
-            if (!(e instanceof CodedException
+            if (!((e instanceof CodedException)
                     && X_KEY_NOT_FOUND.equals(((CodedException) e).getFaultCode())
-            )) {
+                )) {
                 throw new SignerNotReachableException("could not list all tokens", e);
             }
         }

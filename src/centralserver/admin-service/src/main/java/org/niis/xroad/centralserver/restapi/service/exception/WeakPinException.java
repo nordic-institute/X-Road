@@ -25,18 +25,30 @@
  */
 package org.niis.xroad.centralserver.restapi.service.exception;
 
+import ee.ria.xroad.common.util.TokenPinPolicy;
+
 import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import org.niis.xroad.restapi.service.ServiceException;
 
 import java.util.List;
 
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
 
 /**
  * If the provided pin code is too weak
  */
 public class WeakPinException extends ServiceException {
-    public WeakPinException(String msg, List<String> metadata) {
-        super(msg, new ErrorDeviation(ERROR_WEAK_PIN, metadata));
+    static final List<String> DEFAULT_WEAK_PIN_METADATA = List.of(
+            ERROR_METADATA_PIN_MIN_LENGTH,
+            String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
+            ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
+            String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)
+    );
+
+    public WeakPinException(String msg) {
+        super(msg, new ErrorDeviation(ERROR_WEAK_PIN, DEFAULT_WEAK_PIN_METADATA));
+
     }
 }

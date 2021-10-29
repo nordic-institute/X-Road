@@ -35,6 +35,7 @@ import org.niis.xroad.centralserver.restapi.entity.SystemParameter;
 import org.niis.xroad.centralserver.restapi.repository.SystemParameterRepository;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.xml.crypto.dsig.DigestMethod;
 
@@ -49,6 +50,7 @@ import java.util.Optional;
 /**
  *    Class for handling SystemParameter taking HA-setup into account
  */
+@Transactional
 public class SystemParameterService {
 
     public static final String INSTANCE_IDENTIFIER = "instanceIdentifier";
