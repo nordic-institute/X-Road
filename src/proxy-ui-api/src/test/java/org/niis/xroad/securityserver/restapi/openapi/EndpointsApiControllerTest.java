@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -181,10 +182,11 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     public void getEndpointAccesRights() {
         Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
-        assertTrue(serviceClients.stream()
-                .anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS6)));
-        assertTrue(serviceClients.stream()
-                .anyMatch(sc -> sc.getId().equals("2")));
+        // Test sorting order
+        List<ServiceClient> list = new ArrayList<>(serviceClients);
+        assertEquals("2", list.get(0).getId());
+        assertEquals(TestUtils.CLIENT_ID_SS6, list.get(1).getId());
+        assertEquals(TestUtils.CLIENT_ID_SS2, list.get(2).getId());
     }
 
     @Test
@@ -246,9 +248,11 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
 
         assertTrue(serviceClients.size() == 3);
-        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS5)));
-        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.DB_GLOBALGROUP_ID)));
-
+        // Test sorting order
+        List<ServiceClient> list = new ArrayList<>(serviceClients);
+        assertEquals(TestUtils.DB_GLOBALGROUP_ID, list.get(0).getId());
+        assertEquals(TestUtils.CLIENT_ID_SS5, list.get(1).getId());
+        assertEquals(TestUtils.CLIENT_ID_SS6, list.get(2).getId());
         // add access rights for a local group to endpoint
         Set<ServiceClient> localGroupTestServiceClients = endpointsApiController
                 .getEndpointServiceClients("3").getBody();

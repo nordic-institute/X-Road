@@ -50,6 +50,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -314,6 +315,13 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
+        // Test sorting order
+        List<ServiceClient> list = new ArrayList<>(serviceClients);
+        assertEquals("1", list.get(0).getId());
+        assertEquals(TestUtils.CLIENT_ID_SS2, list.get(1).getId());
+        assertEquals(TestUtils.DB_GLOBALGROUP_ID, list.get(2).getId());
+        assertEquals("FI:test-globalgroup", list.get(3).getId());
+
         ServiceClient serviceClient = getServiceClientByTypeExceptId(
                 serviceClients, TestUtils.GLOBALGROUP, "FI:test-globalgroup").get();
         assertEquals(TestUtils.NAME_FOR + TestUtils.DB_GLOBALGROUP_CODE,
@@ -567,6 +575,12 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                 .addServiceServiceClients(TestUtils.SS1_CALCULATE_PRIME, clientsToAdd).getBody();
 
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
+        // Test sorting order
+        List<ServiceClient> list = new ArrayList<>(updatedServiceClients);
+        assertEquals("2", list.get(0).getId());
+        assertEquals(TestUtils.CLIENT_ID_SS2, list.get(1).getId());
+        assertEquals(TestUtils.DB_GLOBALGROUP_ID, list.get(2).getId());
+        assertEquals("FI:test-globalgroup", list.get(3).getId());
     }
 
     @Test(expected = ConflictException.class)

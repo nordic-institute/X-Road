@@ -61,6 +61,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Endpoints api
@@ -149,7 +151,9 @@ public class EndpointsApiController implements EndpointsApi {
         }
         Set<ServiceClient> serviceClients = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
+        SortedSet<ServiceClient> sortedServiceClients = new TreeSet<>(serviceClientSortingComparator);
+        sortedServiceClients.addAll(serviceClients);
+        return new ResponseEntity<>(sortedServiceClients, HttpStatus.OK);
     }
 
     @Override
@@ -174,7 +178,9 @@ public class EndpointsApiController implements EndpointsApi {
 
         Set<ServiceClient> serviceClientsResult = serviceClientConverter
                 .convertServiceClientDtos(serviceClientsByEndpoint);
-        return new ResponseEntity<>(serviceClientsResult, HttpStatus.CREATED);
+        SortedSet<ServiceClient> sortedServiceClientsResult = new TreeSet<>(serviceClientSortingComparator);
+        sortedServiceClientsResult.addAll(serviceClientsResult);
+        return new ResponseEntity<>(sortedServiceClientsResult, HttpStatus.CREATED);
     }
 
     @Override

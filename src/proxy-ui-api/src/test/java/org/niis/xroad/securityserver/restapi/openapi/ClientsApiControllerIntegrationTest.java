@@ -165,6 +165,11 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 clientsApiController.findClients(null, null, null, null, null, true, false, null, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(11, response.getBody().size());
+        // Test sorting order
+        List<Client> list = new ArrayList<>(response.getBody());
+        assertEquals("EE:PRO:M1:SS1", list.get(0).getId());
+        assertEquals("DUMMY:PRO:M2:SS6", list.get(5).getId());
+        assertEquals("FI:GOV:M1", list.get(10).getId());
     }
 
     @Test
@@ -881,6 +886,11 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 null, null, null, null, null);
         Set<ServiceClient> serviceClients = serviceClientResponse.getBody();
         assertEquals(10, serviceClients.size());
+        // Test sorting order
+        List<ServiceClient> list = new ArrayList<>(serviceClients);
+        assertEquals("1", list.get(0).getId());
+        assertEquals("EE:GLOBALGROUP2", list.get(4).getId());
+        assertEquals("EE:GOV:M2:SS3", list.get(9).getId());
     }
 
     @Test
