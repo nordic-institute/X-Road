@@ -4,7 +4,7 @@ FROM $TAG:$VERSION-fi
 RUN apt-get -qq update \
   && apt-get -qq install rsync openssh-client cron
 
-#Configure node pod for balanacer
+# Configure node pod for balancer
 RUN crudini --set /etc/xroad/conf.d/node.ini node type 'slave' \
   && crudini --set /etc/xroad/conf.d/node.ini message-log archive-interval '0 * * ? * * 2099' \
   && chown xroad:xroad /etc/xroad/conf.d/node.ini \

@@ -1,6 +1,6 @@
 ARG VERSION=6.26.0
 ARG TAG=niis/xroad-security-server-sidecar
-FROM $TAG:$VERSION-ee
+FROM $TAG:$VERSION-slim-is
 RUN apt-get -qq update \
   && apt-get -qq install rsync openssh-client cron
 
@@ -14,6 +14,6 @@ RUN crudini --set /etc/xroad/conf.d/node.ini node type 'slave' \
   && chown xroad:xroad /home/xroad/.ssh
 
 COPY files/xroad-slave-sync.logrotate /etc/logrotate.d/xroad-slave-sync
-COPY files/secondary-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
+COPY files/secondary-slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 COPY files/balancer-secondary-entrypoint.sh /root/entrypoint.sh
 CMD ["/root/entrypoint.sh"]

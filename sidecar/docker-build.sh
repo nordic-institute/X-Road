@@ -12,10 +12,12 @@ build() {
 build "$dir/slim/Dockerfile" "-slim"
 build "$dir/slim/fi/Dockerfile" "-slim-fi"
 build "$dir/slim/fo/Dockerfile" "-slim-fo"
+build "$dir/slim/is/Dockerfile" "-slim-is"
 build "$dir/Dockerfile" ""
 build "$dir/fi/Dockerfile" "-fi"
 build "$dir/ee/Dockerfile" "-ee"
 build "$dir/fo/Dockerfile" "-fo"
+build "$dir/is/Dockerfile" "-is"
 
 build "$dir/kubernetesBalancer/slim/primary/Dockerfile" "-slim-primary"
 build "$dir/kubernetesBalancer/slim/secondary/Dockerfile" "-slim-secondary"
@@ -29,3 +31,8 @@ build "$dir/kubernetesBalancer/fi/secondary/Dockerfile" "-secondary-fi"
 
 build "$dir/kubernetesBalancer/ee/primary/Dockerfile" "-primary-ee"
 build "$dir/kubernetesBalancer/ee/secondary/Dockerfile" "-secondary-ee"
+
+build "$dir/kubernetesBalancer/slim/is/primary/Dockerfile" "-slim-primary-is"
+build "$dir/kubernetesBalancer/slim/is/secondary/Dockerfile" "-slim-secondary-is"
+build "$dir/kubernetesBalancer/is/primary/Dockerfile" "-primary-is"
+build "$dir/kubernetesBalancer/is/secondary/Dockerfile" "-secondary-is"
