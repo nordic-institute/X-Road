@@ -1,6 +1,6 @@
 ARG VERSION=6.26.0
 ARG TAG=niis/xroad-security-server-sidecar
-FROM $TAG:$VERSION-ee
+FROM $TAG:$VERSION-is
 RUN apt-get -qq update \
   && apt-get -qq install rsync openssh-client cron
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 source /root/_entrypoint_common.sh
-#Configure master pod for balanacer
+# Configure master pod for balancer
 
 mkdir -p /run/sshd && chmod 0755 /run/sshd
 
