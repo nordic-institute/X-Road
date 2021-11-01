@@ -56,8 +56,6 @@ import org.niis.xroad.securityserver.restapi.converter.ServiceClientTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.ServiceDescriptionConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TokenCertificateConverter;
-import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
-import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientAccessRightDto;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.AccessRight;
@@ -157,8 +155,6 @@ public class ClientsApiController implements ClientsApi {
     private final ServiceClientService serviceClientService;
     private final ServiceClientHelper serviceClientHelper;
     private final AuditDataHelper auditDataHelper;
-    private final ServiceClientSortingComparator serviceClientSortingComparator;
-    private final ClientSortingComparator clientSortingComparator;
 
     /**
      * Finds clients matching search terms
