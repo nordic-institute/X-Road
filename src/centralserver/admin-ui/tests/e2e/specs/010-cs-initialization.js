@@ -39,6 +39,11 @@ const INSTANCE_INVALID_FIELD_NOTE =
   'Use valid instance identifier characters only';
 const ADDRESS_INVALID_FIELD_NOTE =
   'Valid IP address or fully qualified domain name needed';
+/*
+ *  NOTE: Keep initialization tests in this file or at least before
+ *        other tests, i.e. in a file with number prefix that is smaller
+ *        than for other tests
+ */
 module.exports = {
   tags: ['cs', 'initialization'],
   before(browser) {
