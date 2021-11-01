@@ -176,7 +176,6 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/dialogs';
 @import '~styles/colors';
 .option-row {
   border-bottom: solid 1px $XRoad-WarmGrey30;

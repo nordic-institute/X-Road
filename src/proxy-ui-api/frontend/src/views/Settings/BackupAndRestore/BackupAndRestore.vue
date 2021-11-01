@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="xrd-view-common">
-    <div class="table-toolbar mt-0 pl-0">
+    <div class="xrd-table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}

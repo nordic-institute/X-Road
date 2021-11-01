@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div class="xrd-tab-max-width xrd-main-wrap">
     <div class="pa-4">
       <xrd-sub-view-title :title="groupCode" @close="close" />
 
@@ -348,14 +348,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-.main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-  font-size: $XRoad-DefaultFontSize;
-}
 
 .group-members-row {
   width: 100%;

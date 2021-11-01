@@ -370,7 +370,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/colors';
-@import '~styles/dialogs';
 @import '~styles/detail-views';
 
 .main-wrap {
