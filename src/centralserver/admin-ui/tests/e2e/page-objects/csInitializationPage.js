@@ -72,7 +72,6 @@ const initializationCommands = {
     return this;
   },
   navigateAndMakeTestable: function () {
-    this.logMessage('navigateAndMakeTestable()');
     this.navigate();
     this.waitForElementVisible('//*[@id="app"]');
     this.makeTestable();
