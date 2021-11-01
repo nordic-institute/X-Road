@@ -138,7 +138,7 @@
         </div>
       </div>
       <v-card flat>
-        <div class="footer-button-wrap mt-12">
+        <div class="dtlv-actions-footer mt-12">
           <xrd-button
             data-test="service-description-details-cancel-button"
             outlined

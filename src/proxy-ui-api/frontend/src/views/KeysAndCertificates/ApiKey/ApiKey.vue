@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <div class="details-view-tools">
+    <div class="dtlv-tools">
       <xrd-button
         v-if="canCreateApiKey"
         class="button-spacing"
