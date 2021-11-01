@@ -26,7 +26,7 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('wizard.addMemberTitle')"
       data-test="wizard-title"
       :show-close="false"
@@ -98,7 +98,7 @@
         </v-stepper-header>
       </template>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <MemberDetailsPage @cancel="cancel" @done="currentStep++" />

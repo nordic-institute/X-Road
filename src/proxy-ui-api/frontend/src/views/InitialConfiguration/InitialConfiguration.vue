@@ -27,7 +27,7 @@
   <v-layout align-center justify-center class="mt-6">
     <div class="view-wrap">
       <xrd-sub-view-title
-        class="view-title"
+        class="wizard-view-title"
         :title="$t('initialConfiguration.title')"
         :show-close="false"
         data-test="wizard-title"
@@ -62,7 +62,7 @@
           }}</v-stepper-step>
         </v-stepper-header>
 
-        <v-stepper-items v-if="isAnchorImported" class="stepper-content">
+        <v-stepper-items v-if="isAnchorImported" class="wizard-stepper-content">
           <!-- Member step -->
           <v-stepper-content step="1">
             <OwnerMemberStep :show-previous-button="false" @done="nextStep" />
@@ -73,7 +73,7 @@
           </v-stepper-content>
         </v-stepper-items>
 
-        <v-stepper-items v-else class="stepper-content">
+        <v-stepper-items v-else class="wizard-stepper-content">
           <!-- Anchor step -->
           <v-stepper-content step="1">
             <ConfigurationAnchorStep @done="nextStep" />

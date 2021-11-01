@@ -27,7 +27,7 @@
   <div>
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content pt-6">
-        <div v-for="item in csrForm" :key="item.id" class="row-wrap">
+        <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
           <div class="label">
             {{ $t('certificateProfile.' + item.label_key) }}
           </div>
@@ -40,7 +40,7 @@
             >
               <v-text-field
                 v-model="item.default_value"
-                class="form-input"
+                class="wizard-form-input"
                 :name="item.id"
                 type="text"
                 :disabled="item.read_only"

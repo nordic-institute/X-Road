@@ -36,7 +36,7 @@
           >
             <v-text-field
               v-model="pin"
-              class="form-input"
+              class="wizard-form-input"
               name="pin"
               autofocus
               :label="$t('initialConfiguration.pin.pin')"
@@ -55,7 +55,7 @@
           >
             <v-text-field
               v-model="pinConfirm"
-              class="form-input"
+              class="wizard-form-input"
               name="confirmPin"
               :label="$t('initialConfiguration.pin.confirmPin')"
               type="password"

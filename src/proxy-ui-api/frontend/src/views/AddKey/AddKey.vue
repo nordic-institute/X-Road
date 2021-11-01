@@ -26,7 +26,7 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('csr.addKey')"
       :show-close="false"
     />
@@ -49,7 +49,7 @@
         }}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <WizardPageKeyLabel

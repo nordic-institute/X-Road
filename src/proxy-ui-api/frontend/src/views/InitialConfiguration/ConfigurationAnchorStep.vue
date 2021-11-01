@@ -36,7 +36,7 @@
 
       <div style="height: 120px">
         <template v-if="configuratonAnchor">
-          <div class="row-wrap">
+          <div class="wizard-row-wrap">
             <div class="label">
               {{ $t('initialConfiguration.anchor.hash') }}
             </div>
@@ -45,7 +45,7 @@
             }}</template>
           </div>
 
-          <div class="row-wrap">
+          <div class="wizard-row-wrap">
             <div class="label">
               {{ $t('initialConfiguration.anchor.generated') }}
             </div>

@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="step-content-wrapper">
-    <div class="info-block">
+    <div class="wizard-info-block">
       <div>
         {{ $t('wizard.clientInfo1') }}
         <br />
@@ -44,7 +44,7 @@
 
     <ValidationObserver ref="form2" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberName')"
             :help-text="$t('wizard.client.memberNameTooltip')"
@@ -52,7 +52,7 @@
           <div data-test="selected-member-name">{{ selectedMemberName }}</div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberClass')"
             :help-text="$t('wizard.client.memberClassTooltip')"
@@ -67,14 +67,14 @@
               v-model="memberClass"
               :items="memberClassesCurrentInstance"
               :error-messages="errors"
-              class="form-input"
+              class="wizard-form-input"
               data-test="member-class-input"
               :placeholder="$t('wizard.selectMemberClass')"
               outlined
             ></v-select>
           </ValidationProvider>
         </div>
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberCode')"
             :help-text="$t('wizard.client.memberCodeTooltip')"
@@ -87,7 +87,7 @@
           >
             <v-text-field
               v-model="memberCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               autofocus
@@ -98,7 +98,7 @@
           </ValidationProvider>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.subsystemCode')"
             :help-text="$t('wizard.client.subsystemCodeTooltip')"
@@ -111,7 +111,7 @@
           >
             <v-text-field
               v-model="subsystemCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               outlined
               :placeholder="$t('wizard.subsystemCode')"
@@ -120,7 +120,7 @@
             ></v-text-field>
           </ValidationProvider>
         </div>
-        <div v-if="duplicateClient" class="duplicate-warning">
+        <div v-if="duplicateClient" class="wizard-duplicate-warning">
           {{ $t('wizard.client.memberExists') }}
         </div>
       </div>
