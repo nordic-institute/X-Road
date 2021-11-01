@@ -37,7 +37,7 @@
       <div style="height: 120px">
         <template v-if="configuratonAnchor">
           <div class="wizard-row-wrap">
-            <div class="label">
+            <div class="wizard-label">
               {{ $t('initialConfiguration.anchor.hash') }}
             </div>
             <template v-if="configuratonAnchor">{{
@@ -46,7 +46,7 @@
           </div>
 
           <div class="wizard-row-wrap">
-            <div class="label">
+            <div class="wizard-label">
               {{ $t('initialConfiguration.anchor.generated') }}
             </div>
             <template v-if="configuratonAnchor">{{
@@ -126,7 +126,8 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/wizards';
 
-.label {
+/* Expand imported wizard class */
+.wizard-label {
   width: 170px;
   min-width: 170px;
 }
