@@ -34,6 +34,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
@@ -52,6 +53,7 @@ public class ClientConverterTest {
 
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
     private ClientConverter clientConverter;
+    private ClientSortingComparator clientSortingComparator;
 
     @Before
     public void setup() {
@@ -65,7 +67,7 @@ public class ClientConverterTest {
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
 
         clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
-                new CurrentSecurityServerSignCertificates(new ArrayList<>()));
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
     }
 
     @Test

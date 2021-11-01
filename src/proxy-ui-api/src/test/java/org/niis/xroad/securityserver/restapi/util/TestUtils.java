@@ -49,7 +49,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -189,7 +192,7 @@ public final class TestUtils {
      * @return
      */
     public static ClientId getClientId(String encodedId) {
-        return new ClientConverter(null, null, null).convertId(encodedId);
+        return new ClientConverter(null, null, null, null).convertId(encodedId);
     }
 
     /**
@@ -364,5 +367,28 @@ public final class TestUtils {
         MockHttpServletRequest request = new MockHttpServletRequest();
         ServletRequestAttributes attributes = new ServletRequestAttributes(request);
         RequestContextHolder.setRequestAttributes(attributes);
+    }
+
+    /**
+     * Checks if the sort order of the given Set is correct.
+     * @param set
+     * @param comparator
+     * @return
+     */
+    public static boolean isSortOrderCorrect(Set set, Comparator comparator) {
+        if (set.size() == 0 || set.size() == 1) {
+            return true;
+        }
+
+        Iterator iter = set.iterator();
+        Object current, previous = iter.next();
+        while (iter.hasNext()) {
+            current = iter.next();
+            if (comparator.compare(previous, current) > 0) {
+                return false;
+            }
+            previous = current;
+        }
+        return true;
     }
 }

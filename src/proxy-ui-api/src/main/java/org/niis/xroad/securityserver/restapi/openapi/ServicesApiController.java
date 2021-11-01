@@ -69,8 +69,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * services api
@@ -146,9 +144,7 @@ public class ServicesApiController implements ServicesApi {
             throw new ResourceNotFoundException(e);
         }
         Set<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
-        SortedSet<ServiceClient> sortedServiceClients = new TreeSet<>(serviceClientSortingComparator);
-        sortedServiceClients.addAll(serviceClients);
-        return new ResponseEntity<>(sortedServiceClients, HttpStatus.OK);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
     @PreAuthorize("hasAuthority('EDIT_SERVICE_ACL')")
@@ -193,9 +189,8 @@ public class ServicesApiController implements ServicesApi {
         }
         Set<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
                 serviceClientDtos);
-        SortedSet<ServiceClient> sortedServiceClientsResult = new TreeSet<>(serviceClientSortingComparator);
-        sortedServiceClientsResult.addAll(serviceClientsResult);
-        return new ResponseEntity<>(sortedServiceClientsResult, HttpStatus.OK);
+
+        return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 
     @Override

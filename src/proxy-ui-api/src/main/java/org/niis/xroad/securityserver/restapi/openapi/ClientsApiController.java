@@ -110,8 +110,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static java.util.stream.Collectors.toSet;
 import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.ADD_CLIENT;
@@ -188,9 +186,7 @@ public class ClientsApiController implements ClientsApi {
         Set<Client> clients = clientConverter.convert(clientService.findClients(name,
                 instance, memberClass, memberCode, subsystemCode, unboxedShowMembers, unboxedInternalSearch,
                 excludeLocal, localValidSignCert));
-        SortedSet<Client> sortedClients = new TreeSet<>(clientSortingComparator);
-        sortedClients.addAll(clients);
-        return new ResponseEntity<>(sortedClients, HttpStatus.OK);
+        return new ResponseEntity<>(clients, HttpStatus.OK);
     }
 
     @Override
@@ -445,10 +441,7 @@ public class ClientsApiController implements ClientsApi {
         }
         Set<ServiceClient> serviceClients = serviceClientConverter.convertServiceClientDtos(serviceClientDtos);
 
-        SortedSet<ServiceClient> sortedServiceClients = new TreeSet<>(serviceClientSortingComparator);
-        sortedServiceClients.addAll(serviceClients);
-
-        return new ResponseEntity<>(sortedServiceClients, HttpStatus.OK);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
     /**
@@ -583,16 +576,14 @@ public class ClientsApiController implements ClientsApi {
     @PreAuthorize("hasAuthority('VIEW_CLIENT_ACL_SUBJECTS')")
     public ResponseEntity<Set<ServiceClient>> getClientServiceClients(String id) {
         ClientId clientId = clientConverter.convertId(id);
-        SortedSet<ServiceClient> sortedServiceClients = null;
+        Set<ServiceClient> serviceClients = null;
         try {
-            Set<ServiceClient> serviceClients = serviceClientConverter.
+            serviceClients = serviceClientConverter.
                     convertServiceClientDtos(serviceClientService.getServiceClientsByClient(clientId));
-            sortedServiceClients = new TreeSet<>(serviceClientSortingComparator);
-            sortedServiceClients.addAll(serviceClients);
         } catch (ClientNotFoundException e) {
             throw new ResourceNotFoundException(e);
         }
-        return new ResponseEntity<>(sortedServiceClients, HttpStatus.OK);
+        return new ResponseEntity<>(serviceClients, HttpStatus.OK);
     }
 
     @Override

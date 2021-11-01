@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate.MethodEnum;
@@ -71,6 +72,9 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
 
     @Autowired
     PersistenceUtils persistenceUtils;
+
+    @Autowired
+    ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
@@ -183,10 +187,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
         // Test sorting order
-        List<ServiceClient> list = new ArrayList<>(serviceClients);
-        assertEquals("2", list.get(0).getId());
-        assertEquals(TestUtils.CLIENT_ID_SS6, list.get(1).getId());
-        assertEquals(TestUtils.CLIENT_ID_SS2, list.get(2).getId());
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
     }
 
     @Test
@@ -249,10 +250,7 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
 
         assertTrue(serviceClients.size() == 3);
         // Test sorting order
-        List<ServiceClient> list = new ArrayList<>(serviceClients);
-        assertEquals(TestUtils.DB_GLOBALGROUP_ID, list.get(0).getId());
-        assertEquals(TestUtils.CLIENT_ID_SS5, list.get(1).getId());
-        assertEquals(TestUtils.CLIENT_ID_SS6, list.get(2).getId());
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
         // add access rights for a local group to endpoint
         Set<ServiceClient> localGroupTestServiceClients = endpointsApiController
                 .getEndpointServiceClients("3").getBody();

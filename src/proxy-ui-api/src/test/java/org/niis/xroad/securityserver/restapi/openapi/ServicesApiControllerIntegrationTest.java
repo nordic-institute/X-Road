@@ -35,6 +35,7 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
@@ -50,7 +51,6 @@ import javax.net.ssl.SSLHandshakeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,6 +73,9 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Autowired
     ServiceDescriptionsApiController serviceDescriptionsApiController;
+
+    @Autowired
+    ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     private static final String FOO = "foo";
@@ -316,11 +319,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
 
         // Test sorting order
-        List<ServiceClient> list = new ArrayList<>(serviceClients);
-        assertEquals("1", list.get(0).getId());
-        assertEquals(TestUtils.CLIENT_ID_SS2, list.get(1).getId());
-        assertEquals(TestUtils.DB_GLOBALGROUP_ID, list.get(2).getId());
-        assertEquals("FI:test-globalgroup", list.get(3).getId());
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
 
         ServiceClient serviceClient = getServiceClientByTypeExceptId(
                 serviceClients, TestUtils.GLOBALGROUP, "FI:test-globalgroup").get();
@@ -576,11 +575,7 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
         // Test sorting order
-        List<ServiceClient> list = new ArrayList<>(updatedServiceClients);
-        assertEquals("2", list.get(0).getId());
-        assertEquals(TestUtils.CLIENT_ID_SS2, list.get(1).getId());
-        assertEquals(TestUtils.DB_GLOBALGROUP_ID, list.get(2).getId());
-        assertEquals("FI:test-globalgroup", list.get(3).getId());
+        assertEquals(true, TestUtils.isSortOrderCorrect(updatedServiceClients, serviceClientSortingComparator));
     }
 
     @Test(expected = ConflictException.class)
