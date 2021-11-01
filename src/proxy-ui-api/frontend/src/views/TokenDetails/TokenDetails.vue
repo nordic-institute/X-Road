@@ -315,4 +315,8 @@ export default Vue.extend({
   padding: 0;
   margin-left: -12px;
 }
+
+.pointer {
+  cursor: pointer;
+}
 </style>
