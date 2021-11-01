@@ -381,6 +381,7 @@
     "Positive": "numeric value should be greater that zero",
     "PositiveOrZero": "numeric value should be greater or equal to zero",
     "Size": "value does not meet length requirements",
+    "SizeField": "value does not meet length requirements",
     "Normalized": "value should be normalized",
     "NoColons": "value should not contain colon (:) symbols",
     "NoSemicolons": "value should not contain semicolon (;) symbols",

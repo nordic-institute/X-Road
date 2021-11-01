@@ -36,12 +36,6 @@ import org.niis.xroad.centralserver.restapi.service.exception.WeakPinException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
-
 @Slf4j
 @Service
 @PreAuthorize("isAuthenticated()")
@@ -57,12 +51,7 @@ public class TokenPinValidator {
                 if (description.hasInvalidCharacters()) {
                     throw new InvalidCharactersException("The provided pin code contains invalid characters");
                 }
-                List<String> metadata = new ArrayList<>();
-                metadata.add(ERROR_METADATA_PIN_MIN_LENGTH);
-                metadata.add(String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH));
-                metadata.add(ERROR_METADATA_PIN_MIN_CHAR_CLASSES);
-                metadata.add(String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT));
-                throw new WeakPinException("The provided pin code was too weak", metadata);
+                throw new WeakPinException("The provided pin code was too weak");
             }
         }
     }

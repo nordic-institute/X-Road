@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,32 +23,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service.exception;
+const Events = require('events');
 
-import ee.ria.xroad.common.util.TokenPinPolicy;
-
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
-
-import java.util.List;
-
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
-
-/**
- * If the provided pin code is too weak
- */
-public class WeakPinException extends ServiceException {
-    static final List<String> DEFAULT_WEAK_PIN_METADATA = List.of(
-            ERROR_METADATA_PIN_MIN_LENGTH,
-            String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-            ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-            String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)
+// make UI more testable by
+// 1. setting e2eTestingMode = true -> snackbars stay open forever
+// 2. adding transition:none CSS (disables animations / transitions that make button clicks unreliable)
+module.exports = class MakeTestable extends Events {
+  command() {
+    this.api.execute(function makeUiTestable() {
+      window.e2eTestingMode = true;
+      const style = `
+      <style>
+        *, ::before, ::after {
+            transition:none !important;
+        }
+      </style>`;
+      document.head.insertAdjacentHTML('beforeend', style);
+    }, []);
+    this.api.logMessage(
+      'made UI testable by setting window.e2eTestingMode and injecting CSS',
     );
-
-    public WeakPinException(String msg) {
-        super(msg, new ErrorDeviation(ERROR_WEAK_PIN, DEFAULT_WEAK_PIN_METADATA));
-
-    }
-}
+    this.emit('complete');
+  }
+};

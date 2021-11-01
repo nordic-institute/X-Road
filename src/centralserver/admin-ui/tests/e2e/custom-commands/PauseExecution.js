@@ -23,45 +23,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-let login;
-let members;
-const { User } = require('../constants');
-module.exports = {
-  tags: ['cs', 'login'],
-  before(browser) {
-    login = browser.page.loginpage();
-    members = browser.page.memberspage();
-  },
-  beforeEach() {
-    login.navigate();
-  },
-  after(browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    login
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    login
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-  'Admin login succeeds': () => {
-    login.signInUser(User.ADMIN);
-    members.membersViewIsVisible();
-  },
-  'Security-officer login succeeds': () => {
-    login.signInUser(User.SECURITY_OFFICER);
-    members.membersViewIsVisible();
-  },
-  'Registration-officer login succeeds': () => {
-    login.signInUser(User.REGISTRATION_OFFICER);
-    members.membersViewIsVisible();
-  },
+
+module.exports = class PauseExecution {
+  async command(time) {
+    // eslint-disable-next-line no-console
+    console.log('/nPausing execution, CTRL-C to break');
+    //TODO might want figure out a way to make this resumeable
+    this.api.pause(time);
+  }
 };

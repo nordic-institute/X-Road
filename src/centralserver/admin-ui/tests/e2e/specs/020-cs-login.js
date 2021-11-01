@@ -23,29 +23,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-const membersCommands = {
-  membersViewIsVisible() {
-    this.assert.visible('@membersView');
-    return this;
-  },
-  verifyCurrentUser: function (user) {
-    this.api.assert.containsText(this.elements.userMenuButton, user);
-    return this;
-  },
-};
-
+let login;
+let members;
+const { User } = require('../constants');
 module.exports = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/#/members`,
-  commands: [membersCommands],
-  elements: {
-    membersView: {
-      selector: '//div[@data-test="members-view"]',
-      locateStrategy: 'xpath',
-    },
-    userMenuButton: {
-      selector: '//button[@data-test="username-button"]',
-      locateStrategy: 'xpath',
-    },
+  tags: ['cs', 'login'],
+  before(browser) {
+    login = browser.page.csLoginPage();
+    members = browser.page.csMembersPage();
+  },
+  beforeEach() {
+    login.navigateAndMakeTestable();
+  },
+  after(browser) {
+    browser.end();
+  },
+  'Wrong username is rejected': (browser) => {
+    login
+      .enterUsername('invalid')
+      .enterPassword(browser.globals.login_pwd)
+      .signIn()
+      .loginErrorMessageIsShown();
+  },
+  'Wrong password is rejected': (browser) => {
+    login
+      .enterUsername(browser.globals.login_usr)
+      .enterPassword('invalid')
+      .signIn()
+      .loginErrorMessageIsShown();
   },
 };

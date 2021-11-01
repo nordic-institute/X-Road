@@ -29,8 +29,8 @@ module.exports = class LoginCommand {
     username = this.api.globals.login_usr,
     password = this.api.globals.login_pwd,
   ) {
-    const loginpage = this.api.page.loginpage();
-    const memberspage = this.api.page.memberspage();
+    const loginpage = this.api.page.csLoginPage();
+    const memberspage = this.api.page.csMembersPage();
     loginpage.navigate();
     this.api.waitForElementVisible('//*[@id="app"]');
     loginpage

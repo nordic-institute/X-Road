@@ -24,70 +24,31 @@
  * THE SOFTWARE.
  */
 
-const { User } = require('../constants/');
-const loginCommands = {
-  clearUsername() {
-    this.clearValue('@usernameInput');
+const membersCommands = {
+  membersViewIsVisible() {
+    this.assert.visible('@membersView');
     return this;
   },
-  clearPassword() {
-    this.clearValue('@passwordInput');
+  verifyCurrentUser: function (user) {
+    this.api.assert.containsText(this.elements.userMenuButton, user);
     return this;
-  },
-  enterUsername(username) {
-    this.setValue('@usernameInput', username);
-    return this;
-  },
-  enterPassword(password) {
-    this.setValue('@passwordInput', password);
-    return this;
-  },
-  signIn() {
-    this.click('@loginButton');
-    return this;
-  },
-  loginErrorMessageIsShown() {
-    this.assert.visible('@loginError');
-    return this;
-  },
-  signInUser(role) {
-    switch (role) {
-      case User.REGISTRATION_OFFICER:
-        return this.api.LoginCommand(
-          this.api.globals.login_registration_officer,
-          this.api.globals.login_pwd,
-        );
-      case User.SECURITY_OFFICER:
-        return this.api.LoginCommand(
-          this.api.globals.login_security_officer,
-          this.api.globals.login_pwd,
-        );
-      case User.ADMIN:
-        return this.api.LoginCommand();
-      default:
-        throw Error('Login role not provided');
-    }
   },
 };
 
 module.exports = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/#/login`,
-  commands: [loginCommands],
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/members`,
+  commands: [membersCommands],
   elements: {
-    usernameInput: {
-      selector: '//input[@data-test="login-username-input"]',
+    membersView: {
+      selector: '//div[@data-test="members-view"]',
       locateStrategy: 'xpath',
     },
-    passwordInput: {
-      selector: '//input[@data-test="login-password-input"]',
+    initNotificationNote: {
+      selector: '//div[@data-test="continue-init-notification"]',
       locateStrategy: 'xpath',
     },
-    loginButton: {
-      selector: '//button[@data-test="login-button"]',
-      locateStrategy: 'xpath',
-    },
-    loginError: {
-      selector: '//div[@data-test="contextual-alert"]',
+    userMenuButton: {
+      selector: '//button[@data-test="username-button"]',
       locateStrategy: 'xpath',
     },
   },

@@ -1,4 +1,4 @@
-/**
+/*
  * The MIT License
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
@@ -23,32 +23,41 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service.exception;
+const Events = require('events');
 
-import ee.ria.xroad.common.util.TokenPinPolicy;
-
-import org.niis.xroad.restapi.exceptions.ErrorDeviation;
-import org.niis.xroad.restapi.service.ServiceException;
-
-import java.util.List;
-
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_CHAR_CLASSES;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_PIN_MIN_LENGTH;
-import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_WEAK_PIN;
-
-/**
- * If the provided pin code is too weak
+/*
+ * waitForNonEmpty   -- waits until a field has a non-empty value
  */
-public class WeakPinException extends ServiceException {
-    static final List<String> DEFAULT_WEAK_PIN_METADATA = List.of(
-            ERROR_METADATA_PIN_MIN_LENGTH,
-            String.valueOf(TokenPinPolicy.MIN_PASSWORD_LENGTH),
-            ERROR_METADATA_PIN_MIN_CHAR_CLASSES,
-            String.valueOf(TokenPinPolicy.MIN_CHARACTER_CLASS_COUNT)
-    );
-
-    public WeakPinException(String msg) {
-        super(msg, new ErrorDeviation(ERROR_WEAK_PIN, DEFAULT_WEAK_PIN_METADATA));
-
+module.exports = class WaitForNonEmpty extends Events {
+  // async command(f) {
+  async command(selector) {
+    const interval = 100;
+    const timeout = 5000;
+    let counter = 0;
+    while (counter * interval < timeout) {
+      const result = await this.api.getValue(selector);
+      if (typeof result.value == 'string' && result.value.length > 0) {
+        const returnValue = {
+          status: 1,
+        };
+        this.emit('complete', returnValue);
+        return returnValue;
+      }
+      await new Promise((r) => setTimeout(r, interval));
+      counter++;
     }
-}
+    // var err = new Error().stack
+    // this command does not know the stacktrace (which test the command was called from)
+    // maybe changing it to be non-async (it that makes sense) would help?
+    let selectorDescForError = selector;
+    if (Object.prototype.hasOwnProperty.call(selector, 'selector')) {
+      selectorDescForError = selector.selector;
+    }
+    this.emit(
+      'error',
+      new Error(
+        `Timeout exceeded while waiting for non-empty string value for selector [${selectorDescForError}]`,
+      ),
+    );
+  }
+};
