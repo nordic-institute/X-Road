@@ -23,53 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-const membersCommands = {
-  membersViewIsVisible() {
-    this.assert.visible('@membersView');
-    return this;
-  },
-  instanceAndAddressIsVisible() {
-    this.assert.visible('@instanceAndAddress');
-    return this;
-  },
-  verifyCurrentUser: function (user) {
-    this.api.assert.containsText(this.elements.userMenuButton, user);
-    return this;
-  },
-  navigateAndMakeTestable: function () {
-    this.logMessage('navigateAndMakeTestable()');
-    this.navigate();
-    this.waitForElementVisible('//*[@id="app"]');
-    this.makeTestable();
-    this.logMessage('navigateAndMakeTestable() done');
-    return this;
-  },
-};
-
+let login;
+let members;
+const { User } = require('../constants');
 module.exports = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/#/members`,
-  commands: [membersCommands],
-  elements: {
-    membersView: {
-      selector: '//div[@data-test="members-view"]',
-      locateStrategy: 'xpath',
-    },
-    initNotificationNote: {
-      selector: '//div[@data-test="continue-init-notification"]',
-      locateStrategy: 'xpath',
-    },
-    userMenuButton: {
-      selector: '//button[@data-test="username-button"]',
-      locateStrategy: 'xpath',
-    },
-    instanceAndAddress: {
-      selector: '//div[@data-test="app-toolbar-server-instance-address"]',
-      locateStrategy: 'xpath',
-    },
-    nodeName: {
-      selector: '//div[@data-test="app-toolbar-node-name"]',
-      locateStrategy: 'xpath',
-    },
+  tags: ['cs', 'members'],
+  before(browser) {
+    login = browser.page.csLoginPage();
+    members = browser.page.csMembersPage();
+  },
+  beforeEach() {
+    login.navigateAndMakeTestable();
+    login.signInUser();
+    members.navigateAndMakeTestable();
+  },
+  after(browser) {
+    browser.end();
+  },
+  'Members page is shown after logging in': async (browser) => {
+    await members
+      .membersViewIsVisible()
+      .instanceAndAddressIsVisible()
+      .waitForElementNotVisible('@nodeName', 60 * 1000) // visible only in HA configuration
   },
 };
