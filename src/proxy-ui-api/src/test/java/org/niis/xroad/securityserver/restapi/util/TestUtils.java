@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import com.google.common.collect.Ordering;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
@@ -50,7 +51,6 @@ import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -375,20 +375,7 @@ public final class TestUtils {
      * @param comparator
      * @return
      */
-    public static boolean isSortOrderCorrect(Set set, Comparator comparator) {
-        if (set.size() == 0 || set.size() == 1) {
-            return true;
-        }
-
-        Iterator iter = set.iterator();
-        Object current, previous = iter.next();
-        while (iter.hasNext()) {
-            current = iter.next();
-            if (comparator.compare(previous, current) > 0) {
-                return false;
-            }
-            previous = current;
-        }
-        return true;
+    public static <T> boolean isSortOrderCorrect(Set<T> set, Comparator<? super T> comparator) {
+        return Ordering.from(comparator).isOrdered(set);
     }
 }
