@@ -33,9 +33,9 @@
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
-      class="stepper noshadow"
+      class="wizard-stepper wizard-noshadow"
     >
-      <v-stepper-header class="noshadow">
+      <v-stepper-header class="wizard-noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{
           $t('csr.csrDetails')
         }}</v-stepper-step>

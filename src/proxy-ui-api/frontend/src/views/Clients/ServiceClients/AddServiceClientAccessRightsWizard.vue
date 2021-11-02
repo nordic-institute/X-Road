@@ -32,8 +32,12 @@
       class="pa-4"
     />
 
-    <v-stepper v-model="step" :alt-labels="true" class="stepper noshadow">
-      <v-stepper-header class="noshadow stepper-header">
+    <v-stepper
+      v-model="step"
+      :alt-labels="true"
+      class="wizard-stepper wizard-noshadow"
+    >
+      <v-stepper-header class="wizard-noshadow stepper-header">
         <v-stepper-step :complete="step > 1" step="1">{{
           $t('serviceClients.memberGroupStep')
         }}</v-stepper-step>

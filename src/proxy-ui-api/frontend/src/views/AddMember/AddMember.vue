@@ -36,10 +36,10 @@
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
-      class="stepper noshadow"
+      class="wizard-stepper wizard-noshadow"
     >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>
@@ -67,7 +67,7 @@
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>
@@ -79,7 +79,7 @@
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>

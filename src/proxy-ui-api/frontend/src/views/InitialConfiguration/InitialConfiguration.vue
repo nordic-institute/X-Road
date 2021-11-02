@@ -35,10 +35,10 @@
       <v-stepper
         v-model="currentStep"
         :alt-labels="true"
-        class="stepper noshadow"
+        class="wizard-stepper wizard-noshadow"
       >
         <!-- Headers without anchor page -->
-        <v-stepper-header v-if="isAnchorImported" class="noshadow">
+        <v-stepper-header v-if="isAnchorImported" class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('initialConfiguration.member.title')
           }}</v-stepper-step>
@@ -48,7 +48,7 @@
           }}</v-stepper-step>
         </v-stepper-header>
         <!-- Headers with anchor page -->
-        <v-stepper-header v-else class="noshadow">
+        <v-stepper-header v-else class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('initialConfiguration.anchor.title')
           }}</v-stepper-step>
