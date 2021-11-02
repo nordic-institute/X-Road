@@ -51,6 +51,15 @@
           `${initializationParameters.instanceId} : ${initializationParameters.serverAddress}`
         }}
       </div>
+      <div
+        v-show="isHighAvailabilityConfigured"
+        class="node-name"
+        data-test="app-toolbar-node-name"
+      >
+        {{
+          `${systemStatus.high_availability_status.node_name}`
+        }}
+      </div>
     </div>
   </v-app-bar>
 </template>
@@ -73,9 +82,14 @@ export default Vue.extend({
     isInitialized(): boolean {
       return this.$store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED];
     },
-
     isAuthenticated(): boolean {
       return true;
+    },
+    systemStatus() {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS];
+    },
+    isHighAvailabilityConfigured() {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS].high_availability_status.is_ha_configured;
     },
   },
   methods: {
@@ -116,6 +130,13 @@ export default Vue.extend({
   .server-name {
     margin: 20px;
     margin-right: 10px;
+  }
+
+  .node-name {
+    margin-left: auto;
+    margin-right: 70px;
+    display: flex;
+    align-items: center;
   }
 
   .server-type {
