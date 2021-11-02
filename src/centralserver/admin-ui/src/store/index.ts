@@ -35,6 +35,7 @@ import { RootState } from '@/global';
 import { module as user } from './modules/user';
 import { module as tokens } from './modules/tokens';
 import { module as initialization } from './modules/initialization';
+import { module as system } from './modules/system';
 
 import VuexPersistence from 'vuex-persist';
 
@@ -54,6 +55,7 @@ const store: StoreOptions<RootState> = {
     user,
     tokens,
     initialization,
+    system,
   },
   plugins: [vuexLocal.plugin],
 };
