@@ -200,3 +200,7 @@ export enum Colors {
   Success10 = '#e6f8f1',
   Background = '#e5e5e5',
 }
+
+export const Timeouts = {
+  POLL_SESSION_TIMEOUT: 30000,
+} as const;
