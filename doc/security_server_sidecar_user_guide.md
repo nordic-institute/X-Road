@@ -40,7 +40,7 @@
 
 ## 1 Introduction
 
-X-Road Security Server Sidecar is containerized, production ready, version of the X-Road Security Server. This document describes the installation and maintenance of the Sidecar, to the extent it differs from the X-Road Security Server. For additional details, see [IG-SS](#Ref_IG-SS) and [UG-SS](#Ref_UG_SS).
+X-Road Security Server Sidecar is containerized, production ready, version of the X-Road Security Server. This document describes the installation and maintenance of the Sidecar, to the extent it differs from the X-Road Security Server for Ubuntu server. For additional details, see [IG-SS](#Ref_IG-SS) and [UG-SS](#Ref_UG_SS).
 
 ### 1.1 X-Road Security Server Sidecar images
 
@@ -143,14 +143,14 @@ docker run --detach \
   -e XROAD_ADMIN_USER=<admin user> \
   -e XROAD_ADMIN_PASSWORD=<admin password> \
   -e XROAD_LOG_LEVEL=INFO \
-  `# Optional parameters:
+  # Optional parameters - BEGIN
   -v <config-volume>:/etc/xroad \
   -v <archive-volume>:/var/lib/xroad \
   -v <database-volume>:/var/lib/postgresql/12/main \
   -e XROAD_DB_HOST=<database-host> \
   -e XROAD_DB_PORT=<database-port> \
   -e XROAD_DB_PWD=<postgres password> \
-  `\
+  # Optional parameters - END
   niis/xroad-security-server-sidecar:<version[-type[-variant]>
 ```
 
@@ -307,9 +307,9 @@ Upgrading to a new image is supported, provided that:
 
 * The new container image has the the same or subsequent minor version of the X-Road security server
   * As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
-* A volume is used for for `/etc/xroad`
-* A remote database is used, or a volume is mapped for `/var/lib/postgresql/12/data`
-* The xroad.properties file with `serverconf_admin` etc. credentials is either mapped to /etc/xroad.properties or present in /etc/xroad/xroad.properties
+* A volume is used for `/etc/xroad`
+* A remote database is used, or a volume is mapped to `/var/lib/postgresql/12/data`
+* The `xroad.properties` file with `serverconf_admin` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container
 
 If the prerequisites are met, upgrading is straightforward:
@@ -352,7 +352,7 @@ In case the prerequisites are not fully met, it is possible to manually prepare 
   ```
   docker run -v sidecar-config:/etc/xroad -v sidecar-db:/var/lib/postgresql/12/data ... -n <container-name-temp> sidecar-temp-image
   ```
-  Copy `/etc/xroad.properties` into the volume unless it is a bind mounted file. if `/etc/xroad.properties` is a bind mounted file, verity that the serverconf_admin etc. credentials exist and are correct.
+  Copy `/etc/xroad.properties` into the volume unless it is a bind mounted file. If `/etc/xroad.properties` is a bind mounted file, verity that the `serverconf_admin` etc. credentials exist and are correct.
   ```
   docker exec sidecar-temp-image cp /etc/xroad.properties /etc/xroad/xroad.properties
   docker stop <container-name-temp>
