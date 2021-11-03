@@ -184,6 +184,7 @@ export default (
             this.fetchUserData()
               .then(this.fetchServerVersion)
               .then(this.fetchInitializationData)
+              .then(this.fetchSystemStatus)
               .then(() => {
                 this.$router
                   .replace({
@@ -249,6 +250,10 @@ export default (
 
     async fetchServerVersion() {
       return this.$store.dispatch(StoreTypes.actions.FETCH_SERVER_VERSION);
+    },
+
+    async fetchSystemStatus() {
+      return this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
     },
   },
 });
