@@ -34,6 +34,7 @@ import ee.ria.xroad.common.identifier.GlobalGroupId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.XRoadId;
 
+import com.google.common.collect.Ordering;
 import org.niis.xroad.restapi.exceptions.WarningDeviation;
 import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
@@ -49,7 +50,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -189,7 +192,7 @@ public final class TestUtils {
      * @return
      */
     public static ClientId getClientId(String encodedId) {
-        return new ClientConverter(null, null, null).convertId(encodedId);
+        return new ClientConverter(null, null, null, null).convertId(encodedId);
     }
 
     /**
@@ -364,5 +367,15 @@ public final class TestUtils {
         MockHttpServletRequest request = new MockHttpServletRequest();
         ServletRequestAttributes attributes = new ServletRequestAttributes(request);
         RequestContextHolder.setRequestAttributes(attributes);
+    }
+
+    /**
+     * Checks if the sort order of the given Set is correct.
+     * @param set
+     * @param comparator
+     * @return
+     */
+    public static <T> boolean isSortOrderCorrect(Set<T> set, Comparator<? super T> comparator) {
+        return Ordering.from(comparator).isOrdered(set);
     }
 }

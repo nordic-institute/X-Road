@@ -39,7 +39,6 @@ import org.niis.xroad.securityserver.restapi.controller.ServiceClientHelper;
 import org.niis.xroad.securityserver.restapi.converter.EndpointConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
-import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
@@ -78,7 +77,6 @@ public class EndpointsApiController implements EndpointsApi {
     private final ServiceClientConverter serviceClientConverter;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
-    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NOT_FOUND_ERROR_MSG = "Endpoint not found with id";
 

@@ -35,6 +35,7 @@ import org.junit.Test;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.PersistenceUtils;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate;
 import org.niis.xroad.securityserver.restapi.openapi.model.EndpointUpdate.MethodEnum;
@@ -54,6 +55,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -70,6 +72,9 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
 
     @Autowired
     PersistenceUtils persistenceUtils;
+
+    @Autowired
+    ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String NO_SUCH_ENDPOINT_ID = "1294379018";
 
@@ -181,10 +186,8 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
     public void getEndpointAccesRights() {
         Set<ServiceClient> serviceClients = endpointsApiController.getEndpointServiceClients("6").getBody();
         assertTrue(serviceClients.size() == 3);
-        assertTrue(serviceClients.stream()
-                .anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS6)));
-        assertTrue(serviceClients.stream()
-                .anyMatch(sc -> sc.getId().equals("2")));
+        // Test sorting order
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
     }
 
     @Test
@@ -246,9 +249,8 @@ public class EndpointsApiControllerTest extends AbstractApiControllerTestContext
         serviceClients = endpointsApiController.getEndpointServiceClients("9").getBody();
 
         assertTrue(serviceClients.size() == 3);
-        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.CLIENT_ID_SS5)));
-        assertTrue(serviceClients.stream().anyMatch(sc -> sc.getId().equals(TestUtils.DB_GLOBALGROUP_ID)));
-
+        // Test sorting order
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
         // add access rights for a local group to endpoint
         Set<ServiceClient> localGroupTestServiceClients = endpointsApiController
                 .getEndpointServiceClients("3").getBody();

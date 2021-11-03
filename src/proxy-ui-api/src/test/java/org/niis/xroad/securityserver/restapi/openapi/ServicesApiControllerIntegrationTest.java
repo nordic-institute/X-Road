@@ -35,6 +35,7 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
@@ -72,6 +73,9 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
 
     @Autowired
     ServiceDescriptionsApiController serviceDescriptionsApiController;
+
+    @Autowired
+    ServiceClientSortingComparator serviceClientSortingComparator;
 
     private static final String SS1_PREDICT_WINNING_LOTTERY_NUMBERS = "FI:GOV:M1:SS1:predictWinningLotteryNumbers.v1";
     private static final String FOO = "foo";
@@ -313,6 +317,9 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
         Set<ServiceClient> serviceClients = servicesApiController.getServiceServiceClients(
                 TestUtils.SS1_GET_RANDOM_V1).getBody();
         assertEquals(SS1_GET_RANDOM_SERVICE_CLIENTS, serviceClients.size());
+
+        // Test sorting order
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
 
         ServiceClient serviceClient = getServiceClientByTypeExceptId(
                 serviceClients, TestUtils.GLOBALGROUP, "FI:test-globalgroup").get();
@@ -567,6 +574,8 @@ public class ServicesApiControllerIntegrationTest extends AbstractApiControllerT
                 .addServiceServiceClients(TestUtils.SS1_CALCULATE_PRIME, clientsToAdd).getBody();
 
         assertEquals(calculatePrimeClientsBefore + 3, updatedServiceClients.size());
+        // Test sorting order
+        assertEquals(true, TestUtils.isSortOrderCorrect(updatedServiceClients, serviceClientSortingComparator));
     }
 
     @Test(expected = ConflictException.class)

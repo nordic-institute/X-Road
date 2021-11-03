@@ -37,6 +37,7 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.Client;
 import org.niis.xroad.securityserver.restapi.openapi.model.ClientStatus;
@@ -45,6 +46,7 @@ import org.niis.xroad.securityserver.restapi.util.ClientUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -61,6 +63,7 @@ public class ClientConverter {
     private final CurrentSecurityServerId securityServerOwner; // request scoped
     // request scoped contains all certificates of type sign
     private final CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+    private final ClientSortingComparator clientSortingComparator;
 
     public static final int INSTANCE_INDEX = 0;
     public static final int MEMBER_CLASS_INDEX = 1;
@@ -92,14 +95,15 @@ public class ClientConverter {
     }
 
     /**
-     * convert a group of ClientType into a list of openapi Client class
+     * Convert a group of ClientType into a list of openapi Client class
      * @param clientTypes
      * @return
      */
     public Set<Client> convert(Iterable<ClientType> clientTypes) {
         return Streams.stream(clientTypes)
                 .map(this::convert)
-                .collect(Collectors.toSet());
+                .sorted(clientSortingComparator)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**
