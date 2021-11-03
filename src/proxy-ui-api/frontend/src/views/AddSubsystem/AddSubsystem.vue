@@ -236,7 +236,7 @@ export default Vue.extend({
           this.submitLoading = false;
           this.$store.dispatch(
             'showSuccess',
-            'wizard.subsystem.subsystemAdded',
+            this.$t('wizard.subsystem.subsystemAdded'),
           );
           if (this.registerChecked) {
             this.confirmRegisterClient = true;
@@ -264,7 +264,7 @@ export default Vue.extend({
         () => {
           this.$store.dispatch(
             'showSuccess',
-            'wizard.subsystem.subsystemAdded',
+            this.$t('wizard.subsystem.subsystemAdded'),
           );
           this.exitView();
         },

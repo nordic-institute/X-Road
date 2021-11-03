@@ -183,7 +183,7 @@ export default Vue.extend({
 
       this.$store.dispatch('tokenLogout', token.id).then(
         () => {
-          this.$store.dispatch('showSuccess', 'keys.loggedOut');
+          this.$store.dispatch('showSuccess', this.$t('keys.loggedOut'));
         },
         (error) => {
           this.$store.dispatch('showError', error);

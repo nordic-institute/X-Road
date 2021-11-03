@@ -126,7 +126,7 @@ export default Vue.extend({
         )
         .then(
           () => {
-            this.$store.dispatch('showSuccess', 'cert.certDeleted');
+            this.$store.dispatch('showSuccess', this.$t('cert.certDeleted'));
           },
           (error) => {
             this.$store.dispatch('showError', error);

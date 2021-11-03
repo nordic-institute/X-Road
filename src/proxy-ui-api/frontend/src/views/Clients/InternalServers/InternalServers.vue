@@ -162,7 +162,7 @@ export default Vue.extend({
           .then(() => {
             this.$store.dispatch(
               'showSuccess',
-              'internalServers.connTypeUpdated',
+              this.$t('internalServers.connTypeUpdated'),
             );
           })
           .catch((error) => {

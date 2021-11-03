@@ -791,6 +791,7 @@
     "serviceCode": "Service Code",
     "serviceCodePlaceholder": "Insert service code",
     "serviceParameters": "Service Parameters",
+    "serviceSaved": "Service saved",
     "serviceType": "URL type",
     "serviceUrl": "Service URL",
     "service_parameters_ssl_test_warnings": {

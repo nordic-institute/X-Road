@@ -260,7 +260,7 @@ export default Vue.extend({
         .remove(`/token-certificates/${encodePathParameter(this.hash)}`)
         .then(() => {
           this.close();
-          this.$store.dispatch('showSuccess', 'cert.certDeleted');
+          this.$store.dispatch('showSuccess', this.$t('cert.certDeleted'));
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -270,7 +270,7 @@ export default Vue.extend({
       api
         .put(`/token-certificates/${encodePathParameter(hash)}/activate`, hash)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'cert.activateSuccess');
+          this.$store.dispatch('showSuccess', this.$t('cert.activateSuccess'));
           this.fetchData(this.hash);
         })
         .catch((error) => this.$store.dispatch('showError', error));
@@ -279,7 +279,7 @@ export default Vue.extend({
       api
         .put(`token-certificates/${encodePathParameter(hash)}/disable`, hash)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'cert.disableSuccess');
+          this.$store.dispatch('showSuccess', this.$t('cert.disableSuccess'));
           this.fetchData(this.hash);
         })
         .catch((error) => this.$store.dispatch('showError', error));
@@ -298,7 +298,10 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.certificateUnregistered');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('keys.certificateUnregistered'),
+          );
         })
         .catch((error) => {
           if (
@@ -329,7 +332,10 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.certMarkedForDeletion');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('keys.certMarkedForDeletion'),
+          );
           this.confirmUnregisterError = false;
           this.$emit('refresh-list');
         })

@@ -206,7 +206,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'accessRights.removeSubjectsSuccess',
+            this.$t('accessRights.removeSubjectsSuccess'),
           );
           this.fetchData();
         })
@@ -228,7 +228,7 @@ export default Vue.extend({
         .then((accessRights) => {
           this.$store.dispatch(
             'showSuccess',
-            'accessRights.addSubjectsSuccess',
+            this.$t('accessRights.addSubjectsSuccess'),
           );
           this.serviceClients = accessRights.data;
         })

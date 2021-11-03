@@ -356,7 +356,7 @@ export default Vue.extend({
           serviceUpdate,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'Service saved');
+          this.$store.dispatch('showSuccess', this.$t('services.serviceSaved'));
         })
         .catch((error) => {
           if (error?.response?.data?.warnings) {
@@ -401,7 +401,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'accessRights.addServiceClientsSuccess',
+            this.$t('accessRights.addServiceClientsSuccess'),
           );
           this.fetchData(this.serviceId);
         })
@@ -455,7 +455,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'accessRights.removeServiceClientsSuccess',
+            this.$t('accessRights.removeServiceClientsSuccess'),
           );
         })
         .catch((error) => {

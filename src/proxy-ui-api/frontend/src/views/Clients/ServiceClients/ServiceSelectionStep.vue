@@ -170,7 +170,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'serviceClients.addServiceClientAccessRightSuccess',
+            this.$t('serviceClients.addServiceClientAccessRightSuccess'),
           );
           this.$router.push(`/subsystem/serviceclients/${this.id}`);
         })

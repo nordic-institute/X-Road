@@ -249,7 +249,10 @@ export default Vue.extend({
           { items: [{ service_code: this.accessRightToDelete?.service_code }] },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('serviceClients.removeSuccess'),
+          );
           if (this.serviceClientAccessRights.length === 1) {
             this.serviceClientAccessRights = [];
           } else {
@@ -273,7 +276,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'serviceClients.addServiceClientAccessRightSuccess',
+            this.$t('serviceClients.addServiceClientAccessRightSuccess'),
           );
           this.fetchAccessRights();
         })
@@ -298,7 +301,10 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'serviceClients.removeSuccess');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('serviceClients.removeSuccess'),
+          );
           this.serviceClientAccessRights = [];
         })
         .catch((error) => this.$store.dispatch('showError', error));

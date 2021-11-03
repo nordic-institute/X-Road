@@ -383,7 +383,7 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'services.enableSuccess');
+          this.$store.dispatch('showSuccess', this.$t('services.enableSuccess'));
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -419,7 +419,7 @@ export default Vue.extend({
             },
           )
           .then(() => {
-            this.$store.dispatch('showSuccess', 'services.disableSuccess');
+            this.$store.dispatch('showSuccess', this.$t('services.disableSuccess'));
           })
           .catch((error) => {
             this.$store.dispatch('showError', error);
@@ -453,7 +453,7 @@ export default Vue.extend({
           type: this.serviceTypeEnum.WSDL,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'services.wsdlAdded');
+          this.$store.dispatch('showSuccess', this.$t('services.wsdlAdded'));
           this.addWsdlBusy = false;
           this.fetchData();
         })
@@ -479,7 +479,7 @@ export default Vue.extend({
           ignore_warnings: true,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'services.wsdlAdded');
+          this.$store.dispatch('showSuccess', this.$t('services.wsdlAdded'));
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -517,8 +517,8 @@ export default Vue.extend({
           this.$store.dispatch(
             'showSuccess',
             this.serviceType === 'OPENAPI3'
-              ? 'services.openApi3Added'
-              : 'services.restAdded',
+              ? this.$t('services.openApi3Added')
+              : this.$t('services.restAdded'),
           );
           this.addRestBusy = false;
           this.fetchData();
@@ -549,8 +549,8 @@ export default Vue.extend({
           this.$store.dispatch(
             'showSuccess',
             this.serviceType === 'OPENAPI3'
-              ? 'services.openApi3Added'
-              : 'services.restAdded',
+              ? this.$t('services.openApi3Added')
+              : this.$t('services.restAdded'),
           );
         })
         .catch((error) => {
@@ -588,7 +588,7 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'services.refreshed');
+          this.$store.dispatch('showSuccess', this.$t('services.refreshed'));
           this.fetchData();
         })
         .catch((error) => {
@@ -618,7 +618,7 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'services.refreshed');
+          this.$store.dispatch('showSuccess', this.$t('services.refreshed'));
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);

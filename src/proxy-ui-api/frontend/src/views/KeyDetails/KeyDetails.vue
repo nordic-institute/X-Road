@@ -213,7 +213,7 @@ export default Vue.extend({
         .patch(`/keys/${encodePathParameter(this.id)}`, this.key)
         .then(() => {
           this.saveBusy = false;
-          this.$store.dispatch('showSuccess', 'keys.keySaved');
+          this.$store.dispatch('showSuccess', this.$t('keys.keySaved'));
           this.close();
         })
         .catch((error) => {
@@ -281,7 +281,7 @@ export default Vue.extend({
           )}?ignore_warnings=${ignoreWarnings}`,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.keyDeleted');
+          this.$store.dispatch('showSuccess', this.$t('keys.keyDeleted'));
           this.close();
         })
         .catch((error) => {

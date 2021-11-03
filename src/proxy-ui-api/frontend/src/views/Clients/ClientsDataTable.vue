@@ -349,7 +349,7 @@ export default Vue.extend({
           () => {
             this.$store.dispatch(
               'showSuccess',
-              'clients.action.register.success',
+              this.$t('clients.action.register.success'),
             );
           },
           (error) => {

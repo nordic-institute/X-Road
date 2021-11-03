@@ -164,7 +164,10 @@ export default Vue.extend({
       api
         .remove(`/endpoints/${encodePathParameter(id)}`)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'endpoints.deleteSuccess');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('endpoints.deleteSuccess'),
+          );
           this.$router.go(-1);
         })
         .catch((error) => {
@@ -182,7 +185,7 @@ export default Vue.extend({
           this.endpoint,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'endpoints.editSuccess');
+          this.$store.dispatch('showSuccess', this.$t('endpoints.editSuccess'));
           this.$router.go(-1);
         })
         .catch((error) => {

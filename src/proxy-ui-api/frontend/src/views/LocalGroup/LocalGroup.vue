@@ -229,7 +229,7 @@ export default Vue.extend({
           },
         )
         .then((res) => {
-          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', this.$t('localGroup.descSaved'));
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
@@ -336,7 +336,7 @@ export default Vue.extend({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'localGroup.groupDeleted');
+          this.$store.dispatch('showSuccess', this.$t('localGroup.groupDeleted'));
           this.$router.go(-1);
         })
         .catch((error) => {
