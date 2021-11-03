@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="xrd-view-common">
+  <v-container class="xrd-view-common" data-test="diagnostics-view">
     <div class="inner-wrap">
       <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
       <v-layout align-center justify-center column fill-height elevation-0>
