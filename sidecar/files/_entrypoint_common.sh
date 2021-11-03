@@ -13,13 +13,17 @@
 #
 #############################################################################
 
-log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $1"; }
-warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $1" >&2; }
+log() { echo "$(date --utc -Iseconds) INFO [entrypoint] $*"; }
+warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $*" >&2; }
 
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
-ROOT_PROPERTIES=/etc/xroad.properties
-GROUPNAMES=(xroad-security-officer xroad-registration-officer xroad-service-administrator xroad-system-administrator xroad-securityserver-observer)
+if [ -f /etc/xroad.properties ]; then
+  ROOT_PROPERTIES=/etc/xroad.properties
+else
+  ROOT_PROPERTIES=/etc/xroad/xroad.properties
+  ln -s "$ROOT_PROPERTIES" /etc/xroad.properties
+fi
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
@@ -53,14 +57,9 @@ if ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
   useradd -m "${XROAD_ADMIN_USER}" -s /usr/sbin/nologin
   echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd
   echo "xroad-proxy xroad-common/username string ${XROAD_ADMIN_USER}" | debconf-set-selections
-
-  usergroups=" $(id -Gn "${XROAD_ADMIN_USER}") "
-  for groupname in "${GROUPNAMES[@]}"; do
-    if [[ $usergroups != *" $groupname "* ]]; then
-      usermod -a -G "$groupname" "${XROAD_ADMIN_USER}" || true
-    fi
-  done
 fi
+XROAD_ADMIN_USER=
+XROAD_ADMIN_PASSWORD=
 
 if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
   if [ -f /etc/xroad/VERSION ]; then
@@ -111,12 +110,6 @@ if [ ! -f ${DB_PROPERTIES} ]; then
       opmonitor=true
     fi
     echo "xroad-proxy xroad-common/database-host string ${XROAD_DB_HOST}:${XROAD_DB_PORT}" | debconf-set-selections
-    touch /etc/xroad.properties
-    chown root:root /etc/xroad.properties
-    chmod 600 /etc/xroad.properties
-    if [ -n "$XROAD_DB_PWD" ]; then
-      crudini --set --inplace "$ROOT_PROPERTIES" "" "postgres.connection.password" "${XROAD_DB_PWD}"
-    fi
     if [ -n "${XROAD_DATABASE_NAME}" ]; then
       touch /etc/xroad/db.properties
       chown xroad:xroad /etc/xroad/db.properties
@@ -141,24 +134,49 @@ fi
 
 if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   # reconfigure packages (also runs database migrations)
+
+  if [ ! -f "$ROOT_PROPERTIES" ]; then
+    touch "$ROOT_PROPERTIES"
+    chown root:root "$ROOT_PROPERTIES"
+    chmod 600 "$ROOT_PROPERTIES"
+  fi
+
+  db_host="${XROAD_DB_HOST:-127.0.0.1}:${XROAD_DB_PORT:-5432}"
   if [ -z "$LOCAL_DB" ]; then
     # exising config, determine database location from db.properties
     db_url=$(crudini --get '/etc/xroad/db.properties' "" 'serverconf.hibernate.connection.url' 2>/dev/null)
     pat='^jdbc:postgresql://([^/]*).*'
-    db_host=
     if [[ "$db_url" =~ $pat ]]; then
-      db_host="${BASH_REMATCH[1]:-127.0.0.1:5432}"
+      db_host="${BASH_REMATCH[1]:-$db_host}"
     fi
-    if [[ -n "$db_host" && "$db_host" != "127.0.0.1:5432" ]]; then
+    if [[ -n "$db_host" && "$db_host" != 127.* ]]; then
       LOCAL_DB=false
     else
       LOCAL_DB=true
     fi
   fi
-
   if [[ "$LOCAL_DB" == "true" ]]; then
     pg_ctlcluster 12 main start
+  else
+    if [[ -n "$XROAD_DB_PWD" ]]; then
+      if [[ -w "$ROOT_PROPERTIES" ]]; then
+        crudini --set --inplace "$ROOT_PROPERTIES" "" "postgres.connection.password" "${XROAD_DB_PWD}"
+      else
+        warn "XROAD_DB_PWD is set but $ROOT_PROPERTIES is not writable"
+      fi
+    fi
   fi
+
+  log "Waiting for the database to become available..."
+  IFS=',' read -ra hosts <<<"$db_host"
+  db_addr="${hosts[0]%%:*}"
+  db_port="${hosts[0]##*:}"
+  count=0
+  while ((count++ < 60)) && ! pg_isready -q -t 2 -h "$db_addr" -p "$db_port"; do
+    sleep 1
+  done
+  ((count>=60)) && warn "Unable to determine database $db_addr:$db_port status"
+
   log "Reconfiguring packages"
   if dpkg-reconfigure -fnoninteractive "${RECONFIG[@]}" 2>&1 | sed 's/^/    /'; then
     echo "$PACKAGED_VERSION" >/etc/xroad/VERSION
@@ -172,6 +190,7 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
     crudini --set /etc/supervisor/conf.d/xroad.conf program:postgres autostart false
   fi
 fi
+XROAD_DB_PWD=
 
 if [ -n "${XROAD_LOG_LEVEL}" ]; then
   sed -i -e "s/XROAD_LOG_LEVEL=.*/XROAD_LOG_LEVEL=${XROAD_LOG_LEVEL}/" /etc/xroad/conf.d/variables-logback.properties
