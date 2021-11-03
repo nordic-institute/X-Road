@@ -4494,7 +4494,7 @@ paths:
       tags:
         - system
       summary: get the node type
-      operationId: nodeType
+      operationId: getNodeType
       description: <h3>Administrator views the node type</h3>
       responses:
         '200':

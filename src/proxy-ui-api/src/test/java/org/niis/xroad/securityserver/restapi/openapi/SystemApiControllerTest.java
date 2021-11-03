@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.openapi;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.conf.serverconf.model.TspType;
 import ee.ria.xroad.common.util.CryptoUtils;
 
@@ -38,6 +39,8 @@ import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeType;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponse;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
@@ -102,6 +105,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         AnchorFile anchorFile = new AnchorFile(ANCHOR_HASH);
         anchorFile.setCreatedAt(new Date(ANCHOR_CREATED_AT_MILLIS).toInstant().atOffset(ZoneOffset.UTC));
         when(systemService.getAnchorFileFromBytes(any(), anyBoolean())).thenReturn(anchorFile);
+        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.STANDALONE);
     }
 
     @Test(expected = AccessDeniedException.class)
@@ -334,5 +338,28 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         Anchor anchor = response.getBody();
         assertEquals(ANCHOR_HASH, anchor.getHash());
         assertEquals(ANCHOR_CREATED_AT, anchor.getCreatedAt().toString());
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
+    public void getNodeTypeStandalone() {
+        ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
+        assertEquals(response.getBody().getNodeType(), NodeType.STANDALONE); // default value is STANDALONE
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
+    public void getNodeTypePrimary() {
+        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.MASTER);
+        ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
+        assertEquals(response.getBody().getNodeType(), NodeType.PRIMARY);
+    }
+
+    @Test
+    @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
+    public void getNodeTypeReplica() {
+        when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
+        ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
+        assertEquals(response.getBody().getNodeType(), NodeType.REPLICA);
     }
 }

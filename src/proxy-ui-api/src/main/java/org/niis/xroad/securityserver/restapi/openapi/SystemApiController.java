@@ -71,7 +71,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.cert.X509Certificate;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_ANCHOR_FILE_NOT_FOUND;
@@ -283,9 +282,9 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_NODE_TYPE')")
-    public ResponseEntity<NodeTypeResponse> nodeType() {
-        // can omit isPresent check because getServerNodeType fallbacks to a default value – never null
-        NodeType nodeType = Objects.requireNonNull(NodeTypeMapping.map(systemService.getServerNodeType())).get();
+    public ResponseEntity<NodeTypeResponse> getNodeType() {
+        // node type is never null so isPresent check can be omitted
+        NodeType nodeType = NodeTypeMapping.map(systemService.getServerNodeType()).get();
         NodeTypeResponse nodeTypeResponse = new NodeTypeResponse().nodeType(nodeType);
         return new ResponseEntity<>(nodeTypeResponse, HttpStatus.OK);
     }
