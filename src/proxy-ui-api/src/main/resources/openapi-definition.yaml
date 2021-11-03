@@ -4489,13 +4489,39 @@ paths:
           description: resource requested does not exists
         '500':
           description: internal server error
+  /system/node-type:
+    get:
+      tags:
+        - system
+      summary: get the node type
+      operationId: nodeType
+      description: <h3>Administrator views the node type</h3>
+      responses:
+        '200':
+          description: node type information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NodeTypeResponse'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system/version:
     get:
       tags:
         - system
       summary: get information for the system version
       operationId: systemVersion
-      description: <h3>Administrator views key details.</h3>
+      description: <h3>Administrator views the system version details.</h3>
       responses:
         '200':
           description: system version information
@@ -6203,6 +6229,27 @@ components:
             format: text
             minLength: 1
             maxLength: 1023
+    NodeType:
+      type: string
+      format: enum
+      description:
+        <p>The enum can have three different values</p>
+        <ul>
+          <li>PRIMARY, which is the primary node in a high availability setup</li>
+          <li>REPLICA, which is a replica node in a high availability setup – a read-only server</li>
+          <li>STANDALONE,when there are no load balancer or high availability configured</li>
+        </ul>
+      example: PRIMARY
+      enum:
+        - PRIMARY
+        - REPLICA
+        - STANDALONE
+    NodeTypeResponse:
+      type: object
+      description: Response object containing the node type of the Security Server
+      properties:
+        node_type:
+          $ref: '#/components/schemas/NodeType'
     OcspResponder:
       type: object
       description: OCSP responder diagnostics
