@@ -159,7 +159,7 @@ export default (
   methods: {
     async submit() {
       // Clear error notifications when route is changed
-      this.$store.commit(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+      await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
 
       // Validate inputs
       const isValid = await this.$refs.form.validate();

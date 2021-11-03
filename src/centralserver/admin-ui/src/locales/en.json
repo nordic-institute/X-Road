@@ -134,6 +134,10 @@
     "generalError": "Login failed. Please try again.",
     "errorMsg401": "Wrong username or password"
   },
+  "logout": {
+    "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
+    "sessionExpired": "Session expired"
+  },
   "tab": {
     "main": {
       "members": "Members",
