@@ -336,7 +336,10 @@ export default Vue.extend({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('localGroup.groupDeleted'));
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('localGroup.groupDeleted'),
+          );
           this.$router.go(-1);
         })
         .catch((error) => {

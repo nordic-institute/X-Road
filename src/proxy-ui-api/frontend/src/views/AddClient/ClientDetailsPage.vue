@@ -138,8 +138,8 @@
     </ValidationObserver>
 
     <SelectClientDialog
-      title="wizard.addClientTitle"
-      search-label="wizard.client.searchLabel"
+      :title="$t('wizard.addClientTitle')"
+      :search-label="$t('wizard.client.searchLabel')"
       :dialog="showSelectClient"
       :selectable-clients="selectableClients"
       @cancel="showSelectClient = false"

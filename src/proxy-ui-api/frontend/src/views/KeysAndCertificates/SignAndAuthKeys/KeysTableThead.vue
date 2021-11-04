@@ -34,7 +34,7 @@
         @mouseleave="hoverName = false"
       >
         <div class="header-title">
-          <div>{{ $t('name') }}</div>
+          <div>{{ $t('general.name') }}</div>
           <sort-button
             :arrow-state="sortDirection"
             :active="hoverName"

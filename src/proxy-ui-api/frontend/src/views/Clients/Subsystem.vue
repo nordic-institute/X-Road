@@ -28,7 +28,7 @@
     <v-container class="xrd-view-common mt-7">
       <v-flex mb-4 class="title-action">
         <div v-if="client" class="xrd-view-title mb-3">
-          {{ client.subsystem_code }} ({{ $t('subsystem') }})
+          {{ client.subsystem_code }} ({{ $t('general.subsystem') }})
         </div>
         <div>
           <DeleteClientButton v-if="showDelete" :id="id" />

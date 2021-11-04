@@ -251,7 +251,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            this.$t('serviceClients.removeSuccess'),
+            this.$t('accessRights.removeSuccess'),
           );
           if (this.serviceClientAccessRights.length === 1) {
             this.serviceClientAccessRights = [];
@@ -303,7 +303,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            this.$t('serviceClients.removeSuccess'),
+            this.$t('accessRights.removeSuccess'),
           );
           this.serviceClientAccessRights = [];
         })

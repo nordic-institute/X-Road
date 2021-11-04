@@ -117,8 +117,8 @@
     </ValidationObserver>
 
     <SelectClientDialog
-      title="wizard.addMemberTitle"
-      search-label="wizard.member.searchLabel"
+      :title="$t('wizard.addMemberTitle')"
+      :search-label="$t('wizard.member.searchLabel')"
       :dialog="showSelectClient"
       :selectable-clients="selectableMembers"
       @cancel="showSelectClient = false"

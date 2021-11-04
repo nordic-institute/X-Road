@@ -59,7 +59,7 @@
               <div
                 v-else-if="notification.errorObject && errorCode(notification)"
               >
-                {{ $t('error_code.' + errorCode(notification)) }}
+                {{ $t(`error_code.${errorCode(notification)}`) }}
               </div>
 
               <!-- If error doesn't have a text or localisation key then just print the error object -->
@@ -117,13 +117,13 @@
 
               <!-- Error ID -->
               <div v-if="errorId(notification)">
-                {{ $t('id') }}:
+                {{ $t('alert.id') }}:
                 {{ errorId(notification) }}
               </div>
 
               <!-- count -->
               <div v-if="notification.count > 1">
-                {{ $t('count') }}
+                {{ $t('alert.count') }}
                 {{ notification.count }}
               </div>
             </div>

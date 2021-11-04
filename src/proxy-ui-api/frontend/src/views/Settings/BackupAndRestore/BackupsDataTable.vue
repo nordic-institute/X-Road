@@ -28,7 +28,7 @@
     <table class="xrd-table">
       <thead>
         <tr>
-          <th>{{ $t('name') }}</th>
+          <th>{{ $t('general.name') }}</th>
           <th></th>
         </tr>
       </thead>

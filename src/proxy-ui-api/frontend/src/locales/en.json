@@ -5,9 +5,11 @@
     "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
     "topTitle": "Forbidden"
   },
-  "404": "404 - page not found",
-  "404text": "Seems like you found the",
-  "404textUnicorn": "unicorn",
+  "404": {
+    "pageNotFound": "404 - page not found",
+    "text": "Seems like you found the",
+    "textUnicorn": "unicorn"
+  },
   "accessRights": {
     "addServiceClients": "Add subjects",
     "addServiceClientsSuccess": "Access rights added successfully",
@@ -17,9 +19,7 @@
     "memberName": "Member Name / Group Description",
     "removeAllText": "Are you sure you want to remove access rights from all clients?",
     "removeAllTitle": "Remove all access rights?",
-    "removeServiceClientsSuccess": "Access rights removed successfully",
-    "removeSubjectsSuccess": "Access rights removed successfully",
-    "removeSuccess": "Access right removed successfully",
+    "removeSuccess": "Access rights removed successfully",
     "removeText": "Are you sure you want to remove access rights from this client?",
     "removeTitle": "Remove access rights?",
     "rightsGiven": "Access Rights given",
@@ -46,7 +46,6 @@
     "finish": "Finish",
     "goToFront": "Go to the front page",
     "next": "Next",
-    "no": "No",
     "noData": "No data",
     "ok": "Ok",
     "previous": "Previous",
@@ -60,8 +59,11 @@
     "searching": "Searching...",
     "submit": "Submit",
     "unregister": "Unregister",
-    "upload": "Upload",
     "yes": "Yes"
+  },
+  "alert": {
+    "count": "Amount of same errors:",
+    "id": "ID"
   },
   "apiKey": {
     "createApiKey": {
@@ -151,16 +153,13 @@
     "activateSuccess": "Certificate has been activated",
     "certDeleted": "Certificate deleted",
     "certificate": "Certificate",
-    "certificateHash": "Certificate Hash (SHA/1)",
     "deleteCertConfirm": "Are you sure that you want to delete this certificate?",
     "deleteCertTitle": "Delete certificate?",
     "disableSuccess": "Certificate has been disabled",
     "disabled": "disabled",
     "expires": "Expires",
-    "hash": "Hash",
     "hashInfo": "Hash (SHA-1)",
     "inUse": "in use",
-    "infoSystem": "Information System TLS certificate",
     "keyUsage": {
       "CRL_SIGN": "CRL Sign",
       "DATA_ENCIPHERMENT": "Data Encipherment",
@@ -172,8 +171,6 @@
       "KEY_ENCIPHERMENT": "Key Encipherment",
       "NON_REPUDIATION": "Non Repudiation"
     },
-    "name": "Name",
-    "ocsp": "OCSP status",
     "rsaExp": "RSA Public Key Exponent",
     "rsaModulus": "RSA Public Key Modulus",
     "serialNumber": "Serial Number",
@@ -223,9 +220,6 @@
         "success": "Client unregistered"
       }
     },
-    "connType": "Connection type",
-    "deletionInProgress": "Deletion in progress",
-    "globalError": "Global error",
     "id": "ID",
     "member": "Member",
     "memberClass": "Member Class",
@@ -233,9 +227,6 @@
     "memberName": "Member Name",
     "name": "Name",
     "owner": "Owner",
-    "registered": "Registered",
-    "registrationInProgress": "Registration in progress",
-    "saved": "Saved",
     "status": "Status",
     "statusText": {
       "deletionInProgress": "DELETION IN PROGRESS",
@@ -258,7 +249,6 @@
       }
     }
   },
-  "count": "Amount of same errors:",
   "csr": {
     "addKey": "Add key",
     "certificationService": "Certification Service",
@@ -344,7 +334,6 @@
     "endpointHelp4": "Path parameters must be replaced with an asterisk, e.g. '/pets/{id}/images' => '/pets/*/images'.",
     "httpRequestMethod": "HTTP Request Method",
     "path": "Path",
-    "saveNewEndpointError": "Error saving new endpoint",
     "saveNewEndpointSuccess": "New endpoint created successfully"
   },
   "error_code": {
@@ -538,12 +527,20 @@
       "versionPrefix": "X-Road"
     }
   },
+  "general": {
+    "instance": "Instance",
+    "memberClass": "Member class",
+    "memberCode": "Member code",
+    "name": "Name",
+    "subsystem": "subsystem",
+    "subsystemCode": "Subsystem code",
+    "type": "Type"
+  },
   "globalAlert": {
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
     "globalConfigurationInvalid": "Global configuration is expired",
     "softTokenPinNotEntered": "Please enter soft token PIN"
   },
-  "id": "ID",
   "info": {
     "backups_incompatible": [
       "The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.",
@@ -552,12 +549,8 @@
   },
   "initialConfiguration": {
     "anchor": {
-      "dialogDetails": "Configuration anchor details:",
-      "dialogQuestion": "Continue with import?",
-      "dialogTitle": "Confirmation required",
       "generated": "Generated",
       "hash": "Hash (SHA-224)",
-      "import": "Import",
       "info": "Import the configuration anchor provided by the Central Server's administrator.",
       "title": "Configuration Anchor"
     },
@@ -587,7 +580,6 @@
       "init_unregistered_member": "Member is unregistered"
     }
   },
-  "instance": "Instance",
   "internalServers": {
     "certHash": "Certificate Hash (SHA/1)",
     "connTypeUpdated": "Connection type updated",
@@ -639,9 +631,7 @@
     "keyDeleted": "Key deleted",
     "keyId": "Key ID:",
     "keyInfo": "Key information",
-    "keyLabelInfo": "You can define a label for the newly created Key (not mandatory)",
     "keyLabelInput": "Key label",
-    "keyLabelTitle": "Generate a new key",
     "keySaved": "Key saved",
     "label": "Label:",
     "logIn": "Log in",
@@ -695,7 +685,6 @@
     "deleteTitle": "Delete group?",
     "descSaved": "Description saved",
     "description": "Description",
-    "editDesc": "Edit description",
     "groupDeleted": "Group deleted",
     "groupMembers": "Group Members",
     "id": "Id",
@@ -726,10 +715,6 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
-  "member_class": "Member class",
-  "member_code": "Member code",
-  "member_name": "Member name",
-  "name": "Name",
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
     "localGroup": "LOCALGROUP",
@@ -754,7 +739,6 @@
     "removeAllTitle": "Remove all access rights?",
     "removeOneText": "Are you sure you want to remove access rights from this service client?",
     "removeOneTitle": "Remove access rights?",
-    "removeSuccess": "Access Rights successfully removed",
     "searchPlaceHolder": "Service clients",
     "serviceCode": "Service code",
     "serviceSelectionStep": "Servicecode",
@@ -765,13 +749,11 @@
     "OpenApi3Description": "OpenAPI 3 Description",
     "addRest": "Add REST",
     "addWsdl": "Add WSDL",
-    "adding_services": "Adding services:",
     "applyToAll": "Apply to all in WSDL",
     "deleteRestText": "Are you sure that you want to delete this REST Service?",
     "deleteTitle": "Delete service description?",
     "deleteWsdlText": "Are you sure that you want to delete this WSDL?",
     "deleted": "Service description deleted",
-    "deleting_services": "Deleting services:",
     "disableNotice": "Disable notice",
     "disableSuccess": "Service description disabled",
     "disableTitle": "Disable?",
@@ -790,7 +772,6 @@
     "service": "Service",
     "serviceCode": "Service Code",
     "serviceCodePlaceholder": "Insert service code",
-    "serviceParameters": "Service Parameters",
     "serviceSaved": "Service saved",
     "serviceType": "URL type",
     "serviceUrl": "Service URL",
@@ -805,11 +786,16 @@
     "url": "URL",
     "urlPlaceholder": "Insert URL",
     "urlTooltip": "The URL where requests targeted at the service are directed",
+    "warning": "Warning",
+    "warningCode": {
+      "adding_services": "Adding services:",
+      "deleting_services": "Deleting services:",
+      "wsdl_validation_warnings": "Validation warnings:"
+    },
     "verifyTls": "Verify TLS certificate",
     "wsdlAdded": "WSDL added",
     "wsdlDescription": "WSDL Description",
-    "wsdlDetails": "WSDL details",
-    "wsdl_validation_warnings": "Validation warnings:"
+    "wsdlDetails": "WSDL details"
   },
   "ssTlsCertificate": {
     "certificateImported": "Certificate imported",
@@ -846,8 +832,6 @@
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
     }
   },
-  "subsystem": "subsystem",
-  "subsystem_code": "Subsystem code",
   "systemParameters": {
     "approvedCertificateAuthorities": {
       "table": {
@@ -954,7 +938,6 @@
     "changePin": "Change the pin",
     "pinChanged": "Token pin was changed – please log in the token with the new pin"
   },
-  "type": "Type",
   "validationError": {
     "AssertFalse": "value should be 'false'",
     "AssertTrue": "value should be 'true'",
@@ -985,7 +968,6 @@
     "PositiveOrZero": "numeric value should be greater or equal to zero",
     "Size": "value does not meet length requirements"
   },
-  "warning": "Warning",
   "wizard": {
     "addClientTitle": "Add client",
     "addMemberTitle": "Add member",

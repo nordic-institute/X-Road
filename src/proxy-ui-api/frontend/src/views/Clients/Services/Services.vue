@@ -169,7 +169,7 @@
       @save="disableDescSave"
     />
     <!-- Accept "save WSDL" warnings -->
-    <warningDialog
+    <ServiceWarningDialog
       :dialog="saveWsdlWarningDialog"
       :warnings="warningInfo"
       :loading="saveWsdlLoading"
@@ -177,7 +177,7 @@
       @accept="acceptSaveWsdlWarning()"
     />
     <!-- Accept "save REST/OPENAPI3" warnings -->
-    <warningDialog
+    <ServiceWarningDialog
       :dialog="saveRestWarningDialog"
       :warnings="warningInfo"
       :loading="saveRestLoading"
@@ -186,7 +186,7 @@
     />
     <!-- Accept "refresh" warnings. -->
     <!-- Covers WSDL, OPENAPI3 and REST. -->
-    <warningDialog
+    <ServiceWarningDialog
       :dialog="refreshWarningDialog"
       :warnings="warningInfo"
       :loading="refreshLoading"
@@ -205,7 +205,7 @@ import { encodePathParameter } from '@/util/api';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
 import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
-import WarningDialog from '@/components/service/WarningDialog.vue';
+import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
 import ServiceIcon from '@/components/ui/ServiceIcon.vue';
 
 import { Service, ServiceDescription, ServiceType } from '@/openapi-types';
@@ -219,7 +219,7 @@ export default Vue.extend({
     AddWsdlDialog,
     AddRestDialog,
     DisableServiceDescDialog,
-    WarningDialog,
+    ServiceWarningDialog,
     ServiceIcon,
   },
   props: {
@@ -383,7 +383,10 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.enableSuccess'));
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('services.enableSuccess'),
+          );
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
@@ -419,7 +422,10 @@ export default Vue.extend({
             },
           )
           .then(() => {
-            this.$store.dispatch('showSuccess', this.$t('services.disableSuccess'));
+            this.$store.dispatch(
+              'showSuccess',
+              this.$t('services.disableSuccess'),
+            );
           })
           .catch((error) => {
             this.$store.dispatch('showError', error);

@@ -266,7 +266,10 @@ export default Vue.extend({
           { address },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('keys.certificateRegistered'));
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('keys.certificateRegistered'),
+          );
           this.$emit('refresh-list');
         })
         .catch((error) => {

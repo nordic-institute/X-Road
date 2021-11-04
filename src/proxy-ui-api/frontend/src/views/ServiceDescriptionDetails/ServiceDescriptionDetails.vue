@@ -174,13 +174,13 @@
       @accept="doDeleteServiceDesc()"
     />
     <!-- Confirm dialog for warnings when editing WSDL -->
-    <warningDialog
+    <ServiceWarningDialog
       :dialog="confirmEditWarning"
       :warnings="warningInfo"
       :loading="editLoading"
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
-    ></warningDialog>
+    ></ServiceWarningDialog>
   </div>
 </template>
 
@@ -193,7 +193,7 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import WarningDialog from '@/components/service/WarningDialog.vue';
+import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
 import {
   ServiceDescription,
   ServiceDescriptionUpdate,
@@ -203,7 +203,7 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    WarningDialog,
+    ServiceWarningDialog,
     ValidationProvider,
     ValidationObserver,
   },

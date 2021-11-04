@@ -178,7 +178,7 @@
         <tr>
           <th>{{ $t('services.memberNameGroupDesc') }}</th>
           <th>{{ $t('services.idGroupCode') }}</th>
-          <th>{{ $t('type') }}</th>
+          <th>{{ $t('general.type') }}</th>
           <th>{{ $t('accessRights.rightsGiven') }}</th>
           <th></th>
         </tr>
@@ -239,7 +239,7 @@
       :dialog="addServiceClientDialogVisible"
       :existing-service-clients="serviceClients"
       :client-id="clientId"
-      title="accessRights.addServiceClientsTitle"
+      :title="$t('accessRights.addServiceClientsTitle')"
       @cancel="closeAccessRightsDialog"
       @service-clients-added="doAddServiceClient"
     />
@@ -455,7 +455,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            this.$t('accessRights.removeServiceClientsSuccess'),
+            this.$t('accessRights.removeSuccess'),
           );
         })
         .catch((error) => {

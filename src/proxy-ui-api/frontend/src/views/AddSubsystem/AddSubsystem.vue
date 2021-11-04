@@ -135,8 +135,8 @@
     </ValidationObserver>
 
     <SelectClientDialog
-      title="wizard.addSubsystemTitle"
-      search-label="wizard.subsystem.searchLabel"
+      :title="$t('wizard.addSubsystemTitle')"
+      :search-label="$t('wizard.subsystem.searchLabel')"
       :dialog="showSelectClient"
       :selectable-clients="selectableSubsystems"
       @cancel="showSelectClient = false"

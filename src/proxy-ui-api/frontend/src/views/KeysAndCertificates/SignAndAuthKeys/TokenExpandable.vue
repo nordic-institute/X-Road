@@ -386,7 +386,10 @@ export default Vue.extend({
         })
         .then(
           () => {
-            this.$store.dispatch('showSuccess', this.$t('keys.importCertSuccess'));
+            this.$store.dispatch(
+              'showSuccess',
+              this.$t('keys.importCertSuccess'),
+            );
             this.fetchData();
           },
           (error) => {
@@ -399,7 +402,10 @@ export default Vue.extend({
         .post(`/token-certificates/${encodePathParameter(hash)}/import`, {})
         .then(
           () => {
-            this.$store.dispatch('showSuccess', this.$t('keys.importCertSuccess'));
+            this.$store.dispatch(
+              'showSuccess',
+              this.$t('keys.importCertSuccess'),
+            );
             this.fetchData();
           },
           (error) => {
