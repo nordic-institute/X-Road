@@ -45,7 +45,7 @@ export const getters: GetterTree<SystemState, RootState> = {
     return state.securityServerVersion;
   },
   securityServerNodeType(state) {
-    return state.securityServerVersion;
+    return state.securityServerNodeType;
   },
 };
 

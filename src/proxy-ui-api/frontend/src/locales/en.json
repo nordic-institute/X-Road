@@ -805,6 +805,12 @@
     "SERVER_CODE": "Server Code (CN)",
     "SERVER_DNS_NAME": "Server DNS name (CN)"
   },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Primary node",
+      "REPLICA": "Replica node"
+    }
+  },
   "footer": {
     "software": {
       "title": "Software",

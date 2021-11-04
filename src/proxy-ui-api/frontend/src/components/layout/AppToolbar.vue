@@ -40,6 +40,9 @@
         {{ currentSecurityServer.server_address }}
       </div>
     </div>
+    <div v-if="shouldShowNodeType" class="node-type">
+      {{ $t(`toolbar.securityServerNodeType.${securityServerNodeType}`) }}
+    </div>
   </v-app-bar>
 </template>
 
@@ -47,11 +50,19 @@
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
+import { NodeType } from '@/openapi-types';
 
 export default Vue.extend({
   name: 'Toolbar',
   computed: {
-    ...mapGetters(['currentSecurityServer', 'isAuthenticated']),
+    ...mapGetters([
+      'currentSecurityServer',
+      'isAuthenticated',
+      'securityServerNodeType',
+    ]),
+    shouldShowNodeType(): boolean {
+      return this.securityServerNodeType !== NodeType.STANDALONE;
+    },
   },
   methods: {
     home(): void {
@@ -78,7 +89,7 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~styles/colors';
 
 .server-name {
@@ -97,6 +108,19 @@ export default Vue.extend({
   }
 }
 
+.node-type {
+  font-size: 12px;
+  font-style: normal;
+  font-weight: bold;
+  color: $XRoad-WarmGrey30;
+  margin-right: 64px;
+  user-select: none;
+
+  @media only screen and (max-width: 920px) {
+    margin-right: 20px;
+  }
+}
+
 .auth-container {
   font-size: 12px;
   line-height: 16px;
@@ -105,6 +129,10 @@ export default Vue.extend({
   display: flex;
   height: 100%;
   align-items: center;
-  width: 100%;
+}
+
+// Justify toolbar correctly
+.v-toolbar > .v-toolbar__content {
+  justify-content: space-between;
 }
 </style>
