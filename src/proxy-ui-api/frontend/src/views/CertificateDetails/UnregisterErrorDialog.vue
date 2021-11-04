@@ -27,8 +27,8 @@
   <xrd-simple-dialog
     :dialog="dialog"
     title="warning"
-    :cancel-button-text="cancelButtonText"
-    :save-button-text="acceptButtonText"
+    cancel-button-text="action.cancel"
+    save-button-text="action.yes"
     :show-close="false"
     @save="accept"
     @cancel="cancel"
@@ -52,19 +52,9 @@ export default Vue.extend({
       type: Boolean,
       required: true,
     },
-
     errorResponse: {
       type: Object,
       required: true,
-    },
-
-    cancelButtonText: {
-      type: String,
-      default: 'action.cancel',
-    },
-    acceptButtonText: {
-      type: String,
-      default: 'action.yes',
     },
     // Set save button loading spinner
     loading: {
