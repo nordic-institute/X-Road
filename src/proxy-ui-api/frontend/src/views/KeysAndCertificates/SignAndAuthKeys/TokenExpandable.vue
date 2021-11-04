@@ -113,7 +113,7 @@
 
         <div v-if="getAuthKeys(token.keys).length > 0">
           <KeysTableTitle
-            title="keys.authKeyCert"
+            :title="$t('keys.authKeyCert')"
             :keys="getAuthKeys(token.keys)"
             :arrow-state="authKeysOpen"
             @click="authKeysOpen = !authKeysOpen"
@@ -135,7 +135,7 @@
 
         <div v-if="getSignKeys(token.keys).length > 0">
           <KeysTableTitle
-            title="keys.signKeyCert"
+            :title="$t('keys.signKeyCert')"
             :keys="getSignKeys(token.keys)"
             :arrow-state="signKeysOpen"
             @click="signKeysOpen = !signKeysOpen"
@@ -159,7 +159,7 @@
         <!-- Keys with unknown type -->
         <div v-if="getOtherKeys(token.keys).length > 0">
           <KeysTableTitle
-            title="keys.unknown"
+            :title="$t('keys.unknown')"
             :keys="getOtherKeys(token.keys)"
             :arrow-state="unknownKeysOpen"
             @click="unknownKeysOpen = !unknownKeysOpen"
