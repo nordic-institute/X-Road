@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="mt-3">
+  <div class="mt-3" data-test="security-server-tls-key-view">
     <div class="title-row">
       <div class="xrd-view-title">{{ $t('tab.keys.ssTlsCertificate') }}</div>
       <div>

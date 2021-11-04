@@ -25,7 +25,7 @@
  -->
 
 <template>
-  <div class="xrd-view-common">
+  <div class="xrd-view-common" data-test="404-view">
     <TabsBase />
     <AlertsContainer />
     <v-container>
