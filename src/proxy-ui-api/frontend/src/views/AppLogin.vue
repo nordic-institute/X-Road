@@ -175,6 +175,7 @@ export default (
           // Auth ok. Start phase 2 (fetch user data and current security server info).
           this.fetchUserData();
           this.fetchSecurityServerVersion();
+          this.fetchSecurityServerNodeType();
         },
         (error) => {
           // Display invalid username/password error in inputs
@@ -265,15 +266,20 @@ export default (
         });
     },
 
-    async fetchCurrentSecurityServer() {
+    fetchCurrentSecurityServer() {
       this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
         this.$store.dispatch('showError', error);
       });
     },
-    async fetchSecurityServerVersion() {
+    fetchSecurityServerVersion() {
       this.$store
         .dispatch('fetchSecurityServerVersion')
         .catch((error) => this.$store.dispatch('showError', error));
+    },
+    fetchSecurityServerNodeType() {
+      this.$store.dispatch('fetchSecurityServerNodeType').catch((error) => {
+        this.$store.dispatch('showError', error);
+      });
     },
   },
 });
