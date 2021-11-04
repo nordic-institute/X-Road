@@ -49,7 +49,11 @@
         {{ currentSecurityServer.server_address }}
       </div>
     </div>
-    <div v-if="shouldShowNodeType" class="node-type">
+    <div
+      v-if="shouldShowNodeType"
+      class="node-type"
+      data-test="app-toolbar-node-type"
+    >
       {{ $t(`toolbar.securityServerNodeType.${securityServerNodeType}`) }}
     </div>
   </v-app-bar>

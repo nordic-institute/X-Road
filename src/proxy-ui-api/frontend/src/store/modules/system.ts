@@ -47,6 +47,9 @@ export const getters: GetterTree<SystemState, RootState> = {
   securityServerNodeType(state) {
     return state.securityServerNodeType;
   },
+  isReplicaNode(state) {
+    return state.securityServerNodeType === NodeType.REPLICA;
+  },
 };
 
 export const mutations: MutationTree<SystemState> = {

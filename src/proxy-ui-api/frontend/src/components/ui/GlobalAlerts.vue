@@ -78,6 +78,17 @@
         })
       }}</span>
     </v-alert>
+    <v-alert
+      data-test="global-alert-replica-node"
+      :value="isReplicaNode"
+      color="red"
+      border="left"
+      colored-border
+      class="alert"
+      icon="icon-Error-notification"
+    >
+      <span class="alert-text">{{ $t('globalAlert.replicaNode') }}</span>
+    </v-alert>
   </v-container>
 </template>
 
@@ -94,7 +105,8 @@ export default Vue.extend({
       return (
         this.showGlobalConfAlert ||
         this.showSoftTokenPinEnteredAlert ||
-        this.showRestoreInProgress
+        this.showRestoreInProgress ||
+        this.isReplicaNode
       );
     },
     showLoginLink(): boolean {
@@ -107,6 +119,7 @@ export default Vue.extend({
       'restoreStartTime',
       'isAuthenticated',
       'needsInitialization',
+      'isReplicaNode',
     ]),
     isAllowedToLoginToken(): boolean {
       return this.$store.getters.hasPermission(

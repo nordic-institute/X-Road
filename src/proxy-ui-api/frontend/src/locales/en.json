@@ -878,7 +878,8 @@
   "globalAlert": {
     "globalConfigurationInvalid": "Global configuration is expired",
     "softTokenPinNotEntered": "Please enter soft token PIN",
-    "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}"
+    "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
+    "replicaNode": "You are on a replica node in a Security Server cluster. Modifying configuration is disabled."
   },
   "error_code": {
     "invalid_service_client_id": "Invalid service client ID",
