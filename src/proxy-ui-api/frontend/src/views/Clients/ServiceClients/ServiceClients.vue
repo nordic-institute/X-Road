@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="table-toolbar pt-4">
+    <div class="xrd-table-toolbar pt-4">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -138,8 +138,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .search-input {
   max-width: 300px;

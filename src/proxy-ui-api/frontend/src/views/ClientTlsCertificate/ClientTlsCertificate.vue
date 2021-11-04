@@ -28,7 +28,7 @@
     <div class="new-content">
       <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
       <template v-if="certificate">
-        <div class="cert-hash-wrapper">
+        <div class="dtlv-cert-hash">
           <certificateHash :hash="certificate.hash" />
           <xrd-button
             v-if="showDeleteButton"
@@ -141,6 +141,8 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/detail-views';
+
 .wrapper {
   display: flex;
   justify-content: center;
@@ -148,12 +150,5 @@ export default Vue.extend({
   max-width: 850px;
   height: 100%;
   width: 100%;
-}
-
-.cert-hash-wrapper {
-  margin-top: 30px;
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
 }
 </style>

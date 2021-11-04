@@ -204,7 +204,7 @@
         </template>
       </table>
 
-      <div class="footer-buttons-wrap">
+      <div class="xrd-footer-buttons-wrap">
         <xrd-button data-test="close" @click="close()">{{
           $t('action.close')
         }}</xrd-button>

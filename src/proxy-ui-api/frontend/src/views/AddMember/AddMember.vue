@@ -26,7 +26,7 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('wizard.addMemberTitle')"
       data-test="wizard-title"
       :show-close="false"
@@ -36,10 +36,10 @@
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
-      class="stepper noshadow"
+      class="wizard-stepper wizard-noshadow"
     >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>
@@ -67,7 +67,7 @@
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CERTIFICATE_EXISTS">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>
@@ -79,7 +79,7 @@
       </template>
 
       <template v-if="addMemberWizardMode === wizardModes.CSR_EXISTS">
-        <v-stepper-header class="noshadow">
+        <v-stepper-header class="wizard-noshadow">
           <v-stepper-step :complete="currentStep > 1" step="1">{{
             $t('wizard.member.title')
           }}</v-stepper-step>
@@ -98,7 +98,7 @@
         </v-stepper-header>
       </template>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <MemberDetailsPage @cancel="cancel" @done="currentStep++" />
@@ -306,7 +306,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
 @import '../../assets/wizards';
 </style>

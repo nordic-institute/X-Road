@@ -144,15 +144,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.title-action {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-.content {
-  width: 1000px;
-  margin-top: 30px;
-}
-</style>

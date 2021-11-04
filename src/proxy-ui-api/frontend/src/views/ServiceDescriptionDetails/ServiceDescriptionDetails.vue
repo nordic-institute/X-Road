@@ -138,7 +138,7 @@
         </div>
       </div>
       <v-card flat>
-        <div class="footer-button-wrap mt-12">
+        <div class="dtlv-actions-footer mt-12">
           <xrd-button
             data-test="service-description-details-cancel-button"
             outlined
@@ -370,7 +370,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/colors';
-@import '~styles/dialogs';
 @import '~styles/detail-views';
 
 .main-wrap {

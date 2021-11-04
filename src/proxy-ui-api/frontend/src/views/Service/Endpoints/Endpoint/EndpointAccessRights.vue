@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div class="xrd-tab-max-width xrd-main-wrap">
     <div class="pa-4">
       <xrd-sub-view-title
         :title="`${endpoint.method}${endpoint.path}`"

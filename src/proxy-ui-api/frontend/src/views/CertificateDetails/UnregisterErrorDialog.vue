@@ -73,7 +73,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '../../assets/dialogs';
-</style>

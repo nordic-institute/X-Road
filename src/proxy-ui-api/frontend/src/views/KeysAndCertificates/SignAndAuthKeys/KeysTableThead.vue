@@ -25,7 +25,7 @@
  -->
 <template>
   <thead>
-    <tr>
+    <tr class="target-row">
       <th
         class="title-col"
         data-test="name-sort"
@@ -157,12 +157,13 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.xrd-table {
+/* Needs two classes to override xrd-table style */
+.target-row {
   .title-col {
     width: 30%;
     cursor: pointer;
     user-select: none;
-    padding-left: 40px;
+    padding-left: 38px;
   }
 }
 

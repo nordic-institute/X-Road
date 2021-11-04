@@ -200,23 +200,11 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
-
-.path-wrapper {
-  white-space: nowrap;
-  min-width: 100px;
-}
-
-.url-wrapper {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 400px;
-}
+@import '~styles/colors';
+@import '~styles/tables';
 
 .generated {
-  color: $XRoad-Grey40;
+  color: $XRoad-Black50;
 }
 
 .wrap-right-tight {

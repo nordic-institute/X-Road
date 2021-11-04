@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="xrd-view-common">
+  <v-container class="xrd-view-common" data-test="diagnostics-view">
     <div class="inner-wrap">
       <div class="xrd-view-title pt-6">{{ $t('tab.main.diagnostics') }}</div>
       <v-layout align-center justify-center column fill-height elevation-0>
@@ -350,7 +350,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 @import '~styles/tables';
 
@@ -368,6 +367,7 @@ export default Vue.extend({
 
   margin-bottom: 30px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .v-card__title {
     color: $XRoad-Black100;
     height: 30px;

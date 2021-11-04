@@ -85,7 +85,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/dialogs';
 p {
   margin-top: 30px;
 }

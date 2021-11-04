@@ -25,7 +25,7 @@
  -->
 
 <template>
-  <div class="xrd-view-common">
+  <div class="xrd-view-common" data-test="404-view">
     <TabsBase />
     <AlertsContainer />
     <v-container>
@@ -85,7 +85,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 
 .xrd-view-common {
