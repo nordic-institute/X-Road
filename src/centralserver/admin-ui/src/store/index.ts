@@ -43,7 +43,7 @@ Vue.use(Vuex);
 
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
-  modules: ['user'],
+  modules: ['user', 'system'],
 });
 
 const store: StoreOptions<RootState> = {
