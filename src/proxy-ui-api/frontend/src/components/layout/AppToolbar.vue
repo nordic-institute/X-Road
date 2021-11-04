@@ -24,7 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-app-bar app dark absolute color="#636161" flat height="32" max-height="32">
+  <v-app-bar
+    class="main-toolbar"
+    app
+    dark
+    absolute
+    color="#636161"
+    flat
+    height="32"
+    max-height="32"
+  >
     <div v-if="isAuthenticated" class="auth-container">
       <div class="server-type">X-ROAD SECURITY SERVER</div>
       <div
@@ -90,6 +99,12 @@ export default Vue.extend({
 </script>
 
 <style lang="scss">
+.main-toolbar > .v-toolbar__content {
+  justify-content: space-between;
+}
+</style>
+
+<style lang="scss" scoped>
 @import '~styles/colors';
 
 .server-name {
@@ -129,10 +144,5 @@ export default Vue.extend({
   display: flex;
   height: 100%;
   align-items: center;
-}
-
-// Justify toolbar correctly
-.v-toolbar > .v-toolbar__content {
-  justify-content: space-between;
 }
 </style>
