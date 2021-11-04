@@ -25,7 +25,7 @@
  -->
 <template>
   <div>
-    <div class="table-toolbar">
+    <div class="xrd-table-toolbar">
       <v-text-field
         v-model="search"
         label="Search"

@@ -27,7 +27,7 @@
   <div>
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('csr.usage')"
             :help-text="$t('csr.helpUsage')"
@@ -36,7 +36,7 @@
           <div class="readonly-info-field">{{ usage }}</div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('csr.client')"
             :help-text="$t('csr.helpClient')"
@@ -45,7 +45,7 @@
           <div class="readonly-info-field">{{ selectedMemberId }}</div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('csr.certificationService')"
             :help-text="$t('csr.helpCertificationService')"
@@ -61,14 +61,14 @@
               :items="filteredServiceList"
               item-text="name"
               item-value="name"
-              class="form-input"
+              class="wizard-form-input"
               data-test="csr-certification-service-select"
               outlined
             ></v-select>
           </ValidationProvider>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('csr.csrFormat')"
             :help-text="$t('csr.helpCsrFormat')"
@@ -78,7 +78,7 @@
             <v-select
               v-model="csrFormat"
               :items="csrFormatList"
-              class="form-input"
+              class="wizard-form-input"
               data-test="csr-format-select"
               outlined
             ></v-select>

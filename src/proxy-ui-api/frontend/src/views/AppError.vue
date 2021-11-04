@@ -85,7 +85,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 
 .xrd-view-common {

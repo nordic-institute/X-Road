@@ -515,22 +515,6 @@ export default Vue.extend({
   margin-bottom: 24px;
 }
 
-.search-input {
-  max-width: 300px;
-}
-
-.data-table-wrapper {
-  width: 100%;
-  max-width: 1600px;
-  margin-left: 10px;
-  margin-right: 10px;
-
-  @media only screen and (max-width: 1620px) {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-}
-
 .data-table {
   width: 100%;
 }
@@ -569,12 +553,6 @@ export default Vue.extend({
   color: #575169;
   margin-left: 16px;
   padding-top: 1px;
-
-  &.clickable {
-    text-decoration: none;
-    color: $XRoad-Link;
-    cursor: pointer;
-  }
 }
 
 .button-wrap {

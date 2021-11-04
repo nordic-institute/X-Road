@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-view-common" data-test="backup-and-restore-tab-view">
-    <div class="table-toolbar mt-0 pl-0">
+  <div class="xrd-view-common">
+    <div class="xrd-table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">
           {{ $t('tab.settings.backupAndRestore') }}
@@ -223,9 +223,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-.search-input {
-  max-width: 300px;
-}
 
 .button-spacing {
   margin-left: 20px;

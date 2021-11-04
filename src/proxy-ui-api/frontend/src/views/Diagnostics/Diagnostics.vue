@@ -353,7 +353,6 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '~styles/shared';
 @import '~styles/colors';
 @import '~styles/tables';
 
@@ -371,6 +370,7 @@ export default Vue.extend({
 
   margin-bottom: 30px;
 
+  /* eslint-disable-next-line vue-scoped-css/no-unused-selector */
   .v-card__title {
     color: $XRoad-Black100;
     height: 30px;

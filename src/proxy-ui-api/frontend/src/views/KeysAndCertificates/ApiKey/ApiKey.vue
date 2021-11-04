@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <div class="details-view-tools">
+    <div class="dtlv-tools">
       <xrd-button
         v-if="canCreateApiKey"
         class="button-spacing"
@@ -115,13 +115,13 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/detail-views';
-@import '../../../assets/tables';
-@import '../../../assets/colors';
+@import '~styles/detail-views';
+@import '~styles/tables';
+@import '~styles/colors';
 
 .keytable-header {
   font-weight: 500;
-  color: $XRoad-Black;
+  color: $XRoad-Black100;
 }
 
 .title-row {
