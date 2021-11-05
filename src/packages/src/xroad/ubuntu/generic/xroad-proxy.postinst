@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 . /usr/share/debconf/confmodule
 
 #add groups
@@ -18,7 +17,7 @@ log () { echo >&2 "$@"; }
 #5 new_key
 function migrate_conf_value {
     MIGRATION_VALUE="$(crudini --get "$1" "$2" "$3" 2>/dev/null || true)"
-    if [ "${MIGRATION_VALUE}" ];
+    if [ -n "${MIGRATION_VALUE}" ];
         then
             crudini --set "$1" "$4" "$5" "${MIGRATION_VALUE}"
             crudini --del "$1" "$2" "$3"
@@ -26,7 +25,7 @@ function migrate_conf_value {
 }
 
 case "$1" in
- configure)
+ configure|reconfigure)
   chmod 0440 /etc/sudoers.d/xroad-proxy
   chown xroad:xroad /etc/xroad/backup.d/??_xroad-proxy
   chmod 0440 /etc/xroad/backup.d/??_xroad-proxy
@@ -43,39 +42,38 @@ case "$1" in
   test -e /etc/nginx/sites-enabled/clientproxy && rm /etc/nginx/sites-enabled/clientproxy
   test -e /etc/nginx/sites-enabled/clientproxy-ssl && rm /etc/nginx/sites-enabled/clientproxy-ssl
 
+  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
+
   RET=""
   db_get xroad-common/username
   AUSER="$RET"
 
-  node_type=$(crudini --get '/etc/xroad/conf.d/node.ini' node type 2>/dev/null || echo standalone)
-  groupnames=""
-  if [[ "$node_type" == "slave" ]]; then
+  if [ -n "$AUSER" ]; then
+    groupnames=""
+    if [[ "$node_type" == "slave" ]]; then
       log "Cluster slave node detected, configuring slave compatible groups"
       groupnames=$slave_groups
-  else
+    else
       log "Configuring groups"
       groupnames=$groups
-  fi
+    fi
 
-  usergroups=" $(id -Gn "$AUSER") "
-  for groupname in $groupnames; do
+    usergroups=" $(id -Gn "$AUSER") "
+    for groupname in $groupnames; do
       if ! getent group "$groupname" > /dev/null; then
           groupadd --system "$groupname" || true
       fi
       if [[ $usergroups != *" $groupname "* ]]; then
           usermod -a -G "$groupname" "$AUSER" || true
       fi
-  done
+    done
+  else
+    log "WARNING: X-Road admin user not configured."
+  fi
 
   #migrating possible local configuration for modified configuration values (for version 6.17.0)
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
-
-  RET=""
-  db_get xroad-common/database-host || RET=""
-  /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
-
-  db_stop
 
   # generate gpg keypair when needed - directory does not exist and server is initialised
   if [[ -n "$2" ]]; then
@@ -88,6 +86,11 @@ case "$1" in
     # always fix gpghome ownership
     [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
   fi
+
+  RET=""
+  db_get xroad-common/database-host || RET=""
+  db_stop
+  /usr/share/xroad/scripts/setup_serverconf_db.sh "$RET"
 
   invoke-rc.d --quiet rsyslog try-restart || true
   invoke-rc.d --quiet xroad-confclient try-restart || true
