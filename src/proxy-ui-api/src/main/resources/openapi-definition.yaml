@@ -4503,16 +4503,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/NodeTypeResponse'
-        '400':
-          description: request was invalid
         '401':
           description: authentication credentials are missing
         '403':
           description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
         '500':
           description: internal server error
   /system/version:
@@ -6236,17 +6230,19 @@ components:
         <p>The enum can have three different values</p>
         <ul>
           <li>PRIMARY, which is the primary node in a high availability setup</li>
-          <li>REPLICA, which is a replica node in a high availability setup – a read-only server</li>
+          <li>SECONDARY, which is a secondary node in a high availability setup – a read-only server</li>
           <li>STANDALONE,when there are no load balancer or high availability configured</li>
         </ul>
       example: PRIMARY
       enum:
         - PRIMARY
-        - REPLICA
+        - SECONDARY
         - STANDALONE
     NodeTypeResponse:
       type: object
       description: Response object containing the node type of the Security Server
+      required:
+        - node_type
       properties:
         node_type:
           $ref: '#/components/schemas/NodeType'
