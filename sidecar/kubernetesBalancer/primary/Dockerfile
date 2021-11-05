@@ -9,9 +9,9 @@ RUN adduser --system --shell /bin/bash --ingroup xroad xroad-slave \
 && chown xroad-slave /home/xroad-slave/.ssh \
 && crudini --set /etc/xroad/conf.d/node.ini node type 'master' \
 && chown xroad:xroad /etc/xroad/conf.d/node.ini \
-&& cp -a /etc/xroad/conf.d/node.ini /root/etc/xroad/conf.d/ \
+&& cp -a /etc/xroad/conf.d/node.ini /usr/share/xroad/config/etc/xroad/conf.d/ \
 && crudini --set /etc/xroad/conf.d/override-docker.ini proxy server-support-clients-pooled-connections 'false' \
-&& cp -a /etc/xroad/conf.d/override-docker.ini /root/etc/xroad/conf.d/ \
+&& cp -a /etc/xroad/conf.d/override-docker.ini /usr/share/xroad/config/etc/xroad/conf.d/ \
 && echo "StrictModes no" >>/etc/ssh/sshd_config
 
 COPY files/balancer-primary-entrypoint.sh /root/entrypoint.sh

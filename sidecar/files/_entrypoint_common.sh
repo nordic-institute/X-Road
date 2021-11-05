@@ -18,12 +18,17 @@ warn() { echo "$(date --utc -Iseconds) WARN [entrypoint] $*" >&2; }
 
 XROAD_SCRIPT_LOCATION=/usr/share/xroad/scripts
 DB_PROPERTIES=/etc/xroad/db.properties
+
 if [ -f /etc/xroad.properties ]; then
+  # makes it possible to "mount" a file to /etc/xroad.properties
   ROOT_PROPERTIES=/etc/xroad.properties
 else
+  # keep xroad.properties with other configuration (needed when running
+  # database migration e.g. during upgrades)
   ROOT_PROPERTIES=/etc/xroad/xroad.properties
   ln -s "$ROOT_PROPERTIES" /etc/xroad.properties
 fi
+
 INSTALLED_VERSION=$(dpkg-query --showformat='${Version}' --show xroad-proxy)
 PACKAGED_CONFIG=/usr/share/xroad/config
 PACKAGED_VERSION="$(cat /${PACKAGED_CONFIG}/VERSION)"
@@ -74,8 +79,9 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     log "Migrating configuration from ${CONFIG_VERSION:-none} to $PACKAGED_VERSION"
     cp -a "$PACKAGED_CONFIG/etc/xroad/"* /etc/xroad/
     # copy if not exists
-    cp -a -n "$PACKAGED_CONFIG"/backup/local.ini /etc/xroad/conf.d/
     cp -a -n "$PACKAGED_CONFIG"/backup/devices.ini /etc/xroad/
+    cp -a -n "$PACKAGED_CONFIG"/backup/local.ini /etc/xroad/conf.d/
+    cp -a -n "$PACKAGED_CONFIG"/backup/local.properties /etc/xroad/services/
     # packages need to be reconfigured (runs possible db and config migrations)
     RECONFIG_REQUIRED=true
   fi
@@ -185,9 +191,9 @@ if [[ "$RECONFIG_REQUIRED" == "true" ]]; then
   if [[ "$LOCAL_DB" == "true" ]]; then
     pg_ctlcluster 12 main stop
     sleep 1
-    crudini --set /etc/supervisor/conf.d/xroad.conf program:postgres autostart true
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart true &>/dev/null ||:
   else
-    crudini --set /etc/supervisor/conf.d/xroad.conf program:postgres autostart false
+    crudini --set --existing=section /etc/supervisor/conf.d/xroad.conf program:postgres autostart false &>/dev/null ||:
   fi
 fi
 XROAD_DB_PWD=

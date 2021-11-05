@@ -1,5 +1,4 @@
 FROM ubuntu:focal
-ARG VERSION=7.0.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
@@ -18,6 +17,7 @@ RUN apt-get -qq update \
   && apt-get -qq install postgresql postgresql-contrib \
   && apt-get -qq clean
 
+ARG VERSION=7.0.0
 ARG DIST=focal-$VERSION
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
@@ -60,8 +60,8 @@ RUN rm -f /etc/xroad/db.properties \
 # move files that should not be overwritten during migration to another folder
 # (these are needed when initializing an empty config volume)
   && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
-    /usr/share/xroad/config/etc/xroad/conf.d/local.properties \
   && mv /usr/share/xroad/config/etc/xroad/conf.d/local.ini \
+    /usr/share/xroad/config/etc/xroad/services/local.properties \
     /usr/share/xroad/config/etc/xroad/devices.ini \
     /usr/share/xroad/config/backup/ \
 ##

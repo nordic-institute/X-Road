@@ -1,0 +1,10 @@
+ARG VERSION=7.0.0
+ARG FROM
+FROM $FROM
+ARG VERSION
+ARG VARIANT
+
+ADD --chown=xroad:xroad https://raw.githubusercontent.com/nordic-institute/X-Road/$VERSION/src/packages/src/xroad/default-configuration/override-securityserver-$VARIANT.ini /etc/xroad/conf.d/override-securityserver-$VARIANT.ini
+
+RUN chmod 660 /etc/xroad/conf.d/override-securityserver-$VARIANT.ini \
+  && cp -a /etc/xroad/conf.d/override-securityserver-$VARIANT.ini /usr/share/xroad/config/etc/xroad/conf.d/
