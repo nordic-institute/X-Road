@@ -56,9 +56,7 @@
         class="node-name"
         data-test="app-toolbar-node-name"
       >
-        {{
-          `${systemStatus.high_availability_status.node_name}`
-        }}
+        {{ `${systemStatus.high_availability_status.node_name}` }}
       </div>
     </div>
   </v-app-bar>
@@ -89,7 +87,8 @@ export default Vue.extend({
       return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS];
     },
     isHighAvailabilityConfigured() {
-      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS].high_availability_status.is_ha_configured;
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.high_availability_status.is_ha_configured;
     },
   },
   methods: {

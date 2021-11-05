@@ -26,7 +26,7 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
-import {SystemStatus, Version} from '@/openapi-types';
+import {CentralServerAddress, InstanceIdentifier, SystemStatus, Version} from '@/openapi-types';
 
 export interface State {
   serverVersion: Version | undefined;
@@ -36,7 +36,10 @@ export interface State {
 export const getDefaultState = (): State => {
   return {
     serverVersion: undefined,
-    systemStatus: undefined,
+    systemStatus: {
+      initialization_status: undefined,
+      high_availability_status: undefined
+    },
   };
 };
 
