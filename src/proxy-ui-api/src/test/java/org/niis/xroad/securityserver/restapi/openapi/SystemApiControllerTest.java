@@ -357,9 +357,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = { "VIEW_NODE_TYPE" })
-    public void getNodeTypeReplica() {
+    public void getNodeTypeSecondary() {
         when(systemService.getServerNodeType()).thenReturn(SystemProperties.NodeType.SLAVE);
         ResponseEntity<NodeTypeResponse> response = systemApiController.getNodeType();
-        assertEquals(response.getBody().getNodeType(), NodeType.REPLICA);
+        assertEquals(response.getBody().getNodeType(), NodeType.SECONDARY);
     }
 }

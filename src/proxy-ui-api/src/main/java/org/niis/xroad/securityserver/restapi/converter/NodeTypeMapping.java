@@ -41,7 +41,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public enum NodeTypeMapping {
     PRIMARY(SystemProperties.NodeType.MASTER, NodeType.PRIMARY),
-    REPLICA(SystemProperties.NodeType.SLAVE, NodeType.REPLICA),
+    SECONDARY(SystemProperties.NodeType.SLAVE, NodeType.SECONDARY),
     STANDALONE(SystemProperties.NodeType.STANDALONE, NodeType.STANDALONE);
 
     private final SystemProperties.NodeType nodeTypeCore;

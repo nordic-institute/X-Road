@@ -6230,13 +6230,13 @@ components:
         <p>The enum can have three different values</p>
         <ul>
           <li>PRIMARY, which is the primary node in a high availability setup</li>
-          <li>REPLICA, which is a replica node in a high availability setup – a read-only server</li>
+          <li>SECONDARY, which is a secondary node in a high availability setup – a read-only server</li>
           <li>STANDALONE,when there are no load balancer or high availability configured</li>
         </ul>
       example: PRIMARY
       enum:
         - PRIMARY
-        - REPLICA
+        - SECONDARY
         - STANDALONE
     NodeTypeResponse:
       type: object
