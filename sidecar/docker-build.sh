@@ -2,37 +2,54 @@
 set -euo pipefail
 
 dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" >&/dev/null && pwd)"
-version="${1:-6.26.0}"
+version="${1:-7.0.0}"
 tag="${2:-xroad-security-server-sidecar}"
+repo="${3-}"
+dist="${4-}"
+repo_key="${5-}"
+
 build() {
   echo "BUILDING $tag:$version$2 using ${1#$dir/}"
-  docker build -f "$1" --build-arg "VERSION=$version" --build-arg "TAG=$tag" -t "$tag:$version$2" "$dir"
+  local build_args=(--build-arg "VERSION=$version" --build-arg "TAG=$tag")
+  [[ -n $repo ]] && build_args+=(--build-arg "REPO=$repo")
+  [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
+  [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
+  docker build -f "$1" "${build_args[@]}" -t "$tag:$version$2" "$dir"
+}
+
+build_variant() {
+  echo "BUILDING variant $tag:$version$1-$2"
+  docker build -f "$dir/Dockerfile-variant" \
+    --build-arg "VERSION=$version" \
+    --build-arg "FROM=$tag:$version$1" \
+    --build-arg "VARIANT=$2" \
+    -t "$tag:$version$1-$2" "$dir"
 }
 
 build "$dir/slim/Dockerfile" "-slim"
-build "$dir/slim/fi/Dockerfile" "-slim-fi"
-build "$dir/slim/fo/Dockerfile" "-slim-fo"
-build "$dir/slim/is/Dockerfile" "-slim-is"
+build_variant "-slim" "fi"
+build_variant "-slim" "fo"
+build_variant "-slim" "is"
+
 build "$dir/Dockerfile" ""
-build "$dir/fi/Dockerfile" "-fi"
-build "$dir/ee/Dockerfile" "-ee"
-build "$dir/fo/Dockerfile" "-fo"
-build "$dir/is/Dockerfile" "-is"
+build_variant "" "fi"
+build_variant "" "ee"
+build_variant "" "fo"
+build_variant "" "is"
 
 build "$dir/kubernetesBalancer/slim/primary/Dockerfile" "-slim-primary"
 build "$dir/kubernetesBalancer/slim/secondary/Dockerfile" "-slim-secondary"
 build "$dir/kubernetesBalancer/primary/Dockerfile" "-primary"
 build "$dir/kubernetesBalancer/secondary/Dockerfile" "-secondary"
 
-build "$dir/kubernetesBalancer/slim/fi/primary/Dockerfile" "-slim-primary-fi"
-build "$dir/kubernetesBalancer/slim/fi/secondary/Dockerfile" "-slim-secondary-fi"
-build "$dir/kubernetesBalancer/fi/primary/Dockerfile" "-primary-fi"
-build "$dir/kubernetesBalancer/fi/secondary/Dockerfile" "-secondary-fi"
+build_variant "-slim-primary" "fi"
+build_variant "-slim-secondary" "fi"
+build_variant "-slim-primary" "is"
+build_variant "-slim-secondary" "is"
 
-build "$dir/kubernetesBalancer/ee/primary/Dockerfile" "-primary-ee"
-build "$dir/kubernetesBalancer/ee/secondary/Dockerfile" "-secondary-ee"
-
-build "$dir/kubernetesBalancer/slim/is/primary/Dockerfile" "-slim-primary-is"
-build "$dir/kubernetesBalancer/slim/is/secondary/Dockerfile" "-slim-secondary-is"
-build "$dir/kubernetesBalancer/is/primary/Dockerfile" "-primary-is"
-build "$dir/kubernetesBalancer/is/secondary/Dockerfile" "-secondary-is"
+build_variant "-primary" "fi"
+build_variant "-secondary" "fi"
+build_variant "-primary" "is"
+build_variant "-secondary" "is"
+build_variant "-primary" "ee"
+build_variant "-secondary" "ee"

@@ -1,4 +1,4 @@
-ARG VERSION=6.26.0
+ARG VERSION=7.0.0
 ARG TAG=niis/xroad-security-server-sidecar
 FROM $TAG:$VERSION
 RUN apt-get -qq update \
@@ -8,7 +8,7 @@ RUN apt-get -qq update \
 RUN crudini --set /etc/xroad/conf.d/node.ini node type 'slave' \
   && crudini --set /etc/xroad/conf.d/node.ini message-log archive-interval '0 * * ? * * 2099' \
   && chown xroad:xroad /etc/xroad/conf.d/node.ini \
-  && cp -a /etc/xroad/conf.d/node.ini /root/etc/xroad/conf.d/ \
+  && cp -a /etc/xroad/conf.d/node.ini /usr/share/xroad/config/etc/xroad/conf.d/ \
   && rm -f /etc/cron.d/xroad-* /etc/cron.d/sysstat \
   && mkdir -m 0700 -p /home/xroad/.ssh \
   && chown xroad:xroad /home/xroad/.ssh

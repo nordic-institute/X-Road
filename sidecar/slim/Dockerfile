@@ -1,13 +1,12 @@
 FROM ubuntu:focal
-ARG VERSION=6.26.0
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
   && apt-get -qq install \
     sudo ca-certificates gnupg supervisor net-tools iproute2 locales \
-    openjdk-8-jre-headless rlwrap ca-certificates-java \
-    crudini adduser expect curl wget \
+    openjdk-11-jre-headless rlwrap ca-certificates-java \
+    crudini adduser expect curl wget openssl nano-tiny \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql \
@@ -15,11 +14,10 @@ RUN apt-get -qq update \
   && adduser --quiet --system --uid 999 --home /var/lib/xroad \
     --no-create-home --shell /bin/bash --group xroad \
   && adduser xroad sudo \
-  && adduser --quiet --disabled-login --no-create-home --shell /usr/sbin/nologin xrd \
-  && echo "xroad-proxy xroad-common/username string xrd" | debconf-set-selections \
   && apt-get -qq install postgresql postgresql-contrib \
   && apt-get -qq clean
 
+ARG VERSION=7.0.0
 ARG DIST=focal-$VERSION
 ARG REPO=https://artifactory.niis.org/xroad-release-deb
 ARG REPO_KEY=https://artifactory.niis.org/api/gpg/key/public
@@ -31,9 +29,8 @@ ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
 RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
   && apt-key add '/tmp/repokey.gpg'
 
-RUN pg_ctlcluster 12 main start \
-  && apt-get -qq update \
-  && apt-get -qq install \
+RUN apt-get -qq update \
+  && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
     xroad-proxy \
     xroad-proxy-ui-api \
     xroad-addon-metaservices \
@@ -42,19 +39,8 @@ RUN pg_ctlcluster 12 main start \
     xroad-addon-opmonitoring \
     xroad-addon-proxymonitor \
     xroad-autologin \
-  && apt-get -qq clean \
-  && su - postgres -c 'psql postgres -tA \
-    -c "DROP DATABASE serverconf;" \
-    -c "DROP USER serverconf;" \
-    -c "DROP USER serverconf_admin;" \
-    -c "DROP DATABASE messagelog;" \
-    -c "DROP USER messagelog;" \
-    -c "DROP USER messagelog_admin;" \
-    -c "DROP DATABASE \"op-monitor\";" \
-    -c "DROP USER opmonitor;" \
-    -c "DROP USER opmonitor_admin;"'\
-  && pg_ctlcluster 12 main stop \
-  && userdel -r xrd
+    xroad-database-remote \
+  && apt-get -qq clean
 
 COPY --chown=xroad:xroad files/override-docker.ini files/*-logback.xml files/variables-logback.properties /etc/xroad/conf.d/
 COPY --chown=xroad:xroad files/addons/*-logback.xml /etc/xroad/conf.d/addons/
@@ -71,10 +57,11 @@ RUN rm -f /etc/xroad/db.properties \
 # for initializing an empty config volume
   && mkdir -p /usr/share/xroad/config/etc/xroad /usr/share/xroad/config/backup \
   && cp -a /etc/xroad /usr/share/xroad/config/etc/ \
-  && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken
 # move files that should not be overwritten during migration to another folder
 # (these are needed when initializing an empty config volume)
+  && rm -rf /usr/share/xroad/config/etc/xroad/signer/softtoken \
   && mv /usr/share/xroad/config/etc/xroad/conf.d/local.ini \
+    /usr/share/xroad/config/etc/xroad/services/local.properties \
     /usr/share/xroad/config/etc/xroad/devices.ini \
     /usr/share/xroad/config/backup/ \
 ##
@@ -91,4 +78,4 @@ COPY --chown=root:root files/slim-ss-xroad.conf /etc/supervisor/conf.d/xroad.con
 
 CMD ["/root/entrypoint.sh"]
 
-EXPOSE 8080 8443 4000 5500 5577 5588 80 443
+EXPOSE 8080 8443 4000 5500 5577 5588
