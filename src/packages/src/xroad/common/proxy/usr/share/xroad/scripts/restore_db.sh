@@ -21,7 +21,12 @@ shift $(($OPTIND - 1))
 dump_file="$1"
 
 read_serverconf_database_properties /etc/xroad/db.properties
-root_properties=/etc/xroad.properties
+
+if [ -f /etc/xroad/xroad.properties ]; then
+  root_properties=/etc/xroad/xroad.properties
+else
+  root_properties=/etc/xroad.properties
+fi
 
 db_admin_user=$(get_db_prop ${root_properties} 'serverconf.database.admin_user' "$db_conn_user")
 db_admin_password=$(get_db_prop ${root_properties} 'serverconf.database.admin_password' "$db_password")

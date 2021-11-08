@@ -60,13 +60,19 @@ create_backup_tarball () {
         --exclude="/etc/xroad/services/*.conf" \
         --exclude="/etc/xroad/postgresql" \
         --exclude="/etc/xroad/gpghome"  \
+        --exclude="/etc/xroad/xroad.properties" \
         "${BACKED_UP_PATHS[@]}" \
     | gpg --batch --no-tty --homedir /etc/xroad/gpghome --sign --digest-algo SHA256 "${ENCRYPTION_ARGS[@]}" --output "${BACKUP_FILENAME}"
 
   else
     echo "CREATING TAR ARCHIVE TO ${BACKUP_FILENAME}"
-    tar --create -v --label "${TARBALL_LABEL}" --file "${BACKUP_FILENAME}" --exclude="tmp*.tmp" \
-      --exclude="/etc/xroad/services/*.conf" --exclude="/etc/xroad/postgresql" --exclude="/etc/xroad/gpghome" "${BACKED_UP_PATHS[@]}"
+    tar --create -v --label "${TARBALL_LABEL}" --file "${BACKUP_FILENAME}" \
+      --exclude="tmp*.tmp" \
+      --exclude="/etc/xroad/services/*.conf" \
+      --exclude="/etc/xroad/postgresql" \
+      --exclude="/etc/xroad/gpghome" \
+      --exclude="/etc/xroad/xroad.properties" \
+      "${BACKED_UP_PATHS[@]}"
   fi
   if [ $? != 0 ] ; then
     echo "Removing incomplete backup archive"

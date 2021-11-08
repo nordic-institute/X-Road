@@ -18,7 +18,11 @@ setup_database() {
   local -r db_name="$1"
   local -r db_default_user="$2"
   local -r db_properties=/etc/xroad/db.properties
-  local -r root_properties=/etc/xroad.properties
+  if [ -f /etc/xroad/xroad.properties ]; then
+    local -r root_properties=/etc/xroad/xroad.properties
+  else
+    local -r root_properties=/etc/xroad.properties
+  fi
   get_db_prop() { get_prop "$db_properties" "$db_name.hibernate.connection.$1" "$2"; }
 
   local db_host="${3:-127.0.0.1:5432}"
@@ -39,7 +43,6 @@ setup_database() {
   local db_admin_password=$(get_prop ${root_properties} "$db_name.database.admin_password")
   if [[ -z "$db_admin_conn_user" && -n "$db_admin_password" ]]; then
     db_admin_conn_user="${db_user}_admin$suffix"
-    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
   else
     db_admin_conn_user="${db_admin_conn_user:-$db_conn_user}"
     db_admin_password="${db_admin_password:-$db_password}"
@@ -140,8 +143,10 @@ EOF
       fi
     } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
-    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
-    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
+    if [ -w "$root_properties" ]; then
+      crudini --set --inplace "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
+      crudini --set --inplace "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
+    fi
   fi
 
   if [[ ! -f "$db_properties" ]]; then
@@ -150,14 +155,16 @@ EOF
     chmod 640 ${db_properties}
   fi
 
-  crudini --set ${db_properties} '' "$db_name.hibernate.jdbc.use_streams_for_binary" true
-  crudini --set ${db_properties} '' "$db_name.hibernate.connection.driver_class" org.postgresql.Driver
-  crudini --set ${db_properties} '' "$db_name.hibernate.connection.url" "jdbc:postgresql://$db_host/$db_database$db_options"
-  if [[ $db_schema != "public" ]]; then
-    crudini --set ${db_properties} '' "$db_name.hibernate.hikari.dataSource.currentSchema" "${db_schema},public"
+  if [ -w "$db_properties" ]; then
+    crudini --set ${db_properties} '' "$db_name.hibernate.jdbc.use_streams_for_binary" true
+    crudini --set ${db_properties} '' "$db_name.hibernate.connection.driver_class" org.postgresql.Driver
+    crudini --set ${db_properties} '' "$db_name.hibernate.connection.url" "jdbc:postgresql://$db_host/$db_database$db_options"
+    if [[ $db_schema != "public" ]]; then
+      crudini --set ${db_properties} '' "$db_name.hibernate.hikari.dataSource.currentSchema" "${db_schema},public"
+    fi
+    crudini --set ${db_properties} '' "$db_name.hibernate.connection.username" "${db_conn_user}"
+    crudini --set ${db_properties} '' "$db_name.hibernate.connection.password" "${db_password}"
   fi
-  crudini --set ${db_properties} '' "$db_name.hibernate.connection.username" "${db_conn_user}"
-  crudini --set ${db_properties} '' "$db_name.hibernate.connection.password" "${db_password}"
 
   cd /usr/share/xroad/db/ || die "Running migrations failed, plase check that directory /usr/share/xroad/db exists"
 
