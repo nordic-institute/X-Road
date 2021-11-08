@@ -66,20 +66,14 @@ export const mutations: MutationTree<SystemState> = {
 
 export const actions: ActionTree<SystemState, RootState> = {
   fetchSecurityServerVersion({ commit }) {
-    return get<VersionInfo>('/system/version')
-      .then((resp) => commit('storeSecurityServerVersion', resp.data))
-      .catch((error) => {
-        throw error;
-      });
+    return get<VersionInfo>('/system/version').then((resp) =>
+      commit('storeSecurityServerVersion', resp.data),
+    );
   },
   fetchSecurityServerNodeType({ commit }) {
-    return get<NodeTypeResponse>('/system/node-type')
-      .then((res) => {
-        commit('storeSecurityServerNodeType', res.data.node_type);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    return get<NodeTypeResponse>('/system/node-type').then((res) => {
+      commit('storeSecurityServerNodeType', res.data.node_type);
+    });
   },
 };
 
