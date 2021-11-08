@@ -1,3 +1,4 @@
+# Dockerfile for country (member) variants
 ARG VERSION=7.0.0
 ARG FROM
 FROM $FROM
