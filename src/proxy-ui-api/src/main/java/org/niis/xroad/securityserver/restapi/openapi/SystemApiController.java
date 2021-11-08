@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.securityserver.restapi.converter.AnchorConverter;
 import org.niis.xroad.securityserver.restapi.converter.CertificateDetailsConverter;
+import org.niis.xroad.securityserver.restapi.converter.NodeTypeMapping;
 import org.niis.xroad.securityserver.restapi.converter.TimestampingServiceConverter;
 import org.niis.xroad.securityserver.restapi.converter.VersionConverter;
 import org.niis.xroad.securityserver.restapi.dto.AnchorFile;
@@ -45,6 +46,8 @@ import org.niis.xroad.securityserver.restapi.dto.VersionInfoDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.Anchor;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
 import org.niis.xroad.securityserver.restapi.openapi.model.DistinguishedName;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeType;
+import org.niis.xroad.securityserver.restapi.openapi.model.NodeTypeResponse;
 import org.niis.xroad.securityserver.restapi.openapi.model.TimestampingService;
 import org.niis.xroad.securityserver.restapi.openapi.model.VersionInfo;
 import org.niis.xroad.securityserver.restapi.service.AnchorNotFoundException;
@@ -275,5 +278,14 @@ public class SystemApiController implements SystemApi {
             throw new ConflictException(e);
         }
         return ControllerUtil.createCreatedResponse("/api/system/anchor", null);
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_NODE_TYPE')")
+    public ResponseEntity<NodeTypeResponse> getNodeType() {
+        // node type is never null so isPresent check can be omitted
+        NodeType nodeType = NodeTypeMapping.map(systemService.getServerNodeType()).get();
+        NodeTypeResponse nodeTypeResponse = new NodeTypeResponse().nodeType(nodeType);
+        return new ResponseEntity<>(nodeTypeResponse, HttpStatus.OK);
     }
 }
