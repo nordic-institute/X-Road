@@ -64,7 +64,7 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-  /system/server-address:
+  /system/status/server-address:
     put:
       tags:
         - system
@@ -72,6 +72,7 @@ paths:
       operationId: updateCentralServerAddress
       requestBody:
         description: New central server address
+        required: true
         content:
           application/json:
             schema:

@@ -26,19 +26,24 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
+import org.niis.xroad.centralserver.openapi.model.ServerAddressUpdateBody;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
+import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -49,6 +54,7 @@ public class SystemApiController implements SystemApi {
 
     private final InitializationService initializationService;
     private final InitializationStatusConverter initializationStatusConverter;
+    private final SystemParameterService systemParameterService;
 
     @Autowired
     HAConfigStatus currentHaConfigStatus;
@@ -56,6 +62,40 @@ public class SystemApiController implements SystemApi {
     @Override
     @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
     public ResponseEntity<SystemStatus> systemStatus() {
+        return getSystemStatusResponseEntity();
+    }
+
+
+    /**
+     * PUT /system/status/server-address : update the server address
+     *
+     * @param serverAddressUpdateBody New central server address (required)
+     * @return System status with updated Central Server address (status code 200)
+     * or request was invalid (status code 400)
+     * or authentication credentials are missing (status code 401)
+     * or request has been refused (status code 403)
+     * or resource requested does not exists (status code 404)
+     * or request specified an invalid format (status code 406)
+     * or internal server error (status code 500)
+     */
+    @Override
+    @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
+    public ResponseEntity<SystemStatus> updateCentralServerAddress(
+            @ApiParam(value = "New central server address", required = true) @Validated @RequestBody
+                    ServerAddressUpdateBody serverAddressUpdateBody) {
+
+        systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
+                serverAddressUpdateBody.getCentralServerAddress());
+        return getSystemStatusResponseEntity();
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('VIEW_VERSION')")
+    public ResponseEntity<Version> systemVersion() {
+        return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
+    }
+
+    private ResponseEntity<SystemStatus> getSystemStatusResponseEntity() {
         var systemStatus = new SystemStatus();
         systemStatus.setInitializationStatus(
                 initializationStatusConverter.convert(initializationService.getInitializationStatus()));
@@ -64,11 +104,5 @@ public class SystemApiController implements SystemApi {
                         .isHaConfigured(currentHaConfigStatus.isHaConfigured())
                         .nodeName(currentHaConfigStatus.getCurrentHaNodeName()));
         return ResponseEntity.ok(systemStatus);
-    }
-
-    @Override
-    @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<Version> systemVersion() {
-        return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
     }
 }
