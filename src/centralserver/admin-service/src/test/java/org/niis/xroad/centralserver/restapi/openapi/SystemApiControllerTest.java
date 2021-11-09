@@ -130,7 +130,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
 
     @Test
     @WithMockUser(authorities = {"SYSTEM_STATUS"})
-    public void testUpdateCentralServerAddressInvalidParam() throws Exception {
+    public void testUpdateCentralServerAddressInvalidParam() {
         ServerAddressUpdateBody updateBody = new ServerAddressUpdateBody();
         updateBody.setCentralServerAddress("invalid...address.c");
 
@@ -141,7 +141,8 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertTrue(
                 exception.getMessage().toLowerCase().contains("valid internet domain name or ip address is required"),
                 "exception has relevant failure message");
-        verify(systemParameterService, times(0)).updateOrCreateParameter(eq(SystemParameterService.CENTRAL_SERVER_ADDRESS),
+        verify(systemParameterService, times(0)).updateOrCreateParameter(
+                eq(SystemParameterService.CENTRAL_SERVER_ADDRESS),
                 any());
     }
 

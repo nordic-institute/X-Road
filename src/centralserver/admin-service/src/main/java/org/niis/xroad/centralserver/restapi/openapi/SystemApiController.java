@@ -37,8 +37,11 @@ import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
 import org.niis.xroad.centralserver.restapi.converter.InitializationStatusConverter;
 import org.niis.xroad.centralserver.restapi.service.InitializationService;
 import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
+import org.niis.xroad.restapi.config.audit.AuditDataHelper;
+import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.config.audit.RestApiAuditProperty;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -55,9 +58,9 @@ public class SystemApiController implements SystemApi {
     private final InitializationService initializationService;
     private final InitializationStatusConverter initializationStatusConverter;
     private final SystemParameterService systemParameterService;
+    private final AuditDataHelper auditDataHelper;
+    private final HAConfigStatus currentHaConfigStatus;
 
-    @Autowired
-    HAConfigStatus currentHaConfigStatus;
 
     @Override
     @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
@@ -74,16 +77,18 @@ public class SystemApiController implements SystemApi {
      * or request was invalid (status code 400)
      * or authentication credentials are missing (status code 401)
      * or request has been refused (status code 403)
-     * or resource requested does not exists (status code 404)
+     * or resource requested does not exist (status code 404)
      * or request specified an invalid format (status code 406)
      * or internal server error (status code 500)
      */
     @Override
     @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
+    @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CENTRAL_SERVER_ADDRESS)
     public ResponseEntity<SystemStatus> updateCentralServerAddress(
             @ApiParam(value = "New central server address", required = true) @Validated @RequestBody
                     ServerAddressUpdateBody serverAddressUpdateBody) {
-
+        auditDataHelper.put(RestApiAuditProperty.CENTRAL_SERVER_ADDRESS,
+                serverAddressUpdateBody.getCentralServerAddress());
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
                 serverAddressUpdateBody.getCentralServerAddress());
         return getSystemStatusResponseEntity();
