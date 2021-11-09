@@ -3,6 +3,7 @@
   with_inventory_hostnames: all:!lxd_servers:!centos_ss
   lxd_container:
     name: "{{item}}"
+    url: "{{ lxd_url | default(omit) }}"
     state: started
     source:
       type: image
@@ -20,6 +21,7 @@
   with_inventory_hostnames: centos_ss
   lxd_container:
     name: "{{item}}"
+    url: "{{ lxd_url | default(omit) }}"
     state: started
     source:
       type: image

@@ -32,8 +32,12 @@
       class="pa-4"
     />
 
-    <v-stepper v-model="step" :alt-labels="true" class="stepper noshadow">
-      <v-stepper-header class="noshadow stepper-header">
+    <v-stepper
+      v-model="step"
+      :alt-labels="true"
+      class="wizard-stepper wizard-noshadow"
+    >
+      <v-stepper-header class="wizard-noshadow stepper-header">
         <v-stepper-step :complete="step > 1" step="1">{{
           $t('serviceClients.memberGroupStep')
         }}</v-stepper-step>
@@ -43,7 +47,7 @@
         }}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <v-stepper-content step="1">
           <MemberOrGroupSelectionStep
             :id="id"
@@ -150,38 +154,21 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/shared';
 @import '../../../assets/wizards';
 
+/* Modify wizard import */
 .view-wrap {
-  width: 100%;
   max-width: 850px;
   margin: 10px;
 }
 
-.stepper-content {
-  width: 100%;
+/* Modify wizard import */
+.wizard-stepper-content {
   max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.stepper {
-  width: 100%;
 }
 
 .stepper-header {
   width: 50%;
   margin: 0 auto;
-}
-
-.noshadow {
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
-
-.full-width {
-  width: 100%;
 }
 </style>

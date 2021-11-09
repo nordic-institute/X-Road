@@ -116,7 +116,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
+@import '~styles/colors';
 $text-color: $XRoad-Black100;
 
 .footer {

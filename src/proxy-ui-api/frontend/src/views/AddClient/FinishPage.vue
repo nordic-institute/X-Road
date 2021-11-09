@@ -26,7 +26,7 @@
 <template>
   <div data-test="finish-content">
     <div class="wizard-step-form-content px-12 pt-10">
-      <div class="finish-info">
+      <div class="wizard-finish-info">
         <p>{{ $t('wizard.finish.infoLine1') }}</p>
         <p>{{ $t('wizard.finish.infoLine2') }}</p>
         <br />
