@@ -35,6 +35,7 @@
     "close": "Close",
     "confirm": "Confirm",
     "continue": "Continue",
+    "copy": "Copy",
     "copyId": "Copy ID",
     "deactivate": "Disable",
     "delete": "Delete",
@@ -79,7 +80,8 @@
         },
         "roles": {
           "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key.",
-          "name": "Roles"
+          "name": "Roles",
+          "selectRoles": "Select roles"
         }
       },
       "success": "API key successfully created",
@@ -567,7 +569,7 @@
       "info2": "All required information is collected, press the Submit button to to initialise the Security Server.",
       "info3": "Once the initialisation is done, you must complete the Security Server configuration - simply click the Configure button in the toast notification that will appear in a few moments.",
       "pin": "PIN",
-      "pinMatchError": "Password confirmation does not match",
+      "pinMatchError": "PIN confirmation does not match",
       "title": "Token PIN"
     },
     "success": "Server initialised",
