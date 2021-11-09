@@ -43,6 +43,8 @@ export default {
     save: { action: 'save' },
     cancel: { action: 'cancel' },
     message: { control: 'text' },
+    showProgressBar: { control: 'boolean' },
+    hideSaveButton: { control: 'boolean' },
   },
 };
 
@@ -62,8 +64,8 @@ Primary.args = {
   loading: false,
   showClose: true,
   title: 'Title text',
-  content: `Lorem ipsum dolor sit amet, 
-  consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
+  content: `Lorem ipsum dolor sit amet,
+  consectetur adipiscing elit. Nam porta vehicula dolor in molestie.
   Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit. `,
 };
 
@@ -73,11 +75,11 @@ LongText.args = {
   loading: false,
   title: 'Title text',
   showClose: true,
-  content: `This is a very, very long text: Lorem ipsum dolor sit amet, 
-  consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
-  Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit. 
-  Ut ac arcu at libero vestibulum condimentum ut sed mi. Nullam egestas 
-  eu risus at sollicitudin. Sed eleifend pretium eleifend. Vivamus 
+  content: `This is a very, very long text: Lorem ipsum dolor sit amet,
+  consectetur adipiscing elit. Nam porta vehicula dolor in molestie.
+  Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit.
+  Ut ac arcu at libero vestibulum condimentum ut sed mi. Nullam egestas
+  eu risus at sollicitudin. Sed eleifend pretium eleifend. Vivamus
   aliquet quam et gravida iaculis. Duis quis gravida nibh, vel faucibus felis.`,
 };
 
@@ -98,10 +100,10 @@ AlertTest.args = {
   title: 'Title text',
   showClose: true,
   message: 'Error message!',
-  content: `This is a very, very long text: Lorem ipsum dolor sit amet, 
-  consectetur adipiscing elit. Nam porta vehicula dolor in molestie. 
-  Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit. 
-  Ut ac arcu at libero vestibulum condimentum ut sed mi. Nullam egestas 
-  eu risus at sollicitudin. Sed eleifend pretium eleifend. Vivamus 
+  content: `This is a very, very long text: Lorem ipsum dolor sit amet,
+  consectetur adipiscing elit. Nam porta vehicula dolor in molestie.
+  Praesent sem sem, pretium ut massa sit amet, ultrices volutpat elit.
+  Ut ac arcu at libero vestibulum condimentum ut sed mi. Nullam egestas
+  eu risus at sollicitudin. Sed eleifend pretium eleifend. Vivamus
   aliquet quam et gravida iaculis. Duis quis gravida nibh, vel faucibus felis.`,
 };

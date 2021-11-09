@@ -24,59 +24,52 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
+<!--
+This component is a wrapper for a X-Road table component that contains default styles
+-->
+
 <template>
-  <div class="new-content">
-    <div class="cert-dialog-header">
-      <span class="identifier-wrap">{{ title }}</span>
-      <v-spacer></v-spacer>
-      <close-button v-if="showClose" data-test="close-x" @click="close()" />
-    </div>
-  </div>
+  <table class="xrd-table">
+    <slot></slot>
+  </table>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from 'vue';
-import CloseButton from '@/components/CloseButton.vue';
 
 export default Vue.extend({
-  name: 'SubViewTitle',
-  components: {
-    CloseButton,
-  },
-  props: {
-    title: {
-      type: String,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {};
-  },
-  methods: {
-    close() {
-      this.$emit('close');
-    },
-  },
+  name: 'xrd-table',
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 @import '../assets/colors';
 
-.new-content {
+.xrd-table {
   width: 100%;
-}
+  margin-top: 10px;
+  border-collapse: collapse;
 
-.cert-dialog-header {
-  display: flex;
-  justify-content: center;
-  color: $XRoad-WarmGrey100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 24px;
-  line-height: 34px;
+  td {
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    padding-left: 16px;
+  }
+
+  th {
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    padding-left: 16px;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: $XRoad-WarmGrey100;
+  }
+
+  &.xrd-table-highlightable tbody tr:hover {
+    cursor: pointer;
+    background-color: $XRoad-Purple10;
+  }
 }
 </style>

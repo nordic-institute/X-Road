@@ -24,43 +24,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import StatusIcon from './StatusIcon.vue';
+import XrdTable from '@/components/XrdTable';
 
 export default {
-  title: 'X-Road/Status icon',
-  component: StatusIcon,
-  argTypes: {
-    status: {
-      control: {
-        type: 'select',
-        options: [
-          'ok',
-          'saved',
-          'progress-register',
-          'progress-delete',
-          'error',
-        ],
-      },
-    },
-  },
+  title: 'X-Road/Table',
+  component: XrdTable,
 };
 
 const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
-  components: { StatusIcon },
+  components: { XrdTable },
   template: `
-    <div>
-    <status-icon v-bind="$props" /><br>
-    <status-icon status="ok" /> ok<br>
-    <status-icon status="saved" /> saved<br>
-    <status-icon status="progress-register" /> progress-register<br>
-    <status-icon status="progress-delete" /> progress-delete<br>
-    <status-icon status="error" /> error<br>
-    <status-icon status="pending" /> pending<br>
-    </div>`,
+    <xrd-table>
+      <thead>
+        <tr>
+          <th>
+            Header 1
+          </th>
+          <th>
+            Header 2
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            Value 1
+          </td>
+          <td>
+            Value 2
+          </td>
+        </tr>
+        <tr data-test="netum">
+          <td>Value 3</td>
+          <td>Value 4</td>
+        </tr>
+      </tbody>
+    </xrd-table>
+  `,
 });
 
-export const Primary = Template.bind({});
-Primary.args = {
-  status: 'error',
-};
+export const table = Template.bind({});

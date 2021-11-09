@@ -1,6 +1,5 @@
 <!--
    The MIT License
-
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -25,58 +24,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="new-content">
-    <div class="cert-dialog-header">
-      <span class="identifier-wrap">{{ title }}</span>
-      <v-spacer></v-spacer>
-      <close-button v-if="showClose" data-test="close-x" @click="close()" />
-    </div>
+  <div class="xrd-sub-view-outer-wrapper">
+    <v-container class="xrd-default-font-size mt-7">
+      <slot></slot>
+    </v-container>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import CloseButton from '@/components/CloseButton.vue';
 
-export default Vue.extend({
-  name: 'SubViewTitle',
-  components: {
-    CloseButton,
-  },
-  props: {
-    title: {
-      type: String,
-    },
-    showClose: {
-      type: Boolean,
-      default: true,
-    },
-  },
-  data() {
-    return {};
-  },
-  methods: {
-    close() {
-      this.$emit('close');
-    },
-  },
-});
+/**
+ * View wrapper component for sub views. See Settings.vue for example
+ */
+export default Vue.extend({});
 </script>
 
 <style lang="scss" scoped>
 @import '../assets/colors';
 
-.new-content {
+.xrd-sub-view-outer-wrapper {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.cert-dialog-header {
-  display: flex;
-  justify-content: center;
-  color: $XRoad-WarmGrey100;
-  font-style: normal;
-  font-weight: bold;
-  font-size: 24px;
-  line-height: 34px;
+/* Use this to set up font etc. common things for normal views */
+.xrd-default-font-size {
+  font-size: $XRoad-DefaultFontSize;
 }
 </style>
