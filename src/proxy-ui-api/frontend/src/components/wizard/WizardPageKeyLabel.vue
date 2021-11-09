@@ -26,7 +26,7 @@
 <template>
   <div>
     <div class="wizard-step-form-content pt-6">
-      <div class="row-wrap">
+      <div class="wizard-row-wrap">
         <xrd-form-label
           v-if="tokenType === 'HARDWARE'"
           :label-text="$t('wizard.signKey.keyLabel')"
@@ -40,7 +40,7 @@
 
         <v-text-field
           v-model="keyLabel"
-          class="form-input"
+          class="wizard-form-input"
           type="text"
           outlined
           data-test="key-label-button"

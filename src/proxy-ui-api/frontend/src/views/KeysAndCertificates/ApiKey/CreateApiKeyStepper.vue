@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container class="xrd-view-common justify-center wrapper">
-    <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
+    <v-stepper v-model="step" :alt-labels="true" class="wizard-stepper mt-2">
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
         :show-close="true"
@@ -195,15 +195,16 @@ export default Vue.extend({
 </script>
 
 <style scoped lang="scss">
-@import '~styles/detail-views';
 @import '~styles/wizards';
+
 .wrapper {
   max-width: 850px;
   height: 100%;
   width: 100%;
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
 }
-.stepper {
+/* Expand imported wizard class */
+.wizard-stepper {
   box-shadow: unset;
   box-shadow: $XRoad-DefaultShadow;
 }
@@ -212,19 +213,14 @@ export default Vue.extend({
   width: 50%;
   margin: auto;
 }
-.stepper-item-footer {
-  margin-top: 20px;
-  padding-top: 30px;
-  border-top: 1px solid $XRoad-Grey40;
-}
 .checkbox-wrapper {
-  border-bottom: solid 1px $XRoad-Grey10;
+  border-bottom: solid 1px $XRoad-WarmGrey30;
 }
 .api-key-label {
   font-weight: 500;
 }
 h3 {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   font-weight: 400;
 }
 </style>

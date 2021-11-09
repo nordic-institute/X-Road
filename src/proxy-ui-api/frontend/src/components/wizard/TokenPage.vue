@@ -208,7 +208,7 @@ export default Vue.extend({
   padding-right: 10px;
   flex-direction: row;
   flex-wrap: wrap;
-  border-bottom: 1px solid $XRoad-Grey20;
+  border-bottom: 1px solid $XRoad-WarmGrey30;
   padding-left: 12px;
   padding-bottom: 5px;
   padding-top: 5px;
