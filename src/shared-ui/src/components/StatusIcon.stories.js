@@ -56,6 +56,7 @@ const Template = (args, { argTypes }) => ({
     <status-icon status="progress-register" /> progress-register<br>
     <status-icon status="progress-delete" /> progress-delete<br>
     <status-icon status="error" /> error<br>
+    <status-icon status="pending" /> pending<br>
     </div>`,
 });
 

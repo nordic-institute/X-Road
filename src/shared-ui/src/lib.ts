@@ -32,11 +32,14 @@ import FileUpload from './components/FileUpload.vue';
 import FormLabel from './components/FormLabel.vue';
 import HelpDialog from './components/HelpDialog.vue';
 import HelpIcon from './components/HelpIcon.vue';
+import CloseButton from './components/CloseButton.vue';
 import Button from './components/Button.vue';
 import SimpleDialog from './components/SimpleDialog.vue';
 import StatusIcon from './components/StatusIcon.vue';
 import SubViewTitle from './components/SubViewTitle.vue';
 import XrdSearch from './components/XrdSearch.vue';
+import XrdTable from './components/XrdTable.vue';
+import XrdSubViewContainer from './components/XrdSubViewContainer.vue';
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
 import './i18n';
@@ -50,11 +53,14 @@ const SharedComponents = {
     Vue.component('XrdFormLabel', FormLabel);
     Vue.component('XrdHelpDialog', HelpDialog);
     Vue.component('XrdHelpIcon', HelpIcon);
+    Vue.component('XrdCloseButton', CloseButton);
     Vue.component('XrdButton', Button);
     Vue.component('XrdSimpleDialog', SimpleDialog);
     Vue.component('XrdStatusIcon', StatusIcon);
     Vue.component('XrdSubViewTitle', SubViewTitle);
     Vue.component('XrdSearch', XrdSearch);
+    Vue.component('XrdTable', XrdTable);
+    Vue.component('XrdSubViewContainer', XrdSubViewContainer);
   },
 };
 
