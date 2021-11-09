@@ -372,6 +372,16 @@ public class ServerConfImpl implements ServerConfProvider {
                 .collect(Collectors.toList()));
     }
 
+    @Override
+    public boolean isAvailable() {
+        try {
+            return doInTransaction(session -> session.isConnected());
+        } catch (Exception e) {
+            log.warn("Unable to check Serverconf availability", e);
+            return false;
+        }
+    }
+
     private static Endpoint createEndpoint(String method, String path) {
         Endpoint endpoint = new Endpoint();
         endpoint.setMethod(method);
