@@ -193,6 +193,8 @@ export default Vue.extend({
           });
         })
         .catch((error) => {
+          console.log("normal error");
+          console.log(JSON.stringify(error, null, 4));
           if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.confirmInitWarning = true;
