@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,70 +24,52 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
-<template>
-  <div class="help-wrap" @click="helpClick()">
-    <v-hover v-slot="{ hover }">
-      <v-icon :color="hover ? '#663cdc' : '#575169'" dark class="help-icon"
-        >icon-Tooltip</v-icon
-      >
-    </v-hover>
 
-    <xrd-help-dialog
-      :dialog="showHelp"
-      :title="helpTitle"
-      :text="helpText"
-      @cancel="closeHelp"
-    >
-      <v-img :src="require('./../../assets/' + helpImage)"></v-img>
-    </xrd-help-dialog>
-  </div>
+<!--
+This component is a wrapper for a X-Road table component that contains default styles
+-->
+
+<template>
+  <table class="xrd-table">
+    <slot></slot>
+  </table>
 </template>
 
-<script lang="ts">
+<script>
 import Vue from 'vue';
 
 export default Vue.extend({
-  props: {
-    helpImage: {
-      type: String,
-      required: true,
-    },
-    helpTitle: {
-      type: String,
-      required: true,
-    },
-    helpText: {
-      type: String,
-      required: true,
-    },
-  },
-
-  data: () => ({
-    showHelp: false,
-  }),
-
-  methods: {
-    helpClick(): void {
-      this.showHelp = true;
-    },
-    closeHelp(): void {
-      this.showHelp = false;
-    },
-  },
+  name: 'xrd-table',
 });
 </script>
 
-<style lang="scss" scoped>
-.help-wrap {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+<style scoped lang="scss">
+@import '../assets/colors';
 
-.help-icon {
-  margin-left: 20px;
-  margin-bottom: 4px;
-  font-size: 22px;
-  cursor: pointer;
+.xrd-table {
+  width: 100%;
+  margin-top: 10px;
+  border-collapse: collapse;
+
+  td {
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    padding-left: 16px;
+  }
+
+  th {
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
+    padding-left: 16px;
+    text-align: left;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: $XRoad-WarmGrey100;
+  }
+
+  &.xrd-table-highlightable tbody tr:hover {
+    cursor: pointer;
+    background-color: $XRoad-Purple10;
+  }
 }
 </style>

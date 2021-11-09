@@ -308,6 +308,7 @@
     "search": "Search",
     "add": "Add",
     "copyId": "Copy ID",
+    "copy": "Copy",
     "export": "Export",
     "emptySearch": "Your search for {msg} found no results.",
     "noData": "No data",
@@ -627,6 +628,7 @@
       "step": {
         "roles": {
           "name": "Roles",
+          "selectRoles": "Select roles",
           "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key."
         },
         "keyDetails": {
@@ -689,7 +691,7 @@
       "title": "Token PIN",
       "pin": "PIN",
       "confirmPin": "Confirm PIN",
-      "pinMatchError": "Password confirmation does not match",
+      "pinMatchError": "PIN confirmation does not match",
       "info1": "The software token is the place where the Security Server’s AUTH keys is stored. Please define a PIN to log-in into the software token.",
       "info2": "All required information is collected, press the Submit button to to initialise the Security Server.",
       "info3": "Once the initialisation is done, you must complete the Security Server configuration - simply click the Configure button in the toast notification that will appear in a few moments."

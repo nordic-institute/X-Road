@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,69 +25,34 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="help-wrap" @click="helpClick()">
-    <v-hover v-slot="{ hover }">
-      <v-icon :color="hover ? '#663cdc' : '#575169'" dark class="help-icon"
-        >icon-Tooltip</v-icon
-      >
-    </v-hover>
-
-    <xrd-help-dialog
-      :dialog="showHelp"
-      :title="helpTitle"
-      :text="helpText"
-      @cancel="closeHelp"
-    >
-      <v-img :src="require('./../../assets/' + helpImage)"></v-img>
-    </xrd-help-dialog>
+  <div class="xrd-sub-view-outer-wrapper">
+    <v-container class="xrd-default-font-size mt-7">
+      <slot></slot>
+    </v-container>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 
-export default Vue.extend({
-  props: {
-    helpImage: {
-      type: String,
-      required: true,
-    },
-    helpTitle: {
-      type: String,
-      required: true,
-    },
-    helpText: {
-      type: String,
-      required: true,
-    },
-  },
-
-  data: () => ({
-    showHelp: false,
-  }),
-
-  methods: {
-    helpClick(): void {
-      this.showHelp = true;
-    },
-    closeHelp(): void {
-      this.showHelp = false;
-    },
-  },
-});
+/**
+ * View wrapper component for sub views. See Settings.vue for example
+ */
+export default Vue.extend({});
 </script>
 
 <style lang="scss" scoped>
-.help-wrap {
+@import '../assets/colors';
+
+.xrd-sub-view-outer-wrapper {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.help-icon {
-  margin-left: 20px;
-  margin-bottom: 4px;
-  font-size: 22px;
-  cursor: pointer;
+/* Use this to set up font etc. common things for normal views */
+.xrd-default-font-size {
+  font-size: $XRoad-DefaultFontSize;
 }
 </style>

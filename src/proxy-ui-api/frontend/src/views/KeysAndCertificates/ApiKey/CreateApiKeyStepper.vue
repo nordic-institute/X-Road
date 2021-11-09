@@ -24,8 +24,8 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container class="xrd-view-common justify-center wrapper">
-    <v-stepper v-model="step" :alt-labels="true" class="wizard-stepper mt-2">
+  <xrd-sub-view-container data-test="create-api-key-stepper-view">
+    <v-stepper v-model="step" :alt-labels="true" class="stepper mt-2">
       <xrd-sub-view-title
         :title="$t('apiKey.createApiKey.title')"
         :show-close="true"
@@ -43,58 +43,102 @@
         }}</v-stepper-step>
       </v-stepper-header>
       <v-stepper-items>
-        <v-stepper-content step="1" class="pa-0">
-          <div class="px-6">
+        <v-stepper-content
+          data-test="create-api-key-step-1"
+          step="1"
+          class="pa-0 centered"
+        >
+          <v-container class="wide-width">
+            <v-row class="mt-4">
+              <v-col
+                ><h3>{{ $t('apiKey.createApiKey.step.roles.name') }}</h3></v-col
+              >
+            </v-row>
+          </v-container>
+          <v-container class="narrow-width">
             <v-row class="mb-5">
               <v-col>
-                <h3>{{ $t('apiKey.createApiKey.step.roles.description') }}</h3>
+                <h4>{{ $t('apiKey.createApiKey.step.roles.selectRoles') }}</h4>
+                <br />
+                {{ $t('apiKey.createApiKey.step.roles.description') }}
+              </v-col>
+              <v-col>
+                <v-row v-for="role in roles" :key="role" no-gutters>
+                  <v-col class="underline">
+                    <v-checkbox
+                      v-model="selectedRoles"
+                      height="10px"
+                      :value="role"
+                      :label="$t(`apiKey.role.${role}`)"
+                    />
+                  </v-col>
+                </v-row>
               </v-col>
             </v-row>
-            <v-row v-for="role in roles" :key="role" no-gutters>
-              <v-col class="checkbox-wrapper">
-                <v-checkbox
-                  v-model="selectedRoles"
-                  height="10px"
-                  :value="role"
-                  :label="$t(`apiKey.role.${role}`)"
-                />
-              </v-col>
-            </v-row>
-          </div>
+          </v-container>
+
           <v-row class="button-footer mt-12" no-gutters>
-            <xrd-button outlined @click="close">
+            <xrd-button data-test="cancel-button" outlined @click="close">
               {{ $t('action.cancel') }}
             </xrd-button>
 
-            <xrd-button :disabled="nextButtonDisabled" @click="step++">
+            <xrd-button
+              data-test="next-button"
+              :disabled="nextButtonDisabled"
+              @click="step++"
+            >
               {{ $t('action.next') }}
             </xrd-button>
           </v-row>
         </v-stepper-content>
-        <v-stepper-content step="2" class="pa-0">
-          <div class="px-6">
-            <v-row>
-              <v-col class="text-right">
-                <xrd-button
-                  :disabled="keyGenerated"
-                  :loading="generatingKey"
-                  @click="generateKey"
-                >
-                  {{
-                    $t('apiKey.createApiKey.step.keyDetails.createKeyButton')
-                  }}
-                </xrd-button>
-              </v-col>
+        <v-stepper-content
+          data-test="create-api-key-step-2"
+          step="2"
+          class="pa-0"
+        >
+          <v-container class="wide-width mb-8">
+            <v-row class="mt-4">
+              <v-col
+                ><h3>
+                  {{ $t('apiKey.createApiKey.step.keyDetails.name') }}
+                </h3></v-col
+              >
+              <v-spacer></v-spacer>
+
+              <xrd-button
+                data-test="create-key-button"
+                :disabled="keyGenerated"
+                :loading="generatingKey"
+                @click="generateKey"
+              >
+                <xrd-icon-base class="xrd-large-button-icon"
+                  ><XrdIconAdd
+                /></xrd-icon-base>
+                {{ $t('apiKey.createApiKey.step.keyDetails.createKeyButton') }}
+              </xrd-button>
             </v-row>
-            <v-row>
+          </v-container>
+          <v-container class="narrow-width">
+            <v-row class="underline">
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKey') }}
               </v-col>
-              <v-col cols="6" sm="9">
-                {{ apiKey.key }}
+              <v-col cols="6" sm="9" class="action-row">
+                <div>{{ apiKey.key }}</div>
+
+                <xrd-button
+                  v-if="apiKey.key"
+                  text
+                  :outlined="false"
+                  class="copy-button"
+                  data-test="copy-key-button"
+                  @click.prevent="copyKey()"
+                  ><v-icon class="xrd-large-button-icon">icon-Copy</v-icon
+                  >{{ $t('action.copy') }}</xrd-button
+                >
               </v-col>
             </v-row>
-            <v-row>
+            <v-row class="underline">
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.apiKeyID') }}
               </v-col>
@@ -102,7 +146,7 @@
                 {{ apiKey.id }}
               </v-col>
             </v-row>
-            <v-row>
+            <v-row class="underline">
               <v-col cols="6" sm="3" class="api-key-label">
                 {{ $t('apiKey.createApiKey.step.keyDetails.assignedRoles') }}
               </v-col>
@@ -115,9 +159,10 @@
                 {{ $t('apiKey.createApiKey.step.keyDetails.note') }}
               </v-col>
             </v-row>
-          </div>
+          </v-container>
           <v-row class="button-footer mt-12" no-gutters>
             <xrd-button
+              data-test="cancel-button"
               outlined
               :disabled="keyGenerated || generatingKey"
               @click="close"
@@ -126,6 +171,7 @@
             </xrd-button>
 
             <xrd-button
+              data-test="previous-button"
               outlined
               class="mr-5"
               :disabled="keyGenerated || generatingKey"
@@ -133,14 +179,18 @@
             >
               {{ $t('action.previous') }}
             </xrd-button>
-            <xrd-button :disabled="!keyGenerated" @click="close">
+            <xrd-button
+              data-test="finish-button"
+              :disabled="!keyGenerated"
+              @click="close"
+            >
               {{ $t('action.finish') }}
             </xrd-button>
           </v-row>
         </v-stepper-content>
       </v-stepper-items>
     </v-stepper>
-  </v-container>
+  </xrd-sub-view-container>
 </template>
 
 <script lang="ts">
@@ -148,6 +198,7 @@ import Vue from 'vue';
 import { Roles } from '@/global';
 import { ApiKey } from '@/global-types';
 import * as api from '@/util/api';
+import { toClipboard } from '@/util/helpers';
 
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
@@ -190,37 +241,67 @@ export default Vue.extend({
         .catch((error) => this.$store.dispatch('showError', error))
         .finally(() => (this.generatingKey = false));
     },
+    copyKey(): void {
+      const key = this.apiKey.key;
+      if (key) {
+        toClipboard(key);
+      }
+    },
   },
 });
 </script>
 
-<style scoped lang="scss">
+<style lang="scss" scoped>
+@import '~styles/detail-views';
 @import '~styles/wizards';
+@import '~styles/colors';
 
-.wrapper {
-  max-width: 850px;
-  height: 100%;
-  width: 100%;
-  color: $XRoad-Black70;
-}
-/* Expand imported wizard class */
-.wizard-stepper {
+.stepper {
   box-shadow: unset;
   box-shadow: $XRoad-DefaultShadow;
 }
+
 .stepper-header {
   box-shadow: unset;
   width: 50%;
   margin: auto;
 }
-.checkbox-wrapper {
+
+.underline {
   border-bottom: solid 1px $XRoad-WarmGrey30;
 }
+
 .api-key-label {
   font-weight: 500;
 }
+
+.wide-width {
+  max-width: 1040px;
+}
+
+.narrow-width {
+  max-width: 840px;
+}
+
 h3 {
-  color: $XRoad-Black70;
-  font-weight: 400;
+  color: $XRoad-Black100;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+h4 {
+  color: $XRoad-Black100;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.action-row {
+  display: flex;
+  justify-content: space-between;
+
+  .copy-button {
+    margin-top: -10px;
+    margin-bottom: -10px;
+  }
 }
 </style>
