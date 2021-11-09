@@ -195,7 +195,7 @@ export default (
             });
           }
           this.$store.dispatch(
-            'showErrorMessageRaw',
+            'showErrorMessage',
             this.$t('login.generalError'),
           );
           // Clear loading state
@@ -212,7 +212,7 @@ export default (
         },
         (error) => {
           // Display error
-          this.$store.dispatch('showErrorMessageRaw', error.message);
+          this.$store.dispatch('showErrorMessage', error.message);
           this.loading = false;
         },
       );
@@ -234,7 +234,7 @@ export default (
           () => {
             if (!this.$store.getters.hasInitState) {
               this.$store.dispatch(
-                'showErrorMessageRaw',
+                'showErrorMessage',
                 this.$t('initialConfiguration.noInitializationStatus'),
               );
               redirectToLogin();
@@ -242,7 +242,7 @@ export default (
               // Check if the user has permission to initialize the server
               if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
                 this.$store.dispatch(
-                  'showErrorMessageRaw',
+                  'showErrorMessage',
                   this.$t('initialConfiguration.noPermission'),
                 );
                 redirectToLogin();

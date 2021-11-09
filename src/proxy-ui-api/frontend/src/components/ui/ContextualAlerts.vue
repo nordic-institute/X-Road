@@ -45,14 +45,9 @@
           <div class="icon-wrapper">
             <v-icon class="icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
-              <!-- Show localised text by id -->
-              <div v-if="notification.errorMessageCode">
-                {{ $t(notification.errorMessageCode) }}
-              </div>
-
-              <!-- Show raw text -->
-              <div v-else-if="notification.errorMessageRaw">
-                {{ notification.errorMessageRaw }}
+              <!-- Show message text -->
+              <div v-if="notification.errorMessage">
+                {{ notification.errorMessage }}
               </div>
 
               <!-- Show localised text by id from error object -->

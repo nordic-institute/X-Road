@@ -79,7 +79,7 @@ export default Vue.extend({
         .then(() => {
           this.$emit('deleted');
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('backup.action.delete.success', {
               file: this.backup.filename,
             }),

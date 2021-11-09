@@ -53,7 +53,7 @@ const initRoute: RouteConfig = {
       // Check if the user has permission to initialize the server
       if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
         store.dispatch(
-          'showErrorMessageRaw',
+          'showErrorMessage',
           i18n.t('initialConfiguration.noPermission'),
         );
         return;

@@ -257,7 +257,7 @@ export default Vue.extend({
         .then((response) => {
           const key = response.data;
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('apiKey.table.action.revoke.success', {
               id: key.id,
             }),
@@ -281,7 +281,7 @@ export default Vue.extend({
         .then((response) => {
           const key = response.data as ApiKey;
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('apiKey.table.action.edit.success', {
               id: key.id,
             }),

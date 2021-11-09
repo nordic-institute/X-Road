@@ -64,11 +64,9 @@ export interface Notification {
   timeAdded: number;
   timeout: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject?: any;
-  errorMessageCode?: string;
-  errorMessageRaw?: string;
-  successMessageCode?: string;
-  successMessageRaw?: string;
+  errorObject?: any; // Axios error object
+  errorMessage?: string; // Localised error message
+  successMessage?: string; // Localised success message
   show: boolean;
   count: number;
 }
