@@ -331,4 +331,8 @@ public class ServerConf {
     public static void clearCache() {
         getInstance().clearCache();
     }
+
+    public static boolean isAvailable() {
+        return getInstance().isAvailable();
+    }
 }
