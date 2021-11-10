@@ -541,6 +541,7 @@
   "globalAlert": {
     "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
     "globalConfigurationInvalid": "Global configuration is expired",
+    "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
     "softTokenPinNotEntered": "Please enter soft token PIN"
   },
   "info": {
@@ -939,6 +940,12 @@
   "token": {
     "changePin": "Change the pin",
     "pinChanged": "Token pin was changed – please log in the token with the new pin"
+  },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Primary node",
+      "SECONDARY": "Secondary node"
+    }
   },
   "validationError": {
     "AssertFalse": "value should be 'false'",
