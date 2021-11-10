@@ -52,7 +52,7 @@
                     </div>
                   </div>
                 </td>
-                <td>{{ systemParameters.instanceIdentifier }}</td>
+                <td>{{ systemParameters.instance_identifier }}</td>
                 <td></td>
               </tr>
               <tr>
@@ -63,11 +63,14 @@
                     </div>
                   </div>
                 </td>
-                <td>{{ systemParameters.centralServerAddress }}</td>
+                <td>{{ systemParameters.central_server_address }}</td>
                 <td class="action-cell">
-                  <xrd-button text :outlined="false">{{
-                    $t('action.edit')
-                  }}</xrd-button>
+                  <xrd-button
+                    text
+                    :outlined="false"
+                    @click="onServerAddressEdit"
+                    >{{ $t('action.edit') }}
+                  </xrd-button>
                 </td>
               </tr>
             </tbody>
@@ -85,6 +88,16 @@
           </div>
         </div>
 
+        <xrd-simple-dialog
+          v-if="isEditingServerAddress"
+          title="systemSettings.editCentralServerAddressTitle"
+          :dialog="isEditingServerAddress"
+          :scrollable="false"
+          :show-close="true"
+          @save="onServerAddressSave"
+          @cancel="onCancelAddressEdit"
+        >
+        </xrd-simple-dialog>
         <table class="xrd-table mt-0 pb-3">
           <tbody>
             <tr>
@@ -97,9 +110,9 @@
               </td>
               <td>{{ managementServices.serviceProviderIdentifier }}</td>
               <td class="action-cell">
-                <xrd-button text :outlined="false">{{
-                  $t('action.edit')
-                }}</xrd-button>
+                <xrd-button text :outlined="false"
+                  >{{ $t('action.edit') }}
+                </xrd-button>
               </td>
             </tr>
 
@@ -189,9 +202,9 @@
           </div>
           <div class="card-corner-button">
             <xrd-button outlined class="mr-4">
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconAdd
-              /></xrd-icon-base>
+              <xrd-icon-base class="xrd-large-button-icon">
+                <XrdIconAdd />
+              </xrd-icon-base>
               {{ $t('action.add') }}
             </xrd-button>
           </div>
@@ -200,20 +213,22 @@
 
       <template #[`item.serverCode`]="{ item }">
         <div class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconSecurityServer /></xrd-icon-base>
+          <xrd-icon-base class="mr-4">
+            <XrdIconSecurityServer />
+          </xrd-icon-base>
           {{ item.serverCode }}
         </div>
       </template>
 
       <template #[`item.button`]>
         <div class="button-wrap">
-          <xrd-button text :outlined="false">{{
-            $t('action.edit')
-          }}</xrd-button>
+          <xrd-button text :outlined="false"
+            >{{ $t('action.edit') }}
+          </xrd-button>
 
-          <xrd-button text :outlined="false">{{
-            $t('action.delete')
-          }}</xrd-button>
+          <xrd-button text :outlined="false"
+            >{{ $t('action.delete') }}
+          </xrd-button>
         </div>
       </template>
 
@@ -230,6 +245,8 @@
  */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
+import { InitializationStatus } from '@/openapi-types';
+import { StoreTypes } from '@/global';
 
 export default Vue.extend({
   data() {
@@ -237,10 +254,7 @@ export default Vue.extend({
       search: '' as string,
       loading: false,
       showOnlyPending: false,
-      systemParameters: {
-        instanceIdentifier: 'DEV',
-        centralServerAddress: 'dev-cs.i.road.rocks',
-      },
+      isEditingServerAddress: false,
       managementServices: {
         serviceProviderIdentifier: 'SUBSYSTEM:DEV/ORG/111/MANAGEMENT',
         serviceProviderName: 'NIIS',
@@ -289,6 +303,22 @@ export default Vue.extend({
         },
       ];
     },
+    systemParameters(): InitializationStatus {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.initialization_status;
+    },
+  },
+  methods: {
+    onServerAddressSave(): void {
+      console.log('onAddressSave');
+      this.isEditingServerAddress = false;
+    },
+    onServerAddressEdit(): void {
+      this.isEditingServerAddress = true;
+    },
+    onCancelAddressEdit(): void {
+      this.isEditingServerAddress = false
+    }
   },
 });
 </script>
