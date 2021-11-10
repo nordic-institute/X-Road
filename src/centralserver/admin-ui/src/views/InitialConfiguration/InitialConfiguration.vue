@@ -265,7 +265,6 @@ export default (
   methods: {
     async submit() {
       // validate inputs
-
       const formData: InitialServerConf = {};
       if (!this.disabledFields.instanceIdentifier) {
         formData.instance_identifier = this.instanceIdentifier;
@@ -288,8 +287,8 @@ export default (
               .catch(swallowRedirectedNavigationError);
           },
           (error: AxiosError) => {
-            let errorInfo: ErrorInfo = error.response?.data || { status: 0 };
 
+            let errorInfo: ErrorInfo = error.response?.data || { status: 0 };
             if (isFieldError(errorInfo)) {
               let fieldErrors = errorInfo.error?.validation_errors;
               if (fieldErrors) {
@@ -313,6 +312,10 @@ export default (
               this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
               return;
             }
+            if (isWeakPinError(errorInfo)) {
+              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              return;
+            }
             throw error;
           },
         )
@@ -332,6 +335,13 @@ export default (
         let errorStatus = error.status;
         return (
           400 === errorStatus && 'validation_failure' === error?.error?.code
+        );
+      }
+
+      function isWeakPinError(error: ErrorInfo) {
+        let errorStatus = error.status;
+        return (
+          400 === errorStatus && 'weak_pin' === error?.error?.code
         );
       }
     },
