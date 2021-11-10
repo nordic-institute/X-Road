@@ -807,6 +807,12 @@
     "SERVER_CODE": "Server Code (CN)",
     "SERVER_DNS_NAME": "Server DNS name (CN)"
   },
+  "toolbar": {
+    "securityServerNodeType": {
+      "PRIMARY": "Primary node",
+      "SECONDARY": "Secondary node"
+    }
+  },
   "footer": {
     "software": {
       "title": "Software",
@@ -874,7 +880,8 @@
   "globalAlert": {
     "globalConfigurationInvalid": "Global configuration is expired",
     "softTokenPinNotEntered": "Please enter soft token PIN",
-    "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}"
+    "backupRestoreInProgress": "The Security Server configuration is being restored from a backup. Process started at {startTime}",
+    "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled."
   },
   "error_code": {
     "invalid_service_client_id": "Invalid service client ID",
