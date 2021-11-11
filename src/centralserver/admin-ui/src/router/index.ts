@@ -34,7 +34,7 @@ const router = new Router({
   routes: routes,
 });
 
-router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
+router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
   // Going to login
   if (to.name === RouteName.Login) {
     next();
@@ -60,7 +60,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     } else {
       // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
       if (from.name !== RouteName.Initialisation) {
-        store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+        await store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
       }
       /*
     Check permissions here
