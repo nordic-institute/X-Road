@@ -357,8 +357,6 @@ export default (
   },
   methods: {
     async onServerAddressSave(serverAddress: string): Promise<void> {
-      console.log('onAddressSave', serverAddress);
-      // TODO: dispatch address update to backend
       try {
         await this.$store.dispatch(
           StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS,
@@ -366,11 +364,13 @@ export default (
             central_server_address: serverAddress,
           },
         );
+        await this.$store.dispatch(
+          StoreTypes.actions.SHOW_SUCCESS,
+          this.$t('systemSettings.editCentralServerAddressSuccess'),
+        );
         this.isEditingServerAddress = false;
       } catch (updateError: unknown) {
-        // TODO: handle errors
         const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
-
         if (isFieldError(errorInfo)) {
           // backend validation error
           let fieldErrors = errorInfo.error?.validation_errors;
@@ -386,6 +386,7 @@ export default (
       }
     },
     onServerAddressEdit(): void {
+      this.renewedServerAddress = this.managementServices.centralServerAddress;
       this.isEditingServerAddress = true;
     },
     onCancelAddressEdit(): void {

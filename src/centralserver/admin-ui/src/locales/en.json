@@ -335,6 +335,7 @@
     "instanceIdentifier": "Instance Identifier",
     "centralServerAddress": "Central Server address",
     "editCentralServerAddressTitle": "Edit Central Server address",
+    "editCentralServerAddressSuccess": "Central server address successfully updated",
     "serviceProviderIdentifier": "Service Provider Identifier",
     "serviceProviderName": "Service Provider Name",
     "managementServiceSecurityServer": "Management Services' Security Server",
