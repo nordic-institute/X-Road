@@ -26,7 +26,14 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
-import {CentralServerAddress, InstanceIdentifier, SystemStatus, Version} from '@/openapi-types';
+import {
+  CentralServerAddress,
+  InstanceIdentifier,
+  ServerAddressUpdateBody,
+  SystemStatus,
+  Version,
+} from '@/openapi-types';
+import * as api from '@/util/api';
 
 export interface State {
   serverVersion: Version | undefined;
@@ -38,7 +45,7 @@ export const getDefaultState = (): State => {
     serverVersion: undefined,
     systemStatus: {
       initialization_status: undefined,
-      high_availability_status: undefined
+      high_availability_status: undefined,
     },
   };
 };
@@ -60,7 +67,10 @@ export const mutations: MutationTree<State> = {
   [StoreTypes.mutations.SET_SERVER_VERSION]: (state, version: Version) => {
     state.serverVersion = version;
   },
-  [StoreTypes.mutations.SET_SYSTEM_STATUS]: (state, systemStatus: SystemStatus) => {
+  [StoreTypes.mutations.SET_SYSTEM_STATUS]: (
+    state,
+    systemStatus: SystemStatus,
+  ) => {
     state.systemStatus = systemStatus;
   },
 };
@@ -74,8 +84,18 @@ export const actions: ActionTree<State, RootState> = {
       );
   },
   async [StoreTypes.actions.FETCH_SYSTEM_STATUS]({ commit }) {
-    return axios
+    return api
       .get<Version>('/system/status')
+      .then((resp) =>
+        commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
+      );
+  },
+  async [StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS](
+    { commit },
+    newAddress: ServerAddressUpdateBody,
+  ) {
+    return api
+      .put<SystemStatus>('/system/status/server-address', newAddress)
       .then((resp) =>
         commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
       );
