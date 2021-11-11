@@ -197,8 +197,8 @@ export default (
             });
           }
           await this.$store.dispatch(
-            'showErrorMessageCode',
-            'login.generalError',
+            'showErrorMessage',
+            this.$t('login.generalError'),
           );
         } else {
           if (error instanceof Error) {
@@ -218,7 +218,7 @@ export default (
       } catch (error) {
         if (axios.isAxiosError(error)) {
           // Display error
-          await this.$store.dispatch('showErrorMessageRaw', error.message);
+          await this.$store.dispatch('showErrorMessage', error.message);
         } else {
           throw error;
         }
@@ -238,8 +238,8 @@ export default (
       await this.$store.dispatch('fetchInitializationStatus');
       if (!this.$store.getters.hasInitState) {
         await this.$store.dispatch(
-          'showErrorMessageCode',
-          'initialConfiguration.noInitializationStatus',
+          'showErrorMessage',
+          this.$t('initialConfiguration.noInitializationStatus'),
         );
         await redirectToLogin();
       } else if (this.$store.getters.needsInitialization) {

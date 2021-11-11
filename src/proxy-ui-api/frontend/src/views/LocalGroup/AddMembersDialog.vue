@@ -55,7 +55,7 @@
                   <div class="input-row">
                     <v-text-field
                       v-model="name"
-                      :label="$t('name')"
+                      :label="$t('general.name')"
                       outlined
                       autofocus
                       clearable
@@ -66,7 +66,7 @@
                     <v-select
                       v-model="instance"
                       :items="xroadInstances"
-                      :label="$t('instance')"
+                      :label="$t('general.instance')"
                       class="flex-input"
                       clearable
                       outlined
@@ -77,14 +77,14 @@
                     <v-select
                       v-model="memberClass"
                       :items="memberClasses"
-                      :label="$t('member_class')"
+                      :label="$t('general.memberClass')"
                       class="flex-input"
                       clearable
                       outlined
                     ></v-select>
                     <v-text-field
                       v-model="memberCode"
-                      :label="$t('member_code')"
+                      :label="$t('general.memberCode')"
                       outlined
                       clearable
                       hide-details
@@ -93,7 +93,7 @@
                   </div>
                   <v-text-field
                     v-model="subsystemCode"
-                    :label="$t('subsystem_code')"
+                    :label="$t('general.subsystemCode')"
                     outlined
                     clearable
                     hide-details
@@ -117,7 +117,7 @@
           <thead>
             <tr>
               <th></th>
-              <th>{{ $t('name') }}</th>
+              <th>{{ $t('general.name') }}</th>
               <th>{{ $t('localGroup.id') }}</th>
             </tr>
           </thead>

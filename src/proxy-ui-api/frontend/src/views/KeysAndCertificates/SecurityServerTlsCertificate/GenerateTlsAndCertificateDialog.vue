@@ -70,7 +70,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'ssTlsCertificate.generateTlsAndCertificateDialog.success',
+            this.$t('ssTlsCertificate.generateTlsAndCertificateDialog.success'),
           );
           this.$emit('saved');
         })

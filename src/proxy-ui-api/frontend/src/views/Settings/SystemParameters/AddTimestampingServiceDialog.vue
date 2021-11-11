@@ -162,7 +162,9 @@ export default Vue.extend({
           this.close();
           this.$store.dispatch(
             'showSuccess',
-            'systemParameters.timestampingServices.action.add.dialog.success',
+            this.$t(
+              'systemParameters.timestampingServices.action.add.dialog.success',
+            ),
           );
         })
         .catch((error) => this.$store.dispatch('showError', error));

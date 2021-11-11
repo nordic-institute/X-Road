@@ -26,12 +26,12 @@
 <template>
   <v-dialog v-if="dialog" :value="dialog" persistent :max-width="maxWidth">
     <v-card>
-      <v-card-title class="headline">{{ $t('warning') }}</v-card-title>
+      <v-card-title class="headline">{{ $t('services.warning') }}</v-card-title>
       <v-card-text>
         <div v-for="warning in warnings" :key="warning.code">
           <!-- create the localisation key from warning code -->
           <div class="dlg-warning-header">
-            {{ $t('services.' + warning.code) }}
+            {{ $t(`services.warningCode.${warning.code}`) }}
           </div>
           <div v-for="meta in warning.metadata" :key="meta">{{ meta }}</div>
         </div>

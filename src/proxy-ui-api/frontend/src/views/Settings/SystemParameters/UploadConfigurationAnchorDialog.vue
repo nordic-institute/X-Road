@@ -215,7 +215,9 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'systemParameters.configurationAnchor.action.upload.dialog.success',
+            this.$t(
+              'systemParameters.configurationAnchor.action.upload.dialog.success',
+            ),
           );
           this.$emit('uploaded');
         })

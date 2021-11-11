@@ -124,8 +124,7 @@
                   <td>
                     {{
                       $t(
-                        'diagnostics.globalCongiguration.configurationStatus.' +
-                          globalConf.status_code,
+                        `diagnostics.globalCongiguration.configurationStatus.${globalConf.status_code}`,
                       )
                     }}
                   </td>
@@ -177,8 +176,7 @@
                   <td>
                     {{
                       $t(
-                        'diagnostics.timestamping.timestampingStatus.' +
-                          timestampingService.status_code,
+                        `diagnostics.timestamping.timestampingStatus.${timestampingService.status_code}`,
                       )
                     }}
                   </td>
@@ -240,8 +238,7 @@
                     <td>
                       {{
                         $t(
-                          'diagnostics.ocspResponders.ocspStatus.' +
-                            ocsp.status_code,
+                          `diagnostics.ocspResponders.ocspStatus.${ocsp.status_code}`,
                         )
                       }}
                     </td>

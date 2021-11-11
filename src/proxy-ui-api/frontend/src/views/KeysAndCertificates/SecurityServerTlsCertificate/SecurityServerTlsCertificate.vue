@@ -211,7 +211,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'ssTlsCertificate.certificateImported',
+            this.$t('ssTlsCertificate.certificateImported'),
           );
           this.fetchData();
         })

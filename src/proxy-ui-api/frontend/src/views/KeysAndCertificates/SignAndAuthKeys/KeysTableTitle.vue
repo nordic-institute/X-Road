@@ -31,7 +31,7 @@
         <v-icon v-else class="arrow-degree">icon-Sorting-arrow</v-icon>
       </v-btn>
 
-      {{ $t(title) }}
+      {{ title }}
     </div>
     <div class="status-wrap">
       <div v-if="errors > 0" class="errors">

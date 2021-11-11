@@ -72,7 +72,7 @@ export default Vue.extend({
           () => {
             this.$store.dispatch(
               'showSuccess',
-              'client.action.unregister.success',
+              this.$t('client.action.unregister.success'),
             );
           },
           (error) => {
