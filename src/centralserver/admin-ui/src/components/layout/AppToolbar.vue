@@ -48,7 +48,7 @@
         data-test="app-toolbar-server-instance-address"
       >
         {{
-          `${initializationParameters.instanceId} : ${initializationParameters.serverAddress}`
+          `${initializationParameters.instance_identifier} : ${initializationParameters.central_server_address}`
         }}
       </div>
       <div
@@ -75,7 +75,8 @@ export default Vue.extend({
   },
   computed: {
     initializationParameters() {
-      return this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.initialization_status;
     },
     isInitialized(): boolean {
       return this.$store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED];
@@ -126,6 +127,7 @@ export default Vue.extend({
   .initialization-phase-title {
     margin: 20px;
   }
+
   .server-name {
     margin: 20px;
     margin-right: 10px;

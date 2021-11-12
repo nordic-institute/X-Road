@@ -169,7 +169,12 @@ import Vue, { VueConstructor } from 'vue';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
 import { Colors, RouteName, StoreTypes } from '@/global';
-import { ErrorInfo, InitialServerConf, TokenInitStatus } from '@/openapi-types';
+import {
+  ErrorInfo,
+  InitializationStatus,
+  InitialServerConf,
+  TokenInitStatus,
+} from '@/openapi-types';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
 import { State } from '@/store/modules/initialization';
@@ -184,11 +189,6 @@ extend('password', {
   },
   message: PASSWORD_MATCH_ERROR,
 });
-const statusState = {
-  instanceId: 'instanceIdentifier',
-  serverAddress: 'address',
-  tokenInit: 'pin',
-} as const;
 
 function getTranslatedFieldErrors(
   fieldName: string,
@@ -245,21 +245,24 @@ export default (
   },
   computed: {},
   created: function () {
-    let statusAtFirst: State =
-      this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
+    let statusAtFirst: InitializationStatus =
+      this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.initialization_status;
 
-    if (TokenInitStatus.INITIALIZED == statusAtFirst?.tokenInit) {
+    if (
+      TokenInitStatus.INITIALIZED == statusAtFirst?.software_token_init_status
+    ) {
       this.disabledFields.pin = true;
       this.pin = '****';
       this.pinConfirm = '****';
     }
-    if (statusAtFirst?.serverAddress.length > 0) {
+    if (statusAtFirst?.central_server_address.length > 0) {
       this.disabledFields.address = true;
-      this.address = statusAtFirst?.serverAddress;
+      this.address = statusAtFirst?.central_server_address;
     }
-    if (statusAtFirst?.instanceId.length > 0) {
+    if (statusAtFirst?.instance_identifier.length > 0) {
       this.disabledFields.instanceIdentifier = true;
-      this.instanceIdentifier = statusAtFirst.instanceId;
+      this.instanceIdentifier = statusAtFirst.instance_identifier;
     }
   },
   methods: {
@@ -323,9 +326,7 @@ export default (
           );
         })
         .finally(() => {
-          return this.$store.dispatch(
-            StoreTypes.actions.INITIALIZATION_STATUS_REQUEST,
-          );
+          return this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
         });
 
       function isFieldError(error: ErrorInfo) {

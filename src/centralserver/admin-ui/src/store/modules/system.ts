@@ -31,6 +31,7 @@ import {
   InstanceIdentifier,
   ServerAddressUpdateBody,
   SystemStatus,
+  TokenInitStatus,
   Version,
 } from '@/openapi-types';
 import * as api from '@/util/api';
@@ -44,13 +45,20 @@ export const getDefaultState = (): State => {
   return {
     serverVersion: undefined,
     systemStatus: {
-      initialization_status: undefined,
-      high_availability_status: undefined,
+      initialization_status: {
+        instance_identifier: '',
+        central_server_address: '',
+        software_token_init_status: TokenInitStatus.UNKNOWN,
+      },
+      high_availability_status: {
+        is_ha_configured: false,
+        node_name: undefined,
+      },
     },
   };
 };
 
-// Initial state. The state can be reseted with this.
+// Initial state. The state can be reset with this.
 const moduleState = getDefaultState();
 
 // noinspection JSUnusedLocalSymbols

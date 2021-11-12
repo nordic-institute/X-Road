@@ -89,15 +89,11 @@ export const actions: ActionTree<State, RootState> = {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       data,
-    })
-      .then(() => {
-        commit(StoreTypes.mutations.AUTH_USER);
-        commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
-        dispatch(StoreTypes.actions.INITIALIZATION_STATUS_REQUEST);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    }).then(() => {
+      commit(StoreTypes.mutations.AUTH_USER);
+      commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
+      dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
+    });
   },
 
   async [StoreTypes.actions.FETCH_SESSION_STATUS]({ commit }) {
