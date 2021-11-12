@@ -364,6 +364,7 @@ export default (
             central_server_address: serverAddress,
           },
         );
+        await this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
         await this.$store.dispatch(
           StoreTypes.actions.SHOW_SUCCESS,
           this.$t('systemSettings.editCentralServerAddressSuccess'),
@@ -394,7 +395,7 @@ export default (
       }
     },
     onServerAddressEdit(): void {
-      this.renewedServerAddress = this.managementServices.centralServerAddress;
+      this.renewedServerAddress = this.serverAddress;
       this.isEditingServerAddress = true;
     },
     onCancelAddressEdit(): void {
