@@ -382,7 +382,15 @@ export default (
               ),
             );
           }
+          this.isEditingServerAddress = true;
+        } else {
+          await this.$store.dispatch(
+            StoreTypes.actions.SHOW_ERROR,
+            updateError,
+          );
+          this.isEditingServerAddress = false;
         }
+        return;
       }
     },
     onServerAddressEdit(): void {
