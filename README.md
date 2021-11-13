@@ -62,21 +62,13 @@ X-Road central servers, configuration proxies and security servers can be automa
 
 ## X-Road technical documentation
 
-[Documentation table of contents](doc/README.md)
+* [Documentation table of contents](doc/README.md)
+* [Knowledge base](https://confluence.niis.org/display/XRDKB)
+* [Release notes](https://confluence.niis.org/display/XRDKB/Release+Notes)
 
 ## Further information about X-Road
 
-**More information about X-Road implementations**
-
-Estonia - [X-tee](https://www.ria.ee/en/x-road.html)
-
-Finland - [Suomi.fi-palveluväylä](https://palveluhallinta.suomi.fi/en/sivut/palveluvayla/esittely)
-
-**Contact information**
-
-Estonia - [X-tee contacts](https://www.ria.ee/en/contact.html)
-
-Finland - [Suomi.fi-palveluväylä contacts](https://palveluhallinta.suomi.fi/en/tuki/yhteydenotto)
+[X-Road implementations worldwide](https://x-road.global/xroad-world-map)
 
 ## Support disclaimer
 
@@ -91,9 +83,6 @@ with regard to the X-Road core:
 * developing and implementing principles of licensing and distribution
 * providing second-line support for the NIIS members
 * international cooperation.
-
-Support for member organizations of X-tee and Suomi.fi-palveluväylä is provided
-by [RIA](https://www.ria.ee/en.html) (X-tee) and [DVV](https://dvv.fi/en/organisations) (Suomi.fi-palveluväylä).
 
 [X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible services, integrating informations systems with X-Road etc.
 
