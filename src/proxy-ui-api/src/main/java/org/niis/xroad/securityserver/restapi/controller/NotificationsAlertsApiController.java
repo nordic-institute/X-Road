@@ -48,11 +48,11 @@ import org.springframework.web.bind.annotation.RestController;
  * {@link NotificationApiDisableSessionTimeoutFilter}
  */
 @RestController
-@RequestMapping(NotificationsApiController.NOTIFICATIONS_API_V1_PATH)
+@RequestMapping(NotificationsAlertsApiController.NOTIFICATIONS_API_V1_PATH)
 @Slf4j
 @PreAuthorize("isAuthenticated()")
 @RequiredArgsConstructor
-public class NotificationsApiController {
+public class NotificationsAlertsApiController {
     public static final String NOTIFICATIONS_API_V1_PATH = ControllerUtil.API_V1_PREFIX + "/notifications";
 
     private final NotificationService notificationService;

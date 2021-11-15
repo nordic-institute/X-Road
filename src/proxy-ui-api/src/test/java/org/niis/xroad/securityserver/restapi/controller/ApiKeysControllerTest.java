@@ -42,7 +42,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * Test NotificationsApiController
+ * Test ApiKeysController
  */
 public class ApiKeysControllerTest extends AbstractApiControllerTestContext {
 
