@@ -92,7 +92,7 @@ public class NotificationsAlertsApiControllerTest extends AbstractApiControllerT
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void resetBackupRestoreRunningSince() {
         ResponseEntity<Void> response = notificationsAlertsApiController.resetBackupRestoreRunningSince();
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
