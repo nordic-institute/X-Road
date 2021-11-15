@@ -38,6 +38,7 @@ import org.niis.xroad.centralserver.restapi.dto.InitializationConfigDto;
 import org.niis.xroad.centralserver.restapi.dto.InitializationStatusDto;
 import org.niis.xroad.centralserver.restapi.dto.TokenInitStatusInfo;
 import org.niis.xroad.centralserver.restapi.entity.GlobalGroup;
+import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
 import org.niis.xroad.centralserver.restapi.repository.GlobalGroupRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidCharactersException;
 import org.niis.xroad.centralserver.restapi.service.exception.InvalidInitParamsException;
@@ -82,7 +83,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SE
 @RequiredArgsConstructor
 public class InitializationService {
 
-    private final SignerProxyService signerProxyService;
+    private final SignerProxyFacade signerProxyService;
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterService systemParameterService;
     private final TokenPinValidator tokenPinValidator;

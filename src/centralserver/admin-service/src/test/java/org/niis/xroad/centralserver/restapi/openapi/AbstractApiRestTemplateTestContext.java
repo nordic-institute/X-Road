@@ -25,15 +25,8 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.After;
-import org.junit.Before;
 import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
-import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
-import org.niis.xroad.centralserver.restapi.util.TestUtils;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.web.context.request.RequestContextHolder;
-
-import static org.mockito.Mockito.validateMockitoUsage;
+import org.springframework.boot.test.context.SpringBootTest;
 
 /**
  * Base for all api controller tests that need mocked beans in the application context. All api controller
@@ -48,23 +41,7 @@ import static org.mockito.Mockito.validateMockitoUsage;
  *
  * Mocks the usual untestable facades (such as SignerProxyService) via {@link AbstractFacadeMockingTestContext}
  */
-public abstract class AbstractApiControllerTestContext extends AbstractFacadeMockingTestContext {
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public abstract class AbstractApiRestTemplateTestContext extends AbstractFacadeMockingTestContext {
 
-    @MockBean
-    protected SystemParameterService systemParameterService;
-    /**
-     * Add mock servlet request attributes to the RequestContextHolder. This is because testing a controller method
-     * by directly calling it is not actually considered a real request. Some tests will need a 'real' request
-     * (e.g. request scoped beans will not work without an existing request)
-     */
-    @Before
-    public void mockServlet() {
-        TestUtils.mockServletRequestAttributes();
-    }
-
-    @After
-    public void cleanUpServlet() {
-        RequestContextHolder.resetRequestAttributes();
-        validateMockitoUsage();
-    }
 }

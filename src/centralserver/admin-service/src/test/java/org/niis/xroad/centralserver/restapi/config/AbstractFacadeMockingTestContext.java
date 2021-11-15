@@ -27,7 +27,7 @@ package org.niis.xroad.centralserver.restapi.config;
 
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.centralserver.restapi.service.SignerProxyService;
+import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -36,7 +36,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for all tests that mock GlobalConfFacade, ManagementRequestSenderService, and SignerProxyService.
+ * Base for all tests that mock GlobalConfFacade and SignerProxyFacade.
  * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
  * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
  *
@@ -51,7 +51,8 @@ import org.springframework.transaction.annotation.Transactional;
 public abstract class AbstractFacadeMockingTestContext {
     @MockBean
     protected GlobalConfFacade globalConfFacade;
+
     @MockBean
-    protected SignerProxyService signerProxyService;
+    protected SignerProxyFacade signerProxyFacade;
 
 }

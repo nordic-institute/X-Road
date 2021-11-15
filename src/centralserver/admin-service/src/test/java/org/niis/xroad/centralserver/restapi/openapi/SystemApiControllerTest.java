@@ -37,7 +37,6 @@ import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.service.SystemParameterService;
 import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -62,9 +61,6 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     SystemApiController systemApiController;
 
     private TokenInfo testSWToken;
-
-    @MockBean
-    private SystemParameterService systemParameterService;
 
     @Before
     public void setup() {
@@ -105,7 +101,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = {"SYSTEM_STATUS"})
     public void testUpdateCentralServerAddress() throws Exception {
-        when(signerProxyService.getToken(SSL_TOKEN_ID)).thenReturn(
+        when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                 testSWToken); // for the getInitializationStatus
         when(systemParameterService.getParameterValue(
                 eq(INSTANCE_IDENTIFIER),
