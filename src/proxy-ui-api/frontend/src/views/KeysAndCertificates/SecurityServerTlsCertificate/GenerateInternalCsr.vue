@@ -140,7 +140,7 @@ $spacing: 12rem;
   max-width: 850px;
   height: 100%;
   width: 100%;
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   background-color: $XRoad-White100;
   box-shadow: $XRoad-DefaultShadow;
   border-radius: 4px;
@@ -148,17 +148,7 @@ $spacing: 12rem;
   margin-top: 20px;
 }
 
-.help-wrapper {
-  display: inline;
-}
-
 .first-action {
-  margin-top: $spacing;
-}
-
-.bottom-buttons-wrapper {
-  border-top: solid 1px $XRoad-Grey40;
-  padding-top: 1rem;
   margin-top: $spacing;
 }
 </style>

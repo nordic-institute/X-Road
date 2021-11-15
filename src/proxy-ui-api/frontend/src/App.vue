@@ -134,7 +134,7 @@ export default Vue.extend({
   opacity: 0;
 }
 
-// Set the app background color
+/* Set the app background color */
 .theme--light.v-application.xrd-app {
   background: $XRoad-WarmGrey30;
 }

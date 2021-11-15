@@ -345,7 +345,7 @@ h3 {
 }
 
 tr td {
-  color: $XRoad-Black;
+  color: $XRoad-Black100;
   font-weight: normal !important;
 }
 

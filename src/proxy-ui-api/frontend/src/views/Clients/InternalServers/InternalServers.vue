@@ -288,11 +288,11 @@ export default Vue.extend({
 }
 
 .conn-info {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
 }
 
 .cert-table-title {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
   font-size: $XRoad-DefaultFontSize;
   font-weight: bold;
   margin: 5px;

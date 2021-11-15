@@ -75,9 +75,9 @@ public class SecurityServersApiController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<Set<SecurityServer>> getSecurityServers(Boolean currentServer) {
-        boolean getOnlyCurrentServer = Boolean.TRUE.equals(currentServer);
+        boolean shouldGetOnlyCurrentServer = Boolean.TRUE.equals(currentServer);
         Set<SecurityServer> securityServers = null;
-        if (getOnlyCurrentServer) {
+        if (shouldGetOnlyCurrentServer) {
             SecurityServerId currentSecurityServerId = serverConfService.getSecurityServerId();
             SecurityServer currentSecurityServer = securityServerConverter.convert(currentSecurityServerId);
             securityServers = Collections.singleton(currentSecurityServer);

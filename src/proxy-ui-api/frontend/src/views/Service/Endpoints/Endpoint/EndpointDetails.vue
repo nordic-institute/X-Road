@@ -24,7 +24,10 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap" data-test="endpoint-details-dialog">
+  <div
+    class="xrd-tab-max-width xrd-main-wrap"
+    data-test="endpoint-details-dialog"
+  >
     <div class="px-4 pt-4">
       <xrd-sub-view-title :title="$t('endpoints.details')" @close="close" />
       <div class="delete-wrap">
@@ -82,7 +85,7 @@
           </div>
         </div>
       </div>
-      <div class="footer-buttons-wrap">
+      <div class="xrd-footer-buttons-wrap">
         <xrd-button outlined @click="close()">{{
           $t('action.cancel')
         }}</xrd-button>
@@ -213,10 +216,6 @@ export default Vue.extend({
   justify-content: flex-end;
 }
 
-.dlg-edit-row .dlg-row-title {
-  min-width: 200px;
-}
-
 .dlg-row-input {
   max-width: 400px;
 }
@@ -226,6 +225,6 @@ export default Vue.extend({
 }
 
 .helper-text {
-  color: $XRoad-Grey60;
+  color: $XRoad-Black70;
 }
 </style>

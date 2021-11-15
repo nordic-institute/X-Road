@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common main-wrap">
+  <div class="xrd-tab-max-width xrd-view-common xrd-main-wrap">
     <xrd-sub-view-title :title="serviceClientId" class="pa-4" @close="close" />
     <v-card flat>
       <table
@@ -106,7 +106,7 @@
       {{ $t('serviceClients.noAccessRights') }}
     </p>
 
-    <div class="footer-buttons-wrap">
+    <div class="xrd-footer-buttons-wrap">
       <xrd-button data-test="close" @click="close()">{{
         $t('action.close')
       }}</xrd-button>
@@ -323,13 +323,6 @@ export default Vue.extend({
 
 <style lang="scss" scoped>
 @import '~styles/tables';
-
-.main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-}
 
 .group-members-row {
   width: 100%;

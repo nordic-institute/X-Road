@@ -26,16 +26,16 @@
 <template>
   <div class="view-wrap">
     <xrd-sub-view-title
-      class="view-title"
+      class="wizard-view-title"
       :title="$t('csr.generateCsr')"
       :show-close="false"
     />
     <v-stepper
       v-model="currentStep"
       :alt-labels="true"
-      class="stepper noshadow"
+      class="wizard-stepper wizard-noshadow"
     >
-      <v-stepper-header class="noshadow">
+      <v-stepper-header class="wizard-noshadow">
         <v-stepper-step :complete="currentStep > 1" step="1">{{
           $t('csr.csrDetails')
         }}</v-stepper-step>
@@ -45,7 +45,7 @@
         }}</v-stepper-step>
       </v-stepper-header>
 
-      <v-stepper-items class="stepper-content">
+      <v-stepper-items class="wizard-stepper-content">
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <WizardPageCsrDetails

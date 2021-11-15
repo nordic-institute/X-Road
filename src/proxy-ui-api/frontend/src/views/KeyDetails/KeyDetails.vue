@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width detail-view-outer">
+  <div class="xrd-tab-max-width dtlv-outer">
     <ValidationObserver ref="form" v-slot="{ invalid }">
-      <div class="detail-view-content">
+      <div class="dtlv-content">
         <div>
           <xrd-sub-view-title
             v-if="key.usage == 'SIGNING'"
@@ -43,7 +43,7 @@
             :title="$t('keys.detailsTitle')"
             @close="close"
           />
-          <div class="details-view-tools">
+          <div class="dtlv-tools">
             <xrd-button
               v-if="canDelete"
               :loading="deleting"
@@ -92,7 +92,7 @@
           </div>
         </div>
       </div>
-      <div class="footer-button-wrap">
+      <div class="dtlv-actions-footer">
         <xrd-button outlined @click="close()">{{
           $t('action.cancel')
         }}</xrd-button>
@@ -306,6 +306,16 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/detail-views';
 @import '~styles/wizards';
+
+.info-title {
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: row;
+}
 
 .key-name {
   width: 405px;
