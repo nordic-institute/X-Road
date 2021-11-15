@@ -26,7 +26,6 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
-import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
@@ -45,8 +44,6 @@ import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
@@ -62,7 +59,6 @@ public class SystemApiController implements SystemApi {
     private final HAConfigStatus currentHaConfigStatus;
 
 
-    @Override
     @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
     public ResponseEntity<SystemStatus> systemStatus() {
         return getSystemStatusResponseEntity();
@@ -81,11 +77,9 @@ public class SystemApiController implements SystemApi {
      * or request specified an invalid format (status code 406)
      * or internal server error (status code 500)
      */
-    @Override
     @PreAuthorize("hasAuthority('SYSTEM_STATUS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CENTRAL_SERVER_ADDRESS)
     public ResponseEntity<SystemStatus> updateCentralServerAddress(
-            @ApiParam(value = "New central server address", required = true) @Validated @RequestBody
                     ServerAddressUpdateBody serverAddressUpdateBody) {
         auditDataHelper.put(RestApiAuditProperty.CENTRAL_SERVER_ADDRESS,
                 serverAddressUpdateBody.getCentralServerAddress());
