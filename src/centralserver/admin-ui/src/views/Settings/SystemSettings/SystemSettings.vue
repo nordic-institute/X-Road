@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
+  <div>
     <!-- Title  -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -65,9 +65,9 @@
                 </td>
                 <td>{{ systemParameters.centralServerAddress }}</td>
                 <td class="action-cell">
-                  <xrd-button text :outlined="false">{{
-                    $t('action.edit')
-                  }}</xrd-button>
+                  <xrd-button text :outlined="false"
+                    >{{ $t('action.edit') }}
+                  </xrd-button>
                 </td>
               </tr>
             </tbody>
@@ -97,9 +97,9 @@
               </td>
               <td>{{ managementServices.serviceProviderIdentifier }}</td>
               <td class="action-cell">
-                <xrd-button text :outlined="false">{{
-                  $t('action.edit')
-                }}</xrd-button>
+                <xrd-button text :outlined="false"
+                  >{{ $t('action.edit') }}
+                </xrd-button>
               </td>
             </tr>
 
@@ -189,9 +189,9 @@
           </div>
           <div class="card-corner-button">
             <xrd-button outlined class="mr-4">
-              <xrd-icon-base class="xrd-large-button-icon"
-                ><XrdIconAdd
-              /></xrd-icon-base>
+              <xrd-icon-base class="xrd-large-button-icon">
+                <XrdIconAdd />
+              </xrd-icon-base>
               {{ $t('action.add') }}
             </xrd-button>
           </div>
@@ -200,7 +200,9 @@
 
       <template #[`item.serverCode`]="{ item }">
         <div class="server-code">
-          <xrd-icon-base class="mr-4"><XrdIconSecurityServer /></xrd-icon-base>
+          <xrd-icon-base class="mr-4">
+            <XrdIconSecurityServer />
+          </xrd-icon-base>
           {{ item.serverCode }}
         </div>
       </template>
@@ -211,9 +213,9 @@
             $t('action.edit')
           }}</xrd-button>
 
-          <xrd-button text :outlined="false">{{
-            $t('action.delete')
-          }}</xrd-button>
+          <xrd-button text :outlined="false"
+            >{{ $t('action.delete') }}
+          </xrd-button>
         </div>
       </template>
 
@@ -221,7 +223,7 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
-  </xrd-sub-view-container>
+  </div>
 </template>
 
 <script lang="ts">

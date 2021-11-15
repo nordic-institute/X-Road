@@ -25,9 +25,7 @@
  -->
 
 <template>
-  <xrd-sub-view-container>
-    <router-view data-test="global-resources-view"></router-view>
-  </xrd-sub-view-container>
+  <router-view data-test="global-resources-view"></router-view>
 </template>
 
 <script lang="ts">
