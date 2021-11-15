@@ -172,6 +172,10 @@
       <v-alert slot="no-results" :value="true" color="error">{{
         $t('action.emptySearch', { msg: search })
       }}</v-alert>
+
+      <template #footer>
+        <div class="custom-footer"></div>
+      </template>
     </v-data-table>
 
     <xrd-confirm-dialog

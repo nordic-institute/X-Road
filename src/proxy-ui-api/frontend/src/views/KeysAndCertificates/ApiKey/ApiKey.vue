@@ -311,9 +311,4 @@ export default Vue.extend({
   font-weight: 600;
   font-size: 14px;
 }
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
-}
 </style>
