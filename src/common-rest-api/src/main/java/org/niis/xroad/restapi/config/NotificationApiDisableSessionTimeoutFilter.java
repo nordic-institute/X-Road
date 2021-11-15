@@ -62,7 +62,7 @@ public class NotificationApiDisableSessionTimeoutFilter extends GenericFilterBea
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-            FilterChain chain) throws IOException, ServletException {
+                         FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpSession session = httpRequest.getSession(false);
@@ -79,7 +79,8 @@ public class NotificationApiDisableSessionTimeoutFilter extends GenericFilterBea
                 return;
             }
 
-            if (httpRequest.getServletPath().startsWith(NotificationsSessionStatusApiController.NOTIFICATIONS_API_V1_PATH)) {
+            if (httpRequest.getServletPath()
+                    .startsWith(NotificationsSessionStatusApiController.NOTIFICATIONS_API_V1_PATH)) {
                 // subtract session timeout when notifications api is called
                 if (session.getAttribute(ORIGINAL_MAX_INACTIVE_ATTR) == null) {
                     session.setAttribute(ORIGINAL_MAX_INACTIVE_ATTR,
