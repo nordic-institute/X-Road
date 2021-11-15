@@ -26,7 +26,7 @@
 package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.restapi.controller.SessionStatusController;
+import org.niis.xroad.restapi.controller.NotificationsSessionStatusApiController;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -79,7 +79,7 @@ public class NotificationApiDisableSessionTimeoutFilter extends GenericFilterBea
                 return;
             }
 
-            if (httpRequest.getServletPath().startsWith(SessionStatusController.NOTIFICATIONS_API_V1_PATH)) {
+            if (httpRequest.getServletPath().startsWith(NotificationsSessionStatusApiController.NOTIFICATIONS_API_V1_PATH)) {
                 // subtract session timeout when notifications api is called
                 if (session.getAttribute(ORIGINAL_MAX_INACTIVE_ATTR) == null) {
                     session.setAttribute(ORIGINAL_MAX_INACTIVE_ATTR,
