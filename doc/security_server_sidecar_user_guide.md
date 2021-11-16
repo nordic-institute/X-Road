@@ -197,7 +197,7 @@ docker run -d \
 -e POSTGRES_PASSWORD=<postgres password> \
 --name remote-db \
 --network xroad-network \
-postgresql:12
+postgres:12
 
 # Run sidecar
 docker run -d \
