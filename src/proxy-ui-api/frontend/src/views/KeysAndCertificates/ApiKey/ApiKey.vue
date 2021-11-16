@@ -25,7 +25,7 @@
  -->
 <template>
   <div class="mt-3" data-test="api-keys-view">
-    <div class="table-toolbar mt-0 pl-0">
+    <div class="xrd-table-toolbar mt-0 pl-0">
       <div class="xrd-title-search">
         <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
 

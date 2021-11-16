@@ -52,7 +52,7 @@
   }
 }
 
-.table-toolbar {
+.xrd-table-toolbar {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -63,7 +63,7 @@
 }
 
 // v7 Some of the subviews use this for "dialog" look
-.main-wrap {
+.xrd-main-wrap {
   background-color: white;
   margin-top: 20px;
   border-radius: 4px;
@@ -72,7 +72,7 @@
 }
 
 // v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
-.footer-buttons-wrap {
+.xrd-footer-buttons-wrap {
   margin-top: 48px;
   display: flex;
   justify-content: flex-end;

@@ -24,9 +24,9 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width detail-view-outer">
+  <div class="xrd-tab-max-width dtlv-outer">
     <ValidationObserver ref="form" v-slot="{ dirty, invalid }">
-      <div class="detail-view-content">
+      <div class="dtlv-content">
         <xrd-sub-view-title :title="$t('keys.tokenDetails')" @close="close" />
         <v-row>
           <v-col>
@@ -157,7 +157,7 @@
           </v-col>
         </v-row>
       </div>
-      <div class="footer-button-wrap">
+      <div class="dtlv-actions-footer">
         <xrd-button outlined data-test="token-details-cancel" @click="close()"
           >{{ $t('action.cancel') }}
         </xrd-button>
@@ -314,5 +314,9 @@ export default Vue.extend({
 .expandable::v-deep .exp-header {
   padding: 0;
   margin-left: -12px;
+}
+
+.pointer {
+  cursor: pointer;
 }
 </style>
