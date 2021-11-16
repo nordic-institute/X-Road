@@ -224,8 +224,4 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: center;
 }
-
-.search-input {
-  max-width: 300px;
-}
 </style>

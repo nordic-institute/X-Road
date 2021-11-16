@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width main-wrap">
+  <div class="xrd-tab-max-width xrd-main-wrap">
     <xrd-sub-view-title
       :title="service.full_service_code"
       class="sub-view-title-spacing"
@@ -155,8 +155,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/tables';
+@import '~styles/tables';
 
 .sub-view-title-spacing {
   margin-bottom: 30px;

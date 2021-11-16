@@ -81,25 +81,3 @@ export default Vue.extend({
   },
 });
 </script>
-
-<style lang="scss" scoped>
-.title-action {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
-.action-block {
-  display: flex;
-  flex-direction: row;
-}
-
-.first-button {
-  margin-right: 20px;
-}
-
-.content {
-  width: 1000px;
-  margin-top: 30px;
-}
-</style>

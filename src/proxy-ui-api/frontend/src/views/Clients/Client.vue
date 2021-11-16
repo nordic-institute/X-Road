@@ -134,9 +134,4 @@ export default Vue.extend({
 .first-button {
   margin-right: 20px;
 }
-
-.content {
-  width: 1000px;
-  margin-top: 30px;
-}
 </style>
