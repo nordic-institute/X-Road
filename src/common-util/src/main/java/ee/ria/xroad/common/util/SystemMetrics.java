@@ -83,7 +83,7 @@ public final class SystemMetrics {
      * @return UNIX operating system stats object
      */
     public static UnixOperatingSystemMXBean getStats() {
-        if ( STATS == null ) {
+        if (STATS == null) {
             throw new IllegalStateException("Operating system statistics are not available.");
         }
         return STATS;
@@ -190,7 +190,7 @@ public final class SystemMetrics {
 
     /**
      * @return the number of free file handles, or -1 if
-     * the system operation failed (i.e. out of file handles)
+     *         the system operation failed (i.e. out of file handles)
      */
     public static long getFreeFileDescriptorCount() {
         try {
