@@ -23,36 +23,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.config;
+package org.niis.xroad.centralserver.restapi.openapi;
 
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.facade.GlobalConfFacade;
-import org.niis.xroad.centralserver.restapi.facade.SignerProxyFacade;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestContext;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Base for all tests that mock GlobalConfFacade and SignerProxyFacade.
- * Tests usually always want to do this, since they want to make sure they do not (accidentally) attempt to
- * read global configuration from filesystem, send actual management requests, or send Akka requests to signer.
+ * Base for all TestRestTemplate based API tests that need servlet features in the application context. All
+ * test classes inheriting this will share the same SpringBootTest config, and have a common
+ * Spring Application Context therefore drastically reducing the execution time of the tests.
  *
- * Extending this base class also helps in keeping mock injections standard, and reduce number of different
- * application contexts built for testing.
+ * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
-@RunWith(SpringRunner.class)
-@SpringBootTest
-@AutoConfigureTestDatabase
-@Transactional
-@WithMockUser
-public abstract class AbstractFacadeMockingTestContext {
-    @MockBean
-    protected GlobalConfFacade globalConfFacade;
-
-    @MockBean
-    protected SignerProxyFacade signerProxyFacade;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public abstract class AbstractApiRestTemplateTestContext extends AbstractFacadeMockingTestContext {
 
 }

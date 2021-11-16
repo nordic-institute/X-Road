@@ -60,7 +60,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName, StoreTypes } from '@/global';
+import { RouteName, StoreTypes, Timeouts } from '@/global';
+import { get } from '@/util/api';
 
 export default Vue.extend({
   data() {
@@ -75,11 +76,25 @@ export default Vue.extend({
     },
   },
   created() {
+    this.sessionPollInterval = setInterval(
+      () => this.pollSessionStatus(),
+      Timeouts.POLL_SESSION_TIMEOUT,
+    );
     // Set interval to poll backend for session
   },
   methods: {
     pollSessionStatus() {
-      // Do polling
+      return get('/notifications/session-status')
+        .then(() => {
+          // Fetch any statuses from backend that are
+          // needed with POLL_SESSION_TIMEOUT periods
+        })
+        .catch((error) => {
+          if (error?.response?.status === 401) {
+            this.$store.commit(StoreTypes.mutations.SET_SESSION_ALIVE, false);
+            clearInterval(this.sessionPollInterval);
+          }
+        });
     },
     logout(): void {
       this.$store.dispatch(StoreTypes.actions.LOGOUT);
@@ -103,6 +118,7 @@ export default Vue.extend({
   transition-property: opacity;
   transition-timing-function: ease;
 }
+
 .fade-enter,
 .fade-leave-active {
   opacity: 0;

@@ -51,7 +51,7 @@ import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAutho
 
 @ActiveProfiles({"test", "audit-test"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestContext {
+public class AuditLoggingRestTemplateTest extends AbstractApiRestTemplateTestContext {
     @Autowired
     TestRestTemplate restTemplate;
 
@@ -69,7 +69,7 @@ public class AuditLoggingRestTemplateTest extends AbstractApiControllerTestConte
         InitialServerConf validConf = new InitialServerConf()
                 .centralServerAddress("valid.audit.domain.org")
                 .instanceIdentifier("VALIDINSTANCEFORAUDITTEST")
-                .softwareTokenPin("1234-valid");
+                .softwareTokenPin("1234-validVALID");
 
         ResponseEntity<Object> response = restTemplate.postForEntity(
                 "/api/v1/initialization",

@@ -23,10 +23,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.securityserver.restapi.config;
+package org.niis.xroad.restapi.config;
 
 import lombok.extern.slf4j.Slf4j;
-import org.niis.xroad.securityserver.restapi.controller.NotificationsApiController;
+import org.niis.xroad.restapi.controller.NotificationsSessionStatusApiController;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -44,7 +44,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Filter which prevents session refresh for notifications endpoints
- * at {@link NotificationsApiController}.
+ * at NOTIFICATIONS_API_V1_PATH.
  * For these endpoints, requests do not affect session expiration -
  * so the HttpSession will expire even though these endpoints are polled
  * constantly.
@@ -55,14 +55,14 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class SessionTimeoutFilter extends GenericFilterBean {
+public class NotificationApiDisableSessionTimeoutFilter extends GenericFilterBean {
 
     private static final String ORIGINAL_MAX_INACTIVE_ATTR =
             "originalMaxInactiveInterval";
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-            FilterChain chain) throws IOException, ServletException {
+                         FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpSession session = httpRequest.getSession(false);
@@ -79,7 +79,8 @@ public class SessionTimeoutFilter extends GenericFilterBean {
                 return;
             }
 
-            if (httpRequest.getServletPath().startsWith(NotificationsApiController.NOTIFICATIONS_API_V1_PATH)) {
+            if (httpRequest.getServletPath()
+                    .startsWith(NotificationsSessionStatusApiController.NOTIFICATIONS_API_V1_PATH)) {
                 // subtract session timeout when notifications api is called
                 if (session.getAttribute(ORIGINAL_MAX_INACTIVE_ATTR) == null) {
                     session.setAttribute(ORIGINAL_MAX_INACTIVE_ATTR,

@@ -43,12 +43,12 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 /**
- * Test NotificationsApiController
+ * Test NotificationsAlertsApiController
  */
-public class NotificationsApiControllerTest extends AbstractApiControllerTestContext {
+public class NotificationsAlertsApiControllerTest extends AbstractApiControllerTestContext {
 
     @Autowired
-    private NotificationsApiController notificationsApiController;
+    private NotificationsAlertsApiController notificationsAlertsApiController;
 
     @Test
     @WithMockUser
@@ -59,7 +59,7 @@ public class NotificationsApiControllerTest extends AbstractApiControllerTestCon
 
         when(notificationService.getAlerts()).thenReturn(alertStatus);
 
-        ResponseEntity<AlertData> response = notificationsApiController.checkAlerts();
+        ResponseEntity<AlertData> response = notificationsAlertsApiController.checkAlerts();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         AlertData alertData = response.getBody();
@@ -81,7 +81,7 @@ public class NotificationsApiControllerTest extends AbstractApiControllerTestCon
 
         when(notificationService.getAlerts()).thenReturn(alertStatus);
 
-        ResponseEntity<AlertData> response = notificationsApiController.checkAlerts();
+        ResponseEntity<AlertData> response = notificationsAlertsApiController.checkAlerts();
         assertEquals(HttpStatus.OK, response.getStatusCode());
 
         AlertData alertData = response.getBody();
@@ -92,9 +92,9 @@ public class NotificationsApiControllerTest extends AbstractApiControllerTestCon
     }
 
     @Test
-    @WithMockUser(authorities = { "RESTORE_CONFIGURATION" })
+    @WithMockUser(authorities = {"RESTORE_CONFIGURATION"})
     public void resetBackupRestoreRunningSince() {
-        ResponseEntity<Void> response = notificationsApiController.resetBackupRestoreRunningSince();
+        ResponseEntity<Void> response = notificationsAlertsApiController.resetBackupRestoreRunningSince();
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 
@@ -104,7 +104,7 @@ public class NotificationsApiControllerTest extends AbstractApiControllerTestCon
         doThrow(new RuntimeException("")).when(notificationService).getAlerts();
 
         try {
-            ResponseEntity<AlertData> response = notificationsApiController.checkAlerts();
+            ResponseEntity<AlertData> response = notificationsAlertsApiController.checkAlerts();
             fail("should throw RuntimeException");
         } catch (RuntimeException expected) {
             // success
