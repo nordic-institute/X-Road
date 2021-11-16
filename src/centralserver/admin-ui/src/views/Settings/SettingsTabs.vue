@@ -26,9 +26,14 @@
 <template>
   <div>
     <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact>{{
-        $t(tab.name)
-      }}</v-tab>
+      <v-tab
+        v-for="tab in tabs"
+        :key="tab.key"
+        :to="tab.to"
+        :data-test="tab.key"
+        exact
+        >{{ $t(tab.name) }}</v-tab
+      >
     </sub-tabs>
   </div>
 </template>
@@ -52,7 +57,7 @@ export default Vue.extend({
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
-          key: 'globalResources',
+          key: 'globalresources-tab-button',
           name: 'tab.settings.globalResources',
           to: {
             name: RouteName.GlobalResources,
@@ -60,7 +65,7 @@ export default Vue.extend({
           permissions: [Permissions.MOCK_PERMISSION1],
         },
         {
-          key: 'system',
+          key: 'systemsettings-tab-button',
           name: 'tab.settings.systemSettings',
           to: {
             name: RouteName.SystemSettings,
@@ -68,7 +73,7 @@ export default Vue.extend({
           permissions: [Permissions.MOCK_PERMISSION1],
         },
         {
-          key: 'backup',
+          key: 'backupandrestore-tab-button',
           name: 'tab.settings.backupAndRestore',
           to: {
             name: RouteName.BackupAndRestore,
@@ -76,7 +81,7 @@ export default Vue.extend({
           permissions: [Permissions.MOCK_PERMISSION1],
         },
         {
-          key: 'apikeys',
+          key: 'apikeys-tab-button',
           name: 'tab.settings.apiKeys',
           to: {
             name: RouteName.ApiKeys,
