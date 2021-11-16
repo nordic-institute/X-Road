@@ -194,7 +194,7 @@ function getTranslatedFieldErrors(
   fieldName: string,
   fieldError: Record<string, string[]>,
 ): string[] {
-  let errors: string[] = fieldError[fieldName];
+  const errors: string[] = fieldError[fieldName];
   if (errors) {
     return errors.map((errorKey: string) => {
       return i18n.t(`validationError.${errorKey}Field`).toString();
@@ -245,7 +245,7 @@ export default (
   },
   computed: {},
   created: function () {
-    let statusAtFirst: State =
+    const statusAtFirst: State =
       this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
 
     if (TokenInitStatus.INITIALIZED == statusAtFirst?.tokenInit) {
@@ -287,16 +287,15 @@ export default (
               .catch(swallowRedirectedNavigationError);
           },
           (error: AxiosError) => {
-
-            let errorInfo: ErrorInfo = error.response?.data || { status: 0 };
+            const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
             if (isFieldError(errorInfo)) {
-              let fieldErrors = errorInfo.error?.validation_errors;
+              const fieldErrors = errorInfo.error?.validation_errors;
               if (fieldErrors) {
-                let identifierErrors: string[] = getTranslatedFieldErrors(
+                const identifierErrors: string[] = getTranslatedFieldErrors(
                   'initialServerConf.instanceIdentifier',
                   fieldErrors,
                 );
-                let addressErrors: string[] = getTranslatedFieldErrors(
+                const addressErrors: string[] = getTranslatedFieldErrors(
                   'initialServerConf.centralServerAddress',
                   fieldErrors,
                 );
@@ -332,17 +331,15 @@ export default (
         });
 
       function isFieldError(error: ErrorInfo) {
-        let errorStatus = error.status;
+        const errorStatus = error.status;
         return (
           400 === errorStatus && 'validation_failure' === error?.error?.code
         );
       }
 
       function isWeakPinError(error: ErrorInfo) {
-        let errorStatus = error.status;
-        return (
-          400 === errorStatus && 'weak_pin' === error?.error?.code
-        );
+        const errorStatus = error.status;
+        return 400 === errorStatus && 'weak_pin' === error?.error?.code;
       }
     },
   },

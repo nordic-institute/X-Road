@@ -85,11 +85,7 @@
                 }}
               </div>
             </div>
-            <div
-              v-else
-              v-for="meta in errorMetadata(notification)"
-              :key="meta"
-            >
+            <div v-for="meta in errorMetadata(notification)" v-else :key="meta">
               {{ meta }}
             </div>
 
