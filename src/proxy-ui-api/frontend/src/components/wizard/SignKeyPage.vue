@@ -26,14 +26,14 @@
 <template>
   <div>
     <div class="wizard-step-form-content py-10 mt-10">
-      <div class="row-wrap">
+      <div class="wizard-row-wrap">
         <xrd-form-label
           :label-text="$t('wizard.signKey.keyLabel')"
           :help-text="$t('wizard.signKey.info')"
         />
         <v-text-field
           v-model="keyLabel"
-          class="form-input"
+          class="wizard-form-input"
           type="text"
           data-test="key-label-input"
           outlined

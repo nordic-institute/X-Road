@@ -27,7 +27,7 @@
   <div class="step-content-wrapper">
     <ValidationObserver ref="form1" v-slot="{ invalid }">
       <div class="wizard-step-form-content">
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberName')"
             :help-text="$t('wizard.client.memberNameTooltip')"
@@ -42,7 +42,7 @@
           <div v-else class="readonly-info-field"></div>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberClass')"
             :help-text="$t('wizard.client.memberClassTooltip')"
@@ -54,11 +54,11 @@
               :items="memberClassesCurrentInstance"
               :disabled="isServerOwnerInitialized"
               data-test="member-class-input"
-              class="form-input"
+              class="wizard-form-input"
             ></v-select>
           </ValidationProvider>
         </div>
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('wizard.memberCode')"
             :help-text="$t('wizard.client.memberCodeTooltip')"
@@ -72,7 +72,7 @@
           >
             <v-text-field
               v-model="memberCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               :disabled="isServerOwnerInitialized"
@@ -82,7 +82,7 @@
           </ValidationProvider>
         </div>
 
-        <div class="row-wrap">
+        <div class="wizard-row-wrap">
           <xrd-form-label
             :label-text="$t('fields.securityServerCode')"
             :help-text="$t('initialConfiguration.member.serverCodeHelp')"
@@ -95,7 +95,7 @@
           >
             <v-text-field
               v-model="securityServerCode"
-              class="form-input"
+              class="wizard-form-input"
               type="text"
               :error-messages="errors"
               :disabled="isServerCodeInitialized"

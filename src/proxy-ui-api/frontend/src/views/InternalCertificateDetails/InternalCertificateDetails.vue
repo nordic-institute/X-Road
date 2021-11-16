@@ -28,7 +28,7 @@
     <xrd-sub-view-title :title="$t('cert.certificate')" @close="close" />
     <div class="pl-4">
       <template v-if="certificate">
-        <div class="cert-hash-wrapper">
+        <div class="dtlv-cert-hash">
           <certificateHash :hash="certificate.hash" />
         </div>
         <certificateInfo :certificate="certificate" />

@@ -25,44 +25,18 @@
  */
 
 @import "colors";
-@import "dialogs";
-
-.info-title {
-  margin-top: 30px;
-  margin-bottom: 10px;
-}
-
-.info-row {
-  display: flex;
-  flex-direction: row;
-}
 
 .row-title {
   min-width: 120px;
 }
 
-.edit-row {
-  display: flex;
-  align-content: center;
-  align-items: baseline;
-  margin-top: 30px;
-
-  > div {
-    min-width: 120px;
-  }
-
-  .code-input {
-    margin-left: 20px;
-  }
-}
-
-.details-view-tools {
+.dtlv-tools {
   margin-top: 50px;
   display: flex;
   justify-content: flex-end;
 }
 
-.footer-button-wrap {
+.dtlv-actions-footer {
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -81,10 +55,6 @@
   }
 }
 
-.save-button {
-  margin-left: 20px;
-}
-
 .certificate-details-wrapper {
   display: flex;
   justify-content: center;
@@ -99,20 +69,20 @@
   border-radius: 4px;
 }
 
-.cert-hash-wrapper {
+.dtlv-cert-hash {
   margin-top: 30px;
   display: flex;
   justify-content: space-between;
   margin-bottom: 20px;
 }
 
-.detail-view-outer {
+.dtlv-outer {
   margin-top: 20px;
   box-shadow: $XRoad-DefaultShadow;
   font-size: $XRoad-DefaultFontSize;
 }
 
-.detail-view-content {
+.dtlv-content {
   padding: 16px;
   padding-bottom: 40px;
   background-color: $XRoad-White100;
