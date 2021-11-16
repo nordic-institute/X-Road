@@ -27,18 +27,25 @@ import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
+import { RouteConfig } from 'vue-router';
+import routes from '@/router/routes';
+import { Tab } from '@/ui-types';
 
 export interface State {
   authenticated: boolean;
+  bannedRoutes: undefined | string[];
   isSessionAlive: boolean | undefined;
   username: string;
+  permissions: string[];
 }
 
 export const getDefaultState = (): State => {
   return {
     authenticated: false,
+    bannedRoutes: undefined,
     isSessionAlive: undefined,
     username: '',
+    permissions: [],
   };
 };
 
@@ -57,7 +64,18 @@ export const userGetters: GetterTree<State, RootState> = {
     return state.username;
   },
   [StoreTypes.getters.HAS_PERMISSION]: (state) => (permission: string) => {
-    return true; // Mock. Until there is a real permission system.
+    return state.permissions.includes(permission);
+  },
+  [StoreTypes.getters.HAS_ANY_OF_PERMISSIONS]: (state) => (perm: string[]) => {
+    // Return true if the user has at least one of the tabs permissions
+    return perm?.some((permission) => state.permissions.includes(permission));
+  },
+  [StoreTypes.getters.GET_ALLOWED_TABS]: (state) => (tabs: Tab[]) => {
+    // returns filtered array of Tab objects based on the 'permission' attribute
+    return tabs?.filter((tab: Tab) => {
+      const routeName = tab.to.name;
+      return !!(routeName && !state.bannedRoutes?.includes(routeName));
+    });
   },
 };
 
@@ -73,6 +91,41 @@ export const mutations: MutationTree<State> = {
   },
   [StoreTypes.mutations.SET_USERNAME]: (state, username: string) => {
     state.username = username;
+  },
+  [StoreTypes.mutations.SET_PERMISSIONS]: (state, permissions: string[]) => {
+    state.permissions = permissions;
+
+    // Function for checking routes recursively
+    function getAllowed(route: RouteConfig): void {
+      if (!state.bannedRoutes) return;
+
+      // Check that the route has name and permissions
+      if (route.name && route?.meta?.permissions) {
+        // Find out routes that the user doesn't have permissions to access
+        if (
+          !route.meta.permissions.some((permission: string) =>
+            permissions.includes(permission),
+          )
+        ) {
+          // Add a banned route to the array
+          state.bannedRoutes.push(route.name);
+        }
+      }
+
+      // Check the child routes recursively
+      if (route.children) {
+        route.children.forEach((child: RouteConfig) => {
+          getAllowed(child);
+        });
+      }
+    }
+
+    // Init banned routes array
+    state.bannedRoutes = [];
+    // Go through the route permissions
+    routes.forEach((route) => {
+      getAllowed(route);
+    });
   },
 };
 

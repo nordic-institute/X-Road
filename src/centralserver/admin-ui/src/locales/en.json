@@ -1,4 +1,10 @@
 {
+  "403": {
+    "topTitle": "Forbidden",
+    "mainTitle": "Permission denied",
+    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "goBack": "Go back"
+  },
   "action": {
     "addSubsystem": "Add subsystem",
     "addClient": "Add client",

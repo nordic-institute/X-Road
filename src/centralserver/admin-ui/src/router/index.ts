@@ -65,6 +65,21 @@ router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
       /*
     Check permissions here
     */
+      if (!to?.meta?.permissions) {
+        next();
+      } else if (
+        store.getters[StoreTypes.getters.HAS_ANY_OF_PERMISSIONS](
+          to.meta.permissions,
+        )
+      ) {
+        // This route is allowed
+        next();
+      } else {
+        // This route is not allowed
+        next({
+          name: RouteName.Forbidden,
+        });
+      }
       next();
     }
 

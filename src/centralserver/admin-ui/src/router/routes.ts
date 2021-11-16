@@ -74,6 +74,7 @@ import InternalConfiguration from '@/views/GlobalConfiguration/InternalConfigura
 import TrustedAnchors from '@/views/GlobalConfiguration/TrustedAnchors/TrustedAnchors.vue';
 import ManagementRequests from '@/views/ManagementRequests/ManagementRequests.vue';
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import AppForbidden from '@/views/AppForbidden.vue';
 
 const routes: RouteConfig[] = [
   {
@@ -85,10 +86,7 @@ const routes: RouteConfig[] = [
       {
         path: '/settings',
         meta: {
-          permissions: [
-            Permissions.MOCK_PERMISSION1,
-            Permissions.MOCK_PERMISSION2,
-          ],
+          permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
         },
         components: {
           default: Settings,
@@ -104,7 +102,7 @@ const routes: RouteConfig[] = [
             path: 'globalresources',
             component: GlobalResources,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: { permissions: [Permissions.VIEW_GLOBAL_GROUPS] },
             children: [
               {
                 name: RouteName.GlobalResources,
@@ -117,6 +115,7 @@ const routes: RouteConfig[] = [
                 path: 'globalgroup/:groupId',
                 component: GlobalGroup,
                 props: true,
+                meta: { permissions: [Permissions.VIEW_GROUP_DETAILS] },
               },
             ],
           },
@@ -125,21 +124,21 @@ const routes: RouteConfig[] = [
             path: 'systemsettings',
             component: SystemSettings,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: { permissions: [Permissions.VIEW_SYSTEM_SETTINGS] },
           },
           {
             name: RouteName.BackupAndRestore,
             path: 'backup',
             component: BackupAndRestore,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: { permissions: [Permissions.BACKUP_CONFIGURATION] },
           },
           {
             name: RouteName.ApiKeys,
             path: 'apikeys',
             component: ApiKeys,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: { permissions: [Permissions.NOT_DURING_DEVELOPEMNT] },
           },
         ],
       },
@@ -154,7 +153,7 @@ const routes: RouteConfig[] = [
         props: {
           default: true,
         },
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        meta: { permissions: [Permissions.CREATE_API_KEY] },
       },
 
       {
@@ -164,7 +163,7 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        meta: { permissions: [Permissions.VIEW_MEMBERS] },
         children: [
           {
             name: RouteName.Members,
@@ -177,6 +176,7 @@ const routes: RouteConfig[] = [
               default: Member,
               pageNavigation: PageNavigation,
             },
+            meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
             props: { default: true },
             redirect: '/members/:memberid/details',
             children: [
@@ -184,18 +184,21 @@ const routes: RouteConfig[] = [
                 name: RouteName.MemberDetails,
                 path: 'details',
                 component: MemberDetails,
+                meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
                 props: { default: true },
               },
               {
                 name: RouteName.MemberManagementRequests,
                 path: 'managementrequests',
                 component: MemberManagementRequests,
+                meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
                 props: { default: true },
               },
               {
                 name: RouteName.MemberSubsystems,
                 path: 'subsystems',
                 component: MemberSubsystems,
+                meta: { permissions: [Permissions.VIEW_MEMBER_DETAILS] },
                 props: { default: true },
               },
             ],
@@ -210,7 +213,7 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
         children: [
           {
             name: RouteName.SecurityServers,
@@ -225,24 +228,34 @@ const routes: RouteConfig[] = [
             },
             props: { default: true },
             redirect: '/security-servers/:id/details',
+            meta: { permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS] },
             children: [
               {
                 name: RouteName.SecurityServerDetails,
                 path: 'details',
                 component: SecurityServerDetails,
                 props: { default: true },
+                meta: {
+                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                },
               },
               {
                 name: RouteName.SecurityServerManagementRequests,
                 path: 'managementrequests',
                 component: SecurityServerManagementRequests,
                 props: { default: true },
+                meta: {
+                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                },
               },
               {
                 name: RouteName.SecurityServerAuthenticationCertificates,
                 path: 'authenticationcertificates',
                 component: SecurityServerAuthenticationCertificates,
                 props: { default: true },
+                meta: {
+                  permissions: [Permissions.VIEW_SECURITY_SERVER_DETAILS],
+                },
               },
               {
                 name: RouteName.SecurityServerClients,
@@ -263,7 +276,7 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        meta: { permissions: [Permissions.VIEW_APPROVED_TSAS] },
       },
 
       {
@@ -274,7 +287,7 @@ const routes: RouteConfig[] = [
           top: TabsBaseEmpty,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        meta: { permissions: [Permissions.INIT_CONFIG] },
       },
 
       {
@@ -285,7 +298,7 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+        meta: { permissions: [Permissions.VIEW_MANAGEMENT_REQUESTS] },
       },
 
       {
@@ -299,31 +312,34 @@ const routes: RouteConfig[] = [
         props: {
           subTabs: true,
         },
+        meta: { permissions: [Permissions.VIEW_CONFIGURATION_MANAGEMENT] },
         children: [
           {
             name: RouteName.InternalConfiguration,
             path: '',
             component: InternalConfiguration,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: {
+              permissions: [Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE],
+            },
           },
           {
             name: RouteName.ExternalConfiguration,
             path: 'external-configuration',
             component: ExternalConfiguration,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: {
+              permissions: [Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE],
+            },
           },
           {
             name: RouteName.TrustedAnchors,
             path: 'trusted-anchors',
             component: TrustedAnchors,
             props: true,
-            meta: { permissions: [Permissions.MOCK_PERMISSION1] },
+            meta: { permissions: [Permissions.VIEW_TRUSTED_ANCHORS] },
           },
         ],
-
-        meta: { permissions: [Permissions.MOCK_PERMISSION1] },
       },
     ],
   },
@@ -331,6 +347,11 @@ const routes: RouteConfig[] = [
     path: '/login',
     name: RouteName.Login,
     component: AppLogin,
+  },
+  {
+    path: '/forbidden',
+    name: RouteName.Forbidden,
+    component: AppForbidden,
   },
   {
     path: '*',
