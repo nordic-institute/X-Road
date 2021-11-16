@@ -337,7 +337,7 @@ Notes:
 ### 4.1 Upgrading from version 6.26.0 to 7.0.0
 
 Upgrading from 6.26.0 to 7.0.0 is supported, if the above prerequisites are met. However, due to a problem in installer scripts, 
-it is necessary to verity that the `/etc/xroad.properties` file has been correctly populated (see [IG-SS, Appendix D](#Ref_IG-SS) for details).
+it is necessary to verify that the `/etc/xroad.properties` file has been correctly populated (see [IG-SS, Annex D](#Ref_IG-SS) for details).
 Backups are not compatible between 6.26.0 and 7.0.0, so upgrading using a backup is not possible.
 
 In case the prerequisites are not fully met, it is possible to manually prepare an intermediate container for the upgrade:
