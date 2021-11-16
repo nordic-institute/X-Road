@@ -59,7 +59,7 @@ public class SystemApiController implements SystemApi {
     private final HAConfigStatus currentHaConfigStatus;
 
 
-    @PreAuthorize("hasAuthority('VIEW_CONFIGURATION')")
+    @PreAuthorize("hasAuthority('VIEW_VERSION')")
     public ResponseEntity<SystemStatus> systemStatus() {
         return getSystemStatusResponseEntity();
     }
@@ -77,7 +77,7 @@ public class SystemApiController implements SystemApi {
      * or request specified an invalid format (status code 406)
      * or internal server error (status code 500)
      */
-    @PreAuthorize("hasAuthority('VIEW_CONFIGURATION')")
+    @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CENTRAL_SERVER_ADDRESS)
     public ResponseEntity<SystemStatus> updateCentralServerAddress(
                     ServerAddressUpdateBody serverAddressUpdateBody) {
