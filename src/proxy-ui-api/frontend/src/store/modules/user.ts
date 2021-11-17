@@ -33,7 +33,6 @@ import {
   SecurityServer,
   TokenInitStatus,
   User,
-  VersionInfo,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
