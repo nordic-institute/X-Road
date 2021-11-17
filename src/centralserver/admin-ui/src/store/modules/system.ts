@@ -26,7 +26,12 @@
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
-import {CentralServerAddress, InstanceIdentifier, SystemStatus, Version} from '@/openapi-types';
+import {
+  CentralServerAddress,
+  InstanceIdentifier,
+  SystemStatus,
+  Version,
+} from '@/openapi-types';
 
 export interface State {
   serverVersion: Version | undefined;
@@ -38,7 +43,7 @@ export const getDefaultState = (): State => {
     serverVersion: undefined,
     systemStatus: {
       initialization_status: undefined,
-      high_availability_status: undefined
+      high_availability_status: undefined,
     },
   };
 };
@@ -60,7 +65,10 @@ export const mutations: MutationTree<State> = {
   [StoreTypes.mutations.SET_SERVER_VERSION]: (state, version: Version) => {
     state.serverVersion = version;
   },
-  [StoreTypes.mutations.SET_SYSTEM_STATUS]: (state, systemStatus: SystemStatus) => {
+  [StoreTypes.mutations.SET_SYSTEM_STATUS]: (
+    state,
+    systemStatus: SystemStatus,
+  ) => {
     state.systemStatus = systemStatus;
   },
 };

@@ -46,7 +46,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.CENTRAL_SERVER_ADDRESS;
+import static org.niis.xroad.centralserver.restapi.service.SystemParameterService.INSTANCE_IDENTIFIER;
 
 @WithMockUser(authorities = {"INIT_CONFIG"})
 @Transactional
@@ -72,7 +76,15 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     }
 
     @Test
-    public void getInitializationStatus() {
+    public void getInitializationStatus() throws Exception {
+        when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
+                null);
+        when(systemParameterService.getParameterValue(
+                eq(INSTANCE_IDENTIFIER),
+                any()
+        )).thenReturn("");
+        when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any())).thenReturn("");
+
         ResponseEntity<InitializationStatus> response = initializationApiController.getInitializationStatus();
         assertNotNull(response, "status should be always available");
         assertEquals(200, response.getStatusCodeValue());
@@ -92,7 +104,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
     @Test
     public void getInitializationStatusFailingSignerConnection() throws Exception {
 
-        when(signerProxyService.getToken(SSL_TOKEN_ID)).thenThrow(RuntimeException.class);
+        when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenThrow(RuntimeException.class);
         assertDoesNotThrow(() -> {
             final ResponseEntity<InitializationStatus> response;
             response = initializationApiController.getInitializationStatus();
@@ -105,7 +117,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void getInitializationStatusFromSignerProxy() throws Exception {
-        when(signerProxyService.getToken(SSL_TOKEN_ID)).thenReturn(testSWToken);
+        when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(testSWToken);
         ResponseEntity<InitializationStatus> statusResponseEntity =
                 initializationApiController.getInitializationStatus();
         assertTrue(statusResponseEntity.hasBody());
@@ -117,11 +129,18 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
 
     @Test
     public void initCentralServer() throws Exception {
-        when(signerProxyService.getToken(SSL_TOKEN_ID)).thenReturn(
+        InitialServerConf initialServerConf1 = okConf.centralServerAddress("initCentralServer.example.org");
+        when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                         null)  // For 1st status query during initCentralServer() call
                 .thenReturn(testSWToken); // for the getInitializationStatus
 
-        InitialServerConf initialServerConf1 = okConf.centralServerAddress("initCentralServer.example.org");
+        when(systemParameterService.getParameterValue(
+                eq(INSTANCE_IDENTIFIER),
+                any()
+        )).thenReturn("")
+                .thenReturn(initialServerConf1.getInstanceIdentifier());
+        when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any())).thenReturn("").thenReturn(
+                initialServerConf1.getCentralServerAddress());
         ResponseEntity<Void> response = initializationApiController.initCentralServer(initialServerConf1);
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
@@ -133,7 +152,7 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
                 TokenInitStatus.INITIALIZED,
                 statusResponseEntity.getBody().getSoftwareTokenInitStatus()
         );
-        assertEquals("TEST", statusResponseEntity.getBody().getInstanceIdentifier());
+        assertEquals(okConf.getInstanceIdentifier(), statusResponseEntity.getBody().getInstanceIdentifier());
         assertEquals("initCentralServer.example.org", statusResponseEntity.getBody().getCentralServerAddress());
     }
 
@@ -143,6 +162,12 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
                 .instanceIdentifier("TEST")
                 .centralServerAddress("initCentralServerMissingParams.example.org")
                 .softwareTokenPin(null);
+        when(systemParameterService.getParameterValue(
+                eq(INSTANCE_IDENTIFIER),
+                any()
+        )).thenReturn("");
+        when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any()))
+                .thenReturn("");
         BadRequestException badRequestException = assertThrows(BadRequestException.class,
                 () -> initializationApiController.initCentralServer(testConf));
         assertEquals(1, badRequestException.getErrorDeviation().getMetadata().size());
@@ -154,12 +179,16 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         InitialServerConf testInitConf = new InitialServerConf()
                 .centralServerAddress(testAddress)
                 .instanceIdentifier("initCentralServerAlreadyInitialized-instance")
-                .softwareTokenPin("12341234");
-        when(signerProxyService.getToken(SSL_TOKEN_ID)).thenReturn(
-                        null)  // For 1st status query during initCentralServer() call
-                .thenReturn(testSWToken); // for the getInitializationStatus
+                .softwareTokenPin("12341234ABCabc___");
+        when(systemParameterService.getParameterValue(
+                eq(INSTANCE_IDENTIFIER),
+                any()
+        )).thenReturn(testInitConf.getInstanceIdentifier());
+        when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any()))
+                .thenReturn(testInitConf.getCentralServerAddress());
 
-        assertDoesNotThrow(() -> initializationApiController.initCentralServer(testInitConf));
+        when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(testSWToken);
+
         assertThrows(ConflictException.class, () -> initializationApiController.initCentralServer(testInitConf));
 
     }

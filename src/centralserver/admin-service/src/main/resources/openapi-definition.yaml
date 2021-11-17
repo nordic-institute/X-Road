@@ -64,6 +64,39 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
+  /system/status/server-address:
+    put:
+      tags:
+        - system
+      summary: update the server address
+      operationId: updateCentralServerAddress
+      requestBody:
+        description: New central server address
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerAddressUpdateBody'
+      responses:
+        '200':
+          description: System status with updated Central Server address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+
   /initialization:
     post:
       tags:
@@ -243,6 +276,14 @@ components:
           $ref: '#/components/schemas/InitializationStatus'
         high_availability_status:
           $ref: '#/components/schemas/HighAvailabilityStatus'
+    ServerAddressUpdateBody:
+      type: object
+      description: New Central server address
+      required:
+        - central_server_address
+      properties:
+        central_server_address:
+          $ref: '#/components/schemas/CentralServerAddress'
     Version:
       type: object
       description: version information
