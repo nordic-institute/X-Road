@@ -178,7 +178,10 @@
   },
   "error_code": {
     "validation_failure": "Validation failure",
-    "invalid_init_params": "Problem in initialization parameters"
+    "invalid_init_params": "Problem in initialization parameters",
+    "weak_pin": "Weak PIN",
+    "pin_min_length": "PIN minimum length",
+    "pin_min_char_classes_count": "PIN minimum character classes count"
   },
   "fields": {
     "password": "Password",
