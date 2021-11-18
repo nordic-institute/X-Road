@@ -35,6 +35,7 @@ export interface ClientState {
   connection_type: string | null;
   tlsCertificates: CertificateDetails[];
   ssCertificate: CertificateDetails | null;
+  clientLoading: boolean;
 }
 
 export const clientState: ClientState = {
@@ -43,6 +44,7 @@ export const clientState: ClientState = {
   connection_type: null,
   tlsCertificates: [],
   ssCertificate: null,
+  clientLoading: false,
 };
 
 export const getters: GetterTree<ClientState, RootState> = {
@@ -63,6 +65,9 @@ export const getters: GetterTree<ClientState, RootState> = {
   },
   ssCertificate(state): CertificateDetails | null {
     return state.ssCertificate;
+  },
+  clientLoading(state): boolean {
+    return state.clientLoading;
   },
 };
 
@@ -85,6 +90,9 @@ export const mutations: MutationTree<ClientState> = {
     state.tlsCertificates = [];
     state.signCertificates = [];
   },
+  setClientLoadStatus(state, status: boolean) {
+    state.clientLoading = status;
+  },
 };
 
 export const actions: ActionTree<ClientState, RootState> = {
@@ -92,7 +100,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     if (!id) {
       throw new Error('Missing client id');
     }
-
+    commit('setClientLoadStatus', true);
     return axios
       .get(`/clients/${encodePathParameter(id)}`)
       .then((res) => {
@@ -100,7 +108,8 @@ export const actions: ActionTree<ClientState, RootState> = {
       })
       .catch((error) => {
         throw error;
-      });
+      })
+      .finally(() => commit('setClientLoadStatus', false));
   },
   fetchSignCertificates({ commit }, id: string) {
     if (!id) {
