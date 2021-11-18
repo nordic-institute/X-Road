@@ -48,34 +48,44 @@
       </xrd-button>
     </div>
 
-    <div class="xrd-card">
-      <table class="xrd-table xrd-table-highlightable service-clients-table">
-        <thead>
-          <tr>
-            <th>{{ $t('serviceClients.name') }}</th>
-            <th>{{ $t('serviceClients.id') }}</th>
-          </tr>
-        </thead>
-        <template v-if="serviceClients.length > 0">
-          <tbody>
-            <tr
-              v-for="sc in filteredServiceClients()"
-              :key="sc.id"
-              data-test="open-access-rights"
-              @click="showAccessRights(sc.id)"
-            >
-              <td class="identifier-wrap clickable-link">{{ sc.name }}</td>
-              <td class="identifier-wrap">{{ sc.id }}</td>
-            </tr>
-          </tbody>
-        </template>
-      </table>
-    </div>
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="serviceClients"
+      :search="search"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="elevation-0 data-table mt-10"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+    >
+      <template #[`item.name`]="{ item }">
+        <div
+          class="clickable-link"
+          data-test="open-access-rights"
+          @click="showAccessRights(item.id)"
+        >
+          {{ item.name }}
+        </div>
+      </template>
+
+      <template #[`item.id`]="{ item }">
+        <div @click="showAccessRights(item.id)">
+          {{ item.id }}
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="custom-footer"></div>
+      </template>
+    </v-data-table>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
 import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import { ServiceClient } from '@/openapi-types';
@@ -92,7 +102,8 @@ export default Vue.extend({
   data() {
     return {
       serviceClients: [] as ServiceClient[],
-      search: '' as string,
+      search: '',
+      loading: false,
     };
   },
   computed: {
@@ -102,19 +113,37 @@ export default Vue.extend({
         Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
       );
     },
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('serviceClients.name') as string,
+          align: 'start',
+          value: 'name',
+          class: 'xrd-table-header sc-table-name',
+        },
+        {
+          text: this.$t('serviceClients.id') as string,
+          align: 'start',
+          value: 'id',
+          class: 'xrd-table-header sc-table-id',
+        },
+      ];
+    },
   },
   created() {
     this.fetchServiceClients();
   },
   methods: {
     fetchServiceClients() {
+      this.loading = true;
       api
         .get<ServiceClient[]>(
           `/clients/${encodePathParameter(this.id)}/service-clients`,
           {},
         )
         .then((response) => (this.serviceClients = response.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => (this.loading = false));
     },
     addServiceClient(): void {
       this.$router.push(`/subsystem/serviceclients/${this.id}/add`);
@@ -143,15 +172,6 @@ export default Vue.extend({
 
 .search-input {
   max-width: 300px;
-}
-
-.service-clients-table {
-  margin-top: 40px;
-}
-
-.xrd-card {
-  background-color: white;
-  border-radius: 4px;
 }
 
 .clickable-link {

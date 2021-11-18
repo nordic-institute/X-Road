@@ -80,27 +80,11 @@
       <div class="content-title">{{ $t('ssTlsCertificate.keyCertTitle') }}</div>
       <div class="horizontal-line-dark"></div>
 
-      <div class="content-wrap">
-        <div>
-          <div class="key-wrap">
-            <i class="icon-Key icon" />
+      <div class="key-row">
+        <div class="key-wrap">
+          <i class="icon-Key icon" />
 
-            {{ $t('ssTlsCertificate.keyText') }}
-          </div>
-          <div class="cert-wrap">
-            <i
-              class="icon-Certificate icon clickable-link"
-              @click="certificateClick()"
-            />
-
-            <div
-              v-if="certificate"
-              class="clickable-link"
-              @click="certificateClick()"
-            >
-              {{ certificate.hash | colonize }}
-            </div>
-          </div>
+          {{ $t('ssTlsCertificate.keyText') }}
         </div>
 
         <div>
@@ -115,6 +99,27 @@
           >
         </div>
       </div>
+
+      <div v-if="certificate" class="cert-row">
+        <div>
+          <i
+            class="icon-Certificate icon clickable-link"
+            @click="certificateClick()"
+          />
+        </div>
+        <div
+          v-if="certificate"
+          class="clickable-link"
+          @click="certificateClick()"
+        >
+          {{ certificate.hash | colonize }}
+        </div>
+      </div>
+      <XrdEmptyPlaceholder
+        :data="certificate"
+        :loading="loading"
+        :no-items-text="$t('noData.noCertificate')"
+      />
 
       <div class="footer-pad"></div>
     </div>
@@ -141,6 +146,7 @@ export default Vue.extend({
       certificate: undefined as CertificateDetails | undefined,
       generateDialog: false,
       exportPending: false,
+      loading: false,
     };
   },
   computed: {
@@ -180,6 +186,7 @@ export default Vue.extend({
       });
     },
     fetchData(): void {
+      this.loading = true;
       api
         .get<CertificateDetails>('/system/certificate')
         .then((res) => {
@@ -187,7 +194,8 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
-        });
+        })
+        .finally(() => (this.loading = false));
     },
     newCertificateGenerated(): void {
       this.fetchData();
@@ -249,21 +257,27 @@ export default Vue.extend({
   border-radius: 4px;
 }
 
-.content-wrap {
-  margin-top: 30px;
+.key-row {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 20px;
+  align-items: center;
+  height: 56px;
+  border-bottom: 1px solid $XRoad-WarmGrey30;
 }
 
 .key-wrap {
   display: flex;
+  width: 100%;
+  align-items: center;
+  padding-left: 15px;
 }
 
-.cert-wrap {
+.cert-row {
   display: flex;
-  margin-top: 20px;
-  padding-left: 40px;
+  width: 100%;
+  align-items: center;
+  padding-left: 56px;
+  height: 56px;
 }
 
 .horizontal-line-dark {
@@ -285,6 +299,8 @@ export default Vue.extend({
 
 .clickable-link {
   cursor: pointer;
+  display: flex;
+  align-items: center;
   height: 100%;
   color: $XRoad-Link;
 }

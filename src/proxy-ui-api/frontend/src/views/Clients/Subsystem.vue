@@ -27,7 +27,11 @@
   <div class="xrd-sub-view-wrapper">
     <v-container class="xrd-view-common mt-7">
       <v-flex mb-4 class="title-action">
-        <div v-if="client" class="xrd-view-title mb-3">
+        <div v-if="clientLoading" class="xrd-view-title mb-3">
+          {{ $t('noData.loading') }}
+        </div>
+
+        <div v-else-if="client" class="xrd-view-title mb-3">
           {{ client.subsystem_code }} ({{ $t('general.subsystem') }})
         </div>
         <div>
@@ -70,7 +74,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapGetters(['client', 'clientLoading']),
 
     showUnregister(): boolean {
       return (

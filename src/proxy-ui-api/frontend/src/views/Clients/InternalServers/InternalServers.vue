@@ -61,7 +61,7 @@
       <div class="cert-table-title pl-4">
         {{ $t('internalServers.certHash') }}
       </div>
-      <table class="certificate-table server-certificates">
+      <table class="server-certificates xrd-table">
         <template v-if="tlsCertificates && tlsCertificates.length > 0">
           <tr v-for="certificate in tlsCertificates" :key="certificate.hash">
             <td class="pl-4 pt-2">
@@ -78,6 +78,13 @@
             </td>
           </tr>
         </template>
+
+        <XrdEmptyPlaceholderRow
+          :colspan="2"
+          :loading="tlsCertLoading"
+          :data="tlsCertificates"
+          :no-items-text="$t('noData.noCertificates')"
+        />
       </table>
     </v-card>
 
@@ -88,8 +95,8 @@
       <div class="cert-table-title pl-4">
         {{ $t('internalServers.certHash') }}
       </div>
-      <table class="certificate-table server-certificates">
-        <template v-if="ssCertificate">
+      <table class="server-certificates xrd-table">
+        <template v-if="ssCertificate && !ssCertLoading">
           <tr>
             <td class="pl-4 pt-2">
               <i class="icon-Certificate icon" />
@@ -111,6 +118,12 @@
             </td>
           </tr>
         </template>
+        <XrdEmptyPlaceholderRow
+          :colspan="3"
+          :loading="ssCertLoading"
+          :data="ssCertificate"
+          :no-items-text="$t('noData.noCertificate')"
+        />
       </table>
     </v-card>
   </div>
@@ -144,6 +157,8 @@ export default Vue.extend({
       dialog: false,
       selectedCertificate: null,
       revertHack: 0,
+      tlsCertLoading: false,
+      ssCertLoading: false,
     };
   },
   computed: {
@@ -231,9 +246,13 @@ export default Vue.extend({
     },
 
     fetchTlsCertificates(id: string): void {
-      this.$store.dispatch('fetchTlsCertificates', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      this.tlsCertLoading = true;
+      this.$store
+        .dispatch('fetchTlsCertificates', id)
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => (this.tlsCertLoading = false));
     },
 
     exportSSCertificate(): void {
@@ -248,9 +267,13 @@ export default Vue.extend({
     },
 
     fetchSSCertificate(id: string): void {
-      this.$store.dispatch('fetchSSCertificate', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      this.ssCertLoading = true;
+      this.$store
+        .dispatch('fetchSSCertificate', id)
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => (this.ssCertLoading = false));
     },
 
     openCertificate(cert: CertificateDetails): void {

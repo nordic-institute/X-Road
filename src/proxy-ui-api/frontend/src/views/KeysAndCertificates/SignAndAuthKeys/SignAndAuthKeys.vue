@@ -38,11 +38,15 @@
         <xrd-search v-model="search" />
       </div>
     </div>
-    <div v-if="filtered && filtered.length < 1">
-      {{ $t('services.noMatches') }}
-    </div>
 
-    <template v-if="filtered">
+    <XrdEmptyPlaceholder
+      :data="filtered"
+      :loading="loading"
+      :filtered="search.length > 0"
+      :no-items-text="$t('noData.noTokens')"
+    />
+
+    <template v-if="filtered && !loading">
       <token-expandable
         v-for="token in filtered"
         :key="token.id"
@@ -92,6 +96,7 @@ export default Vue.extend({
       search: '',
       loginDialog: false,
       logoutDialog: false,
+      loading: false,
     };
   },
   computed: {
@@ -170,9 +175,15 @@ export default Vue.extend({
   methods: {
     fetchData(): void {
       // Fetch tokens from backend
-      this.$store.dispatch('fetchTokens').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      this.loading = true;
+      this.$store
+        .dispatch('fetchTokens')
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     acceptTokenLogout(): void {
       const token: Token = this.$store.getters.selectedToken;

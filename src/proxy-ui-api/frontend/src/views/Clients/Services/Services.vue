@@ -63,9 +63,12 @@
       </div>
     </div>
 
-    <div v-if="filtered && filtered.length < 1">
-      {{ $t('services.noMatches') }}
-    </div>
+    <XrdEmptyPlaceholder
+      :data="filtered"
+      :filtered="search.length > 0"
+      :loading="loading"
+      :no-items-text="$t('noData.noServices')"
+    />
 
     <template v-if="filtered">
       <xrd-expandable
@@ -231,6 +234,7 @@ export default Vue.extend({
   data() {
     return {
       search: '' as string,
+      loading: false,
       addWsdlDialog: false as boolean,
       addRestDialog: false as boolean,
       disableDescDialog: false as boolean,
@@ -653,6 +657,7 @@ export default Vue.extend({
     },
 
     fetchData(): void {
+      this.loading = true;
       api
         .get<ServiceDescription[]>(
           `/clients/${encodePathParameter(this.id)}/service-descriptions`,
@@ -665,7 +670,8 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
-        });
+        })
+        .finally(() => (this.loading = false));
     },
   },
 });

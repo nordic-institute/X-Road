@@ -718,6 +718,19 @@
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
+  "noData": {
+    "loading": "Loading... Please wait",
+    "noBackups": "No backups yet",
+    "noCertificate": "No certificate",
+    "noCertificates": "No certificates",
+    "noClientData": "No client data",
+    "noCertificateAuthorities": "No certificate authorities",
+    "noData": "No data",
+    "noMatches": "No items matching criteria",
+    "noServices": "No services",
+    "noTimestampingServices": "No Timestaping services",
+    "noTokens": "No tokens"
+  },
   "serviceClientType": {
     "globalGroup": "GLOBALGROUP",
     "localGroup": "LOCALGROUP",
