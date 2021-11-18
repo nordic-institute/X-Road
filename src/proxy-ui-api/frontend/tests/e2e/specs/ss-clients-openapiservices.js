@@ -184,11 +184,11 @@ module.exports = {
 
     // Verify cancel
     operationDetails.modifyUrl('https://niis.org/nosuch.yaml');
-    browser.logMessage("changing timeout 60->40")
+    browser.logMessage('changing timeout 60->40');
     operationDetails.modifyTimeout('40');
-    browser.logMessage("changed timeout 60->40, toggling verification")
+    browser.logMessage('changed timeout 60->40, toggling verification');
     operationDetails.toggleCertVerification();
-    browser.logMessage("verification toggled")
+    browser.logMessage('verification toggled');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
 

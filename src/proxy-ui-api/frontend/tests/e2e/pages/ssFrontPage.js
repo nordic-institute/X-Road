@@ -50,11 +50,11 @@ var loginCommands = {
     return this;
   },
   navigateAndMakeTestable: function () {
-    this.logMessage("navigateAndMakeTestable()");
+    this.logMessage('navigateAndMakeTestable()');
     this.navigate();
     this.waitForElementVisible('//*[@id="app"]');
     this.makeTestable();
-    this.logMessage("navigateAndMakeTestable() done");
+    this.logMessage('navigateAndMakeTestable() done');
     return this;
   },
   signinDefaultUser: function () {

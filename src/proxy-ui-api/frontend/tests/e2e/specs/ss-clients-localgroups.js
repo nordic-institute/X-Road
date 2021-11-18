@@ -149,7 +149,7 @@ module.exports = {
     );
     browser.logMessage("closing 'local group added' snackbar");
     mainPage.closeSnackbar();
-    browser.logMessage("closed");
+    browser.logMessage('closed');
     // Close also alert, this cannot be closed while the popup is active
     mainPage.closeAlertMessage();
 
@@ -343,9 +343,7 @@ module.exports = {
     browser.waitForElementVisible(localGroupPopup);
     localGroupPopup.waitForDescription('Group4');
     let maxLengthDescription = browser.globals.test_string_300.slice(0, 255);
-    localGroupPopup.modifyDescription(
-      maxLengthDescription,
-    );
+    localGroupPopup.modifyDescription(maxLengthDescription);
     browser.keys(browser.Keys.ENTER);
     browser.assert.containsText(
       mainPage.elements.snackBarMessage,

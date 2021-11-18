@@ -46,29 +46,28 @@ module.exports = {
     localGroupPopup = mainPage.section.localGroupPopup;
 
     // Actual test starts here...
-    browser.LoginCommand(browser.globals.login_service_administrator, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_service_administrator,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
     browser.end();
   },
   'Can not see Keys-tab': (browser) => {
-
     browser.waitForElementNotPresent(keysTab);
   },
 
   'Can not see diagnostics-tab': (browser) => {
-
     browser.waitForElementNotPresent(diagnosticsTab);
   },
 
   'Can not see Settings-tab': (browser) => {
-
     browser.waitForElementNotPresent(settingsTab);
   },
 
   'Can see functions under Clients-tab': (browser) => {
-
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
@@ -104,14 +103,17 @@ module.exports = {
       );
   },
 
-  'Should see local groups list, group members and see edit buttons': (browser) => {
-
+  'Should see local groups list, group members and see edit buttons': (
+    browser,
+  ) => {
     // Service administrator should see local groups list
     mainPage.openClientsTab();
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling
     //  for 'clientLocalGroups', figure out why
-    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.click(
+      '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
+    );
     browser.waitForElementVisible(clientLocalGroups);
 
     // Service administrator should see add local groups button
@@ -136,5 +138,5 @@ module.exports = {
     browser.waitForElementVisible(
       localGroupPopup.elements.localGroupDeleteButton,
     );
-  }
+  },
 };

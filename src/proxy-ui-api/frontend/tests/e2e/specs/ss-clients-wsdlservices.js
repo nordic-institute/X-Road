@@ -27,7 +27,9 @@
 module.exports = {
   tags: ['ss', 'clients', 'wsdlservices'],
   before: function (browser) {
-    browser.logMessage("copy remote wsdl testservice1.wsdl -> testserviceX.wsdl")
+    browser.logMessage(
+      'copy remote wsdl testservice1.wsdl -> testserviceX.wsdl',
+    );
     browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
   },
   'Security server client add wsdl service': (browser) => {
@@ -477,22 +479,22 @@ module.exports = {
     );
 
     // Verify enabling
-    browser.logMessage("enabling service...");
+    browser.logMessage('enabling service...');
     clientServices.toggleEnabled();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
     mainPage.closeSnackbar();
-    browser.logMessage("snackbar closed");
-    browser.logMessage("enabling service done, snackbar should be closed now");
+    browser.logMessage('snackbar closed');
+    browser.logMessage('enabling service done, snackbar should be closed now');
 
     // Verify disabling and canceling disable
-    browser.logMessage("disabling service");
+    browser.logMessage('disabling service');
     clientServices.toggleEnabled();
-    browser.logMessage("waiting for disable message popup");
+    browser.logMessage('waiting for disable message popup');
     browser.waitForElementVisible(
       '//div[@data-test="dialog-simple" and .//span[@data-test="dialog-title"]]',
     );
     clientServices.initDisableNotice('Message1');
-    browser.logMessage("entered disable notice, cancelling");
+    browser.logMessage('entered disable notice, cancelling');
     clientServices.cancelDisable();
     clientServices.toggleEnabled();
     browser.waitForElementVisible(
@@ -525,7 +527,9 @@ module.exports = {
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
-    browser.logMessage('Starting (part 1) artificial wait to make refresh timestamps differ');
+    browser.logMessage(
+      'Starting (part 1) artificial wait to make refresh timestamps differ',
+    );
 
     await browser.perform(function () {
       const endTime = new Date().getTime();
@@ -555,13 +559,15 @@ module.exports = {
     clientServices.openServiceDetails();
     browser.logMessage('Edit and confirm nosuch.wsdl -> testservice2.wsdl');
     serviceDetails.modifyServiceUrl(
-        browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
+      browser.globals.testdata + '/' + browser.globals.wsdl_url_2,
     );
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(servicesPopup);
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
-    browser.logMessage('Starting (part 2) artificial wait to make refresh timestamps differ');
+    browser.logMessage(
+      'Starting (part 2) artificial wait to make refresh timestamps differ',
+    );
     await browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -686,8 +692,8 @@ module.exports = {
     );
     clientServices.confirmAddDialog();
     browser.assert.containsText(
-        mainPage.elements.snackBarMessage,
-        'WSDL added',
+      mainPage.elements.snackBarMessage,
+      'WSDL added',
     );
     mainPage.closeSnackbar();
 
@@ -724,12 +730,14 @@ module.exports = {
       mainPage.elements.snackBarMessage,
       'Service saved',
     );
-    browser.logMessage("closing snackbar")
+    browser.logMessage('closing snackbar');
     mainPage.closeSnackbar();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
-    browser.logMessage("Part 1 wait until at least 1 min has passed since refresh at the start of the test")
+    browser.logMessage(
+      'Part 1 wait until at least 1 min has passed since refresh at the start of the test',
+    );
     browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;
@@ -753,13 +761,17 @@ module.exports = {
     );
 
     // change the wsdl and refresh
-    browser.logMessage("copy remote wsdl testservice3.wsdl -> testserviceX.wsdl")
+    browser.logMessage(
+      'copy remote wsdl testservice3.wsdl -> testserviceX.wsdl',
+    );
     browser.perform(function () {
       browser.page.ssMainPage().updateWSDLFileTo('testservice3.wsdl');
     });
 
     // Part 2 wait until at least 1 min has passed since refresh at the start of the test
-    browser.logMessage("Part 2 wait until at least 1 min has passed since refresh at the start of the test")
+    browser.logMessage(
+      'Part 2 wait until at least 1 min has passed since refresh at the start of the test',
+    );
     browser.perform(function () {
       const endTime = new Date().getTime();
       const passedTime = endTime - startTime;

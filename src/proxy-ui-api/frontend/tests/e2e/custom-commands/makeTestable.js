@@ -40,7 +40,9 @@ module.exports = class MakeTestable extends Events {
       </style>`;
       document.head.insertAdjacentHTML('beforeend', style);
     }, []);
-    this.api.logMessage("made UI testable by setting window.e2eTestingMode and injecting CSS");
+    this.api.logMessage(
+      'made UI testable by setting window.e2eTestingMode and injecting CSS',
+    );
     this.emit('complete');
   }
 };

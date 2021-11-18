@@ -25,7 +25,13 @@
  */
 
 // Tabs
-let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab, APIKeysTab;
+let mainPage,
+  diagnosticsTab,
+  clientsTab,
+  keysTab,
+  backupAndRestoreTab,
+  settingsTab,
+  APIKeysTab;
 
 // Other
 let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton;
@@ -48,7 +54,10 @@ module.exports = {
     generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
     anchorDownloadButton = backupAndRestoreTab.elements.anchorDownloadButton;
 
-    browser.LoginCommand(browser.globals.login_security_officer, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_security_officer,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
@@ -95,5 +104,4 @@ module.exports = {
     clientsTab.openClient('TestGov');
     browser.waitForElementNotPresent(clientInfo.elements.detailsTab);
   },
-}
-
+};

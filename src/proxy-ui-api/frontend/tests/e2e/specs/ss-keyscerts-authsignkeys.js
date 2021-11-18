@@ -757,29 +757,48 @@ module.exports = {
     browser.waitForElementVisible(signAuthTab);
 
     signAuthTab.toggleExpandToken();
-    browser.waitForElementNotPresent(signAuthTab.elements.initializedAuthCert)
+    browser.waitForElementNotPresent(signAuthTab.elements.initializedAuthCert);
 
     // Test wrong type of file
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_csr);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_auth_csr,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
     mainPage.closeAlertMessage();
 
     // Test wrong server cert
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_auth_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
     mainPage.closeAlertMessage();
 
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_auth_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.import_auth_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
     mainPage.closeSnackbar();
 
     // Verify status of new certificate
-    browser.waitForElementVisible('//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]');
+    browser.waitForElementVisible(
+      '//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]',
+    );
 
     browser.click(signAuthTab.elements.initializedAuthCert);
 
     // Verify that the correct crt was imported
-    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road import")]]');
+    browser.waitForElementVisible(
+      '//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road import")]]',
+    );
 
     browser.end();
   },
@@ -814,19 +833,33 @@ module.exports = {
       },
     );
     // Test wrong type of file
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_csr);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_sign_csr,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
     mainPage.closeAlertMessage();
 
     // Test wrong server cert
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.ss2_sign_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
     mainPage.closeAlertMessage();
 
-    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_sign_cert);
+    signAuthTab.importCert(
+      '/../' +
+        browser.globals.e2etest_testdata +
+        '/' +
+        browser.globals.import_sign_cert,
+    );
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
     mainPage.closeSnackbar();
-
 
     // Verify that a certificate has been added with the correct status
     browser.perform(function () {
@@ -846,9 +879,10 @@ module.exports = {
       );
     });
 
-
     // Verify that the correct crt was imported
-    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road Import")]]');
+    browser.waitForElementVisible(
+      '//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road Import")]]',
+    );
 
     browser.end();
   },
