@@ -25,13 +25,13 @@
  -->
 <template>
   <div>
-    <sub-tabs :tab="currentTab">
+    <sub-tabs>
       <v-tab
         v-for="tab in tabs"
         :key="tab.key"
         :to="tab.to"
         :data-test="tab.key"
-        exact
+        exact-path
         >{{ $t(tab.name) }}</v-tab
       >
     </sub-tabs>
@@ -47,11 +47,6 @@ import SubTabs from '@/components/layout/SubTabs.vue';
 export default Vue.extend({
   components: {
     SubTabs,
-  },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
   },
   computed: {
     tabs(): Tab[] {
