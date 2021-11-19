@@ -174,13 +174,13 @@
       @accept="doDeleteServiceDesc()"
     />
     <!-- Confirm dialog for warnings when editing WSDL -->
-    <warningDialog
+    <ServiceWarningDialog
       :dialog="confirmEditWarning"
       :warnings="warningInfo"
       :loading="editLoading"
       @cancel="cancelEditWarning()"
       @accept="acceptEditWarning()"
-    ></warningDialog>
+    ></ServiceWarningDialog>
   </div>
 </template>
 
@@ -193,7 +193,7 @@ import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import WarningDialog from '@/components/service/WarningDialog.vue';
+import ServiceWarningDialog from '@/components/service/ServiceWarningDialog.vue';
 import {
   ServiceDescription,
   ServiceDescriptionUpdate,
@@ -203,7 +203,7 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    WarningDialog,
+    ServiceWarningDialog,
     ValidationProvider,
     ValidationObserver,
   },
@@ -277,7 +277,7 @@ export default Vue.extend({
           this.serviceDescriptionUpdate,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', this.$t('localGroup.descSaved'));
           this.saveBusy = false;
           this.serviceDescriptionUpdate = null;
           this.$router.go(-1);
@@ -322,7 +322,7 @@ export default Vue.extend({
       api
         .remove(`/service-descriptions/${encodePathParameter(this.id)}`)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'services.deleted');
+          this.$store.dispatch('showSuccess', this.$t('services.deleted'));
           this.confirmWSDLDelete = false;
           this.confirmRESTDelete = false;
           this.$router.go(-1);
@@ -345,7 +345,7 @@ export default Vue.extend({
           this.serviceDescriptionUpdate,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'localGroup.descSaved');
+          this.$store.dispatch('showSuccess', this.$t('localGroup.descSaved'));
           this.$router.go(-1);
         })
         .catch((error) => {

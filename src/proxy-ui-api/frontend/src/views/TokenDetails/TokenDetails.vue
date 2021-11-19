@@ -247,7 +247,7 @@ export default Vue.extend({
             this.token,
           );
         }
-        await this.$store.dispatch('showSuccessRaw', successMsg);
+        await this.$store.dispatch('showSuccess', successMsg);
         this.$router.go(-1);
       } catch (error) {
         await this.$store.dispatch('showError', error);

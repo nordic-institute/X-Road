@@ -83,7 +83,7 @@ export default Vue.extend({
           () => {
             this.$store.dispatch(
               'showSuccess',
-              'client.action.makeOwner.success',
+              this.$t('client.action.makeOwner.success'),
             );
           },
           (error) => {

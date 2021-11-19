@@ -257,7 +257,7 @@ export default Vue.extend({
         .then((response) => {
           const key = response.data;
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('apiKey.table.action.revoke.success', {
               id: key.id,
             }),
@@ -281,7 +281,7 @@ export default Vue.extend({
         .then((response) => {
           const key = response.data as ApiKey;
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('apiKey.table.action.edit.success', {
               id: key.id,
             }),
@@ -310,10 +310,5 @@ export default Vue.extend({
 .server-code {
   font-weight: 600;
   font-size: 14px;
-}
-
-.custom-footer {
-  border-top: thin solid rgba(0, 0, 0, 0.12); /* Matches the color of the Vuetify table line */
-  height: 16px;
 }
 </style>

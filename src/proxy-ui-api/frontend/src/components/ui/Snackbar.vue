@@ -42,11 +42,8 @@
         <div class="row-wrapper-top scrollable identifier-wrap">
           <v-icon :color="colors.Success100">icon-Checker</v-icon>
           <div class="row-wrapper">
-            <div v-if="notification.successMessageCode">
-              {{ $t(notification.successMessageCode) }}
-            </div>
-            <div v-if="notification.successMessageRaw">
-              {{ notification.successMessageRaw }}
+            <div v-if="notification.successMessage">
+              {{ $t(notification.successMessage) }}
             </div>
           </div>
           <v-btn
@@ -83,11 +80,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
-      'successMessageCode',
-      'successMessageRaw',
-      'successNotifications',
-    ]),
+    ...mapGetters(['successNotifications']),
   },
   methods: {
     closeSuccess(id: number): void {

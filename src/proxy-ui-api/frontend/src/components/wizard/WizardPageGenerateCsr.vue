@@ -29,7 +29,7 @@
       <div class="wizard-step-form-content">
         <div v-for="item in csrForm" :key="item.id" class="wizard-row-wrap">
           <div class="wizard-label">
-            {{ $t('certificateProfile.' + item.label_key) }}
+            {{ $t(`certificateProfile.${item.label_key}`) }}
           </div>
 
           <div>

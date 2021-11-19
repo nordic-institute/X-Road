@@ -266,7 +266,10 @@ export default Vue.extend({
           { address },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.certificateRegistered');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('keys.certificateRegistered'),
+          );
           this.$emit('refresh-list');
         })
         .catch((error) => {
@@ -292,7 +295,7 @@ export default Vue.extend({
           )}/csrs/${encodePathParameter(this.selectedCsr.id)}`,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.csrDeleted');
+          this.$store.dispatch('showSuccess', this.$t('keys.csrDeleted'));
           this.$emit('refresh-list');
         })
         .catch((error) => {

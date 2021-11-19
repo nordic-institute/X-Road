@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.12
-25.08.2021
+Version: 1.13
+09.11.2021
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -35,6 +35,7 @@ Date       | Version | Description                                              
 28.03.2020 | 1.10    | Added edit API key use case | Petteri Kivimäki
 01.04.2020 | 1.11    | Added notes about IP whitelists for REST API | Janne Mattila
 25.08.2021 | 1.12    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+09.11.2021 | 1.13    | Update key deletion use cases to match current implementation | Janne Mattila
 
 <!-- tocstop -->
 
@@ -83,7 +84,7 @@ Date       | Version | Description                                              
   * [3.33 UC SS\_32: Activate a Certificate](#333-uc-ss_32-activate-a-certificate)
   * [3.34 UC SS\_33: Disable a Certificate](#334-uc-ss_33-disable-a-certificate)
   * [3.35 UC SS\_34: Register an Authentication Certificate](#335-uc-ss_34-register-an-authentication-certificate)
-  * [3.36 UC SS\_35: Delete a Key from the System Configuration](#336-uc-ss_35-delete-a-key-from-the-system-configuration)
+  * [3.36 UC SS\_35: Delete a Key from the System Configuration and from a Token](#336-uc-ss_35-delete-a-key-from-the-system-configuration-and-from-a-token)
   * [3.37 UC SS\_36: Delete a Key from a Software Token](#337-uc-ss_36-delete-a-key-from-a-software-token)
   * [3.38 UC SS\_37: Delete a Key from a Hardware Token](#338-uc-ss_37-delete-a-key-from-a-hardware-token)
   * [3.39 UC SS\_38: Unregister an Authentication Certificate](#339-uc-ss_38-unregister-an-authentication-certificate)
@@ -2301,7 +2302,7 @@ certificate for the security server.
 -   The information about tokens, keys and certificates configured for
     the system is stored in the file /etc/xroad/signer/keyconf.xml.
 
-### 3.36 UC SS\_35: Delete a Key from the System Configuration
+### 3.36 UC SS\_35: Delete a Key from the System Configuration and from a Token
 
 **System**: Security server
 
@@ -2313,7 +2314,7 @@ certificate for the security server.
 
 **Brief Description**: SS administrator deletes a key including the
 associated certificates and/or certificate signing request notices, if
-there are any, from the system configuration (not from the token).
+there are any, from the system configuration, and from a token.
 
 **Preconditions**: Information about the key is saved in the system
 configuration.
@@ -2327,31 +2328,26 @@ configuration.
 1.  SS administrator selects to delete a key from the system
     configuration.
 
-2.  System verifies that there are authentication certificates that have
+2.  System checks whether the key is associated with authentication certificates that have
     registration state “registered” or “registration in progress”
-    imported for the key and prompts for confirmation to continue with
-    unregistration and deletion of associated certificates and the key
-    from server configuration.
+    imported for the key and if so, prompts for confirmation to continue with
+    unregistration and deletion of associated certificates, certificate signing request notices, and the key.
 
-3.  SS administrator confirms.
+3.  SS administrator confirms the unregistration and deletion actions.
 
 4.  System unregisters each of the authentication certificates: see
     3.43.
 
 5.  System deletes the key and the associated certificates and/or
-    certificate signing request notices from system configuration.
+    certificate signing request notices from system configuration and from token.
 
-6.  System verifies that no keys are saved in the system configuration
-    for the token holding the deleted key and deletes the token
-    information from system configuration.
-
-7.  System logs the event “Delete key from configuration” to the audit
+6.  System logs the event “Delete key from token and configuration” to the audit
     log.
 
 **Extensions**:
 
 - 2a. There are no authentication certificates that have registration state “registered” or “registration in progress” imported for the key.
-    - 2a.1. System prompts for confirmation.
+    - 2a.1. System prompts for confirmation of deletion.
     - 2a.2. SS administrator confirms.
         - 2a.2a. SS administrator terminates the use case.
     - 2a.3. Use case continues from step 5.
@@ -2362,8 +2358,6 @@ configuration.
     - 4a.1. System displays the message: “Failed to delete key: X”, where “X” is the termination message from the unregistration process.
     - 4a.2. System logs the event “Delete key failed” to the audit log.
     - 4a.3. Use case terminates.
-
-- 6a. One or more keys are saved for the token in the system configuration. Use case continues form step 7.
 
 **Related information**:
 
@@ -2402,9 +2396,9 @@ configuration.
 
 3.  SS administrator confirms.
 
-4.  System deletes the key from token.
+4.  System deletes the key and associated certificates and certificate signing request notices from token.
 
-5.  System logs the event “Delete key from token” to the audit log.
+5.  System logs the event “Delete key from token and configuration” to the audit log.
 
 **Extensions**:
 
@@ -2451,9 +2445,9 @@ token.
 
 3.  SS administrator confirms.
 
-4.  System deletes the key from the token.
+4.  System deletes the key and associated certificates and certificate signing request notices from token.
 
-5.  System logs the event “Delete key from token” to the audit log.
+5.  System logs the event “Delete key from token and configuration” to the audit log.
 
 **Extensions**:
 

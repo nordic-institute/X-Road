@@ -76,7 +76,7 @@ export default Vue.extend({
         .then(() => {
           this.$emit('restored');
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('backup.action.restore.success', {
               file: this.backup.filename,
             }),

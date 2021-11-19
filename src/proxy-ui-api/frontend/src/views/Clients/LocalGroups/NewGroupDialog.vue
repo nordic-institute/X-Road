@@ -100,7 +100,10 @@ export default Vue.extend({
           description: this.description,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', 'localGroup.localGroupAdded');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('localGroup.localGroupAdded'),
+          );
           this.$emit('group-added');
         })
         .catch((error) => {

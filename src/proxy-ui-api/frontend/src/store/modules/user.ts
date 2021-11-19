@@ -32,13 +32,12 @@ import {
   InitializationStatus,
   SecurityServer,
   TokenInitStatus,
-  VersionInfo,
+  User,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
 import { mainTabs } from '@/global';
 import routes from '@/routes';
 import i18n from '@/i18n';
-import { User } from '@/openapi-types';
 
 export interface UserState {
   authenticated: boolean;
@@ -46,7 +45,6 @@ export interface UserState {
   permissions: string[];
   username: string;
   currentSecurityServer: SecurityServer | Record<string, unknown>;
-  securityServerVersion: VersionInfo | Record<string, unknown>;
   initializationStatus: InitializationStatus | undefined;
   bannedRoutes: undefined | string[];
 }
@@ -58,7 +56,6 @@ export const getDefaultState = (): UserState => {
     permissions: [],
     username: '',
     currentSecurityServer: {},
-    securityServerVersion: {},
     initializationStatus: undefined,
     bannedRoutes: undefined, // Array for routes the user doesn't have permission to access.
   };
@@ -106,9 +103,6 @@ export const userGetters: GetterTree<UserState, RootState> = {
   },
   currentSecurityServer(state) {
     return state.currentSecurityServer;
-  },
-  securityServerVersion(state) {
-    return state.securityServerVersion;
   },
   isAnchorImported(state): boolean {
     return state.initializationStatus?.is_anchor_imported ?? false;
@@ -194,9 +188,6 @@ export const mutations: MutationTree<UserState> = {
   setCurrentSecurityServer: (state, securityServer: SecurityServer) => {
     state.currentSecurityServer = securityServer;
   },
-  setSecurityServerVersion: (state, version: VersionInfo) => {
-    state.securityServerVersion = version;
-  },
   storeInitStatus(state, status: InitializationStatus) {
     state.initializationStatus = status;
   },
@@ -259,15 +250,6 @@ export const actions: ActionTree<UserState, RootState> = {
         }
         commit('setCurrentSecurityServer', resp.data[0]);
       })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  async fetchSecurityServerVersion({ commit }) {
-    return axios
-      .get<VersionInfo>('/system/version')
-      .then((resp) => commit('setSecurityServerVersion', resp.data))
       .catch((error) => {
         throw error;
       });

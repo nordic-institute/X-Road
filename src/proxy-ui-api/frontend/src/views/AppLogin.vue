@@ -101,8 +101,8 @@
               :disabled="isDisabled"
               :loading="loading"
               @click="submit"
-              >{{ $t('login.logIn') }}</xrd-button
-            >
+              >{{ $t('login.logIn') }}
+            </xrd-button>
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -112,9 +112,10 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { RouteName, Permissions } from '@/global';
-import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import { Permissions, RouteName } from '@/global';
+import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
+import axios from 'axios';
 
 export default (
   Vue as VueConstructor<
@@ -170,13 +171,14 @@ export default (
       this.$refs.form.reset();
       this.loading = true;
 
-      this.$store.dispatch('login', loginData).then(
-        () => {
-          // Auth ok. Start phase 2 (fetch user data and current security server info).
-          this.fetchUserData();
-          this.fetchSecurityServerVersion();
-        },
-        (error) => {
+      try {
+        await this.$store.dispatch('login', loginData);
+        // Auth ok. Start phase 2 (fetch user data and current security server info).
+        await this.fetchUserData();
+        await this.fetchSecurityServerVersion();
+        await this.fetchSecurityServerNodeType();
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
           // Display invalid username/password error in inputs
           if (error?.response?.status === 401) {
             // Clear inputs
@@ -194,86 +196,89 @@ export default (
               });
             });
           }
-          this.$store.dispatch('showErrorMessageCode', 'login.generalError');
-          // Clear loading state
-          this.loading = false;
-        },
-      );
+          await this.$store.dispatch(
+            'showErrorMessage',
+            this.$t('login.generalError'),
+          );
+        } else {
+          if (error instanceof Error) {
+            await this.$store.dispatch('showError', error.message);
+          } else {
+            throw error;
+          }
+        }
+      }
+      // Clear loading state
+      this.loading = false;
     },
-    fetchUserData() {
-      this.loading = true;
-      this.$store.dispatch('fetchUserData').then(
-        () => {
-          // Check if initialization is needed
-          this.fetchInitializationData();
-        },
-        (error) => {
+    async fetchUserData() {
+      try {
+        await this.$store.dispatch('fetchUserData');
+        await this.fetchInitializationData();
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
           // Display error
-          this.$store.dispatch('showErrorMessageRaw', error.message);
-          this.loading = false;
-        },
-      );
+          await this.$store.dispatch('showErrorMessage', error.message);
+        } else {
+          throw error;
+        }
+      }
     },
 
-    fetchInitializationData() {
-      const redirectToLogin = () => {
+    async fetchInitializationData() {
+      const redirectToLogin = async () => {
         // Logout without page refresh
-        this.$store.dispatch('logout', false);
+        await this.$store.dispatch('logout', false);
         // Clear inputs
         this.username = '';
         this.password = '';
         this.$refs.form.reset();
       };
 
-      this.$store
-        .dispatch('fetchInitializationStatus')
-        .then(
-          () => {
-            if (!this.$store.getters.hasInitState) {
-              this.$store.dispatch(
-                'showErrorMessageCode',
-                'initialConfiguration.noInitializationStatus',
-              );
-              redirectToLogin();
-            } else if (this.$store.getters.needsInitialization) {
-              // Check if the user has permission to initialize the server
-              if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
-                this.$store.dispatch(
-                  'showErrorMessageCode',
-                  'initialConfiguration.noPermission',
-                );
-                redirectToLogin();
-
-                return;
-              }
-              this.$router.replace({ name: RouteName.InitialConfiguration });
-            } else {
-              this.fetchCurrentSecurityServer();
-              this.$router.replace({
-                name: this.$store.getters.firstAllowedTab.to.name,
-              });
-            }
-          },
-          (error) => {
-            // Display error
-            this.$store.dispatch('showError', error);
-          },
-        )
-        .finally(() => {
-          // Clear loading state
-          this.loading = false;
+      await this.$store.dispatch('fetchInitializationStatus');
+      if (!this.$store.getters.hasInitState) {
+        await this.$store.dispatch(
+          'showErrorMessage',
+          this.$t('initialConfiguration.noInitializationStatus'),
+        );
+        await redirectToLogin();
+      } else if (this.$store.getters.needsInitialization) {
+        // Check if the user has permission to initialize the server
+        if (!this.$store.getters.hasPermission(Permissions.INIT_CONFIG)) {
+          await redirectToLogin();
+          throw new Error(
+            this.$t('initialConfiguration.noPermission') as string,
+          );
+        }
+        await this.$router.replace({ name: RouteName.InitialConfiguration });
+      } else {
+        await this.fetchCurrentSecurityServer();
+        await this.$router.replace({
+          name: this.$store.getters.firstAllowedTab.to.name,
         });
+      }
     },
 
     async fetchCurrentSecurityServer() {
-      this.$store.dispatch('fetchCurrentSecurityServer').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      try {
+        await this.$store.dispatch('fetchCurrentSecurityServer');
+      } catch (error) {
+        await this.$store.dispatch('showError', error);
+      }
     },
     async fetchSecurityServerVersion() {
-      this.$store
-        .dispatch('fetchSecurityServerVersion')
-        .catch((error) => this.$store.dispatch('showError', error));
+      try {
+        await this.$store.dispatch('fetchSecurityServerVersion');
+      } catch (error) {
+        await this.$store.dispatch('showError', error);
+      }
+    },
+    async fetchSecurityServerNodeType() {
+      try {
+        await this.$store.dispatch('fetchSecurityServerNodeType');
+      } catch (error) {
+        await this.$store.dispatch('showError', error);
+      }
     },
   },
 });
@@ -291,6 +296,7 @@ export default (
   z-index: 100;
   position: absolute;
 }
+
 .graphics {
   height: 100%;
   width: 40%;

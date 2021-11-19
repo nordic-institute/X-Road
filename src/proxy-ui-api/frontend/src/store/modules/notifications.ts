@@ -78,11 +78,7 @@ function containsNotification(
       return false;
     }
 
-    if (notification?.errorMessageRaw !== e?.errorMessageRaw) {
-      return false;
-    }
-
-    if (notification?.errorMessageCode !== e?.errorMessageCode) {
+    if (notification?.errorMessage !== e?.errorMessage) {
       return false;
     }
 
@@ -138,24 +134,14 @@ export const mutations: MutationTree<NotificationsState> = {
   resetNotificationsState(state): void {
     Object.assign(state, getDefaultState());
   },
-  setSuccessCode(state: NotificationsState, val: string): void {
+  setSuccess(state: NotificationsState, val: string): void {
     const notification = createEmptyNotification(3000);
-    notification.successMessageCode = val;
+    notification.successMessage = val;
     state.successNotifications.push(notification);
   },
-  setSuccessRaw(state: NotificationsState, val: string): void {
-    const notification = createEmptyNotification(3000);
-    notification.successMessageRaw = val;
-    state.successNotifications.push(notification);
-  },
-  setErrorMessageCode(state: NotificationsState, val: string): void {
+  setErrorMessage(state: NotificationsState, val: string): void {
     const notification = createEmptyNotification(-1);
-    notification.errorMessageCode = val;
-    addErrorNotification(state, notification);
-  },
-  setErrorMessageRaw(state: NotificationsState, val: string): void {
-    const notification = createEmptyNotification(-1);
-    notification.errorMessageRaw = val;
+    notification.errorMessage = val;
     addErrorNotification(state, notification);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -196,21 +182,13 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     // Clear the store state
     commit('resetNotificationsState');
   },
-  showSuccess({ commit }, localisationCode: string): void {
-    // Show success snackbar with a localisation code for text
-    commit('setSuccessCode', localisationCode);
-  },
-  showSuccessRaw({ commit }, messageText: string): void {
+  showSuccess({ commit }, messageText: string): void {
     // Show success snackbar without localisation
-    commit('setSuccessRaw', messageText);
+    commit('setSuccess', messageText);
   },
-  showErrorMessageCode({ commit }, localisationCode: string): void {
-    // Show error snackbar with a localisation code for text
-    commit('setErrorMessageCode', localisationCode);
-  },
-  showErrorMessageRaw({ commit }, messageText: string): void {
+  showErrorMessage({ commit }, messageText: string): void {
     // Show error snackbar without localisation
-    commit('setErrorMessageRaw', messageText);
+    commit('setErrorMessage', messageText);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   showError({ commit }, errorObject: any): void {

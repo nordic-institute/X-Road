@@ -152,7 +152,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'endpoints.saveNewEndpointSuccess',
+            this.$t('endpoints.saveNewEndpointSuccess'),
           );
         })
         .catch((error) => {

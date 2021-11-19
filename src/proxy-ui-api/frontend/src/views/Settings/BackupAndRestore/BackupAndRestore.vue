@@ -157,7 +157,7 @@ export default Vue.extend({
         .post<Backup>('/backups', null)
         .then((resp) => {
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('backup.backupConfiguration.message.success', {
               file: resp.data.filename,
             }),
@@ -174,7 +174,7 @@ export default Vue.extend({
         .then(() => {
           this.fetchData();
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('backup.uploadBackup.success', {
               file: this.uploadedFile?.name,
             }),
@@ -205,7 +205,7 @@ export default Vue.extend({
         .then(() => {
           this.fetchData();
           this.$store.dispatch(
-            'showSuccessRaw',
+            'showSuccess',
             this.$t('backup.uploadBackup.success', {
               file: this.uploadedFile?.name,
             }),

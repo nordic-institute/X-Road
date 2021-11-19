@@ -90,7 +90,9 @@ export default Vue.extend({
           this.$emit('deleted');
           this.$store.dispatch(
             'showSuccess',
-            'systemParameters.timestampingServices.table.action.delete.success',
+            this.$t(
+              'systemParameters.timestampingServices.table.action.delete.success',
+            ),
           );
         })
         .catch((error) => this.$store.dispatch('showError', error));

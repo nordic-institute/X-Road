@@ -35,6 +35,7 @@ import { addClientModule } from './modules/addClient';
 import { csrModule } from './modules/certificateSignRequest';
 import { module as notificationsModule } from './modules/notifications';
 import { user } from './modules/user';
+import { system } from './modules/system';
 import { module as initServer } from './modules/initializeServer';
 import { alertsModule } from '@/store/modules/alerts';
 import VuexPersistence from 'vuex-persist';
@@ -43,7 +44,7 @@ Vue.use(Vuex);
 
 const vuexLocal = new VuexPersistence({
   storage: window.localStorage,
-  modules: ['user'],
+  modules: ['user', 'system'],
 });
 
 const store: StoreOptions<RootState> = {
@@ -62,6 +63,7 @@ const store: StoreOptions<RootState> = {
     notificationsModule,
     initServer,
     alertsModule,
+    system,
   },
   plugins: [vuexLocal.plugin],
 };

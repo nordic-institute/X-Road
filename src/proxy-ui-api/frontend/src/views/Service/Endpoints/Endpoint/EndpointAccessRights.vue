@@ -103,7 +103,7 @@
       :dialog="addSubjectsDialogVisible"
       :existing-service-clients="serviceClients"
       :client-id="clientId"
-      title="accessRights.addServiceClientsTitle"
+      :title="$t('accessRights.addServiceClientsTitle')"
       @cancel="toggleAddServiceClientsDialog"
       @service-clients-added="doAddServiceClients"
     />
@@ -206,7 +206,7 @@ export default Vue.extend({
         .then(() => {
           this.$store.dispatch(
             'showSuccess',
-            'accessRights.removeSubjectsSuccess',
+            this.$t('accessRights.removeSuccess'),
           );
           this.fetchData();
         })
@@ -228,7 +228,7 @@ export default Vue.extend({
         .then((accessRights) => {
           this.$store.dispatch(
             'showSuccess',
-            'accessRights.addSubjectsSuccess',
+            this.$t('accessRights.addSubjectsSuccess'),
           );
           this.serviceClients = accessRights.data;
         })
