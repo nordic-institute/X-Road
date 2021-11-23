@@ -1639,6 +1639,34 @@
     "1005534|@vue/cli-plugin-unit-jest>ts-jest>yargs-parser": {
       "decision": "ignore",
       "madeAt": 1637253760133
+    },
+    "1006724|@vue/cli-plugin-babel>@vue/cli-shared-utils>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
+    },
+    "1006724|@vue/cli-service>@vue/cli-plugin-router>@vue/cli-shared-utils>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
+    },
+    "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
+    },
+    "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
+    },
+    "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
+    },
+    "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>@jest/reporters>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
+    },
+    "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
+      "decision": "ignore",
+      "madeAt": 1637667402959
     }
   },
   "rules": {},
