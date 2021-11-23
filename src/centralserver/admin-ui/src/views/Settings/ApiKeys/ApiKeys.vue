@@ -189,17 +189,17 @@ export default Vue.extend({
   computed: {
     canCreateApiKey(): boolean {
       return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-        Permissions.MOCK_PERMISSION1,
+        Permissions.CREATE_API_KEY,
       );
     },
     canEdit(): boolean {
       return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-        Permissions.MOCK_PERMISSION1,
+        Permissions.UPDATE_API_KEY,
       );
     },
     canRevoke(): boolean {
       return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-        Permissions.MOCK_PERMISSION1,
+        Permissions.REVOKE_API_KEY,
       );
     },
     headers(): DataTableHeader[] {

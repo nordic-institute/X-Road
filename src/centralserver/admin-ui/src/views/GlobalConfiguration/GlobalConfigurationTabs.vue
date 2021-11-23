@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, StoreTypes } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 
@@ -57,7 +57,7 @@ export default Vue.extend({
           to: {
             name: RouteName.InternalConfiguration,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE],
         },
         {
           key: 'external-conf',
@@ -65,7 +65,7 @@ export default Vue.extend({
           to: {
             name: RouteName.ExternalConfiguration,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE],
         },
         {
           key: 'trusted-anchors',
@@ -73,10 +73,10 @@ export default Vue.extend({
           to: {
             name: RouteName.TrustedAnchors,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [Permissions.VIEW_TRUSTED_ANCHORS],
         },
       ];
-      return allTabs; // needs to be filtered with permissions
+      return this.$store.getters[StoreTypes.getters.GET_ALLOWED_TABS](allTabs);
     },
   },
 });

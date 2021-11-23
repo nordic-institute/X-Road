@@ -26,16 +26,16 @@
 <template>
   <div>
     <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact>{{
-        $t(tab.name)
-      }}</v-tab>
+      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact
+        >{{ $t(tab.name) }}
+      </v-tab>
     </sub-tabs>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { Permissions, RouteName, StoreTypes } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 
@@ -57,7 +57,10 @@ export default Vue.extend({
           to: {
             name: RouteName.GlobalResources,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [
+            Permissions.VIEW_GLOBAL_GROUPS,
+            Permissions.VIEW_SECURITY_SERVERS,
+          ],
         },
         {
           key: 'system',
@@ -65,7 +68,7 @@ export default Vue.extend({
           to: {
             name: RouteName.SystemSettings,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
         },
         {
           key: 'backup',
@@ -73,7 +76,7 @@ export default Vue.extend({
           to: {
             name: RouteName.BackupAndRestore,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [Permissions.BACKUP_CONFIGURATION],
         },
         {
           key: 'apikeys',
@@ -81,10 +84,14 @@ export default Vue.extend({
           to: {
             name: RouteName.ApiKeys,
           },
-          permissions: [Permissions.MOCK_PERMISSION1],
+          permissions: [
+            Permissions.VIEW_API_KEYS,
+            Permissions.CREATE_API_KEY,
+            Permissions.REVOKE_API_KEY,
+          ],
         },
       ];
-      return allTabs; // needs to be filtered with permissions
+      return this.$store.getters[StoreTypes.getters.GET_ALLOWED_TABS](allTabs);
     },
   },
 });
