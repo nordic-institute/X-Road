@@ -188,18 +188,18 @@ Requirements for software and settings:
 ### 2.5 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-```
+```bash
 curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
-```
+```bash
 sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 ```
 
 **This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
 
-```
+```bash
 curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
 sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
 ```
@@ -209,12 +209,12 @@ sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $
 *This is an optional step.* 
 
 Optionally, the central server can use a remote database server. To avoid installing the default local PostgreSQL server during the installation, first install the `xroad-database-remote` -package.
-```
+```bash
 sudo apt install xroad-database-remote
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
-```
+```bash
 psql --version
 psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
 
@@ -227,14 +227,14 @@ The installer can create the database and users for you, but you need to create 
 For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
 
 Create the property file:
-```
+```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
 sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
-```
+```properties
 postgres.connection.password = <database superuser password>
 postgres.connection.user = <database superuser name, postgres by default>
 ```
@@ -244,25 +244,25 @@ Note. If Microsoft Azure database for PostgreSQL is used, the connection user ne
 For additional security, the `postgresql.connection.*` properties can be removed from the `/etc/xroad.properties` file after installation (keep the other properties added by the installer).
 
 Before continuing, test that the connection to the database works, e.g.
-```
+```bash
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
 
 ### 2.7 Package Installation
 
 Update package repository metadata:
-```
+```bash
 sudo apt update
 ```
 
 If using the AdoptOpenJDK Java distribution, install the Java runtime environment and set it as the default java:
-```
+```bash
 sudo apt install adoptopenjdk-8-hotspot-jre
 sudo update-java-alternatives -s adoptopenjdk-8-hotspot-jre-amd64
 ```
 
 Issue the following commands to install the central server packages:
-```
+```bash
 sudo apt-get update
 sudo apt-get install xroad-centralserver
 ```
@@ -342,7 +342,7 @@ The installation is successful if the system services are started and the user i
 -   Ensure from the command line that relevant X-Road services are in the `running` state (example output follows). Notice that it is normal for the xroad-confclient to be in `stopped` state on the central server since it operates in one-shot mode.
 
     - Ubuntu 18.04 or 20.04
-        ```
+        ```bash
         sudo systemctl list-units "xroad*"
 
         UNIT                     LOAD   ACTIVE SUB     DESCRIPTION
@@ -485,7 +485,7 @@ Upgrading the packages from the current version to the target version is not sup
 
 For example, the following central server packages are currently installed.
 
-```
+```bash
 root@test-cs:~# dpkg -l | grep xroad
 ii  xroad-base                      7.0.0-1.ubuntu18.04 amd64        X-Road base components
 ii  xroad-center                    7.0.0-1.ubuntu18.04 all          X-Road central server
@@ -500,7 +500,7 @@ ii  xroad-signer                    7.0.0-1.ubuntu18.04 amd64        X-Road sign
 
 The following packages are available in the repository.
 
-```
+```bash
 root@test-cs:~# apt-cache madison xroad-centralserver
 xroad-centralserver | 7.3.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
 xroad-centralserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
@@ -508,7 +508,7 @@ xroad-centralserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-r
 
 Now trying to upgrade the central server packages directly will produce the following error.
 
-```
+```bash
 root@test-cs:~# apt-get upgrade xroad-centralserver
 ...
 Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu18.04_all.deb ...
@@ -517,7 +517,7 @@ ERROR: Upgrade supported from version 7.1.0 or newer
 
 The fix is to upgrade the central server in two separate steps. First, upgrade to 7.1.x with the following command.
 
-```
+```bash
 apt install xroad-base=7.1.0-1.ubuntu18.04 xroad-center=7.1.0-1.ubuntu18.04 xroad-centralserver=7.1.0-1.ubuntu18.04 xroad-centralserver-monitoring=7.1.0-1.ubuntu18.04 xroad-confclient=7.1.0-1.ubuntu18.04 xroad-database-local=7.1.0-1.ubuntu18.04 xroad-jetty9=7.1.0-1.ubuntu18.04 xroad-nginx=7.1.0-1.ubuntu18.04 xroad-signer=7.1.0-1.ubuntu18.04
 ```
 
@@ -525,7 +525,7 @@ An alternative approach to the previous command is to temporarily configure the 
 
 Finally, we can upgrade to our target version 7.3.x as follows.
 
-```
+```bash
 apt upgrade xroad-centralserver
 ```
 
@@ -533,7 +533,7 @@ apt upgrade xroad-centralserver
 
 `/etc/xroad/db.properties`
 
-```
+```properties
 adapter=postgresql
 encoding=utf8
 username=centerui
@@ -605,13 +605,13 @@ The following table lists a summary of the central server deployment options and
 
 Login to the database server as the superuser (`postgres` by default).
 
-```
+```bash
 psql -h <database host> -U <superuser> -d postgres
 ```
 
 Run the following commands to create the necessary database structures and roles.
 
-```
+```sql
 CREATE DATABASE <database name> ENCODING 'UTF8';
 REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
 CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
@@ -625,7 +625,7 @@ GRANT USAGE ON SCHEMA public to <database user>;
 ```
 
 Create the `/etc/xroad/db.properties` file
-```
+```bash
 sudo mkdir /etc/xroad
 sudo chown xroad:xroad /etc/xroad
 sudo chmod 751 /etc/xroad
@@ -636,7 +636,7 @@ sudo chown xroad:xroad /etc/xroad/db.properties
 
 Edit `/etc/xroad/db.properties` to match the values used when creating the database (the default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)).
 
-```
+```properties
 adapter=postgresql
 encoding=utf8
 username=<database user>
@@ -659,19 +659,19 @@ To run the database migrations manually, follow the next steps.
 
 2. Ensure that the central server user interface process is stopped.
 
-```
+```bash
 systemctl stop xroad-jetty
 ```
 
 3. Run the database migrations.
 
-```
+```bash
 /usr/share/xroad/db/migrate.sh db:migrate
 ```
 
 4. Start the services, if they are not yet running.
 
-```
+```bash
 systemctl start xroad-signer nginx xroad-jetty
 ```
 

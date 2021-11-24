@@ -1660,7 +1660,7 @@ When encryption is switched on, the implementation expects to find the keystore 
 
 For example, add the following to `/etc/xroad/conf.d/local.ini`:
 
-```
+```ini
 [message-log]
 messagelog-encryption-enabled=true
 messagelog-keystore=/etc/xroad/messagelog/messagelog.p12
@@ -1670,7 +1670,7 @@ messagelog-key-id=key1
 
 Create the password store and import a key:
 
-```
+```bash
 keytool -keystore /etc/xroad/messagelog/messagelog.p12 -storetype pkcs12 -importpassword -alias key1
 ```
 
@@ -1757,23 +1757,23 @@ In case `archive-grouping` is `member` or `subsystem`, gpg keys defined in file 
 Warning. The archiving process fails if a required key is not present in the gpg keyring. Therefore, it is important to verify that the mappings are correct.
 
 For example, generate a keypair for encryption with defaults and no expiration and export the public key:
-```
+```bash
 gpg [--homedir <member gpghome>] --quick-generate-key INSTANCE/memberClass/memberCode default default never
 gpg [--homedir <member gpghome>] --export INSTANCE/memberClass/memberCode >INSTANCE-memberClass-memberCode.pgp
 ```
 
 Import the public key to the gpg keyring in `archive-gpg-home-directory` and take note of the key id.
-```
+```bash
 gpg --homedir <archive-gpg-home-directory> --import INSTANCE-memberClass-memberCode.pgp
 ```
 
 Add the mapping to `archive-encryption-keys-config` file (mappings can be edited without restarting X-Road services), e.g.:
-```
+```bash
 INSTANCE/memberClass/memberCode = 96F20FF6578A5EF90DFBA18D8C003019508B5637
 ```
 
 To decrypt the encrypted archives, use the following syntax:
-```
+```bash
 gpg [--homedir <gpghome>] --decrypt <archive name> --output <output file name>
 ```
 
@@ -2032,7 +2032,7 @@ automatically removed from the server. If needed, the automatic backup policies 
 Backups are always signed, but backup encryption is initially turned off. To turn encryption on, please override the
 default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
 
-```
+```ini
 [proxy]
 
 backup-encryption-enabled = true
@@ -2355,19 +2355,19 @@ be restarted (in that order) for any setting changes to take effect.
 Below are some examples for `/etc/xroad/conf.d/local.ini`.
 
 To allow federation with all offered X-Road instances:
-```
+```ini
 [configuration-client]
 allowed-federations=all
 ```
 
 To allow federation with specific instances `xe-test` and `ee-test`:
-```
+```ini
 [configuration-client]
 allowed-federations=xe-test,ee-test
 ```
 
 To disable federation, just remove the `allowed-federations` system parameter entirely or use:
-```
+```ini
 [configuration-client]
 allowed-federations=none
 ```
@@ -2375,12 +2375,12 @@ allowed-federations=none
 Please note that if the keyword `all` is present in the comma-separated list, it will override the single allowed
 instances. The keyword `none` will override all other values. This means that the following setting will allow all
 federations:
-```
+```ini
 [configuration-client]
 allowed-federations=xe-test, all, ee-test
 ```
 And the following will allow none:
-```
+```ini
 [configuration-client]
 allowed-federations=xe-test, all, none, ee-test
 ```
@@ -2423,7 +2423,7 @@ for example `5MB`.
 New command line arguments can be added, not replaced, using the configuration file `local.properties`.
 Example of `/etc/xroad/services/local.properties` with modifications:
 
-```
+```properties
 XROAD_PROXY_UI_API_PARAMS=-Dratelimit.requests.per.second=100 -Drequest.sizelimit.binary.upload=1MB
 ```
 
@@ -2444,7 +2444,7 @@ A new API key is created with a `POST` request to `/api/v1/api-keys`. Message bo
 associated with the key. Server responds with data that contains the actual API key. After this point the key
 cannot be retrieved, as it is not stored in plaintext.
 
-```
+```bash
 curl -X POST -u <user>:<password> https://localhost:4000/api/v1/api-keys --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "roles": [
@@ -2463,7 +2463,7 @@ In this example the created key was `23bc57cd-b1ba-4702-9657-8d53e335c843`.
 
 Existing API keys can be listed with a `GET` request to `/api/v1/api-keys`. This lists all keys, regardless of who has created them.
 
-```
+```bash
 curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
 [
   {
@@ -2482,7 +2482,7 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys -k
 
 You can also retrieve a single API key with a `GET` request to `/api/v1/api-keys/{id}`.
 
-```
+```bash
 curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys/59 -k
 {
   "id": 59,
@@ -2500,7 +2500,7 @@ curl -X GET -u <user>:<password> https://localhost:4000/api/v1/api-keys/59 -k
 An existing API key is updated with a `PUT` request to `/api/v1/api-keys/{id}`. Message body must contain the roles to be
 associated with the key. Server responds with data that contains the key id and roles associated with the key.
 
-```
+```bash
 curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-keys/60 --data '["XROAD_SECURITYSERVER_OBSERVER","XROAD_REGISTRATION_OFFICER"]' --header "Content-Type: application/json" -k
 {
   "id": 60,
@@ -2517,7 +2517,7 @@ curl -X PUT -u <user>:<password> https://localhost:4000/api/v1/api-keys/60 --dat
 An API key can be revoked with a `DELETE` request to `/api/v1/api-keys/{id}`. Server responds with `HTTP 200` if
 revocation was successful and `HTTP 404` if key did not exist.
 
-```
+```bash
 curl -X DELETE -u <user>:<password> https://localhost:4000/api/v1/api-keys/60  -k
 
 ```
@@ -2543,7 +2543,7 @@ operations are executed).
 Once a valid API key has been created, it is used by providing an `Authorization: X-Road-ApiKey token=<api key>` HTTP
 header in the REST calls. For example
 
-```
+```bash
 curl --header "Authorization: X-Road-ApiKey token=ff6f55a8-cc63-4e83-aa4c-55f99dc77bbf" "https://localhost:4000/api/v1/clients" -k
 [
   {
@@ -2638,7 +2638,7 @@ Error response with warnings always contains the error code `warnings_detected`.
 Like errors, warnings contain an identifier (code) and possibly some metadata.
 
 Warning example when trying to register a WSDL that produces non-fatal validation warnings: 
-```
+```json
 {
   "status": 400,
   "error": {
@@ -2663,13 +2663,13 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 1. Shutdown X-Road processes.
 
-    ```
+    ```bash
     systemctl stop "xroad*"
     ```
 
 2. Dump the local databases to be migrated. You can find the passwords of users `serverconf`, `messagelog` and `opmonitor` in `/etc/xroad/db.properties`. Notice that the versions of the local PostgreSQL client and remote PostgreSQL server must match. Also take into account that on a busy system the messagelog database can be quite large and therefore dump and restore can take considerable amount of time and disk space.
 
-    ```
+    ```bash
     pg_dump -F t -h 127.0.0.1 -p 5432 -U serverconf -f serverconf.dat serverconf
     pg_dump -F t -h 127.0.0.1 -p 5432 -U messagelog -f messagelog.dat messagelog
     pg_dump -F t -h 127.0.0.1 -p 5432 -U opmonitor_admin -f op-monitor.dat op-monitor
@@ -2677,14 +2677,14 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 3. Shut down and mask local `postgresql` so it won't start when `xroad-proxy` starts.
 
-    ```
+    ```bash
     systemctl stop postgresql
     systemctl mask postgresql
     ```
 
 4. Connect to the remote database server as the superuser `postgres` and create roles, databases and access permissions as follows. Note that the line `GRANT serverconf to postgres` is AWS RDS specific and not necessary if the `postgres` user is a true super-user.
 
-    ```
+    ```bash
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
     CREATE ROLE serverconf LOGIN PASSWORD '<serverconf-password>';
     GRANT serverconf to postgres;
@@ -2706,7 +2706,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 5. Restore the database dumps on the remote database host.
 
-    ```
+    ```bash
     pg_restore -h <remote-db-url> -p <remote-db-port> -U serverconf -O -n public -1 -d serverconf serverconf.dat
     pg_restore -h <remote-db-url> -p <remote-db-port> -U messagelog -O -n public -1 -d messagelog messagelog.dat
     pg_restore -h <remote-db-url> -p <remote-db-port> -U opmonitor_admin -O -n public -1 -d op-monitor op-monitor.dat
@@ -2714,7 +2714,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 6. Create properties file `/etc/xroad.properties` containing the superuser password.
 
-    ```
+    ```bash
     sudo touch /etc/xroad.properties
     sudo chown root:root /etc/xroad.properties
     sudo chmod 600 /etc/xroad.properties
@@ -2722,7 +2722,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 7. Edit `/etc/xroad.properties`.
 
-    ```
+    ```properties
     postgres.connection.password = <postgres-password>
     op-monitor.database.admin_password = <opmonitor_admin-password>
     serverconf.database.initialized = true
@@ -2732,7 +2732,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
-    ```
+    ```properties
     serverconf.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/serverconf
     messagelog.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/messagelog
     op-monitor.hibernate.connection.url = jdbc:postgresql://<remote-db-url>:<remote-db-port>/op-monitor
@@ -2743,7 +2743,7 @@ Since version `6.22.0` Security Server supports using remote databases. In case 
 
 9. Start again the X-Road services.
 
-    ```
+    ```bash
     systemctl start "xroad*"
     ```
 
@@ -2753,7 +2753,7 @@ If you need to add command line arguments for the Security Server, for example i
 
 Example of `/etc/xroad/services/local.properties` with modifications that override the default Java memory parameters:
 
-```
+```properties
 XROAD_PROXY_PARAMS=-Xms150m -Xmx1024m
 ```
 

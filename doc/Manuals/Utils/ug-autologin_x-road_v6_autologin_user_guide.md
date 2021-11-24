@@ -54,7 +54,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
     * 0 if it was able to fetch PIN code successfully
     * 127 if it was not able to fetch PIN code, but this is not an actual error that should cause the service to fail (default implementation uses this if `/etc/xroad/autologin` does not exist)
     * other exit codes in error situations that should cause the service to fail
-  ```shell
+  ```bash
   #!/bin/bash
   PIN_CODE=$(curl https://some-address)
   echo "${PIN_CODE}"
