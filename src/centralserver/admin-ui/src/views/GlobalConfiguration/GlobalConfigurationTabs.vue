@@ -25,10 +25,15 @@
  -->
 <template>
   <div>
-    <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact>{{
-        $t(tab.name)
-      }}</v-tab>
+    <sub-tabs>
+      <v-tab
+        v-for="tab in tabs"
+        :key="tab.key"
+        :to="tab.to"
+        :data-test="tab.key"
+        exact-path
+        >{{ $t(tab.name) }}
+      </v-tab>
     </sub-tabs>
   </div>
 </template>
@@ -43,16 +48,11 @@ export default Vue.extend({
   components: {
     SubTabs,
   },
-  data() {
-    return {
-      currentTab: null,
-    };
-  },
   computed: {
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
-          key: 'internal-conf',
+          key: 'internal-conf-tab-button',
           name: 'tab.globalConf.internalConf',
           to: {
             name: RouteName.InternalConfiguration,
@@ -60,7 +60,7 @@ export default Vue.extend({
           permissions: [Permissions.VIEW_INTERNAL_CONFIGURATION_SOURCE],
         },
         {
-          key: 'external-conf',
+          key: 'external-conf-tab-button',
           name: 'tab.globalConf.externalConf',
           to: {
             name: RouteName.ExternalConfiguration,
@@ -68,7 +68,7 @@ export default Vue.extend({
           permissions: [Permissions.VIEW_EXTERNAL_CONFIGURATION_SOURCE],
         },
         {
-          key: 'trusted-anchors',
+          key: 'trusted-anchors-tab-button',
           name: 'tab.globalConf.trustedAnchors',
           to: {
             name: RouteName.TrustedAnchors,

@@ -29,17 +29,11 @@ import org.niis.xroad.centralserver.restapi.config.AbstractFacadeMockingTestCont
 import org.springframework.boot.test.context.SpringBootTest;
 
 /**
- * Base for all api controller tests that need mocked beans in the application context. All api controller
- * test classes inheriting this will share the same mock bean configuration, and have a common
+ * Base for all TestRestTemplate based API tests that need servlet features in the application context. All
+ * test classes inheriting this will share the same SpringBootTest config, and have a common
  * Spring Application Context therefore drastically reducing the execution time of the tests.
  *
- * Service layer mocking strategy varies
- * - real implementations are used for services not defined as @MockBean or @SpyBean here
- * - mocks are always used for services defined as @MockBeans
- * - mocking depends on a case by case basis when @SpyBean is used. Some tests use 100% real implementation, others
- * mock some parts
- *
- * Mocks the usual untestable facades (such as SignerProxyService) via {@link AbstractFacadeMockingTestContext}
+ * Mocks the usual untestable facades (such as SignerProxyFacade) via {@link AbstractFacadeMockingTestContext}
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class AbstractApiRestTemplateTestContext extends AbstractFacadeMockingTestContext {

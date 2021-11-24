@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <xrd-sub-view-container>
+  <div>
     <!-- Title  -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -258,7 +258,7 @@
         <div class="custom-footer"></div>
       </template>
     </v-data-table>
-  </xrd-sub-view-container>
+  </div>
 </template>
 
 <script lang="ts">

@@ -29,7 +29,7 @@
     <TabsBase />
     <AlertsContainer />
     <v-container>
-      <div class="xrd-view-title pt-6">{{ $t('404') }}</div>
+      <div class="xrd-view-title pt-6">{{ $t('404.pageNotFound') }}</div>
       <v-card flat class="xrd-card custom-card">
         <v-card-text>
           <div class="content-wrap">
@@ -42,8 +42,8 @@
             ></v-img>
 
             <div class="unicorn-text">
-              {{ $t('404text') }}
-              <span class="unicorn-gradient">{{ $t('404textUnicorn') }}</span>
+              {{ $t('404.text') }}
+              <span class="unicorn-gradient">{{ $t('404.textUnicorn') }}</span>
             </div>
             <xrd-button
               test-data="error-404-button"

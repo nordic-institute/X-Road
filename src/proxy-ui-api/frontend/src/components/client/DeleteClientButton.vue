@@ -83,7 +83,10 @@ export default Vue.extend({
       this.deleteLoading = true;
       api.remove(`/clients/${encodePathParameter(this.id)}`).then(
         () => {
-          this.$store.dispatch('showSuccess', 'client.action.delete.success');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('client.action.delete.success'),
+          );
           this.checkOrphans();
         },
         (error) => {
@@ -124,7 +127,7 @@ export default Vue.extend({
           () => {
             this.$store.dispatch(
               'showSuccess',
-              'client.action.removeOrphans.success',
+              this.$t('client.action.removeOrphans.success'),
             );
           },
           (error) => {

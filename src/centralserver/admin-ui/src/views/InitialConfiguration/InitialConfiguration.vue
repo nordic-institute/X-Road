@@ -194,7 +194,7 @@ function getTranslatedFieldErrors(
   fieldName: string,
   fieldError: Record<string, string[]>,
 ): string[] {
-  let errors: string[] = fieldError[fieldName];
+  const errors: string[] = fieldError[fieldName];
   if (errors) {
     return errors.map((errorKey: string) => {
       return i18n.t(`validationError.${errorKey}Field`).toString();
@@ -245,7 +245,7 @@ export default (
   },
   computed: {},
   created: function () {
-    let statusAtFirst: InitializationStatus =
+    const statusAtFirst: InitializationStatus =
       this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
         ?.initialization_status;
 
@@ -268,7 +268,6 @@ export default (
   methods: {
     async submit() {
       // validate inputs
-
       const formData: InitialServerConf = {};
       if (!this.disabledFields.instanceIdentifier) {
         formData.instance_identifier = this.instanceIdentifier;
@@ -291,16 +290,15 @@ export default (
               .catch(swallowRedirectedNavigationError);
           },
           (error: AxiosError) => {
-            let errorInfo: ErrorInfo = error.response?.data || { status: 0 };
-
+            const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
             if (isFieldError(errorInfo)) {
-              let fieldErrors = errorInfo.error?.validation_errors;
+              const fieldErrors = errorInfo.error?.validation_errors;
               if (fieldErrors) {
-                let identifierErrors: string[] = getTranslatedFieldErrors(
+                const identifierErrors: string[] = getTranslatedFieldErrors(
                   'initialServerConf.instanceIdentifier',
                   fieldErrors,
                 );
-                let addressErrors: string[] = getTranslatedFieldErrors(
+                const addressErrors: string[] = getTranslatedFieldErrors(
                   'initialServerConf.centralServerAddress',
                   fieldErrors,
                 );
@@ -313,6 +311,10 @@ export default (
               return;
             }
             if (invalidParamsErrors(errorInfo).length > 0) {
+              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              return;
+            }
+            if (isWeakPinError(errorInfo)) {
               this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
               return;
             }
@@ -330,10 +332,15 @@ export default (
         });
 
       function isFieldError(error: ErrorInfo) {
-        let errorStatus = error.status;
+        const errorStatus = error.status;
         return (
           400 === errorStatus && 'validation_failure' === error?.error?.code
         );
+      }
+
+      function isWeakPinError(error: ErrorInfo) {
+        const errorStatus = error.status;
+        return 400 === errorStatus && 'weak_pin' === error?.error?.code;
       }
     },
   },

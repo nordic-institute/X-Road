@@ -135,8 +135,8 @@
     </ValidationObserver>
 
     <SelectClientDialog
-      title="wizard.addSubsystemTitle"
-      search-label="wizard.subsystem.searchLabel"
+      :title="$t('wizard.addSubsystemTitle')"
+      :search-label="$t('wizard.subsystem.searchLabel')"
       :dialog="showSelectClient"
       :selectable-clients="selectableSubsystems"
       @cancel="showSelectClient = false"
@@ -236,7 +236,7 @@ export default Vue.extend({
           this.submitLoading = false;
           this.$store.dispatch(
             'showSuccess',
-            'wizard.subsystem.subsystemAdded',
+            this.$t('wizard.subsystem.subsystemAdded'),
           );
           if (this.registerChecked) {
             this.confirmRegisterClient = true;
@@ -264,7 +264,7 @@ export default Vue.extend({
         () => {
           this.$store.dispatch(
             'showSuccess',
-            'wizard.subsystem.subsystemAdded',
+            this.$t('wizard.subsystem.subsystemAdded'),
           );
           this.exitView();
         },

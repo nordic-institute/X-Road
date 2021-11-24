@@ -25,10 +25,15 @@
  -->
 <template>
   <div>
-    <sub-tabs :tab="currentTab">
-      <v-tab v-for="tab in tabs" :key="tab.key" :to="tab.to" exact
-        >{{ $t(tab.name) }}
-      </v-tab>
+    <sub-tabs>
+      <v-tab
+        v-for="tab in tabs"
+        :key="tab.key"
+        :to="tab.to"
+        :data-test="tab.key"
+        exact-path
+        >{{ $t(tab.name) }}</v-tab
+      >
     </sub-tabs>
   </div>
 </template>
@@ -43,16 +48,11 @@ export default Vue.extend({
   components: {
     SubTabs,
   },
-  data() {
-    return {
-      currentTab: undefined as undefined | Tab,
-    };
-  },
   computed: {
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
-          key: 'globalResources',
+          key: 'globalresources-tab-button',
           name: 'tab.settings.globalResources',
           to: {
             name: RouteName.GlobalResources,
@@ -63,7 +63,7 @@ export default Vue.extend({
           ],
         },
         {
-          key: 'system',
+          key: 'systemsettings-tab-button',
           name: 'tab.settings.systemSettings',
           to: {
             name: RouteName.SystemSettings,
@@ -71,7 +71,7 @@ export default Vue.extend({
           permissions: [Permissions.VIEW_SYSTEM_SETTINGS],
         },
         {
-          key: 'backup',
+          key: 'backupandrestore-tab-button',
           name: 'tab.settings.backupAndRestore',
           to: {
             name: RouteName.BackupAndRestore,
@@ -79,7 +79,7 @@ export default Vue.extend({
           permissions: [Permissions.BACKUP_CONFIGURATION],
         },
         {
-          key: 'apikeys',
+          key: 'apikeys-tab-button',
           name: 'tab.settings.apiKeys',
           to: {
             name: RouteName.ApiKeys,

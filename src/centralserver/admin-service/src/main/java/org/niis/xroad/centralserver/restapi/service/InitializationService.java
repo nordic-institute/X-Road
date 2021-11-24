@@ -83,7 +83,7 @@ import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_METADATA_SE
 @RequiredArgsConstructor
 public class InitializationService {
 
-    private final SignerProxyFacade signerProxyService;
+    private final SignerProxyFacade signerProxyFacade;
     private final GlobalGroupRepository globalGroupRepository;
     private final SystemParameterService systemParameterService;
     private final TokenPinValidator tokenPinValidator;
@@ -168,7 +168,7 @@ public class InitializationService {
 
         if (!isSWTokenInitialized) {
             try {
-                signerProxyService.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
+                signerProxyFacade.initSoftwareToken(configDto.getSoftwareTokenPin().toCharArray());
             } catch (Exception e) {
                 if (e instanceof CodedException
                         && ((CodedException) e).getFaultCode().contains(X_TOKEN_PIN_POLICY_FAILURE)) {
@@ -256,7 +256,7 @@ public class InitializationService {
         boolean isSWTokenInitialized = false;
         TokenInfo tokenInfo;
         try {
-            tokenInfo = signerProxyService.getToken(SignerProxy.SSL_TOKEN_ID);
+            tokenInfo = signerProxyFacade.getToken(SignerProxy.SSL_TOKEN_ID);
             if (null != tokenInfo) {
                 isSWTokenInitialized = tokenInfo.getStatus() != TokenStatusInfo.NOT_INITIALIZED;
             }

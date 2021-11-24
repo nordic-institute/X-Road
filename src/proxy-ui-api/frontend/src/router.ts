@@ -30,6 +30,7 @@ import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import { Permissions, RouteName } from '@/global';
 import routes from '@/routes';
 import store from '@/store';
+import i18n from './i18n';
 
 // Route for initialisation view. This is created separeately because it's linked to vuex store and this causes the unit tests to break.
 const initRoute: RouteConfig = {
@@ -52,8 +53,8 @@ const initRoute: RouteConfig = {
       // Check if the user has permission to initialize the server
       if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
         store.dispatch(
-          'showErrorMessageCode',
-          'initialConfiguration.noPermission',
+          'showErrorMessage',
+          i18n.t('initialConfiguration.noPermission'),
         );
         return;
       }

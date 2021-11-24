@@ -182,7 +182,10 @@ export default Vue.extend({
       api
         .post('/initialization', payload)
         .then(() => {
-          this.$store.dispatch('showSuccess', 'initialConfiguration.success');
+          this.$store.dispatch(
+            'showSuccess',
+            this.$t('initialConfiguration.success'),
+          );
           // Set init state to done so that the routing goes into "normal" mode
           this.$store.dispatch('setInitializationStatus');
           this.pinSaveBusy = false;

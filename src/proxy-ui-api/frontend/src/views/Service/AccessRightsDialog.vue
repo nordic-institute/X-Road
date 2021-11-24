@@ -28,7 +28,7 @@
     <v-card class="xrd-card px-0 mx-0" height="90vh">
       <v-card-title>
         <span class="headline" data-test="access-rights-dialog-title">
-          {{ $t(title) }}
+          {{ title }}
         </span>
         <v-spacer />
         <i id="close-x" data-test="cancel" @click="cancel()"></i>
@@ -55,7 +55,7 @@
                   <div class="input-row">
                     <v-text-field
                       v-model="name"
-                      :label="$t('name')"
+                      :label="$t('general.name')"
                       hide-details
                       autofocus
                       outlined
@@ -67,7 +67,7 @@
                     <v-select
                       v-model="instance"
                       :items="xroadInstances"
-                      :label="$t('instance')"
+                      :label="$t('general.instance')"
                       class="flex-input"
                       data-test="instance"
                       outlined
@@ -79,7 +79,7 @@
                     <v-select
                       v-model="memberClass"
                       :items="memberClasses"
-                      :label="$t('member_class')"
+                      :label="$t('general.memberClass')"
                       data-test="memberClass"
                       class="flex-input"
                       clearable
@@ -99,7 +99,7 @@
                   <div class="input-row">
                     <v-text-field
                       v-model="subsystemCode"
-                      :label="$t('subsystem_code')"
+                      :label="$t('general.subsystemCode')"
                       hide-details
                       clearable
                       data-test="subsystemCode"
@@ -139,7 +139,7 @@
               <th class="first-column"></th>
               <th>{{ $t('services.memberNameGroupDesc') }}</th>
               <th>{{ $t('services.idGroupCode') }}</th>
-              <th>{{ $t('type') }}</th>
+              <th>{{ $t('general.type') }}</th>
             </tr>
           </thead>
           <tbody

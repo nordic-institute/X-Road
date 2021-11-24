@@ -45,21 +45,16 @@
           <div class="icon-wrapper">
             <v-icon class="icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
-              <!-- Show localised text by id -->
-              <div v-if="notification.errorMessageCode">
-                {{ $t(notification.errorMessageCode) }}
-              </div>
-
-              <!-- Show raw text -->
-              <div v-else-if="notification.errorMessageRaw">
-                {{ notification.errorMessageRaw }}
+              <!-- Show message text -->
+              <div v-if="notification.errorMessage">
+                {{ notification.errorMessage }}
               </div>
 
               <!-- Show localised text by id from error object -->
               <div
                 v-else-if="notification.errorObject && errorCode(notification)"
               >
-                {{ $t('error_code.' + errorCode(notification)) }}
+                {{ $t(`error_code.${errorCode(notification)}`) }}
               </div>
 
               <!-- If error doesn't have a text or localisation key then just print the error object -->
@@ -117,13 +112,13 @@
 
               <!-- Error ID -->
               <div v-if="errorId(notification)">
-                {{ $t('id') }}:
+                {{ $t('alert.id') }}:
                 {{ errorId(notification) }}
               </div>
 
               <!-- count -->
               <div v-if="notification.count > 1">
-                {{ $t('count') }}
+                {{ $t('alert.count') }}
                 {{ notification.count }}
               </div>
             </div>

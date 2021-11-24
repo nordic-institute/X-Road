@@ -111,7 +111,7 @@ export default Vue.extend({
         })
         .then(() => {
           this.loading = false;
-          this.$store.dispatch('showSuccess', 'keys.loggedIn');
+          this.$store.dispatch('showSuccess', this.$t('keys.loggedIn'));
           this.$emit('save');
         })
         .catch((error) => {
