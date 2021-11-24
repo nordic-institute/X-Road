@@ -37,13 +37,15 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { StoreTypes } from '@/global';
 
 export default Vue.extend({
   methods: {
     home(): void {
       this.$router
         .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
+          name: this.$store.getters[StoreTypes.getters.FIRST_ALLOWED_TAB]?.to
+            ?.name,
         })
         .catch((err) => {
           // Ignore the error regarding navigating to the same path

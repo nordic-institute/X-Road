@@ -65,6 +65,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Colors, StoreTypes } from '@/global';
+import { Store } from 'vuex';
 
 export default Vue.extend({
   name: 'Toolbar',
@@ -90,24 +91,6 @@ export default Vue.extend({
     isHighAvailabilityConfigured() {
       return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
         ?.high_availability_status.is_ha_configured;
-    },
-  },
-  methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
     },
   },
 });

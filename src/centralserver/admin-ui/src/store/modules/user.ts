@@ -80,11 +80,8 @@ export const getters: GetterTree<State, RootState> = {
       );
     });
   },
-  [StoreTypes.getters.FIRST_ALLOWED_TAB]: (state, getters) => () => {
-    // console.debug('FIRST_ALLOWED_TAB, state:', state, ' ,getters:', getters);
-    const allowedTabs = getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs);
-    // console.debug('all allowed tabs:', allowedTabs);
-    return allowedTabs[0];
+  [StoreTypes.getters.FIRST_ALLOWED_TAB](state, getters) {
+    return getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs)[0];
   },
 };
 

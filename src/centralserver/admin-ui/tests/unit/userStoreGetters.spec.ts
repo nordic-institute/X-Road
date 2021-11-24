@@ -120,7 +120,7 @@ describe('user store user.ts  -- setters & getters', () => {
   it('FIRST_ALLOWED_TAB returns right tab', () => {
     userStore.commit(StoreTypes.mutations.SET_PERMISSIONS, memberPermissions);
     const { FIRST_ALLOWED_TAB } = StoreTypes.getters;
-    const firstTab = userStore.getters[FIRST_ALLOWED_TAB]();
+    const firstTab = userStore.getters[FIRST_ALLOWED_TAB];
 
     // const firstTab = initializedFirstAllowedTabFunction(userState, getters)();
     expect(firstTab).not.toBeNull();
