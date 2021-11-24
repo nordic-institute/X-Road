@@ -70,7 +70,6 @@ export const getters: GetterTree<State, RootState> = {
     return perm?.some((permission) => state.permissions.includes(permission));
   },
   [StoreTypes.getters.GET_ALLOWED_TABS]: (state, getters) => (tabs: Tab[]) => {
-    // console.debug('GET_ALLOWED_TABS - state:', state, ' ,tabs:', tabs);
     // returns filtered array of Tab objects based on the 'permission' attribute
     return tabs?.filter((tab: Tab) => {
       const neededPermissions = tab.permissions;
@@ -108,18 +107,12 @@ export const mutations: MutationTree<State> = {
       // Check that the route has name and permissions
       if (route.name && route?.meta?.permissions) {
         // Find out routes that the user doesn't have permissions to access
-        // console.debug(
-        //   'Route:',
-        //   route.name,
-        //   ' with permission: ',
-        //   route?.meta?.permissions,
-        // );
         if (
           !route.meta.permissions.some((permission: string) =>
             permissions.includes(permission),
           )
         ) {
-          // console.debug('BANNED');
+          // Add a banned route to the array
           state.bannedRoutes.push(route.name);
         }
       }
