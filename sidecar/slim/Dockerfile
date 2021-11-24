@@ -26,10 +26,10 @@ ARG CERTS_PATH=/etc/xroad/ssl
 
 ADD ["$REPO_KEY","/tmp/repokey.gpg"]
 ADD ["${REPO}/dists/${DIST}/Release","/tmp/Release"]
-RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
-  && apt-key add '/tmp/repokey.gpg'
 
-RUN apt-get -qq update \
+RUN echo "deb $REPO $DIST $COMPONENT" >/etc/apt/sources.list.d/xroad.list \
+  && apt-key add '/tmp/repokey.gpg' \
+  && apt-get -qq update \
   && XROAD_IGNORE_DATABASE_SETUP=1 apt-get -qq install \
     xroad-proxy \
     xroad-proxy-ui-api \
@@ -46,11 +46,15 @@ COPY --chown=xroad:xroad files/override-docker.ini files/*-logback.xml files/var
 COPY --chown=xroad:xroad files/addons/*-logback.xml /etc/xroad/conf.d/addons/
 COPY --chown=xroad:xroad files/custom-fetch-pin.sh /usr/share/xroad/autologin/
 
-RUN rm -f /etc/xroad/db.properties \
-  && rm -f /etc/xroad.properties \
-  && rm -f /etc/xroad/ssl/*.crt \
-  && rm -f /etc/xroad/ssl/*.key \
-  && rm -f /etc/xroad/ssl/*.p12 \
+RUN rm -f \
+    /etc/xroad/db.properties \
+    /etc/xroad.properties \
+    /etc/xroad/ssl/*.crt \
+    /etc/xroad/ssl/*.key \
+    /etc/xroad/ssl/*.p12 \
+    /var/log/syslog \
+    /var/log/xroad/* \
+    /var/log/postgresql/* \
   && sed -E -i 's/-Xmx[0-9]+./-XX:MaxRAMPercentage=25.0/' /etc/xroad/services/proxy.conf \
 ##
 # create a backup of the configuration for version migration and

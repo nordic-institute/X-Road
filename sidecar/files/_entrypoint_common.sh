@@ -56,8 +56,8 @@ fi
 
 log "Starting X-Road Security Server version $INSTALLED_VERSION"
 
-# Configure admin user with user-supplied username and password
-if ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
+if [[ -n "$XROAD_ADMIN_USER" ]] && ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
+  # Configure admin user with user-supplied username and password
   log "Creating admin user with user-supplied credentials"
   useradd -m "${XROAD_ADMIN_USER}" -s /usr/sbin/nologin
   echo "${XROAD_ADMIN_USER}:${XROAD_ADMIN_PASSWORD}" | chpasswd

@@ -14,6 +14,7 @@ build() {
   [[ -n $repo ]] && build_args+=(--build-arg "REPO=$repo")
   [[ -n $repo_key ]] && build_args+=(--build-arg "REPO_KEY=$repo_key")
   [[ -n $dist ]] && build_args+=(--build-arg "DIST=$dist")
+  [[ -n ${LABEL-} ]] && build_args+=(--label "$LABEL")
   docker build -f "$1" "${build_args[@]}" -t "$tag:$version$2" "$dir"
 }
 
