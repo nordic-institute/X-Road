@@ -84,11 +84,11 @@ Both methods are invoked as regular X-Road REST services (see specification \[[P
 The serviceId MUST contain the identifier of the target service provider and the value of the serviceCode element MUST be either `listMethods` or `allowedMethods`.
 
 Request example
-```
+```http
 GET /r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/listMethods
 ```
 HTTP request headers
-```
+```http
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
 
@@ -111,11 +111,11 @@ The serviceId MUST contain the identifier of the target service provider and the
 The query parameters must contain `serviceCode=xxx` where xxx is the service code of the REST service we want to get the service description from.
 
 Request example
-```
+```http
 GET /r1/INSTANCE/CLASS2/MEMBER2/SUBSYSTEM2/getOpenAPI?serviceCode=listFirms
 ```
 HTTP request headers
-```
+```http
 X-Road-Client: INSTANCE/CLASS1/MEMBER1/SUBSYSTEM1
 ```
 
