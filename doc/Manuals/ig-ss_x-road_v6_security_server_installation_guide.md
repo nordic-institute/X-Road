@@ -262,17 +262,17 @@ Requirements to software and settings:
 ### 2.5 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
-```
+```bash
 curl https://artifactory.niis.org/api/gpg/key/public | sudo apt-key add -
 ```
 
 Add X-Road package repository (**reference data: 1.1**)
-```
+```bash
 sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $(lsb_release -sc)-current main"
 ```
 
 Update package repository metadata:
-```
+```bash
 sudo apt update
 ```
 
@@ -283,12 +283,12 @@ If you are installing the default setup with local PostgreSQL database and want 
 *This is an optional step.* 
 
 Optionally, the security server can use a remote database server. To avoid installing the default local PostgreSQL server during security server installation, first install the `xroad-database-remote` -package.
-```
+```bash
 sudo apt install xroad-database-remote
 ```
 
 For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
-```
+```bash
 psql --version
 psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
 
@@ -301,21 +301,21 @@ The security server installer can create the database and users for you, but you
 For advanced setup, e.g. when using separate servers for the databases, sharing a database with several security servers, or if storing the database administrator password on the security server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
 
 Create the property file:
-```
+```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
 sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
-```
+```properties
 postgres.connection.password = <database superuser password>
 postgres.connection.user = <database superuser name, postgres by default>
 ```
 Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
 
 Before continuing, test that the connection to the database works, e.g.
-```
+```bash
 psql -h <database host> -U <superuser> -tAc 'show server_version'
 ```
 
@@ -327,7 +327,7 @@ It is possible to preconfigure the Security Server installation so that the mess
 
 In order to skip messagelog database creation and disable the messagelog addon, run the following command to add a boolean value into the debconf database before installing the Security Server 
 
-```
+```bash
 sudo debconf-set-selections <<< 'xroad-addon-messagelog xroad-addon-messagelog/enable-messagelog boolean false'
 ```
 
@@ -335,7 +335,7 @@ sudo debconf-set-selections <<< 'xroad-addon-messagelog xroad-addon-messagelog/e
 
 Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
 
-```
+```bash
 sudo apt install xroad-securityserver
 ```
 
@@ -374,7 +374,7 @@ The meta-package `xroad-securityserver` also installs metaservices module `xroad
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
-  ```
+  ```bash
   sudo systemctl list-units "xroad-*"
 
   UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
@@ -622,7 +622,7 @@ Upgrading the packages from the current version to the target version is not sup
 
 For example, the following security server packages are currently installed.
 
-```
+```bash
 root@test-ss:~# dpkg -l | grep xroad
 ii  xroad-addon-messagelog          7.0.0-1.ubuntu18.04 all          X-Road AddOn: messagelog
 ii  xroad-addon-metaservices        7.0.0-1.ubuntu18.04 all          X-Road AddOn: metaservices
@@ -640,7 +640,7 @@ ii  xroad-signer                    7.0.0-1.ubuntu18.04 amd64        X-Road sign
 
 The following packages are available in the repository.
 
-```
+```bash
 root@test-ss:~# apt-cache madison xroad-securityserver
 xroad-securityserver | 7.3.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
 xroad-securityserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
@@ -648,7 +648,7 @@ xroad-securityserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-
 
 Now trying to upgrade the security server packages directly will produce the following error.
 
-```
+```bash
 root@test-ss:~# apt-get upgrade xroad-securityserver
 ...
 Preparing to unpack .../0-xroad-securityserver_7.3.0-1.ubuntu18.04_all.deb ...
@@ -657,7 +657,7 @@ ERROR: Upgrade supported from version 7.1.0 or newer.
 
 The fix is to upgrade the security server in two separate steps. First, upgrade to 7.1.x with the following command.
 
-```
+```bash
 apt install xroad-securityserver=7.1.0-1.ubuntu18.04 xroad-proxy=7.1.0-1.ubuntu18.04 xroad-monitor=7.1.0-1.ubuntu18.04 xroad-addon-metaservices=7.1.0-1.ubuntu18.04 xroad-addon-messagelog=7.1.0-1.ubuntu18.04 xroad-addon-proxymonitor=7.1.0-1.ubuntu18.04 xroad-addon-wsdlvalidator=7.1.0-1.ubuntu18.04 xroad-proxy-ui-api=7.1.0-1.ubuntu18.04 xroad-confclient=7.1.0-1.ubuntu18.04 xroad-signer=7.1.0-1.ubuntu18.04 xroad-database-local=7.1.0-1.ubuntu18.04 xroad-base=7.1.0-1.ubuntu18.04
 ```
 
@@ -665,7 +665,7 @@ An alternative approach to the previous command is to temporarily configure the 
 
 Finally, we can upgrade to our target version 7.3.x as follows.
 
-```
+```bash
 apt upgrade xroad-securityserver
 ```
 
@@ -674,7 +674,7 @@ apt upgrade xroad-securityserver
 
 `/etc/xroad/db.properties`
 
-```
+```properties
 # connection.url format: jdbc:postgresql://<hostname>:<port>/<database name>
 
 serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/serverconf
@@ -775,14 +775,14 @@ Depending on installed components, the security server uses one to three databas
 These databases can be hosted on one database server (default setup), or you can use several servers. 
 
 Login to the database server(s) as the superuser (`postgres` by default) to run the commands, e.g.
-```
+```bash
 psql -h <database host>:<port> -U <superuser> -d postgres
 ```
 
 Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
 
 **serverconf** (required)
-```
+```sql
 CREATE DATABASE serverconf ENCODING 'UTF8';
 REVOKE ALL ON DATABASE serverconf FROM PUBLIC;
 CREATE ROLE serverconf_admin LOGIN PASSWORD '<serverconf_admin password>';
@@ -800,7 +800,7 @@ GRANT USAGE ON SCHEMA public to serverconf;
 ```
 
 **messagelog** (required by xroad-addon-messagelog)
-```
+```sql
 CREATE DATABASE messagelog ENCODING 'UTF8';
 REVOKE ALL ON DATABASE messagelog FROM PUBLIC;
 CREATE ROLE messagelog_admin LOGIN PASSWORD '<messagelog_admin password>';
@@ -820,7 +820,7 @@ GRANT USAGE ON SCHEMA public to messagelog;
 
 If operational monitoring is going to be installed, run additionally the following commands. Again, the database and role names can be customized to suit your environment.
 
-```
+```sql
 CREATE DATABASE "op-monitor" ENCODING 'UTF8';
 REVOKE ALL ON DATABASE "op-monitor" FROM PUBLIC;
 CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin password>';
@@ -841,14 +841,14 @@ Lastly, customize the database connection properties to match the values used wh
 Note. When using Microsoft Azure PostgreSQL, the user names need to be in format `username@hostname` in the properties files.
 
 Create the configuration file `/etc/xroad.properties`.
-```
+```bash
 sudo touch /etc/xroad.properties
 sudo chown root:root /etc/xroad.properties
 sudo chmod 600 /etc/xroad.properties
 ```
 
 Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own). The admin users are used to run database migrations during the install and upgrades.
-```
+```properties
 serverconf.database.admin_user = serverconf_admin
 serverconf.database.admin_password = <serverconf_admin password>
 op-monitor.database.admin_user = opmonitor_admin
@@ -858,7 +858,7 @@ messagelog.database.admin_password = <messagelog_admin password>
 ```
 
 Create the `/etc/xroad/db.properties` file
-```
+```bash
 sudo mkdir /etc/xroad
 sudo chown xroad:xroad /etc/xroad
 sudo chmod 751 /etc/xroad
@@ -869,7 +869,7 @@ sudo chown xroad:xroad /etc/xroad/db.properties
 
 Edit the `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
 The database connection url format is `jdbc:postgresql://<database host>:<port>/<database name>`
-```
+```properties
 serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
 serverconf.hibernate.connection.username = serverconf
 serverconf.hibernate.connection.password = <serverconf password> 

@@ -162,7 +162,7 @@ After installing and configuring all the X-Road central server nodes, retrieve n
 
 If the remote database supports fail over to a secondary host (e.g. when using PostgreSQL streaming replication with hot-standby), it is possible to define the secondary database hosts in `/etc/xroad/db.properties`. The system will automatically try the secondary hosts in case the primary fails.
 
-```
+```properties
 secondary_hosts=<comma separated list of hosts>
 
 # Example: 
@@ -180,7 +180,7 @@ In addition, it is necessary to configure a unique node name for each node parti
 
 1.  On each node, edit file `/etc/xroad/conf.d/local.ini`, creating it if necessary
 2.  Add the following lines
-    ```
+    ```ini
     [center]
     ha-node-name=<node_name>
     ```
@@ -199,10 +199,10 @@ In addition, it is necessary to configure a unique node name for each node parti
 ## 5 Monitoring HA State on a Node
 
 It is possible to get HA status via a web interface, for example using curl:
-```
+```bash
 curl -k https://cs1.example.org:4000/public_system_status/check_ha_cluster_status
 ```
-```
+```json
 {
   "ha_node_status": {
     "ha_configured": true,
@@ -279,7 +279,7 @@ Edit `postgresql.conf` and verify the following settings:
 * Ubuntu: `/etc/postgresql/<version>/<cluster name>/postgresql.conf`
 * RHEL: In data directory, usually `/usr/lib/pgsql/data`
 
-```
+```properties
 # more secure password encryption (optional but recommended)
 password_encryption = scram-sha-256
 
@@ -341,7 +341,7 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
 
 * Edit `recovery.conf` (in the data directory) and verify the settings:
   
-  ```
+  ```properties
   standby_mode = 'on'
   primary_conninfo = 'host=<master> user=<standby> password=<password>'
   primary_slot_name = 'standby_node1'
@@ -355,7 +355,7 @@ sudo -iu postgres psql -c "SELECT pg_create_physical_replication_slot('standby_n
 ### Verifying replication
 
 On master, check pg_stat_replication view:
-```
+```bash
 sudo -iu postgres psql -txc "SELECT * FROM pg_stat_replication"
 ...
 username         | standby
@@ -368,7 +368,7 @@ replay_lsn       | 0/2A03F000
 ```
 
 On stanbys, check pg_stat_wal_receiver view:
-```
+```bash
 sudo -iu postgres psql -txc "SELECT * FROM pg_stat_wal_receiver"
 ...
 status                | streaming
@@ -387,7 +387,7 @@ The `status` should be _streaming_ and `sent_lsn` on master should be close to `
 See [Central Server User Guide](ug-cs_x-road_6_central_server_user_guide.md#18-migrating-to-remote-database-host) for instructions about migrating an existing central server database to an external database.
 
 Edit `/etc/xroad/db.properties` and change the connection properties:
-```
+```properties
 adapter=postgresql
 encoding=utf8
 username=centerui
@@ -403,12 +403,12 @@ Restart central servers and verify that the cluster is working (see [5 Monitorin
 ### Fail-over
 
 In case the master server fails, one can manually promote the standby to a master by executing the following command on the standby server:
-```
+```bash
 sudo pg_ctl promote
 ```
 
 On Ubuntu pg_ctl is typically not in the path, use pg_ctlcluster instead:
-```
+```bash
 sudo pg_ctlcluster <major version> <cluster name> promote
 # e.g. sudo pg_ctlcluster 10 main promote
 ```

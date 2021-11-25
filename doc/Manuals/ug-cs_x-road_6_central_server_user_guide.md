@@ -1292,7 +1292,7 @@ Prerequisites
 4. Connect to the remote database server as the superuser postgres and create roles, databases and access permissions as follows. Note that the line `GRANT centerui_production to postgres` is AWS RDS specific and not necessary if the postgres user is a true super-user.
 
 Central Server version 6.23.x
-```
+```bash
     psql -h <remote-db-url> -p <remote-db-port> -U postgres
     CREATE DATABASE centerui_production ENCODING 'UTF8';
     CREATE ROLE centerui LOGIN PASSWORD '<centerui-password>';
@@ -1302,7 +1302,7 @@ Central Server version 6.23.x
 ```
 
 Additionally for Central Server version 6.24.x or greater
-```
+```sql
     CREATE SCHEMA centerui AUTHORIZATION centerui;
 ```
 
@@ -1318,7 +1318,7 @@ Version 6.24.x or greater
 
 6. Create properties file `/etc/xroad.properties` containing the superuser password.
 
-```
+```bash
     sudo touch /etc/xroad.properties
     sudo chown root:root /etc/xroad.properties
     sudo chmod 600 /etc/xroad.properties
@@ -1326,13 +1326,13 @@ Version 6.24.x or greater
 
 7. Edit `/etc/xroad.properties`.
 
-```
+```properties
     postgres.connection.password = '<master-password>'
 ```
 
 8. Update `/etc/xroad/db.properties` contents with correct database host URLs and passwords.
 
-```
+```properties
     username = centerui
     password = <centerui-password>
     database = centerui_production
@@ -1342,7 +1342,7 @@ Version 6.24.x or greater
 
 9. Start again the X-Road services.
 
-```
+```bash
     systemctl start xroad-jetty
     systemctl start xroad-signer
 ```

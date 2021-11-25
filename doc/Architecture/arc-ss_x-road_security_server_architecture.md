@@ -6,7 +6,7 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.11  
+Version: 1.12 
 10.09.2020
 <!-- 15 pages -->
 Doc. ID: ARC-SS
@@ -35,6 +35,7 @@ Doc. ID: ARC-SS
  21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
  10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
  07.09.2021 | 1.11    | Update for encryption features                              | Ilkka Seppälä
+ 24.11.2021 | 1.12    | Fixed broken links and duplicate heading                    | Raido Kaju
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -78,7 +79,7 @@ Doc. ID: ARC-SS
     - [3.3.2 Encapsulated data](#332-encapsulated-data)
     - [3.3.3 Messaging](#333-messaging)
     - [3.3.4 Input/output ports](#334-inputoutput-ports)
-    - [3.3.4 Persistent data](#334-persistent-data)
+    - [3.3.5 Persistent data](#335-persistent-data)
   - [3.4 xroad-proxy](#34-xroad-proxy)
     - [3.4.1 Role and responsibilities](#341-role-and-responsibilities)
     - [3.4.2 Encapsulated data](#342-encapsulated-data)
@@ -165,7 +166,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 4. <a id="Ref_DM-SS" class="anchor"></a>\[DM-SS\] Cybernetica AS. X-Road: Security Server Configuration. Document ID: [DM-SS](../DataModels/dm-ss_x-road_security_server_configuration_data_model.md).
 
-5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](spec-al_x-road_audit_log_events_1.7_Y-883-17.docx).
+5. <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] Cybernetica AS. X-Road: Audit log events. Document ID: [SPEC-AL](https://github.com/nordic-institute/X-Road/blob/master/doc/Architecture/spec-al_x-road_audit_log_events_1.7_Y-883-17.docx?raw=true).
 
 6. <a id="Ref_OCSP" class="anchor"></a>\[OCSP\] X.509 Internet Public Key Infrastructure Online Certificate Status Protocol - OCSP. Internet Engineering Task Force, RFC 6960, 2013.
 
@@ -195,7 +196,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 19. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
-20. <a id="Ref_PR-MESS" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
+20. <a id="Ref_PR-REST" class="anchor"></a>\[PR-REST\] X-Road Message Protocol for REST. Document ID: [PR-REST](../Protocols/pr-rest_x-road_message_protocol_for_rest.md).
     
 21. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Security Server Installation Guide for Ubuntu. Document ID: [IG-SS](../Manuals/ug-ss_x-road_6_security_server_user_guide.md).
 
@@ -459,7 +460,7 @@ Xroad-confclient offers admin interface C for commands and queries. This is used
 
 Xroad-confclient has single input port for admin commands and queries. The port number is for internal use and specified in the source code only.
 
-#### 3.3.4 Persistent data
+#### 3.3.5 Persistent data
 
 Xroad-confclient downloads and persists global configuration on disk.
 
