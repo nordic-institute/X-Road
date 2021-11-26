@@ -550,13 +550,13 @@ The `local.properties` file's contents consists of key-value pairs such as `XROA
 
 Example of `/etc/xroad/services/local.properties` with modifications that override the default Java memory parameters for Security Server:
 
-```
+```properties
 XROAD_PROXY_PARAMS=-Xms200m -Xmx1024m
 ```
 
 Example of `/etc/xroad/services/local.properties` with modifications that override the default Java memory parameters for Central Server:
 
-```
+```properties
 XROAD_JETTY_PARAMS=-Xms200m -Xmx1024m
 ```
 

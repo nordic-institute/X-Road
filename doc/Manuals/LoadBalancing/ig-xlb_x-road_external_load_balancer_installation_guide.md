@@ -261,14 +261,14 @@ In order to properly set up the data replication, the replica nodes must be able
    * Additionally, `rssh` shell can be used to to restrict replica access further, but note that it is not available on RHEL.
 
 7. Configure the node type as `master` in `/etc/xroad/conf.d/node.ini`:
-      ```
+      ```ini
       [node]
       type=master
       ```
       Change the owner and group of the file to `xroad:xroad` if it is not already.
 8. Disable support for client-side pooled connections (HTTP connection persistence) in `/etc/xroad/conf.d/local.ini`
     * Because the load balancing works at TCP level, disabling persistent HTTP connections is recommended so that the load balancer can evenly distribute the traffic.
-      ```
+      ```ini
       [proxy]
       server-support-clients-pooled-connections=false
       ```
@@ -349,7 +349,7 @@ service on all the nodes once the configuration has been replicated. Changes to 
 `xroad-proxy` service to take effect. This example enables listening to all available network interfaces (`0.0.0.0`) on
 port 5588.
 
-```
+```ini
 [proxy]
 health-check-interface=0.0.0.0
 health-check-port=5588
@@ -413,7 +413,7 @@ Before testing with an actual load balancer, you can test the health check servi
 
 Below is an example response from the Health check service when everything is up and running and messages should go through
 this node:
-```
+```bash
 $ curl -i localhost:5588
    HTTP/1.1 200 OK
    Content-Length: 0
@@ -421,7 +421,7 @@ $ curl -i localhost:5588
 ```
 
 And a health check service response on the same node when the service `xroad-signer` is not running:
-```
+```bash
 $ curl -i localhost:5588
 HTTP/1.1 500 Server Error
 Transfer-Encoding: chunked
@@ -449,7 +449,7 @@ For further details on the certificate authentication, see the
 
 1. Generate the Certificate Authority key and a self-signed certificate for the root-of-trust:
 
-   ```
+   ```bash
    openssl req -new -x509 -days 7300 -nodes -sha256 -out ca.crt -keyout ca.key -subj '/O=cluster/CN=CA'
    ```
    The subject name does not really matter here. Remember to keep the `ca.key` file in a safe place.
@@ -461,7 +461,7 @@ For further details on the certificate authentication, see the
    certificate and key as the database certificate and key.
 
    Generate a key and the Certificate Signing Request for it:
-   ```
+   ```bash
    openssl req -new -nodes -days 7300 -keyout server.key -out server.csr -subj "/O=cluster/CN=<nodename>"
    ```
 
@@ -477,7 +477,7 @@ For further details on the certificate authentication, see the
 
    Sign the CSR with the CA, creating a certificate:
 
-   ```
+   ```bash
    openssl x509 -req -in server.csr -CAcreateserial -CA ca.crt -CAkey ca.key -days 7300 -out server.crt
    ```
    Repeat the above steps for each node.
@@ -506,7 +506,7 @@ For further details on the certificate authentication, see the
 
 Create a new `systemctl` service unit for the new database. As root, execute the following command:
 
-```
+```bash
 cat <<EOF >/etc/systemd/system/postgresql-serverconf.service
 .include /lib/systemd/system/postgresql.service
 [Service]
@@ -516,7 +516,7 @@ EOF
 ```
 Create the database and configure SELinux:
 
-```
+```bash
 PGSETUP_INITDB_OPTIONS="--auth-local=peer --auth-host=md5" postgresql-setup initdb postgresql-serverconf
 semanage port -a -t postgresql_port_t -p tcp 5433
 systemctl enable postgresql-serverconf
@@ -535,7 +535,7 @@ Edit `postgresql.conf` and set the following options:
 >On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
 >Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`)
 
-```
+```properties
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
@@ -639,7 +639,7 @@ NOTICE: WAL archiving is not enabled; you must ensure that all required WAL segm
 ```
 
 On *RHEL 7/8 or Ubuntu 18.04 (PostgreSQL <12)*, add the following `recovery.conf` to the data directory. Set the owner of the file to `postgres:postgres`, mode `0600`.
-```
+```properties
 standby_mode = 'on'
 primary_conninfo = 'host=<primary> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 trigger_file = '/var/lib/xroad/postgresql.trigger'
@@ -651,7 +651,7 @@ On *Ubuntu 20.04 (PostgreSQL >=12)*, create an empty `standby.signal` file in th
 Next, modify `postgresql.conf`:
 >On RHEL, PostgreSQL config files are located in the `PGDATA` directory `/var/lib/pgql/serverconf`.  
 >Ubuntu keeps the config in `/etc/postgresql/<version>/<cluster name>`, e.g. `/etc/postgresql/10/serverconf`)
-```
+```properties
 ssl = on
 ssl_ca_file   = '/etc/xroad/postgresql/ca.crt'
 ssl_cert_file = '/etc/xroad/postgresql/server.crt'
@@ -669,7 +669,7 @@ hot_standby_feedback = on
 ```
 
 *On Ubuntu 20.04 (PostgreSQL 12) only*, add the primary_conninfo to postgresql.conf:
-```
+```properties
 primary_conninfo = 'host=<primary> port=5433 user=<nodename> sslmode=verify-ca sslcert=/etc/xroad/postgresql/server.crt sslkey=/etc/xroad/postgresql/server.key sslrootcert=/etc/xroad/postgresql/ca.crt'
 ```
 Where, as above, `<primary>` is the DNS or IP address of the primary node and `<nodename>` is the node name (the replication user name added to the primary database).
@@ -780,13 +780,13 @@ WantedBy=timers.target
 
 RHEL only: Configure SELinux to allow `rsync` to be run as a `systemd` service
 
-```
+```bash
 setsebool -P rsync_client 1
 setsebool -P rsync_full_access 1
 ```
 
 Finally, enable the services:
-```
+```bash
 systemctl enable xroad-sync.timer xroad-sync.service
 systemctl start xroad-sync.timer
 ```
@@ -918,7 +918,7 @@ The steps are in more detail below, but in short, the procedure is:
     ```
 
 2. Disable the configuration synchronization on the replica nodes:
-    ```
+    ```bash
     sudo -u xroad touch /var/tmp/xroad/sync-disabled
     ```
     **Note:** Check that the synchronization service is configured to honor the `sync-disabled` flag. See the chapter on
@@ -950,7 +950,7 @@ The steps are in more detail below, but in short, the procedure is:
 
    To ensure that the node is no longer processing requests, you can monitor `/var/log/xroad/proxy.log` to verify that
    no more requests are arriving or check that there are no connections to the port 5500 with:
-   ```
+   ```bash
    watch -n1 ss -tn state established sport = :5500 or dport = :5500
    ```
 3. Upgrade the packages on the primary node to the new software version.
@@ -963,7 +963,7 @@ The steps are in more detail below, but in short, the procedure is:
 
    b) If the primary node was disabled manually from the external load balancer, verify that the primary node is working
       and enable it from the load balancer. To check if a node is healthy, you can use the health check service:
-      ```
+      ```bash
       curl -i http://localhost:<health-check-port>
       ```
       See [3.4 Health check service configuration](#34-health-check-service-configuration) for more details.
@@ -979,36 +979,36 @@ Repeat this process for each replica node, one by one.
    for more details.
 
 3. Enable database synchronization on the replica:
-   ```
+   ```bash
    #PostgreSQL version < 10
    sudo -u postgres psql -p 5433 -c 'select pg_xlog_replay_resume()'
    ```
-   ```
+   ```bash
    #PostgreSQL version >= 10
    sudo -u postgres psql -p 5433 -c 'select pg_wal_replay_resume()'
    ```
    Note that the above command assumes that the `serverconf` database is running in port `5433`.
 
    **Note:** Before proceeding, make sure that the database is up to date. The following should return `t`:
-   ```
+   ```bash
    #PostgreSQL < 10
    sudo -u postgres psql -p 5433 -c 'select pg_last_xlog_replay_location() = pg_last_xlog_receive_location()'
    ```
-   ```
+   ```bash
    #PostgreSQL >= 10
    sudo -u postgres psql -p 5433 -c 'select pg_last_wal_replay_lsn() = pg_last_wal_receive_lsn()'
    ```
 4. Upgrade the packages on the replica node to the new software version.
 
 5. Enable the shared configuration synchronization on the replica node:
-   ```
+   ```bash
    sudo rm /var/tmp/xroad/sync-disabled
    ```
 6. Wait for the primary node configuration changes to propagate to the replica node.
 
    The configuration synchronization can be forced, if necessary.
 
-   ```
+   ```bash
    service xroad-sync start
    ```
 7. Restart the X-Road services and wait until the replica node is healthy.
