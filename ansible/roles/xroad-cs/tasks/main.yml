@@ -2,10 +2,3 @@
 - include_tasks: ubuntu.yml
   when: ansible_os_family == "Debian"
 
-- name: disable service postgresql and ensure it is masked in case we are using remote database server
-  systemd:
-    name: postgresql
-    state: stopped
-    enabled: no
-    masked: yes
-  when: (database_admin_password is defined) and (database_admin_password != "") and (mask_local_postgresql)

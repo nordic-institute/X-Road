@@ -1,0 +1,29 @@
+dependencies {
+    implementation(project(':proxy'))
+    implementation(project(':common-util'))
+    implementation(project(':common-messagelog'))
+    implementation(project(':common-verifier'))
+    implementation(project(':serverconf'))
+    implementation(project(':common-op-monitoring'))
+    implementation(project(':asic-util'))
+    implementation(project(':addons:messagelog:messagelog-db'))
+
+    testImplementation project(':common-test')
+    testImplementation project(':addons:messagelog:messagelog-archiver')
+    testImplementation 'org.hsqldb:hsqldb:2.5.2'
+    testImplementation "com.typesafe.akka:akka-testkit_$akkaVersion"
+    testImplementation "org.bouncycastle:bcpg-jdk15on:${bouncyCastleVersion}"
+}
+
+jar {
+    archiveVersion = ''
+    from project(':addons:messagelog:messagelog-db').sourceSets.main.output
+}
+
+task copyGpg(type: Copy) {
+    from 'src/test/gpg'
+    into 'build/gpg'
+}
+
+test.dependsOn copyGpg
+

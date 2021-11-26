@@ -6,11 +6,10 @@
 
 **Technical Specification** <!-- omit in toc -->
 
-Version: 1.10<br/>
+Version: 1.11  
 10.09.2020
 <!-- 15 pages -->
 Doc. ID: ARC-SS
-
 
 ---
 
@@ -35,6 +34,7 @@ Doc. ID: ARC-SS
  31.10.2019 | 1.8     | Added chapter 3 [process view](#3-process-view)             | Ilkka Seppälä
  21.08.2020 | 1.9     | Update for RHEL 8                                           | Jarkko Hyöty
  10.09.2020 | 1.10    | Updates for API based UI                                    | Janne Mattila
+ 07.09.2021 | 1.11    | Update for encryption features                              | Ilkka Seppälä
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -78,7 +78,7 @@ Doc. ID: ARC-SS
     - [3.3.2 Encapsulated data](#332-encapsulated-data)
     - [3.3.3 Messaging](#333-messaging)
     - [3.3.4 Input/output ports](#334-inputoutput-ports)
-    - [3.3.5 Persistent data](#335-persistent-data)
+    - [3.3.4 Persistent data](#334-persistent-data)
   - [3.4 xroad-proxy](#34-xroad-proxy)
     - [3.4.1 Role and responsibilities](#341-role-and-responsibilities)
     - [3.4.2 Encapsulated data](#342-encapsulated-data)
@@ -103,6 +103,10 @@ Doc. ID: ARC-SS
     - [3.7.3 Messaging](#373-messaging)
     - [3.7.4 Input/output ports](#374-inputoutput-ports)
     - [3.7.5 Persistent data](#375-persistent-data)
+  - [3.8 xroad-addon-messagelog](#38-xroad-addon-messagelog)
+    - [3.7.1 Role and responsibilities](#371-role-and-responsibilities-1)
+    - [3.7.2 Encapsulated data](#372-encapsulated-data-1)
+    - [3.7.3 Persistent data](#373-persistent-data)
 - [4 Interfaces](#4-interfaces)
   - [4.1 Management Services](#41-management-services)
   - [4.2 Download Configuration](#42-download-configuration)
@@ -228,7 +232,9 @@ The component is a standalone Java daemon application.
 
 Records all regular messages passing through the security server into the database. The messages are stored together with their signatures and signatures are timestamped. The purpose of the message log is to provide means to prove the reception of a request/response message to a third party.
 
-Archives periodically log records from database as signed documents on the disk and purges archived log records from database.
+Archives periodically log records from database as signed documents on the disk and purges archived log records from database. By default, all the signed documents on the disk are grouped together, but grouping them by member or subsystem is also supported.
+
+Both the records in the messagelog database and the message archives can be optionally encrypted (opt-in).
 
 Provides a service that allows the retrieval of signed documents (from database) containing the stored information.
 
@@ -556,6 +562,20 @@ The input ports for query, store, and JMX access of operational monitoring data 
 #### 3.7.5 Persistent data
 
 Xroad-opmonitor persists data to postgresql database.
+
+### 3.8 xroad-addon-messagelog
+
+#### 3.7.1 Role and responsibilities
+
+Xroad-addon-messagelog handles message logging, timestamping of the messages, and archiving and cleaning of the message logs.
+
+#### 3.7.2 Encapsulated data
+
+Xroad-addon-messagelog operates on the shared data in the postgresql messagelog database.
+
+#### 3.7.3 Persistent data
+
+Xroad-addon-messagelog persists data to postgresql messagelog database.
 
 
 ## 4 Interfaces

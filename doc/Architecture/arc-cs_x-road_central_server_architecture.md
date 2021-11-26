@@ -6,9 +6,7 @@
 # X-Road: Central Server Architecture
 **Technical Specification**
 
-Version: 2.4  
-02.03.2018
-<!-- 12 pages -->
+Version: 2.5  
 Doc. ID: ARC-CS
 
 
@@ -32,32 +30,36 @@ Doc. ID: ARC-CS
  24.02.2017 | 2.2     | Converted to Github flavoured Markdown, added license text, adjusted tables for better output in PDF | Toomas Mölder
  19.01.2018 | 2.3     | Matrix of technologies moved to ARC-TEC-file and chapters reordered | Antti Luoma 
  02.03.2018 | 2.4     | Moved terms and abbreviations into the terms document           | Tatu Repo
+ 11.08.2021 | 2.5     | Update chapter 5.2 about high-availability setup                | Ilkka Seppälä
 
 ## Table of Contents
 
 <!-- toc -->
 
-- [License](#license)
-- [1 Introduction](#1-introduction)
-  * [1.1 Overview](#11-overview)
-  * [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
-  * [1.3 References](#13-references)
-- [2 Component View](#2-component-view)
-  * [2.1 Web Server](#21-web-server)
-  * [2.2 Management Services](#22-management-services)
-  * [2.3 Signer](#23-signer)
-  * [2.4 Database](#24-database)
-  * [2.5 User Interface](#25-user-interface)
-  * [2.6 Servlet Engine](#26-servlet-engine)
-  * [2.7 Password Store](#27-password-store)
-  * [2.8 SSCD](#28-sscd)
-- [3 Interfaces](#3-interfaces)
-  * [3.1 Management Services](#31-management-services)
-  * [3.2 Download Configuration](#32-download-configuration)
-- [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
-- [5 Deployment View](#5-deployment-view)
-  * [5.1 Simple Deployment](#51-simple-deployment)
-  * [5.2 Deployment in High Availability Setup](#52-deployment-in-high-availability-setup)
+- [X-Road: Central Server Architecture](#x-road-central-server-architecture)
+  - [Version history](#version-history)
+  - [Table of Contents](#table-of-contents)
+  - [License](#license)
+  - [1 Introduction](#1-introduction)
+    - [1.1 Overview](#11-overview)
+    - [1.2 Terms and Abbreviations](#12-terms-and-abbreviations)
+    - [1.3 References](#13-references)
+  - [2 Component View](#2-component-view)
+    - [2.1 Web Server](#21-web-server)
+    - [2.2 Management Services](#22-management-services)
+    - [2.3 Signer](#23-signer)
+    - [2.4 Database](#24-database)
+    - [2.5 User Interface](#25-user-interface)
+    - [2.6 Servlet Engine](#26-servlet-engine)
+    - [2.7 Password Store](#27-password-store)
+    - [2.8 SSCD](#28-sscd)
+  - [3 Interfaces](#3-interfaces)
+    - [3.1 Management Services](#31-management-services)
+    - [3.2 Download Configuration](#32-download-configuration)
+  - [4 Configuration Creation Workflow](#4-configuration-creation-workflow)
+  - [5 Deployment View](#5-deployment-view)
+    - [5.1 Simple Deployment](#51-simple-deployment)
+    - [5.2 Deployment in High Availability Setup](#52-deployment-in-high-availability-setup)
 
 <!-- tocstop -->
 
@@ -110,6 +112,8 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 8. <a id="Ref_ARC-TEC" class="anchor"></a>\[ARC-TEC\] X-Road technologies. Document ID: [ARC-TEC](arc-tec_x-road_technologies.md).
 
 9. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
+
+10. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Central Server High Availability Installation Guide. Document ID: [IG-CSHA](../Manuals/ig-csha_x-road_6_ha_installation_guide.md).
 
 ## 2 Component View
 
@@ -264,15 +268,8 @@ Optionally, an SSCD can be connected with the central server if global configura
 
 This section describes the deployment of the central server in a cluster, for achieving high availability.
 
-In the context of the central server, high availability means there exist two or more independent installations of the central server, the databases of which have been configured to form a cluster and are replicated asynchronously. The central servers (or *nodes*) share an instance identifier but have different IP addresses / hostnames, use different keys for signing the configuration, and generally do not depend on the other nodes of the cluster being available for serving users.
-
-Asynchronous replication of the databases has been implemented using the BDR extension of the PostgreSQL database\[[7](#Ref_7)\].
-
-Because data are replicated asynchronously, data modification conflicts are possible between the nodes if two users modify the same row of a table (almost) in parallel. In such cases, the default conflict resolution mechanism of BDR is used, where the latest modification of a given row will be taken into account.
+The High Availability (HA) solution for the X-Road central server relies on a shared, optionally highly available database. There can be multiple central server nodes each connecting to the same database instance. Furthermore, the database can be set up in high-availability mode where there is the primary node with read/write access and one or more secondary read-only nodes replicating the primary data as it changes.
 
 In a high availability setup, the configuration clients can use any of the nodes for downloading configuration. It is up to the client implementations to choose the algorithm for selecting this node at each particular download attempt.
 
-
-<a id="Ref_7" class="anchor"></a>
-\[7\] See <http://2ndquadrant.com/en/resources/bdr/> for details.
-
+The central server's high availability is described in more detail in the document \[[IG-CSHA](#Ref_IG-CSHA)\].

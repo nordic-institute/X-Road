@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" persistent :max-width="maxWidth">
+  <v-dialog v-if="dialog" :value="dialog" persistent :max-width="maxWidth">
     <v-card>
       <v-card-title class="headline">{{ $t('warning') }}</v-card-title>
       <v-card-text>

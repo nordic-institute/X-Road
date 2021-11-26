@@ -46,7 +46,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -88,7 +88,7 @@ module.exports = {
     addKeyWizardGenerate.close();
 
     browser.waitForElementVisible(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "SIGN Key and Certificate")]]//span[text()="testsiglbl"]',
+      '//table[.//th[contains(@class, "title-col")]]//span[text()="testsiglbl"]',
     );
 
     // Verify that the csr file is found in the file system
@@ -122,7 +122,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -164,7 +164,7 @@ module.exports = {
     addKeyWizardGenerate.close();
 
     browser.waitForElementVisible(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "AUTH Key and Certificate")]]//span[contains(text(), "testautlbl")]',
+      '//table[.//th[contains(@class, "title-col")]]//span[contains(text(), "testautlbl")]',
     );
 
     // Verify that the csr file is found in the file system
@@ -199,7 +199,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -215,16 +215,16 @@ module.exports = {
     var initialKeys;
 
     browser.waitForElementNotPresent(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "SIGN Key and Certificate")]]//span[text()=""]',
+      '//table[.//th[contains(@class, "title-col")]]//span[text()=""]',
     );
 
     browser.waitForElementVisible(
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
+      '//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")]',
     );
 
     browser.elements(
       'xpath',
-      '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
+      '//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")]',
       function (result) {
         initialKeys = result.value.length;
       },
@@ -256,7 +256,7 @@ module.exports = {
     addKeyWizardGenerate.close();
     browser.perform(function () {
       browser.click(
-        '(//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")])[' +
+        '(//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")])[' +
           (initialKeys + 1) +
           ']',
       );
@@ -298,7 +298,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -314,13 +314,13 @@ module.exports = {
     var initialKeys;
 
     browser.waitForElementNotPresent(
-      '//table[.//th[contains(@class, "title-col") and contains(text(), "AUTH Key and Certificate")]]//span[text()=""]',
+      '//table[.//th[contains(@class, "title-col"))]]//span[text()=""]',
     );
 
     // Get number of inital auth key are links
     browser.elements(
       'xpath',
-      '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//div[contains(@class, "clickable-link")]',
+      '//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")]',
       function (result) {
         initialKeys = result.value.length;
       },
@@ -336,7 +336,6 @@ module.exports = {
     addKeyWizardCSR.selectUsageMethod('AUTHENTICATION');
     addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('PEM');
-    //addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
 
     addKeyWizardCSR.next();
     browser.waitForElementVisible(addKeyWizardGenerate);
@@ -351,7 +350,7 @@ module.exports = {
 
     browser.perform(function () {
       browser.click(
-        '(//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//div[contains(@class, "clickable-link")])[' +
+        '(//table[./thead//th[@class="title-col"]]//div[contains(@class, "clickable-link")])[' +
           (initialKeys + 1) +
           ']',
       );
@@ -380,9 +379,9 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
-    const addKeyWizardCSR = keysTab.section.addKeyWizardCSR;
-    const addKeyWizardGenerate = keysTab.section.addKeyWizardGenerate;
-
+    const generateKeyCsrWizardCsr = keysTab.section.generateKeyCsrWizardCsr;
+    const generateKeysCsrWizardGenerate =
+      keysTab.section.generateKeyCsrWizardGenerate;
     // Delete any csr files from test dir
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
     let regex = /^sign_csr_/;
@@ -392,7 +391,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -419,18 +418,21 @@ module.exports = {
     // Test cancel
     signAuthTab.generateSignCSRForKey('sign');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
-    browser.assert.containsText(addKeyWizardCSR.elements.csrUsage, 'SIGNING');
-    browser.waitForElementVisible(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('PEM');
-    addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
-    addKeyWizardCSR.next();
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
+    browser.assert.containsText(
+      generateKeyCsrWizardCsr.elements.csrUsage,
+      'SIGNING',
+    );
+    browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('PEM');
+    generateKeyCsrWizardCsr.selectClient('REST-UI-TEST:GOV:0245437-2');
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg2');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg2');
 
-    addKeyWizardGenerate.cancel();
+    generateKeysCsrWizardGenerate.cancel();
 
     // Verify that no request has been added
     browser.perform(function () {
@@ -444,22 +446,26 @@ module.exports = {
     // Test CSR generation
     signAuthTab.generateSignCSRForKey('sign');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
-    browser.assert.containsText(addKeyWizardCSR.elements.csrUsage, 'SIGNING');
-    browser.waitForElementVisible(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('PEM');
-    addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
-    addKeyWizardCSR.next();
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
+    browser.assert.containsText(
+      generateKeyCsrWizardCsr.elements.csrUsage,
+      'SIGNING',
+    );
+    browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('PEM');
+    generateKeyCsrWizardCsr.selectClient('REST-UI-TEST:GOV:0245437-2');
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg2');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg2');
 
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to
+      .not.be.enabled;
+    generateKeysCsrWizardGenerate.generateCSR();
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton)
       .enabled;
-    addKeyWizardGenerate.generateCSR();
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
-    addKeyWizardGenerate.close();
+    generateKeysCsrWizardGenerate.close();
 
     // Verify that a request has been added
     browser.perform(function () {
@@ -491,7 +497,7 @@ module.exports = {
     const deleteCSRPopup = mainPage.section.deleteCSRPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -533,10 +539,7 @@ module.exports = {
     browser.waitForElementVisible(deleteCSRPopup);
     deleteCSRPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'CSR deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'CSR deleted'
     mainPage.closeSnackbar();
 
     browser.perform(function () {
@@ -554,8 +557,9 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
-    const addKeyWizardCSR = keysTab.section.addKeyWizardCSR;
-    const addKeyWizardGenerate = keysTab.section.addKeyWizardGenerate;
+    const generateKeyCsrWizardCsr = keysTab.section.generateKeyCsrWizardCsr;
+    const generateKeysCsrWizardGenerate =
+      keysTab.section.generateKeyCsrWizardGenerate;
 
     // Delete any csr files from test dir
     let csrdir = __dirname + browser.globals.e2etest_testdata + '/';
@@ -566,7 +570,7 @@ module.exports = {
       .map((f) => fs.unlinkSync(csrdir + f));
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -594,24 +598,24 @@ module.exports = {
 
     signAuthTab.generateAuthCSRForKey('auth');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
     browser.assert.containsText(
-      addKeyWizardCSR.elements.csrUsage,
+      generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
     browser.assert.containsText(
-      addKeyWizardCSR.elements.csrService,
+      generateKeyCsrWizardCsr.elements.csrService,
       'X-Road Test CA CN',
     );
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('DER');
-    addKeyWizardCSR.next();
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('DER');
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg3');
-    addKeyWizardGenerate.enterServerDNS('foodns');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg3');
+    generateKeysCsrWizardGenerate.enterServerDNS('foodns');
 
-    addKeyWizardGenerate.cancel();
+    generateKeysCsrWizardGenerate.cancel();
 
     // Verify that no request has been added
     browser.perform(function () {
@@ -625,26 +629,29 @@ module.exports = {
     // Test CSR generation
     signAuthTab.generateAuthCSRForKey('auth');
 
-    browser.waitForElementVisible(addKeyWizardCSR);
+    browser.waitForElementVisible(generateKeyCsrWizardCsr);
     browser.assert.containsText(
-      addKeyWizardCSR.elements.csrUsage,
+      generateKeyCsrWizardCsr.elements.csrUsage,
       'AUTHENTICATION',
     );
-    browser.waitForElementNotPresent(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('X-Road Test CA CN');
-    addKeyWizardCSR.selectFormat('DER');
+    browser.waitForElementNotPresent(
+      generateKeyCsrWizardCsr.elements.csrClient,
+    );
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
+    generateKeyCsrWizardCsr.selectFormat('DER');
 
-    addKeyWizardCSR.next();
+    generateKeyCsrWizardCsr.next();
 
-    browser.waitForElementVisible(addKeyWizardGenerate);
-    addKeyWizardGenerate.enterOrganization('TestOrg3');
-    addKeyWizardGenerate.enterServerDNS('foodns');
+    browser.waitForElementVisible(generateKeysCsrWizardGenerate);
+    generateKeysCsrWizardGenerate.enterOrganization('TestOrg3');
+    generateKeysCsrWizardGenerate.enterServerDNS('foodns');
 
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).to.not.be
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton).to
+      .not.be.enabled;
+    generateKeysCsrWizardGenerate.generateCSR();
+    browser.expect.element(generateKeysCsrWizardGenerate.elements.doneButton)
       .enabled;
-    addKeyWizardGenerate.generateCSR();
-    browser.expect.element(addKeyWizardGenerate.elements.doneButton).enabled;
-    addKeyWizardGenerate.close();
+    generateKeysCsrWizardGenerate.close();
 
     // Verify that a request has been added
     browser.perform(function () {
@@ -676,7 +683,7 @@ module.exports = {
     const deleteCSRPopup = mainPage.section.deleteCSRPopup;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -718,10 +725,7 @@ module.exports = {
     browser.waitForElementVisible(deleteCSRPopup);
     deleteCSRPopup.confirm();
 
-    browser.assert.containsText(
-      mainPage.elements.snackBarMessage,
-      'CSR deleted',
-    );
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'CSR deleted'
     mainPage.closeSnackbar();
 
     browser.perform(function () {
@@ -731,6 +735,120 @@ module.exports = {
           ']',
       );
     });
+
+    browser.end();
+  },
+  'Security server import authkey': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = browser.page.tabs.keysTab();
+    const signAuthTab = keysTab.section.signAuthKeysTab;
+
+    // Open SUT and check that page is loaded
+    frontPage.navigateAndMakeTestable();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+    // Navigate to target page
+    mainPage.openKeysTab();
+    keysTab.openSignAndAuthKeys();
+    browser.waitForElementVisible(signAuthTab);
+
+    signAuthTab.toggleExpandToken();
+    browser.waitForElementNotPresent(signAuthTab.elements.initializedAuthCert)
+
+    // Test wrong type of file
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_csr);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
+    mainPage.closeAlertMessage();
+
+    // Test wrong server cert
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_auth_cert);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
+    mainPage.closeAlertMessage();
+
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_auth_cert);
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
+    mainPage.closeSnackbar();
+
+    // Verify status of new certificate
+    browser.waitForElementVisible('//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]');
+
+    browser.click(signAuthTab.elements.initializedAuthCert);
+
+    // Verify that the correct crt was imported
+    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road import")]]');
+
+    browser.end();
+  },
+  'Security server import signkey': (browser) => {
+    const frontPage = browser.page.ssFrontPage();
+    const mainPage = browser.page.ssMainPage();
+    const keysTab = browser.page.tabs.keysTab();
+    const signAuthTab = keysTab.section.signAuthKeysTab;
+
+    var initialCerts;
+
+    // Open SUT and check that page is loaded
+    frontPage.navigateAndMakeTestable();
+    browser.waitForElementVisible('//*[@id="app"]');
+
+    // Enter valid credentials
+    frontPage.signinDefaultUser();
+
+    // Navigate to target page
+    mainPage.openKeysTab();
+    keysTab.openSignAndAuthKeys();
+    browser.waitForElementVisible(signAuthTab);
+
+    signAuthTab.toggleExpandToken();
+
+    // Get number of inital registered sign keys
+    browser.elements(
+      'xpath',
+      '//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]]',
+      function (result) {
+        initialCerts = result.value.length;
+      },
+    );
+    // Test wrong type of file
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_csr);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
+    mainPage.closeAlertMessage();
+
+    // Test wrong server cert
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.ss2_sign_cert);
+    browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
+    mainPage.closeAlertMessage();
+
+    signAuthTab.importCert('/../' + browser.globals.e2etest_testdata + '/' + browser.globals.import_sign_cert);
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
+    mainPage.closeSnackbar();
+
+
+    // Verify that a certificate has been added with the correct status
+    browser.perform(function () {
+      browser.waitForElementVisible(
+        '(//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]])[' +
+          (initialCerts + 1) +
+          ']',
+      );
+    });
+
+    // Open imported certificate
+    browser.perform(function () {
+      browser.click(
+        '(//tr[.//div[contains(@class, "status-text") and contains(text(), "Registered")]]//div[contains(@class, "clickable-link")])[' +
+          (initialCerts + 1) +
+          ']',
+      );
+    });
+
+
+    // Verify that the correct crt was imported
+    browser.waitForElementVisible('//div[contains(@class, "certificate-details-wrapper") and .//span[contains(text(), "O=X-Road Import")]]');
 
     browser.end();
   },

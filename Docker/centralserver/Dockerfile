@@ -3,7 +3,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get -qq update \
   && apt-get -qq upgrade \
-  && apt-get -qq install sudo ca-certificates gnupg supervisor net-tools locales openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget \
+  && apt-get -qq install sudo ca-certificates gnupg supervisor net-tools locales openjdk-8-jre-headless rlwrap ca-certificates-java crudini adduser expect nginx-light curl rsyslog wget python3 \
   && echo "LC_ALL=en_US.UTF-8" >>/etc/environment \
   && locale-gen en_US.UTF-8 \
   && adduser --quiet --system --uid 998 --home /var/lib/postgresql --no-create-home --shell /bin/bash --group postgres \
@@ -29,13 +29,14 @@ RUN pg_ctlcluster 10 main start \
   && apt-get -qq clean \
   && pg_ctlcluster 10 main stop \
   && nginx -s stop \
-  && rm -f /var/run/nginx.pid \
+  && rm -f /var/run/nginx.pid ||: \
   && rm -rf /tmp/xroad
 
 # back up read-only config (for volume support)
 RUN mkdir -p /root/etc/xroad \
   && cp -a /etc/xroad/* /root/etc/xroad/ \
-  && rm /root/etc/xroad/services/local.conf \
+  && rm -f /root/etc/xroad/services/local.conf \
+     /root/etc/xroad/conf.d/local.ini \
      /root/etc/xroad/conf.d/local.ini \
      /root/etc/xroad/devices.ini \
      /root/etc/xroad/db.properties \

@@ -202,9 +202,10 @@ final class Helper {
 
     /**
      * Verifies the digest contained in the digest algorithm and value element against the provided data.
+     *
      * @param digAlgAndValueElement the element that contains the digest method
-     *        as the first child and digest value as the second child
-     * @param data the data
+     *                              as the first child and digest value as the second child
+     * @param data                  the data
      */
     static boolean verifyDigest(Element digAlgAndValueElement, byte[] data)
             throws NoSuchAlgorithmException, IOException, OperatorCreationException {
@@ -335,8 +336,9 @@ final class Helper {
 
     /**
      * Returns the first element by tag name.
+     *
      * @param document the document
-     * @param tagName the tag name
+     * @param tagName  the tag name
      * @throws Exception throws CodedException with code MALFORMED_SIGNATURE if the element cannot be found.
      */
     static Element getFirstElementByTagName(Document document, String tagName) throws Exception {
@@ -364,8 +366,9 @@ final class Helper {
                 }
             }
 
+            @SuppressWarnings("rawtypes")
             @Override
-            public Iterator<?> getPrefixes(String val) {
+            public Iterator getPrefixes(String val) {
                 return null;
             }
 

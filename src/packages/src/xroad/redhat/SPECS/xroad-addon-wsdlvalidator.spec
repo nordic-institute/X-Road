@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -35,6 +36,9 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %attr(750,root,xroad) /usr/share/xroad/wsdlvalidator/bin/wsdlvalidator_wrapper.sh
 /usr/share/xroad/wsdlvalidator
+
+%pre -p /bin/bash
+%upgrade_check
 
 %post
 #parameters:

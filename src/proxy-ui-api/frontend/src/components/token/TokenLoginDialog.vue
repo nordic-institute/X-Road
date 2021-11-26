@@ -24,56 +24,62 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="login.logIn"
+    save-button-text="login.logIn"
+    :disable-save="!isValid"
+    :loading="loading"
+    width="620"
     @save="save"
     @cancel="cancel"
-    saveButtonText="login.logIn"
-    :disableSave="!isValid"
-    :loading="loading"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('fields.tokenPin') }}</div>
+      <div class="pt-5 dlg-input-width">
         <ValidationProvider
-          rules="required"
           ref="tokenPin"
-          name="tokenPin"
           v-slot="{ errors }"
+          rules="required"
+          name="tokenPin"
           class="validation-provider"
         >
           <v-text-field
-            type="password"
             v-model="pin"
-            single-line
+            type="password"
+            outlined
+            :label="$t('fields.tokenPin')"
             autofocus
-            class="dlg-row-input"
             name="tokenPin"
             :error-messages="errors"
-            v-on:keyup.enter="save"
+            @keyup.enter="save"
           ></v-text-field>
         </ValidationProvider>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
 import { Token } from '@/openapi-types';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider },
+  components: { ValidationProvider },
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
+  },
+
+  data() {
+    return {
+      pin: '',
+      loading: false,
+    };
   },
 
   computed: {
@@ -84,13 +90,6 @@ export default Vue.extend({
       }
       return false;
     },
-  },
-
-  data() {
-    return {
-      pin: '',
-      loading: false,
-    };
   },
 
   methods: {
@@ -121,9 +120,9 @@ export default Vue.extend({
             error.response.status === 400 &&
             error.response.data.error.code === 'pin_incorrect'
           ) {
-            (this.$refs.tokenPin as InstanceType<
-              typeof ValidationProvider
-            >).setErrors([this.$t('keys.incorrectPin') as string]);
+            (
+              this.$refs.tokenPin as InstanceType<typeof ValidationProvider>
+            ).setErrors([this.$t('keys.incorrectPin') as string]);
           }
 
           this.$store.dispatch('showError', error);
@@ -141,5 +140,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/dialogs';
+@import '~styles/dialogs';
 </style>

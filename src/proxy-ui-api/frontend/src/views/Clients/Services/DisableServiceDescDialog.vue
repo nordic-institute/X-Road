@@ -24,12 +24,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
-    :dialog="dialog"
+  <xrd-simple-dialog
+    :dialog="true"
     title="services.disableTitle"
+    save-button-text="action.ok"
     @save="save"
     @cancel="cancel"
-    saveButtonText="action.ok"
   >
     <div slot="content">
       <div class="dlg-edit-row">
@@ -41,26 +41,22 @@
         ></v-text-field>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 // Dialog to confirm service description disabling
 import Vue from 'vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
-  components: { SimpleDialog },
   props: {
-    dialog: {
-      type: Boolean,
-      required: true,
-    },
     subject: {
       type: Object,
+      required: true,
     },
     subjectIndex: {
       type: Number,
+      required: true,
     },
   },
 

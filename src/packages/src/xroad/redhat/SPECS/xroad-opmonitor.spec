@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -17,7 +18,8 @@ BuildRequires:      systemd
 Requires(post):     systemd
 Requires(preun):    systemd
 Requires(postun):   systemd
-Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release, postgresql-server, postgresql-contrib
+Requires:           xroad-base = %version-%release, xroad-confclient = %version-%release
+Requires:           xroad-database >= %version-%release, xroad-database <= %version-%{release}.1
 
 %define src %{_topdir}/..
 
@@ -91,7 +93,8 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/examples/zabbix/*
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
 
 %post
 /usr/share/xroad/scripts/xroad-opmonitor-initdb.sh

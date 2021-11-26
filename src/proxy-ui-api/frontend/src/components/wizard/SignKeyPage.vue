@@ -25,52 +25,53 @@
  -->
 <template>
   <div>
-    {{ $t('wizard.signKey.info') }}
-    <div class="row-wrap">
-      <FormLabel labelText="wizard.signKey.keyLabel" />
-      <v-text-field
-        class="form-input"
-        type="text"
-        v-model="keyLabel"
-        data-test="key-label-input"
-        autofocus
-      ></v-text-field>
+    <div class="wizard-step-form-content py-10 mt-10">
+      <div class="row-wrap">
+        <xrd-form-label
+          :label-text="$t('wizard.signKey.keyLabel')"
+          :help-text="$t('wizard.signKey.info')"
+        />
+        <v-text-field
+          v-model="keyLabel"
+          class="form-input"
+          type="text"
+          data-test="key-label-input"
+          outlined
+          autofocus
+        ></v-text-field>
+      </div>
     </div>
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="!disableDone"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
-      <div>
-        <large-button
-          @click="previous"
-          outlined
-          class="previous-button"
-          data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
-        <large-button @click="done" data-test="next-button">{{
-          $t('action.next')
-        }}</large-button>
-      </div>
+      <xrd-button
+        outlined
+        :disabled="!disableDone"
+        data-test="cancel-button"
+        @click="cancel"
+        >{{ $t('action.cancel') }}</xrd-button
+      >
+
+      <xrd-button
+        outlined
+        class="previous-button"
+        data-test="previous-button"
+        @click="previous"
+        >{{ $t('action.previous') }}</xrd-button
+      >
+      <xrd-button data-test="next-button" @click="done">{{
+        $t('action.next')
+      }}</xrd-button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default Vue.extend({
-  components: {
-    FormLabel,
-    LargeButton,
+  data() {
+    return {
+      disableDone: true,
+    };
   },
   computed: {
     keyLabel: {
@@ -81,11 +82,6 @@ export default Vue.extend({
         this.$store.commit('storeKeyLabel', value);
       },
     },
-  },
-  data() {
-    return {
-      disableDone: true,
-    };
   },
   methods: {
     cancel(): void {

@@ -1,6 +1,6 @@
 # X-Road: External Load Balancer Installation Guide
 
-Version: 1.11  
+Version: 1.14  
 Doc. ID: IG-XLB
 
 
@@ -18,6 +18,9 @@ Doc. ID: IG-XLB
 | 19.10.2020  | 1.9         | Remove xroad-jetty and nginx mentions and add xroad-proxy-ui-api                                                         | Caro Hautamäki               |
 | 19.10.2020  | 1.10        | Added information about management REST API permissions                                                                  | Petteri Kivimäki             |
 | 23.12.2020  | 1.11        | Updates for Ubuntu 20.04 support                                                                                         | Jarkko Hyöty                 |
+| 02.07.2021  | 1.12        | Updates for state sync                                                                                                   | Jarkko Hyöty                 |
+| 25.08.2021  | 1.13        | Update X-Road references from version 6 to 7                                                                             | Caro Hautamäki               |
+| 17.09.2021  | 1.14        | Add note about the proxy health check now also checking global conf validity                                             | Caro Hautamäki               |
 
 ## Table of Contents
 
@@ -44,7 +47,7 @@ Doc. ID: IG-XLB
       * [2.3.2.2 OCSP responses from `/var/cache/xroad/`](#2322-ocsp-responses-from-varcachexroad)
 * [3. X-Road Installation and configuration](#3-x-road-installation-and-configuration)
   * [3.1 Prerequisites](#31-prerequisites)
-  * [3.2 Primary installation](#32-primary-installation)
+  * [3.2 primary installation](#32-primary-installation)
   * [3.3 Replica installation](#33-replica-installation)
   * [3.4 Health check service configuration](#34-health-check-service-configuration)
     * [3.4.1 Known check result inconsistencies vs. actual state](#341-known-check-result-inconsistencies-vs-actual-state)
@@ -99,7 +102,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 |:--------------:|:-----------------------------------------------------------------------------------------|
 | \[SS-CLUSTER\] | [Readme: Security server cluster setup with Ansible](../../../ansible/ss_cluster/README.md) |
 | \[IG-SS\] | [X-Road: Security Server Installation Guide](../ig-ss_x-road_v6_security_server_installation_guide.md) |
-| \[UG-SS\] | [X-Road 6 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md) |
+| \[UG-SS\] | [X-Road 7 Security Server User Guide](../ug-ss_x-road_6_security_server_user_guide.md) |
 | <a name="Ref_TERMS"></a>\[TA-TERMS\] | [X-Road Terms and Abbreviations](../../terms_x-road_docs.md)
 
 ## 2. Overview
@@ -181,7 +184,7 @@ is all-or-nothing: it is not possible to exclude databases from the replication.
 non-replicated messagelog databases need to be separated to different instances.
 
 ##### 2.3.1.2 Key configuration and software token replication from `/etc/xroad/signer/*`
-| Data                           | Replication          | Replication method                                 |
+| Data                            | Replication          | Replication method                                 |
 | ------------------------------- | -------------------- | -------------------------------------------------- |
 | keyconf and the software token  | **replicated**       |  `rsync+ssh`  (scheduled)                          |
 
@@ -200,7 +203,7 @@ reload the configuration from disk periodically and apply the changes to their r
 
 
 ##### 2.3.1.3 Other server configuration parameters from `/etc/xroad/*`
-| Data                                 | Replication          | Replication method                                 |
+| Data                                  | Replication          | Replication method                                 |
 | ------------------------------------- | -------------------- | -------------------------------------------------- |
 | other server configuration parameters | **replicated**       |  `rsync+ssh`  (scheduled)                          |
 
@@ -291,7 +294,7 @@ In order to properly set up the data replication, the replica nodes must be able
    [5. Configuring data replication with rsync over SSH](#5-configuring-data-replication-with-rsync-over-ssh)
    * Make the initial synchronization between the primary and the replica.
    ```bash
-   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
+   rsync -e ssh -avz --delete --exclude db.properties --exclude "/postgresql" --exclude "/conf.d/node.ini" --exclude "/gpghome" xroad-slave@<primary>:/etc/xroad/ /etc/xroad/
    ```
    Where `<primary>` is the primary server's DNS or IP address.
 7. Configure the node type as `slave` in `/etc/xroad/conf.d/node.ini`.
@@ -360,6 +363,7 @@ In addition to implicitly verifying that the `xroad-proxy` service is running, t
 * The server authentication key is accessible and that the OCSP response for the certificate is `good`. This requires a
 running `xroad-signer` service in good condition.
 * The `serverconf` database is accessible.
+* The `global configuration` is valid and not expired.
 
 Each of these status checks has a separate timeout of 5 seconds. If the status check fails to produce a response in this
 time, it will be considered a health check failure and will cause a `HTTP 500` response.
@@ -751,7 +755,7 @@ Environment=MASTER=<primary_host>
 
 ExecStartPre=/usr/bin/test ! -f /var/tmp/xroad/sync-disabled
 
-ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
+ExecStart=/usr/bin/rsync -e "ssh -o ConnectTimeout=5 " -aqz --timeout=10 --delete-delay --exclude db.properties --exclude "/conf.d/node.ini" --exclude "*.tmp" --exclude "/postgresql" --exclude "/globalconf" --exclude "/gpghome" --delay-updates --log-file=/var/log/xroad/slave-sync.log ${XROAD_USER}@${MASTER}:/etc/xroad/ /etc/xroad/
 [Install]
 WantedBy=multi-user.target
 WantedBy=xroad-proxy.service

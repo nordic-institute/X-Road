@@ -39,28 +39,26 @@
       </v-text-field>
 
       <div>
-        <v-btn
+        <xrd-button
           v-if="showAddRestButton"
           color="primary"
           :loading="addRestBusy"
-          @click="showAddRestDialog"
           outlined
-          rounded
           data-test="add-rest-button"
-          class="rounded-button elevation-0 rest-button"
-          >{{ $t('services.addRest') }}</v-btn
+          class="rest-button"
+          @click="showAddRestDialog"
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+          >{{ $t('services.addRest') }}</xrd-button
         >
 
-        <v-btn
+        <xrd-button
           v-if="showAddWSDLButton"
-          color="primary"
           :loading="addWsdlBusy"
-          @click="showAddWsdlDialog"
-          outlined
-          rounded
           data-test="add-wsdl-button"
-          class="ma-0 rounded-button elevation-0"
-          >{{ $t('services.addWsdl') }}</v-btn
+          class="ma-0"
+          @click="showAddWsdlDialog"
+          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
+          >{{ $t('services.addWsdl') }}</xrd-button
         >
       </div>
     </div>
@@ -70,57 +68,56 @@
     </div>
 
     <template v-if="filtered">
-      <expandable
+      <xrd-expandable
         v-for="(serviceDesc, index) in filtered"
-        v-bind:key="serviceDesc.id"
+        :key="serviceDesc.id"
         class="expandable"
+        :is-open="isExpanded(serviceDesc.id)"
+        data-test="service-description-accordion"
         @open="descOpen(serviceDesc.id)"
         @close="descClose(serviceDesc.id)"
-        :isOpen="isExpanded(serviceDesc.id)"
-        data-test="service-description-accordion"
       >
-        <template v-slot:action>
+        <template #action>
           <v-switch
+            :key="componentKey"
             class="switch"
             :input-value="!serviceDesc.disabled"
-            @change="switchChanged($event, serviceDesc, index)"
-            :key="componentKey"
             :disabled="!canDisable"
             data-test="service-description-enable-disable"
+            @change="switchChanged($event, serviceDesc, index)"
           ></v-switch>
         </template>
 
-        <template v-slot:link>
+        <template #link>
           <div
-            class="clickable-link service-description-header"
             v-if="canEditServiceDesc(serviceDesc)"
-            @click="descriptionClick(serviceDesc)"
+            class="clickable-link service-description-header"
             data-test="service-description-header"
+            @click="descriptionClick(serviceDesc)"
           >
             {{ serviceDesc.type }} ({{ serviceDesc.url }})
           </div>
           <div v-else>{{ serviceDesc.type }} ({{ serviceDesc.url }})</div>
         </template>
 
-        <template v-slot:content>
+        <template #content>
           <div>
             <div class="refresh-row">
               <div class="refresh-time">
                 {{ $t('services.lastRefreshed') }}
                 {{ serviceDesc.refreshed_at | formatDateTime }}
               </div>
-              <v-btn
+              <xrd-button
                 v-if="showRefreshButton(serviceDesc.type)"
                 :key="refreshButtonComponentKey"
-                small
-                outlined
-                rounded
+                :outlined="false"
+                text
                 :loading="refreshBusy[serviceDesc.id]"
                 color="primary"
-                class="xrd-small-button xrd-table-button"
-                @click="refresh(serviceDesc)"
+                class="xrd-table-button"
                 data-test="refresh-button"
-                >{{ $t('action.refresh') }}</v-btn
+                @click="refresh(serviceDesc)"
+                >{{ $t('action.refresh') }}</xrd-button
               >
             </div>
 
@@ -133,14 +130,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr
-                  v-for="service in serviceDesc.services"
-                  v-bind:key="service.id"
-                >
+                <tr v-for="service in serviceDesc.services" :key="service.id">
                   <td
-                    class="service-code identifier-wrap"
-                    @click="serviceClick(serviceDesc, service)"
+                    class="clickable-link"
                     data-test="service-link"
+                    @click="serviceClick(serviceDesc, service)"
                   >
                     {{ service.full_service_code }}
                   </td>
@@ -154,7 +148,7 @@
             </table>
           </div>
         </template>
-      </expandable>
+      </xrd-expandable>
     </template>
 
     <addWsdlDialog
@@ -168,11 +162,11 @@
       @cancel="cancelAddRest"
     />
     <disableServiceDescDialog
-      :dialog="disableDescDialog"
+      v-if="disableDescDialog"
+      :subject="selectedServiceDesc"
+      :subject-index="selectedIndex"
       @cancel="disableDescCancel"
       @save="disableDescSave"
-      :subject="selectedServiceDesc"
-      :subjectIndex="selectedIndex"
     />
     <!-- Accept "save WSDL" warnings -->
     <warningDialog
@@ -208,7 +202,6 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
-import Expandable from '@/components/ui/Expandable.vue';
 import AddWsdlDialog from './AddWsdlDialog.vue';
 import AddRestDialog from './AddRestDialog.vue';
 import DisableServiceDescDialog from './DisableServiceDescDialog.vue';
@@ -223,7 +216,6 @@ import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
   components: {
-    Expandable,
     AddWsdlDialog,
     AddRestDialog,
     DisableServiceDescDialog,
@@ -325,6 +317,10 @@ export default Vue.extend({
 
       return filtered;
     },
+  },
+
+  created() {
+    this.fetchData();
   },
   methods: {
     showRefreshButton(serviceDescriptionType: string): boolean {
@@ -666,10 +662,6 @@ export default Vue.extend({
         });
     },
   },
-
-  created() {
-    this.fetchData();
-  },
 });
 </script>
 
@@ -700,14 +692,14 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Link;
   cursor: pointer;
 }
 
 .refresh-row {
   display: flex;
   flex-direction: row;
-  align-items: baseline;
+  align-items: center;
   justify-content: flex-end;
   width: 100%;
   margin-top: 24px;
@@ -719,11 +711,6 @@ export default Vue.extend({
 
 .expandable {
   margin-bottom: 10px;
-}
-
-.service-code {
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 .service-url {

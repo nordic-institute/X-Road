@@ -16,6 +16,10 @@ if [[ "$1" == "configure" || "$1" == "reconfigure" ]]; then
   configure
 fi
 
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
 #DEBHELPER#
 
 exit 0

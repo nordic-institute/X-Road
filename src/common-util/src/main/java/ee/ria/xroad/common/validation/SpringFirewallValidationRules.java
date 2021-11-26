@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.validation;
 
-import com.google.common.base.CharMatcher;
-
 /**
  * Encapsulates validation logic that is copied from Spring firewall internal methods and
  * variables
@@ -44,13 +42,6 @@ public final class SpringFirewallValidationRules {
     private static final char FORBIDDEN_FORWARDSLASH = '/';
 
     private static final char FORBIDDEN_BACKSLASH = '\\';
-
-    //byte order mark / zero-width no-break space
-    private static final char FORBIDDEN_BOM = '\ufeff';
-
-    //zero-width space
-    private static final char FORBIDDEN_ZWSP = '\u200b';
-
 
     public static boolean containsPercent(String s) {
         return s.indexOf(FORBIDDEN_PERCENT) >= 0;
@@ -70,13 +61,5 @@ public final class SpringFirewallValidationRules {
 
     public static boolean containsBackslash(String s) {
         return s.indexOf(FORBIDDEN_BACKSLASH) >= 0;
-    }
-
-    /**
-     * checks if the string contains ISO control characters or zero-width spaces
-     */
-    public static boolean containsControlChars(String s) {
-        return CharMatcher.javaIsoControl().matchesAnyOf(s) || s.indexOf(FORBIDDEN_BOM) >= 0
-                || s.indexOf(FORBIDDEN_ZWSP) >= 0;
     }
 }

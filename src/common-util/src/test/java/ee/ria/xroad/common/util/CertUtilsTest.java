@@ -29,6 +29,7 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -98,13 +99,15 @@ public class CertUtilsTest {
     }
 
     /**
-     * Test reading certificate from file
+     * Test reading certificate from byte array
      * @throws CertificateException when certificate is invalid
      * @throws IOException when I/O error occurs
      */
     @Test
     public void testReadCertificate() throws CertificateException, IOException {
-        X509Certificate[] certificate = CertUtils.readCertificateChain("src/test/resources/internal.crt");
+        File file = new File("src/test/resources/internal.crt");
+        byte[] bytes = Files.readAllBytes(file.toPath());
+        X509Certificate[] certificate = CertUtils.readCertificateChain(bytes);
         assertNotNull(certificate);
         assertEquals(certificate[0].getSubjectDN().getName(), "CN=ubuntu-xroad-securityserver-dev");
     }
@@ -116,7 +119,9 @@ public class CertUtilsTest {
     @Test
     public void testCreatePkcs12() throws Exception {
         final String pkcsPath = "src/test/resources/internal.p12";
-        CertUtils.createPkcs12("src/test/resources/internal.key", "src/test/resources/internal.crt", pkcsPath);
+        File file = new File("src/test/resources/internal.crt");
+        byte[] bytes = Files.readAllBytes(file.toPath());
+        CertUtils.createPkcs12("src/test/resources/internal.key", bytes, pkcsPath);
         Path path = Paths.get(pkcsPath);
         assertTrue(Files.exists(path));
     }

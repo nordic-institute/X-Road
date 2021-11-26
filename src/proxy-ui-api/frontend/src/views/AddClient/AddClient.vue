@@ -25,15 +25,15 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       class="view-title"
       :title="$t('wizard.addClientTitle')"
-      :showClose="false"
+      :show-close="false"
       data-test="wizard-title"
     />
     <v-stepper
-      :alt-labels="true"
       v-model="currentStep"
+      :alt-labels="true"
       class="stepper noshadow"
     >
       <template v-if="addMemberWizardMode === wizardModes.FULL">
@@ -120,19 +120,19 @@
         <!-- Step 4 -->
         <v-stepper-content :step="csrDetailsPageNumber">
           <CsrDetailsPageLocked
+            save-button-text="action.next"
             @cancel="cancel"
             @previous="currentStep--"
             @done="csrDetailsReady"
-            saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 5 -->
         <v-stepper-content :step="csrGeneratePageNumber">
           <GenerateCsrPage
+            save-button-text="action.next"
             @cancel="cancel"
             @previous="currentStep--"
             @done="currentStep++"
-            saveButtonText="action.next"
           />
         </v-stepper-content>
         <!-- Step 6 -->
@@ -147,7 +147,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import ClientDetailsPage from './ClientDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
@@ -160,7 +159,6 @@ const NO_SELECTION = 999;
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     ClientDetailsPage,
     TokenPage,
     SignKeyPage,
@@ -236,6 +234,17 @@ export default Vue.extend({
       return 6;
     },
   },
+  created() {
+    // Set up the CSR part with Sign mode
+    this.$store.dispatch('setupSignKey');
+    // Fetch certificate authorities. Used in "sign key" step.
+    this.fetchCertificateAuthorities();
+  },
+  beforeDestroy() {
+    // Clear the vuex stores used in the wizard
+    this.$store.dispatch('resetAddClientState');
+    this.$store.dispatch('resetCsrState');
+  },
   methods: {
     cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
@@ -266,50 +275,11 @@ export default Vue.extend({
       });
     },
   },
-  created() {
-    // Set up the CSR part with Sign mode
-    this.$store.dispatch('setupSignKey');
-    // Fetch certificate authorities. Used in "sign key" step.
-    this.fetchCertificateAuthorities();
-  },
-  beforeDestroy() {
-    // Clear the vuex stores used in the wizard
-    this.$store.dispatch('resetAddClientState');
-    this.$store.dispatch('resetCsrState');
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
-
-.view-wrap {
-  width: 100%;
-  max-width: 850px;
-  margin: 10px;
-}
-
-.view-title {
-  width: 100%;
-  max-width: 100%;
-  margin-bottom: 30px;
-}
-
-.stepper-content {
-  width: 100%;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.stepper {
-  width: 100%;
-}
-
-.noshadow {
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
+@import '~styles/colors';
+@import '~styles/shared';
+@import '~styles/wizards';
 </style>

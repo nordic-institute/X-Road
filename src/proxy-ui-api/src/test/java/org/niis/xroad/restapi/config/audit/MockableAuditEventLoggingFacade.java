@@ -33,6 +33,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
+/**
+ * We probably need common-rest-api-test dependency for these
+ */
 @Component
 @Profile({ "test"})
 public class MockableAuditEventLoggingFacade extends AuditEventLoggingFacade {

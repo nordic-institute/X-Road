@@ -24,44 +24,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <ValidationObserver ref="form" v-slot="{ invalid }" v-if="dialog">
-    <simpleDialog
+  <ValidationObserver v-if="dialog" ref="form" v-slot="{ invalid }">
+    <xrd-simple-dialog
       :dialog="dialog"
       :width="750"
       title="endpoints.addEndpoint"
+      :disable-save="invalid"
       @save="save"
       @cancel="cancel"
-      :disableSave="invalid"
     >
       <div slot="content">
         <div class="dlg-edit-row">
-          <div class="dlg-row-title long-row-title">
-            {{ $t('endpoints.httpRequestMethod') }}
-          </div>
           <v-select
+            v-model="method"
             class="ml-2"
             data-test="endpoint-method"
-            v-model="method"
+            :label="$t('endpoints.httpRequestMethod')"
             autofocus
+            outlined
             :items="methods"
           />
         </div>
 
         <div class="dlg-edit-row">
-          <div class="dlg-row-title long-row-title">
-            {{ $t('endpoints.path') }}
-          </div>
           <ValidationProvider
-            rules="required|xrdEndpoint"
             ref="path"
+            v-slot="{ errors }"
+            rules="required|xrdEndpoint"
             name="path"
             class="validation-provider"
-            v-slot="{ errors }"
           >
             <v-text-field
-              class="ml-2"
               v-model="path"
-              single-line
+              class="ml-2"
+              outlined
+              :label="$t('endpoints.path')"
               :error-messages="errors"
               name="path"
               data-test="endpoint-path"
@@ -69,8 +66,7 @@
           </ValidationProvider>
         </div>
 
-        <div class="dlg-edit-row">
-          <div class="dlg-row-title long-row-title ml-2"></div>
+        <div class="pl-2">
           <div>
             <div>{{ $t('endpoints.endpointHelp1') }}</div>
             <div>{{ $t('endpoints.endpointHelp2') }}</div>
@@ -79,18 +75,16 @@
           </div>
         </div>
       </div>
-    </simpleDialog>
+    </xrd-simple-dialog>
   </ValidationObserver>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
   components: {
-    SimpleDialog,
     ValidationProvider,
     ValidationObserver,
   },
@@ -140,5 +134,9 @@ export default Vue.extend({
 
 .long-row-title {
   min-width: 170px !important;
+}
+
+.dlg-edit-row {
+  width: 400px;
 }
 </style>

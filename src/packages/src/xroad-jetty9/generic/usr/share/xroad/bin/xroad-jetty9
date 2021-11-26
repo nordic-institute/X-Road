@@ -8,7 +8,7 @@ fi
 
 if [ -f /etc/xroad/services/jetty.conf ]; then
   source /etc/xroad/services/jetty.conf
-  exec java ${JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9 jetty.base=/usr/share/xroad/jetty9
+  exec java ${XROAD_JETTY_PARAMS} ${XROAD_PARAMS} -cp ${CP}${ADDON_CP} ${XROAD_ADDON_PARAMS} org.eclipse.jetty.start.Main jetty.home=/usr/share/xroad/jetty9 jetty.base=/usr/share/xroad/jetty9
 else
   exit 1
 fi

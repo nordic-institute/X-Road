@@ -24,15 +24,16 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     :width="750"
     title="serviceClients.addService"
+    scrollable
+    :disable-save="filterSelections().length === 0"
     @save="save"
     @cancel="cancel"
-    :disableSave="filterSelections().length === 0"
   >
-    <div slot="content" v-if="serviceCandidates.length > 0">
+    <div v-if="serviceCandidates.length > 0" slot="content">
       <v-text-field
         v-model="search"
         :label="$t('serviceClients.searchPlaceHolder')"
@@ -55,7 +56,7 @@
         <tbody>
           <tr
             v-for="accessRight in searchResults()"
-            v-bind:key="accessRight.id"
+            :key="accessRight.id"
             class="service-row"
             data-test="access-right-toggle"
           >
@@ -74,21 +75,17 @@
         </tbody>
       </table>
     </div>
-    <div slot="content" v-else>
-      <h3>{{ $t('serviceClients.noAvailableServices') }}</h3>
+    <div v-else slot="content">
+      <p>{{ $t('serviceClients.noAvailableServices') }}</p>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 <script lang="ts">
 import Vue from 'vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { AccessRight } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
 import { ServiceCandidate } from '@/ui-types';
 export default Vue.extend({
-  components: {
-    SimpleDialog,
-  },
   props: {
     dialog: {
       type: Boolean as Prop<boolean>,
@@ -151,6 +148,6 @@ export default Vue.extend({
 }
 .service-row:hover {
   cursor: pointer;
-  background-color: $XRoad-Grey10;
+  background-color: $XRoad-Purple10;
 }
 </style>

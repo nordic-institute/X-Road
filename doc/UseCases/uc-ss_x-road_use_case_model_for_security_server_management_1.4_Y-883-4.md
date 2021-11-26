@@ -4,8 +4,8 @@
 # X-Road: Use Case Model for Security Server Management
 **Analysis**
 
-Version: 1.11
-01.04.2020
+Version: 1.12
+25.08.2021
 <!-- 49 pages -->
 Doc. ID: UC-SS
 
@@ -34,6 +34,7 @@ Date       | Version | Description                                              
 24.10.2019 | 1.9     | Update use cases related to Security Server's TLS certificate | Guido Casalegno
 28.03.2020 | 1.10    | Added edit API key use case | Petteri Kivimäki
 01.04.2020 | 1.11    | Added notes about IP whitelists for REST API | Janne Mattila
+25.08.2021 | 1.12    | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 <!-- tocstop -->
 
@@ -141,7 +142,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.3 References
 
 1.  <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\]
-    X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
+    X-Road 7. Security Server Installation Guide. Document ID: [IG-SS](../Manuals/ig-ss_x-road_v6_security_server_installation_guide.md).
 
 2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.

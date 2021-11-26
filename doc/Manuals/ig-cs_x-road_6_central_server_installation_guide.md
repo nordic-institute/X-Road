@@ -4,7 +4,7 @@
 
 # X-Road: Central Server Installation Guide <!-- omit in toc -->
 
-Version: 2.21  
+Version: 2.27  
 Doc. ID: IG-CS
 
 ---
@@ -43,6 +43,12 @@ Doc. ID: IG-CS
 | 29.09.2020 | 2.19    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
 | 19.01.2021 | 2.20    | Add instructions for using an alternative Java distribution. | Jarkko Hyöty
 | 04.02.2021 | 2.21    | Minor updates. | Ilkka Seppälä
+| 16.04.2021 | 2.22    | Update remote database installation instructions. | Jarkko Hyöty
+| 18.05.2021 | 2.23    | Update installation error handling section. | Ilkka Seppälä
+| 01.07.2021 | 2.24    | Update 3rd party key server | Petteri Kivimäki
+| 18.08.2021 | 2.25    | Minor updates to Annex D | Ilkka Seppälä
+| 24.08.2021 | 2.26    | Add instructions for running the database migrations manually. | Ilkka Seppälä
+| 25.08.2021 | 2.27    | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -59,15 +65,12 @@ Doc. ID: IG-CS
   - [2.2 Reference Data](#22-reference-data)
   - [2.3 Requirements to the Central Server](#23-requirements-to-the-central-server)
   - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Prepare for Installation](#25-prepare-for-installation)
-  - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.6 Remote Database Installation](#26-remote-database-installation)
-  - [2.7 Setup Package Repository](#27-setup-package-repository)
-  - [2.8 Package Installation](#28-package-installation)
-  - [2.9 Installing the Support for Hardware Tokens](#29-installing-the-support-for-hardware-tokens)
-  - [2.10 Installing the Support for Monitoring](#210-installing-the-support-for-monitoring)
-  - [2.11 Remote Database Post-Installation Tasks](#211-remote-database-post-installation-tasks)
-  - [2.12 Post-Installation Checks](#212-post-installation-checks)
+  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.7 Package Installation](#27-package-installation)
+  - [2.8 Installing the Support for Hardware Tokens](#28-installing-the-support-for-hardware-tokens)
+  - [2.9 Installing the Support for Monitoring](#29-installing-the-support-for-monitoring)
+  - [2.10 Post-Installation Checks](#210-post-installation-checks)
 - [3 Initial Configuration](#3-initial-configuration)
   - [3.1 Reference Data](#31-reference-data)
   - [3.2 Initializing the Central Server](#32-initializing-the-central-server)
@@ -79,6 +82,7 @@ Doc. ID: IG-CS
   - [5.2 PostgreSQL Is Not UTF8 Compatible](#52-postgresql-is-not-utf8-compatible)
   - [5.3 Could Not Create Default Cluster](#53-could-not-create-default-cluster)
   - [5.4 Is Postgres Running on Port 5432?](#54-is-postgres-running-on-port-5432)
+  - [5.5 Upgrade supported from version X.Y.Z or newer](#55-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -89,6 +93,7 @@ Doc. ID: IG-CS
   - [C.5 Cloud Database Cluster](#c5-cloud-database-cluster)
   - [C.6 Summary](#c6-summary)
 - [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually)
+- [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually)
 
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
@@ -111,10 +116,10 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 6. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md) 
-2. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road 6. Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
-3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
-4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 6. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
+1. <a id="Ref_UG-CS" class="anchor"></a>\[UG-CS\] Cybernetica AS. X-Road 7. Central Server User Guide. Document ID: [UG-CS](ug-cs_x-road_6_central_server_user_guide.md) 
+2. <a id="Ref_IG-SS" class="anchor"></a>\[IG-SS\] Cybernetica AS. X-Road 7. Security Server Installation Guide. Document ID: [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md)
+3. <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] Cybernetica AS. X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+4. <a id="Ref_IG-CSHA" class="anchor"></a>\[IG-CSHA\] Cybernetica AS. X-Road 7. Central Server High Availability Installation Guide. Document ID: [IG-CSHA](ig-csha_x-road_6_ha_installation_guide.md)
 5. <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
 ## 2. Installation
@@ -139,7 +144,7 @@ Caution: Data necessary for the functioning of the operating system is not inclu
 |----------------------|--------------------------------------------------|----------------------------------------------------|
 | 1.0  | Ubuntu 18.04, 64-bit, 2 GB RAM, 3 GB free disk space | Minimum requirements |
 | 1.1  | https://artifactory.niis.org/xroad-release-deb | X-Road package repository |
-| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B) |
+| 1.2  | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index) |
 | 1.3  |  | Account name in the user interface |
 | 1.4  | TCP 4001 service for authentication certificate registration<br>TCP 80 distribution of the global configuration | Ports for inbound connections (from the external network to the central server) |
 | 1.4.1| TCP 4002 management services | Port for inbound connections from the management security server |
@@ -180,62 +185,7 @@ Requirements for software and settings:
   Add the following line to the file `/etc/environment`: `LC_ALL=en_US.UTF-8`  
   Ensure that the locale is generated: `sudo locale-gen en_US.UTF-8`
 
-### 2.5 Prepare for Installation
-
-The database users required by central server are listed in [Annex B Database Users](#annex-b-database-users). The database properties created by the default installation can be found at [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
-
-### 2.5.1 Customize the Database Properties
-
-**This is an optional step.** Central server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the directory and the file as follows:
-
-  ```
-  sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
-  sudo mkdir /etc/xroad
-  sudo chown xroad:xroad /etc/xroad
-  sudo chmod 751 /etc/xroad
-  sudo touch /etc/xroad/db.properties
-  sudo chown xroad:xroad /etc/xroad/db.properties
-  sudo chmod 640 /etc/xroad/db.properties
-  ```
-
-Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply.
-
-  ```
-  adapter=postgresql
-  encoding=utf8
-  username=<database user>
-  password=<database password>
-  database=<database name>
-  reconnect=true
-  host=<database host>
-  port=<database port>
-  schema=<database schema>
-  ```
-
-### 2.6 Remote Database Installation
-
-**This is an optional step.** In case you want to install central server with remote database, perform the steps in this chapter. Otherwise, skip it and continue from the next chapter.
-
-When using a remote database server with the central server, you should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
-
-To use a remote database server instead of the default locally installed one, you need to pre-create a configuration file containing the database administrator master password. If storing the database administrator password on the central server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
-
-  ```
-  sudo touch /etc/xroad.properties
-  sudo chown root:root /etc/xroad.properties
-  sudo chmod 600 /etc/xroad.properties
-  ```
-
-Edit `/etc/xroad.properties` contents. See the example below. Replace the parameter values with your own.
-
-  ```
-  postgres.connection.user = <database superuser name (postgres by default)>
-  postgres.connection.password = <database superuser password>
-  ```
-
-**Optional step:** This last step should only be performed if your remote database is in Microsoft Azure. For Azure, the connection username needs to be in format `username@servername`. Therefore you need to precreate also `/etc/xroad/db.properties` file as described in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
-
-### 2.7 Setup Package Repository
+### 2.5 Setup Package Repository
 
 Add the X-Road repository’s signing key to the list of trusted keys (**reference data: 1.2**):
 ```
@@ -248,12 +198,57 @@ sudo apt-add-repository -y "deb https://artifactory.niis.org/xroad-release-deb $
 ```
 
 **This is an optional step.** Add a package repository for an alternative Java distribution. According to [the Ubuntu blog](https://ubuntu.com/blog/announcing-openjdk-11-packages-in-ubuntu-18-04-lts), Ubuntu OpenJDK 8 security updates end in April 2021. [AdoptOpenJDK](https://adoptopenjdk.net/) is an open-source Java 8 distribution that is [supported until May, 2026](https://adoptopenjdk.net/support.html#roadmap).
+
 ```
 curl https://adoptopenjdk.jfrog.io/adoptopenjdk/api/gpg/key/public | sudo apt-key add -
 sudo apt-add-repository -y "deb https://adoptopenjdk.jfrog.io/adoptopenjdk/deb $(lsb_release -sc) main"
 ```
 
-### 2.8 Package Installation
+### 2.6 Remote Database Setup (optional)
+
+*This is an optional step.* 
+
+Optionally, the central server can use a remote database server. To avoid installing the default local PostgreSQL server during the installation, first install the `xroad-database-remote` -package.
+```
+sudo apt install xroad-database-remote
+```
+
+For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql-client` package (see https://www.postgresql.org/download/linux/ubuntu/)
+```
+psql --version
+psql (PostgreSQL) 12.6 (Ubuntu 12.6-0ubuntu0.20.04.1)
+
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
+```
+
+The installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
+
+For advanced setup, e.g. if storing the database administrator password on the server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+
+Create the property file:
+```
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
+```
+postgres.connection.password = <database superuser password>
+postgres.connection.user = <database superuser name, postgres by default>
+```
+
+Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
+
+For additional security, the `postgresql.connection.*` properties can be removed from the `/etc/xroad.properties` file after installation (keep the other properties added by the installer).
+
+Before continuing, test that the connection to the database works, e.g.
+```
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+```
+
+### 2.7 Package Installation
 
 Update package repository metadata:
 ```
@@ -278,6 +273,8 @@ Upon the first installation of the central server software, the system asks for 
 
 - Database server URL. Locally installed database is suggested as default but remote databases can be used as well. In case remote database is used, one should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
 
+- Whether the database migrations should be skipped and handled manually instead. Usually automatic migrations should be used, but for legacy database support (like BDR1) it's possible to rely on manual operations instead. How to execute the database migrations manually is described in [Annex E Run Database Migrations Manually](#annex-e-run-database-migrations-manually).
+
 - The Distinguished Name of the owner of the user interface self-signed TLS certificate (subjectDN) and its alternative names (subjectAltName). The certificate is used for securing connections to the user interface (reference data: 1.7; 1.9). The name and IP addresses detected from the operating system are suggested as default values. 
 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`. 
@@ -290,7 +287,7 @@ Upon the first installation of the central server software, the system asks for 
   The certificate owner’s Distinguished Name must be entered in the format: `/CN=server.domain.tld`
   All IP addresses and domain names in use must be entered as alternative names in the format: `IP:1.2.3.4,IP:4.3.2.1,DNS:servername,DNS:servername2.domain.tld`
 
-### 2.9 Installing the Support for Hardware Tokens
+### 2.8 Installing the Support for Hardware Tokens
 
 To configure support for hardware security tokens (smartcard, USB token, Hardware Security Module), act as follows.
 
@@ -332,25 +329,13 @@ Parameter   | Type    | Default Value | Explanation
 **Note 1:** Only parameter *library* is mandatory, all the others are optional.  
 **Note 2:** The item separator of the type STRING LIST is ",".
 
-### 2.10 Installing the Support for Monitoring
+### 2.9 Installing the Support for Monitoring
 
 The optional configuration for monitoring parameters is installed by package xroad-centralserver-monitoring. This package also includes the components that validate the updated xml monitoring configuration. The package is included in the central server installation by default.
 
 The central monitoring client may be configured as specified in the [UG-CS](#Ref_UG-CS).
 
-### 2.11 Remote Database Post-Installation Tasks
-
-Local PostgreSQL is always installed with central server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
-
-To stop the local PostgreSQL server
-
-`systemctl stop postgresql`
-
-To disable the local PostgreSQL server so that it does not start automatically when the server is rebooted.
-
-`systemctl mask postgresql`
-
-### 2.12 Post-Installation Checks
+### 2.10 Post-Installation Checks
 
 The installation is successful if the system services are started and the user interface is responding.
 
@@ -490,6 +475,60 @@ The interrupted installation can be finished using
 
 `sudo apt-get -f install`
 
+### 5.5 Upgrade supported from version X.Y.Z or newer
+
+The following error message may come up during the central server upgrade.
+
+`Upgrade supported from version X.Y.Z or newer`
+
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the central server to the target version step by step.
+
+For example, the following central server packages are currently installed.
+
+```
+root@test-cs:~# dpkg -l | grep xroad
+ii  xroad-base                      7.0.0-1.ubuntu18.04 amd64        X-Road base components
+ii  xroad-center                    7.0.0-1.ubuntu18.04 all          X-Road central server
+ii  xroad-centralserver             7.0.0-1.ubuntu18.04 all          X-Road central server
+ii  xroad-centralserver-monitoring  7.0.0-1.ubuntu18.04 all          Monitoring client configuration for X-Road central
+ii  xroad-confclient                7.0.0-1.ubuntu18.04 amd64        X-Road configuration client components
+ii  xroad-database-local            7.0.0-1.ubuntu18.04 all          Meta-package for X-Road local database dependencies
+ii  xroad-jetty9                    7.0.0-1.ubuntu18.04 all          Jetty9 for X-Road purposes
+ii  xroad-nginx                     7.0.0-1.ubuntu18.04 amd64        X-Road nginx component
+ii  xroad-signer                    7.0.0-1.ubuntu18.04 amd64        X-Road signer component
+```
+
+The following packages are available in the repository.
+
+```
+root@test-cs:~# apt-cache madison xroad-centralserver
+xroad-centralserver | 7.3.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
+xroad-centralserver | 7.1.0-1.ubuntu18.04 | https://artifactory.niis.org/xroad-release-deb bionic-current/main amd64 Packages
+```
+
+Now trying to upgrade the central server packages directly will produce the following error.
+
+```
+root@test-cs:~# apt-get upgrade xroad-centralserver
+...
+Preparing to unpack .../xroad-centralserver_7.3.0-1.ubuntu18.04_all.deb ...
+ERROR: Upgrade supported from version 7.1.0 or newer
+```
+
+The fix is to upgrade the central server in two separate steps. First, upgrade to 7.1.x with the following command.
+
+```
+apt install xroad-base=7.1.0-1.ubuntu18.04 xroad-center=7.1.0-1.ubuntu18.04 xroad-centralserver=7.1.0-1.ubuntu18.04 xroad-centralserver-monitoring=7.1.0-1.ubuntu18.04 xroad-confclient=7.1.0-1.ubuntu18.04 xroad-database-local=7.1.0-1.ubuntu18.04 xroad-jetty9=7.1.0-1.ubuntu18.04 xroad-nginx=7.1.0-1.ubuntu18.04 xroad-signer=7.1.0-1.ubuntu18.04
+```
+
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `deb https://artifactory.niis.org/xroad-release-deb bionic-7.1.0 main` and then use the `apt update` and `apt upgrade xroad-centralserver` commands.
+
+Finally, we can upgrade to our target version 7.3.x as follows.
+
+```
+apt upgrade xroad-centralserver
+```
+
 ## Annex A Central Server Default Database Properties
 
 `/etc/xroad/db.properties`
@@ -502,8 +541,9 @@ password=<randomly generated password stored is stored here>
 database=centerui_production
 schema=centerui
 reconnect=true
-host = 127.0.0.1
-port = 5432
+host=127.0.0.1
+port=5432
+skip_migrations=false
 ```
 
 ## Annex B Database Users
@@ -563,29 +603,76 @@ The following table lists a summary of the central server deployment options and
 
 ## Annex D Create Database Structure Manually
 
-First install PostgreSQL client.
-
-  ```
-  sudo apt install postgresql-client-10
-  ```
-
 Login to the database server as the superuser (`postgres` by default).
 
-  ```
-  psql -h <database host> -U <superuser> -d postgres
-  ```
+```
+psql -h <database host> -U <superuser> -d postgres
+```
 
 Run the following commands to create the necessary database structures and roles.
 
-  ```
-  create database <database name> encoding 'UTF8';
-  REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
-  CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
-  GRANT <database user> to <superuser>;
-  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
-  \c <database name>
-  CREATE EXTENSION hstore;
-  CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
-  REVOKE ALL ON SCHEMA public FROM PUBLIC;
-  GRANT USAGE ON SCHEMA public to <database user>;
-  ```
+```
+CREATE DATABASE <database name> ENCODING 'UTF8';
+REVOKE ALL ON DATABASE <database name> FROM PUBLIC;
+CREATE ROLE <database user> LOGIN PASSWORD '<database password>';
+GRANT <database user> to <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <database name> TO <database user>;
+\c <database name>
+CREATE EXTENSION hstore;
+CREATE SCHEMA <database schema> AUTHORIZATION <database user>;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public to <database user>;
+```
+
+Create the `/etc/xroad/db.properties` file
+```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
+sudo touch /etc/xroad/db.properties
+sudo chmod 0640 /etc/xroad/db.properties
+sudo chown xroad:xroad /etc/xroad/db.properties
+```
+
+Edit `/etc/xroad/db.properties` to match the values used when creating the database (the default values can be found in [Annex A Central Server Default Database Properties](#annex-a-central-server-default-database-properties)).
+
+```
+adapter=postgresql
+encoding=utf8
+username=<database user>
+password=<database password>
+database=<database name>
+reconnect=true
+host=<database host>
+port=<database port>
+schema=<database schema>
+skip_migrations=<false by default, set to true to skip migrations>
+```
+
+## Annex E Run Database Migrations Manually
+
+When installing/upgrading the central server, it's possible to skip the automatic database migrations. The installer respects the setting `skip_migrations = true/false` in the file `/etc/xroad/db.properties`. For clean installations the installer asks the setting value (among other settings) using debconf. For upgrade installations the setting `skip_migrations = true` needs to be set before upgrading by editing the aforementioned properties file or by running `dpkg-reconfigure xroad-center` to alter the settings via debconf.
+
+To run the database migrations manually, follow the next steps.
+
+1. Login to the central server console and issue the following command as root.
+
+2. Ensure that the central server user interface process is stopped.
+
+```
+systemctl stop xroad-jetty
+```
+
+3. Run the database migrations.
+
+```
+/usr/share/xroad/db/migrate.sh db:migrate
+```
+
+4. Start the services, if they are not yet running.
+
+```
+systemctl start xroad-signer nginx xroad-jetty
+```
+
+5. Verify that everything is working by performing the steps described in [2.10 Post-Installation Checks](#210-post-installation-checks).

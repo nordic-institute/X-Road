@@ -27,11 +27,10 @@ package ee.ria.xroad.common.db;
 
 import org.hibernate.Session;
 
-import java.util.function.Function;
-
 /**
  * Callback that can be called during a transaction.
  * @param <R> the type of the callback result
  */
-public interface TransactionCallback<R> extends Function<Session, R> {
+public interface TransactionCallback<R> {
+    R apply(Session session) throws Exception;
 }

@@ -24,14 +24,14 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="ssTlsCertificate.generateTlsAndCertificateDialog.title"
-    saveButtonText="action.confirm"
-    :showClose="false"
+    save-button-text="action.confirm"
+    :show-close="false"
+    :loading="loading"
     @save="save"
     @cancel="$emit('cancel')"
-    :loading="loading"
   >
     <div slot="content">
       <p data-test="generate-tls-and-certificate-dialog-explanation-text">
@@ -43,26 +43,24 @@
         }}
       </p>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import * as api from '@/util/api';
 
 export default Vue.extend({
-  components: { SimpleDialog },
-  data() {
-    return {
-      loading: false,
-    };
-  },
   props: {
     dialog: {
       type: Boolean,
       required: true,
     },
+  },
+  data() {
+    return {
+      loading: false,
+    };
   },
   methods: {
     save() {
@@ -87,7 +85,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/dialogs';
+@import '~styles/dialogs';
 p {
   margin-top: 30px;
 }

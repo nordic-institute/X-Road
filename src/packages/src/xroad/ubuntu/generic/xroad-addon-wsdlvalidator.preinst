@@ -1,9 +1,10 @@
 #!/bin/bash
-
-set -e
-. /usr/share/debconf/confmodule
-
-log () { echo >&2 "$@"; }
+if [ "$1" = "upgrade" ]; then
+  if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
+    echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
+    exit 1
+  fi
+fi
 
 #parameters:
 #1 file_path
@@ -20,8 +21,7 @@ function migrate_conf_value {
     fi
 }
 
-if [ "$1" = "upgrade" ];
- then
+if [ "$1" = "upgrade" ]; then
   # migrate wsdl-validator-command proxy-ui -> proxy-ui-api
   migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command proxy-ui-api wsdl-validator-command
 fi

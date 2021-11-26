@@ -24,46 +24,35 @@
  * THE SOFTWARE.
  */
 
+let mainPage, clientsTab, searchField, keysTab, diagnosticsTab, tokenName, APIKeysTab, generateKeyButton, settingsTab,
+  clientInfo;
+
 module.exports = {
   tags: ['ss', 'xroad-registration-officer', 'permissions'],
-  'Security server registration officer role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const settingsTab = mainPage.section.settingsTab;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
-    const APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
+  before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    keysTab = mainPage.section.keysTab;
+    tokenName = mainPage.section.keysTab.elements.tokenName;
+    APIKeysTab = mainPage.section.keysTab.elements.APIKeysTab;
+    generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+    settingsTab = mainPage.section.settingsTab;
+    clientInfo = mainPage.section.clientInfo;
+    searchField = mainPage.section.clientsTab.elements.searchField;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
+    browser.LoginCommand(browser.globals.login_registration_officer, browser.globals.login_pwd);
+  },
 
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_registration_officer)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_registration_officer +
-        '")]',
-    );
-
-    // clients
+  'Can add clients': (browser) => {
     mainPage.openClientsTab();
+    clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementVisible(clientsTab.elements.addClientButton);
+  },
 
-    // keys and certs
+  'Can see keys and certs': (browser) => {
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -72,10 +61,42 @@ module.exports = {
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementNotPresent(generateKeyButton);
     browser.waitForElementVisible(keysTab.elements.exportCertButton);
+  },
 
+  'Can not see diagnostics': (browser) => {
     browser.waitForElementNotPresent(diagnosticsTab);
-    browser.waitForElementNotPresent(settingsTab);
+  },
 
-    browser.end();
+  'Can not see settings': (browser) => {
+    browser.waitForElementNotPresent(settingsTab);
+  },
+
+  'Should see client details': (browser) => {
+    // Registration officer should see clients list
+    mainPage.openClientsTab();
+
+    // Registration officer should see add client button
+    browser.waitForElementVisible(clientsTab.elements.addClientButton);
+
+    // Registration officer should see clients details
+    clientsTab.openClient('TestGov');
+    browser.waitForElementVisible(clientInfo);
+
+    browser
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
   },
 };

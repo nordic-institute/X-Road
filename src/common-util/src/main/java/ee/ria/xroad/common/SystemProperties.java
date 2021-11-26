@@ -92,6 +92,10 @@ public final class SystemProperties {
     public static final String PROXY_UI_API_REGULAR_API_WHITELIST =
             PREFIX + "proxy-ui-api.regular-api-whitelist";
 
+    /** Property name of the flag for enabling automatic time-stamping service URL updates */
+    public static final String PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL =
+            PREFIX + "proxy-ui-api.auto-update-timestamp-service-url";
+
     // Proxy ------------------------------------------------------------------
 
     /** Property name of controlling SSL support between Proxies. */
@@ -274,6 +278,10 @@ public final class SystemProperties {
     private static final String ENFORCE_CLIENT_IS_CERT_VALIDITY_PERIOD_CHECK =
             PREFIX + "proxy.enforce-client-is-cert-validity-period-check";
 
+    private static final String PROXY_BACKUP_ENCRYPTED = PREFIX + "proxy.backup-encrypted";
+
+    private static final String PROXY_BACKUP_PUBLIC_KEY_PATH = PREFIX + "proxy.backup-public-key-path";
+
     private static final String DEFAULT_CENTER_TRUSTED_ANCHORS_ALLOWED = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_AUTH_CERT_REG_REQUESTS = "false";
@@ -281,6 +289,8 @@ public final class SystemProperties {
     private static final String DEFAULT_CENTER_AUTO_APPROVE_CLIENT_REG_REQUESTS = "false";
 
     private static final String DEFAULT_CENTER_AUTO_APPROVE_OWNER_CHANGE_REQUESTS = "false";
+
+    private static final String DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL = "false";
 
     private static final String DEFAULT_SERVERPROXY_CONNECTOR_MAX_IDLE_TIME = "0";
 
@@ -655,6 +665,8 @@ public final class SystemProperties {
     public static final String CONF_FILE_ADDON_PATH =
             getConfPath() + "conf.d/addons/";
 
+    public static final String CONF_FILE_MESSAGE_LOG = CONF_FILE_ADDON_PATH + "message-log.ini";
+
     // --------------------------------------------------------------------- //
 
     // For testing purpose only!
@@ -719,6 +731,14 @@ public final class SystemProperties {
     public static String getRegularApiWhitelist() {
         return System.getProperty(PROXY_UI_API_REGULAR_API_WHITELIST,
                 DEFAULT_REGULAR_API_WHITELIST);
+    }
+
+    /**
+     * @return whether automatic update of timestamp service URLs is enabled, 'false' by default.
+     */
+    public static boolean geUpdateTimestampServiceUrlsAutomatically() {
+        return Boolean.parseBoolean(System.getProperty(PROXY_UI_API_AUTO_UPDATE_TIMESTAMP_SERVICE_URL,
+                DEFAULT_AUTO_UPDATE_TIMESTAMP_SERVICE_URL));
     }
 
     /**

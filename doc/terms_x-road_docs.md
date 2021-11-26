@@ -1,8 +1,8 @@
 # X-Road Terms and Abbreviations
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 0.6  
+Version: 0.8  
 Doc. ID:  TA-TERMS
 
 ## Version history
@@ -15,6 +15,8 @@ Doc. ID:  TA-TERMS
  06.03.2018 | 0.4     | Moved/merged terminology explanations from other X-Road repository MD-documents to this document | Tatu Repo |
  03.01.2019 | 0.5     | Minor changes - typos fixed. | Yamato Kataoka |
  16.04.2019 | 0.6     | Add description of REST services. | Petteri Kivimäki |
+ 02.06.2021 | 0.7     | Add backup encryption related terms. | Andres Allkivi |
+ 25.08.2021 | 0.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents
 
@@ -325,6 +327,8 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 
 **DSL** - Domain Specific Language
 
+**GPG / GnuPG** - The GNU Privacy Guard
+
 **HTTP** - Hypertext Transfer Protocol  
 
 **HTTPS** - Hypertext Transfer Protocol Secure
@@ -346,3 +350,4 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
 **SDK** - Software Development Kit
 
 **SOAP** - Simple Object Access Protocol  
+

@@ -4,9 +4,9 @@
 
 # Security Server Installation Guide for Red Hat Enterprise Linux <!-- omit in toc -->
 
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.13  
+Version: 1.22  
 Doc. ID: IG-SS-RHEL
 
 ---
@@ -30,7 +30,15 @@ Doc. ID: IG-SS-RHEL
  17.08.2020 | 1.11    | Update for RHEL 8. Document id and name changed.                | Jarkko Hyöty
  16.09.2020 | 1.12    | Describe deployment options and database customization options. | Ilkka Seppälä
  29.09.2020 | 1.13    | Add instructions for creating database structure and roles manually. | Ilkka Seppälä
-
+ 16.04.2021 | 1.14    | Update remote database installation instructions                | Jarkko Hyöty
+ 18.05.2021 | 1.15    | Add error handling section | Ilkka Seppälä
+ 01.07.2021 | 1.16    | Update 3rd party key server | Petteri Kivimäki
+ 11.08.2021 | 1.17    | Add backup encryption information | Petteri Kivimäki
+ 18.08.2021 | 1.18    | Minor updates to Annex D | Ilkka Seppälä
+ 25.08.2021 | 1.19    | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 26.08.2021 | 1.20    | Add instructions how to disable the messagelog addon before installing, add section [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional) | Caro Hautamäki
+ 03.09.2021 | 1.21    | Minor fixes | Ilkka Seppälä
+ 06.09.2021 | 1.22    | Update list of running services | Jarkko Hyöty
 
 ## License
 
@@ -53,21 +61,22 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 3.0 
     - [2.2.1 Network Diagram](#221-network-diagram)
   - [2.3 Requirements for the Security Server](#23-requirements-for-the-security-server)
   - [2.4 Preparing OS](#24-preparing-os)
-  - [2.5 Prepare for Installation](#25-prepare-for-installation)
-    - [2.5.1 Customize the Database Properties](#251-customize-the-database-properties)
-  - [2.6 Remote Database Installation](#26-remote-database-installation)
-  - [2.7 Setup Package Repository](#27-setup-package-repository)
-  - [2.8 Package Installation](#28-package-installation)
+  - [2.5 Setup Package Repository](#25-setup-package-repository)
+  - [2.6 Remote Database Setup (optional)](#26-remote-database-setup-optional)
+  - [2.7 Disable the Messagelog Addon before Installation (optional)](#27-disable-the-messagelog-addon-before-installation-optional)
+  - [2.8 Security Server Installation](#28-security-server-installation)
     - [2.8.1 Configure Proxy Ports](#281-configure-proxy-ports)
     - [2.8.2 Start Security Server](#282-start-security-server)
   - [2.9 Post-Installation Checks](#29-post-installation-checks)
   - [2.10 Installing the Support for Hardware Tokens](#210-installing-the-support-for-hardware-tokens)
   - [2.11 Installing the Support for Environmental Monitoring](#211-installing-the-support-for-environmental-monitoring)
-  - [2.12 Remote Database Post-Installation Tasks](#212-remote-database-post-installation-tasks)
 - [3 Security Server Initial Configuration](#3-security-server-initial-configuration)
   - [3.1 Prerequisites](#31-prerequisites)
   - [3.2 Reference Data](#32-reference-data)
   - [3.3 Configuration](#33-configuration)
+  - [3.4 Configuring configuration backup encryption](#34-configuring-configuration-backup-encryption)
+- [4 Installation Error handling](#4-installation-error-handling)
+  - [4.1 ERROR: Upgrade supported from version X.Y.Z or newer.](#41-error-upgrade-supported-from-version-xyz-or-newer)
 - [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties)
 - [Annex B Database Users](#annex-b-database-users)
 - [Annex C Deployment Options](#annex-c-deployment-options)
@@ -99,7 +108,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 
 ### 1.3 References
 
-1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 6. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
+1.  <a id="Ref_UG-SS" class="anchor"></a>\[UG-SS\] X-Road 7. Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 2.  <a id="Ref_TERMS" class="anchor"></a>\[TA-TERMS\] X-Road Terms and Abbreviations. Document ID: [TA-TERMS](../terms_x-road_docs.md).
 
@@ -114,7 +123,7 @@ There are multiple alternatives how the security server can be deployed. The opt
 The security server runs on the following platforms:
 
 * Red Hat Enterprise Linux (RHEL) versions 7 and 8 on a x86-64 platform.
-* Ubuntu Server 18.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
+* Ubuntu Server 18.04 and 20.04 on a x86-64 platform. See [IG-SS](ig-ss_x-road_v6_security_server_installation_guide.md) for more information.
 
 The software can be installed both on physical and virtualized hardware (of the latter, Xen and Oracle VirtualBox have been tested).
 
@@ -130,7 +139,7 @@ The software can be installed both on physical and virtualized hardware (of the 
 | ------- | --------------------------| ---------------------------------------------------------- |
 | 1.0     | RHEL (7.3 or newer; 8.0 or newer), x86-64 CPU, 4 GB RAM, 10 GB free disk space | Minimum requirements
 | 1.1     | https://artifactory.niis.org/xroad-release-rpm  | X-Road package repository
-| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [SKS key servers](http://pool.sks-keyservers.net/pks/lookup?op=vindex&hash=on&fingerprint=on&search=0xFB0D532C10F6EC5B)
+| 1.2     | https://artifactory.niis.org/api/gpg/key/public | The repository key.<br /><br />Hash: `935CC5E7FA5397B171749F80D6E3973B`<br  />Fingerprint: `A01B FE41 B9D8 EAF4 872F  A3F1 FB0D 532C 10F6 EC5B`<br  />3rd party key server: [Ubuntu key server](https://keyserver.ubuntu.com/pks/lookup?search=0xfb0d532c10f6ec5b&fingerprint=on&op=index)
 | 1.3     |                                         | Account name in the user interface
 | 1.4     | **Inbound ports from external network** | Ports for inbound connections from the external network to the security server
 |         | TCP 5500                                | Message exchange between security servers
@@ -188,7 +197,7 @@ Minimum recommended hardware parameters:
 
 Requirements to software and settings:
 
-* an installed and configured RHEL (v7.3 or newer) x86-64 operating system;
+* an installed and configured RHEL (v7.3 or newer; 8.0 or newer;) x86-64 operating system;
 * if the security server is separated from other networks by a firewall and/or NAT, the necessary connections to and from the security server are allowed (**reference data: 1.4; 1.5; 1.6; 1.7**). The enabling of auxiliary services which are necessary for the functioning and management of the operating system (such as DNS, NTP, and SSH) stay outside the scope of this guide;
 * if the security server has a private IP address, a corresponding NAT record must be created in the firewall (**reference data: 1.9**).
 
@@ -204,76 +213,7 @@ Requirements to software and settings:
         sudo yum install yum-utils
 
 
-### 2.5 Prepare for Installation
-
-The database users required by security server are listed in [Annex B Database Users](#annex-b-database-users). The database properties created by the default installation can be found at [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). If necessary, it's possible to customize the database names, users, passwords etc. by following the steps in [2.5.1 Customize the Database Properties](#251-customize-the-database-properties).
-
-
-#### 2.5.1 Customize the Database Properties
-
-**This is an optional step.** Security server uses `/etc/xroad/db.properties` file to store the database properties. It's possible to customize the installation by precreating this file before running the installer. First create the `xroad` user, directory and the file as follows:
-
-  ```
-  sudo useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
-  sudo mkdir /etc/xroad
-  sudo chown xroad:xroad /etc/xroad
-  sudo chmod 751 /etc/xroad
-  sudo touch /etc/xroad/db.properties
-  sudo chown xroad:xroad /etc/xroad/db.properties
-  sudo chmod 640 /etc/xroad/db.properties
-  ```
-
-Then edit `/etc/xroad/db.properties` contents. See the template below. Replace the parameter values with your own. The default values can be found in [Annex A Security Server Default Database Properties](#annex-a-security-server-default-database-properties). Note that you only need to define the properties that need to be customized, elsewhere the defaults apply. The database names can be changed by modifying the `<database>.hibernate.connection.url` property e.g. `serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/custom`.
-
-  ```
-  serverconf.hibernate.connection.url = jdbc:postgresql://<host:port>/serverconf
-  serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
-  serverconf.hibernate.connection.username = <serverconf username>
-  serverconf.hibernate.connection.password = <serverconf password>
-  messagelog.hibernate.connection.url = jdbc:postgresql://<host:port>/messagelog
-  messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
-  messagelog.hibernate.connection.username = <messagelog username>
-  messagelog.hibernate.connection.password = <messagelog password>
-  op-monitor.hibernate.connection.url = jdbc:postgresql://<host:port>/op-monitor
-  op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
-  op-monitor.hibernate.connection.username = <opmonitor username>
-  op-monitor.hibernate.connection.password = <opmonitor password>
-  ```
-
-
-### 2.6 Remote Database Installation
-
-**This is an optional step.** If you want to use remote database server instead of the default locally installed one, you need to pre-create a configuration file containing at least the database administrator master password. If storing the database administrator password on the security server is not possible due to security risk or other problem, the alternative is to create the database structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually). Otherwise, creating the configuration file can be done by performing the following steps:
-
-  ```
-  sudo touch /etc/xroad.properties
-  sudo chown root:root /etc/xroad.properties
-  sudo chmod 600 /etc/xroad.properties
-  ```
-
-  Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
-
-  ```
-  postgres.connection.password = <database superuser password>
-  postgres.connection.user = <database superuser name, postgres by default>
-  ```
-
-* If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@servername`.
-* One should verify that the version of the local PostgreSQL client matches the version of the remote PostgreSQL server.
-
-**This is an optional step.** If you want to customize the names and/or passwords of the database admin users created by the installer, follow these steps. By default the installer generates these users with format `<database-name>_admin` and autogenerates the password. Edit `/etc/xroad.properties` contents. See the example below. Replace parameter values with your own.
-
-  ```
-  serverconf.database.admin_user = <serverconf-admin-username>
-  serverconf.database.admin_password = <serverconf-admin-password>
-  op-monitor.database.admin_user = <op-monitor-admin-username>
-  op-monitor.database.admin_password = <op-monitor-admin-password>
-  messagelog.database.admin_user = <messagelog-admin-username>
-  messagelog.database.admin_password = <messagelog-admin-password>
-  ```
-
-
-### 2.7 Setup Package Repository
+### 2.5 Setup Package Repository
 
 Add X-Road package repository (**reference data: 1.1**) and Extra Packages for Enterprise Linux (EPEL) repository:
 
@@ -291,10 +231,83 @@ Add the X-Road repository’s signing key to the list of trusted keys (**referen
   sudo rpm --import https://artifactory.niis.org/api/gpg/key/public
   ```
 
+If you are installing the default setup with local PostgreSQL database and want to enable the messagelog addon, continue at section 2.8. If you need to customize database properties and e.g. use a remote database or disable the messagelog addon, read on.
 
-### 2.8 Package Installation
+### 2.6 Remote Database Setup (optional)
 
-Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland):
+*This is an optional step.* 
+
+Optionally, the security server can use a remote database server. To avoid installing the default local PostgreSQL server during security server installation, install the `xroad-database-remote` -package, which will also install the PostgreSQL client and create the `xroad` system user and configuration directories (`/etc/xroad`).
+```
+sudo yum install xroad-database-remote
+```
+
+For the application level backup and restore feature to work correctly, it is important to verify that the local PostgreSQL client has the same or later major version than the remote database server and, if necessary, install a different version of the `postgresql` package (see https://www.postgresql.org/download/linux/redhat/)
+```
+psql --version
+psql (PostgreSQL) 10.16
+
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+10.16 (Ubuntu 10.16-0ubuntu0.18.04.1)
+```
+
+The security server installer can create the database and users for you, but you need to create a configuration file containing the database administrator credentials. 
+
+For advanced setup, e.g. when using separate instances for the different databases, sharing a database with several security servers, or if storing the database administrator password on the security server is not an option, you can create the database users and structure manually as described in [Annex D Create Database Structure Manually](#annex-d-create-database-structure-manually) and then continue to section 2.7. Otherwise, perform the following steps:
+
+Create the property file for database credentials:
+```
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties`. See the example below. Replace parameter values with your own.
+```
+postgres.connection.password = <database superuser password>
+postgres.connection.user = <database superuser name, postgres by default>
+```
+Note. If Microsoft Azure database for PostgreSQL is used, the connection user needs to be in format `username@hostname`.
+
+
+For additional security, the `postgresql.connection.*` properties can be removed from the `/etc/xroad.properties` file after installation (keep the other properties added by the installer).
+
+
+Create the `/etc/xroad/db.properties` file
+```
+sudo touch /etc/xroad/db.properties
+sudo chmod 0640 /etc/xroad/db.properties
+sudo chown xroad:xroad /etc/xroad/db.properties
+```
+
+Add the following properties to the `/etc/xroad/db.properties` file (replace parameters with your own):
+```
+serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
+messagelog.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/messagelog
+```
+If installing the optional xroad-opmonitor component, also add the following line
+```
+op-monitor.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/op-monitor
+```
+
+Before continuing, test that the connection to the database works, e.g.
+```
+psql -h <database host> -U <superuser> -tAc 'show server_version'
+```
+
+### 2.7 Disable the Messagelog Addon before Installation (optional)
+
+It is possible to preconfigure the Security Server installation so that the messagelog addon will be automatically disabled after the installation process is done. This also skips the creation of the messagelog database.
+
+In order to skip messagelog database creation and disable the messagelog addon, run the following command to create a configuration file before installing the Security Server 
+
+```
+echo "ENABLE_MESSAGELOG=false" | sudo tee /etc/sysconfig/xroad-addon-messagelog
+```
+
+### 2.8 Security Server Installation
+
+Issue the following command to install the security server packages (use package `xroad-securityserver-ee` to include configuration specific to Estonia; use package `xroad-securityserver-fi` to include configuration specific to Finland; use package `xroad-securityserver-is` to include configuration specific to Iceland):
 
   ```
   sudo yum install xroad-securityserver
@@ -323,7 +336,6 @@ Edit `/etc/xroad/conf.d/local.ini` and add the following properties in the `[pro
   client-https-port=443
   ```
 
-
 #### 2.8.2 Start Security Server
 
 Once the installation is completed, start the security server
@@ -338,44 +350,29 @@ Once the installation is completed, start the security server
 The installation is successful if system services are started and the user interface is responding.
 
 * Ensure from the command line that X-Road services are in the `running` state (example output follows):
-  
+
   ```
   sudo systemctl list-units "xroad-*"
 
-  UNIT                       LOAD   ACTIVE SUB     DESCRIPTION
-  xroad-confclient.service   loaded active running X-Road confclient
-  xroad-monitor.service      loaded active running X-Road Monitor
-  xroad-opmonitor.service    loaded active running X-Road opmonitor daemon
-  xroad-proxy-ui-api.service loaded active running X-Road Proxy UI REST API
-  xroad-proxy.service        loaded active running X-Road Proxy
-  xroad-signer.service       loaded active running X-Road signer
+  UNIT                           LOAD   ACTIVE SUB     DESCRIPTION
+  xroad-addon-messagelog.service loaded active running X-Road Messagelog Archiver
+  xroad-base.service             loaded active exited  X-Road initialization
+  xroad-confclient.service       loaded active running X-Road confclient
+  xroad-monitor.service          loaded active running X-Road Monitor
+  xroad-proxy-ui-api.service     loaded active running X-Road Proxy UI REST API
+  xroad-proxy.service            loaded active running X-Road Proxy
+  xroad-signer.service           loaded active running X-Road signer
   ```
 
 * Ensure that the security server user interface at https://SECURITYSERVER:4000/ (**reference data: 1.8; 1.6**) can be opened in a Web browser. To log in, use the account name chosen during the installation (**reference data: 1.3**). While the user interface is still starting up, the Web browser may display a connection refused -error.
-
 
 ### 2.10 Installing the Support for Hardware Tokens
 
 Hardware security tokens (smartcard, USB token, Hardware Security Module) have not been tested on RHEL. Therefore, support is not provided.
 
-
 ### 2.11 Installing the Support for Environmental Monitoring
 
 The support for environmental monitoring functionality on a security server is provided by package xroad-monitor that is installed by default. The package installs and starts the `xroad-monitor` process that will gather and make available the monitoring information.
-
-
-### 2.12 Remote Database Post-Installation Tasks
-
-Local PostgreSQL is always installed with Security Server. When remote database host is used, the local PostgreSQL can be stopped and disabled after the installation.
-
-To stop the local PostgreSQL server
-
-`systemctl stop postgresql`
-
-To disable the local PostgreSQL server so that it does not start automatically when the server is rebooted.
-
-`systemctl mask postgresql`
-
 
 ## 3 Security Server Initial Configuration
 
@@ -426,6 +423,102 @@ If the configuration is successfully downloaded, the system asks for the followi
 * Security server code (**reference data: 2.4**), which is chosen by the security server administrator and which has to be unique across all the security servers belonging to the same X-Road member.
 * Software token’s PIN (**reference data: 2.5**). The PIN will be used to protect the keys stored in the software token. The PIN must be stored in a secure place, because it will be no longer possible to use or recover the private keys in the token once the PIN has been lost.
 
+### 3.4 Configuring configuration backup encryption
+
+It is possible to automatically encrypt security server configuration backups. Security server uses The GNU Privacy Guard (https://www.gnupg.org)
+for backup encryption and verification. Backups are always signed, but backup encryption is initially turned off.
+To turn encryption on, please override the default configuration in the file `/etc/xroad/conf.d/local.ini`, in the `[proxy]` section (add or edit this section).
+
+    [proxy]
+    backup-encrypted=true
+    backup-public-key-path=/etc/xroad/backupkeys
+
+To turn backup encryption on, please change the `backup-encrypted` property value to `true`.
+By default, additional encryption keys are stored in the `/etc/xroad/backupkeys` directory.
+The default directory can be changed by modifying the `backup-public-key-path` property value.
+
+By default, backups are encrypted using security server's backup encryption key. Before turning backup encryption on, it
+is strongly recommended to copy additional GPG public keys to backup public key folder. All these keys are used to
+encrypt backups so that ANY of these keys can decrypt the backups. This is useful both for verifying encrypted backups'
+consistency and decrypting backups in case security server's backup encryption key gets lost for whatever reason.
+Do not place any other files into backup keys folder, otherwise backing up configuration will fail.
+
+To externally verify a backup archive's consistency, security server's backup encryption public key has to be exported
+and imported into external GPG keyring. Note that this can be done only after security server has been initialised - the
+security server backup encryption key is generated during initialisation.
+
+To export security server's backup encryption public key use the following command:
+
+    gpg --homedir /etc/xroad/gpghome --armor --output server-public-key.gpg --export AA/GOV/TS1OWNER/TS1
+
+where `AA/GOV/TS1OWNER/TS1` is the security server id.
+
+The key can then be moved to an external host and imported to GPG keyring with the following command:
+
+    gpg --homedir /your_gpg_homedir_here --import server-public-key.gpg
+
+## 4 Installation Error handling
+
+### 4.1 ERROR: Upgrade supported from version X.Y.Z or newer.
+
+The following error message may come up during the security server upgrade.
+
+`ERROR: Upgrade supported from version X.Y.Z or newer.`
+
+Upgrading the packages from the current version to the target version is not supported directly. The fix is to upgrade the security server to the target version step by step.
+
+For example, the following security server packages are currently installed.
+
+```
+[root@rh1 ~]# yum list installed | grep xroad
+xroad-addon-messagelog.x86_64      7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-addon-metaservices.x86_64    7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-addon-proxymonitor.x86_64    7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-addon-wsdlvalidator.x86_64   7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-base.x86_64                  7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-confclient.x86_64            7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-database-local.noarch        7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-monitor.x86_64               7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-proxy.x86_64                 7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-proxy-ui-api.x86_64          7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-securityserver.noarch        7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+xroad-signer.x86_64                7.0.0-1.el7 @artifactory.niis.org_xroad-release-rpm_rhel_7_current 
+```
+
+The following packages are available in the repository.
+
+```
+[root@rh1 ~]# yum --showduplicates list xroad-securityserver
+Installed Packages
+xroad-securityserver.noarch                                                                        7.0.0-1.el7                                                                         @artifactory.niis.org_xroad-release-rpm_rhel_7_current
+Available Packages
+xroad-securityserver.noarch                                                                        7.1.0-1.el7                                                                         artifactory.niis.org_xroad-release-rpm_rhel_7_current
+xroad-securityserver.noarch                                                                        7.3.0-1.el7                                                                         artifactory.niis.org_xroad-release-rpm_rhel_7_current
+```
+
+Now trying to upgrade the central server packages directly will produce the following error.
+
+```
+[root@rh1 ~]# yum upgrade xroad-securityserver
+...
+ERROR: Upgrade supported from version 7.1.0 or newer.
+error: %pre(xroad-securityserver-7.3.0-1.el7.noarch) scriptlet failed, exit status 1
+Error in PREIN scriptlet in rpm package xroad-securityserver-7.3.0-1.el7.noarch
+```
+
+The fix is to upgrade the security server in two separate steps. First, upgrade to 7.1.x with the following command.
+
+```
+yum install xroad-securityserver-7.1.0-1.el7 xroad-addon-messagelog-7.1.0-1.el7 xroad-addon-metaservices-7.1.0-1.el7 xroad-addon-proxymonitor-7.1.0-1.el7 xroad-addon-wsdlvalidator-7.1.0-1.el7 xroad-base-7.1.0-1.el7 xroad-confclient-7.1.0-1.el7 xroad-database-local-7.1.0-1.el7 xroad-monitor-7.1.0-1.el7 xroad-proxy-7.1.0-1.el7 xroad-proxy-ui-api-7.1.0-1.el7 xroad-securityserver-7.1.0-1.el7 xroad-signer-7.1.0-1.el7
+```
+
+An alternative approach to the previous command is to temporarily configure the server to use a repository that contains only the specific version of X-Road software we want to upgrade to. For example, configure the repository as `https://artifactory.niis.org/xroad-release-rpm/rhel/7/7.1.0` and then use the `yum update xroad-securityserver` command.
+
+Finally, we can upgrade to our target version 7.3.x as follows.
+
+```
+yum update xroad-securityserver
+```
 
 ## Annex A Security Server Default Database Properties
 
@@ -439,12 +532,14 @@ serverconf.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/servercon
 serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
 serverconf.hibernate.connection.username = serverconf
 serverconf.hibernate.connection.password = <randomly generated password>
+
 messagelog.hibernate.jdbc.use_streams_for_binary = true
 messagelog.hibernate.connection.driver_class = org.postgresql.Driver
 messagelog.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/messagelog
 messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
 messagelog.hibernate.connection.username = messagelog
 messagelog.hibernate.connection.password = <randomly generated password>
+
 op-monitor.hibernate.jdbc.use_streams_for_binary = true
 op-monitor.hibernate.connection.driver_class = org.postgresql.Driver
 op-monitor.hibernate.connection.url = jdbc:postgresql://127.0.0.1:5432/op-monitor
@@ -519,86 +614,122 @@ The following table lists a summary of the security server deployment options an
 
 ## Annex D Create Database Structure Manually
 
-First create the configuration file `/etc/xroad.properties`.
+Depending on installed components, the security server uses one to three databases (catalogs):
 
-  ```
-  sudo touch /etc/xroad.properties
-  sudo chown root:root /etc/xroad.properties
-  sudo chmod 600 /etc/xroad.properties
-  ```
+* _serverconf_ for storing security server configuration (required)
+* _messagelog_ for storing message records (optional, but installed by default)
+* _op-monitor_ for operational monitoring data (optional)
 
-Edit `/etc/xroad.properties` contents.
+These databases can be hosted on one database server (default setup), or you can use several servers. 
 
-  ```
-  serverconf.database.admin_user = <serverconf admin username>
-  serverconf.database.admin_password = <serverconf admin password>
-  op-monitor.database.admin_user = <op-monitor admin username>
-  op-monitor.database.admin_password = <op-monitor admin password>
-  messagelog.database.admin_user = <messagelog admin username>
-  messagelog.database.admin_password = <messagelog admin password>
-  ```
+Login to the database server(s) as the superuser (`postgres` by default) to run the commands, e.g.
+```
+psql -h <database host>:<port> -U <superuser> -d postgres
+```
 
-Next install PostgreSQL client.
+Run the following commands to create the necessary database structures. If necessary, customize the database and role names to suit your environment (e.g when the same database server is shared between several security server instances, it is necessary to have separate database names and roles for each server). By default, the database, database user, and schema use the same name (e.g. serverconf), and the admin user is named with \_admin prefix (e.g. serverconf_admin).
 
-  ```
-  sudo apt install postgresql-client-10
-  ```
+**serverconf** (required)
+```
+CREATE DATABASE serverconf ENCODING 'UTF8';
+REVOKE ALL ON DATABASE serverconf FROM PUBLIC;
+CREATE ROLE serverconf_admin LOGIN PASSWORD '<serverconf_admin password>';
+GRANT serverconf_admin to <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE serverconf TO serverconf_admin;
+\c serverconf
+CREATE EXTENSION hstore;
+CREATE SCHEMA serverconf AUTHORIZATION serverconf_admin;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public to serverconf_admin;
+CREATE ROLE serverconf LOGIN PASSWORD '<serverconf password>';
+GRANT serverconf to <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE serverconf TO serverconf;
+GRANT USAGE ON SCHEMA public to serverconf;
+```
 
-Login to the database server as the superuser (`postgres` by default).
+**messagelog** (required by xroad-addon-messagelog)
+```
+CREATE DATABASE messagelog ENCODING 'UTF8';
+REVOKE ALL ON DATABASE messagelog FROM PUBLIC;
+CREATE ROLE messagelog_admin LOGIN PASSWORD '<messagelog_admin password>';
+GRANT messagelog_admin to <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE messagelog TO messagelog_admin;
+\c messagelog
+CREATE SCHEMA messagelog AUTHORIZATION messagelog_admin;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public to messagelog_admin;
+CREATE ROLE messagelog LOGIN PASSWORD '<messagelog password>';
+GRANT messagelog to <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE messagelog TO messagelog;
+GRANT USAGE ON SCHEMA public to messagelog;
+```
 
-  ```
-  psql -h <database host> -U <superuser> -d postgres
-  ```
+**op-monitor** (optional, required by xroad-opmonitor)
 
-Run the following commands to create the necessary database structures and roles for `serverconf` and `messagelog` databases.
+If operational monitoring is going to be installed, run additionally the following commands. Again, the database and role names can be customized to suit your environment.
 
-  ```
-  CREATE DATABASE <serverconf database> ENCODING 'UTF8';
-  REVOKE ALL ON DATABASE <serverconf database> FROM PUBLIC;
-  CREATE ROLE <serverconf admin> LOGIN PASSWORD '<serverconf admin password>';
-  GRANT <serverconf admin> to <superuser>;
-  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <serverconf database> TO <serverconf admin>;
-  \c <serverconf database>
-  CREATE EXTENSION hstore;
-  CREATE SCHEMA <serverconf database schema> AUTHORIZATION <serverconf admin>;
-  REVOKE ALL ON SCHEMA public FROM PUBLIC;
-  GRANT USAGE ON SCHEMA public to <serverconf admin>;
-  CREATE ROLE <serverconf user> LOGIN PASSWORD '<serverconf user password>';
-  GRANT <serverconf user> to <superuser>;
-  GRANT TEMPORARY,CONNECT ON DATABASE <serverconf database> TO <serverconf user>;
-  GRANT USAGE ON SCHEMA public to <serverconf user>;
-  ```
+```
+CREATE DATABASE "op-monitor" ENCODING 'UTF8';
+REVOKE ALL ON DATABASE "op-monitor" FROM PUBLIC;
+CREATE ROLE opmonitor_admin LOGIN PASSWORD '<opmonitor_admin password>';
+GRANT opmonitor_admin to <superuser>;
+GRANT CREATE,TEMPORARY,CONNECT ON DATABASE "op-monitor" TO opmonitor_admin;
+\c "op-monitor"
+CREATE SCHEMA opmonitor AUTHORIZATION opmonitor_admin;
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+GRANT USAGE ON SCHEMA public to opmonitor_admin;
+CREATE ROLE opmonitor LOGIN PASSWORD '<opmonitor password>';
+GRANT opmonitor to <superuser>;
+GRANT TEMPORARY,CONNECT ON DATABASE "op-monitor" TO opmonitor;
+GRANT USAGE ON SCHEMA public to opmonitor;
+```
 
-  ```
-  CREATE DATABASE <messagelog database> ENCODING 'UTF8';
-  REVOKE ALL ON DATABASE <messagelog database> FROM PUBLIC;
-  CREATE ROLE <messagelog admin> LOGIN PASSWORD '<messagelog admin password>';
-  GRANT <messagelog admin> to <superuser>;
-  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <messagelog database> TO <messagelog admin>;
-  \c <messagelog database>
-  CREATE SCHEMA <messagelog database schema> AUTHORIZATION <messagelog admin>;
-  REVOKE ALL ON SCHEMA public FROM PUBLIC;
-  GRANT USAGE ON SCHEMA public to <messagelog admin>;
-  CREATE ROLE <messagelog user> LOGIN PASSWORD '<messagelog user password>';
-  GRANT <messagelog user> to <superuser>;
-  GRANT TEMPORARY,CONNECT ON DATABASE <messagelog database> TO <messagelog user>;
-  GRANT USAGE ON SCHEMA public to <messagelog user>;
-  ```
+Lastly, customize the database connection properties to match the values used when creating the database.
 
-If operational monitoring is going to be installed, run additionally the following commands.
+Note. When using Microsoft Azure PostgreSQL, the user names need to be in format `username@hostname` in the properties files.
 
-  ```
-  CREATE DATABASE <op-monitor database> ENCODING 'UTF8';
-  REVOKE ALL ON DATABASE <op-monitor database> FROM PUBLIC;
-  CREATE ROLE <op-monitor admin> LOGIN PASSWORD '<op-monitor admin password>';
-  GRANT <op-monitor admin> to <superuser>;
-  GRANT CREATE,TEMPORARY,CONNECT ON DATABASE <op-monitor database> TO <op-monitor admin>;
-  \c <op-monitor database>
-  CREATE SCHEMA <op-monitor database schema> AUTHORIZATION <op-monitor admin>;
-  REVOKE ALL ON SCHEMA public FROM PUBLIC;
-  GRANT USAGE ON SCHEMA public to <op-monitor admin>;
-  CREATE ROLE <op-monitor user> LOGIN PASSWORD '<op-monitor user password>';
-  GRANT <op-monitor user> to <superuser>;
-  GRANT TEMPORARY,CONNECT ON DATABASE <op-monitor database> TO <op-monitor user>;
-  GRANT USAGE ON SCHEMA public to <op-monitor user>;
-  ```
+Create the configuration file `/etc/xroad.properties`.
+```
+sudo touch /etc/xroad.properties
+sudo chown root:root /etc/xroad.properties
+sudo chmod 600 /etc/xroad.properties
+```
+
+Edit `/etc/xroad.properties` and add/update the following properties (if you customized the role names, use your own). The admin users are used to run database migrations during the install and upgrades.
+```
+serverconf.database.admin_user = serverconf_admin
+serverconf.database.admin_password = <serverconf_admin password>
+op-monitor.database.admin_user = opmonitor_admin
+op-monitor.database.admin_password = <opmonitor_admin password>
+messagelog.database.admin_user = messagelog_admin
+messagelog.database.admin_password = <messagelog_admin password>
+```
+
+Create the `/etc/xroad/db.properties` file
+```
+sudo mkdir /etc/xroad
+sudo chown xroad:xroad /etc/xroad
+sudo chmod 751 /etc/xroad
+sudo touch /etc/xroad/db.properties
+sudo chmod 0640 /etc/xroad/db.properties
+sudo chown xroad:xroad /etc/xroad/db.properties
+```
+
+Edit the `/etc/xroad/db.properties` file and add/update the following connection properties (if you customized the database, user, and/or role names, use the customized values).
+The database connection url format is `jdbc:postgresql://<database host>:<port>/<database name>`
+```
+serverconf.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/serverconf
+serverconf.hibernate.connection.username = serverconf
+serverconf.hibernate.connection.password = <serverconf password> 
+serverconf.hibernate.hikari.dataSource.currentSchema = serverconf,public
+
+messagelog.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/messagelog
+messagelog.hibernate.connection.username = messagelog
+messagelog.hibernate.connection.password = <messagelog password>
+messagelog.hibernate.hikari.dataSource.currentSchema = messagelog,public
+
+op-monitor.hibernate.connection.url = jdbc:postgresql://<database host>:<port>/op-monitor
+op-monitor.hibernate.connection.username = opmonitor
+op-monitor.hibernate.connection.password = <opmonitor password>
+op-monitor.hibernate.hikari.dataSource.currentSchema = opmonitor,public
+```

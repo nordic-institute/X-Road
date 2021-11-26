@@ -33,88 +33,94 @@
         {{ $t('wizard.member.info2') }}
       </div>
       <div class="action-block">
-        <large-button
-          @click="showSelectClient = true"
+        <xrd-button
           outlined
           data-test="select-client-button"
-          >{{ $t('wizard.member.select') }}</large-button
+          @click="showSelectClient = true"
+          >{{ $t('wizard.member.select') }}</xrd-button
         >
       </div>
     </div>
 
     <ValidationObserver ref="form2" v-slot="{ invalid }">
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberName"
-          helpText="wizard.client.memberNameTooltip"
-        />
-        <div data-test="selected-member-name">{{ selectedMemberName }}</div>
-      </div>
+      <div class="wizard-step-form-content">
+        <div class="row-wrap">
+          <xrd-form-label
+            :label-text="$t('wizard.memberName')"
+            :help-text="$t('wizard.client.memberNameTooltip')"
+          />
+          <div data-test="selected-member-name">{{ selectedMemberName }}</div>
+        </div>
 
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberClass"
-          helpText="wizard.client.memberClassTooltip"
-        />
+        <div class="row-wrap">
+          <xrd-form-label
+            :label-text="$t('wizard.memberClass')"
+            :help-text="$t('wizard.client.memberClassTooltip')"
+          />
 
-        <ValidationProvider
-          name="addClient.memberClass"
-          rules="required"
-          v-slot="{}"
-        >
-          <v-select
-            :items="memberClassesCurrentInstance"
-            class="form-input"
-            v-model="memberClass"
-            data-test="member-class-input"
-          ></v-select>
-        </ValidationProvider>
-      </div>
-      <div class="row-wrap">
-        <FormLabel
-          labelText="wizard.memberCode"
-          helpText="wizard.client.memberCodeTooltip"
-        />
+          <ValidationProvider
+            v-slot="{}"
+            name="addClient.memberClass"
+            rules="required"
+          >
+            <v-select
+              v-model="memberClass"
+              :items="memberClassesCurrentInstance"
+              class="form-input"
+              data-test="member-class-input"
+              :placeholder="$t('wizard.selectMemberClass')"
+              outlined
+            ></v-select>
+          </ValidationProvider>
+        </div>
+        <div class="row-wrap">
+          <xrd-form-label
+            :label-text="$t('wizard.memberCode')"
+            :help-text="$t('wizard.client.memberCodeTooltip')"
+          />
 
-        <ValidationProvider
-          name="addClient.memberCode"
-          rules="required|xrdIdentifier"
-          v-slot="{ errors }"
-        >
-          <v-text-field
-            class="form-input"
-            type="text"
-            :error-messages="errors"
-            v-model="memberCode"
-            autofocus
-            data-test="member-code-input"
-          ></v-text-field>
-        </ValidationProvider>
-      </div>
+          <ValidationProvider
+            v-slot="{ errors }"
+            name="addClient.memberCode"
+            rules="required|xrdIdentifier"
+          >
+            <v-text-field
+              v-model="memberCode"
+              class="form-input"
+              type="text"
+              :error-messages="errors"
+              :placeholder="$t('wizard.memberCode')"
+              autofocus
+              outlined
+              data-test="member-code-input"
+            ></v-text-field>
+          </ValidationProvider>
+        </div>
 
-      <div v-if="duplicateClient" class="duplicate-warning">
-        {{ $t('wizard.client.memberExists') }}
+        <div v-if="duplicateClient" class="duplicate-warning">
+          {{ $t('wizard.client.memberExists') }}
+        </div>
       </div>
       <div class="button-footer">
         <div class="button-group">
-          <large-button outlined @click="cancel" data-test="cancel-button">{{
+          <xrd-button outlined data-test="cancel-button" @click="cancel">{{
             $t('action.cancel')
-          }}</large-button>
+          }}</xrd-button>
         </div>
-        <large-button
-          @click="done"
+        <xrd-button
           :disabled="invalid || duplicateClient || checkRunning"
           data-test="next-button"
-          >{{ $t('action.next') }}</large-button
+          @click="done"
+          >{{ $t('action.next') }}</xrd-button
         >
       </div>
     </ValidationObserver>
 
     <SelectClientDialog
       title="wizard.addMemberTitle"
-      searchLabel="wizard.member.searchLabel"
+      search-label="wizard.member.searchLabel"
       :dialog="showSelectClient"
-      :selectableClients="selectableMembers"
+      :selectable-clients="selectableMembers"
       @cancel="showSelectClient = false"
       @save="saveSelectedClient"
     />
@@ -124,8 +130,6 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import FormLabel from '@/components/ui/FormLabel.vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
 import { Client } from '@/openapi-types';
 import { debounce, isEmpty } from '@/util/helpers';
@@ -139,11 +143,16 @@ let that: any;
 
 export default Vue.extend({
   components: {
-    FormLabel,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
+  },
+  data() {
+    return {
+      showSelectClient: false as boolean,
+      checkRunning: false as boolean,
+      isMemberCodeValid: true,
+    };
   },
   computed: {
     ...mapGetters([
@@ -198,12 +207,55 @@ export default Vue.extend({
       );
     },
   },
-  data() {
-    return {
-      showSelectClient: false as boolean,
-      checkRunning: false as boolean,
-      isMemberCodeValid: true,
-    };
+
+  watch: {
+    async memberCode(val) {
+      // Set wizard mode to default (full)
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+
+      // Needs to be done here, because the watcher runs before the setter
+      validate(this.memberCode, 'required|xrdIdentifier', {
+        // name is not used, but if it's undefined there is a warning in browser console
+        name: 'addClient.memberCode',
+      }).then((result) => {
+        if (result.valid) {
+          this.isMemberCodeValid = true;
+          if (isEmpty(val) || isEmpty(this.memberClass)) {
+            return;
+          }
+          this.checkClient();
+        } else {
+          this.isMemberCodeValid = false;
+        }
+      });
+    },
+    memberClass(val): void {
+      // Set wizard mode to default (full)
+      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+      if (isEmpty(val) || isEmpty(this.memberCode)) {
+        return;
+      }
+      this.checkClient();
+    },
+
+    memberClassesCurrentInstance(val): void {
+      // Set first member class selected as default when the list is updated
+      if (val?.length === 1) {
+        this.memberClass = val[0];
+      }
+    },
+  },
+
+  mounted() {
+    this.$refs.memberCodeVP;
+  },
+  created() {
+    that = this;
+    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
+    this.$store.dispatch(
+      'fetchSelectableMembers',
+      that.currentSecurityServer.instance_id,
+    );
   },
   methods: {
     cancel(): void {
@@ -257,77 +309,9 @@ export default Vue.extend({
         );
     }, 600),
   },
-  created() {
-    that = this;
-    this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-    this.$store.dispatch(
-      'fetchSelectableMembers',
-      that.currentSecurityServer.instance_id,
-    );
-  },
-
-  watch: {
-    async memberCode(val) {
-      // Set wizard mode to default (full)
-      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-
-      // Needs to be done here, because the watcher runs before the setter
-      validate(this.memberCode, 'required|xrdIdentifier', {
-        // name is not used, but if it's undefined there is a warning in browser console
-        name: 'addClient.memberCode',
-      }).then((result) => {
-        if (result.valid) {
-          this.isMemberCodeValid = true;
-          if (isEmpty(val) || isEmpty(this.memberClass)) {
-            return;
-          }
-          this.checkClient();
-        } else {
-          this.isMemberCodeValid = false;
-        }
-      });
-    },
-    memberClass(val): void {
-      // Set wizard mode to default (full)
-      this.$store.commit('setAddMemberWizardMode', AddMemberWizardModes.FULL);
-      if (isEmpty(val) || isEmpty(this.memberCode)) {
-        return;
-      }
-      this.checkClient();
-    },
-
-    memberClassesCurrentInstance(val): void {
-      // Set first member class selected as default when the list is updated
-      if (val?.length === 1) {
-        this.memberClass = val[0];
-      }
-    },
-  },
-  mounted() {
-    this.$refs.memberCodeVP;
-  },
 });
 </script>
 
 <style lang="scss" scoped>
 @import '../../assets/wizards';
-
-.info-block {
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 40px;
-
-  .action-block {
-    margin-top: 30px;
-    margin-left: auto;
-    margin-right: 0px;
-  }
-}
-
-.duplicate-warning {
-  margin-left: 230px;
-  margin-top: 10px;
-  color: #ff5252;
-  font-size: 12px;
-}
 </style>

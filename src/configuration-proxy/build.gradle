@@ -37,7 +37,7 @@ task runConfigurationProxyTest(type: JavaExec) {
             '-Dxroad.common.configuration-path=src/test/resources/test-conf-simple',
             '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
-    main = 'ee.ria.xroad.confproxy.ConfProxyTest'
+    mainClass = 'ee.ria.xroad.confproxy.ConfProxyTest'
     classpath = sourceSets.test.runtimeClasspath
 }
 
@@ -46,7 +46,7 @@ task runConfigurationProxyMain(type: JavaExec) {
             '-Dxroad.common.configuration-path=build/',
             '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
-    main = 'ee.ria.xroad.confproxy.ConfProxyMain'
+    mainClass = 'ee.ria.xroad.confproxy.ConfProxyMain'
     classpath = sourceSets.test.runtimeClasspath
 
     args 'PROXY1'
@@ -56,7 +56,7 @@ task runConfigurationProxyUtilTest(type: JavaExec) {
     jvmArgs '-Dxroad.conf.path=src/test/resources/',
             '-Dxroad.configuration-proxy.configuration-path=src/test/resources/conf-proxy-conf'
 
-    main = 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain'
+    mainClass = 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilMain'
     classpath = sourceSets.test.runtimeClasspath
 
     args 'ee.ria.xroad.confproxy.commandline.ConfProxyUtilGenerateAnchor', '-p', 'PROXY1', '-f', 'test.xml'

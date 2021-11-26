@@ -30,6 +30,7 @@ import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
+import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -549,6 +550,14 @@ public final class GlobalConf {
         log.trace("getApprovedTsps({})", instanceIdentifier);
 
         return getInstance().getApprovedTsps(instanceIdentifier);
+    }
+
+    /**
+     * @param instanceIdentifier the instance identifier
+     * @return all approved TSP types for the given instance identifier
+     */
+    public static List<ApprovedTSAType> getApprovedTspTypes(String instanceIdentifier) {
+        return getInstance().getApprovedTspTypes(instanceIdentifier);
     }
 
     /**

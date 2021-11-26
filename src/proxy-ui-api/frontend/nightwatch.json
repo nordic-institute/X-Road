@@ -9,13 +9,14 @@
   "disable_colors": false,
   "test_workers" : false,
   "test_settings" : {
-    "screenshots" : {
-      "enabled" : true,
-      "on_failure" : true,
-      "on_error" : true,
-      "path" : "./tests/e2e/screenshots"
-    },
+
     "default": {
+      "screenshots" : {
+        "enabled" : true,
+        "on_failure" : true,
+        "on_error" : true,
+        "path" : "./tests/e2e/screenshots"
+      },
       "use_xpath": true,
       "globals" : {
         "login_usr" : "xrd",
@@ -29,10 +30,18 @@
         "login_securityserver_observer" : "xrd-obs",
         "logout_timeout_ms" : 60000,
         "test_cert" : "cert.cer",
+        "import_auth_cert" : "auth_crt_import.pem",
+        "import_sign_cert" : "sign_crt_import.pem",
+        "ss2_auth_cert" : "ss2_auth_crt.pem",
+        "ss2_sign_cert" : "ss2_sign_crt.pem",
+        "ss2_auth_csr" : "ss2_auth_csr.pem",
+        "ss2_sign_csr" : "ss2_auth_csr.pem",
         "export_cert" : "certs.tar.gz",
         "e2etest_testdata" : "/../testdata",
+        "testfiles_path" : "/usr/share/nginx/html/test_data",
         "wsdl_url_1": "testservice1.wsdl",
         "wsdl_url_2": "testservice2.wsdl",
+        "wsdl_url_x": "testserviceX.wsdl",
         "rest_url_1": "testapi/v1/rest/",
         "rest_url_2": "testapi/v2/rest/",
         "openapi_url_1": "testopenapi1.yaml",

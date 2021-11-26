@@ -52,15 +52,12 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="candidate in this.filteredCandidates()"
-            v-bind:key="candidate.id"
-          >
+          <tr v-for="candidate in filteredCandidates()" :key="candidate.id">
             <td class="checkbox-column">
               <div class="checkbox-wrap">
                 <v-radio
-                  :disabled="isDisabled(candidate)"
                   :key="candidate.id"
+                  :disabled="isDisabled(candidate)"
                   :value="candidate"
                   data-test="candidate-selection"
                 />
@@ -80,20 +77,16 @@
     </v-radio-group>
 
     <div class="button-footer full-width">
-      <div class="button-group">
-        <large-button outlined @click="cancel" data-test="cancel-button"
-          >{{ $t('action.cancel') }}
-        </large-button>
-      </div>
+      <xrd-button outlined data-test="cancel-button" @click="cancel">{{
+        $t('action.cancel')
+      }}</xrd-button>
 
-      <div>
-        <large-button
-          :disabled="!selection"
-          @click="$emit('set-step')"
-          data-test="next-button"
-          >{{ $t('action.next') }}
-        </large-button>
-      </div>
+      <xrd-button
+        :disabled="!selection"
+        data-test="next-button"
+        @click="$emit('set-step')"
+        >{{ $t('action.next') }}</xrd-button
+      >
     </div>
   </div>
 </template>
@@ -103,13 +96,9 @@ import Vue from 'vue';
 import { ServiceClient } from '@/openapi-types';
 import * as api from '@/util/api';
 import { Prop } from 'vue/types/options';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     id: {
       type: String as Prop<string>,
@@ -126,6 +115,9 @@ export default Vue.extend({
       serviceClientCandidates: [] as ServiceClient[],
       selection: undefined as undefined | ServiceClient,
     };
+  },
+  created(): void {
+    this.fetchData();
   },
   methods: {
     fetchData(): void {
@@ -162,20 +154,16 @@ export default Vue.extend({
       );
     },
   },
-  created(): void {
-    this.fetchData();
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-@import '../../../assets/global-style';
-@import '../../../assets/shared';
-@import '../../../assets/wizards';
+@import '~styles/tables';
+@import '~styles/wizards';
 
 .search-field {
   max-width: 300px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  margin-left: 20px;
 }
 </style>

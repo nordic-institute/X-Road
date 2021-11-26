@@ -25,35 +25,34 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       class="view-title"
       :title="$t('wizard.addSubsystemTitle')"
-      :showClose="false"
+      :show-close="false"
     />
-
-    <div class="content">
-      <div class="info-block">
-        <div>
-          {{ $t('wizard.subsystem.info1') }}
-          <br />
-          <br />
-          {{ $t('wizard.subsystem.info2') }}
+    <ValidationObserver ref="form2" v-slot="{ invalid }">
+      <div class="wizard-step-form-content">
+        <div class="info-block">
+          <div>
+            {{ $t('wizard.subsystem.info1') }}
+            <br />
+            <br />
+            {{ $t('wizard.subsystem.info2') }}
+          </div>
+          <div class="action-block">
+            <xrd-button
+              outlined
+              data-test="select-subsystem-button"
+              @click="showSelectClient = true"
+              >{{ $t('wizard.subsystem.selectSubsystem') }}</xrd-button
+            >
+          </div>
         </div>
-        <div class="action-block">
-          <large-button
-            @click="showSelectClient = true"
-            outlined
-            data-test="select-subsystem-button"
-            >{{ $t('wizard.subsystem.selectSubsystem') }}</large-button
-          >
-        </div>
-      </div>
 
-      <ValidationObserver ref="form2" v-slot="{ invalid }">
         <div class="row-wrap">
-          <FormLabel
-            labelText="wizard.memberName"
-            helpText="wizard.client.memberNameTooltip"
+          <xrd-form-label
+            :label-text="$t('wizard.memberName')"
+            :help-text="$t('wizard.client.memberNameTooltip')"
           />
           <div data-test="selected-member-name" class="identifier-wrap">
             {{ memberName }}
@@ -61,18 +60,18 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
-            labelText="wizard.memberClass"
-            helpText="wizard.client.memberClassTooltip"
+          <xrd-form-label
+            :label-text="$t('wizard.memberClass')"
+            :help-text="$t('wizard.client.memberClassTooltip')"
           />
           <div data-test="selected-member-class" class="identifier-wrap">
             {{ memberClass }}
           </div>
         </div>
         <div class="row-wrap">
-          <FormLabel
-            labelText="wizard.memberCode"
-            helpText="wizard.client.memberCodeTooltip"
+          <xrd-form-label
+            :label-text="$t('wizard.memberCode')"
+            :help-text="$t('wizard.client.memberCodeTooltip')"
           />
           <div data-test="selected-member-code" class="identifier-wrap">
             {{ memberCode }}
@@ -80,22 +79,24 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel
-            labelText="wizard.subsystemCode"
-            helpText="wizard.client.subsystemCodeTooltip"
+          <xrd-form-label
+            :label-text="$t('wizard.subsystemCode')"
+            :help-text="$t('wizard.client.subsystemCodeTooltip')"
           />
 
           <ValidationProvider
+            v-slot="{ errors }"
             name="addClient.subsystemCode"
             rules="required|xrdIdentifier"
-            v-slot="{ errors }"
           >
             <v-text-field
+              v-model="subsystemCode"
               class="form-input"
               type="text"
               :error-messages="errors"
-              v-model="subsystemCode"
               autofocus
+              :placeholder="$t('wizard.subsystemCode')"
+              outlined
               data-test="subsystem-code-input"
             ></v-text-field>
           </ValidationProvider>
@@ -105,7 +106,9 @@
         </div>
 
         <div class="row-wrap">
-          <FormLabel labelText="wizard.subsystem.registerSubsystem" />
+          <xrd-form-label
+            :label-text="$t('wizard.subsystem.registerSubsystem')"
+          />
           <v-checkbox
             v-model="registerChecked"
             color="primary"
@@ -113,53 +116,47 @@
             data-test="register-subsystem-checkbox"
           ></v-checkbox>
         </div>
-        <div class="button-footer">
-          <div class="button-group">
-            <large-button
-              outlined
-              @click="exitView"
-              data-test="cancel-button"
-              >{{ $t('action.cancel') }}</large-button
-            >
-          </div>
-          <large-button
-            @click="done"
-            :disabled="invalid || duplicateClient"
-            data-test="submit-add-subsystem-button"
-            :loading="submitLoading"
-            >{{ $t('action.addSubsystem') }}</large-button
-          >
+      </div>
+
+      <div class="button-footer">
+        <div class="button-group">
+          <xrd-button outlined data-test="cancel-button" @click="exitView">{{
+            $t('action.cancel')
+          }}</xrd-button>
         </div>
-      </ValidationObserver>
+        <xrd-button
+          :disabled="invalid || duplicateClient"
+          data-test="submit-add-subsystem-button"
+          :loading="submitLoading"
+          @click="done"
+          >{{ $t('action.addSubsystem') }}</xrd-button
+        >
+      </div>
+    </ValidationObserver>
 
-      <SelectClientDialog
-        title="wizard.addSubsystemTitle"
-        searchLabel="wizard.subsystem.searchLabel"
-        :dialog="showSelectClient"
-        :selectableClients="selectableSubsystems"
-        @cancel="showSelectClient = false"
-        @save="saveSelectedClient"
-      />
+    <SelectClientDialog
+      title="wizard.addSubsystemTitle"
+      search-label="wizard.subsystem.searchLabel"
+      :dialog="showSelectClient"
+      :selectable-clients="selectableSubsystems"
+      @cancel="showSelectClient = false"
+      @save="saveSelectedClient"
+    />
 
-      <ConfirmDialog
-        :dialog="confirmRegisterClient"
-        title="clients.action.register.confirm.title"
-        text="clients.action.register.confirm.text"
-        @cancel="exitView"
-        @accept="registerSubsystem"
-        :loading="registerClientLoading"
-      />
-    </div>
+    <xrd-confirm-dialog
+      :dialog="confirmRegisterClient"
+      title="clients.action.register.confirm.title"
+      text="clients.action.register.confirm.text"
+      :loading="registerClientLoading"
+      @cancel="exitView"
+      @accept="registerSubsystem"
+    />
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import SelectClientDialog from '@/components/client/SelectClientDialog.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import { RouteName } from '@/global';
 import { containsClient, createClientId } from '@/util/helpers';
 import { Client } from '@/openapi-types';
@@ -169,13 +166,9 @@ import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
   components: {
-    FormLabel,
-    LargeButton,
     ValidationObserver,
     ValidationProvider,
     SelectClientDialog,
-    SubViewTitle,
-    ConfirmDialog,
   },
   props: {
     instanceId: {
@@ -220,6 +213,10 @@ export default Vue.extend({
         this.subsystemCode,
       );
     },
+  },
+
+  created() {
+    this.fetchData();
   },
   methods: {
     done(): void {
@@ -314,22 +311,17 @@ export default Vue.extend({
         });
     },
   },
-
-  created() {
-    this.fetchData();
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
-@import '../../assets/wizards';
+@import '~styles/wizards';
 
 .view-wrap {
   width: 100%;
   max-width: 1000px;
   margin: 10px;
+  margin-top: 30px;
 
   .view-title {
     width: 100%;

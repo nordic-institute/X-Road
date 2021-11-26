@@ -24,67 +24,85 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-container fluid fill-height>
+  <v-container fluid fill-height class="login-view-wrap">
+    <AlertsContainer class="alerts" />
+    <div class="graphics">
+      <v-img
+        :src="require('../assets/xroad7_large.svg')"
+        height="195"
+        width="144"
+        max-height="195"
+        max-width="144"
+        class="xrd-logo"
+      ></v-img>
+    </div>
+
     <v-layout align-center justify-center>
-      <v-flex sm8 md4 class="set-width">
+      <v-flex class="set-width">
         <v-card flat>
           <v-toolbar flat class="login-form-toolbar">
-            <v-toolbar-title class="login-form-toolbar-title">{{
-              $t('login.logIn')
-            }}</v-toolbar-title>
+            <div class="title-wrap">
+              <div class="login-form-toolbar-title">
+                {{ $t('login.logIn') }}
+              </div>
+              <div class="sub-title">X-Road Security Server</div>
+            </div>
           </v-toolbar>
 
           <v-card-text>
             <v-form>
               <ValidationObserver ref="form">
                 <ValidationProvider
+                  v-slot="{ errors }"
                   name="username"
                   rules="required"
-                  v-slot="{ errors }"
                 >
                   <v-text-field
                     id="username"
+                    v-model="username"
                     name="username"
+                    outlined
                     :label="$t('fields.username')"
                     :error-messages="errors"
                     type="text"
-                    v-model="username"
-                    @keyup.enter="submit"
                     autofocus
+                    @keyup.enter="submit"
                   ></v-text-field>
                 </ValidationProvider>
 
                 <ValidationProvider
+                  v-slot="{ errors }"
                   name="password"
                   rules="required"
-                  v-slot="{ errors }"
                 >
                   <v-text-field
                     id="password"
+                    v-model="password"
                     name="password"
+                    outlined
                     :label="$t('fields.password')"
                     :error-messages="errors"
                     type="password"
-                    v-model="password"
                     @keyup.enter="submit"
                   ></v-text-field>
                 </ValidationProvider>
               </ValidationObserver>
             </v-form>
           </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
+          <v-card-actions class="px-4">
+            <xrd-button
               id="submit-button"
               color="primary"
-              class="rounded-button"
-              @click="submit"
-              min-width="120"
+              gradient
+              block
+              large
+              :min_width="120"
               rounded
               :disabled="isDisabled"
               :loading="loading"
-              >{{ $t('login.logIn') }}
-            </v-btn>
+              @click="submit"
+              >{{ $t('login.logIn') }}</xrd-button
+            >
           </v-card-actions>
         </v-card>
       </v-flex>
@@ -96,18 +114,22 @@
 import Vue, { VueConstructor } from 'vue';
 import { RouteName, Permissions } from '@/global';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
+import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 
-export default (Vue as VueConstructor<
-  Vue & {
-    $refs: {
-      form: InstanceType<typeof ValidationObserver>;
-    };
-  }
->).extend({
-  name: 'login',
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        form: InstanceType<typeof ValidationObserver>;
+      };
+    }
+  >
+).extend({
+  name: 'Login',
   components: {
     ValidationProvider,
     ValidationObserver,
+    AlertsContainer,
   },
   data() {
     return {
@@ -130,8 +152,10 @@ export default (Vue as VueConstructor<
   },
   methods: {
     async submit() {
-      // Validate inputs
+      // Clear error notifications when route is changed
+      this.$store.commit('clearErrorNotifications');
 
+      // Validate inputs
       const isValid = await this.$refs.form.validate();
 
       if (!isValid) {
@@ -256,24 +280,59 @@ export default (Vue as VueConstructor<
 </script>
 
 <style lang="scss" scoped>
-.app-custom {
+@import '~styles/colors';
+
+.alerts {
+  top: 40px;
+  left: 0;
+  right: 0;
+  margin-left: auto;
+  margin-right: auto;
+  z-index: 100;
+  position: absolute;
+}
+.graphics {
+  height: 100%;
+  width: 40%;
+  max-width: 576px; // width of the backround image
+  background-image: url('../assets/background.png');
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-view-wrap {
   background-color: white;
+  padding: 0;
+}
+
+.title-wrap {
+  display: flex;
+  flex-direction: column;
 }
 
 .login-form-toolbar {
   background-color: white;
-  border-bottom: 1px #9b9b9b solid;
   margin-bottom: 30px;
   padding-left: 0;
 }
 
 .login-form-toolbar-title {
   margin-left: 0;
-  color: #4a4a4a;
-  font-size: 36px;
-  font-weight: 300;
-  line-height: 44px;
-  margin-left: -24px;
+  color: #252121;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 40px;
+  line-height: 54px;
+}
+
+.sub-title {
+  font-style: normal;
+  font-weight: normal;
+  font-size: $XRoad-DefaultFontSize;
+  line-height: 19px;
 }
 
 .set-width {

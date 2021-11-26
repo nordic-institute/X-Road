@@ -24,12 +24,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-dialog :value="dialog" width="750" scrollable persistent>
+  <v-dialog v-if="dialog" :value="dialog" width="750" scrollable persistent>
     <v-card class="xrd-card">
       <v-card-title>
         <span class="headline">{{ $t(title) }}</span>
         <v-spacer />
-        <i @click="cancel()" data-test="x-close-button"></i>
+        <i data-test="x-close-button" @click="cancel()"></i>
       </v-card-title>
 
       <v-card-text style="height: 500px" class="elevation-0">
@@ -56,7 +56,7 @@
               </tr>
             </thead>
             <tbody v-if="selectableClients && selectableClients.length > 0">
-              <tr v-for="member in filteredMembers()" v-bind:key="member.id">
+              <tr v-for="member in filteredMembers()" :key="member.id">
                 <td class="checkbox-column">
                   <div class="checkbox-wrap">
                     <v-radio :key="member.id" :value="member"></v-radio>
@@ -77,19 +77,19 @@
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
 
-        <large-button
+        <xrd-button
           class="button-margin"
           outlined
-          @click="cancel()"
           data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
+          @click="cancel()"
+          >{{ $t('action.cancel') }}</xrd-button
         >
 
-        <large-button
+        <xrd-button
           :disabled="!selectedMember"
-          @click="save()"
           data-test="save-button"
-          >{{ $t('localGroup.addSelected') }}</large-button
+          @click="save()"
+          >{{ $t('localGroup.addSelected') }}</xrd-button
         >
       </v-card-actions>
     </v-card>
@@ -98,13 +98,9 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Client } from '@/openapi-types';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-  },
   props: {
     dialog: {
       type: Boolean,

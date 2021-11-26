@@ -180,16 +180,15 @@ public final class MetaserviceTestUtil {
      * @param definition
      * @return List of the names of the {@link BindingOperation}s in the given definition
      */
+    @SuppressWarnings("unchecked")
     public static List<String> parseOperationNamesFromWSDLDefinition(Definition definition) {
-        @SuppressWarnings("unchecked") Collection<Service> services = definition.getServices().values();
+        Collection<Service> services = definition.getServices().values();
 
         // note that these return raw type collections
         return services.stream()
-                .map(service -> service.getPorts().values())
-                .flatMap(Collection::stream)
-                .map(port -> ((Port) port).getBinding().getBindingOperations())
-                .flatMap(List::stream)
-                .map(bindingOperation -> ((BindingOperation) bindingOperation).getName())
+                .flatMap(service -> ((Collection<Port>)service.getPorts().values()).stream())
+                .flatMap(port -> ((List<BindingOperation>)port.getBinding().getBindingOperations()).stream())
+                .map(BindingOperation::getName)
                 .collect(Collectors.toList());
     }
 

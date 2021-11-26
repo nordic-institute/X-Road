@@ -24,44 +24,45 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper xrd-view-common">
-    <div class="table-toolbar">
-      <v-text-field
-        v-model="search"
-        :label="$t('action.search')"
-        single-line
-        hide-details
-        class="search-input"
-        data-test="backup-search"
-        autofocus
-      >
-        <v-icon slot="append">mdi-magnify</v-icon>
-      </v-text-field>
+  <div class="xrd-view-common">
+    <div class="table-toolbar mt-0 pl-0">
+      <div class="xrd-title-search">
+        <div class="xrd-view-title">
+          {{ $t('tab.settings.backupAndRestore') }}
+        </div>
+        <xrd-search v-model="search" />
+      </div>
       <div>
-        <large-button
+        <xrd-button
           v-if="canBackup"
           color="primary"
+          outlined
           :loading="creatingBackup"
           data-test="backup-create-configuration"
           @click="createBackup"
-          >{{ $t('backup.backupConfiguration.button') }}
-        </large-button>
-        <file-upload
-          accepts=".tar"
-          @file-changed="onFileUploaded"
-          v-slot="{ upload }"
         >
-          <large-button
+          <v-icon class="xrd-large-button-icon">icon-Database-backup</v-icon
+          >{{ $t('backup.backupConfiguration.button') }}
+        </xrd-button>
+        <xrd-file-upload
+          v-slot="{ upload }"
+          accepts=".gpg"
+          @file-changed="onFileUploaded"
+        >
+          <xrd-button
             v-if="canBackup"
             color="primary"
             :loading="uploadingBackup"
             class="button-spacing"
-            @click="upload"
             data-test="backup-upload"
-            >{{ $t('backup.uploadBackup.button') }}
-          </large-button>
-        </file-upload>
-        <confirm-dialog
+            @click="upload"
+          >
+            <v-icon class="xrd-large-button-icon">icon-Upload</v-icon>
+
+            {{ $t('backup.uploadBackup.button') }}
+          </xrd-button>
+        </xrd-file-upload>
+        <xrd-confirm-dialog
           v-if="uploadedFile !== null"
           :dialog="needsConfirmation"
           title="backup.uploadBackup.confirmationDialog.title"
@@ -75,7 +76,7 @@
       </div>
     </div>
     <BackupsDataTable
-      :canBackup="canBackup"
+      :can-backup="canBackup"
       :backups="backups"
       :filter="search"
       @refresh-data="fetchData"
@@ -90,12 +91,9 @@
 import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { Backup } from '@/openapi-types';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
-import FileUpload from '@/components/ui/FileUpload.vue';
-import { FileUploadResult } from '@/ui-types';
+import { FileUploadResult } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
   const formData = new FormData();
@@ -114,9 +112,6 @@ const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
 export default Vue.extend({
   components: {
     BackupsDataTable,
-    LargeButton,
-    ConfirmDialog,
-    FileUpload,
   },
   data() {
     return {
@@ -134,6 +129,16 @@ export default Vue.extend({
         Permissions.BACKUP_CONFIGURATION,
       );
     },
+  },
+  created(): void {
+    this.fetchData();
+    this.$store.dispatch('showStaticNotification', [
+      this.$t('info.backups_incompatible[0]'),
+      this.$t('info.backups_incompatible[1]'),
+    ]);
+  },
+  beforeDestroy() {
+    this.$store.dispatch('clearStaticNotification');
   },
   methods: {
     async fetchData() {
@@ -213,14 +218,11 @@ export default Vue.extend({
         });
     },
   },
-  created(): void {
-    this.fetchData();
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
+@import '~styles/tables';
 .search-input {
   max-width: 300px;
 }

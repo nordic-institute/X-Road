@@ -25,61 +25,60 @@
  -->
 <template>
   <div data-test="finish-content">
-    <p>{{ $t('wizard.finish.infoLine1') }}</p>
-    <p>{{ $t('wizard.finish.infoLine2') }}</p>
-    <br />
-    <p>{{ $t('wizard.finish.todo1') }}</p>
-    <p>{{ $t('wizard.finish.todo2') }}</p>
-    <p>{{ $t('wizard.finish.todo3') }}</p>
-    <br />
-    <br />
-    <p>{{ $t('wizard.finish.note') }}</p>
-    <p></p>
+    <div class="wizard-step-form-content px-12 pt-10">
+      <div class="finish-info">
+        <p>{{ $t('wizard.finish.infoLine1') }}</p>
+        <p>{{ $t('wizard.finish.infoLine2') }}</p>
+        <br />
+        <p>{{ $t('wizard.finish.todo1') }}</p>
+        <p>{{ $t('wizard.finish.todo2') }}</p>
+        <p>{{ $t('wizard.finish.todo3') }}</p>
+        <br />
+        <br />
+        <p>{{ $t('wizard.finish.note') }}</p>
+        <p></p>
 
-    <div v-if="showRegisterOption">
-      <FormLabel labelText="wizard.client.register" />
-      <v-checkbox
-        v-model="registerChecked"
-        color="primary"
-        class="register-checkbox"
-        data-test="register-member-checkbox"
-      ></v-checkbox>
+        <div v-if="showRegisterOption && canRegisterClient">
+          <xrd-form-label :label-text="$t('wizard.client.register')" />
+          <v-checkbox
+            v-model="registerChecked"
+            color="primary"
+            class="register-checkbox"
+            data-test="register-member-checkbox"
+          ></v-checkbox>
+        </div>
+      </div>
     </div>
-
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="disableCancel"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
+      <xrd-button
+        outlined
+        :disabled="disableCancel"
+        data-test="cancel-button"
+        @click="cancel"
+        >{{ $t('action.cancel') }}</xrd-button
+      >
 
-      <div>
-        <large-button
-          @click="previous"
-          outlined
-          :disabled="disableCancel"
-          class="previous-button"
-          data-test="previous-button"
-          >{{ $t('action.previous') }}</large-button
-        >
+      <xrd-button
+        outlined
+        :disabled="disableCancel"
+        class="previous-button"
+        data-test="previous-button"
+        @click="previous"
+        >{{ $t('action.previous') }}</xrd-button
+      >
 
-        <large-button
-          @click="done"
-          :loading="submitLoading"
-          data-test="submit-button"
-          >{{ $t('action.submit') }}</large-button
-        >
-      </div>
+      <xrd-button
+        :loading="submitLoading"
+        data-test="submit-button"
+        @click="done"
+        >{{ $t('action.submit') }}</xrd-button
+      >
     </div>
     <!-- Accept warnings -->
     <warningDialog
       :dialog="warningDialog"
       :warnings="warningInfo"
-      localizationParent="wizard.warning"
+      localization-parent="wizard.warning"
       @cancel="cancelSubmit()"
       @accept="acceptWarnings()"
     />
@@ -89,36 +88,16 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
-import FormLabel from '@/components/ui/FormLabel.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { memberHasValidSignCert } from '@/util/ClientUtil';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     WarningDialog,
-    FormLabel,
-  },
-  computed: {
-    ...mapGetters([
-      'addMemberWizardMode',
-      'memberClass',
-      'memberCode',
-      'subsystemCode',
-      'currentSecurityServer',
-    ]),
-    showRegisterOption() {
-      if (
-        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
-      ) {
-        return true;
-      }
-      return false;
-    },
   },
   data() {
     return {
@@ -128,6 +107,25 @@ export default Vue.extend({
       warningInfo: [] as string[],
       warningDialog: false,
     };
+  },
+  computed: {
+    ...mapGetters([
+      'addMemberWizardMode',
+      'memberClass',
+      'memberCode',
+      'subsystemCode',
+      'currentSecurityServer',
+      'tokens',
+    ]),
+    showRegisterOption(): boolean {
+      return (
+        this.addMemberWizardMode === AddMemberWizardModes.CERTIFICATE_EXISTS
+      );
+    },
+    canRegisterClient(): boolean {
+      const memberName = `${this.currentSecurityServer.instance_id}:${this.memberClass}:${this.memberCode}`;
+      return memberHasValidSignCert(memberName, this.tokens);
+    },
   },
 
   methods: {
@@ -149,7 +147,8 @@ export default Vue.extend({
           if (
             this.addMemberWizardMode ===
               AddMemberWizardModes.CERTIFICATE_EXISTS &&
-            this.registerChecked
+            this.registerChecked &&
+            this.canRegisterClient
           ) {
             this.registerClient();
           } else if (
@@ -186,7 +185,6 @@ export default Vue.extend({
     acceptWarnings(): void {
       this.createClient(true);
     },
-
     generateKeyAndCsr(): void {
       const tokenId = this.$store.getters.csrTokenId;
 
@@ -254,5 +252,5 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/wizards';
+@import '~styles/wizards';
 </style>

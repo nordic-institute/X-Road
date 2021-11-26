@@ -5,8 +5,8 @@
 # X-Road: Use Case Model for Central Server Management
 **Analysis**
 
-Version: 1.5  
-06.03.2018
+Version: 1.6  
+25.08.2021
 <!-- 38 pages -->
 Doc. ID: UC-CS
 ------------------------------------------------------
@@ -24,6 +24,7 @@ Date       | Version | Description                                              
 29.08.2017 |  1.3    |  Changed documentation type from docx to md file | Lasse Matikainen
 19.02.2018 |  1.4    |   Updated the negative case extension for backing up the central server | Tatu Repo
 06.03.2018 |  1.5    |   Added term doc reference and link, added reference links | Tatu Repo
+25.08.2021 |  1.6    | Update X-Road references from version 6 to 7 | Caro Hautamäki
 
 ## Table of Contents
 
@@ -94,7 +95,7 @@ See X-Road terms and abbreviations documentation \[[TA-TERMS](#Ref_TERMS)\].
 ### 1.2 References
 
 1.  <a id="Ref_IG-CS" class="anchor"></a>\[IG-CS\]
-    X-Road 6. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
+    X-Road 7. Central Server Installation Guide. Document ID: [IG-CS](../Manuals/ig-cs_x-road_6_central_server_installation_guide.md).
 
 2.  <a id="Ref_SPEC-AL" class="anchor"></a>\[SPEC-AL\] X-Road:
     Audit Log Events. Document ID: SPEC-AL.

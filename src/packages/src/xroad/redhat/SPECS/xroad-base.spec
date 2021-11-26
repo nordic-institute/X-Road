@@ -1,3 +1,4 @@
+%include %{_specdir}/common.inc
 # do not repack jars
 %define __jar_repack %{nil}
 # produce .elX dist tag on both centos and redhat
@@ -18,7 +19,7 @@ Requires:  systemd
 %if 0%{?el7}
 Requires:  rlwrap
 %endif
-Requires:  jre-1.8.0-headless >= 1.8.0.51
+Requires:  jre-11-headless
 Requires:  crudini, hostname, sudo, openssl
 
 %define src %{_topdir}/..
@@ -50,11 +51,11 @@ mkdir -p %{buildroot}/var/lib/xroad/backup
 mkdir -p %{buildroot}/etc/xroad/backup.d
 
 ln -s /usr/share/xroad/jlib/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/common-db.jar
-ln -s /usr/share/xroad/jlib/postgresql-42.2.18.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
+ln -s /usr/share/xroad/jlib/postgresql-42.2.24.jar %{buildroot}/usr/share/xroad/jlib/postgresql.jar
 
 cp -p %{_sourcedir}/base/xroad-base.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../common-db/build/libs/common-db-1.0.jar %{buildroot}/usr/share/xroad/jlib/
-cp -p %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/postgresql-42.2.18.jar %{buildroot}/usr/share/xroad/jlib/
+cp -p %{srcdir}/../../../proxy-ui-api/build/unpacked-libs/postgresql-42.2.24.jar %{buildroot}/usr/share/xroad/jlib/
 cp -p %{srcdir}/default-configuration/common.ini %{buildroot}/etc/xroad/conf.d/
 cp -p %{srcdir}/../../../LICENSE.txt %{buildroot}/usr/share/doc/%{name}/LICENSE.txt
 cp -p %{srcdir}/../../../3RD-PARTY-NOTICES.txt %{buildroot}/usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
@@ -88,6 +89,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/postgresql-*.jar
 /usr/share/xroad/scripts/_backup_xroad.sh
 /usr/share/xroad/scripts/generate_certificate.sh
+/usr/share/xroad/scripts/generate_gpg_keypair.sh
 /usr/share/xroad/scripts/_restore_xroad.sh
 /usr/share/xroad/scripts/_backup_restore_common.sh
 /usr/share/xroad/scripts/serverconf_migrations/add_acl.xsl
@@ -99,7 +101,9 @@ rm -rf %{buildroot}
 %doc /usr/share/doc/%{name}/3RD-PARTY-NOTICES.txt
 %doc /usr/share/doc/%{name}/CHANGELOG.md
 
-%pre
+%pre -p /bin/bash
+%upgrade_check
+
 if ! getent passwd xroad > /dev/null; then
 useradd --system --home /var/lib/xroad --no-create-home --shell /bin/bash --user-group --comment "X-Road system user" xroad
 fi
@@ -148,7 +152,7 @@ chmod 1750 /var/tmp/xroad
 chown xroad:xroad /var/tmp/xroad
 
 #local overrides
-test -f /etc/xroad/services/local.conf || touch /etc/xroad/services/local.conf
+test -f /etc/xroad/services/local.properties || touch /etc/xroad/services/local.properties
 test -f /etc/xroad/conf.d/local.ini || touch /etc/xroad/conf.d/local.ini
 
 chown -R xroad:xroad /etc/xroad/services/* /etc/xroad/conf.d/*

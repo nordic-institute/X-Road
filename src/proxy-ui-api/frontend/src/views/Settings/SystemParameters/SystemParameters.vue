@@ -24,31 +24,41 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="pt-10">
+  <div class="mt-3" data-test="system-parameters-tab-view">
+    <div class="xrd-view-title pb-6">{{ $t('systemParameters.title') }}</div>
+
     <v-card flat class="xrd-card">
-      <v-container>
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
+      <v-card-text class="card-text">
+        <v-row
+          v-if="hasPermission(permissions.VIEW_ANCHOR)"
+          no-gutters
+          class="px-4"
+        >
           <v-col
             ><h3>
               {{ $t('systemParameters.configurationAnchor.title') }}
             </h3></v-col
           >
           <v-col class="text-right">
-            <large-button
-              data-test="system-parameters-configuration-anchor-download-button"
-              @click="downloadAnchor"
-              :loading="downloadingAnchor"
-              outlined
-              :requires-permission="permissions.DOWNLOAD_ANCHOR"
-            >
-              {{ $t('systemParameters.configurationAnchor.action.download') }}
-            </large-button>
-            <upload-configuration-anchor-dialog
-              @uploaded="fetchConfigurationAnchor"
-            />
+            <div class="anchor-buttons">
+              <xrd-button
+                v-if="hasPermission(permissions.DOWNLOAD_ANCHOR)"
+                data-test="system-parameters-configuration-anchor-download-button"
+                :loading="downloadingAnchor"
+                outlined
+                @click="downloadAnchor"
+              >
+                <v-icon class="xrd-large-button-icon">icon-Download</v-icon>
+                {{ $t('systemParameters.configurationAnchor.action.download') }}
+              </xrd-button>
+
+              <upload-configuration-anchor-dialog
+                @uploaded="fetchConfigurationAnchor"
+              />
+            </div>
           </v-col>
         </v-row>
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_ANCHOR)">
+        <v-row v-if="hasPermission(permissions.VIEW_ANCHOR)" no-gutters>
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -73,19 +83,23 @@
                 data-test="system-parameters-configuration-anchor-table-body"
               >
                 <tr>
-                  <td>{{ this.configuratonAnchor.hash | colonize }}</td>
-                  <td>
-                    {{ this.configuratonAnchor.created_at | formatDateTime }}
+                  <td>{{ configuratonAnchor.hash | colonize }}</td>
+                  <td class="pr-4">
+                    {{ configuratonAnchor.created_at | formatDateTime }}
                   </td>
                 </tr>
               </tbody>
             </table>
           </v-col>
         </v-row>
+      </v-card-text>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-card-text class="card-text">
         <v-row
-          no-gutters
-          class="mt-10"
           v-if="hasPermission(permissions.VIEW_TSPS)"
+          no-gutters
+          class="px-4"
         >
           <v-col
             ><h3>
@@ -94,12 +108,14 @@
           >
           <v-col class="text-right">
             <add-timestamping-service-dialog
+              v-if="hasPermission(permissions.ADD_TSP)"
               :configured-timestamping-services="configuredTimestampingServices"
               @added="fetchConfiguredTimestampingServiced"
             />
           </v-col>
         </v-row>
-        <v-row no-gutters v-if="hasPermission(permissions.VIEW_TSPS)">
+
+        <v-row v-if="hasPermission(permissions.VIEW_TSPS)" no-gutters>
           <v-col>
             <table class="xrd-table">
               <thead>
@@ -125,8 +141,7 @@
                 data-test="system-parameters-timestamping-services-table-body"
               >
                 <timestamping-service-row
-                  v-for="timestampingService in this
-                    .configuredTimestampingServices"
+                  v-for="timestampingService in configuredTimestampingServices"
                   :key="timestampingService.url"
                   :timestamping-service="timestampingService"
                   @deleted="fetchConfiguredTimestampingServiced"
@@ -135,12 +150,16 @@
             </table>
           </v-col>
         </v-row>
+      </v-card-text>
+    </v-card>
+    <v-card flat class="xrd-card">
+      <v-card-text class="card-text">
         <v-row
-          no-gutters
-          class="mt-10"
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
+          no-gutters
+          class="px-4"
         >
           <v-col
             ><h3>
@@ -149,10 +168,10 @@
           >
         </v-row>
         <v-row
-          no-gutters
           v-if="
             hasPermission(permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)
           "
+          no-gutters
         >
           <v-col>
             <table class="xrd-table">
@@ -208,20 +227,19 @@
                       )
                     }}
                   </td>
-                  <td>{{ approvedCA.not_after | formatDate }}</td>
+                  <td class="pr-4">{{ approvedCA.not_after | formatDate }}</td>
                 </tr>
               </tbody>
             </table>
           </v-col>
         </v-row>
-      </v-container>
+      </v-card-text>
     </v-card>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import {
   Anchor,
   CertificateAuthority,
@@ -236,7 +254,6 @@ import AddTimestampingServiceDialog from '@/views/Settings/SystemParameters/AddT
 
 export default Vue.extend({
   components: {
-    LargeButton,
     TimestampingServiceRow,
     UploadConfigurationAnchorDialog,
     AddTimestampingServiceDialog,
@@ -258,6 +275,19 @@ export default Vue.extend({
         authorityA.path.localeCompare(authorityB.path),
       );
     },
+  },
+  created(): void {
+    if (this.hasPermission(Permissions.VIEW_ANCHOR)) {
+      this.fetchConfigurationAnchor();
+    }
+
+    if (this.hasPermission(Permissions.VIEW_TSPS)) {
+      this.fetchConfiguredTimestampingServiced();
+    }
+
+    if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
+      this.fetchApprovedCertificateAuthorities();
+    }
   },
   methods: {
     hasPermission(permission: Permissions): boolean {
@@ -294,38 +324,24 @@ export default Vue.extend({
         .finally(() => (this.downloadingAnchor = false));
     },
   },
-  created(): void {
-    if (this.hasPermission(Permissions.VIEW_ANCHOR)) {
-      this.fetchConfigurationAnchor();
-    }
-
-    if (this.hasPermission(Permissions.VIEW_TSPS)) {
-      this.fetchConfiguredTimestampingServiced();
-    }
-
-    if (this.hasPermission(Permissions.VIEW_APPROVED_CERTIFICATE_AUTHORITIES)) {
-      this.fetchApprovedCertificateAuthorities();
-    }
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/colors';
-@import '../../../assets/tables';
+@import '~styles/colors';
+@import '~styles/tables';
 
 h3 {
-  color: lighten($XRoad-Black, 10);
-  font-weight: 500;
+  color: #211e1e;
+  font-size: 18px;
+  font-weight: bold;
+  letter-spacing: 0;
+  line-height: 24px;
 }
 
-table {
-  font-size: 0.9rem;
-}
-
-tr th {
-  font-weight: 500;
-  color: lighten($XRoad-Black, 20);
+.card-text {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 tr td {
@@ -345,5 +361,14 @@ tr td:last-child {
 .interm-ca {
   font-weight: normal !important;
   padding-left: 2rem !important;
+}
+
+.xrd-card {
+  margin-bottom: 24px;
+}
+
+.anchor-buttons {
+  display: flex;
+  justify-content: flex-end;
 }
 </style>

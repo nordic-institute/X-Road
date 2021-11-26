@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-@import './colors';
+@import "./colors";
 
 .xrd-table {
   width: 100%;
@@ -32,28 +32,25 @@
   border-collapse: collapse;
 
   td {
-    height: 48px;
-    border-bottom: $XRoad-Grey10 solid 1px;
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
     padding-left: 16px;
   }
   th {
-    height: 48px;
-    border-bottom: $XRoad-Grey40 solid 1px;
+    height: 56px;
+    border-bottom: $XRoad-WarmGrey30 solid 1px;
     padding-left: 16px;
     text-align: left;
-  }
-  tr td:first-child {
-    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 12px;
+    color: $XRoad-WarmGrey100;
   }
 
   &.xrd-table-highlightable tbody tr:hover {
-      cursor: pointer;
-      background-color: $XRoad-Grey10;
+    cursor: pointer;
+    background-color: $XRoad-Purple10;
   }
-
 }
-
-
 
 .table-toolbar {
   display: flex;
@@ -62,6 +59,25 @@
   align-items: flex-end;
   width: 100%;
   margin-top: 40px;
-  padding-left: 24px;
   margin-bottom: 24px;
+}
+
+// v7 Some of the subviews use this for "dialog" look
+.main-wrap {
+  background-color: white;
+  margin-top: 20px;
+  border-radius: 4px;
+  box-shadow: $XRoad-DefaultShadow;
+  font-size: $XRoad-DefaultFontSize;
+}
+
+// v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
+.footer-buttons-wrap {
+  margin-top: 48px;
+  display: flex;
+  justify-content: flex-end;
+  border-radius: 0 0 4px 4px;
+  padding: 16px;
+  background-color: $XRoad-WarmGrey10;
+  height: 72px;
 }

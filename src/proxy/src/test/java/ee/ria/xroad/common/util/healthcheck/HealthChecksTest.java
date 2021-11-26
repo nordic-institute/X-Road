@@ -27,6 +27,8 @@ package ee.ria.xroad.common.util.healthcheck;
 
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfProvider;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -49,6 +51,7 @@ import static ee.ria.xroad.common.util.healthcheck.HealthChecks.cacheResultFor;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
@@ -150,10 +153,46 @@ public class HealthChecksTest {
     }
 
     @Test
+    public void checkGlobalConfShouldReturnOkStatusWhenValid() {
+
+        // prepare
+        GlobalConfProvider mockProvider = mock(GlobalConfProvider.class);
+        when(mockProvider.isValid()).thenReturn(true);
+
+        GlobalConf.reload(mockProvider);
+
+        // execute
+        HealthCheckProvider testedProvider = HealthChecks.checkGlobalConfStatus();
+
+        // verify
+        assertTrue("result should be OK", testedProvider.get().isOk());
+    }
+
+    @Test
+    public void checkGlobalConfShouldFailWhenNotValid() {
+
+        // prepare
+        GlobalConfProvider mockProvider = mock(GlobalConfProvider.class);
+        when(mockProvider.isValid()).thenReturn(false);
+
+        GlobalConf.reload(mockProvider);
+
+        // execute
+        HealthCheckProvider testedProvider = HealthChecks.checkGlobalConfStatus();
+        HealthCheckResult checkedResult = testedProvider.get();
+
+        // verify
+        assertFalse("health check result should be a failure", checkedResult.isOk());
+        assertThat(checkedResult.getErrorMessage(),
+                containsString("Global configuration is expired"));
+    }
+
+    @Test
     public void checkServerConfShouldReturnOkStatusWhenServerConfReturnsInfo() {
 
         // prepare
         ServerConfProvider mockProvider = mock(ServerConfProvider.class);
+        when(mockProvider.isAvailable()).thenReturn(true);
         when(mockProvider.getIdentifier()).thenReturn(
                 SecurityServerId.create("XE", "member", "code", "servercode"));
 
@@ -181,8 +220,7 @@ public class HealthChecksTest {
 
         // verify
         assertTrue("health check result should be a failure", !checkedResult.isOk());
-        assertThat(checkedResult.getErrorMessage(),
-                containsString("Server Conf database did not respond as expected"));
+        assertThat(checkedResult.getErrorMessage(), containsString("ServerConf is not available"));
     }
 
     @Test

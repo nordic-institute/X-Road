@@ -24,12 +24,12 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="keys.registrationRequest"
+    :disable-save="!isValid"
     @save="save"
     @cancel="cancel"
-    :disableSave="!isValid"
   >
     <div slot="content">
       <ValidationObserver ref="form" v-slot="{}">
@@ -37,9 +37,9 @@
           <div class="dlg-row-title">{{ $t('keys.certRegistrationInfo') }}</div>
 
           <ValidationProvider
+            v-slot="{ errors }"
             rules="required"
             name="dns"
-            v-slot="{ errors }"
             class="validation-provider dlg-row-input"
           >
             <v-text-field
@@ -52,16 +52,15 @@
         </div>
       </ValidationObserver>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider, ValidationObserver },
+  components: { ValidationProvider, ValidationObserver },
   props: {
     dialog: {
       type: Boolean,

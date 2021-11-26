@@ -43,3 +43,4 @@ classes/
 .classpath
 .settings
 signer/src/test/resources/.softtoken.p12
+node_modules/

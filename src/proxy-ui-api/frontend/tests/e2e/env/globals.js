@@ -32,6 +32,7 @@ function getTestdata() {
 
 module.exports = {
   waitForConditionTimeout: 10000,
+  retryAssertionTimeout: 10000,
   get testdata() {
     if (!globalTestdata) {
       globalTestdata = getTestdata();

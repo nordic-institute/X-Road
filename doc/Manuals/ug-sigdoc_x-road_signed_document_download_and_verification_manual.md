@@ -2,9 +2,9 @@
 
 ---
 # Signed Document Download and Verification Manual
-**X-ROAD 6**
+**X-ROAD 7**
 
-Version: 1.7  
+Version: 1.10  
 Doc. ID: UG-SIGDOC
 
 ---
@@ -25,6 +25,9 @@ Doc. ID: UG-SIGDOC
  03.11.2018 | 1.5     | Convert from Word to Markdown. Asicverifier supports extracting messages when verification fails | Petteri Kivimäki
  07.01.2019 | 1.6     | Asicverifier version option. Updated asicverifier usage and jar name | Caro Hautamäki
  07.03.2019 | 1.7     | REST support modifications | Jarkko Hyöty
+ 25.08.2021 | 1.8     | Update X-Road references from version 6 to 7 | Caro Hautamäki
+ 03.09.2021 | 1.9     | Minor updates | Ilkka Seppälä
+ 08.10.2021 | 1.10    | Updates about encryption | Jarkko Hyöty
 
 ## Table of Contents
 
@@ -62,6 +65,7 @@ This document describes the retrieving and verification process of the signed an
 ### 1.1 References
 
 1.	[PR-SIGDOC]	Freudenthal, M. Profile for High-Perfomance Digital Signature. T-4-23, 2015. <https://cyber.ee/research/reports/>
+2.  [UG-SS] Security Server User Guide. Document ID: [UG-SS](ug-ss_x-road_6_security_server_user_guide.md)
 
 
 ## 2 Signed Document Download Service
@@ -72,7 +76,7 @@ The security server offers the asic web service for downloading its signed docum
 
 where `SECURITYSERVER` is the actual address of the security server.
 
-Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (parameter keep-records-for in the configuration file `/etc/xroad/conf.d/addons/message-log.ini`).
+Signed documents are available via the service until they are archived and removed from the message log database (by default 30 days). This time period is configurable in the security server (messagelog parameter `keep-records-for`). If messagelog parameter `archive-encryption-enabled` is true, the messages are returned in encrypted format (OpenPGP/GnuPG, see [UG-SS] for archive encryption details).
 
 
 ### 2.1 Retrieving Signed Documents of the Entire Transaction
@@ -91,21 +95,21 @@ Thus, in order to retrieve the signed document for a message with transaction id
 
 If a message with the given identifier was indeed exchanged by the security server and by the specified client, the server would respond with a ZIP archive (content-type `application/zip`, filename `queryId.zip`), which contains signed documents for all requests and responses that match the specified parameters.
 
-The signed documents provided by the asic service are named `queryId-request-Z.asice` and `queryId-response-Z.asice` for requests and responses, respectively, where `queryId` is the identifier (URL encoded) of the message and `Z` is a 10-character random alphanumeric string.
+The signed documents provided by the asic service are named `queryId-request-Z.asice[.gpg]` and `queryId-response-Z.asice.[gpg]` for requests and responses, respectively, where `queryId` is the identifier (URL encoded) of the message and `Z` is a up to 13-character alphanumeric string. The `.gpg` suffix is added if the file is encrypted.
 
 
 ### 2.2 Retrieving a Single Signed Document
 
 Should the user only desire the request or response then additional mutually exclusive parameters are available:
 
-* `requestOnly` – only include signed documents for request messages (response filename  is `queryId-request.zip`);
-* `responseOnly` – only include signed documents for response messages (response filename is `queryId-response.zip`).
+* `requestOnly` – only include signed documents for request messages (response filename  is `queryId-request.zip[.gpg]`);
+* `responseOnly` – only include signed documents for response messages (response filename is `queryId-response.zip[.gpg]`).
 
-The aforementioned parameters make the service return a ZIP archive, which may contain either one or more signed documents (depending if the provided `queryId` is unique). If only a single signed document is expected then the request can be further be constrained by adding the following parameter:
+The aforementioned parameters make the service return a (possibly encrypted) ZIP archive, which may contain either one or more signed documents (depending if the provided `queryId` is unique). If only a single signed document is expected then the request can be further be constrained by adding the following parameter:
 
 * `unique` – specifies that the only a single signed document is expected in the response, must be used in combination with either `requestOnly` or `responseOnly` parameter.
 
-If this parameter is used and, indeed, the query identifier is unique, then the security server responds with a single signed document (content-type `application/vnd.etsi.asic-e+zip`) which represents the corresponding message.
+If this parameter is used and, indeed, the query identifier is unique, then the security server responds with a single signed document (content-type `application/vnd.etsi.asic-e+zip`, or `application/octet-stream` if the archive is encrypted) which represents the corresponding message.
 
 
 ### 2.3 Forcing Missing Timestamps To Be Created
@@ -122,13 +126,11 @@ Thus, in order to retrieve the signed document for a message with transaction id
 
 Should there be no working time-stamping provider available to the security server, the signed document retrieval service will respond with the error message "Failed to get timestamp from any time-stamping providers".
 
-
 ### 2.4 Authentication
 
 In case the security server administrator has configured the connection between the service client and the security server to require authentication, requests to the *asic* service would need to be made via HTTPS.
 
 The security server would need the certificate of the service client to be provided as part of the session, when the user makes the request to download a signed document for a message associated with this service client.
-
 
 ### 2.5 Error Conditions
 
@@ -139,7 +141,6 @@ The *asic* service responds with the HTTP error code and plain text error messag
 3. *404 Not Found* – no signed documents matching the provided parameters were found. Also, the signed document may be not time-stamped yet.
 4. *500 Internal Server Error* – an unexpected internal error occurred (e.g., the provided service client identifier does not match any registered client on the security server). 
 
-
 ## 3 Signed Document Verification Tool
 
 Verification of signed documents is done by the asicverifier utility tool. The tool is written in the Java programming language and therefore requires Java 8 Runtime Environment (JRE) to be installed on the user's workstation. On Unix-like operating systems the JRE can be installed using package management software or downloaded from the Oracle website.
@@ -147,7 +148,6 @@ Verification of signed documents is done by the asicverifier utility tool. The t
 The asicverifier utility is shipped with security server and it is located in the following directory:
 
     /usr/share/xroad/jlib/asicverifier.jar
-
 
 ### 3.1 Usage
 

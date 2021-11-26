@@ -2,6 +2,7 @@
 node_modules
 /dist
 
+/tests/e2e/testdata/
 /tests/e2e/reports/
 /tests/e2e/screenshots/
 selenium-debug.log

@@ -25,7 +25,6 @@
  */
 package ee.ria.xroad.common.messagelog.archive;
 
-import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.asic.AsicContainerNameGenerator;
 import ee.ria.xroad.common.messagelog.MessageLogProperties;
 import ee.ria.xroad.common.messagelog.MessageRecord;
@@ -41,16 +40,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.util.Date;
-import java.util.function.Supplier;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.messagelog.MessageLogProperties.getArchiveMaxFilesize;
-import static ee.ria.xroad.common.messagelog.archive.LogArchiveWriter.MAX_RANDOM_GEN_ATTEMPTS;
 
 /**
  * Encapsulates logic of creating log archive from ASiC containers.
@@ -64,7 +62,6 @@ class LogArchiveCache implements Closeable {
         ROTATING;
     }
 
-    private final Supplier<String> randomGenerator;
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final Path workingDir;
 
@@ -73,18 +70,21 @@ class LogArchiveCache implements Closeable {
 
     private Path archiveTmpFile;
     private ZipOutputStream archiveTmp;
+    private OutputStream outputStream;
 
     private Date minCreationTime;
     private Date maxCreationTime;
     private long archivesTotalSize;
 
-    LogArchiveCache(Supplier<String> randomGenerator,
-            LinkingInfoBuilder linkingInfoBuilder,
+    private final EncryptionConfig encryptionConfig;
+
+    LogArchiveCache(LinkingInfoBuilder linkingInfoBuilder,
+            EncryptionConfig encryptionConfig,
             Path workingDir) {
-        this.randomGenerator = randomGenerator;
         this.linkingInfoBuilder = linkingInfoBuilder;
+        this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
-        reset();
+        resetCacheState();
     }
 
     void add(MessageRecord messageRecord) throws Exception {
@@ -105,7 +105,8 @@ class LogArchiveCache implements Closeable {
             archiveTmp = null;
             Path archive = archiveTmpFile;
             archiveTmpFile = null;
-            reset();
+            outputStream = null;
+            resetCacheState();
             return archive;
         } catch (IOException e) {
             handleCacheError(e);
@@ -114,19 +115,18 @@ class LogArchiveCache implements Closeable {
     }
 
     private <T extends Exception> void handleCacheError(T e) throws T {
-        deleteArchiveArtifacts();
+        deleteArchiveArtifacts(e);
         throw e;
     }
 
     private void addLinkingInfoToArchive(ZipOutputStream zipOut)
             throws IOException {
         ZipEntry linkingInfoEntry = new ZipEntry("linkinginfo");
-
+        linkingInfoEntry.setLastModifiedTime(FileTime.from(maxCreationTime.toInstant()));
         zipOut.putNextEntry(linkingInfoEntry);
         zipOut.write(linkingInfoBuilder.build());
         zipOut.closeEntry();
 
-        linkingInfoBuilder.afterArchiveCreated();
     }
 
     boolean isRotating() {
@@ -136,7 +136,6 @@ class LogArchiveCache implements Closeable {
     boolean isEmpty() {
         return state == State.NEW;
     }
-
 
     Date getStartTime() {
         return minCreationTime;
@@ -148,22 +147,20 @@ class LogArchiveCache implements Closeable {
 
     @Override
     public void close() {
-        deleteArchiveArtifacts();
+        deleteArchiveArtifacts(null);
     }
 
     private void validateMessageRecord(MessageRecord record) {
         if (record == null) {
-            throw new IllegalArgumentException(
-                    "Message record to be archived must not be null");
+            throw new IllegalArgumentException("Message record to be archived must not be null");
         }
     }
 
-    private void handleRotation() {
-        if (state != State.ROTATING) {
+    private void handleRotation() throws IOException {
+        if (state == State.ADDING) {
             return;
         }
-
-        reset();
+        resetArchive();
     }
 
     @SuppressWarnings("checkstyle:InnerAssignment")
@@ -189,50 +186,58 @@ class LogArchiveCache implements Closeable {
     }
 
     private void addContainerToArchive(MessageRecord record) throws Exception {
-        String archiveFilename =
-                nameGenerator.getArchiveFilename(record.getQueryId(),
-                        record.isResponse() ? AsicContainerNameGenerator.TYPE_RESPONSE
-                                : AsicContainerNameGenerator.TYPE_REQUEST);
+        String archiveFilename = nameGenerator.getArchiveFilename(record.getQueryId(), record.isResponse(),
+                record.getId());
 
         final MessageDigest digest = MessageDigest.getInstance(MessageLogProperties.getHashAlg());
-        archiveTmp.putNextEntry(new ZipEntry(archiveFilename));
+        final ZipEntry entry = new ZipEntry(archiveFilename);
+        entry.setLastModifiedTime(FileTime.from(record.getTime(), TimeUnit.MILLISECONDS));
+        archiveTmp.putNextEntry(entry);
         try (CountingOutputStream cos = new CountingOutputStream(
                 new DigestOutputStream(new EntryStream(archiveTmp), digest));
-                OutputStream bos = new BufferedOutputStream(cos)) {
+             OutputStream bos = new BufferedOutputStream(cos)) {
             // ZipOutputStream writing directly to a DigestOutputStream is extremely inefficient, hence the additional
             // buffering. Digesting a stream instead of an in-memory buffer because the archive can be
             // large (over 1GiB)
             record.toAsicContainer().write(bos);
+            bos.flush();
             archivesTotalSize += cos.getCount();
         }
         archiveTmp.closeEntry();
         linkingInfoBuilder.addNextFile(archiveFilename, digest.digest());
     }
 
-    private void reset() {
-        try {
-            resetArchive();
-            resetCacheState();
-        } catch (IOException e) {
-            log.error("Resetting log archive cache failed, cause:", e);
-            throw new CodedException(X_IO_ERROR,
-                    "Failed to reset log archive cache");
-        }
-    }
-
     private void resetArchive() throws IOException {
-        deleteArchiveArtifacts();
+        deleteArchiveArtifacts(null);
         archiveTmpFile = Files.createTempFile(workingDir, "tmp-mlog-", ".tmp");
-        archiveTmp = new ZipOutputStream(Files.newOutputStream(archiveTmpFile));
+        if (encryptionConfig.isEnabled()) {
+            outputStream = new GPGOutputStream(encryptionConfig.getGpgHomeDir(), archiveTmpFile,
+                    encryptionConfig.getEncryptionKeys());
+        } else {
+            outputStream = Files.newOutputStream(archiveTmpFile);
+        }
+        archiveTmp = new ZipOutputStream(new BufferedOutputStream(outputStream));
         archiveTmp.setLevel(0);
     }
 
-    private void deleteArchiveArtifacts() {
+    private void deleteArchiveArtifacts(Exception cause) {
         if (archiveTmp != null) {
             try {
                 archiveTmp.close();
             } catch (IOException e) {
-                //IGNORE
+                if (cause != null) {
+                    cause.addSuppressed(e);
+                }
+            }
+        }
+        // in case of error during close, ZipOutputStream can fail to close the underlying OutputStream.
+        if (outputStream != null) {
+            try {
+                outputStream.close();
+            } catch (IOException e) {
+                if (cause != null) {
+                    cause.addSuppressed(e);
+                }
             }
         }
         if (archiveTmpFile != null) {
@@ -245,7 +250,7 @@ class LogArchiveCache implements Closeable {
         maxCreationTime = null;
         state = State.NEW;
         archivesTotalSize = 0;
-        nameGenerator = new AsicContainerNameGenerator(randomGenerator, MAX_RANDOM_GEN_ATTEMPTS);
+        nameGenerator = new AsicContainerNameGenerator();
     }
 
     static class EntryStream extends FilterOutputStream {

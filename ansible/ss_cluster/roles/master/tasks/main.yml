@@ -9,7 +9,7 @@
             value=master
             create=true
             mode=0640
-            owner=root
+            owner=xroad
             group=xroad
 
 - name: start services

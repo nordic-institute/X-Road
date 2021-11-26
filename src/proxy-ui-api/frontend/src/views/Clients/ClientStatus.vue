@@ -25,22 +25,19 @@
  -->
 <template>
   <div class="status-wrapper">
-    <StatusIcon :status="statusIconType" />
+    <xrd-status-icon :status="statusIconType" />
     <div class="status-text">{{ getStatusText(status) }}</div>
   </div>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
-import StatusIcon from '@/components/ui/StatusIcon.vue';
 
 export default Vue.extend({
-  components: {
-    StatusIcon,
-  },
   props: {
     status: {
       type: String,
+      default: undefined,
     },
   },
 
@@ -51,17 +48,17 @@ export default Vue.extend({
       }
       switch (this.status.toLowerCase()) {
         case 'registered':
-          return 'green';
+          return 'ok';
         case 'registration_in_progress':
-          return 'green-ring';
+          return 'progress-register';
         case 'saved':
-          return 'orange-ring';
+          return 'saved';
         case 'deletion_in_progress':
-          return 'red-ring';
+          return 'progress-delete';
         case 'global_error':
-          return 'red';
+          return 'error';
         default:
-          return 'red';
+          return 'error';
       }
     },
   },
@@ -91,9 +88,20 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
+@import '~styles/colors';
+
 .status-wrapper {
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+.status-text {
+  font-style: normal;
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 16px;
+  color: $XRoad-WarmGrey100;
+  margin-left: 2px;
 }
 </style>

@@ -6,6 +6,7 @@ spring:
       ddl-auto: create
     generate-ddl: true
     show-sql: false
+    defer-datasource-initialization: true
   profiles:
     active: test
   main:
@@ -13,19 +14,17 @@ spring:
 
 logging:
   level:
+    root: INFO
+    ee:
+      ria: DEBUG
     org:
+      niis: DEBUG
       springframework:
-        security: DEBUG
+        security: INFO
         transaction:
-          interceptor: TRACE
-
-log4j:
-  logger:
-    org:
-      springframework:
+          interceptor: INFO
         orm:
           jpa: DEBUG
-        transaction: DEBUG
 
 ratelimit:
   requests:

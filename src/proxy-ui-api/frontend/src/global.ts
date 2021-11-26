@@ -27,6 +27,7 @@ import { Tab } from '@/ui-types';
 
 // A "single source of truth" for route names
 export enum RouteName {
+  BaseRoute = 'base',
   Keys = 'keys',
   Diagnostics = 'diagnostics',
   AddSubsystem = 'add-subsystem',
@@ -39,6 +40,7 @@ export enum RouteName {
   ClientTlsCertificate = 'client-tls-certificate',
   MemberDetails = 'member-details',
   MemberServers = 'member-servers',
+  Forbidden = 'forbidden',
   SubsystemDetails = 'subs-details',
   SubsystemServers = 'subs-servers',
   SubsystemLocalGroups = 'subs-local-groups',
@@ -91,6 +93,7 @@ export enum Permissions {
   DELETE_LOCAL_GROUP = 'DELETE_LOCAL_GROUP', // client > local groups
   DELETE_SIGN_CERT = 'DELETE_SIGN_CERT', // sign cert details
   DELETE_SIGN_KEY = 'DELETE_SIGN_KEY', // key details
+  DELETE_UNKNOWN_CERT = 'DELETE_UNKNOWN_CERT',
   DELETE_TSP = 'DELETE_TSP', // settings > system parameters
   DELETE_WSDL = 'DELETE_WSDL', // can delete WSDL or REST
   DELETE_ENDPOINT = 'DELETE_ENDPOINT', // can delete endpoint
@@ -119,6 +122,7 @@ export enum Permissions {
   IMPORT_AUTH_CERT = 'IMPORT_AUTH_CERT',
   IMPORT_INTERNAL_TLS_CERT = 'IMPORT_INTERNAL_TLS_CERT', // Import security server TLS certificate
   IMPORT_SIGN_CERT = 'IMPORT_SIGN_CERT',
+  IMPORT_UNKNOWN_CERT = 'IMPORT_UNKNOWN_CERT', // Import hardware token certificate from token
   INIT_CONFIG = 'INIT_CONFIG', // can initialise security server
   VIEW_API_KEYS = 'VIEW_API_KEYS', // api key
   REFRESH_WSDL = 'REFRESH_WSDL', // client > services > refresh wsdl
@@ -132,6 +136,7 @@ export enum Permissions {
   SEND_CLIENT_REG_REQ = 'SEND_CLIENT_REG_REQ', // clients > register
   SEND_OWNER_CHANGE_REQ = 'SEND_OWNER_CHANGE_REQ', // client > make owner
   UPDATE_API_KEY = 'UPDATE_API_KEY', // api key
+  UPDATE_TOKEN_PIN = 'UPDATE_TOKEN_PIN', // token details
   UPLOAD_ANCHOR = 'UPLOAD_ANCHOR', // settings / initialisation > upload anchor
   VIEW_ACL_SUBJECT_OPEN_SERVICES = 'VIEW_ACL_SUBJECT_OPEN_SERVICES', // not needed because roles can't access the view
   VIEW_ANCHOR = 'VIEW_ANCHOR', // settings > system paramters > configuration anchor
@@ -162,19 +167,16 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Clients },
     key: 'clients',
     name: 'tab.main.clients',
-    permissions: [Permissions.VIEW_CLIENTS],
   },
   {
     to: { name: RouteName.SignAndAuthKeys },
     key: 'keys',
     name: 'tab.main.keys',
-    permissions: [Permissions.VIEW_KEYS],
   },
   {
     to: { name: RouteName.Diagnostics },
     key: 'diagnostics',
     name: 'tab.main.diagnostics',
-    permissions: [Permissions.DIAGNOSTICS],
   },
   {
     to: { name: RouteName.SystemParameters },
@@ -205,8 +207,37 @@ export enum ClientTypes {
 }
 
 // Different modes for the add member wizard
+// AddMemberWizardModes.CERTIFICATE_EXISTS = a valid sign cert exists for this member on this SS
+// (skip key and CSR creation)
+// AddMemberWizardModes.CSR_EXISTS = a sign CSR exists for this member on this SS
+// (skip key creation)
 export enum AddMemberWizardModes {
   CSR_EXISTS = 'CSR_EXISTS',
   CERTIFICATE_EXISTS = 'CERTIFICATE_EXISTS',
   FULL = 'FULL',
+}
+
+// Version 7.0 colors as enum.
+export enum Colors {
+  Purple10 = '#efebfb',
+  Purple20 = '#e0d8f8',
+  Purple30 = '#d1c4f4',
+  Purple70 = '#9376e6',
+  Purple100 = '#663cdc',
+  Black10 = '#e8e8e8',
+  Black30 = '#bcbbbb',
+  Black50 = '#908e8e',
+  Black70 = '#636161',
+  Black100 = '#211e1e',
+  White100 = '#ffffff',
+  WarmGrey10 = '#f4f3f6',
+  WarmGrey20 = '#eae8ee',
+  WarmGrey30 = '#dedce4',
+  WarmGrey50 = '#c9c6d3',
+  WarmGrey70 = '#b4afc2',
+  WarmGrey100 = '#575169',
+  Error = '#ec4040',
+  Success100 = '#0cc177',
+  Success10 = '#e6f8f1',
+  Background = '#e5e5e5',
 }

@@ -14,7 +14,7 @@ CP="../configuration-client/build/libs/configuration-client-1.0.jar"
 
 XROAD_LOG_LEVEL="INFO"
 
-CONFCLIENT_PARAMS=" -Xmx50m -Dee.ria.xroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
+XROAD_CONFCLIENT_PARAMS=" -Xmx50m -Dee.ria.xroad.appLog.xroad.level=$XROAD_LOG_LEVEL "
 
-java ${XROAD_PARAMS} ${CONFCLIENT_PARAMS} -cp ${CP} ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain $@
+java ${XROAD_PARAMS} ${XROAD_CONFCLIENT_PARAMS} -cp ${CP} ee.ria.xroad.common.conf.globalconf.ConfigurationClientMain $@
 

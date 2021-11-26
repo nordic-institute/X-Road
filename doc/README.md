@@ -38,7 +38,7 @@ Index of X-Road Documentation
 - [\[IG-XLB\] External Load Balancer Installation Guide](Manuals/LoadBalancing/ig-xlb_x-road_external_load_balancer_installation_guide.md)
 - [\[UG-SS\] Security Server User Guide](Manuals/ug-ss_x-road_6_security_server_user_guide.md)
 - [\[UG-CS\] Central Server User Guide](Manuals/ug-cs_x-road_6_central_server_user_guide.md)
-- [\[UG-SC\] Signer Console Users Guide](Manuals/ug-sc_x-road_signer-console_users_guide_2.5_Y-883-20.docx)
+- [\[UG-SC\] Signer Console Users Guide](Manuals/ug-sc_x-road_signer-console_user_guide.md)
 - [\[UG-SIGDOC\] Signed Document Download and Verification Manual](Manuals/ug-sigdoc_x-road_signed_document_download_and_verification_manual.md)
 - [\[UG-CP\] Configuration Proxy Manual](Manuals/ug-cp_x-road_v6_configuration_proxy_manual.md)
 - [\[UG-SYSPAR\] System Parameters](Manuals/ug-syspar_x-road_v6_system_parameters.md)

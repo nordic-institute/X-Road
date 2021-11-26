@@ -1,0 +1,14 @@
+[Unit]
+Description=Test CA
+After=network.target
+
+[Service]
+User=ca
+Group=ca
+WorkingDirectory=/home/ca/CA
+ExecStart=/usr/bin/python3 -u /home/ca/CA/ca.py
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+

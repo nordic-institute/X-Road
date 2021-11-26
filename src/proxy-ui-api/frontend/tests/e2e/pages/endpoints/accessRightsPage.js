@@ -38,7 +38,7 @@ const commands = [
     },
     verifyAccessRightsPage: function (path) {
       this.api.waitForElementVisible(
-        `//div[contains(@class, "group-members-row")]//div[contains(@class, "row-title") and contains(text(), "Access Rights")]`,
+        `//div[contains(@class, "group-members-row")]//div[contains(@class, "row-title")]`,
       );
       this.api.waitForElementVisible(
         `//div[contains(@class, "cert-dialog-header")]//span[contains(@class, "identifier-wrap") and contains(text(), ${path})]`,
@@ -62,7 +62,8 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     closeButton: {
-      selector: '//*[contains(@class, "cert-dialog-header")]//*[@id="close-x"]',
+      selector:
+        '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
       locateStrategy: 'xpath',
     },
     pageHeader: {

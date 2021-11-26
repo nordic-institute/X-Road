@@ -23,15 +23,24 @@
    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
    THE SOFTWARE.
  -->
+
 <template>
   <div>
     <router-view name="top" />
     <v-layout align-center justify-center>
-      <v-layout mt-5 align-center justify-center class="base-full-width frame">
-        <transition name="fade" mode="out-in">
-          <router-view />
-        </transition>
-      </v-layout>
+      <transition name="fade" mode="out-in">
+        <div class="base-full-width">
+          <router-view name="subTabs" />
+          <router-view name="alerts" />
+          <v-layout
+            align-center
+            justify-center
+            class="base-full-width bottom-pad"
+          >
+            <router-view />
+          </v-layout>
+        </div>
+      </transition>
     </v-layout>
 
     <v-dialog v-model="showDialog" width="500" persistent>
@@ -40,17 +49,11 @@
           <span class="headline">{{ $t('logout.sessionExpired') }}</span>
         </v-card-title>
         <v-card-text class="pt-4">{{ $t('logout.idleWarning') }}</v-card-text>
-        <v-card-actions>
+        <v-card-actions class="xrd-card-actions">
           <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            rounded
-            dark
-            class="mb-2 rounded-button elevation-0"
-            data-test="session-expired-ok-button"
-            @click="logout()"
-            >{{ $t('action.ok') }}</v-btn
-          >
+          <xrd-button data-test="session-expired-ok-button" @click="logout()">{{
+            $t('action.ok')
+          }}</xrd-button>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -110,9 +113,13 @@ export default Vue.extend({
 @import '../assets/shared';
 .base-full-width {
   width: 100%;
-  max-width: $view-area-max-width;
-  margin: 10px;
+  padding-bottom: 40px;
 }
+
+.bottom-pad {
+  padding-bottom: 40px;
+}
+
 .fade-enter-active,
 .fade-leave-active {
   transition-duration: 0.2s;
@@ -122,9 +129,5 @@ export default Vue.extend({
 .fade-enter,
 .fade-leave-active {
   opacity: 0;
-}
-
-.frame {
-  padding-bottom: 40px;
 }
 </style>

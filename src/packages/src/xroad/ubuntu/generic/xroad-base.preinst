@@ -1,27 +1,12 @@
 #!/bin/bash
+if [ "$1" = "upgrade" ]; then
+  if dpkg --compare-versions "#LAST_SUPPORTED_VERSION#" gt "$2"; then
+    echo "ERROR: Upgrade supported from #LAST_SUPPORTED_VERSION# or newer" >&2
+    exit 1
+  fi
+fi
 
 if [ "$1" = "upgrade" ]; then
-    if dpkg --compare-versions "$2" lt-nl "6.3"
-    then
-     for service in `initctl list | grep xroad | awk '{print $1}'`
-      do
-        service $service stop || true
-      done
-
-      ipcrm -m `ipcs -m | grep sdsb | awk '{print $2}'` 2>/dev/null || true
-      ipcrm -s `ipcs -s | grep sdsb | awk '{print $2}'` 2>/dev/null || true
-
-      usermod -d /var/lib/xroad -l xroad sdsb || true
-
-      groupmod -n xroad sdsb || true
-      mv /etc/sdsb /etc/xroad || true
-      sed -i 's/xsd\/sdsb\.xsd/xsd\/xroad\.xsd/' /etc/xroad/signer/keyconf.xml || true
-      sed -i 's/sdsbInstance/xRoadInstance/g' /etc/xroad/signer/keyconf.xml || true
-
-      mv /etc/sdsb /etc/xroad ||true
-      mv /etc/sudoers.d/xroad /etc/sudoers.d/xroad-restore.old ||true
-      find /etc/xroad/ -user sdsb -exec  chown xroad {} \; || true
-    fi
 
     if dpkg --compare-versions "$2" lt-nl "6.26"; then
       if ! grep -q '\s*JAVA_HOME=' /etc/xroad/services/local.conf; then
@@ -42,4 +27,3 @@ if [[ $LC_ALL =~ "UTF-8"$ ]]
    echo "setting system locale to LC_ALL=en_US.UTF-8 in /etc/environment"
    echo "LC_ALL=en_US.UTF-8" >> /etc/environment
 fi
-

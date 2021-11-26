@@ -60,9 +60,9 @@ const commands = [
       this.click('@addSelectedButton');
       return this;
     },
-    verifyServiceListRow: function (row, service) {
+    verifyServiceListRow: function (service) {
       this.waitForElementVisible(
-        `(//table[@class="xrd-table"]/tbody/tr)[${row}]//td[contains(text(), "${service}")]`,
+        `(//table[@class="xrd-table"]/tbody/tr)//td[contains(text(), "${service}")]`,
       );
       return this;
     },
@@ -102,8 +102,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     filterField: {
-      selector:
-        '//input[contains(@data-test, "search-service-client-service")]',
+      selector: '//input[@data-test="search-service-client-service"]',
       locateStrategy: 'xpath',
     },
     cancelButton: {

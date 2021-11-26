@@ -1,51 +1,32 @@
 ---
-- name: Add the xroad user
-  user:
-    name: xroad_ui_user
-  when: database_admin_password != ""
+- name: configure remote database
+  # can not be used to reconfigure a database
+  block:
+    - name: install remote database package
+      yum:
+        name: "xroad-database-remote"
+        state: latest
 
-- name: Create xroad directory
-  file:
-    path: /etc/xroad
-    state: directory
-    mode: '0751'
-    owner: xroad_ui_user
-    group:  xroad_ui_user
-  when: database_admin_password != ""
+    - name: xroad.properties template
+      template:
+        src: "xroad.properties"
+        dest: "/etc/xroad.properties"
+        owner: "root"
+        group: "root"
+        mode: 0600
+        force: no
 
-- name: generate opmonitor_admin_password
-  set_fact: opmonitor_admin_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
-  when: (database_admin_password != "") and (opmonitor_admin_password == "")
-
-- name: xroad.properties template
-  template:
-    src: "xroad.properties"
-    dest: "/etc/xroad.properties"
-    owner: "root"
-    group: "root"
-    mode: 0600
-  when: database_admin_password != ""
-
-- name: generate serverconf_password
-  set_fact: serverconf_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
-  when: (database_admin_password != "") and (serverconf_password == "")
-
-- name: generate opmonitor_password
-  set_fact: opmonitor_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
-  when: (database_admin_password != "") and (opmonitor_password == "")
-
-- name: generate messagelog_password
-  set_fact: messagelog_password="{{ lookup('password', '/dev/null chars=ascii_letters,digits,hexdigits length=32') }}"
-  when: (database_admin_password != "") and (messagelog_password == "")
-  
-- name: db.properties template
-  template:
-    src: "db.properties"
-    dest: "/etc/xroad/db.properties"
-    owner: "xroad"
-    group: "xroad"
-    mode: 0751
-  when: database_admin_password != ""
+    - name: db.properties template
+      template:
+        src: "db.properties"
+        dest: "/etc/xroad/db.properties"
+        owner: "xroad"
+        group: "xroad"
+        mode: 0751
+        force: no
+  when: (database_admin_password is defined) and (database_admin_password != "")
+  tags:
+    - install-xroad-ss-packages
 
 # verify presence of xroad packages and dependencies
 - name: install xroad packages and dependencies from set up repository (RHEL)

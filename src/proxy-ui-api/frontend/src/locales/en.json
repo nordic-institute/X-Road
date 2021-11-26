@@ -7,11 +7,11 @@
       "settings": "Settings"
     },
     "client": {
-      "details": "details",
-      "serviceClients": "service clients",
-      "services": "services",
-      "internalServers": "internal servers",
-      "localGroups": "local groups"
+      "details": "Details",
+      "serviceClients": "Service clients",
+      "services": "Services",
+      "internalServers": "Internal servers",
+      "localGroups": "Local groups"
     },
     "keys": {
       "signAndAuthKeys": "SIGN and AUTH Keys",
@@ -302,8 +302,8 @@
     "removeSubjectsSuccess": "Access rights removed successfully"
   },
   "action": {
-    "addSubsystem": "add subsystem",
-    "addClient": "add client",
+    "addSubsystem": "Add subsystem",
+    "addClient": "Add client",
     "addMember": "Add member",
     "search": "Search",
     "add": "Add",
@@ -335,12 +335,14 @@
     "done": "Done",
     "next": "Next",
     "submit": "Submit",
-    "finish": "Finish"
+    "finish": "Finish",
+    "searching": "Searching...",
+    "goToFront": "Go to the front page"
   },
   "keys": {
     "token": "Token:",
-    "authKeyCert": "AUTH Key and Certificate",
-    "signKeyCert": "SIGN Key and Certificate",
+    "authKeyCert": "AUTH Keys and Certificates",
+    "signKeyCert": "SIGN Keys and Certificates",
     "id": "ID",
     "ocsp": "OCSP",
     "expires": "Expires",
@@ -400,6 +402,8 @@
     "certMarkedForDeletion": "Certificate marked for deletion",
     "unregisterError": "Failed to unregister certificate. Continue with certificate deletion anyway?",
     "authNotSupported": "Auth. key not supported",
+    "noIssues": "No issues",
+    "globalErrors": "Global errors",
     "ocspStatus": {
       "disabled": "Disabled",
       "expired": "Expired",
@@ -413,7 +417,8 @@
       "registration": "Registration in progress",
       "registered": "Registered",
       "deletion": "Deletion in progress",
-      "globalError": "Global error"
+      "globalError": "Global error",
+      "onlyInHWToken": "Only in token"
     },
     "tokenStatus": {
       "available": "",
@@ -422,6 +427,10 @@
       "unavailable": "Blocked",
       "unsaved": "Not saved"
     }
+  },
+  "token": {
+    "changePin": "Change the pin",
+    "pinChanged": "Token pin was changed – please log in the token with the new pin"
   },
   "ssTlsCertificate": {
     "generateKey": "Generate key",
@@ -476,6 +485,7 @@
     "clientInfo2": "If the Client is already existing, you can select it from the Global list.",
     "memberName": "Member Name",
     "memberClass": "Member Class",
+    "selectMemberClass": "Select Member Class",
     "memberCode": "Member Code",
     "subsystemCode": "Subsystem Code",
     "selectClient": "Select Client",
@@ -534,9 +544,9 @@
     "configurationAnchor": {
       "title": "Configuration Anchor",
       "action": {
-        "download": "DOWNLOAD",
+        "download": "Download",
         "upload": {
-          "button": "UPLOAD",
+          "button": "Upload",
           "dialog": {
             "title": "Confirm configuration anchor details",
             "info": "Configuration anchor details:",
@@ -560,7 +570,7 @@
       "title": "Timestamping Services",
       "action": {
         "add": {
-          "button": "ADD",
+          "button": "Add",
           "dialog": {
             "title": "Add Timestamping Service",
             "info": "Trusted Timestamping services:",
@@ -575,7 +585,7 @@
         },
         "action": {
           "delete": {
-            "button": "DELETE",
+            "button": "Delete",
             "confirmation": {
               "title": "Are you sure?",
               "text": "Are you sure you want to delete the timestamping service?"
@@ -723,6 +733,15 @@
   "warning": "Warning",
   "id": "ID",
   "count": "Amount of same errors:",
+  "403": {
+    "topTitle": "Forbidden",
+    "mainTitle": "Permission denied",
+    "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
+    "goBack": "Go back"
+  },
+  "404": "404 - page not found",
+  "404text": "Seems like you found the",
+  "404textUnicorn": "unicorn",
   "stores": {
     "user": {
       "currentSecurityServerNotFound": "Failed to determine the current Security Server information. API response is invalid."
@@ -749,7 +768,7 @@
       "csrFormat": "CSR Format"
     },
     "keys": {
-      "friendlyName": "Friendly name"
+      "name": "Name"
     },
     "addClient": {
       "memberClass": "Member class",
@@ -761,6 +780,12 @@
     },
     "serviceDescriptionUpdate": {
       "newRestServiceCode": "Service code"
+    },
+    "token": {
+      "friendlyName": "Friendly name",
+      "oldPin": "Old pin",
+      "newPin": "New pin",
+      "newPinConfirm": "Confirm new pin"
     }
   },
   "certificateProfile": {
@@ -770,8 +795,11 @@
     "INSTANCE_IDENTIFIER_O": "Instance Identifier (O)",
     "MEMBER_CLASS": "Member Class (O)",
     "MEMBER_CLASS_OU": "Member Class (OU)",
+    "MEMBER_CLASS_BC": "Member Class (BC)",
     "MEMBER_CODE": "Member Code (CN)",
+    "MEMBER_CODE_SN": "Member Code (SN)",
     "ORGANIZATION_NAME": "Organization Name (O)",
+    "ORGANIZATION_NAME_CN": "Organization Name (CN)",
     "SERIAL_NUMBER": "Serial Number",
     "SERIAL_NUMBER_SN": "Serial Number (SN)",
     "SERVER_CODE": "Server Code (CN)",
@@ -795,6 +823,14 @@
     "previousUpdate": "Previous Update",
     "nextUpdate": "Next Update",
     "serviceUrl": "Service URL",
+    "javaVersion": {
+      "title": "Java version",
+      "vendor": "Vendor name",
+      "earliest": "Earliest supported version",
+      "latest": "Latest supported version",
+      "ok": "Everything ok",
+      "notSupported": "Current Java version is not supported"
+    },
     "globalCongiguration": {
       "title": "Global configuration",
       "configurationStatus": {
@@ -828,6 +864,7 @@
         "ERROR_CODE_OCSP_FAILED": "Unable to fetch response from the OCSP responder",
         "ERROR_CODE_OCSP_RESPONSE_INVALID": "Unable to parse the OCSP response",
         "ERROR_CODE_OCSP_UNINITIALIZED": "Status request not sent yet",
+        "ERROR_CODE_OCSP_RESPONSE_UNVERIFIED": "Unable to verify the OCSP response",
         "UNKNOWN": "Unknown"
       }
     }
@@ -843,6 +880,8 @@
     "resource_read_failed": "Failed to read resource",
     "invalid_cert": "Invalid certificate",
     "generate_backup_interrupted": "Backup generation interrupted",
+    "gpg_key_generation_interrupted": "GPG keypair generation interrupted",
+    "gpg_key_generation_failed": "GPG keypair generation failed",
     "backup_restore_interrupted": "Backup restore interrupted",
     "backup_generation_failed": "Backup generation failed",
     "wsdl_validator_interrupted": "WSDL validator interrupted",
@@ -880,6 +919,7 @@
     "member_class_exists": "Member class exists",
     "member_code_exists": "Member code exists",
     "pin_code_exists": "PIN code exists",
+    "unsupported_openapi_version": "Unsupported OpenAPI version. Only versions 3.0.x are currently supported.",
     "conf_verification": {
       "anchor_not_for_external_source": "Anchor points to an internal configuration source. Only external configuration source anchors are supported as trusted anchors.",
       "missing_private_params": "Configuration anchor import failed: invalid anchor file",
@@ -1001,5 +1041,11 @@
     "NoForwardslashes": "value should not contain forward slash (/) symbols",
     "NoBackslashes": "value should not contain backslash (\\) symbols",
     "NoPercents": "value should not contain percentage (%) symbols"
+  },
+  "info": {
+    "backups_incompatible": [
+      "The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.",
+      "Also, please note that the \"/etc/xroad/services/local.conf\" file for configuration overrides is deprecated and is not included in the backups anymore. In version 7, the \"/etc/xroad/services/local.properties\" file should be used instead."
+    ]
   }
 }

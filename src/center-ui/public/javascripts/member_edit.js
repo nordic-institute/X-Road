@@ -477,10 +477,10 @@ var XROAD_MEMBER_EDIT = function() {
         opts.bScrollCollapse = true;
         opts.sDom = "<'dataTables_header'f<'clearer'>>tp";
         opts.aoColumns = [
-            { "mData" : "owner_name" },
-            { "mData" : "owner_class" },
-            { "mData" : "owner_code" },
-            { "mData" : "server_code" }
+            { "mData" : "owner_name", "mRender": util.escape },
+            { "mData" : "owner_class", "mRender": util.escape },
+            { "mData" : "owner_code", "mRender": util.escape },
+            { "mData" : "server_code", "mRender": util.escape }
         ];
 
         opts.bScrollInfinite = true;

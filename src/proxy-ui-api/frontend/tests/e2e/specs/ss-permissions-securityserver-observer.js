@@ -24,52 +24,55 @@
  * THE SOFTWARE.
  */
 
+// Tabs
+let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab;
+
+// Other
+let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton, createAPIKeyButton, localGroupPopup,
+  clientLocalGroups, globalConfiguration;
+
+
 module.exports = {
   tags: ['ss', 'xroad-securityserver-observer', 'permissions'],
-  'Security server observer role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const settingsTab = mainPage.section.settingsTab;
-    const tokenName = mainPage.section.keysTab.elements.tokenName;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
-    const createAPIKeyButton =
-      mainPage.section.keysTab.elements.createAPIKeyButton;
-    const generateKeyButton =
-      mainPage.section.keysTab.elements.generateKeyButton;
-    const globalConfiguration =
+
+  before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    keysTab = mainPage.section.keysTab;
+    settingsTab = mainPage.section.settingsTab;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
+    backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
+
+    createAPIKeyButton = mainPage.section.keysTab.elements.createAPIKeyButton;
+    generateKeyButton = mainPage.section.keysTab.elements.generateKeyButton;
+    anchorDownloadButton = backupAndRestoreTab.elements.anchorDownloadButton;
+
+    tokenName = mainPage.section.keysTab.elements.tokenName;
+    searchField = mainPage.section.clientsTab.elements.searchField;
+    clientInfo = mainPage.section.clientInfo;
+    clientLocalGroups = clientInfo.section.localGroups;
+    localGroupPopup = mainPage.section.localGroupPopup;
+    globalConfiguration =
       mainPage.section.diagnosticsTab.elements.globalConfiguration;
-    const backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
-    const anchorDownloadButton =
-      backupAndRestoreTab.elements.anchorDownloadButton;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
+    // Test starts here...
+    browser.LoginCommand(browser.globals.login_securityserver_observer, browser.globals.login_pwd);
+  },
 
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_securityserver_observer)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+  after: function (browser) {
+    browser.end();
+  },
 
-    // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_securityserver_observer +
-        '")]',
-    );
-
+  'Can not add clients': (browser) => {
     // clients
     mainPage.openClientsTab();
+    clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+  },
 
-    // keys and certs
+  'Can not add keys': (browser) => {
     mainPage.openKeysTab();
     browser.waitForElementVisible(keysTab);
     keysTab.openSignAndAuthKeys();
@@ -78,19 +81,76 @@ module.exports = {
     browser.waitForElementNotPresent(createAPIKeyButton);
     keysTab.openSecurityServerTLSKey();
     browser.waitForElementNotPresent(generateKeyButton);
+  },
 
+  'Can see functions in diagnostics': (browser) => {
     // diagnostics
     mainPage.openDiagnosticsTab();
     browser.waitForElementVisible(diagnosticsTab);
     browser.waitForElementVisible(globalConfiguration);
+  },
 
-    // settings
+  'Can see functions in settingsettings': (browser) => {
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
     browser.waitForElementNotPresent(anchorDownloadButton);
     browser.waitForElementNotPresent(backupAndRestoreTab);
-
-    browser.end();
   },
-};
+  'Should be able to see clients details': (browser) => {
+    // Security server observer should see clients details
+    mainPage.openClientsTab();
+    clientsTab.openClient('TestGov');
+    browser.waitForElementVisible(clientInfo);
+
+    browser
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
+  },
+  'should see local groups list': (browser) => {
+    mainPage.openClientsTab();
+    clientsTab.openClient('TestService');
+    // TODO This following locator is directly written to project, since it fails create proper locator when polling
+    //  for 'clientLocalGroups', figure out why
+    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.waitForElementVisible(clientLocalGroups);
+
+    // Security server observer should not see add local groups button
+    browser.waitForElementNotPresent(clientLocalGroups.elements.addGroupButton);
+
+    // security server observer should see local group members but not be able to edit them
+    clientLocalGroups.openDetails('bac');
+
+    browser.assert.containsText(
+      localGroupPopup.elements.groupIdentifier,
+      'bac',
+    );
+    browser.waitForElementVisible('//tr[.//*[contains(text(), "TestCom")]]');
+    browser.waitForElementNotPresent(
+      localGroupPopup.elements.localGroupAddMembersButton,
+    );
+    browser.waitForElementNotPresent(
+      localGroupPopup.elements.localGroupRemoveAllButton,
+    );
+    browser.waitForElementNotPresent(
+      localGroupPopup.elements.localGroupTestComRemoveButton,
+    );
+    browser.waitForElementNotPresent(
+      localGroupPopup.elements.localGroupDeleteButton,
+    );
+  }
+}
+

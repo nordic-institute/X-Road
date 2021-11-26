@@ -35,8 +35,10 @@ import org.bouncycastle.operator.DigestCalculator;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -109,6 +111,7 @@ final class AsicHelper {
 
     static void write(AsicContainer asic, ZipOutputStream zip) throws Exception {
         zip.setComment("mimetype=" + MIMETYPE);
+        final long time = asic.getCreationTime();
 
         for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
             String name;
@@ -129,17 +132,19 @@ final class AsicHelper {
                     // to the container, else the timestamp is in the signature
                     if (asic.getTimestamp() != null) {
                         byte[] binary = decodeBase64(data);
-                        addEntry(zip, name, binary);
+                        addEntry(zip, name, time, binary);
                     }
                 } else {
-                    addEntry(zip, name, data);
+                    addEntry(zip, name, time, data);
                 }
             }
         }
 
         if (asic.getAttachment() != null) {
             try (InputStream is = asic.getAttachment()) {
-                zip.putNextEntry(new ZipEntry(ENTRY_ATTACHMENT + "1"));
+                final ZipEntry e = new ZipEntry(ENTRY_ATTACHMENT + "1");
+                e.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
+                zip.putNextEntry(e);
                 IOUtils.copy(is, zip);
                 zip.closeEntry();
             }
@@ -223,12 +228,14 @@ final class AsicHelper {
         return IOUtils.toByteArray(zip);
     }
 
-    private static void addEntry(ZipOutputStream zip, String name, String data) throws IOException {
-        addEntry(zip, name, data.getBytes(StandardCharsets.UTF_8));
+    private static void addEntry(ZipOutputStream zip, String name, long time, String data) throws IOException {
+        addEntry(zip, name, time, data.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void addEntry(ZipOutputStream zip, String name, byte[] data) throws IOException {
-        zip.putNextEntry(new ZipEntry(name));
+    private static void addEntry(ZipOutputStream zip, String name, long time, byte[] data) throws IOException {
+        final ZipEntry e = new ZipEntry(name);
+        e.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
+        zip.putNextEntry(e);
         zip.write(data);
     }
 

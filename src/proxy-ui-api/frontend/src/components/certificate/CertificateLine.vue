@@ -44,6 +44,17 @@
 import Vue from 'vue';
 
 export default Vue.extend({
+  filters: {
+    prettyTitle(value: string) {
+      // Replace "snake case" with spaces
+      return value.replace(new RegExp('_', 'g'), ' ');
+    },
+
+    lineBreaks(value: string) {
+      // Add line break after every 60 characters
+      return value.replace(/(.{60})/g, '$1\n');
+    },
+  },
   props: {
     childKey: {
       type: String,
@@ -56,10 +67,12 @@ export default Vue.extend({
     label: {
       type: String,
       required: false,
+      default: undefined,
     },
     info: {
       type: String,
       required: false,
+      default: undefined,
     },
     arrayType: {
       type: Boolean,
@@ -72,17 +85,6 @@ export default Vue.extend({
     date: {
       type: Boolean,
       required: false,
-    },
-  },
-  filters: {
-    prettyTitle(value: string) {
-      // Replace "snake case" with spaces
-      return value.replace(new RegExp('_', 'g'), ' ');
-    },
-
-    lineBreaks(value: string) {
-      // Add line break after every 60 characters
-      return value.replace(/(.{60})/g, '$1\n');
     },
   },
   data() {

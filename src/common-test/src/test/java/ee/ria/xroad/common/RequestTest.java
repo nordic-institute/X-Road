@@ -30,8 +30,16 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.ServiceId;
 import ee.ria.xroad.common.util.XmlUtils;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.w3c.dom.Document;
+
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +52,13 @@ import static org.junit.Assert.fail;
 /**
  * Tests to verify test requests are created as expected.
  */
+@Slf4j
 public class RequestTest {
     private static final String TEMPLATES_DIR = "src/main/resources";
 
     /**
      * Test to ensure bodymass index test request creation is correct.
+     *
      * @throws IOException if request template file could not be read
      */
     @Test
@@ -74,25 +84,25 @@ public class RequestTest {
                 new RequestTag("height", Integer.toString(180)),
                 new RequestTag("weight", Double.toString(80.1)));
 
-        String template = FileUtils.readFileToString(new File(
-                TEMPLATES_DIR + File.separator + "xroadDoclitRequest.st"));
+        String template = FileUtils
+                .readFileToString(new File(TEMPLATES_DIR + File.separator + "xroadDoclitRequest.st"));
 
         Request request =
                 new Request(template, client, service, id, content);
 
         // When
         String xmlFromRequest = request.toXml();
-        System.out.println("XML from request: " + xmlFromRequest);
+        log.debug("XML from request: {}", xmlFromRequest);
 
         // Then
-        String expectedRequest = FileUtils.readFileToString(new File(
-                "src/test/resources/xroadDoclit2.request"));
+        String expectedRequest = FileUtils.readFileToString(new File("src/test/resources/xroadDoclit2.request"));
 
         assertXml(xmlFromRequest, expectedRequest);
     }
 
     /**
      * Test to ensure bodymass index test RPC request (with version) creation is correct.
+     *
      * @throws IOException if request template file could not be read
      */
     @Test
@@ -126,7 +136,7 @@ public class RequestTest {
 
         // When
         String xmlFromRequest = request.toXml();
-        System.out.println("XML from request: " + xmlFromRequest);
+        log.debug("XML from request: {}", xmlFromRequest);
 
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
@@ -136,6 +146,7 @@ public class RequestTest {
 
     /**
      * Test to ensure bodymass index test RPC request (without version) creation is correct.
+     *
      * @throws IOException if request template file could not be read
      */
     @Test
@@ -169,7 +180,7 @@ public class RequestTest {
 
         // When
         String xmlFromRequest = request.toXml();
-        System.out.println("XML from request: " + xmlFromRequest);
+        log.debug("XML from request: {}", xmlFromRequest);
 
         // Then
         String expectedRequest = FileUtils.readFileToString(new File(
@@ -179,10 +190,38 @@ public class RequestTest {
 
     private void assertXml(String xml, String expectedXml) {
         try {
-            assertTrue(XmlUtils.parseDocument(xml).isEqualNode(XmlUtils.parseDocument(expectedXml)));
+            assertTrue(normalize(XmlUtils.parseDocument(xml))
+                    .isEqualNode(normalize(XmlUtils.parseDocument(expectedXml))));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
+        }
+    }
+
+    private Document normalize(Document doc) throws TransformerException {
+        doc.normalize();
+        final TransformerFactory factory = TransformerFactory.newInstance();
+        final Transformer transformer = factory.newTransformer(new DOMSource(XSLT));
+        DOMResult result = new DOMResult();
+        transformer.transform(new DOMSource(doc), result);
+        return (Document) result.getNode();
+    }
+
+    private static final Document XSLT;
+
+    static {
+        try {
+            XSLT = XmlUtils.parseDocument(
+                    "<xsl:stylesheet version=\"1.0\" xmlns:xsl=\"http://www.w3.org/1999/XSL/Transform\">\n"
+                            + " <xsl:strip-space elements=\"*\"/>"
+                            + "  <xsl:template match=\"node() | @*\">\n"
+                            + "    <xsl:copy>\n"
+                            + "      <xsl:apply-templates select=\"node() | @*\"/>\n"
+                            + "    </xsl:copy>\n"
+                            + "  </xsl:template>\n"
+                            + "</xsl:stylesheet>");
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
     }
 }

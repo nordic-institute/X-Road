@@ -32,6 +32,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_CSR_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_KEY_NOT_FOUND;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGIN_FAILED;
 import static ee.ria.xroad.common.ErrorCodes.X_LOGOUT_FAILED;
+import static ee.ria.xroad.common.ErrorCodes.X_PIN_INCORRECT;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_ACTIVE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_AVAILABLE;
 import static ee.ria.xroad.common.ErrorCodes.X_TOKEN_NOT_FOUND;
@@ -141,10 +142,17 @@ public final class ExceptionHelper {
 
     /**
      * @param message the message
-     * @return  exception indicating logout of a token failed
+     * @return exception indicating logout of a token failed
      */
     public static CodedException logoutFailed(String message) {
         return CodedException.tr(X_LOGOUT_FAILED,
                 "logout_failed", "Logout failed: %s", message);
+    }
+
+    /**
+     * @return exception indicating the provided pin code was incorrect
+     */
+    public static CodedException pinIncorrect() {
+        return CodedException.tr(X_PIN_INCORRECT, "pin_incorrect", "PIN incorrect");
     }
 }

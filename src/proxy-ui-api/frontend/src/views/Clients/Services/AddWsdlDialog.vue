@@ -24,27 +24,28 @@
    THE SOFTWARE.
  -->
 <template>
-  <simpleDialog
+  <xrd-simple-dialog
     :dialog="dialog"
     title="services.addWsdl"
+    :disable-save="!isValid"
+    width="620"
     @save="save"
     @cancel="cancel"
-    :disableSave="!isValid"
   >
     <div slot="content">
-      <div class="dlg-edit-row">
-        <div class="dlg-row-title">{{ $t('services.url') }}</div>
+      <div class="pt-4 dlg-input-width">
         <ValidationProvider
-          rules="required|wsdlUrl"
           ref="serviceUrl"
-          name="serviceUrl"
           v-slot="{ errors }"
+          rules="required|wsdlUrl"
+          name="serviceUrl"
           class="validation-provider"
         >
           <v-text-field
             v-model="url"
-            single-line
+            :label="$t('services.url')"
             autofocus
+            outlined
             class="dlg-row-input"
             name="serviceUrl"
             :error-messages="errors"
@@ -52,17 +53,16 @@
         </ValidationProvider>
       </div>
     </div>
-  </simpleDialog>
+  </xrd-simple-dialog>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
 import { ValidationProvider } from 'vee-validate';
-import SimpleDialog from '@/components/ui/SimpleDialog.vue';
 import { isValidWsdlURL } from '@/util/helpers';
 
 export default Vue.extend({
-  components: { SimpleDialog, ValidationProvider },
+  components: { ValidationProvider },
   props: {
     dialog: {
       type: Boolean,
@@ -93,9 +93,9 @@ export default Vue.extend({
     },
     clear(): void {
       this.url = '';
-      (this.$refs.serviceUrl as InstanceType<
-        typeof ValidationProvider
-      >).reset();
+      (
+        this.$refs.serviceUrl as InstanceType<typeof ValidationProvider>
+      ).reset();
     },
   },
 });

@@ -24,64 +24,35 @@
  * THE SOFTWARE.
  */
 
+let mainPage, frontPage;
+
 module.exports = {
   tags: ['ss', 'logout'],
-  'Security server logout': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
+  before: function (browser) {
+    mainPage = browser.page.ssMainPage();
+    frontPage = browser.page.ssFrontPage();
+    },
 
-    // Navigate to app and check that the browser has loaded the page
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
-    // Logout and verify
-    mainPage.logout();
-    browser.waitForElementVisible('//*[@id="username"]');
-
+  beforeEach: function (browser) {
+    browser.LoginCommand();
+  },
+  after(browser) {
     browser.end();
   },
+
+  'Security server logout': (browser) => {
+    mainPage.logout();
+    browser.waitForElementVisible(frontPage.elements.usernameInput);
+  },
+
   'Security server timeout logout': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
-
-    // Verify successful login
-    browser.waitForElementVisible('//div[contains(@class, "server-name")]');
-
     // Wait for the timeout message to appear
     browser.waitForElementVisible(
-      mainPage.elements.sessionExpiredPopupMessage,
+      mainPage.elements.sessionExpiredPopupOkButton,
       browser.globals.logout_timeout_ms + 60000,
       1000,
     );
-    browser.assert.containsText(
-      mainPage.elements.sessionExpiredPopupMessage,
-      'You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.',
-    );
     mainPage.closeSessionExpiredPopup();
-
-    browser.waitForElementVisible('//*[@id="username"]');
-    browser.end();
+    browser.waitForElementVisible(frontPage.elements.usernameInput);
   },
 };

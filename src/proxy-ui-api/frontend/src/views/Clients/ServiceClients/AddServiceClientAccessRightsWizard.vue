@@ -25,13 +25,14 @@
  -->
 <template>
   <div class="view-wrap" data-test="add-subject-view">
-    <subViewTitle
+    <xrd-sub-view-title
       :title="$t('serviceClients.addServiceClientTitle')"
-      :showClose="false"
+      :show-close="false"
       data-test="add-subject-title"
+      class="pa-4"
     />
 
-    <v-stepper :alt-labels="true" v-model="step" class="stepper noshadow">
+    <v-stepper v-model="step" :alt-labels="true" class="stepper noshadow">
       <v-stepper-header class="noshadow stepper-header">
         <v-stepper-step :complete="step > 1" step="1">{{
           $t('serviceClients.memberGroupStep')
@@ -45,19 +46,21 @@
       <v-stepper-items class="stepper-content">
         <v-stepper-content step="1">
           <MemberOrGroupSelectionStep
-            :id="this.id"
+            :id="id"
             :service-clients="serviceClients"
-            v-on:candidate-selection="candidateSelection"
-            v-on:set-step="nextStep"
+            @candidate-selection="candidateSelection"
+            @set-step="nextStep"
           ></MemberOrGroupSelectionStep>
         </v-stepper-content>
         <v-stepper-content step="2">
           <ServiceSelectionStep
             v-if="serviceClientCandidateSelection"
-            :serviceCandidates="serviceCandidates"
-            :serviceClientCandidateSelection="serviceClientCandidateSelection"
             :id="id"
-            v-on:set-step="previousStep"
+            :service-candidates="serviceCandidates"
+            :service-client-candidate-selection="
+              serviceClientCandidateSelection
+            "
+            @set-step="previousStep"
           ></ServiceSelectionStep>
         </v-stepper-content>
       </v-stepper-items>
@@ -67,7 +70,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import MemberOrGroupSelectionStep from '@/views/Clients/ServiceClients/MemberOrGroupSelectionStep.vue';
 import ServiceSelectionStep from '@/views/Clients/ServiceClients/ServiceSelectionStep.vue';
 import {
@@ -82,16 +84,15 @@ import { compareByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
+  components: {
+    MemberOrGroupSelectionStep,
+    ServiceSelectionStep,
+  },
   props: {
     id: {
       type: String,
       required: true,
     },
-  },
-  components: {
-    SubViewTitle,
-    MemberOrGroupSelectionStep,
-    ServiceSelectionStep,
   },
   data() {
     return {
@@ -101,6 +102,9 @@ export default Vue.extend({
       serviceClients: [] as ServiceClient[],
       serviceClientCandidateSelection: undefined as undefined | ServiceClient,
     };
+  },
+  created(): void {
+    this.fetchData();
   },
   methods: {
     candidateSelection(candidate: ServiceClient): void {
@@ -142,14 +146,10 @@ export default Vue.extend({
       this.step += 1;
     },
   },
-  created(): void {
-    this.fetchData();
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/global-style';
 @import '../../../assets/shared';
 @import '../../../assets/wizards';
 

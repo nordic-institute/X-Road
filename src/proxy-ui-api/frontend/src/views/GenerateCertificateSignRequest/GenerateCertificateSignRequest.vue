@@ -25,14 +25,14 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       class="view-title"
       :title="$t('csr.generateCsr')"
-      :showClose="false"
+      :show-close="false"
     />
     <v-stepper
-      :alt-labels="true"
       v-model="currentStep"
+      :alt-labels="true"
       class="stepper noshadow"
     >
       <v-stepper-header class="noshadow">
@@ -49,9 +49,9 @@
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <WizardPageCsrDetails
+            :show-previous-button="false"
             @cancel="cancel"
             @done="save"
-            :showPreviousButton="false"
           />
         </v-stepper-content>
         <!-- Step 2 -->
@@ -69,14 +69,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
   },
@@ -84,16 +82,28 @@ export default Vue.extend({
     keyId: {
       type: String,
       required: true,
+      default: undefined,
     },
     tokenType: {
       type: String,
       required: false,
+      default: undefined,
     },
   },
   data() {
     return {
       currentStep: 1,
     };
+  },
+  created() {
+    this.$store.commit('storeKeyId', this.keyId);
+    this.$store.dispatch('setCsrTokenType', this.tokenType);
+    this.fetchKeyData();
+    this.fetchCertificateAuthorities();
+  },
+  beforeDestroy() {
+    // Clear the vuex store
+    this.$store.dispatch('resetCsrState');
   },
   methods: {
     save(): void {
@@ -120,49 +130,9 @@ export default Vue.extend({
       });
     },
   },
-  created() {
-    this.$store.commit('storeKeyId', this.keyId);
-    this.$store.dispatch('setCsrTokenType', this.tokenType);
-    this.fetchKeyData();
-    this.fetchCertificateAuthorities();
-  },
-  beforeDestroy() {
-    // Clear the vuex store
-    this.$store.dispatch('resetCsrState');
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
-
-.view-wrap {
-  width: 100%;
-  max-width: 850px;
-  margin: 10px;
-}
-
-.view-title {
-  width: 100%;
-  max-width: 100%;
-  margin-bottom: 30px;
-}
-
-.stepper-content {
-  width: 100%;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.stepper {
-  width: 100%;
-}
-
-.noshadow {
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
+@import '~styles/wizards';
 </style>

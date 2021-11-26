@@ -30,16 +30,16 @@
     persistent
     data-test="system-parameters-add-timestamping-service-dialog"
   >
-    <template v-slot:activator="{ on: { click } }">
-      <large-button
+    <template #activator="{ on: { click } }">
+      <xrd-button
         data-test="system-parameters-timestamping-services-add-button"
         outlined
-        @click="click"
         :disabled="selectableTimestampingServices.length === 0"
-        :requires-permission="permissions.ADD_TSP"
+        @click="click"
       >
+        <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
         {{ $t('systemParameters.timestampingServices.action.add.button') }}
-      </large-button>
+      </xrd-button>
     </template>
     <v-card class="xrd-card">
       <v-card-title>
@@ -63,9 +63,9 @@
             data-test="system-parameters-add-timestamping-service-dialog-radio-group"
           >
             <v-row
-              class="option-row"
               v-for="timestampingService in selectableTimestampingServices"
               :key="timestampingService.name"
+              class="option-row"
             >
               <v-col>
                 <v-radio
@@ -80,18 +80,21 @@
       </v-card-text>
       <v-card-actions class="xrd-card-actions">
         <v-spacer></v-spacer>
-        <large-button
+        <xrd-button
           data-test="system-parameters-add-timestamping-service-dialog-cancel-button"
           outlined
           @click="close"
-          >{{ $t('action.cancel') }}</large-button
         >
-        <large-button
+          {{ $t('action.cancel') }}</xrd-button
+        >
+        <xrd-button
           data-test="system-parameters-add-timestamping-service-dialog-add-button"
           :loading="loading"
           :disabled="selectedTimestampingService === undefined"
           @click="add"
-          >{{ $t('action.add') }}</large-button
+        >
+          <v-icon class="xrd-large-button-icon">icon-Add</v-icon
+          >{{ $t('action.add') }}</xrd-button
         >
       </v-card-actions>
     </v-card>
@@ -102,15 +105,11 @@
 import Vue from 'vue';
 import * as api from '@/util/api';
 import { Permissions } from '@/global';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import { Prop } from 'vue/types/options';
 import { TimestampingService } from '@/openapi-types';
 
 export default Vue.extend({
   name: 'AddTimestampingServiceDialog',
-  components: {
-    LargeButton,
-  },
   props: {
     configuredTimestampingServices: {
       type: Array as Prop<TimestampingService[]>,
@@ -143,6 +142,9 @@ export default Vue.extend({
       );
     },
   },
+  created(): void {
+    this.fetchApprovedTimestampingServices();
+  },
   methods: {
     fetchApprovedTimestampingServices(): void {
       api
@@ -169,9 +171,6 @@ export default Vue.extend({
       this.show = false;
       this.selectedTimestampingServiceName = '';
     },
-  },
-  created(): void {
-    this.fetchApprovedTimestampingServices();
   },
 });
 </script>

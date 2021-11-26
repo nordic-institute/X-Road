@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ "$1" = configure ]; then
+  invoke-rc.d --quiet xroad-signer try-restart || true
+fi
+
+#DEBHELPER#
+
+exit 0

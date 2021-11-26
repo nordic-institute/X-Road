@@ -25,15 +25,16 @@
  -->
 <template>
   <div>
-    <LargeButton
+    <xrd-button
       data-test="delete-client-button"
-      @click="confirmDelete = true"
       outlined
-      >{{ $t('action.delete') }}</LargeButton
+      @click="confirmDelete = true"
+      ><v-icon class="xrd-large-button-icon">icon-Declined</v-icon
+      >{{ $t('action.delete') }}</xrd-button
     >
 
     <!-- Confirm dialog for delete client -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmDelete"
       :loading="deleteLoading"
       title="client.action.delete.confirmTitle"
@@ -43,12 +44,12 @@
     />
 
     <!-- Confirm dialog for deleting orphans -->
-    <ConfirmDialog
+    <xrd-confirm-dialog
       :dialog="confirmOrphans"
       :loading="orphansLoading"
       title="client.action.removeOrphans.confirmTitle"
       text="client.action.removeOrphans.confirmText"
-      cancelButtonText="client.action.removeOrphans.cancelButtonText"
+      cancel-button-text="client.action.removeOrphans.cancelButtonText"
       @cancel="notDeleteOrphans()"
       @accept="deleteOrphans()"
     />
@@ -58,16 +59,10 @@
 <script lang="ts">
 import Vue from 'vue';
 import { RouteName } from '@/global';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import ConfirmDialog from '@/components/ui/ConfirmDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 
 export default Vue.extend({
-  components: {
-    LargeButton,
-    ConfirmDialog,
-  },
   props: {
     id: {
       type: String,

@@ -4,4 +4,10 @@ if [[ "$1" == 'configure' && -z "$2" && -e '/etc/aux-xroad-autologin' ]]; then
     mv /etc/aux-xroad-autologin /etc/xroad/autologin
 fi
 
+if [ "$1" = abort-upgrade ]; then
+  exit 0
+fi
+
 #DEBHELPER#
+
+exit 0

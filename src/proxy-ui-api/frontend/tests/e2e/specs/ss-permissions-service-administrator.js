@@ -23,46 +23,118 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+// Tabs
+let mainPage, diagnosticsTab, clientsTab, keysTab, settingsTab;
+
+// Other
+let clientInfo, searchField, localGroupPopup, clientLocalGroups;
 
 module.exports = {
+  // TODO This test is not self contained yet, fix it figuring out beforeEach and afterEach structure
   tags: ['ss', 'xroad-service-administrator', 'permissions'],
-  'Security server service administrator role': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const keysTab = mainPage.section.keysTab;
-    const diagnosticsTab = mainPage.section.diagnosticsTab;
-    const settingsTab = mainPage.section.settingsTab;
-    const searchField = mainPage.section.clientsTab.elements.searchField;
+  before: function (browser) {
+    // Populate pageObjects for whole test suite
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    keysTab = mainPage.section.keysTab;
+    settingsTab = mainPage.section.settingsTab;
+    diagnosticsTab = mainPage.section.diagnosticsTab;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigate();
-    browser.waitForElementVisible('//*[@id="app"]');
+    searchField = mainPage.section.clientsTab.elements.searchField;
+    clientInfo = mainPage.section.clientInfo;
+    clientLocalGroups = clientInfo.section.localGroups;
+    localGroupPopup = mainPage.section.localGroupPopup;
 
-    // Enter valid credentials
-    frontPage
-      .clearUsername()
-      .clearPassword()
-      .enterUsername(browser.globals.login_service_administrator)
-      .enterPassword(browser.globals.login_pwd)
-      .signin();
+    // Actual test starts here...
+    browser.LoginCommand(browser.globals.login_service_administrator, browser.globals.login_pwd);
+  },
 
-    // Check username
-    browser.waitForElementVisible(
-      '//div[contains(@class,"auth-container") and contains(text(),"' +
-        browser.globals.login_service_administrator +
-        '")]',
-    );
-
-    // clients
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(searchField);
-    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
-
-    browser.waitForElementNotPresent(keysTab);
-    browser.waitForElementNotPresent(diagnosticsTab);
-    browser.waitForElementNotPresent(settingsTab);
-
+  after: function (browser) {
     browser.end();
   },
+  'Can not see Keys-tab': (browser) => {
+
+    browser.waitForElementNotPresent(keysTab);
+  },
+
+  'Can not see diagnostics-tab': (browser) => {
+
+    browser.waitForElementNotPresent(diagnosticsTab);
+  },
+
+  'Can not see Settings-tab': (browser) => {
+
+    browser.waitForElementNotPresent(settingsTab);
+  },
+
+  'Can see functions under Clients-tab': (browser) => {
+
+    mainPage.openClientsTab();
+    clientsTab.clickSearchIcon();
+    browser.waitForElementVisible(searchField);
+    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+  },
+
+  'Can not add clients': (browser) => {
+    // Service administrator should not see add client button
+    browser.waitForElementVisible(clientsTab);
+    browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
+  },
+
+  'Can see client details': (browser) => {
+    // Service administrator should see clients details
+    clientsTab.openClient('TestGov');
+    browser.waitForElementVisible(clientInfo);
+
+    browser
+      .waitForElementVisible(
+        '//div[contains(@class, "xrd-view-title") and contains(text(),"TestGov")]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Name")] and td[contains(text(),"TestGov")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Class")] and td[contains(text(),"GOV")]]',
+      )
+      .waitForElementVisible(
+        '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
+      )
+      .waitForElementVisible(
+        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+      );
+  },
+
+  'Should see local groups list, group members and see edit buttons': (browser) => {
+
+    // Service administrator should see local groups list
+    mainPage.openClientsTab();
+    clientsTab.openClient('TestService');
+    // TODO This following locator is directly written to project, since it fails create proper locator when polling
+    //  for 'clientLocalGroups', figure out why
+    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.waitForElementVisible(clientLocalGroups);
+
+    // Service administrator should see add local groups button
+    browser.waitForElementVisible(clientLocalGroups.elements.addGroupButton);
+
+    //  Service administrator should see local groups members and edit buttons
+    clientLocalGroups.openDetails('bac');
+    browser.assert.containsText(
+      localGroupPopup.elements.groupIdentifier,
+      'bac',
+    );
+
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupAddMembersButton,
+    );
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupRemoveAllButton,
+    );
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupTestComRemoveButton,
+    );
+    browser.waitForElementVisible(
+      localGroupPopup.elements.localGroupDeleteButton,
+    );
+  }
 };

@@ -25,46 +25,33 @@
  */
 package ee.ria.xroad.common.asic;
 
-import lombok.RequiredArgsConstructor;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Supplier;
+import static ee.ria.xroad.common.asic.AsicUtils.escapeString;
+import static ee.ria.xroad.common.asic.AsicUtils.truncate;
 
 /**
- * Generates unique filenames for a set of ASiC containers.
+ * Generates filenames for ASiC containers.
+ *
+ * The filename consists of query id, query type and a sequence value
  */
-@RequiredArgsConstructor
+@SuppressWarnings("checkstyle:MagicNumber")
 public class AsicContainerNameGenerator {
 
     public static final String TYPE_RESPONSE = "response";
     public static final String TYPE_REQUEST = "request";
 
-    private static final int MAX_QUERY_LENGTH = 225;
-    private final Supplier<String> randomGenerator;
-    private final int maxAttempts;
-    private final List<String> existingFilenames = new ArrayList<>();
+    private static final int MAX_QUERY_LENGTH = 226;
 
     /**
-     * Attempts to generate a unique filename with a random part and given
-     * static parts, formatted as "{static#1}-...-{static#N}-{random}.asice".
+     * Generates a filename for an asic container with the format "queryid-type-seq.asice"
+     *
      * @return the generated filename
      */
-    public String getArchiveFilename(String queryId, String queryType) {
-        String result = createFilenameWithRandom(queryId, queryType);
-
-        int attempts = 0;
-        while (existingFilenames.contains(result) && attempts++ < maxAttempts) {
-            result = createFilenameWithRandom(queryId, queryType);
-        }
-
-        existingFilenames.add(result);
-        return result;
+    public String getArchiveFilename(String queryId, boolean response, long seq) {
+        return truncate(escapeString(queryId), MAX_QUERY_LENGTH)
+                + '-'
+                + (response ? TYPE_RESPONSE : TYPE_REQUEST)
+                + '-'
+                + Long.toUnsignedString(seq, 32)
+                + ".asice";
     }
-
-    public String createFilenameWithRandom(String queryId, String queryType) {
-        String processedQueryId = AsicUtils.truncate(AsicUtils.escapeString(queryId), MAX_QUERY_LENGTH);
-        return String.format("%s-%s", processedQueryId, queryType) + String.format("-%s.asice", randomGenerator.get());
-    }
-
 }

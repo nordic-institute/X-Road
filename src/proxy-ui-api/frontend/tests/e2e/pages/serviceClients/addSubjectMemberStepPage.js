@@ -36,9 +36,9 @@ const commands = [
       this.click('@cancelButton');
       return this;
     },
-    verifySubjectListRow: function (row, subject) {
+    verifySubjectListRow: function (subject) {
       this.api.waitForElementVisible(
-        `(//table[contains(@class, "service-clients-table")]/tbody/tr)[${row}]//td[contains(text(), "${subject}")]`,
+        `(//table[contains(@class, "service-clients-table")]/tbody/tr)//td[contains(text(), "${subject}")]`,
       );
       return this;
     },
@@ -103,7 +103,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     filterField: {
-      selector: '//input[contains(@data-test, "search-service-client")]',
+      selector: '//input[@data-test="search-service-client"]',
       locateStrategy: 'xpath',
     },
     cancelButton: {
@@ -117,8 +117,7 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     addSubjectWizardHeader: {
-      selector:
-        '//div[@data-test="add-subject-title"]//span[contains(@class, "identifier-wrap") and contains(text(), "Add a subject")]',
+      selector: '//div[@data-test="add-subject-title"]',
       locateStrategy: 'xpath',
     },
     selectedSubjects: {

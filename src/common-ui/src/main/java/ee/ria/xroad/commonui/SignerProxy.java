@@ -63,6 +63,7 @@ import ee.ria.xroad.signer.protocol.message.RegenerateCertRequestResponse;
 import ee.ria.xroad.signer.protocol.message.SetCertStatus;
 import ee.ria.xroad.signer.protocol.message.SetKeyFriendlyName;
 import ee.ria.xroad.signer.protocol.message.SetTokenFriendlyName;
+import ee.ria.xroad.signer.protocol.message.UpdateSoftwareTokenPin;
 
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
@@ -125,6 +126,19 @@ public final class SignerProxy {
         log.trace("Activating token '{}'", tokenId);
 
         execute(new ActivateToken(tokenId, true));
+    }
+
+    /**
+     * Updates the token pin with the provided new one
+     * @param tokenId ID of the token
+     * @param oldPin the old (current) pin of the token
+     * @param newPin the new pin
+     * @throws Exception if any errors occur
+     */
+    public static void updateTokenPin(String tokenId, char[] oldPin, char[] newPin) throws Exception {
+        log.trace("Updating token pin '{}'", tokenId);
+
+        execute(new UpdateSoftwareTokenPin(tokenId, oldPin, newPin));
     }
 
     /**

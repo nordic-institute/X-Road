@@ -24,15 +24,26 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="wrapper">
+  <div class="mt-3">
+    <div class="title-row">
+      <div class="xrd-view-title">{{ $t('tab.keys.apiKey') }}</div>
+      <div>
+        <help-button
+          help-image="api_keys.png"
+          help-title="keys.helpTitleApi"
+          help-text="keys.helpTextApi"
+        ></help-button>
+      </div>
+    </div>
+
     <div class="details-view-tools">
-      <large-button
+      <xrd-button
         v-if="canCreateApiKey"
         class="button-spacing"
         outlined
         data-test="api-key-create-key-button"
         @click="createApiKey"
-        >{{ $t('apiKey.createApiKey.button') }}</large-button
+        >{{ $t('apiKey.createApiKey.button') }}</xrd-button
       >
     </div>
 
@@ -61,26 +72,29 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import LargeButton from '@/components/ui/LargeButton.vue';
 import * as api from '@/util/api';
 import { RouteName, Permissions } from '@/global';
 import { ApiKey } from '@/global-types';
 import ApiKeyRow from '@/views/KeysAndCertificates/ApiKey/ApiKeyRow.vue';
+import HelpButton from '../HelpButton.vue';
 
 export default Vue.extend({
   components: {
-    LargeButton,
     ApiKeyRow,
+    HelpButton,
+  },
+  data() {
+    return {
+      apiKeys: new Array<ApiKey>(),
+    };
   },
   computed: {
     canCreateApiKey(): boolean {
       return this.$store.getters.hasPermission(Permissions.CREATE_API_KEY);
     },
   },
-  data() {
-    return {
-      apiKeys: new Array<ApiKey>(),
-    };
+  created(): void {
+    this.loadKeys();
   },
   methods: {
     loadKeys(): void {
@@ -97,9 +111,6 @@ export default Vue.extend({
       });
     },
   },
-  created(): void {
-    this.loadKeys();
-  },
 });
 </script>
 
@@ -111,5 +122,11 @@ export default Vue.extend({
 .keytable-header {
   font-weight: 500;
   color: $XRoad-Black;
+}
+
+.title-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
 }
 </style>

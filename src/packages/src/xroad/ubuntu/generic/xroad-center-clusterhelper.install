@@ -1,3 +1,0 @@
-../../../../src/xroad/common/cluster/xroad_create_cluster.sh /usr/share/xroad/scripts
-../../../../src/xroad/common/cluster/check_ha_cluster_status.py /usr/share/xroad/scripts
-../../../../src/xroad/common/cluster/modify_cluster.sh /usr/share/xroad/scripts

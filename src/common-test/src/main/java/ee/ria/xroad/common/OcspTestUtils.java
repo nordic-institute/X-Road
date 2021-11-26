@@ -28,6 +28,7 @@ package ee.ria.xroad.common;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.ocsp.BasicOCSPRespBuilder;
 import org.bouncycastle.cert.ocsp.CertificateID;
 import org.bouncycastle.cert.ocsp.CertificateStatus;
@@ -96,7 +97,8 @@ public final class OcspTestUtils {
         ContentSigner contentSigner = CryptoUtils.createContentSigner(
                 subject.getSigAlgName(), signerKey);
 
-        Object responseObject = builder.build(contentSigner, null, new Date());
+        X509CertificateHolder[] chain = {new X509CertificateHolder(signer.getEncoded())};
+        Object responseObject = builder.build(contentSigner, chain, new Date());
 
         OCSPResp resp = new OCSPRespBuilder().build(
                 OCSPRespBuilder.SUCCESSFUL, responseObject);

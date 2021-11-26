@@ -140,7 +140,7 @@ public class OcspVerifierTest {
         thrown.expectError(X_INCORRECT_VALIDATION_INFO);
         OcspVerifier verifier =
                 new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(true), new OcspVerifierOptions(true));
-        verifier.verifyValidityAndStatus(ocsp, issuer, anotherSignerCert);
+        verifier.verifyValidityAndStatus(ocsp, subject, issuer);
     }
 
     /**
@@ -285,6 +285,12 @@ public class OcspVerifierTest {
     }
 
     private class TestGlobalConf extends EmptyGlobalConf {
+
+        @Override
+        public boolean isOcspResponderCert(X509Certificate ca, X509Certificate ocspCert) {
+            return false;
+        }
+
         @Override
         public List<X509Certificate> getOcspResponderCertificates() {
             return Collections.singletonList(signer);

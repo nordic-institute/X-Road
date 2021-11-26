@@ -24,20 +24,18 @@
    THE SOFTWARE.
  -->
 <template>
-  <div class="xrd-tab-max-width xrd-view-common">
-    <div class="wrap-right">
-      <v-btn
+  <div>
+    <div class="wrap-right px-4">
+      <xrd-button
         v-if="canAddEndpoint"
         color="primary"
-        @click="isAddEndpointDialogVisible = true"
-        outlined
-        rounded
-        class="rounded-button elevation-0 rest-button"
         data-test="endpoint-add"
-        >{{ $t('endpoints.addEndpoint') }}</v-btn
+        @click="isAddEndpointDialogVisible = true"
+        >{{ $t('endpoints.addEndpoint') }}</xrd-button
       >
     </div>
-    <table class="xrd-table">
+
+    <table class="xrd-table mb-4">
       <thead>
         <tr>
           <th>{{ $t('endpoints.httpRequestMethod') }}</th>
@@ -49,7 +47,7 @@
         <tr
           v-for="endpoint in endpoints"
           :key="endpoint.id"
-          v-bind:class="{ generated: endpoint.generated }"
+          :class="{ generated: endpoint.generated }"
         >
           <td>
             <span v-if="endpoint.method === '*'">{{
@@ -59,27 +57,22 @@
           </td>
           <td class="identifier-wrap">{{ endpoint.path }}</td>
           <td class="wrap-right-tight">
-            <v-btn
+            <xrd-button
               v-if="!endpoint.generated && canEditEndpoint"
-              small
-              outlined
-              rounded
-              color="primary"
-              class="xrd-small-button xrd-table-button"
+              text
+              class="xrd-table-button"
               data-test="endpoint-edit"
               @click="editEndpoint(endpoint)"
-              >{{ $t('action.edit') }}</v-btn
+              >{{ $t('action.edit') }}</xrd-button
             >
-            <v-btn
+            <xrd-button
               v-if="canViewAccessRights"
-              small
-              outlined
-              rounded
-              color="primary"
-              class="xrd-small-button xrd-table-button"
+              text
+              :outlined="false"
+              class="xrd-table-button"
               data-test="endpoint-edit-accessrights"
               @click="editAccessRights(endpoint)"
-              >{{ $t('accessRights.title') }}</v-btn
+              >{{ $t('accessRights.title') }}</xrd-button
             >
           </td>
         </tr>
@@ -107,6 +100,21 @@ export default Vue.extend({
   components: {
     addEndpointDialog,
   },
+  props: {
+    serviceId: {
+      type: String,
+      required: true,
+    },
+    clientId: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      isAddEndpointDialogVisible: false,
+    };
+  },
   computed: {
     ...mapGetters(['service']),
 
@@ -132,11 +140,7 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(Permissions.VIEW_ENDPOINT_ACL);
     },
   },
-  data() {
-    return {
-      isAddEndpointDialogVisible: false,
-    };
-  },
+
   methods: {
     addEndpoint(method: string, path: string): void {
       api
@@ -168,7 +172,11 @@ export default Vue.extend({
       }
       this.$router.push({
         name: RouteName.EndpointDetails,
-        params: { id: endpoint.id },
+        params: {
+          id: endpoint.id,
+          clientId: this.clientId,
+          serviceId: this.serviceId,
+        },
       });
     },
     editAccessRights(endpoint: Endpoint): void {
@@ -177,7 +185,11 @@ export default Vue.extend({
       }
       this.$router.push({
         name: RouteName.EndpointAccessRights,
-        params: { id: endpoint.id },
+        params: {
+          id: endpoint.id,
+          clientId: this.clientId,
+          serviceId: this.serviceId,
+        },
       });
     },
     cancelAddEndpoint(): void {
@@ -190,7 +202,6 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '../../../assets/colors';
 @import '../../../assets/tables';
-@import '../../../assets/global-style';
 
 .path-wrapper {
   white-space: nowrap;

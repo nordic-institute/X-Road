@@ -1,6 +1,6 @@
 # X-Road: Central Server Configuration Data Model
 
-Version: 1.7  
+Version: 1.8  
 Doc. ID: DM-CS
 
 | Date       | Version | Description                                             | Author             |
@@ -20,13 +20,17 @@ Doc. ID: DM-CS
 | 05.06.2017 | 1.5     | System parameter *confSignAlgoId* replaced with *confSignDigestAlgoId* | Kristo Heero |
 | 02.03.2018 | 1.6     | Added uniform terms and conditions reference            | Tatu Repo |
 | 11.09.2019 | 1.7     | Remove Ubuntu 14.04 support                             | Jarkko Hyöty |
+| 11.08.2021 | 1.8     | Update chapter 1.7 about high availability support      | Ilkka Seppälä |
 
 ## Table of Contents
 
+- [X-Road: Central Server Configuration Data Model](#x-road-central-server-configuration-data-model)
+	- [Table of Contents](#table-of-contents)
+	- [License](#license)
 - [1 General](#1-general)
 	- [1.1 Preamble](#11-preamble)
 	- [1.2 Terms and abbreviations](#12-terms-and-abbreviations)
-	- [1.3 References](#13-references)
+		- [1.3 References](#13-references)
 	- [1.4 Database Version](#14-database-version)
 	- [1.5 Creating, Backing Up and Restoring the Database](#15-creating-backing-up-and-restoring-the-database)
 	- [1.6 Saving Database History](#16-saving-database-history)
@@ -35,78 +39,78 @@ Doc. ID: DM-CS
 	- [1.9 List of Stored Procedures](#19-list-of-stored-procedures)
 	- [1.10 List of Triggers](#110-list-of-triggers)
 - [2 Description of Entities](#2-description-of-entities)
-	- [2.1 ANCHOR_URL_CERTS](#21-anchorurlcerts)
+	- [2.1 ANCHOR_URL_CERTS](#21-anchor_url_certs)
 		- [2.1.1 Indexes](#211-indexes)
 		- [2.1.2 Attributes](#212-attributes)
-	- [2.2 ANCHOR_URLS](#22-anchorurls)
+	- [2.2 ANCHOR_URLS](#22-anchor_urls)
 		- [2.2.1 Indexes](#221-indexes)
 		- [2.2.2 Attributes](#222-attributes)
-	- [2.3 APPROVED_CAS](#23-approvedcas)
+	- [2.3 APPROVED_CAS](#23-approved_cas)
 		- [2.3.1 Indexes](#231-indexes)
 		- [2.3.2 Attributes](#232-attributes)
-	- [2.4 APPROVED_TSAS](#24-approvedtsas)
+	- [2.4 APPROVED_TSAS](#24-approved_tsas)
 		- [2.4.1 Attributes](#241-attributes)
-	- [2.5 AUTH_CERTS](#25-authcerts)
+	- [2.5 AUTH_CERTS](#25-auth_certs)
 		- [2.5.1 Indexes](#251-indexes)
 		- [2.5.2 Attributes](#252-attributes)
-	- [2.6 CA_INFOS](#26-cainfos)
+	- [2.6 CA_INFOS](#26-ca_infos)
 		- [2.6.1 Indexes](#261-indexes)
 		- [2.6.2 Attributes](#262-attributes)
-	- [2.7 CENTRAL_SERVICES](#27-centralservices)
+	- [2.7 CENTRAL_SERVICES](#27-central_services)
 		- [2.7.1 Indexes](#271-indexes)
 		- [2.7.2 Attributes](#272-attributes)
-	- [2.8 CONFIGURATION_SIGNING_KEYS](#28-configurationsigningkeys)
+	- [2.8 CONFIGURATION_SIGNING_KEYS](#28-configuration_signing_keys)
 		- [2.8.1 Indexes](#281-indexes)
 		- [2.8.2 Attributes](#282-attributes)
-	- [2.9 CONFIGURATION_SOURCES](#29-configurationsources)
+	- [2.9 CONFIGURATION_SOURCES](#29-configuration_sources)
 		- [2.9.1 Indexes](#291-indexes)
 		- [2.9.2 Attributes](#292-attributes)
-	- [2.10 DISTRIBUTED_FILES](#210-distributedfiles)
+	- [2.10 DISTRIBUTED_FILES](#210-distributed_files)
 		- [2.10.1 Attributes](#2101-attributes)
-	- [2.11 GLOBAL_GROUP_MEMBERS](#211-globalgroupmembers)
+	- [2.11 GLOBAL_GROUP_MEMBERS](#211-global_group_members)
 		- [2.11.1 Indexes](#2111-indexes)
 		- [2.11.2 Attributes](#2112-attributes)
-	- [2.12 GLOBAL_GROUPS](#212-globalgroups)
+	- [2.12 GLOBAL_GROUPS](#212-global_groups)
 		- [2.12.1 Attributes](#2121-attributes)
 	- [2.13 HISTORY](#213-history)
 		- [2.13.1 Attributes](#2131-attributes)
 	- [2.14 IDENTIFIERS](#214-identifiers)
 		- [2.14.1 Attributes](#2141-attributes)
-	- [2.15 MEMBER_CLASSES](#215-memberclasses)
+	- [2.15 MEMBER_CLASSES](#215-member_classes)
 		- [2.15.1 Attributes](#2151-attributes)
-	- [2.16 OCSP_INFOS](#216-ocspinfos)
+	- [2.16 OCSP_INFOS](#216-ocsp_infos)
 		- [2.16.1 Indexes](#2161-indexes)
 		- [2.16.2 Attributes](#2162-attributes)
-	- [2.17 REQUEST_PROCESSINGS](#217-requestprocessings)
+	- [2.17 REQUEST_PROCESSINGS](#217-request_processings)
 		- [2.17.1 Attributes](#2171-attributes)
 	- [2.18 REQUESTS](#218-requests)
 		- [2.18.1 Indexes](#2181-indexes)
 		- [2.18.2 Attributes](#2182-attributes)
-	- [2.19 SCHEMA_MIGRATIONS](#219-schemamigrations)
+	- [2.19 SCHEMA_MIGRATIONS](#219-schema_migrations)
 		- [2.19.1 Indexes](#2191-indexes)
 		- [2.19.2 Attributes](#2192-attributes)
-	- [2.20 SECURITY_CATEGORIES](#220-securitycategories)
+	- [2.20 SECURITY_CATEGORIES](#220-security_categories)
 		- [2.20.1 Attributes](#2201-attributes)
-	- [2.21 SECURITY_SERVER_CLIENT_NAMES](#221-securityserverclientnames)
+	- [2.21 SECURITY_SERVER_CLIENT_NAMES](#221-security_server_client_names)
 		- [2.21.1 Indexes](#2211-indexes)
 		- [2.21.2 Attributes](#2212-attributes)
-	- [2.22 SECURITY_SERVER_CLIENTS](#222-securityserverclients)
+	- [2.22 SECURITY_SERVER_CLIENTS](#222-security_server_clients)
 		- [2.22.1 Indexes](#2221-indexes)
 		- [2.22.2 Attributes](#2222-attributes)
-	- [2.23 SECURITY_SERVERS](#223-securityservers)
+	- [2.23 SECURITY_SERVERS](#223-security_servers)
 		- [2.23.1 Indexes](#2231-indexes)
 		- [2.23.2 Attributes](#2232-attributes)
-	- [2.24 SECURITY_SERVERS_SECURITY_CATEGORIES](#224-securityserverssecuritycategories)
+	- [2.24 SECURITY_SERVERS_SECURITY_CATEGORIES](#224-security_servers_security_categories)
 		- [2.24.1 Indexes](#2241-indexes)
 		- [2.24.2 Attributes](#2242-attributes)
-	- [2.25 SERVER_CLIENTS](#225-serverclients)
+	- [2.25 SERVER_CLIENTS](#225-server_clients)
 		- [2.25.1 Indexes](#2251-indexes)
 		- [2.25.2 Attributes](#2252-attributes)
-	- [2.26 SYSTEM_PARAMETERS](#226-systemparameters)
+	- [2.26 SYSTEM_PARAMETERS](#226-system_parameters)
 		- [2.26.1 Attributes](#2261-attributes)
-	- [2.27 TRUSTED_ANCHORS](#227-trustedanchors)
+	- [2.27 TRUSTED_ANCHORS](#227-trusted_anchors)
 		- [2.27.1 Attributes](#2271-attributes)
-	- [2.28 UI_USERS](#228-uiusers)
+	- [2.28 UI_USERS](#228-ui_users)
 		- [2.28.1 Attributes](#2281-attributes)
 
 ## License
@@ -149,7 +153,7 @@ When a row is created, updated or deleted in one of the history-aware tables, th
 
 ## 1.7 High Availability Support
 
-High availability of the X-Road central server has been implemented using the BDR extension of the PostgreSQL database (http://2ndquadrant.com/en/resources/bdr/). The implementation is an asynchronous multi-master setup where the database changes to any node of the cluster are replicated to the rest of the nodes. Each node runs a separate instance of the UI of the central server and uses separate keys for signing configuration.
+The High Availability (HA) solution for the X-Road central server relies on a shared, optionally highly available database. There can be multiple central server nodes each connecting to the same database instance. Furthermore, the database can be set up in high-availability mode where there is the primary node with read/write access and one or more secondary read-only nodes replicating the primary data as it changes.
 
 In order to support high availability (HA) setup of the X-Road central server, some database tables have the ha_node_name field. In an HA setup, the name of the node of the cluster that initiated the insertion of a given record, is stored in that field. In ordinary setup, a default value is used. In both cases, this is done at the level of stored procedures as described in section 1.7.
 

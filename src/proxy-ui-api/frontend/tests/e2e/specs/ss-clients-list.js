@@ -32,7 +32,7 @@ module.exports = {
     const clientsTab = mainPage.section.clientsTab;
 
     // Open SUT and check that page is loaded
-    frontPage.navigate();
+    frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
@@ -44,9 +44,9 @@ module.exports = {
 
     // Verify default sorting and list items
     browser.waitForElementVisible(
-      '//th[span[contains(text(),"Name")] and contains(@class, "active") and contains(@aria-sort, "ascending")]',
+      '//th[contains(@class, "xrd-table-header-name") and contains(@class, "active") and contains(@aria-sort, "ascending")]',
     );
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSaved');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSub');
@@ -58,10 +58,10 @@ module.exports = {
     // Re-sort by name and verify re-sorted list item positions
     clientsTab.clickNameHeader();
     browser.waitForElementVisible(
-      '//th[span[contains(text(),"Name")] and contains(@class, "active") and contains(@aria-sort, "descending")]',
+      '//th[contains(@class, "xrd-table-header-name") and contains(@class, "active") and contains(@aria-sort, "descending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSub');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSaved');
@@ -74,13 +74,13 @@ module.exports = {
     clientsTab.clickIDHeader();
     browser
       .waitForElementVisible(
-        '//th[span[contains(text(),"ID")] and contains(@class, "active") and contains(@aria-sort, "ascending")]',
+        '//th[contains(@class, "xrd-table-header-id") and contains(@class, "active") and contains(@aria-sort, "ascending")]',
       )
       .waitForElementVisible(
-        '//th[span[contains(text(),"Name")] and contains(@aria-sort, "none")]',
+        '//th[contains(@class, "xrd-table-header-name") and contains(@aria-sort, "none")]',
       );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSaved');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSub');
@@ -92,10 +92,10 @@ module.exports = {
     // Re-sort by ID and verify list items
     clientsTab.clickIDHeader();
     browser.waitForElementVisible(
-      '//th[span[contains(text(),"ID")] and contains(@class, "active") and contains(@aria-sort, "descending")]',
+      '//th[contains(@class, "xrd-table-header-id") and contains(@class, "active") and contains(@aria-sort, "descending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSub');
     clientsTab.verifyRowName(3, 'TestService');
     clientsTab.verifyRowName(4, 'TestSaved');
@@ -107,10 +107,10 @@ module.exports = {
     // Sort by Status and verify items
     clientsTab.clickStatusHeader();
     browser.waitForElementVisible(
-      '//th[span[contains(text(),"Status")] and contains(@class, "active") and contains(@aria-sort, "ascending")]',
+      '//th[contains(@class, "xrd-table-header-status") and contains(@class, "active") and contains(@aria-sort, "ascending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestService');
     clientsTab.verifyRowName(3, 'TestSub');
     clientsTab.verifyRowName(4, 'TestSaved');
@@ -122,10 +122,10 @@ module.exports = {
     // Re-sort by Status and verify list items
     clientsTab.clickStatusHeader();
     browser.waitForElementVisible(
-      '//th[span[contains(text(),"Status")] and contains(@class, "active") and contains(@aria-sort, "descending")]',
+      '//th[contains(@class, "xrd-table-header-status") and contains(@class, "active") and contains(@aria-sort, "descending")]',
     );
 
-    clientsTab.verifyRowName(1, 'TestGov (Owner');
+    clientsTab.verifyRowName(1, 'TestGov');
     clientsTab.verifyRowName(2, 'TestSaved');
     clientsTab.verifyRowName(3, 'TestSub');
     clientsTab.verifyRowName(4, 'TestService');

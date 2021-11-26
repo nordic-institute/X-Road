@@ -25,14 +25,14 @@
  -->
 <template>
   <div class="view-wrap">
-    <subViewTitle
+    <xrd-sub-view-title
       class="view-title"
       :title="$t('csr.addKey')"
-      :showClose="false"
+      :show-close="false"
     />
     <v-stepper
-      :alt-labels="true"
       v-model="currentStep"
+      :alt-labels="true"
       class="stepper noshadow"
     >
       <v-stepper-header class="noshadow">
@@ -53,9 +53,9 @@
         <!-- Step 1 -->
         <v-stepper-content step="1">
           <WizardPageKeyLabel
+            :token-type="tokenType"
             @cancel="cancel"
             @done="currentStep = 2"
-            :tokenType="tokenType"
           />
         </v-stepper-content>
         <!-- Step 2 -->
@@ -69,10 +69,10 @@
         <!-- Step 3 -->
         <v-stepper-content step="3">
           <WizardPageGenerateCsr
+            key-and-csr
             @cancel="cancel"
             @previous="currentStep = 2"
             @done="done"
-            keyAndCsr
           />
         </v-stepper-content>
       </v-stepper-items>
@@ -82,7 +82,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import SubViewTitle from '@/components/ui/SubViewTitle.vue';
 import WizardPageKeyLabel from '@/components/wizard/WizardPageKeyLabel.vue';
 import WizardPageCsrDetails from '@/components/wizard/WizardPageCsrDetails.vue';
 import WizardPageGenerateCsr from '@/components/wizard/WizardPageGenerateCsr.vue';
@@ -90,7 +89,6 @@ import { RouteName } from '@/global';
 
 export default Vue.extend({
   components: {
-    SubViewTitle,
     WizardPageKeyLabel,
     WizardPageCsrDetails,
     WizardPageGenerateCsr,
@@ -102,13 +100,18 @@ export default Vue.extend({
     },
     tokenType: {
       type: String,
-      required: false,
+      required: true,
     },
   },
   data() {
     return {
       currentStep: 1,
     };
+  },
+  created() {
+    this.$store.dispatch('setCsrTokenId', this.tokenId);
+    this.$store.dispatch('setCsrTokenType', this.tokenType);
+    this.fetchCertificateAuthorities();
   },
   methods: {
     save(): void {
@@ -142,44 +145,9 @@ export default Vue.extend({
       });
     },
   },
-  created() {
-    this.$store.dispatch('setCsrTokenId', this.tokenId);
-    this.$store.dispatch('setCsrTokenType', this.tokenType);
-    this.fetchCertificateAuthorities();
-  },
 });
 </script>
 
 <style lang="scss" scoped>
-@import '../../assets/colors';
-@import '../../assets/shared';
-
-.view-wrap {
-  width: 100%;
-  max-width: 850px;
-  margin: 10px;
-}
-
-.view-title {
-  width: 100%;
-  max-width: 100%;
-  margin-bottom: 30px;
-}
-
-.stepper-content {
-  width: 100%;
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-.stepper {
-  width: 100%;
-}
-
-.noshadow {
-  -webkit-box-shadow: none;
-  -moz-box-shadow: none;
-  box-shadow: none;
-}
+@import '~styles/wizards';
 </style>

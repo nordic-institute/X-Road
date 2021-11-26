@@ -45,12 +45,27 @@ var loginCommands = {
     this.click('@loginButton');
     return this;
   },
+  loginErrorMessageIsShown: function () {
+    this.assert.visible('@LoginError');
+    return this;
+  },
+  navigateAndMakeTestable: function () {
+    this.logMessage("navigateAndMakeTestable()");
+    this.navigate();
+    this.waitForElementVisible('//*[@id="app"]');
+    this.makeTestable();
+    this.logMessage("navigateAndMakeTestable() done");
+    return this;
+  },
   signinDefaultUser: function () {
     this.clearValue2('@usernameInput');
     this.clearValue2('@passwordInput');
     this.setValue('@usernameInput', this.api.globals.login_usr);
     this.setValue('@passwordInput', this.api.globals.login_pwd);
     this.click('@loginButton');
+    // wait for login to complete, and disable transitions
+    this.api.page.ssMainPage().verifyCurrentUser(this.api.globals.login_usr);
+    this.makeTestable();
     return this;
   },
 };
@@ -59,8 +74,21 @@ module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [loginCommands],
   elements: {
-    usernameInput: { selector: 'input[id=username]' },
-    passwordInput: { selector: 'input[id=password]' },
-    loginButton: { selector: 'button[id=submit-button]' },
+    usernameInput: {
+      selector: '//input[@id="username"]',
+      locateStrategy: 'xpath',
+    },
+    passwordInput: {
+      selector: '//input[@id="password"]',
+      locateStrategy: 'xpath',
+    },
+    loginButton: {
+      selector: '//button[@id="submit-button"]',
+      locateStrategy: 'xpath',
+    },
+    LoginError: {
+      selector: '//button[@id="submit-button"]',
+      locateStrategy: 'xpath',
+    },
   },
 };

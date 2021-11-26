@@ -7,6 +7,20 @@ get_prop() { crudini --get "$1" '' "$2" 2>/dev/null || echo -n "$3"; }
 get_db_prop() { get_prop "/etc/xroad/db.properties" "$@"; }
 abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
+while getopts "F" opt ; do
+  case ${opt} in
+    F)
+      FORCE_RESTORE=true
+      ;;
+    \?)
+      echo "Invalid option $OPTARG -- did you use the correct wrapper script?"
+      exit 2
+      ;;
+  esac
+done
+
+shift $(($OPTIND - 1))
+
 DUMP_FILE=$1
 USER=$(get_db_prop 'username' 'centerui')
 SCHEMA=$(get_db_prop 'schema' "$USER")
@@ -33,10 +47,6 @@ remote_psql() {
 
 psql_dbuser() {
     PGDATABASE="$DATABASE" PGUSER="$USER" PGPASSWORD="$PASSWORD" remote_psql "$@"
-}
-
-detect_bdr()  {
-    [[ "$(psql_dbuser -c 'select bdr.bdr_version()' 2>/dev/null)" == "1.0."* ]];
 }
 
 if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then
@@ -70,45 +80,11 @@ REVOKE CREATE ON SCHEMA public FROM PUBLIC;
 EOF
 fi
 
-if ! detect_bdr; then
-    # restore dump
-    { cat <<EOF
+# restore dump
+{ cat <<EOF
 BEGIN;
 DROP SCHEMA IF EXISTS "$SCHEMA" CASCADE;
 EOF
-    cat "$DUMP_FILE"
-    echo "COMMIT;"
-    } | psql_dbuser >/dev/null || abort "Restoring database failed."
-else
-    echo "BDR 1.0 detected. BDR 1.0 is deprecated and support will be removed in a future X-Road release."
-    { cat <<EOF
-REVOKE CONNECT ON DATABASE "$DATABASE" FROM "$USER";
-SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='$DATABASE' and usename='$USER';
-SET ROLE "$USER";
-BEGIN;
-DROP SCHEMA IF EXISTS "$SCHEMA" CASCADE;
-EOF
-    # Change statements like
-    # CREATE SEQUENCE centerui.anchor_urls_id_seq
-    #   START WITH 1
-    #   ...
-    #   USING bdr;
-    # to
-    # CREATE SEQUENCE <name>
-    # USING bdr;
-    # since BDR does not support most of the parameters (makes restore to fail)
-    sed -r -e '/^CREATE SEQUENCE /{:a;/;$/!{;N;ba};P;iUSING bdr;' -e ';d}' "$DUMP_FILE"
-
-    cat <<EOF
-COMMIT;
--- wait for changes to propagate before updating sequences
-SELECT bdr.wait_slot_confirm_lsn(NULL, NULL);
-SELECT pg_sleep(5);
-BEGIN;
-SELECT "$SCHEMA".fix_sequence('$SCHEMA');
-COMMIT;
-RESET ROLE;
-GRANT CONNECT ON DATABASE "$DATABASE" TO "$USER";
-EOF
-    } | psql_master -d "$DATABASE" >/dev/null || abort "Restoring database failed."
-fi
+cat "$DUMP_FILE"
+echo "COMMIT;"
+} | psql_dbuser >/dev/null || abort "Restoring database failed."

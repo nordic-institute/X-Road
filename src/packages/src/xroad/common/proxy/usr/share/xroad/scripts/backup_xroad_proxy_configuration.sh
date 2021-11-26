@@ -5,7 +5,7 @@
 source /usr/share/xroad/scripts/_backup_restore_common.sh
 
 COMMON_BACKUP_SCRIPT=/usr/share/xroad/scripts/_backup_xroad.sh
-THIS_FILE=$(pwd)/$0 
+THIS_FILE=$(pwd)/$0
 
 usage () {
 cat << EOF
@@ -25,15 +25,22 @@ EOF
 
 execute_backup () {
   if [ -x $COMMON_BACKUP_SCRIPT ] ; then
-    local args="-t security -s $SECURITY_SERVER_ID -f $BACKUP_FILENAME"
+    local args=(-t security -s "$SECURITY_SERVER_ID" -f "$BACKUP_FILENAME")
     if [[ $USE_BASE_64 = true ]] ; then
-      args="${args} -b"
+      args+=(-b)
     fi
     if [[ $SKIP_DB_BACKUP = true ]] ; then
-      args="${args} -S"
+      args+=(-S)
     fi
-    ${COMMON_BACKUP_SCRIPT} ${args}
-    if [ $? -ne 0 ] ; then
+    if [[ $ENCRYPT_BACKUP = true ]] ; then
+      args+=(-E encrypt)
+    else
+      args+=(-E signonly)
+    fi
+    if [ -n "$GPG_KEYIDS" ]; then
+      args+=(-k "$GPG_KEYIDS")
+    fi
+    if ! ${COMMON_BACKUP_SCRIPT} "${args[@]}" ; then
       echo "Failed to back up the configuration of the X-Road security server"
       exit 1
     fi
@@ -74,9 +81,17 @@ while getopts ":s:f:Sbh" opt ; do
   esac
 done
 
+warn_about_incompatibility
+
 check_user
 check_security_server_id
 check_backup_file_name
+
+ENCRYPT_BACKUP=$(get_proxy_prop proxy.ini proxy "backup-encryption-enabled" false)
+echo "ENCRYPT_BACKUP=$ENCRYPT_BACKUP"
+GPG_KEYIDS=$(get_proxy_prop proxy.ini proxy "backup-encryption-keyids")
+echo "GPG_KEYIDS=$GPG_KEYIDS"
+
 execute_backup
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

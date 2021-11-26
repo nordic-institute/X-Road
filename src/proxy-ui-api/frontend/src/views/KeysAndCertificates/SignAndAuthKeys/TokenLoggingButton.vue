@@ -26,26 +26,26 @@
 
 <template>
   <div>
-    <v-btn
-      min-width="120px"
+    <xrd-button
       v-if="!token.logged_in"
-      :color="styles.color"
-      :disabled="!token.available"
-      @click="confirmLogin()"
-      data-test="token-login-button"
-      >{{ $t('keys.logIn') }}
-    </v-btn>
-
-    <v-btn
-      active-class="'test'"
-      outlined="outlined"
       min-width="120px"
+      :outlined="false"
+      text
+      :disabled="!token.available"
+      data-test="token-login-button"
+      @click="confirmLogin()"
+      >{{ $t('keys.logIn') }}
+    </xrd-button>
+
+    <xrd-button
       v-if="token.logged_in"
-      :color="styles.color"
-      @click="confirmLogout()"
+      min-width="120px"
+      :outlined="false"
+      text
       data-test="token-logout-button"
+      @click="confirmLogout()"
       >{{ $t('keys.logOut') }}
-    </v-btn>
+    </xrd-button>
   </div>
 </template>
 
@@ -53,15 +53,6 @@
 import Vue from 'vue';
 import { Token } from '@/openapi-types';
 import { Prop } from 'vue/types/options';
-import {
-  getTokenUIStatus,
-  TokenUIStatus,
-} from '@/views/KeysAndCertificates/SignAndAuthKeys/TokenStatusHelper';
-
-interface ButtonStyles {
-  class: string;
-  color: string;
-}
 
 export default Vue.extend({
   props: {
@@ -70,14 +61,6 @@ export default Vue.extend({
       required: true,
     },
   },
-  data: function () {
-    return {
-      styles: {
-        color: 'primary',
-        class: '',
-      } as ButtonStyles,
-    };
-  },
   methods: {
     confirmLogout(): void {
       this.$emit('token-logout');
@@ -85,37 +68,6 @@ export default Vue.extend({
     confirmLogin(): void {
       this.$emit('token-login');
     },
-    getButtonStyles(token: Token): void {
-      const status: TokenUIStatus = getTokenUIStatus(token.status);
-
-      if (status === TokenUIStatus.Available) {
-        this.styles.color = 'primary';
-      } else if (status === TokenUIStatus.Active) {
-        this.styles.color = 'primary';
-      } else if (status === TokenUIStatus.Unavailable) {
-        this.styles.color = 'error';
-      } else if (status === TokenUIStatus.Unsaved) {
-        this.styles.color = 'error';
-      } else if (status === TokenUIStatus.Inactive) {
-        this.styles.color = 'grey';
-      }
-    },
-  },
-  created() {
-    this.getButtonStyles(this.token);
   },
 });
 </script>
-
-<style lang="scss" scoped>
-@import '../../../assets/colors';
-.grey-background {
-  background-color: $XRoad-Grey10;
-}
-
-.large-button {
-  border-radius: 4px;
-  text-transform: uppercase;
-  background-color: white;
-}
-</style>

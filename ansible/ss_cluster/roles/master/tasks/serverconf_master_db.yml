@@ -63,7 +63,7 @@
 - name: copy serverconf database to a new instance
   become: yes
   become_user: postgres
-  shell: pg_dump -C serverconf | psql -p "{{ serverconf_db_port }}" -f -
+  shell: pg_dump -C -Fc serverconf | pg_restore -p "{{ serverconf_db_port }}" -Fc -C -d postgres
   when: serverconf_database_exists.stdout == ""
   register: copy_db
   failed_when: copy_db.stderr != "" 

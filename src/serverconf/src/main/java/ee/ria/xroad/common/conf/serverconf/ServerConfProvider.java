@@ -31,6 +31,8 @@ import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.identifier.ServiceId;
+import ee.ria.xroad.common.metadata.Endpoint;
+import ee.ria.xroad.common.metadata.RestServiceDetailsListType;
 
 import java.security.cert.X509Certificate;
 import java.util.Collection;
@@ -71,6 +73,19 @@ public interface ServerConfProvider {
      * @return the timeout value (in seconds) for the service.
      */
     int getServiceTimeout(ServiceId service);
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @return RestServiceDetailsListType containing list of REST services
+     */
+    RestServiceDetailsListType getRestServices(ClientId serviceProvider);
+
+    /**
+     * @param serviceProvider the service provider identifier
+     * @param client the client identifier
+     * @return RestServiceDetailsListType containing list of allowed REST services
+     */
+    RestServiceDetailsListType getAllowedRestServices(ClientId serviceProvider, ClientId client);
 
     /**
      * @param serviceProvider the service provider identifier
@@ -181,9 +196,29 @@ public interface ServerConfProvider {
     String getServiceDescriptionURL(ServiceId service);
 
     /**
+     * @param service the service identifier
+     * @return list of endpoints
+     */
+    List<Endpoint> getServiceEndpoints(ServiceId service);
+
+    /**
      * Log serverconf statistics
      */
     default void logStatistics() {
         //NOP
+    }
+
+    /**
+     * Clear configuration cache
+     */
+    default void clearCache() {
+        // by default there is no cache to clear
+    }
+
+    /**
+     * @return true if this provider is capable of providing configuration
+     */
+    default boolean isAvailable() {
+        return true;
     }
 }

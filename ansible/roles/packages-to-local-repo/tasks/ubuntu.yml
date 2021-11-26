@@ -3,6 +3,8 @@
   file:
     path: "/xroad/"
     state: absent
+  tags:
+    - clean-local-repo
 
 - name: Copy bionic DEB packages (Ubuntu)
   become: yes
@@ -14,12 +16,19 @@
   copy: src="../src/packages/build/ubuntu20.04/" dest="/xroad/"
   when: ubuntu_releasever == "focal"
 
+- name: Add empty Packages to local repo for apt to run
+  file:
+    path: "/xroad/Packages"
+    state: touch
+  tags:
+    - clean-local-repo
+
 - name: Ensure dpkg-dev
   become: yes
   apt: name=dpkg-dev state=present
 
 - name: Scan new packages
   become: yes
-  shell: "dpkg-scanpackages . >Packages"
+  shell: "dpkg-scanpackages -m . >Packages"
   args:
     chdir: /xroad

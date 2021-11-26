@@ -25,23 +25,27 @@
  -->
 <template>
   <tr>
-    <td class="name-wrap-top no-border">
-      <i class="icon-xrd_key icon clickable" @click="keyClick"></i>
-      <div class="clickable-link identifier-wrap" @click="keyClick">
-        <span v-if="!tokenKey.name || tokenKey.name === ''">{{
-          tokenKey.id
-        }}</span>
-        <span v-else>{{ tokenKey.name }}</span>
+    <td class="pl-8">
+      <div class="name-wrap-top">
+        <i class="icon-Key key-icon" />
+        <div class="clickable-link identifier-wrap" @click="keyClick">
+          <span v-if="!tokenKey.name || tokenKey.name === ''">{{
+            tokenKey.id
+          }}</span>
+          <span v-else>{{ tokenKey.name }}</span>
+        </div>
       </div>
     </td>
-    <td class="no-border" colspan="4"></td>
-    <td class="no-border td-align-right">
-      <SmallButton
+    <td colspan="4"></td>
+    <td class="td-align-right">
+      <xrd-button
         v-if="showGenerateCsr"
         class="table-button-fix"
+        :outlined="false"
+        text
         :disabled="disableGenerateCsr"
         @click="generateCsr"
-        >{{ $t('keys.generateCsr') }}</SmallButton
+        >{{ $t('keys.generateCsr') }}</xrd-button
       >
     </td>
   </tr>
@@ -53,14 +57,14 @@
  */
 import Vue from 'vue';
 import { Prop } from 'vue/types/options';
-import SmallButton from '@/components/ui/SmallButton.vue';
-import { Key, PossibleAction, TokenCertificate } from '@/openapi-types';
+import {
+  Key,
+  PossibleAction,
+  TokenCertificate,
+  KeyUsageType,
+} from '@/openapi-types';
 import { Permissions } from '@/global';
-
 export default Vue.extend({
-  components: {
-    SmallButton,
-  },
   props: {
     tokenKey: {
       type: Object as Prop<Key>,
@@ -73,14 +77,20 @@ export default Vue.extend({
   computed: {
     showGenerateCsr(): boolean {
       // Check if the user has permission to see generate csr action
-      if (this.tokenKey.usage === 'AUTHENTICATION') {
+      if (this.tokenKey.usage === KeyUsageType.AUTHENTICATION) {
         return this.$store.getters.hasPermission(
           Permissions.GENERATE_AUTH_CERT_REQ,
         );
+      } else if (this.tokenKey.usage === KeyUsageType.SIGNING) {
+        return this.$store.getters.hasPermission(
+          Permissions.GENERATE_SIGN_CERT_REQ,
+        );
       }
-      // If key usage is not auth then it has to be sign
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_SIGN_CERT_REQ,
+
+      // If key doesn't have a usage type it is in the "unknown" category. Then any permission is fine.
+      return (
+        this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
+        this.$store.getters.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
       );
     },
 
@@ -115,19 +125,7 @@ export default Vue.extend({
 </script>
 
 <style lang="scss" scoped>
-@import '../../../assets/tables';
-.icon {
-  margin-left: 18px;
-  margin-right: 20px;
-}
-
-.clickable {
-  cursor: pointer;
-}
-
-.no-border {
-  border-bottom-width: 0 !important;
-}
+@import '~styles/tables';
 
 .table-button-fix {
   margin-left: auto;
@@ -139,24 +137,25 @@ export default Vue.extend({
 }
 
 .clickable-link {
-  text-decoration: underline;
+  color: $XRoad-Purple100;
   cursor: pointer;
+}
+
+.key-icon {
+  margin-right: 18px;
+  color: $XRoad-Purple100;
 }
 
 .name-wrap {
   display: flex;
   flex-direction: row;
   align-items: center;
-
-  i.v-icon.mdi-file-document-outline {
-    margin-left: 42px;
-  }
 }
 
 .name-wrap-top {
   @extend .name-wrap;
   align-content: center;
-  margin-top: 18px;
+  margin-top: 5px;
   margin-bottom: 5px;
 }
 </style>

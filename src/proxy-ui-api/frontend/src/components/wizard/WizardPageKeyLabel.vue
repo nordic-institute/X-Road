@@ -25,34 +25,41 @@
  -->
 <template>
   <div>
-    {{
-      tokenType === 'HARDWARE'
-        ? $t('wizard.signKey.info')
-        : $t('keys.keyLabelInfo')
-    }}
-    <div class="row-wrap">
-      <FormLabel :labelText="keyLabelText" />
-      <v-text-field
-        class="form-input"
-        type="text"
-        v-model="keyLabel"
-        data-test="key-label-button"
-        autofocus
-      ></v-text-field>
+    <div class="wizard-step-form-content pt-6">
+      <div class="row-wrap">
+        <xrd-form-label
+          v-if="tokenType === 'HARDWARE'"
+          :label-text="$t('wizard.signKey.keyLabel')"
+          :help-text="$t('wizard.signKey.info')"
+        />
+        <xrd-form-label
+          v-else
+          :label-text="$t('wizard.signKey.keyLabel')"
+          :help-text="$t('wizard.signKey.info')"
+        />
+
+        <v-text-field
+          v-model="keyLabel"
+          class="form-input"
+          type="text"
+          outlined
+          data-test="key-label-button"
+          autofocus
+        ></v-text-field>
+      </div>
     </div>
     <div class="button-footer">
-      <div class="button-group">
-        <large-button
-          outlined
-          @click="cancel"
-          :disabled="!disableDone"
-          data-test="cancel-button"
-          >{{ $t('action.cancel') }}</large-button
-        >
-      </div>
-      <large-button @click="done" data-test="next-button">{{
+      <xrd-button
+        outlined
+        :disabled="!disableDone"
+        data-test="cancel-button"
+        @click="cancel"
+        >{{ $t('action.cancel') }}</xrd-button
+      >
+
+      <xrd-button data-test="next-button" @click="done">{{
         $t('action.next')
-      }}</large-button>
+      }}</xrd-button>
     </div>
   </div>
 </template>
@@ -60,19 +67,19 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapGetters } from 'vuex';
-import LargeButton from '@/components/ui/LargeButton.vue';
-import FormLabel from '@/components/ui/FormLabel.vue';
 
 export default Vue.extend({
-  components: {
-    FormLabel,
-    LargeButton,
-  },
   props: {
     tokenType: {
       type: String,
       required: false,
+      default: undefined,
     },
+  },
+  data() {
+    return {
+      disableDone: true,
+    };
   },
   computed: {
     ...mapGetters(['csrForm']),
@@ -91,11 +98,6 @@ export default Vue.extend({
         return 'keys.keyLabelInput';
       }
     },
-  },
-  data() {
-    return {
-      disableDone: true,
-    };
   },
   methods: {
     cancel(): void {
