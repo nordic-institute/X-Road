@@ -1,8 +1,8 @@
 #!/bin/bash
 source /root/_entrypoint_common.sh
-# Configure master pod for balancer
 
 mkdir -p /run/sshd && chmod 0755 /run/sshd
+log "$(ssh-keygen -A)"
 
 # ensure that rsync can read /etc/xroad
 shopt -s extglob
