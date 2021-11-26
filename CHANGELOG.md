@@ -1,6 +1,6 @@
 # Change Log
 
-## 7.0.0 - UNRELEASED
+## 7.0.0 - 2021-11-26
 - XRDDEV-1375: HSM token certificates do not show Deleted status
 - XRDDEV-1461: Permissions handling has inconsistencies when it comes to non-sign-non-auth keys
 - XRDDEV-1466: User interface reports different version than package manager
@@ -100,7 +100,6 @@
 - XRDDEV-1743: As a Security Server Administrator I want the generate gpg keypair script doesn't automatically remove the gpg home directory so that I don't accidentally delete the Security Server's existing gpg key.
 - XRDDEV-1744: As a Product Owner I want that the X-Road version number in the documentation is changed from 6 to 7 so that it's up-to-date
 - XRDDEV-1749: As a Security Server Administrator I want the Security Server health check to detect invalid global configuration so that I know when the Security Server is not operational
-- XRDDEV-1752: As a Developer I want to refine the X-Road core release process to include the Sidecar so that the Sidecar is part of the official core release
 - XRDDEV-1753: As a Developer I want to update the Sidecar repository structure so that it has the same structure with the X-Road core
 - XRDDEV-1754: As a Developer I want to plan the Sidecar maintenance process between the releases so that the images include up-to-date dependencies.
 - XRDDEV-1757: As a Security Server Administrator I want to have documentation on how to install messagelogging so that it works correctly
@@ -113,6 +112,14 @@
 - XRDDEV-1789: As a Security Server administrator I want to have a static reminder about the change from local.conf to local.properties
 - XRDDEV-1811: XRDSD-205: Improvements to the metadata protocol for REST services
 - XRDDEV-1812: Rest metaservice responds incorrectly to "allowedMethods"
+- XRDDEV-1570: Update the Security Server diagnostics view UX design and add JAVA version information
+- XRDDEV-1571: Create REST API to get JAVA version information
+- XRDDEV-1572: Update the diagnostics view to match the UX design and implement JAVA version information
+- XRDDEV-1790: archive-transfer-command documentation is missing from system parameters -doc
+- XRDDEV-1832: As a Security Server Administrator I want the confclient to be more resilient to errors so that it doesn't cause issues
+- XRDDEV-1830: Member/Client/Subsystem ordering incorrect on the Security Server frontend and API
+- XRDDEV-1843: The Security Server health check does not properly check the connection to the serverconf database
+- XRDDEV-1855: As a Security Expert I want to verify and fix the Security Server security vulnerability so that the potential vulnerability is resolved
 
 ## 6.26.0 - 2021-03-22
 - XRDDEV-1357: Fix various permission check inconsistencies in the Security Server UI frontend implementation
