@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -28,7 +29,7 @@
     <div v-if="loading" class="empty-text">{{ $t('noData.loading') }}</div>
     <div v-else-if="filtered" class="empty-text">
       <template v-if="noMatchesText">{{ noMatchesText }}</template>
-      <template v-else> {{ $t('noData.noMatches') }}</template>
+      <template v-else>{{ $t('noData.noMatches') }}</template>
     </div>
     <div v-else-if="showNoItems" class="empty-text">{{ noItemsText }}</div>
   </div>
