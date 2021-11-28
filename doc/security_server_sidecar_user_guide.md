@@ -20,7 +20,6 @@ This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 
 To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
 ## Table of Contents
-
 <!-- vim-markdown-toc GFM -->
 
 * [License](#license)
@@ -43,6 +42,8 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 * [4 Upgrading](#4-upgrading)
   * [4.1 Upgrading from version 6.26.0 to 7.0.0](#41-upgrading-from-version-6260-to-700)
 * [5 High Availability Setup](#5-high-availability-setup)
+
+<!-- vim-markdown-toc -->
 
 ## 1 Introduction
 
