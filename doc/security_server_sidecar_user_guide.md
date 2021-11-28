@@ -11,9 +11,16 @@
  06.05.2021 | 1.4     | Updated X-Road version                                          | Raul Martinez Lopez
  12.07.2021 | 1.5     | Added 6.25.0 to 6.26.0 upgrade steps                            | Raul Martinez Lopez
  15.10.2021 | 1.6     | Minor documentation updates                                     | Janne Mattila
+ 28.11.2021 | 1.7     | Add license info                                                | Petteri Kivimäki
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
 ## Table of Contents
 
+* [License](#license)
 * [1 Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
 * [2 Installation](#2-installation)

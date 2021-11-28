@@ -6,9 +6,16 @@
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  25.01.2021 | 1.0     | Initial version                                                 | Alberto Fernandez Lorenzo
  09.03.2021 | 1.1     | Add Horizontal Pod Autoscaler best practices                    | Alberto Fernandez Lorenzo
+ 28.11.2021 | 1.2     | Add license info                                                | Petteri Kivimäki
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
 ## Table of contents
 
+* [License](#license)
 * [1 Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
 * [2 Reference Data](#2-reference-data)

@@ -5,9 +5,16 @@
  Date       | Version | Description                                                     | Author
  ---------- | ------- | --------------------------------------------------------------- | --------------------
  05.02.2021 | 1.0     | Initial version                                                 | Raul Martinez Lopez
+ 28.11.2021 | 1.1     | Add license info                                                | Petteri Kivimäki
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
 ## Table of Contents
 
+* [License](#license)
 * [1 Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
   * [1.2 Environment assumptions](#12-environment-assumptions)

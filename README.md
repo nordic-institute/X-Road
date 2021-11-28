@@ -1,6 +1,13 @@
 # X-Road Security Server Sidecar
 
+[![Go to X-Road Community Slack](https://img.shields.io/badge/Go%20to%20Community%20Slack-grey.svg)](https://jointxroad.slack.com/)
+[![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/join-the-xroad-community)
+
+![X-Road logo](doc/img/xroad_logo_small.png) 
+
 X-Road Security Server Sidecar is a containerized version of the Security Server that supports production use. The Sidecar is a Docker container that runs in the same virtual context (virtual host, Kubernetes Pod, etc.) with an information system. The Sidecar can be used for both consuming and producing services.
+
+![Security Server Sidecar](doc/img/security_server_sidecar.png) 
 
 ### What is a sidecar?
 
