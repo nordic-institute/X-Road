@@ -9,12 +9,18 @@
  11.03.2021 | 1.2     | Add setup examples                                              | Alberto Fernandez Lorenzo
  15.03.2021 | 1.3     | Add IP address options                                          | Alberto Fernandez Lorenzo
  22.03.2021 | 1.4     | Add Load Balancer setup example                                 | Alberto Fernandez Lorenzo
- 16.11.2021 | 1.5     | Update documentation for sidecar 7.0                            | Jarkko Hyöty
+ 16.11.2021 | 1.5     | Update documentation for Sidecar 7.0                            | Jarkko Hyöty
+
+## License
+
+This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License.
+To view a copy of this license, visit <https://creativecommons.org/licenses/by-sa/4.0/>
 
 ## Table of Contents
 
 <!-- vim-markdown-toc GFM -->
 
+* [License](#license)
 * [1 Introduction](#1-introduction)
   * [1.1 Target Audience](#11-target-audience)
 * [2 Deployment Options](#2-deployment-options)
@@ -67,23 +73,23 @@ The document is intended for readers with at least a moderate knowledge of Linux
 
 The simplest deployment option is to use a single Pod that runs a Security Server Sidecar container with a local database running inside the container.
 
-We recommend using this deployment only for testing or developing environments since it does not allow scaling of nodes or pods.
+It's recommended to use this deployment only for testing or developing environments since it does not allow scaling of Nodes or Pods.
 
 ### 2.2 Single Pod Deployment with external database
 
 This deployment is the same as the previous deployment except that it uses an external database.
 
-You can find more information about [using an external database on the Security Server Sidecar](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#27-external-database)
+You can find more information about [using an external database on the Security Server Sidecar](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#27-external-database).
 
 ### 2.3 Multiple Pods using a Load Balancer
 
-With this deployment, you can to scale the number of Nodes and Pods that you have on your cluster.
+This option enables scaling the number of Nodes and Pods on the cluster. The option includes the following resources:
 
-* *Primary Pod*: Manages security server configuration, message log archiving, and backups. This Pod will be unique per deployment.
-* *Secondary Pods*: Process messages, synchronize configuration from the primary pod.
-* *Headless service*: This will refer to the Primary Pod and will be used so that the secondary pods can connect to the primary.
-* *Load Balancer*: Redirects traffic from external security servers to the secondary pods.
-* *External database*: PostgreSQL instance that contains the security server configuration, message log, and operational monitoring database.
+* *Primary Pod*: Manages the Security Server configuration, message log archiving, and backups. This Pod will be unique per deployment.
+* *Secondary Pods*: Process messages, synchronize configuration from the Primary Pod.
+* *Headless service*: This will refer to the Primary Pod and will be used so that the Secondary Pods can connect to the Primary.
+* *Load Balancer*: Redirects traffic from external Security Servers to the Secondary Pods.
+* *External database*: PostgreSQL instance that contains the Security Server configuration, message log, and operational monitoring database.
 
 <p align="center">
   <img src="img/ig-load_balancer_deploy.svg" />
@@ -108,7 +114,7 @@ niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>     | Image f
 
 ### 4.1 Minimum resource requirements
 
-The resource requirements depend on the messaging workload, a minimum for the slim variant is 3GiB of memory and 2 CPUs.
+The resource requirements depend on the messaging workload, a minimum for the slim variant is 3 GiB of memory and 2 CPUs.
 
 ### 4.2 Prerequisites to Installation
 
@@ -120,13 +126,13 @@ The table below lists the required connections between different components.
 
 | Connection | Source                      | Target                       | Target Ports     | Protocol     | Note                    |
 -------------|-----------------------------|------------------------------|------------------|--------------|-------------------------|
-| Inbound    | Other security servers      | Sidecar                      | 5500, 5577       | tcp          |                         |
+| Inbound    | Other Security Servers      | Sidecar                      | 5500, 5577       | tcp          |                         |
 | Inbound    | Consumer Information System | Sidecar                      | 8080, 8443       | tcp          | From "internal" network |
 | Inbound    | Admin                       | Sidecar                      | 4000             | https        | From "internal" network |
 | Outbound   | Sidecar                     | Central Server               | 80, 4001         | http(s)      |                         |
 | Outbound   | Sidecar                     | OCSP Service                 | 80 / 443 / other | http(s)      |                         |
 | Outbound   | Sidecar                     | Timestamping Service         | 80 / 443 / other | http(s)      | Not used by *slim*      |
-| Outbound   | Sidecar                     | Other security server(s)     | 5500, 5577       | tcp          |                         |
+| Outbound   | Sidecar                     | Other Security Server(s)     | 5500, 5577       | tcp          |                         |
 | Outbound   | Sidecar                     | Producer Information System  | 80, 443, other   | http(s)      | To "internal" network   |
 | Inbound    | Sidecar (secondary)         | Sidecar (primary)            | 22               | ssh          | Configuration synchronization |
 
@@ -170,7 +176,7 @@ This is an extension of the Security Server Sidecar [Reference Data](https://git
 
 #### 4.5.1 Namespaces
 
-We recommended using namespaces in a Kubernetes deployment since namespaces will allow you to organize the resources of a shared cluster better. The use of a namespace for the Security Server Sidecar resources is optional. If no namespace is created, they will be included in the "default" namespace.
+It's recommended to use namespaces in a Kubernetes deployment since namespaces will allow you to organize the resources of a shared cluster better. The use of a namespace for the Security Server Sidecar resources is optional. If no namespace is created, they will be included in the "default" namespace.
 
 Create a new namespace by running (**reference data: 3.1**):
 
@@ -180,7 +186,7 @@ kubectl create namespace <namespace name>
 
 #### 4.5.2 Single Pod deployment
 
-For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following "yaml" manifest (**reference data: 3.1, 3.2, 3.12, 1.4, 1.5, 1.6, 1.10**):
+For installing the scenario described in [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database) it is possible to use the following `yaml` manifest (**reference data: 3.1, 3.2, 3.12, 1.4, 1.5, 1.6, 1.10**):
 
 ``` yaml
 apiVersion: v1
@@ -274,14 +280,14 @@ It is recommended to configure persistent volumes for the files in the following
 For example the following configuration could be stored as a Kubernetes secret:
 
 * SSH keys for the load balancer configuration synchronization
-* Sensitive sidecar environment variables:
+* Sensitive Sidecar environment variables:
   * Software token PIN code:
-    * XROAD_TOKEN_PIN
+    * `XROAD_TOKEN_PIN`
   * Security server GUI admin user:
-    * XROAD_ADMIN_USER
-    * XROAD_ADMIN_PASSWORD
-  * Database master password (required if the sidecar initializes the database):
-    * XROAD_DB_PWD
+    * `XROAD_ADMIN_USER`
+    * `XROAD_ADMIN_PASSWORD`
+  * Database master password (required if the Sidecar initializes the database):
+    * `XROAD_DB_PWD`
 
 ##### Store keys in Secrets
 
@@ -346,7 +352,7 @@ volumes:
 [...]
 ```
 
-For consuming the Secrets for environmental variables, modify the deployment pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
+For consuming the Secrets for environmental variables, modify the deployment Pod definition in each container that needs to consume the secret. The key from the Secret becomes the environment variable name in the Pod:
 
 ``` yaml
 [...]
@@ -387,7 +393,7 @@ The X-Road proxy consumer interface can be used for checking that the server is 
 
 ##### Readiness probe
 
-Readiness probe on the security server health check interface is useful for clustered security server secondary containers.
+Readiness probe on the Security Server health check interface is useful for clustered Security Server secondary containers.
 
 ```yaml
   readinessProbe:
@@ -491,9 +497,9 @@ The manifest has two Kubernetes objects:
 * A Pod with the primary image of the Security Server Sidecar, as image tag you can choose between the "primary" or "primary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 The Pod defines two volumes: one volume to store the secret public key described in [4.5.4 Kubernetes Secrets](#454-Kubernetes-secrets), and a second volume to store the `/etc/xroad` configuration.
 
-Once the Primary Pod is deployed, you need to configure it (register in the Central Server, create the certificates) following the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#43-configuration).
+Once the Primary Pod is deployed, you need to configure it (complete initial configuration, create the certificates, register in the Central Server) following the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#43-configuration).
 
-Once the configuration is ready, verify the installation by running a Healthcheck to the Pod running the Security Server Sidecar container from the internal network and check that the result is OK:
+Once the configuration is completed, verify the installation by running a Healthcheck to the Pod running the Security Server Sidecar container from the internal network and check that the result is OK:
 
 ```bash
 curl -i <private pod ip>:5588
@@ -606,7 +612,7 @@ spec:
 
 The manifest has two Kubernetes objects:
 
-* An NLB (Network Load Balancer) Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other security servers.
+* An NLB (Network Load Balancer) Service which will be in charge of redirecting the traffic to the secondary pods. It has the required ports "5500" and "5577" for receiving messages from other Security Servers.
 * An internal Service for the consumer information systems that proxies requests to the secondary pods.
 * A Deployment for the secondary pods. As image tag, you can choose between the "secondary" or "secondary-slim" described in [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-Kubernetes).
 
@@ -624,7 +630,7 @@ The Secondary Pods will synchronize the configuration at initialization and thro
 
 #### 4.5.7 Load Balancer address options
 
-In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server secondary pods through the Load Balancer. Therefore, the address of the Load Balancer needs to be provided as the security server address when registering the security server to the X-Road instance. As the global configuration supports only one address for a security server, but a load balancer typically has multiple, a DNS name needs to be used. There are multiple ways of implementing a stable DNS name for the load balancer:
+In the described scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer) the messages will be sent to the Security Server secondary pods through the Load Balancer. Therefore, the address of the Load Balancer needs to be provided as the Security Server address when registering the Security Server to the X-Road instance. As the global configuration supports only one address for a Security Server, but a load balancer typically has multiple, a DNS name needs to be used. There are multiple ways of implementing a stable DNS name for the load balancer:
 
 * Deploy the Load Balancer Service separately and create a CNAME (or alias) DNS record for the load balancer.
 * If using the AWS Load Balancer Controller, define elastic IP addresses and separately create a DNS record (see [AWS load balancer controller annotations](https://kubernetes-sigs.github.io/aws-load-balancer-controller/v2.3/guide/service/annotations/)).
@@ -636,24 +642,24 @@ The backup system of the Security Servers described in the [User Guide](https://
 
 ## 6 Monitoring
 
-**Amazon CloudWatch** monitors your Amazon Web Services (AWS) resources and the applications you run on AWS in real time. You can use CloudWatch to collect and track metrics, which are variables you can use to measure your resources and applications. For more information about CloudWatch check the [Amazon CloudWatch documentation](https://docs.aws.amazon.com/cloudwatch/index.html).
+**Amazon CloudWatch** monitors the Amazon Web Services (AWS) resources and the applications that run on AWS in real time. CloudWatch can be used to collect and track metrics, which are variables that can be uses to measure resources and applications. For more information about CloudWatch check the [Amazon CloudWatch documentation](https://docs.aws.amazon.com/cloudwatch/index.html).
 
-**CloudWatch container insights** is a tool available for AWS EKS that you can use to collect, aggregate, and summarize metrics and logs from your containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
+**CloudWatch container insights** is a tool available for AWS EKS that can be used to collect, aggregate, and summarize metrics and logs from containerized applications and microservices. See [Setting up Container Insights on Amazon EKS and Kubernetes](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/deploy-container-insights-EKS.html) for more details.
 
-**Fluentd** is an open-source data collector that you can set up on our Kubernetes nodes to tail container log files, filter and transform the log data, and deliver it to the Elasticsearch cluster, where it will be indexed and stored. See [Fluentd documentation](https://docs.fluentd.org/container-deployment/kubernetes) for details.
+**Fluentd** is an open-source data collector that can be set up on Kubernetes nodes to tail container log files, filter and transform the log data, and deliver it to the Elasticsearch cluster, where it will be indexed and stored. See [Fluentd documentation](https://docs.fluentd.org/container-deployment/kubernetes) for details.
 
 ## 7 Version update
 
-Upgrading to a new sidecar container image is supported, provided that:
+Upgrading to a new Sidecar container image is supported, provided that:
 
-* The new container image has the the same or subsequent minor version of the X-Road security server.
+* The new container image has the the same or subsequent minor version of the X-Road Security Server.
   As an exception, upgrading from 6.26.0 to 7.0.x is supported despite the major version change.
 * A volume is used for `/etc/xroad`.
 * A external database is used (or a volume is mapped to `/var/lib/postgresql/12/data`).
 * The `xroad.properties` file with `serverconf_admin` etc. credentials is either mapped to `/etc/xroad.properties` or present in `/etc/xroad/xroad.properties`.
 * The same image type (slim or full) and variant (ee, fi, ...) are used for the new container.
 
-To update the version of the Security Server Sidecar re-deploy the pod with a newer version of the sidecar container image. In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), it is possible to do a rolling upgrade if there are no changes to the database schema. In the case of database schema changes, one needs to take the cluster off-line (scale the secondary replica set to zero), upgrade the primary, and then upgrade (and scale up) the secondaries.
+To update the version of the Security Server Sidecar, re-deploy the Pod with a newer version of the Sidecar container image. In case of the scenario [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer), it is possible to do a rolling upgrade if there are no changes to the database schema. In the case of database schema changes, one needs to take the cluster off-line (scale the secondary replica set to zero), upgrade the primary, and then upgrade (and scale up) the secondaries.
 
 ### 7.1 Upgrading from 6.26.0 to 7.0.0
 
@@ -664,17 +670,17 @@ In addition, unless `/etc/xroad.properties` is mounted as secrets file, copy it 
 kubectl exec -n <namespace> <sidecar-pod-name> -- cp /etc/xroad.properties /etc/xroad/
 ```
 
-Version 7.0.0 introduces changes to the database schemas, so a rolling upgrade in a load balancer scenario is not possible.
+**Note:** Version 7.0.0 introduces changes to the database schemas, so a rolling upgrade in a load balancer scenario is not possible.
 
 ## 8 Message log archives
 
-(Does not apply to slim containers and secondary pods)
+**Note:** Does not apply to slim containers and secondary Pods.
 
 As described in the [Security Server Sidecar User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#29-message-log-archives) it is recommended to use a persistent volume for the message log archives. Note that in the load balancer setup, only the primary node performs archiving.
 
 ## 9 Automatic scaling of the secondary pods
 
-It is possible to automatically scale the sidecar secondary pods using e.g. [Kubernetes Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/). A scaling policy should take into account that the sidecar container is relatively heavyweight, and start-up and warm-up (achieving full performance) takes some time. Overall, scaling is a complex topic and out of the scope of this guide.
+It is possible to automatically scale the Sidecar secondary Pods using e.g. [Kubernetes Horizontal Pod Autoscaler](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/). A scaling policy should take into account that the Sidecar container is relatively heavyweight, and start-up and warm-up (achieving full performance) takes some time. Overall, scaling is a complex topic and out of the scope of this guide.
 
 ## 10 Load Balancer setup example
 
