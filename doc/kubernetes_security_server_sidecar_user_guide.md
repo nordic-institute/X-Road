@@ -20,42 +20,43 @@ To view a copy of this license, visit <https://creativecommons.org/licenses/by-s
 
 <!-- vim-markdown-toc GFM -->
 
-* [License](#license)
-* [1 Introduction](#1-introduction)
-  * [1.1 Target Audience](#11-target-audience)
-* [2 Deployment Options](#2-deployment-options)
-  * [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database)
-  * [2.2 Single Pod Deployment with external database](#22-single-pod-deployment-with-external-database)
-  * [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer)
-* [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes)
-* [4 Installation](#4-installation)
-  * [4.1 Minimum resource requirements](#41-minimum-resource-requirements)
-  * [4.2 Prerequisites to Installation](#42-prerequisites-to-installation)
-  * [4.3 Network configuration](#43-network-configuration)
-  * [4.4 Reference Data](#44-reference-data)
-  * [4.5 Installation Instructions](#45-installation-instructions)
-    * [4.5.1 Namespaces](#451-namespaces)
-    * [4.5.2 Single Pod deployment](#452-single-pod-deployment)
-    * [4.5.3 Kubernetes Volumes](#453-kubernetes-volumes)
-    * [4.5.4 Kubernetes Secrets](#454-kubernetes-secrets)
-      * [Store keys in Secrets](#store-keys-in-secrets)
-      * [Secrets for environmental variables](#secrets-for-environmental-variables)
-      * [Consume secrets](#consume-secrets)
-    * [4.5.5 Kubernetes readiness, liveness and startup probes](#455-kubernetes-readiness-liveness-and-startup-probes)
-      * [Startup and liveness probe](#startup-and-liveness-probe)
-      * [Readiness probe](#readiness-probe)
-    * [4.5.6 Multiple Pods using a Load Balancer deployment](#456-multiple-pods-using-a-load-balancer-deployment)
-      * [Prerequisites](#prerequisites)
-      * [Primary Pod installation](#primary-pod-installation)
-      * [Secondary Pods installation](#secondary-pods-installation)
-    * [4.5.7 Load Balancer address options](#457-load-balancer-address-options)
-* [5 Backup and Restore](#5-backup-and-restore)
-* [6 Monitoring](#6-monitoring)
-* [7 Version update](#7-version-update)
-  * [7.1 Upgrading from 6.26.0 to 7.0.0](#71-upgrading-from-6260-to-700)
-* [8 Message log archives](#8-message-log-archives)
-* [9 Automatic scaling of the secondary pods](#9-automatic-scaling-of-the-secondary-pods)
-* [10 Load Balancer setup example](#10-load-balancer-setup-example)
+- [License](#license)
+- [Table of Contents](#table-of-contents)
+- [1 Introduction](#1-introduction)
+  - [1.1 Target Audience](#11-target-audience)
+- [2 Deployment Options](#2-deployment-options)
+  - [2.1 Single Pod Deployment with internal database](#21-single-pod-deployment-with-internal-database)
+  - [2.2 Single Pod Deployment with external database](#22-single-pod-deployment-with-external-database)
+  - [2.3 Multiple Pods using a Load Balancer](#23-multiple-pods-using-a-load-balancer)
+- [3 X-Road Security Server Sidecar images for Kubernetes](#3-x-road-security-server-sidecar-images-for-kubernetes)
+- [4 Installation](#4-installation)
+  - [4.1 Minimum resource requirements](#41-minimum-resource-requirements)
+  - [4.2 Prerequisites to Installation](#42-prerequisites-to-installation)
+  - [4.3 Network configuration](#43-network-configuration)
+  - [4.4 Reference Data](#44-reference-data)
+  - [4.5 Installation Instructions](#45-installation-instructions)
+    - [4.5.1 Namespaces](#451-namespaces)
+    - [4.5.2 Single Pod deployment](#452-single-pod-deployment)
+    - [4.5.3 Kubernetes Volumes](#453-kubernetes-volumes)
+    - [4.5.4 Kubernetes Secrets](#454-kubernetes-secrets)
+      - [Store keys in Secrets](#store-keys-in-secrets)
+      - [Secrets for environmental variables](#secrets-for-environmental-variables)
+      - [Consume secrets](#consume-secrets)
+    - [4.5.5 Kubernetes readiness, liveness and startup probes](#455-kubernetes-readiness-liveness-and-startup-probes)
+      - [Startup and liveness probe](#startup-and-liveness-probe)
+      - [Readiness probe](#readiness-probe)
+    - [4.5.6 Multiple Pods using a Load Balancer deployment](#456-multiple-pods-using-a-load-balancer-deployment)
+      - [Prerequisites](#prerequisites)
+      - [Primary Pod installation](#primary-pod-installation)
+      - [Secondary Pods installation](#secondary-pods-installation)
+    - [4.5.7 Load Balancer address options](#457-load-balancer-address-options)
+- [5 Backup and Restore](#5-backup-and-restore)
+- [6 Monitoring](#6-monitoring)
+- [7 Version update](#7-version-update)
+  - [7.1 Upgrading from 6.26.0 to 7.0.0](#71-upgrading-from-6260-to-700)
+- [8 Message log archives](#8-message-log-archives)
+- [9 Automatic scaling of the secondary pods](#9-automatic-scaling-of-the-secondary-pods)
+- [10 Load Balancer setup example](#10-load-balancer-setup-example)
 
 <!-- vim-markdown-toc -->
 
@@ -114,7 +115,7 @@ niis/xroad-security-server-sidecar:\<version>-secondary-\<variant>     | Image f
 
 ### 4.1 Minimum resource requirements
 
-The resource requirements depend on the messaging workload, a minimum for the slim variant is 3 GiB of memory and 2 CPUs.
+The resource requirements depend on the messaging workload, a minimum for the slim variant is 3 GB of memory and 2 CPUs.
 
 ### 4.2 Prerequisites to Installation
 
@@ -409,7 +410,7 @@ Readiness probe on the Security Server health check interface is useful for clus
 
 ##### Prerequisites
 
-* A Persistent Volume Claim is bounded to a Persistent Volume to store the Primary Pod configuration [4.5.3 Kubernetes Volumes](#453-Kubernetes-volumes).
+* A Persistent Volume Claim is bound to a Persistent Volume to store the Primary Pod configuration [4.5.3 Kubernetes Volumes](#453-Kubernetes-volumes).
 * A Kubernetes Secret with an SSH key pair is stored [4.5.4 Kubernetes Secrets](#454-Kubernetes-secrets).
 
 ##### Primary Pod installation
@@ -499,7 +500,7 @@ The Pod defines two volumes: one volume to store the secret public key described
 
 Once the Primary Pod is deployed, you need to configure it (complete initial configuration, create the certificates, register in the Central Server) following the [User Guide](https://github.com/nordic-institute/X-Road-Security-Server-sidecar/blob/master/doc/security_server_sidecar_user_guide.md#43-configuration).
 
-Once the configuration is completed, verify the installation by running a Healthcheck to the Pod running the Security Server Sidecar container from the internal network and check that the result is OK:
+Once the configuration is completed, verify the installation by running a healthcheck to the Pod running the Security Server Sidecar container from the internal network and check that the result is OK:
 
 ```bash
 curl -i <private pod ip>:5588
