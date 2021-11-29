@@ -30,6 +30,9 @@ import { mainTabs, RootState, StoreTypes } from '@/global';
 import { RouteConfig } from 'vue-router';
 import routes from '@/router/routes';
 import { Tab } from '@/ui-types';
+import { SessionStatus } from '@/api-types';
+import { User } from '@/openapi-types';
+import { get } from '@/util/api';
 
 export interface State {
   authenticated: boolean;
@@ -169,8 +172,7 @@ export const actions: ActionTree<State, RootState> = {
   },
 
   async [StoreTypes.actions.FETCH_USER_DATA]({ commit }) {
-    return axios
-      .get('/user')
+    return get<User>('/user')
       .then((user) => {
         commit(StoreTypes.mutations.SET_USERNAME, user?.data?.username);
         commit(StoreTypes.mutations.SET_PERMISSIONS, user?.data?.permissions);

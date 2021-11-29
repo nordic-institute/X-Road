@@ -29,3 +29,8 @@ export interface ApiKey {
   roles: string[];
   key?: string;
 }
+
+// return value of notifications/session-status
+export type SessionStatus = {
+  valid: boolean;
+};

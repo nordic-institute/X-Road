@@ -284,6 +284,8 @@ components:
       properties:
         central_server_address:
           $ref: '#/components/schemas/CentralServerAddress'
+    User:
+      $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
     Version:
       type: object
       description: version information

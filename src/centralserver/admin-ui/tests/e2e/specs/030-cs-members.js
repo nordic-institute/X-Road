@@ -44,6 +44,6 @@ module.exports = {
     await members
       .membersViewIsVisible()
       .instanceAndAddressIsVisible()
-      .waitForElementNotVisible('@nodeName', 60 * 1000) // visible only in HA configuration
+      .waitForElementNotVisible('@nodeName', 60 * 1000); // visible only in HA configuration
   },
 };

@@ -196,7 +196,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Roles, StoreTypes } from '@/global';
-import { ApiKey } from '@/global-types';
+import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
 

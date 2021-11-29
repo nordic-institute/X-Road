@@ -154,7 +154,7 @@
  */
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { ApiKey } from '@/global-types';
+import { ApiKey } from '@/api-types';
 import { RouteName, Roles } from '@/global';
 import * as api from '@/util/api';
 import { StoreTypes, Permissions } from '@/global';
