@@ -35,30 +35,11 @@ metadata:
   name: pvc-config-sidecar
   namespace: sidecar
 spec:
-  storageClassName: sidecarstorage
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
       storage: 2Gi
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: pv-efs-config-sidecar
-  labels:
-    usage: sidecar
-spec:
-  capacity:
-    storage: 2Gi
-  volumeMode: Filesystem
-  accessModes:
-  - ReadWriteMany
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: sidecarstorage
-  csi:
-    driver: efs.csi.aws.com
-    volumeHandle: <pv-efs-id>
 ---
 apiVersion: v1
 kind: Service
@@ -79,9 +60,10 @@ metadata:
   namespace: sidecar
   labels:
     run: security-server-sidecar-primary
+    role: primary
 spec:
    volumes:
-   - name: efs-config-vol
+   - name: config-volume
      persistentVolumeClaim:
        claimName: pvc-config-sidecar
    - name: secret-ssh-sidecar
@@ -91,19 +73,12 @@ spec:
        - key: public-key
          path: id_rsa.pub
          mode: 0644
-   initContainers:
-   - name: volume-hack
-     image: busybox:latest
-     command: ["sh","-c","chown  999:999 /etc/xroad"]
-     volumeMounts:
-     - name: efs-config-vol
-       mountPath: /etc/xroad
    containers:
    - name: security-server-sidecar-primary-container
      image: niis/xroad-security-server-sidecar:<version primary>
      imagePullPolicy: "Always"
      volumeMounts:
-     - name: efs-config-vol
+     - name: config-volume
        mountPath: /etc/xroad/
      - name: secret-ssh-sidecar
        mountPath: "/etc/.ssh/"
@@ -111,11 +86,7 @@ spec:
      - secretRef:
          name: secret-sidecar-variables
      ports:
-     - containerPort: 8080
-     - containerPort: 8443
      - containerPort: 4000
-     - containerPort: 5500
-     - containerPort: 5577
      - containerPort: 5588
      - containerPort: 22
 ---
@@ -125,7 +96,6 @@ metadata:
   name: balancer-security-server-sidecar
   annotations:
     service.beta.Kubernetes.io/aws-load-balancer-type: nlb
-    prometheus.io/scrape: 'true'
   labels:
     run: balancer-security-server-sidecar
   namespace: sidecar
@@ -143,18 +113,12 @@ spec:
     protocol: TCP
     name: ocsp
     name: tcp-5577
-  - port: 8080
-    targetPort: 8080
-    protocol: TCP
-    name: tcp-8080
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: security-server-sidecar-secondary
   namespace: sidecar
-  annotations:
-    prometheus.io/scrape: 'true'
 spec:
   selector:
     matchLabels:
@@ -180,7 +144,7 @@ spec:
       containers:
       - name: secondary-sidecar-balancer-container
         image: niis/xroad-security-server-sidecar:<version secondary>
-        imagePullPolicy: "Never"
+        imagePullPolicy: "Always"
         volumeMounts:
         - name: secret-ssh-sidecar
           mountPath: "/etc/.ssh/"
@@ -206,18 +170,24 @@ spec:
               name: secret-sidecar-variables
               key: XROAD_LOG_LEVEL
         - name: XROAD_PRIMARY_DNS
-          value: "service-security-server-sidecar-primary.sidecar.svc.cluster.local"
+          value: "service-security-server-sidecar-primary"
+        startupProbe:
+          httpGet:
+            path: /
+            port: 8080
+          periodSeconds: 10
+          failureThreshold: 30
         readinessProbe:
           httpGet:
             path: /
             port: 5588
-          initialDelaySeconds: 200
           periodSeconds: 10
+          timeoutSeconds: 6
           successThreshold: 1
           failureThreshold: 1
         ports:
-        - containerPort: 8080
+        - containerPort: 4000
+        - containerPort: 8443
         - containerPort: 5500
         - containerPort: 5577
         - containerPort: 5588
-        - containerPort: 22
