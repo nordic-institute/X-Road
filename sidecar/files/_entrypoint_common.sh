@@ -56,6 +56,9 @@ fi
 
 log "Starting X-Road Security Server version $INSTALLED_VERSION"
 
+mkdir -p -m 1750 /var/tmp/xroad
+chown xroad:xroad /etc/xroad /var/lib/xroad /var/tmp/xroad
+
 if [[ -n "$XROAD_ADMIN_USER" ]] && ! getent passwd "$XROAD_ADMIN_USER" &>/dev/null; then
   # Configure admin user with user-supplied username and password
   log "Creating admin user with user-supplied credentials"

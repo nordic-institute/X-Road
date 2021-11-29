@@ -6,8 +6,8 @@ log "$(ssh-keygen -A)"
 
 # ensure that rsync can read /etc/xroad
 shopt -s extglob
-chown -R xroad:xroad /etc/xroad/!(xroad.properties)
-chmod -R g+rX,o= /etc/xroad/!(xroad.properties)
+chown -R xroad:xroad /etc/xroad/!(xroad.properties|gpghome)
+chmod -R g+rX,o= /etc/xroad/!(xroad.properties|gpghome)
 shopt -u extglob
 
 if [ -f /etc/.ssh/id_rsa.pub ]; then
