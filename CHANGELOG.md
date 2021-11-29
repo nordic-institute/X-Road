@@ -1,5 +1,7 @@
 # Change Log
 
+## 7.1.0 - UNRELEASED
+
 ## 7.0.0 - 2021-11-26
 - XRDDEV-1375: HSM token certificates do not show Deleted status
 - XRDDEV-1461: Permissions handling has inconsistencies when it comes to non-sign-non-auth keys
