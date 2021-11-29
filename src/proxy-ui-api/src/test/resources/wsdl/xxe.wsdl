@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [<!ENTITY data SYSTEM "file:src/test/resources/wsdl/invalid.wsdl">]>
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  &data;
+</wsdl:definitions>

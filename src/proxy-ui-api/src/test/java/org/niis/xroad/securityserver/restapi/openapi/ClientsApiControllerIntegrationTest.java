@@ -41,6 +41,8 @@ import org.mockito.stubbing.Answer;
 import org.niis.xroad.restapi.exceptions.DeviationCodes;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.openapi.model.AccessRight;
 import org.niis.xroad.securityserver.restapi.openapi.model.AccessRights;
 import org.niis.xroad.securityserver.restapi.openapi.model.CertificateDetails;
@@ -103,6 +105,11 @@ import static org.niis.xroad.securityserver.restapi.util.TestUtils.assertLocatio
  * Test ClientsApiController
  */
 public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTestContext {
+    @Autowired
+    ClientSortingComparator clientSortingComparator;
+    @Autowired
+    ServiceClientSortingComparator serviceClientSortingComparator;
+
     private static final SecurityServerId OWNER_SERVER_ID = SecurityServerId.create(TestUtils.getM1Ss1ClientId(),
             "owner");
     private List<GlobalGroupInfo> globalGroupInfos = new ArrayList<>(Arrays.asList(
@@ -165,6 +172,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 clientsApiController.findClients(null, null, null, null, null, true, false, null, false);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(11, response.getBody().size());
+        // Test sorting order
+        assertEquals(true, TestUtils.isSortOrderCorrect(response.getBody(), clientSortingComparator));
     }
 
     @Test
@@ -881,6 +890,8 @@ public class ClientsApiControllerIntegrationTest extends AbstractApiControllerTe
                 null, null, null, null, null);
         Set<ServiceClient> serviceClients = serviceClientResponse.getBody();
         assertEquals(10, serviceClients.size());
+        // Test sorting order
+        assertEquals(true, TestUtils.isSortOrderCorrect(serviceClients, serviceClientSortingComparator));
     }
 
     @Test
