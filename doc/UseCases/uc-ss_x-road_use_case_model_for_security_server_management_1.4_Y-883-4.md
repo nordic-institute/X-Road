@@ -2819,7 +2819,7 @@ for authentication when executing REST API calls to update server configuration.
     - 3.3 Actual API key with name `key`
     - Example:
 
-```
+```json
 {
   "roles": [
     "XROAD_REGISTRATION_OFFICER",
