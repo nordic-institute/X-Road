@@ -184,7 +184,7 @@ module.exports = {
         .verifySubjectListRow('security-server-owners')
         .verifySubjectListRow('TestClient')
         .verifySubjectListRow('TestService')
-        .verifySubjectListRow( 'Management');
+        .verifySubjectListRow('Management');
       // Filter subjects in Add Subjects dialog
       addSubjectMemberStepPage
         .setFilter('TestSe')

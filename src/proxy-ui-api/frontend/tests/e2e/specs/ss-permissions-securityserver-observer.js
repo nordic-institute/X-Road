@@ -25,12 +25,23 @@
  */
 
 // Tabs
-let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab;
+let mainPage,
+  diagnosticsTab,
+  clientsTab,
+  keysTab,
+  backupAndRestoreTab,
+  settingsTab;
 
 // Other
-let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton, createAPIKeyButton, localGroupPopup,
-  clientLocalGroups, globalConfiguration;
-
+let clientInfo,
+  searchField,
+  tokenName,
+  generateKeyButton,
+  anchorDownloadButton,
+  createAPIKeyButton,
+  localGroupPopup,
+  clientLocalGroups,
+  globalConfiguration;
 
 module.exports = {
   tags: ['ss', 'xroad-securityserver-observer', 'permissions'],
@@ -57,7 +68,10 @@ module.exports = {
       mainPage.section.diagnosticsTab.elements.globalConfiguration;
 
     // Test starts here...
-    browser.LoginCommand(browser.globals.login_securityserver_observer, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_securityserver_observer,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
@@ -125,7 +139,9 @@ module.exports = {
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling
     //  for 'clientLocalGroups', figure out why
-    browser.click('//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]')
+    browser.click(
+      '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
+    );
     browser.waitForElementVisible(clientLocalGroups);
 
     // Security server observer should not see add local groups button
@@ -151,6 +167,5 @@ module.exports = {
     browser.waitForElementNotPresent(
       localGroupPopup.elements.localGroupDeleteButton,
     );
-  }
-}
-
+  },
+};

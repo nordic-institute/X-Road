@@ -89,5 +89,4 @@ module.exports = {
     systemParametersTab.click('@timestampingDeleteDialogCancelButton');
     systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN');
   },
-
 };

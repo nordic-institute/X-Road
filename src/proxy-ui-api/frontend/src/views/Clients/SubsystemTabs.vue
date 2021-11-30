@@ -132,15 +132,5 @@ export default Vue.extend({
       return this.$store.getters.getAllowedTabs(allTabs);
     },
   },
-  created() {
-    this.fetchClient(this.id);
-  },
-  methods: {
-    fetchClient(id: string): void {
-      this.$store.dispatch('fetchClient', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
-  },
 });
 </script>

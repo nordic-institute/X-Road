@@ -40,6 +40,9 @@ import SubViewTitle from './components/SubViewTitle.vue';
 import XrdSearch from './components/XrdSearch.vue';
 import XrdTable from './components/XrdTable.vue';
 import XrdSubViewContainer from './components/XrdSubViewContainer.vue';
+import EmptyPlaceholder from './components/EmptyPlaceholder.vue';
+import EmptyPlaceholderRow from './components/EmptyPlaceholderRow.vue';
+
 // Import vee-validate so it's configured on the library build
 import './plugins/vee-validate';
 import './i18n';
@@ -61,6 +64,8 @@ const SharedComponents = {
     Vue.component('XrdSearch', XrdSearch);
     Vue.component('XrdTable', XrdTable);
     Vue.component('XrdSubViewContainer', XrdSubViewContainer);
+    Vue.component('XrdEmptyPlaceholder', EmptyPlaceholder);
+    Vue.component('XrdEmptyPlaceholderRow', EmptyPlaceholderRow);
   },
 };
 

@@ -44,4 +44,4 @@ module.exports = class LoginCommand {
     // disable transitions and turn on e2eTestingMode
     this.api.makeTestable();
   }
-}
+};

@@ -39,7 +39,10 @@ module.exports = {
     backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
 
     // Actual test starts here...
-    browser.LoginCommand(browser.globals.login_system_administrator, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_system_administrator,
+      browser.globals.login_pwd,
+    );
   },
 
   after: function (browser) {
@@ -67,7 +70,9 @@ module.exports = {
     mainPage.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
-    browser.waitForElementVisible(backupAndRestoreTab.elements.anchorDownloadButton);
+    browser.waitForElementVisible(
+      backupAndRestoreTab.elements.anchorDownloadButton,
+    );
     settingsTab.openBackupAndRestore();
     browser.waitForElementVisible(backupAndRestoreTab.elements.backupButton);
   },

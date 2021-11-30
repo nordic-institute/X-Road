@@ -135,26 +135,22 @@ const confirmationDialog = {
 
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
-  selector:
-    '//div[@data-test="settings-tab-view"]',
+  selector: '//div[@data-test="settings-tab-view"]',
   locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
     systemParametersTab: {
-      selector:
-        '//a[@data-test="system-parameters-tab-button"]',
+      selector: '//a[@data-test="system-parameters-tab-button"]',
       locateStrategy: 'xpath',
     },
     backupAndRestoreTab: {
-      selector:
-        '//a[@data-test="backupandrestore-tab-button"]',
+      selector: '//a[@data-test="backupandrestore-tab-button"]',
       locateStrategy: 'xpath',
     },
   },
   sections: {
     systemParametersTab: {
-      selector:
-        '//div[@data-test="system-parameters-tab-view"]',
+      selector: '//div[@data-test="system-parameters-tab-view"]',
       locateStrategy: 'xpath',
       commands: systemParametersTabCommands,
       elements: {
@@ -183,8 +179,7 @@ const settingsTab = {
           locateStrategy: 'xpath',
         },
         timestampingDeleteDialogCancelButton: {
-          selector:
-            '//button[@data-test="dialog-cancel-button"]',
+          selector: '//button[@data-test="dialog-cancel-button"]',
           locateStrategy: 'xpath',
         },
         timestampingDeleteDialogSaveButton: {
@@ -202,8 +197,7 @@ const settingsTab = {
           locateStrategy: 'xpath',
         },
         timestampingAddDialogServiceSelection: {
-          selector:
-            '//input[@value="X-Road Test TSA CN"]/../../label',
+          selector: '//input[@value="X-Road Test TSA CN"]/../../label',
           locateStrategy: 'xpath',
         },
         timestampingTableFirstCell: {

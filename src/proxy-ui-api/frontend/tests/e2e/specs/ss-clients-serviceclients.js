@@ -327,7 +327,7 @@ module.exports = {
       browser.waitForElementVisible(
         serviceClientsPage.section.serviceClientsTab,
       );
-      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      browser.waitForElementVisible('//*[contains(text(),"TestOrg")]');
 
       // Remove WSDL service description
       clientInfo.openServicesTab();
@@ -413,7 +413,7 @@ module.exports = {
       browser.waitForElementVisible(
         serviceClientsPage.section.serviceClientsTab,
       );
-      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      browser.waitForElementVisible('//*[contains(text(),"TestOrg")]');
 
       // Add endpoint for the rest service
       clientInfo.openServicesTab();
@@ -438,7 +438,7 @@ module.exports = {
       browser.waitForElementVisible(
         serviceClientsPage.section.serviceClientsTab,
       );
-      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      browser.waitForElementVisible('//*[contains(text(),"TestOrg")]');
 
       // Add access right for the endpoint
       clientInfo.openServicesTab();
@@ -466,7 +466,7 @@ module.exports = {
       browser.waitForElementVisible(
         serviceClientsPage.section.serviceClientsTab,
       );
-      browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
+      browser.waitForElementVisible('//*[contains(text(),"TestOrg")]');
 
       // Remove service level access rights from the REST service
       clientInfo.openServicesTab();
@@ -492,7 +492,7 @@ module.exports = {
         serviceClientsPage.section.serviceClientsTab,
       );
       browser.expect
-        .elements('//tr[@data-test="open-access-rights"]')
+        .elements('//*[@data-test="open-access-rights"]')
         .count.to.equal(0);
 
       // Remove REST service description
@@ -570,26 +570,26 @@ module.exports = {
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-    browser.waitForElementVisible('//tr[td[contains(text(),"TestOrg")]]');
-    browser.waitForElementVisible('//tr[td[contains(text(),"TestGov")]]');
-    browser.waitForElementVisible('//tr[td[contains(text(),"Group1")]]');
-    browser.waitForElementVisible('//tr[td[contains(text(),"Group3")]]');
+    browser.waitForElementVisible('//*[contains(text(),"TestOrg")]');
+    browser.waitForElementVisible('//*[contains(text(),"TestGov")]');
+    browser.waitForElementVisible('//*[contains(text(),"Group1")]');
+    browser.waitForElementVisible('//*[contains(text(),"Group3")]');
 
     // Verify filtering works
     browser.expect
-      .elements('//tr[@data-test="open-access-rights"]')
+      .elements('//*[@data-test="open-access-rights"]')
       .count.to.equal(4);
     serviceClientsPage.enterServiceClientSearchWord('Test');
     browser.expect
-      .elements('//tr[@data-test="open-access-rights"]')
+      .elements('//*[@data-test="open-access-rights"]')
       .count.to.equal(2);
     serviceClientsPage.enterServiceClientSearchWord('group');
     browser.expect
-      .elements('//tr[@data-test="open-access-rights"]')
+      .elements('//*[@data-test="open-access-rights"]')
       .count.to.equal(2);
     serviceClientsPage.enterServiceClientSearchWord('management');
     browser.expect.element(
-      '//tr[@data-test="open-access-rights"]//td[contains(text(), "TestOrg")]',
+      '//*[@data-test="open-access-rights"]//*[contains(text(), "TestOrg")]',
     ).to.be.visible;
 
     // Remove REST service description

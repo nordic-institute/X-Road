@@ -82,12 +82,19 @@
               <tbody
                 data-test="system-parameters-configuration-anchor-table-body"
               >
-                <tr>
+                <tr v-if="configuratonAnchor">
                   <td>{{ configuratonAnchor.hash | colonize }}</td>
                   <td class="pr-4">
                     {{ configuratonAnchor.created_at | formatDateTime }}
                   </td>
                 </tr>
+
+                <XrdEmptyPlaceholderRow
+                  :colspan="2"
+                  :loading="loadingAnchor"
+                  :data="configuratonAnchor"
+                  :no-items-text="$t('noData.noTimestampingServices')"
+                />
               </tbody>
             </table>
           </v-col>
@@ -145,6 +152,13 @@
                   :key="timestampingService.url"
                   :timestamping-service="timestampingService"
                   @deleted="fetchConfiguredTimestampingServiced"
+                />
+
+                <XrdEmptyPlaceholderRow
+                  :colspan="3"
+                  :loading="loadingTimestampingservices"
+                  :data="configuredTimestampingServices"
+                  :no-items-text="$t('noData.noTimestampingServices')"
                 />
               </tbody>
             </table>
@@ -229,6 +243,13 @@
                   </td>
                   <td class="pr-4">{{ approvedCA.not_after | formatDate }}</td>
                 </tr>
+
+                <XrdEmptyPlaceholderRow
+                  :colspan="4"
+                  :loading="loadingCAs"
+                  :data="orderedCertificateAuthorities"
+                  :no-items-text="$t('noData.noCertificateAuthorities')"
+                />
               </tbody>
             </table>
           </v-col>
@@ -260,11 +281,14 @@ export default Vue.extend({
   },
   data() {
     return {
-      configuratonAnchor: {} as Anchor,
+      configuratonAnchor: undefined as Anchor | unknown,
       downloadingAnchor: false,
       configuredTimestampingServices: [] as TimestampingService[],
       certificateAuthorities: [] as CertificateAuthority[],
       permissions: Permissions,
+      loadingTimestampingservices: false,
+      loadingAnchor: false,
+      loadingCAs: false,
     };
   },
   computed: {
@@ -294,24 +318,30 @@ export default Vue.extend({
       return this.$store.getters.hasPermission(permission);
     },
     async fetchConfigurationAnchor() {
+      this.loadingAnchor = true;
       return api
         .get<Anchor>('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => (this.loadingAnchor = false));
     },
     async fetchConfiguredTimestampingServiced() {
+      this.loadingTimestampingservices = true;
       return api
         .get<TimestampingService[]>('/system/timestamping-services')
         .then((resp) => (this.configuredTimestampingServices = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => (this.loadingTimestampingservices = false));
     },
     async fetchApprovedCertificateAuthorities() {
+      this.loadingCAs = true;
       return api
         .get<CertificateAuthority[]>(
           '/certificate-authorities?include_intermediate_cas=true',
         )
         .then((resp) => (this.certificateAuthorities = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => (this.loadingCAs = false));
     },
     downloadAnchor(): void {
       this.downloadingAnchor = true;

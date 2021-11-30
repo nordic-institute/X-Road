@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,56 +24,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import EmptyPlaceholderRow from './EmptyPlaceholderRow.vue';
 
-@import "./colors";
+export default {
+  title: 'X-Road/EmptyPlaceholderRow',
+  component: EmptyPlaceholderRow,
+  argTypes: {
+    data: { control: 'object' },
+    noItemsText: { control: 'text' },
+    noMatchesText: { control: 'text' },
+    loading: { control: 'boolean' },
+    filtered: { control: 'boolean' },
+    colspan: { control: 'number' },
+  },
+};
 
-.xrd-table {
-  width: 100%;
-  margin-top: 10px;
-  border-collapse: collapse;
+const Template = (args, { argTypes }) => ({
+  props: Object.keys(argTypes),
+  components: { EmptyPlaceholderRow },
+  template: `<div style="background-color: gray; width: 100%; height: 100%; padding: 20px;">
+  <table style="border: 1px solid black;">
+  <tr style="border: 1px solid black;">
+  <th style="border: 1px solid black;">one</th>
+  <th style="border: 1px solid black;">two</th>
+  <th style="border: 1px solid black;">three</th>
+  <th style="border: 1px solid black;">four</th>
+  <th></th>
+</tr>
+  <empty-placeholder-row v-bind="$props" />
+  </table>
+  </div>`,
+});
 
-  td {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-  }
-  th {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-    text-align: left;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: $XRoad-WarmGrey100;
-  }
-}
-
-.xrd-table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
-}
-
-// v7 Some of the subviews use this for "dialog" look
-.xrd-main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-  font-size: $XRoad-DefaultFontSize;
-}
-
-// v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
-.xrd-footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  border-radius: 0 0 4px 4px;
-  padding: 16px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
+export const Primary = Template.bind({});
+Primary.args = {
+  data: [],
+  noItemsText: 'no items',
+  noMatchesText: 'no matches',
+  loading: false,
+  colspan: 4,
+};

@@ -24,7 +24,15 @@
  * THE SOFTWARE.
  */
 
-let mainPage, clientsTab, searchField, keysTab, diagnosticsTab, tokenName, APIKeysTab, generateKeyButton, settingsTab,
+let mainPage,
+  clientsTab,
+  searchField,
+  keysTab,
+  diagnosticsTab,
+  tokenName,
+  APIKeysTab,
+  generateKeyButton,
+  settingsTab,
   clientInfo;
 
 module.exports = {
@@ -42,7 +50,10 @@ module.exports = {
     clientInfo = mainPage.section.clientInfo;
     searchField = mainPage.section.clientsTab.elements.searchField;
 
-    browser.LoginCommand(browser.globals.login_registration_officer, browser.globals.login_pwd);
+    browser.LoginCommand(
+      browser.globals.login_registration_officer,
+      browser.globals.login_pwd,
+    );
   },
 
   'Can add clients': (browser) => {
