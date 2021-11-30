@@ -27,7 +27,10 @@
   <div class="xrd-sub-view-wrapper">
     <v-container class="xrd-view-common mt-7">
       <v-flex mb-4 class="title-action identifier-wrap">
-        <div v-if="client && client.owner" class="xrd-view-title mb-3">
+        <div v-if="clientLoading" class="xrd-view-title mb-3">
+          {{ $t('noData.loading') }}
+        </div>
+        <div v-else-if="client && client.owner" class="xrd-view-title mb-3">
           {{ client.member_name }} ({{ $t('client.owner') }})
         </div>
         <div v-else-if="client" class="xrd-view-title mb-3">
@@ -76,7 +79,7 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapGetters(['client', 'clientLoading']),
 
     showMakeOwner(): boolean {
       return (

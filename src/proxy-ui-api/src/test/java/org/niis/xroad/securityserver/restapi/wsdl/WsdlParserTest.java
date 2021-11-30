@@ -25,6 +25,7 @@
  */
 package org.niis.xroad.securityserver.restapi.wsdl;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -36,9 +37,14 @@ import static org.junit.Assert.assertEquals;
  */
 public class WsdlParserTest {
 
+    @BeforeClass
+    public static void setup() throws Exception {
+        // restrict access to external entities
+        System.setProperty("javax.xml.accessExternalDTD", "");
+    }
+
     /**
      * Test if a valid WSDL is parsed correctly.
-     *
      * @throws Exception in case of any errors
      */
     @Test
@@ -49,7 +55,6 @@ public class WsdlParserTest {
 
     /**
      * Test if an invalid WSDL is recognized.
-     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
@@ -59,7 +64,6 @@ public class WsdlParserTest {
 
     /**
      * Test if an invalid URL is recognized.
-     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlNotFoundException.class)
@@ -69,7 +73,6 @@ public class WsdlParserTest {
 
     /**
      * Test if a fault XML is recognized.
-     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlParseException.class)
@@ -79,11 +82,19 @@ public class WsdlParserTest {
 
     /**
      * Test if NotFound is recognized.
-     *
      * @throws Exception in case of any errors
      */
     @Test(expected = WsdlParser.WsdlNotFoundException.class)
     public void tryReadNotFoundWsdl() throws Exception {
         WsdlParser.parseWSDL("file:src/test/resources/wsdl/notfound.wsdl");
+    }
+
+    /**
+     * Test if a valid WSDL parsing fails due to an external entity.
+     * @throws Exception in case of any errors
+     */
+    @Test(expected = WsdlParser.WsdlParseException.class)
+    public void readValidWsdlWithExternalEntity() throws Exception {
+        WsdlParser.parseWSDL("file:src/test/resources/wsdl/xxe.wsdl");
     }
 }

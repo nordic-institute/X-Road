@@ -34,6 +34,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 
@@ -52,6 +53,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
     private LocalGroupConverter localGroupConverter;
     private ClientConverter clientConverter;
     private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
+    private ClientSortingComparator clientSortingComparator;
 
     @Before
     public void setup() {
@@ -65,7 +67,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
 
         clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
-                new CurrentSecurityServerSignCertificates(new ArrayList<>()));
+                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
         localGroupConverter = new LocalGroupConverter(clientConverter, globalConfFacade);
     }
 

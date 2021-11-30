@@ -291,8 +291,8 @@ var clientServicesCommands = {
     return this;
   },
   initServiceUrl: function (url) {
-    this.logMessage("initServiceUrl -> " + url);
-    this.assert.value('@newServiceUrl', "");
+    this.logMessage('initServiceUrl -> ' + url);
+    this.assert.value('@newServiceUrl', '');
     this.setValue('@newServiceUrl', url);
     return this;
   },
@@ -303,7 +303,7 @@ var clientServicesCommands = {
     return this;
   },
   initServiceCode: function (code) {
-    this.assert.value('@newServiceCode', "");
+    this.assert.value('@newServiceCode', '');
     this.clearValue2('@newServiceCode');
     this.setValue('@newServiceCode', code);
     return this;
@@ -339,7 +339,7 @@ var clientServicesCommands = {
     return this;
   },
   initDisableNotice: function (notice) {
-    this.assert.value('@disableNotice', "");
+    this.assert.value('@disableNotice', '');
     this.clearValue2('@disableNotice');
     this.setValue('@disableNotice', notice);
     return this;
@@ -402,13 +402,13 @@ var clientLocalGroupsCommands = {
     return this;
   },
   initCode: function (code) {
-    this.assert.value('@groupCode', "");
+    this.assert.value('@groupCode', '');
     this.clearValue2('@groupCode');
     this.setValue('@groupCode', code);
     return this;
   },
   initDescription: function (description) {
-    this.assert.value('@groupDescription', "");
+    this.assert.value('@groupDescription', '');
     this.clearValue2('@groupDescription');
     this.setValue('@groupDescription', description);
     return this;
@@ -456,7 +456,7 @@ var serviceDetailsCommands = {
     return this;
   },
   initServiceUrl: function (url) {
-    this.assert.value('@serviceURL', "");
+    this.assert.value('@serviceURL', '');
     this.setValue('@serviceURL', url);
     return this;
   },
@@ -467,7 +467,7 @@ var serviceDetailsCommands = {
     return this;
   },
   initServiceCode: function (code) {
-    this.assert.value('@serviceCode', "");
+    this.assert.value('@serviceCode', '');
     this.clearValue2('@serviceCode');
     this.setValue('@serviceCode', code);
     return this;
@@ -613,7 +613,7 @@ var restEndpointCommands = {
 var addEndpointCommands = {
   // previous value must be empty
   initPath: function (path) {
-    this.assert.valueContains('@requestPath', "");
+    this.assert.valueContains('@requestPath', '');
     this.setValue('@requestPath', path);
     return this;
   },
@@ -1136,7 +1136,8 @@ module.exports = {
       },
     },
     wsdlServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
+      selector:
+        '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1180,7 +1181,8 @@ module.exports = {
       },
     },
     restServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="rest-service-description-details-dialog"]]',
+      selector:
+        '//div[@data-test="service-description-details-dialog" and .//div[@data-test="rest-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {
@@ -1238,7 +1240,8 @@ module.exports = {
       },
     },
     openApiServiceDetails: {
-      selector: '//div[@data-test="service-description-details-dialog" and .//div[@data-test="openapi-service-description-details-dialog"]]',
+      selector:
+        '//div[@data-test="service-description-details-dialog" and .//div[@data-test="openapi-service-description-details-dialog"]]',
       locateStrategy: 'xpath',
       commands: [serviceDetailsCommands],
       elements: {

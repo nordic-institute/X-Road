@@ -31,7 +31,7 @@ module.exports = {
   before: function (browser) {
     mainPage = browser.page.ssMainPage();
     frontPage = browser.page.ssFrontPage();
-    },
+  },
 
   beforeEach: function (browser) {
     browser.LoginCommand();

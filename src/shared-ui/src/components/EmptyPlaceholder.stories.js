@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -23,56 +24,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+import EmptyPlaceholder from './EmptyPlaceholder.vue';
 
-@import "./colors";
+export default {
+  title: 'X-Road/EmptyPlaceholder',
+  component: EmptyPlaceholder,
+  argTypes: {
+    data: { control: 'object' },
+    noItemsText: { control: 'text' },
+    noMatchesText: { control: 'text' },
+    loading: { control: 'boolean' },
+    filtered: { control: 'boolean' },
+  },
+};
 
-.xrd-table {
-  width: 100%;
-  margin-top: 10px;
-  border-collapse: collapse;
+const Template = (args, { argTypes }) => ({
+  props: Object.keys(argTypes),
+  components: { EmptyPlaceholder },
+  template: `<div style="background-color: gray; width: 100%; height: 100%; padding: 20px;">
+  <empty-placeholder v-bind="$props" /></div>`,
+});
 
-  td {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-  }
-  th {
-    height: 56px;
-    border-bottom: $XRoad-WarmGrey30 solid 1px;
-    padding-left: 16px;
-    text-align: left;
-    text-transform: uppercase;
-    font-size: 12px;
-    color: $XRoad-WarmGrey100;
-  }
-}
-
-.xrd-table-toolbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: flex-end;
-  width: 100%;
-  margin-top: 40px;
-  margin-bottom: 24px;
-}
-
-// v7 Some of the subviews use this for "dialog" look
-.xrd-main-wrap {
-  background-color: white;
-  margin-top: 20px;
-  border-radius: 4px;
-  box-shadow: $XRoad-DefaultShadow;
-  font-size: $XRoad-DefaultFontSize;
-}
-
-// v7 Footer buttons / actions wrap for non-wizard subviews for "dialog" look
-.xrd-footer-buttons-wrap {
-  margin-top: 48px;
-  display: flex;
-  justify-content: flex-end;
-  border-radius: 0 0 4px 4px;
-  padding: 16px;
-  background-color: $XRoad-WarmGrey10;
-  height: 72px;
-}
+export const Primary = Template.bind({});
+Primary.args = {
+  data: ['asd', 'fsd', 'sdfs'],
+  noItemsText: 'no items',
+  noMatchesText: 'no matches',
+  filtered: false,
+  loading: false,
+};

@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,71 +25,80 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
-    <sub-tabs :tab="currentTab">
-      <v-tab
-        v-for="tab in tabs"
-        :key="tab.key"
-        :to="tab.to"
-        :data-test="tab.key"
-        exact-path
-        >{{ $t(tab.name) }}
-      </v-tab>
-    </sub-tabs>
-  </div>
+  <tr v-if="show">
+    <td :colspan="colspan">
+      <div v-if="loading" class="empty-text">{{ $t('noData.loading') }}</div>
+      <div v-else-if="showNoItems" class="empty-text">{{ noItemsText }}</div>
+    </td>
+  </tr>
 </template>
 
 <script lang="ts">
+/** Component to show empty states in html tables. Contains one row.  */
+
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
-import { Tab } from '@/ui-types';
-import SubTabs from '@/components/layout/SubTabs.vue';
 
 export default Vue.extend({
-  components: {
-    SubTabs,
+  props: {
+    // Text shown when there are no items at all
+    noItemsText: {
+      type: String,
+      required: true,
+    },
+    // Dialog visible / hidden
+    noMatchesText: {
+      type: String,
+      default: '-',
+    },
+    data: {
+      type: [Array, Object],
+      required: false,
+      default: undefined,
+    },
+    loading: {
+      type: Boolean,
+      default: false,
+    },
+    colspan: {
+      type: Number,
+      required: true,
+    },
   },
-  data: () => ({
-    currentTab: undefined as undefined | Tab,
-    showHelp: false,
-  }),
-
   computed: {
-    tabs(): Tab[] {
-      const allTabs: Tab[] = [
-        {
-          key: 'sign-and-auth-keys-tab-button',
-          name: 'tab.keys.signAndAuthKeys',
-          to: {
-            name: RouteName.SignAndAuthKeys,
-          },
-          permissions: [Permissions.VIEW_KEYS],
-        },
-        {
-          key: 'api-key-tab-button',
-          name: 'tab.keys.apiKey',
-          to: {
-            name: RouteName.ApiKey,
-          },
-          permissions: [
-            Permissions.CREATE_API_KEY,
-            Permissions.VIEW_API_KEYS,
-            Permissions.UPDATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
-        },
-        {
-          key: 'ss-tls-certificate-tab-button',
-          name: 'tab.keys.ssTlsCertificate',
-          to: {
-            name: RouteName.SSTlsCertificate,
-          },
-          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
-        },
-      ];
+    show(): boolean {
+      if (this.loading) {
+        return true;
+      }
+      return this.showNoItems;
+    },
 
-      return this.$store.getters.getAllowedTabs(allTabs);
+    showNoItems(): boolean {
+      if (this.data) {
+        if (Array.isArray(this.data) && this.data.length === 0) {
+          // Empty array
+          return true;
+        }
+        // Object
+        return false;
+      }
+      return true;
     },
   },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '../assets/colors';
+
+.empty-text {
+  height: 112px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-left: -16px; /* Removes the default left padding that comes from the thead style */
+}
+
+td {
+  border-bottom: $XRoad-WarmGrey30 solid 1px;
+}
+</style>

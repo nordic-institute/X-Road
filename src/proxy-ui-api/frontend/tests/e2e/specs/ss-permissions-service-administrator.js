@@ -56,22 +56,18 @@ module.exports = {
     browser.end();
   },
   'Can not see Keys-tab': (browser) => {
-
     browser.waitForElementNotPresent(keysTab);
   },
 
   'Can not see diagnostics-tab': (browser) => {
-
     browser.waitForElementNotPresent(diagnosticsTab);
   },
 
   'Can not see Settings-tab': (browser) => {
-
     browser.waitForElementNotPresent(settingsTab);
   },
 
   'Can see functions under Clients-tab': (browser) => {
-
     mainPage.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
@@ -107,8 +103,9 @@ module.exports = {
       );
   },
 
-  'Should see local groups list, group members and see edit buttons': (browser) => {
-
+  'Should see local groups list, group members and see edit buttons': (
+    browser,
+  ) => {
     // Service administrator should see local groups list
     mainPage.openClientsTab();
     clientsTab.openClient('TestService');

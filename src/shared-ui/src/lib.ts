@@ -40,6 +40,9 @@ import SubViewTitle from './components/SubViewTitle.vue';
 import XrdSearch from './components/XrdSearch.vue';
 import XrdTable from './components/XrdTable.vue';
 import XrdSubViewContainer from './components/XrdSubViewContainer.vue';
+import EmptyPlaceholder from './components/EmptyPlaceholder.vue';
+import EmptyPlaceholderRow from './components/EmptyPlaceholderRow.vue';
+
 // Icons
 import IconBase from './components/icons/IconBase.vue';
 import XrdIconAdd from './components/icons/XrdIconAdd.vue';
@@ -135,6 +138,8 @@ const SharedComponents = {
     Vue.component('XrdIconUpload', XrdIconUpload);
     Vue.component('XrdIconWarning', XrdIconWarning);
     Vue.component('XrdSubViewContainer', XrdSubViewContainer);
+    Vue.component('XrdEmptyPlaceholder', EmptyPlaceholder);
+    Vue.component('XrdEmptyPlaceholderRow', EmptyPlaceholderRow);
   },
 };
 

@@ -63,6 +63,16 @@
           </tr>
         </tbody>
       </template>
+      <template v-if="backups && backups.length === 0">
+        <tbody>
+          <XrdEmptyPlaceholderRow
+            :colspan="2"
+            :data="backups"
+            :loading="loading"
+            :no-items-text="$t('noData.noBackups')"
+          />
+        </tbody>
+      </template>
     </table>
   </v-card>
 </template>
@@ -91,6 +101,10 @@ export default Vue.extend({
     canBackup: {
       type: Boolean,
       default: false,
+      required: true,
+    },
+    loading: {
+      type: Boolean,
       required: true,
     },
     backups: {

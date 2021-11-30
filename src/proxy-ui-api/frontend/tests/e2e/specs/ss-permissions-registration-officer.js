@@ -24,7 +24,15 @@
  * THE SOFTWARE.
  */
 
-let mainPage, clientsTab, searchField, keysTab, diagnosticsTab, tokenName, APIKeysTab, generateKeyButton, settingsTab,
+let mainPage,
+  clientsTab,
+  searchField,
+  keysTab,
+  diagnosticsTab,
+  tokenName,
+  APIKeysTab,
+  generateKeyButton,
+  settingsTab,
   clientInfo;
 
 module.exports = {

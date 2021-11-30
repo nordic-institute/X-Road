@@ -26,7 +26,7 @@
 <template>
   <div>
     <v-card flat>
-      <table v-if="client" class="xrd-table detail-table">
+      <table v-if="client && !clientLoading" class="xrd-table detail-table">
         <tr>
           <td>{{ $t('client.memberName') }}</td>
           <td class="identifier-wrap">{{ client.member_name }}</td>
@@ -44,6 +44,12 @@
           <td class="identifier-wrap">{{ client.subsystem_code }}</td>
         </tr>
       </table>
+
+      <XrdEmptyPlaceholder
+        :loading="clientLoading"
+        :data="client"
+        :no-items-text="$t('noData.noClientData')"
+      />
     </v-card>
 
     <v-card flat>
@@ -54,7 +60,13 @@
           <th>{{ $t('cert.state') }}</th>
           <th>{{ $t('cert.expires') }}</th>
         </tr>
-        <template v-if="signCertificates && signCertificates.length > 0">
+        <template
+          v-if="
+            signCertificates &&
+            signCertificates.length > 0 &&
+            !certificatesLoading
+          "
+        >
           <tr
             v-for="certificate in signCertificates"
             :key="certificate.certificate_details.hash"
@@ -72,6 +84,12 @@
             </td>
           </tr>
         </template>
+        <XrdEmptyPlaceholderRow
+          :colspan="5"
+          :loading="certificatesLoading"
+          :data="signCertificates"
+          :no-items-text="$t('noData.noCertificates')"
+        />
       </table>
     </v-card>
   </div>
@@ -90,8 +108,13 @@ export default Vue.extend({
       required: true,
     },
   },
+  data() {
+    return {
+      certificatesLoading: false,
+    };
+  },
   computed: {
-    ...mapGetters(['client', 'signCertificates']),
+    ...mapGetters(['client', 'signCertificates', 'clientLoading']),
   },
   created() {
     this.fetchSignCertificates(this.id);
@@ -106,15 +129,14 @@ export default Vue.extend({
         },
       });
     },
-    fetchClient(id: string) {
-      this.$store.dispatch('fetchClient', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
-    },
     fetchSignCertificates(id: string) {
-      this.$store.dispatch('fetchSignCertificates', id).catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
+      this.certificatesLoading = true;
+      this.$store
+        .dispatch('fetchSignCertificates', id)
+        .catch((error) => {
+          this.$store.dispatch('showError', error);
+        })
+        .finally(() => (this.certificatesLoading = false));
     },
   },
 });

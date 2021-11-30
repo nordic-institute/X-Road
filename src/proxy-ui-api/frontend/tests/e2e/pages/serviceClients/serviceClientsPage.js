@@ -37,7 +37,7 @@ const commands = [
     },
     openServiceClient: function (clientName) {
       this.api.click(
-        '//table[contains(@class, "service-clients-table")]//tr[@data-test="open-access-rights"]//td[contains(text(), "' +
+        '//*[@data-test="open-access-rights"][contains(text(), "' +
           clientName +
           '")]',
       );

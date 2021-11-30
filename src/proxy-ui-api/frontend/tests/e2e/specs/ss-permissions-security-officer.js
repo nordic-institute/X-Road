@@ -25,7 +25,13 @@
  */
 
 // Tabs
-let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab, APIKeysTab;
+let mainPage,
+  diagnosticsTab,
+  clientsTab,
+  keysTab,
+  backupAndRestoreTab,
+  settingsTab,
+  APIKeysTab;
 
 // Other
 let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton;

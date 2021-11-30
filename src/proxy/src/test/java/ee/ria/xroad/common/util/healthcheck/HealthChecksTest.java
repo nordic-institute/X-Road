@@ -192,6 +192,7 @@ public class HealthChecksTest {
 
         // prepare
         ServerConfProvider mockProvider = mock(ServerConfProvider.class);
+        when(mockProvider.isAvailable()).thenReturn(true);
         when(mockProvider.getIdentifier()).thenReturn(
                 SecurityServerId.create("XE", "member", "code", "servercode"));
 
@@ -219,8 +220,7 @@ public class HealthChecksTest {
 
         // verify
         assertTrue("health check result should be a failure", !checkedResult.isOk());
-        assertThat(checkedResult.getErrorMessage(),
-                containsString("Server Conf database did not respond as expected"));
+        assertThat(checkedResult.getErrorMessage(), containsString("ServerConf is not available"));
     }
 
     @Test

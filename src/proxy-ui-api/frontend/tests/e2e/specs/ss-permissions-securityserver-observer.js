@@ -25,12 +25,23 @@
  */
 
 // Tabs
-let mainPage, diagnosticsTab, clientsTab, keysTab, backupAndRestoreTab, settingsTab;
+let mainPage,
+  diagnosticsTab,
+  clientsTab,
+  keysTab,
+  backupAndRestoreTab,
+  settingsTab;
 
 // Other
-let clientInfo, searchField, tokenName, generateKeyButton, anchorDownloadButton, createAPIKeyButton, localGroupPopup,
-  clientLocalGroups, globalConfiguration;
-
+let clientInfo,
+  searchField,
+  tokenName,
+  generateKeyButton,
+  anchorDownloadButton,
+  createAPIKeyButton,
+  localGroupPopup,
+  clientLocalGroups,
+  globalConfiguration;
 
 module.exports = {
   tags: ['ss', 'xroad-securityserver-observer', 'permissions'],
