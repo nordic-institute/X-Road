@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.65 
+Version: 2.66 
 Doc. ID: UG-SS
 
 ---
@@ -98,6 +98,7 @@ Doc. ID: UG-SS
  22.09.2021 | 2.63    | Update backup encryption instructions | Jarkko Hyöty
  05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
  24.11.2021 | 2.65    | Updated anchors to match correct sections | Raido Kaju
+ 30.11.2021 | 2.66    | Added chapter about configuring account lockouts [22](#22-configuring-account-lockout)  | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -229,7 +230,9 @@ Doc. ID: UG-SS
   * [19.5 Warning responses](#195-warning-responses)
 * [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 * [21 Adding command line arguments](#21-adding-command-line-arguments)
-
+* [22 Configuring account lockout](#22-configuring-account-lockout)
+  * [22.1 Account lockout on Ubuntu](#221-account-lockout-on-ubuntu)
+  * [22.2 Account lockout on RHEL](#222-account-lockout-on-rhel)
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
 
