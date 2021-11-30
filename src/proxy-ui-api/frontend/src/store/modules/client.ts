@@ -90,7 +90,7 @@ export const mutations: MutationTree<ClientState> = {
     state.tlsCertificates = [];
     state.signCertificates = [];
   },
-  setClientLoadStatus(state, status: boolean) {
+  setClientLoading(state, status: boolean) {
     state.clientLoading = status;
   },
 };
@@ -100,7 +100,7 @@ export const actions: ActionTree<ClientState, RootState> = {
     if (!id) {
       throw new Error('Missing client id');
     }
-    commit('setClientLoadStatus', true);
+    commit('setClientLoading', true);
     return axios
       .get(`/clients/${encodePathParameter(id)}`)
       .then((res) => {
@@ -109,7 +109,7 @@ export const actions: ActionTree<ClientState, RootState> = {
       .catch((error) => {
         throw error;
       })
-      .finally(() => commit('setClientLoadStatus', false));
+      .finally(() => commit('setClientLoading', false));
   },
   fetchSignCertificates({ commit }, id: string) {
     if (!id) {

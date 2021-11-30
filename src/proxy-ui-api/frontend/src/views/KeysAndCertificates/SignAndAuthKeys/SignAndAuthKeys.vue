@@ -42,7 +42,7 @@
     <XrdEmptyPlaceholder
       :data="filtered"
       :loading="loading"
-      :filtered="search.length > 0"
+      :filtered="search && search.length > 0"
       :no-items-text="$t('noData.noTokens')"
     />
 

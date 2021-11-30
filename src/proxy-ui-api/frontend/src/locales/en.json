@@ -726,8 +726,10 @@
     "noClientData": "No client data",
     "noCertificateAuthorities": "No certificate authorities",
     "noData": "No data",
+    "noLocalGroups": "No local groups",
     "noMatches": "No items matching criteria",
     "noServices": "No services",
+    "noServiceClients": "No service clients",
     "noTimestampingServices": "No Timestaping services",
     "noTokens": "No tokens"
   },

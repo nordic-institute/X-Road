@@ -57,6 +57,7 @@
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      :no-data-text="$t('noData.noLocalGroups')"
     >
       <template #[`item.code`]="{ item }">
         <div class="cert-name" @click="viewGroup(item)">{{ item.code }}</div>
