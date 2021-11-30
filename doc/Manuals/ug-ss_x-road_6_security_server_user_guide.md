@@ -2771,3 +2771,45 @@ XROAD_PROXY_PARAM
 XROAD_PROXY_UI_API_PARAM
 XROAD_SIGNER_CONSOLE_PARAM
 ```
+
+## 22 Configuring account lockout
+
+You may want to improve the security of your X-Road instance by configuring an account lockout policy in your X-Road Security Server Admin UI authentication. When trying to log in to the X-Road Admin UI with a locked account, the login screen will display a generic error without disclosing the reason. 
+
+X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking.  
+
+Note that the example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. For any further instructions or customizations, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
+
+### 22.1 Account lockout on Ubuntu
+
+This is an example configuration that will lock the user's account for 15 minutes (I.e. 900 seconds) after they provide a wrong password three (3) consecutive times. This configuration also affects the root account.
+
+Create a new configuration e.g. `/etc/pam.d/xroad` with the following content:
+```shell
+auth        required          pam_tally2.so deny=3 even_deny_root unlock_time=900 file=/var/lib/xroad/tallylog
+@include    common-auth    
+account     required          pam_tally2.so
+@include    common-account
+password    required          pam_deny.so    
+session     required          pam_deny.so    
+```
+
+The new configuration will take effect immediately without the need to restart anything.
+
+### 22.2 Account lockout on RHEL
+
+This is an example configuration that will lock the user's account for 15 minutes (I.e. 900 seconds) after they provide a wrong password three (3) consecutive times. This configuration also affects the root account.
+
+On RHEL systems, the `/etc/pam.d/xroad` file comes with the X-Road installation so you need to modify it. Replace the `/etc/pam.d/xroad` contents with the following:
+```shell
+#%PAM-1.0
+auth       required     pam_tally2.so deny=3 even_deny_root unlock_time=900 file=/var/lib/xroad/tallylog
+auth       required     pam_unix.so
+account    required     pam_tally2.so
+account    required     pam_unix.so
+password   required     pam_deny.so
+password   required     pam_warn.so
+session    required     pam_deny.so
+```
+
+The new configuration will take effect immediately without the need to restart anything.
