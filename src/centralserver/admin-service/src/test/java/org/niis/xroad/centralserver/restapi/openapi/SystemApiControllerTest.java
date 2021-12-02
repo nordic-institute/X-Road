@@ -80,7 +80,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"SYSTEM_STATUS"})
+    @WithMockUser(authorities = {"VIEW_VERSION"})
     public void testGetSystemStatusEndpoint() {
         ResponseEntity<SystemStatus> response = systemApiController.systemStatus();
         assertNotNull(response, "System status response must not be null.");
@@ -99,7 +99,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"SYSTEM_STATUS"})
+    @WithMockUser(authorities = {"EDIT_SECURITY_SERVER_ADDRESS"})
     public void testUpdateCentralServerAddress() throws Exception {
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                 testSWToken); // for the getInitializationStatus
@@ -125,7 +125,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"SYSTEM_STATUS"})
+    @WithMockUser(authorities = {"EDIT_SECURITY_SERVER_ADDRESS"})
     public void testUpdateCentralServerAddressInvalidParam() {
         ServerAddressUpdateBody updateBody = new ServerAddressUpdateBody();
         updateBody.setCentralServerAddress("invalid...address.c");

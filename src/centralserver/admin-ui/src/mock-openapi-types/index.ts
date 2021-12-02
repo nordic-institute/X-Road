@@ -76,5 +76,4 @@ export type { TokenPinUpdate } from './models/TokenPinUpdate';
 export type { TokensLoggedOut } from './models/TokensLoggedOut';
 export { TokenStatus } from './models/TokenStatus';
 export { TokenType } from './models/TokenType';
-export type { User } from './models/User';
 export type { VersionInfo } from './models/VersionInfo';

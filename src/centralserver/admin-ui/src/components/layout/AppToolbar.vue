@@ -48,7 +48,7 @@
         data-test="app-toolbar-server-instance-address"
       >
         {{
-          `${initializationParameters.instanceId} : ${initializationParameters.serverAddress}`
+          `${initializationParameters.instance_identifier} : ${initializationParameters.central_server_address}`
         }}
       </div>
       <div
@@ -65,6 +65,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Colors, StoreTypes } from '@/global';
+import { Store } from 'vuex';
 
 export default Vue.extend({
   name: 'Toolbar',
@@ -75,7 +76,8 @@ export default Vue.extend({
   },
   computed: {
     initializationParameters() {
-      return this.$store.getters[StoreTypes.getters.INITIALIZATION_STATUS];
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.initialization_status;
     },
     isInitialized(): boolean {
       return this.$store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED];
@@ -89,24 +91,6 @@ export default Vue.extend({
     isHighAvailabilityConfigured() {
       return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
         ?.high_availability_status.is_ha_configured;
-    },
-  },
-  methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
     },
   },
 });
@@ -126,6 +110,7 @@ export default Vue.extend({
   .initialization-phase-title {
     margin: 20px;
   }
+
   .server-name {
     margin: 20px;
     margin-right: 10px;

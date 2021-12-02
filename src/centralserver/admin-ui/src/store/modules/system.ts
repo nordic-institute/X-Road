@@ -29,9 +29,12 @@ import { RootState, StoreTypes } from '@/global';
 import {
   CentralServerAddress,
   InstanceIdentifier,
+  ServerAddressUpdateBody,
   SystemStatus,
+  TokenInitStatus,
   Version,
 } from '@/openapi-types';
+import * as api from '@/util/api';
 
 export interface State {
   serverVersion: Version | undefined;
@@ -42,13 +45,20 @@ export const getDefaultState = (): State => {
   return {
     serverVersion: undefined,
     systemStatus: {
-      initialization_status: undefined,
-      high_availability_status: undefined,
+      initialization_status: {
+        instance_identifier: '',
+        central_server_address: '',
+        software_token_init_status: TokenInitStatus.UNKNOWN,
+      },
+      high_availability_status: {
+        is_ha_configured: false,
+        node_name: undefined,
+      },
     },
   };
 };
 
-// Initial state. The state can be reseted with this.
+// Initial state. The state can be reset with this.
 const moduleState = getDefaultState();
 
 // noinspection JSUnusedLocalSymbols
@@ -82,8 +92,18 @@ export const actions: ActionTree<State, RootState> = {
       );
   },
   async [StoreTypes.actions.FETCH_SYSTEM_STATUS]({ commit }) {
-    return axios
+    return api
       .get<Version>('/system/status')
+      .then((resp) =>
+        commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
+      );
+  },
+  async [StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS](
+    { commit },
+    newAddress: ServerAddressUpdateBody,
+  ) {
+    return api
+      .put<SystemStatus>('/system/status/server-address', newAddress)
       .then((resp) =>
         commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
       );

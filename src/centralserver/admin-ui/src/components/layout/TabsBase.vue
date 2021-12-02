@@ -52,7 +52,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
+import { mainTabs, StoreTypes } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
 
@@ -68,8 +68,7 @@ export default Vue.extend({
   },
   computed: {
     allowedTabs(): Tab[] {
-      // Filter not allowed tas in store
-      return mainTabs;
+      return this.$store.getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs);
     },
   },
 });

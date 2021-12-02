@@ -183,7 +183,6 @@ export default (
             // Auth ok. Start phase 2 (fetch user data and current security server info).
             this.fetchUserData()
               .then(this.fetchServerVersion)
-              .then(this.fetchInitializationData)
               .then(this.fetchSystemStatus)
               .then(() => {
                 this.$router
@@ -236,16 +235,9 @@ export default (
         });
     },
     async fetchUserData() {
-      // do something later
       this.$refs.form.reset();
       this.loading = true;
       return this.$store.dispatch(StoreTypes.actions.FETCH_USER_DATA);
-    },
-
-    async fetchInitializationData() {
-      return this.$store.dispatch(
-        StoreTypes.actions.INITIALIZATION_STATUS_REQUEST,
-      );
     },
 
     async fetchServerVersion() {

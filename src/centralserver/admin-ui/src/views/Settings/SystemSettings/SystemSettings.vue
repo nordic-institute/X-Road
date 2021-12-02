@@ -52,7 +52,7 @@
                     </div>
                   </div>
                 </td>
-                <td>{{ systemParameters.instanceIdentifier }}</td>
+                <td>{{ instanceIdentifier }}</td>
                 <td></td>
               </tr>
               <tr>
@@ -63,9 +63,12 @@
                     </div>
                   </div>
                 </td>
-                <td>{{ systemParameters.centralServerAddress }}</td>
+                <td>{{ serverAddress }}</td>
                 <td class="action-cell">
-                  <xrd-button text :outlined="false"
+                  <xrd-button
+                    text
+                    :outlined="false"
+                    @click="onServerAddressEdit"
                     >{{ $t('action.edit') }}
                   </xrd-button>
                 </td>
@@ -85,6 +88,38 @@
           </div>
         </div>
 
+        <xrd-simple-dialog
+          v-if="isEditingServerAddress"
+          title="systemSettings.editCentralServerAddressTitle"
+          :dialog="isEditingServerAddress"
+          :scrollable="false"
+          :show-close="true"
+          save-button-text="action.save"
+          @save="onServerAddressSave(renewedServerAddress)"
+          @cancel="onCancelAddressEdit"
+        >
+          <div slot="content">
+            <div class="pt-4 dlg-input-width">
+              <ValidationProvider
+                ref="serverAddressVP"
+                v-slot="{ errors }"
+                rules="required"
+                name="serviceAddress"
+                class="validation-provider"
+              >
+                <v-text-field
+                  v-model="renewedServerAddress"
+                  :label="$t('systemSettings.centralServerAddress')"
+                  autofocus
+                  outlined
+                  class="dlg-row-input"
+                  name="serviceAddress"
+                  :error-messages="errors"
+                ></v-text-field>
+              </ValidationProvider>
+            </div>
+          </div>
+        </xrd-simple-dialog>
         <table class="xrd-table mt-0 pb-3">
           <tbody>
             <tr>
@@ -209,9 +244,9 @@
 
       <template #[`item.button`]>
         <div class="button-wrap">
-          <xrd-button text :outlined="false">{{
-            $t('action.edit')
-          }}</xrd-button>
+          <xrd-button text :outlined="false"
+            >{{ $t('action.edit') }}
+          </xrd-button>
 
           <xrd-button text :outlined="false"
             >{{ $t('action.delete') }}
@@ -230,26 +265,45 @@
 /**
  * View for 'system settings' tab
  */
-import Vue from 'vue';
+import Vue, { VueConstructor } from 'vue';
 import { DataTableHeader } from 'vuetify';
+import { ErrorInfo, InitializationStatus } from '@/openapi-types';
+import { StoreTypes } from '@/global';
+import { ValidationProvider } from 'vee-validate';
+import { AxiosError } from 'axios';
+import {
+  getErrorInfo,
+  getTranslatedFieldErrors,
+  isFieldError,
+} from '@/util/helpers';
 
-export default Vue.extend({
+export default (
+  Vue as VueConstructor<
+    Vue & {
+      $refs: {
+        serverAddressVP: InstanceType<typeof ValidationProvider>;
+      };
+    }
+  >
+).extend({
+  components: {
+    ValidationProvider,
+  },
   data() {
     return {
       search: '' as string,
       loading: false,
       showOnlyPending: false,
-      systemParameters: {
-        instanceIdentifier: 'DEV',
-        centralServerAddress: 'dev-cs.i.road.rocks',
-      },
+      isEditingServerAddress: false,
+      renewedServerAddress: '',
       managementServices: {
         serviceProviderIdentifier: 'SUBSYSTEM:DEV/ORG/111/MANAGEMENT',
         serviceProviderName: 'NIIS',
         managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
         wsdlAddress: 'http://dev-cs.i.x-road.rocks/managementservices.wsdl',
         centralServerAddress:
-          'https://dev-cs.i.x-road.rocks:4002/managementservice/manage/',
+          this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+            ?.initialization_status?.central_server_address,
         securityServerOwnerroupCode: 'security-server-owners',
       },
       memberClasses: [
@@ -290,6 +344,62 @@ export default Vue.extend({
           class: 'xrd-table-header member-classes-table-header-buttons',
         },
       ];
+    },
+
+    serverAddress(): string {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.initialization_status?.central_server_address;
+    },
+    instanceIdentifier(): string {
+      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
+        ?.initialization_status?.instance_identifier;
+    },
+  },
+  methods: {
+    async onServerAddressSave(serverAddress: string): Promise<void> {
+      try {
+        await this.$store.dispatch(
+          StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS,
+          {
+            central_server_address: serverAddress,
+          },
+        );
+        await this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
+        await this.$store.dispatch(
+          StoreTypes.actions.SHOW_SUCCESS,
+          this.$t('systemSettings.editCentralServerAddressSuccess'),
+        );
+        this.isEditingServerAddress = false;
+      } catch (updateError: unknown) {
+        const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
+        if (isFieldError(errorInfo)) {
+          // backend validation error
+          let fieldErrors = errorInfo.error?.validation_errors;
+          if (fieldErrors && this.$refs?.serverAddressVP) {
+            this.$refs.serverAddressVP.setErrors(
+              getTranslatedFieldErrors(
+                'serverAddressUpdateBody.centralServerAddress',
+                fieldErrors,
+              ),
+            );
+          }
+          this.isEditingServerAddress = true;
+        } else {
+          await this.$store.dispatch(
+            StoreTypes.actions.SHOW_ERROR,
+            updateError,
+          );
+          this.isEditingServerAddress = false;
+        }
+        return;
+      }
+    },
+    onServerAddressEdit(): void {
+      this.renewedServerAddress = this.serverAddress;
+      this.isEditingServerAddress = true;
+    },
+    onCancelAddressEdit(): void {
+      this.isEditingServerAddress = false;
     },
   },
 });

@@ -26,27 +26,35 @@
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState, StoreTypes } from '@/global';
+import { mainTabs, RootState, StoreTypes } from '@/global';
+import { RouteConfig } from 'vue-router';
+import routes from '@/router/routes';
+import { Tab } from '@/ui-types';
+import { User } from '@/openapi-types';
+import { get } from '@/util/api';
 
 export interface State {
   authenticated: boolean;
+  bannedRoutes: undefined | string[];
   isSessionAlive: boolean | undefined;
   username: string;
+  permissions: string[];
 }
 
 export const getDefaultState = (): State => {
   return {
     authenticated: false,
+    bannedRoutes: undefined,
     isSessionAlive: undefined,
     username: '',
+    permissions: [],
   };
 };
 
 // Initial state. The state can be reseted with this.
 const moduleState = getDefaultState();
 
-// noinspection JSUnusedLocalSymbols
-export const userGetters: GetterTree<State, RootState> = {
+export const getters: GetterTree<State, RootState> = {
   [StoreTypes.getters.IS_AUTHENTICATED](state) {
     return state.authenticated;
   },
@@ -57,7 +65,24 @@ export const userGetters: GetterTree<State, RootState> = {
     return state.username;
   },
   [StoreTypes.getters.HAS_PERMISSION]: (state) => (permission: string) => {
-    return true; // Mock. Until there is a real permission system.
+    return state.permissions.includes(permission);
+  },
+  [StoreTypes.getters.HAS_ANY_OF_PERMISSIONS]: (state) => (perm: string[]) => {
+    // Return true if the user has at least one of the tabs permissions
+    return perm?.some((permission) => state.permissions.includes(permission));
+  },
+  [StoreTypes.getters.GET_ALLOWED_TABS]: (state, getters) => (tabs: Tab[]) => {
+    // returns filtered array of Tab objects based on the 'permission' attribute
+    return tabs?.filter((tab: Tab) => {
+      const neededPermissions = tab.permissions;
+      return !!(
+        neededPermissions &&
+        getters[StoreTypes.getters.HAS_ANY_OF_PERMISSIONS](neededPermissions)
+      );
+    });
+  },
+  [StoreTypes.getters.FIRST_ALLOWED_TAB](state, getters) {
+    return getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs)[0];
   },
 };
 
@@ -74,6 +99,41 @@ export const mutations: MutationTree<State> = {
   [StoreTypes.mutations.SET_USERNAME]: (state, username: string) => {
     state.username = username;
   },
+  [StoreTypes.mutations.SET_PERMISSIONS]: (state, permissions: string[]) => {
+    state.permissions = permissions;
+
+    // Function for checking routes recursively
+    function getAllowed(route: RouteConfig): void {
+      if (!state.bannedRoutes) return;
+
+      // Check that the route has name and permissions
+      if (route.name && route?.meta?.permissions) {
+        // Find out routes that the user doesn't have permissions to access
+        if (
+          !route.meta.permissions.some((permission: string) =>
+            permissions.includes(permission),
+          )
+        ) {
+          // Add a banned route to the array
+          state.bannedRoutes.push(route.name);
+        }
+      }
+
+      // Check the child routes recursively
+      if (route.children) {
+        route.children.forEach((child: RouteConfig) => {
+          getAllowed(child);
+        });
+      }
+    }
+
+    // Init banned routes array
+    state.bannedRoutes = [];
+    // Go through the route permissions
+    routes.forEach((route) => {
+      getAllowed(route);
+    });
+  },
 };
 
 export const actions: ActionTree<State, RootState> = {
@@ -89,15 +149,11 @@ export const actions: ActionTree<State, RootState> = {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       data,
-    })
-      .then(() => {
-        commit(StoreTypes.mutations.AUTH_USER);
-        commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
-        dispatch(StoreTypes.actions.INITIALIZATION_STATUS_REQUEST);
-      })
-      .catch((error) => {
-        throw error;
-      });
+    }).then(() => {
+      commit(StoreTypes.mutations.AUTH_USER);
+      commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
+      dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
+    });
   },
 
   async [StoreTypes.actions.FETCH_SESSION_STATUS]({ commit }) {
@@ -115,11 +171,10 @@ export const actions: ActionTree<State, RootState> = {
   },
 
   async [StoreTypes.actions.FETCH_USER_DATA]({ commit }) {
-    return axios
-      .get('/user')
+    return get<User>('/user')
       .then((user) => {
         commit(StoreTypes.mutations.SET_USERNAME, user?.data?.username);
-        // do something
+        commit(StoreTypes.mutations.SET_PERMISSIONS, user?.data?.permissions);
       })
       .catch((error) => {
         throw error;
@@ -152,7 +207,7 @@ export const actions: ActionTree<State, RootState> = {
 export const module: Module<State, RootState> = {
   namespaced: false,
   state: moduleState,
-  getters: userGetters,
+  getters,
   actions,
   mutations,
 };

@@ -34,16 +34,12 @@ import {
 import { get, post } from '@/util/api';
 
 export interface State {
-  instanceId: InstanceIdentifier;
-  serverAddress: CentralServerAddress;
-  tokenInit: TokenInitStatus;
+  not_used: unknown;
 }
 
 export const getDefaultState = (): State => {
   return {
-    instanceId: '',
-    serverAddress: '',
-    tokenInit: TokenInitStatus.UNKNOWN,
+    not_used: undefined,
   };
 };
 
@@ -51,43 +47,22 @@ export const getDefaultState = (): State => {
 const moduleState = getDefaultState();
 
 export const getters: GetterTree<State, RootState> = {
-  [StoreTypes.getters.INITIALIZATION_STATUS](state): State {
-    return {
-      instanceId: state.instanceId,
-      serverAddress: state.serverAddress,
-      tokenInit: state.tokenInit,
-    };
-  },
-  [StoreTypes.getters.IS_SERVER_INITIALIZED](state): boolean {
+  [StoreTypes.getters.IS_SERVER_INITIALIZED](state, getters): boolean {
+    const initializationStatus: InitializationStatus =
+      getters[StoreTypes.getters.SYSTEM_STATUS]?.initialization_status;
     return (
-      0 < state?.instanceId.length &&
-      0 < state?.serverAddress.length &&
-      TokenInitStatus.INITIALIZED == state.tokenInit
+      0 < initializationStatus?.instance_identifier.length &&
+      0 < initializationStatus?.central_server_address.length &&
+      TokenInitStatus.INITIALIZED ==
+        initializationStatus?.software_token_init_status
     );
-  },
-};
-
-export const mutations: MutationTree<State> = {
-  [StoreTypes.mutations.SET_INITIALIZATION_STATUS](
-    state,
-    value: InitializationStatus,
-  ) {
-    state.tokenInit = value.software_token_init_status;
-    state.serverAddress = value.central_server_address;
-    state.instanceId = value.instance_identifier;
   },
 };
 
 export const actions: ActionTree<State, RootState> = {
   async [StoreTypes.actions.INITIALIZATION_REQUEST]({ commit }, formData) {
     return post('/initialization', formData).then(() => {
-      return commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
-    });
-  },
-
-  async [StoreTypes.actions.INITIALIZATION_STATUS_REQUEST]({ commit }) {
-    return get('/initialization/status').then((res) => {
-      commit(StoreTypes.mutations.SET_INITIALIZATION_STATUS, res?.data);
+      commit(StoreTypes.mutations.SET_CONTINUE_INIT, true);
     });
   },
 };
@@ -97,5 +72,4 @@ export const module: Module<State, RootState> = {
   state: moduleState,
   getters,
   actions,
-  mutations,
 };

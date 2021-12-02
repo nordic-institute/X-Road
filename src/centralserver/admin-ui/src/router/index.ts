@@ -34,7 +34,7 @@ const router = new Router({
   routes: routes,
 });
 
-router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
+router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
   // Going to login
   if (to.name === RouteName.Login) {
     next();
@@ -60,11 +60,26 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     } else {
       // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
       if (from.name !== RouteName.Initialisation) {
-        store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+        await store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
       }
       /*
     Check permissions here
     */
+      if (!to?.meta?.permissions) {
+        next();
+      } else if (
+        store.getters[StoreTypes.getters.HAS_ANY_OF_PERMISSIONS](
+          to.meta.permissions,
+        )
+      ) {
+        // This route is allowed
+        next();
+      } else {
+        // This route is not allowed
+        next({
+          name: RouteName.Forbidden,
+        });
+      }
       next();
     }
 
