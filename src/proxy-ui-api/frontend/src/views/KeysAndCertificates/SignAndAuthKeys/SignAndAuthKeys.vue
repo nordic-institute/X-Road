@@ -44,6 +44,7 @@
       :loading="loading"
       :filtered="search && search.length > 0"
       :no-items-text="$t('noData.noTokens')"
+      skeleton-type="table-heading"
     />
 
     <template v-if="filtered && !loading">
