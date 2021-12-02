@@ -7,8 +7,8 @@ RUN apt-get -qq update \
 && apt-get -qq autoremove \
 && apt-get -qq clean
 
-ARG NODESHASUM=eb89c02153cfa25e40170e5e9b0ab43ad55d456af8b72ad2a8c2a42b7a647432
-ARG NODEVERSION=v12.21.0
+ARG NODESHASUM=dae683f911fe5af11f1dc9d7746d80fccdb1e7b4bef31a570f5daffadd897c42
+ARG NODEVERSION=v14.18.2
 
 RUN mkdir -p /usr/local/nodejs \
   && echo "${NODESHASUM}  /tmp/node.tar.xz" >/tmp/shasum \
