@@ -139,14 +139,25 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
         from sourceSets.test.output
     }
 
+    def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+    def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
     tasks.withType(JavaExec) {
+        javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
     task buildall(dependsOn: [build]) {
-        description = "Builds all that can be built (even the slow tasks)"
+    }
+
+    tasks.withType(Exec) {
+        environment "JAVA_HOME", javaHome
     }
 
     testJar.enabled = false

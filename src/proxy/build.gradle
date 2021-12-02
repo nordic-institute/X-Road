@@ -24,10 +24,10 @@ dependencies {
 }
 
 jar {
-  manifest {
-    attributes('Main-Class':'ee.ria.xroad.proxy.ProxyMain')
-  }
-  archiveClassifier = 'plain'
+    manifest {
+        attributes('Main-Class': 'ee.ria.xroad.proxy.ProxyMain')
+    }
+    archiveClassifier = 'plain'
 }
 
 shadowJar {
@@ -40,11 +40,11 @@ shadowJar {
 testJar.enabled = true
 assemble.finalizedBy shadowJar
 
-task licenseFormatJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseFormatJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
 }
 
-task licenseTestJava(type:nl.javadude.gradle.plugins.license.License) {
+task licenseTestJava(type: nl.javadude.gradle.plugins.license.License) {
     source = fileTree('src/main/java')
     check = true
 }
@@ -99,7 +99,6 @@ task integrationTest(type: Test) {
 task runProxyTest(type: JavaExec) {
     group = "verification"
     shouldRunAfter integrationTest
-
     jvmArgs '-Xmx2g',
         '-Dxroad.proxy.ocspCachePath=build/ocsp-cache',
         '-Dxroad.tempFiles.path=build/attach-tmp',
@@ -110,7 +109,7 @@ task runProxyTest(type: JavaExec) {
         '-Dxroad.proxy.client-httpclient-so-linger=-1',
         '-Dxroad.proxy.server-connector-so-linger=-1',
         '-Dlogback.configurationFile=src/test/logback-proxytest.xml',
-        '-Dproxy.akka.loglevel=DEBUG'
+        '-Dproxy.akka.loglevel=DEBUG',
         '-Dproxy.akka.remote.artery.canonical.port=0'
 //      '-Djava.security.properties==src/main/resources/java.security'
 
