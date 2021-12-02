@@ -60,13 +60,8 @@ RUN chown -R ca:ca /home/ca/CA \
   && chmod 0754 /home/ca/CA/ca.py \
   && chmod 0754 /home/ca/CA/sign_req.sh
 
-VOLUME /var/lib/postgresql/10/main
-VOLUME /etc/xroad
-
 COPY files/cs-entrypoint.sh /root/entrypoint.sh
 COPY --chown=root:root files/cs-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-VOLUME /var/lib/postgresql/10/main
-VOLUME /etc/xroad
 EXPOSE 80 4000

@@ -48,6 +48,4 @@ COPY --chown=xroad:xroad files/override-docker.ini /etc/xroad/conf.d/
 COPY --chown=root:root files/ss-xroad.conf /etc/supervisor/conf.d/xroad.conf
 CMD ["/root/entrypoint.sh"]
 
-VOLUME /var/lib/postgresql/12/main
-VOLUME /etc/xroad
 EXPOSE 8080 8443 4000 5500 5577
