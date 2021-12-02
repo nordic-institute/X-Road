@@ -131,11 +131,15 @@ task xjc() {
 }
 
 task make(type: Exec) {
+    def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+    def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+
     inputs.dir fileTree(dir: '../passwordstore', includes: ['*.c','*.h','Makefile'])
+    inputs.dir file("${javaHome}/include")
     outputs.dir file('../lib')
 
     workingDir '../'
-    commandLine 'make'
+    commandLine 'make', 'clean', 'all'
 }
 
 task makeClean(type: Exec) {
