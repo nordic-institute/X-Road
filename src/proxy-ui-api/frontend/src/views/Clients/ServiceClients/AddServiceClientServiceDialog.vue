@@ -70,7 +70,7 @@
               </div>
             </td>
             <td>{{ accessRight.service_code }}</td>
-            <td>{{ accessRight.title }}</td>
+            <td>{{ accessRight.service_title }}</td>
           </tr>
         </tbody>
       </table>

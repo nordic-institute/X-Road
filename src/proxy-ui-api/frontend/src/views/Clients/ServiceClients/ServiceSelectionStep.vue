@@ -64,7 +64,7 @@
               </div>
             </td>
             <td class="identifier-wrap">{{ accessRight.service_code }}</td>
-            <td class="identifier-wrap">{{ accessRight.title }}</td>
+            <td class="identifier-wrap">{{ accessRight.service_title }}</td>
           </tr>
         </tbody>
       </table>
