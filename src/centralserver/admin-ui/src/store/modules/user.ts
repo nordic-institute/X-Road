@@ -30,7 +30,6 @@ import { mainTabs, RootState, StoreTypes } from '@/global';
 import { RouteConfig } from 'vue-router';
 import routes from '@/router/routes';
 import { Tab } from '@/ui-types';
-import { SessionStatus } from '@/api-types';
 import { User } from '@/openapi-types';
 import { get } from '@/util/api';
 

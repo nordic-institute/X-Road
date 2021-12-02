@@ -28,9 +28,9 @@ import { createLocalVue } from '@vue/test-utils';
 import Vuex, { Store } from 'vuex';
 import { State, module as storeConfig } from '@/store/modules/user';
 import { mainTabs, StoreTypes } from '@/global';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { cloneDeep } from 'lodash';
+
+// the locally brewed deepClone was not deep enough...
+import cloneDeep from 'lodash/cloneDeep';
 
 const testPermissions: string[] = [
   'EDIT_APPROVED_TSA',
@@ -122,7 +122,6 @@ describe('user store user.ts  -- setters & getters', () => {
     const { FIRST_ALLOWED_TAB } = StoreTypes.getters;
     const firstTab = userStore.getters[FIRST_ALLOWED_TAB];
 
-    // const firstTab = initializedFirstAllowedTabFunction(userState, getters)();
     expect(firstTab).not.toBeNull();
     expect(firstTab.name).toEqual('tab.main.members');
   });
