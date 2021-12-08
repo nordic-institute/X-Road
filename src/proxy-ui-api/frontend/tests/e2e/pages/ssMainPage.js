@@ -427,9 +427,9 @@ var clientLocalGroupsCommands = {
   },
   verifyGroupListRow: function (row, code) {
     this.api.waitForElementVisible(
-      '(//table[contains(@class, "details-certificates")]/tr)[' +
+      '(*[contains(@data-test, "local-groups-table")]//tr)[' +
         row +
-        ']//span[contains(text(),"' +
+        ']//*[contains(text(),"' +
         code +
         '")]',
     );
@@ -438,7 +438,7 @@ var clientLocalGroupsCommands = {
   openDetails: function (code) {
     this.api.click(
       this.selector +
-        '//table[contains(@class, "details-certificates")]//span[contains(text(),"' +
+        '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"' +
         code +
         '")]',
     );
@@ -850,29 +850,17 @@ module.exports = {
             },
             groupCodeCellAbb: {
               selector:
-                '//table[contains(@class, "details-certificates")]//span[contains(text(),"abb")]',
+                '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"abb")]',
               locateStrategy: 'xpath',
             },
             groupCodeCellBac: {
               selector:
-                '//table[contains(@class, "details-certificates")]//span[contains(text(),"bac")]',
+                '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"bac")]',
               locateStrategy: 'xpath',
             },
             groupCodeCellCbb: {
               selector:
-                '//table[contains(@class, "details-certificates")]//span[contains(text(),"cbb")]',
-              locateStrategy: 'xpath',
-            },
-            abbDetails: {
-              selector: '//span[contains(text(),"abb")]',
-              locateStrategy: 'xpath',
-            },
-            bacDetails: {
-              selector: '//span[contains(text(),"bac")]',
-              locateStrategy: 'xpath',
-            },
-            cbbDetails: {
-              selector: '//span[contains(text(),"cbb")]',
+                '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"cbb")]',
               locateStrategy: 'xpath',
             },
           },
