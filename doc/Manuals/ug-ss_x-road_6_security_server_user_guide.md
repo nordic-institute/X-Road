@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.66 
+Version: 2.67 
 Doc. ID: UG-SS
 
 ---
@@ -98,7 +98,8 @@ Doc. ID: UG-SS
  22.09.2021 | 2.63    | Update backup encryption instructions | Jarkko Hyöty
  05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
  24.11.2021 | 2.65    | Updated anchors to match correct sections | Raido Kaju
- 30.11.2021 | 2.66    | Added chapter about configuring account lockouts [22](#22-configuring-account-lockout)  | Caro Hautamäki
+ 30.11.2021 | 2.66    | Added chapter about configuring account lockouts [22](#22-additional-security-hardening)  | Caro Hautamäki
+ 09.12.2021 | 2.67    | Updated chapter [22](#22-additional-security-hardening) and added information about password policies  | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -230,11 +231,12 @@ Doc. ID: UG-SS
   * [19.5 Warning responses](#195-warning-responses)
 * [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 * [21 Adding command line arguments](#21-adding-command-line-arguments)
-* [22 Configuring account lockout](#22-configuring-account-lockout)
-  * [22.1 Considerations and risks](#221-considerations-and-risks)
-  * [22.2 Account lockout examples](#222-account-lockout-examples)
-    * [22.2.1 Example on Ubuntu](#2221-example-on-ubuntu)
-    * [22.2.2 Example on RHEL](#2222-example-on-rhel)
+* [22 Additional Security Hardening](#22-additional-security-hardening)
+  * [22.1 Configuring account lockout](#221-configuring-account-lockout)
+    * [22.1.1 Considerations and risks](#2211-considerations-and-risks)
+    * [22.1.2 Account lockout examples](#2212-account-lockout-examples)
+  * [22.2 Configuring password policies](#222-configuring-password-policies)
+    * [22.2.1 Considerations and risks](#2221-considerations-and-risks))
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
 
@@ -2777,25 +2779,31 @@ XROAD_PROXY_UI_API_PARAM
 XROAD_SIGNER_CONSOLE_PARAM
 ```
 
-## 22 Configuring account lockout
+## 22 Additional Security Hardening
 
-You may want to improve the security of your X-Road instance by configuring an account lockout policy in your Security Server Admin UI authentication. When trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
+You may want to harden the security of your X-Road instance by configuring additional security policies in your Security Servers. The security measures that are introduced in this guide are common security policies that can be configured on operating system level.
 
-X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. The service to configure the account lockout to is `xroad`.
+X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. Note that editing the PAM configurations will take effect immediately without the need to restart anything.
 
-For configuring the account lockout for the X-Road Security Server Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
 
-### 22.1 Considerations and risks
+For configuring the following security policies for the X-Road Security Server Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
+
+### 22.1 Configuring account lockout
+
+Configuring an account lockout policy in your Security Server Admin UI authentication will provide an extra layer of defence against password guessing attacks. After configuring the account lockout, when trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
+
+The PAM service to configure the account lockout to is `xroad`.
+
+#### 22.1.1 Considerations and risks
 
 After enabling the account lockout for the Security Server, you should be aware that a user can lock out any other user's account if they know the correct username.
 
-### 22.2 Account lockout examples
+#### 22.1.2 Account lockout examples
 
-The example configurations, in chapters [22.2.1](#2221-example-on-ubuntu) and [22.2.2](#2222-example-on-rhel), will lock the user's account, preventing login to the Security Server Admin UI for 15 minutes (I.e. 900 seconds) after they provide a wrong password in the Security Server Admin UI login three (3) consecutive times. This configuration also affects the root account. Note that editing the PAM configurations will take effect immediately without the need to restart anything.
+The example configurations will lock the user's account, preventing login to the Security Server Admin UI for 15 minutes (I.e. 900 seconds) after they provide a wrong password in the Security Server Admin UI login three (3) consecutive times. This configuration also affects the root account.
 
-The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. You should always refer to the official PAM documentation before configuring the account lockout in production.
+**Example on Ubuntu**
 
-#### 22.2.1 Example on Ubuntu
 Create a new configuration `/etc/pam.d/xroad` with the following content:
 ```shell
 auth        required          pam_tally2.so deny=3 even_deny_root unlock_time=900 file=/var/lib/xroad/tallylog
@@ -2806,7 +2814,8 @@ password    required          pam_deny.so
 session     required          pam_deny.so    
 ```
 
-#### 22.2.2 Example on RHEL
+**Example on RHEL**
+
 On RHEL systems, the `/etc/pam.d/xroad` file ships with the Security Server installation package so you need to modify the existing file. Replace the `/etc/pam.d/xroad` contents with the following:
 ```shell
 #%PAM-1.0
@@ -2818,3 +2827,15 @@ password   required     pam_deny.so
 password   required     pam_warn.so
 session    required     pam_deny.so
 ```
+
+### 22.2 Configuring password policies
+
+Configuring a password policy in your Security Server Admin UI authentication will provide an additional layer of defence against password spraying attacks. 
+
+User account passwords cannot be changed directly from the Security Server Admin UI, therefore the password policy must be configured on operating system user account level. The method of adding a new password policy varies significantly depending on your operating system, existing PAM configuration and authentication protocol.
+
+For instruction on how to add password policies, please refer to your operating system's official documentation or customer support. 
+
+#### 22.2.1 Considerations and risks
+
+In a strong password, it is advisable to have at least 16 characters at minimum. You can also add complexity requirements, such as numbers and special characters, but these requirements can make the passwords more difficult for users to remember. Further additional measures could be to add commonly known passwords into a blocklist.
