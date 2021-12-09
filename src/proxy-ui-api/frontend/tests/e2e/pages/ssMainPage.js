@@ -427,20 +427,13 @@ var clientLocalGroupsCommands = {
   },
   verifyGroupListRow: function (row, code) {
     this.api.waitForElementVisible(
-      '(*[contains(@data-test, "local-groups-table")]//tr)[' +
-        row +
-        ']//*[contains(text(),"' +
-        code +
-        '")]',
+      `(//*[contains(@data-test, "local-groups-table")]//tr)[${row}]//*[contains(text(),"${code}")]`,
     );
     return this;
   },
   openDetails: function (code) {
     this.api.click(
-      this.selector +
-        '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"' +
-        code +
-        '")]',
+      `${this.selector}//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"${code}")]`,
     );
     return this;
   },
