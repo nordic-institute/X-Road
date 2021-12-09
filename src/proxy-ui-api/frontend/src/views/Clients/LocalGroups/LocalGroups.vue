@@ -61,7 +61,9 @@
       data-test="local-groups-table"
     >
       <template #[`item.code`]="{ item }">
-        <div class="cert-name" @click="viewGroup(item)">{{ item.code }}</div>
+        <div class="group-code identifier-wrap" @click="viewGroup(item)">
+          {{ item.code }}
+        </div>
       </template>
 
       <template #[`item.updated_at`]="{ item }">
@@ -205,7 +207,7 @@ export default Vue.extend({
 <style lang="scss" scoped>
 @import '~styles/tables';
 
-.cert-name {
+.group-code {
   color: $XRoad-Link;
   cursor: pointer;
 }

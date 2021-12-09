@@ -247,10 +247,6 @@ var localGroupPopupCommands = {
     this.click('@localGroupRemoveCancelButton');
     return this;
   },
-  clickDescriptionLabel: function () {
-    this.click('@localGroupDescriptionLabel');
-    return this;
-  },
   close: function () {
     this.click('@localGroupPopupCloseButton');
     return this;
@@ -1013,7 +1009,7 @@ module.exports = {
       commands: [localGroupPopupCommands],
       elements: {
         groupIdentifier: {
-          selector: '//span[contains(@class, "identifier-wrap")]',
+          selector: '//div[contains(@class, "identifier-wrap")]',
           locateStrategy: 'xpath',
         },
         localGroupAddMembersButton: {
@@ -1076,12 +1072,8 @@ module.exports = {
             '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
           locateStrategy: 'xpath',
         },
-        localGroupDescriptionLabel: {
-          selector: '//div[@data-test="ocal-group-edit-description-label"]',
-          locateStrategy: 'xpath',
-        },
         localGroupDescription: {
-          selector: '//div[contains(@class, "description-input")]//input',
+          selector: '//input[@data-test="local-group-edit-description-input"]',
           locateStrategy: 'xpath',
         },
         localGroupPopupCloseButton: {
