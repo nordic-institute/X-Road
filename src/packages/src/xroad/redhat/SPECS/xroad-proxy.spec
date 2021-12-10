@@ -50,7 +50,6 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}/etc/xroad/backup.d
 mkdir -p %{buildroot}/etc/cron.d
 
-cp -p %{_sourcedir}/proxy/xroad-proxy-setup.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-initdb.sh %{buildroot}/usr/share/xroad/scripts/
 cp -p %{_sourcedir}/proxy/xroad-add-admin-user.sh %{buildroot}/usr/share/xroad/bin/
 cp -p %{_sourcedir}/proxy/xroad.pam %{buildroot}/etc/pam.d/xroad
@@ -97,7 +96,6 @@ rm -rf %{buildroot}
 %config %attr(644,root,root) /etc/cron.d/xroad-proxy
 
 %attr(550,root,xroad) /usr/share/xroad/bin/xroad-proxy
-%attr(540,root,root) /usr/share/xroad/scripts/xroad-proxy-setup.sh
 %attr(540,root,root) /usr/share/xroad/scripts/xroad-initdb.sh
 %attr(540,root,root) /usr/share/xroad/bin/xroad-add-admin-user.sh
 %attr(540,root,root) /usr/share/xroad/scripts/setup_serverconf_db.sh
@@ -135,7 +133,7 @@ if [ $1 -gt 1 ] ; then
 
 fi
 
-%post
+%post -p /bin/bash
 %systemd_post xroad-proxy.service
 %systemd_post xroad-confclient.service
 
@@ -178,28 +176,20 @@ if [ $1 -gt 1 ] ; then
       fi
 fi
 
-/usr/share/xroad/scripts/xroad-proxy-setup.sh
-
-if [ $1 -gt 1 ]; then
-    # upgrade
-    if grep -q "^6\.7\." %{_localstatedir}/lib/rpm-state/%{name}/prev-version; then
-        # 6.7.x -> 6.8 specific migration
-        bash /usr/share/xroad/db/backup_and_remove_non-member_permissions.sh >>/var/log/xroad/proxy-install.log
+## generate internal certificate
+if [[ ! -r /etc/xroad/ssl/internal.crt || ! -r /etc/xroad/ssl/internal.key  || ! -r /etc/xroad/ssl/internal.p12 ]]
+then
+    echo "Generating new internal.[crt|key|p12] files "
+    rm -f /etc/xroad/ssl/internal.crt /etc/xroad/ssl/internal.key /etc/xroad/ssl/internal.p12
+    if ! /usr/share/xroad/scripts/generate_certificate.sh -n internal -S -f -p &>/tmp/generate_cert.$$.log; then
+      echo "Generating certificate failed: "
+      cat /tmp/generate_cert.$$.log
     fi
-    rm -rf %{_localstatedir}/lib/rpm-state/%{name}
 fi
 
-if [ $1 -gt 1 ]; then
-  # upgrade, generate gpg keypair when needed
-  if [ ! -d /etc/xroad/gpghome ] ; then
-    ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
-    if [[ -n "${ID}" ]] ; then
-      /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
-    fi
-  fi
-  # always fix gpghome ownership
-  [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
-fi
+mkdir -p /var/spool/xroad; chown xroad:xroad /var/spool/xroad
+mkdir -p /var/cache/xroad; chown xroad:xroad /var/cache/xroad
+mkdir -p /etc/xroad/globalconf; chown xroad:xroad /etc/xroad/globalconf
 
 #parameters:
 #1 file_path
@@ -220,6 +210,20 @@ function migrate_conf_value {
 #migrating possible local configuration for modified configuration values (for version 6.17.0)
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
+
+/usr/share/xroad/scripts/setup_serverconf_db.sh
+
+if [ $1 -gt 1 ]; then
+  # upgrade, generate gpg keypair when needed
+  if [ ! -d /etc/xroad/gpghome ] ; then
+    ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
+    if [[ -n "${ID}" ]] ; then
+      /usr/share/xroad/scripts/generate_gpg_keypair.sh /etc/xroad/gpghome "${ID}"
+    fi
+  fi
+  # always fix gpghome ownership
+  [ -d /etc/xroad/gpghome ] && chown -R xroad:xroad /etc/xroad/gpghome
+fi
 
 if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then
     # initial installation

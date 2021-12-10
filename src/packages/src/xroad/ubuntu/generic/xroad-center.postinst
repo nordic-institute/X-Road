@@ -122,11 +122,12 @@ EOF
 # check certificates and request necessary subject information from the user
 create_certificates() {
     HOST=$(hostname -f)
+    if (( ${#HOST} > 64 )); then
+      HOST="$(hostname -s)"
+    fi
     LIST=
-    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do
-        LIST+="IP:$i,"
-    done
-    ALT=${LIST}DNS:$(hostname),DNS:$(hostname -f)
+    for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+    ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
     while :; do
         if [[ ! -r /etc/xroad/ssl/nginx.crt || ! -r /etc/xroad/ssl/nginx.key ]]; then
