@@ -60,6 +60,7 @@
       :loader-height="2"
       hide-default-footer
       :no-data-text="$t('noData.noServiceClients')"
+      data-test="service-clients-main-view-table"
     >
       <template #[`item.name`]="{ item }">
         <div
