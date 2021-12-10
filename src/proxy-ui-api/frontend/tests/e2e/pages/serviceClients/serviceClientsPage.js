@@ -37,9 +37,7 @@ const commands = [
     },
     openServiceClient: function (clientName) {
       this.api.click(
-        '//*[@data-test="open-access-rights"][contains(text(), "' +
-          clientName +
-          '")]',
+        `//*[@data-test="open-access-rights"][contains(text(), "${clientName}")]`,
       );
       return this;
     },

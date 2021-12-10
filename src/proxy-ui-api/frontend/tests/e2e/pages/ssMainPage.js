@@ -1009,7 +1009,7 @@ module.exports = {
       commands: [localGroupPopupCommands],
       elements: {
         groupIdentifier: {
-          selector: '//div[contains(@class, "identifier-wrap")]',
+          selector: '//span[contains(@class, "identifier-wrap")]', // Title in the "xrd-sub-view-title" component
           locateStrategy: 'xpath',
         },
         localGroupAddMembersButton: {
