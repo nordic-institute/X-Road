@@ -33,6 +33,11 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientLocalGroups = clientInfo.section.localGroups;
 
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -41,11 +46,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openLocalGroupsTab();
+    navigationBar.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
 
     // Verify default sorting
@@ -76,6 +81,9 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientLocalGroups = clientInfo.section.localGroups;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -84,11 +92,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openLocalGroupsTab();
+    navigationBar.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
 
     // Cancel add local group dialog, verify that nothing happens
@@ -148,10 +156,10 @@ module.exports = {
       'Local group added',
     );
     browser.logMessage("closing 'local group added' snackbar");
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.logMessage('closed');
     // Close also alert, this cannot be closed while the popup is active
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     clientLocalGroups.verifyGroupListRow(2, '1122');
     clientLocalGroups.verifyGroupListRow(3, '1212');
@@ -170,6 +178,10 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -178,11 +190,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openLocalGroupsTab();
+    navigationBar.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
     clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
@@ -224,6 +236,10 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -232,11 +248,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openLocalGroupsTab();
+    navigationBar.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
     clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
@@ -291,6 +307,10 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -299,11 +319,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openLocalGroupsTab();
+    navigationBar.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
@@ -317,7 +337,7 @@ module.exports = {
       mainPage.elements.alertMessage,
       'Validation failure',
     );
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
     localGroupPopup.close();
 
     browser.waitForElementVisible(
@@ -334,7 +354,7 @@ module.exports = {
       mainPage.elements.alertMessage,
       'Validation failure',
     );
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
     localGroupPopup.close();
     browser.waitForElementVisible(
       '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
@@ -349,7 +369,7 @@ module.exports = {
       mainPage.elements.snackBarMessage,
       'Description saved',
     );
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible(
       '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
@@ -365,7 +385,7 @@ module.exports = {
       mainPage.elements.snackBarMessage,
       'Description saved',
     );
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible(
       '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
@@ -380,6 +400,9 @@ module.exports = {
     const clientLocalGroups = clientInfo.section.localGroups;
     const localGroupPopup = mainPage.section.localGroupPopup;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -388,11 +411,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers and local group details view
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openLocalGroupsTab();
+    navigationBar.openLocalGroupsTab();
     browser.waitForElementVisible(clientLocalGroups);
 
     // Delete and confirm

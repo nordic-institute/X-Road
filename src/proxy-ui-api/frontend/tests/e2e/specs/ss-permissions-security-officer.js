@@ -65,7 +65,7 @@ module.exports = {
   },
 
   'Can not add clients': (browser) => {
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
@@ -95,7 +95,7 @@ module.exports = {
 
   'Can not see client details': (browser) => {
     // Security officer should see clients list
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     // Security officer should not see add client button
     browser.waitForElementVisible(clientsTab);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);

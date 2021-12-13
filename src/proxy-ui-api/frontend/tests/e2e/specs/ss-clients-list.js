@@ -31,6 +31,10 @@ module.exports = {
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -39,7 +43,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Switch to clients tab and verify
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
 
     // Verify default sorting and list items

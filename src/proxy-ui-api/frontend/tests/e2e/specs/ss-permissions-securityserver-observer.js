@@ -80,7 +80,7 @@ module.exports = {
 
   'Can not add clients': (browser) => {
     // clients
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
@@ -113,7 +113,7 @@ module.exports = {
   },
   'Should be able to see clients details': (browser) => {
     // Security server observer should see clients details
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
 
@@ -135,7 +135,7 @@ module.exports = {
       );
   },
   'should see local groups list': (browser) => {
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling
     //  for 'clientLocalGroups', figure out why

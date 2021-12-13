@@ -26,7 +26,7 @@
 
 var assert = require('assert');
 
-let mainPage, diagnosticsTab;
+let mainPage, diagnosticsTab, navigationBar;
 
 module.exports = {
   tags: ['ss', 'diagnostics'],
@@ -34,6 +34,9 @@ module.exports = {
     // populate pageObjects before all other tests
     mainPage = browser.page.ssMainPage();
     diagnosticsTab = browser.page.tabs.diagnosticsTab();
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
 
     // login to system using default username and password
     browser.LoginCommand();
@@ -45,7 +48,7 @@ module.exports = {
 
   'Field JavaVersion contains numeric data': (browser) => {
     // Navigate to target page
-    mainPage.openDiagnosticsTab();
+    navigationBar.openDiagnosticsTab();
     browser
       .waitForElementVisible(diagnosticsTab.elements.javaVersion)
       .getText(diagnosticsTab.elements.javaVersion, function (javaVersion) {

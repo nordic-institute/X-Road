@@ -540,7 +540,7 @@ module.exports = {
     deleteCSRPopup.confirm();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'CSR deleted'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.perform(function () {
       browser.waitForElementNotPresent(
@@ -726,7 +726,7 @@ module.exports = {
     deleteCSRPopup.confirm();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'CSR deleted'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.perform(function () {
       browser.waitForElementNotPresent(
@@ -767,7 +767,7 @@ module.exports = {
         browser.globals.ss2_auth_csr,
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Test wrong server cert
     signAuthTab.importCert(
@@ -777,7 +777,7 @@ module.exports = {
         browser.globals.ss2_auth_cert,
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     signAuthTab.importCert(
       '/../' +
@@ -786,7 +786,7 @@ module.exports = {
         browser.globals.import_auth_cert,
     );
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Verify status of new certificate
     browser.waitForElementVisible(
@@ -840,7 +840,7 @@ module.exports = {
         browser.globals.ss2_sign_csr,
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Invalid certificate'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Test wrong server cert
     signAuthTab.importCert(
@@ -850,7 +850,7 @@ module.exports = {
         browser.globals.ss2_sign_cert,
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Key not found'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     signAuthTab.importCert(
       '/../' +
@@ -859,7 +859,7 @@ module.exports = {
         browser.globals.import_sign_cert,
     );
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Verify that a certificate has been added with the correct status
     browser.perform(function () {

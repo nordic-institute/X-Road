@@ -31,6 +31,10 @@ module.exports = class LoginCommand {
   ) {
     const frontPage = this.api.page.ssFrontPage();
     const mainPage = this.api.page.ssMainPage();
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     frontPage.navigateAndMakeTestable();
     this.api.waitForElementVisible('//*[@id="app"]');
     frontPage
@@ -40,7 +44,7 @@ module.exports = class LoginCommand {
       .enterPassword(password)
       .signin();
     // Check that correct username is displayed on topbar
-    mainPage.verifyCurrentUser(username);
+    navigationBar.verifyCurrentUser(username);
     // disable transitions and turn on e2eTestingMode
     this.api.makeTestable();
   }

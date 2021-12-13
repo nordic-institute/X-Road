@@ -28,7 +28,7 @@ const navigateToServiceClientsTab = (pages) => {
   const { browser, mainPage, clientInfo, clientsTab, serviceClientsPage } =
     pages;
 
-  mainPage.openClientsTab();
+  navigationBar.openClientsTab();
   browser.waitForElementVisible(clientsTab);
   clientsTab.openClient('TestClient');
   browser.waitForElementVisible(clientInfo);
@@ -155,7 +155,7 @@ module.exports = {
     addServicesPopup.addSelected();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightVisible('testOpX');
 
@@ -168,7 +168,7 @@ module.exports = {
     addServicesPopup.addSelected();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully added'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightVisible('testOp2');
     serviceClientDetails.verifyAccessRightVisible('testOpA');
@@ -220,7 +220,7 @@ module.exports = {
     removeAccessRightPopup.confirm();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights successfully removed'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightNotPresent('testOp2');
     serviceClientDetails.verifyAccessRightVisible('testOp1');
@@ -242,7 +242,7 @@ module.exports = {
     removeAllAccessRightsPopup.confirm();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access Rights successfully removed'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     serviceClientDetails.verifyAccessRightNotPresent('testOp1');
     serviceClientDetails.verifyAccessRightNotPresent('testOpA');
@@ -272,7 +272,7 @@ module.exports = {
       frontPage.signinDefaultUser();
 
       // Navigate to service clients -tab
-      mainPage.openClientsTab();
+      navigationBar.openClientsTab();
       browser.waitForElementVisible(clientsTab);
       clientsTab.openClient('TestService');
       browser.waitForElementVisible(clientInfo);
@@ -301,7 +301,7 @@ module.exports = {
         clientServices.elements.serviceDescription,
         browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
       );
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
 
       // Add access right to wsdl service
       clientServices.expandServiceDetails();
@@ -313,13 +313,13 @@ module.exports = {
       addSubjectsPopup.selectSubject('TestOrg');
       addSubjectsPopup.addSelected();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
       operationDetails.close();
 
       // Verify SOAP service client when it has access permissions
       frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
-      mainPage.openClientsTab();
+      navigationBar.openClientsTab();
       browser.waitForElementVisible(clientsTab);
       clientsTab.openClient('TestService');
       browser.waitForElementVisible(clientInfo);
@@ -337,7 +337,7 @@ module.exports = {
       serviceDetails.deleteService();
       serviceDetails.confirmDelete();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
 
       browser.end();
     },
@@ -371,7 +371,7 @@ module.exports = {
       frontPage.signinDefaultUser();
 
       // Navigate to service clients -tab
-      mainPage.openClientsTab();
+      navigationBar.openClientsTab();
       browser.waitForElementVisible(clientsTab);
       clientsTab.openClient('TestService');
       browser.waitForElementVisible(clientInfo);
@@ -387,7 +387,7 @@ module.exports = {
       clientServices.initServiceCode('s1c1');
       clientServices.confirmAddDialog();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // added new service
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
 
       // Add service level access right for rest
       clientServices.expandServiceDetails();
@@ -399,13 +399,13 @@ module.exports = {
       addSubjectsPopup.selectSubject('TestOrg');
       addSubjectsPopup.addSelected();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
       restOperationDetails.close();
 
       // Verify REST service client when it has access permissions
       frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
-      mainPage.openClientsTab();
+      navigationBar.openClientsTab();
       browser.waitForElementVisible(clientsTab);
       clientsTab.openClient('TestService');
       browser.waitForElementVisible(clientInfo);
@@ -429,7 +429,7 @@ module.exports = {
       addEndpointPopup.selectRequestMethod('POST');
       addEndpointPopup.addSelected();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
       browser.waitForElementVisible(restEndpoints);
       restEndpoints.close();
 
@@ -456,7 +456,7 @@ module.exports = {
       addEndpointAccessRightPopup.selectSubject('TestOrg');
       addEndpointAccessRightPopup.addSelected();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
       endpointAccessRightsPage.close();
       browser.waitForElementVisible(restEndpoints);
       restEndpoints.close();
@@ -477,13 +477,13 @@ module.exports = {
       browser.waitForElementVisible(removeAllAccessRightsPopup);
       removeAllAccessRightsPopup.confirm();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
 
       // Verify service client doesn't exist when REST service has only endpoint level access rights
       restOperationDetails.close();
       frontPage.navigateAndMakeTestable();
       browser.waitForElementVisible('//*[@id="app"]');
-      mainPage.openClientsTab();
+      navigationBar.openClientsTab();
       browser.waitForElementVisible(clientsTab);
       clientsTab.openClient('TestService');
       browser.waitForElementVisible(clientInfo);
@@ -503,7 +503,7 @@ module.exports = {
       serviceDetails.deleteService();
       serviceDetails.confirmDelete();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-      mainPage.closeSnackbar();
+      navigationBar.closeSnackbar();
 
       browser.end();
     },
@@ -527,7 +527,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate to service clients -tab
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -543,7 +543,7 @@ module.exports = {
     clientServices.initServiceCode('s1c1');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // Service added successfully
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Add service level access right for rest
     clientServices.expandServiceDetails();
@@ -558,13 +558,13 @@ module.exports = {
     addSubjectsPopup.selectSubject('Group3');
     addSubjectsPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     restOperationDetails.close();
 
     // Verify REST service client when it has access permissions
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -600,7 +600,7 @@ module.exports = {
     serviceDetails.deleteService();
     serviceDetails.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.end();
   },

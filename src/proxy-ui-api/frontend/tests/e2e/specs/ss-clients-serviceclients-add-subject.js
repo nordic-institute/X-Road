@@ -33,7 +33,12 @@ const getPages = (browser) => {
   const addSubjectServiceStepPage =
     browser.page.serviceClients.addSubjectServiceStepPage();
   const clientInfo = mainPage.section.clientInfo;
+
+  //common elements
+  const navigationBar = mainPage.section.navigationBar;
+
   return {
+    navigationBar,
     browser,
     frontPage,
     mainPage,
@@ -48,13 +53,13 @@ const getPages = (browser) => {
 };
 
 const signinToClientsTab = (pages) => {
-  const { browser, frontPage, mainPage, clientsTab } = pages;
+  const { browser, frontPage, navigationBar, clientsTab } = pages;
   // Open SUT and check that page is loaded
   frontPage.navigateAndMakeTestable();
   browser.waitForElementVisible('//*[@id="app"]');
   // Enter valid credentials
   frontPage.signinDefaultUser();
-  mainPage.openClientsTab();
+  navigationBar.openClientsTab();
   browser.waitForElementVisible(clientsTab);
 };
 
@@ -62,7 +67,7 @@ const setupServices = (pages) => {
   const {
     browser,
     frontPage,
-    mainPage,
+    navigationBar,
     clientInfo,
     clientsTab,
     clientServices,
@@ -73,7 +78,7 @@ const setupServices = (pages) => {
   browser.waitForElementVisible('//*[@id="app"]');
   clientsTab.openClient('TestService');
   browser.waitForElementVisible(clientInfo);
-  clientInfo.openServicesTab();
+  navigationBar.openServicesTab();
   browser.waitForElementVisible(clientServices);
   clientServices.openAddWSDL();
   clientServices.initServiceUrl(
@@ -84,7 +89,7 @@ const setupServices = (pages) => {
     clientServices.elements.serviceDescription,
     browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
   );
-  mainPage.closeSnackbar();
+  navigationBar.closeSnackbar();
 };
 
 const clearServices = (pages) => {
@@ -109,7 +114,7 @@ const clearServices = (pages) => {
   serviceDetails.deleteService();
   serviceDetails.confirmDelete();
   browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-  mainPage.closeSnackbar();
+  navigationBar.closeSnackbar();
 };
 
 const navigateToAddSubjectDialog = (pages) => {

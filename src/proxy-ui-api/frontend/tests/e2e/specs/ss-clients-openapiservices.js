@@ -33,6 +33,10 @@ module.exports = {
     const clientInfo = mainPage.section.clientInfo;
     const clientServices = clientInfo.section.services;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -41,11 +45,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     // Verify empty and malformed URL and service code error messages and Add button initial state
@@ -92,7 +96,7 @@ module.exports = {
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); // loading a missing file can sometimes take more time before failing
     browser.assert.containsText(mainPage.elements.alertMessage, urlToTest);
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Verify invalid service code
     clientServices.openAddREST();
@@ -121,7 +125,7 @@ module.exports = {
     clientServices.confirmAddDialog();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'OpenApi3 service added'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
       'OPENAPI3 (' +
@@ -146,6 +150,10 @@ module.exports = {
     const clientServices = clientInfo.section.services;
     const operationDetails = mainPage.section.restOperationDetails;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -154,11 +162,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -223,7 +231,7 @@ module.exports = {
     operationDetails.modifyTimeout('40');
     operationDetails.saveParameters();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     operationDetails.close();
 
     browser.waitForElementVisible(
@@ -266,6 +274,11 @@ module.exports = {
     const operationDetails = mainPage.section.restOperationDetails;
     const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
 
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -274,11 +287,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -323,7 +336,7 @@ module.exports = {
       .selectSubject('Group1')
       .addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.waitForElementVisible(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]',
@@ -353,6 +366,10 @@ module.exports = {
     const removeAllAccessRightsPopup =
       mainPage.section.removeAllAccessRightsPopup;
 
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -361,7 +378,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -385,7 +402,7 @@ module.exports = {
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]',
@@ -414,7 +431,7 @@ module.exports = {
     removeAllAccessRightsPopup.confirm();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
     );
@@ -434,6 +451,11 @@ module.exports = {
     const restEndpoints = mainPage.section.restServiceEndpoints;
     const addEndpointPopup = mainPage.section.addEndpointPopup;
 
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -442,11 +464,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -499,7 +521,7 @@ module.exports = {
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq2');
 
@@ -509,7 +531,7 @@ module.exports = {
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // verify sorting of added
     restEndpoints.openAddDialog();
@@ -517,7 +539,7 @@ module.exports = {
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'POST', '/testreq1');
 
@@ -526,7 +548,7 @@ module.exports = {
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(3, 'POST', '/testreq3');
 
@@ -535,7 +557,7 @@ module.exports = {
     addEndpointPopup.selectRequestMethod('DELETE');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(1, 'DELETE', '/testreq1');
 
@@ -544,7 +566,7 @@ module.exports = {
     addEndpointPopup.selectRequestMethod('POST');
     addEndpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'New endpoint created successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(2, 'POST', '/');
 
@@ -571,6 +593,12 @@ module.exports = {
     const restEndpoints = mainPage.section.restServiceEndpoints;
     const endpointPopup = mainPage.section.editEndpointPopup;
 
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -579,11 +607,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -619,14 +647,14 @@ module.exports = {
     endpointPopup.modifyPath('/testreq3');
     endpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Endpoint already exists'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Verify edit
     endpointPopup.modifyPath('/newreq1');
     endpointPopup.selectRequestMethod('PUT');
     endpointPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Changes to endpoint saved successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(5, 'PUT', '/newreq1');
 
@@ -644,7 +672,7 @@ module.exports = {
     browser.waitForElementVisible('//div[@data-test="dialog-simple"]');
     endpointPopup.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Endpoint removed successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[.//thead[.//*[contains(text(),"HTTP Request Method")]]]//*[contains(text(),"/testreq3")]',
     );
@@ -659,6 +687,11 @@ module.exports = {
     const clientServices = clientInfo.section.services;
     const openApiServiceDetails = mainPage.section.openApiServiceDetails;
 
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
+
     var startTime, startTimestamp;
 
     // Open SUT and check that page is loaded
@@ -669,11 +702,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -689,7 +722,7 @@ module.exports = {
     // Verify enabling
     clientServices.toggleEnabled();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Verify disabling and canceling disable
     clientServices.toggleEnabled();
@@ -702,7 +735,7 @@ module.exports = {
     clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Verify editing, malformed URL and service code
     clientServices.openServiceDetails();
@@ -746,7 +779,7 @@ module.exports = {
     openApiServiceDetails.modifyServiceUrl('https://www.niis.org/nosuch.yaml');
     openApiServiceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Parsing OpenApi3 description failed'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Verify cancel
     openApiServiceDetails.modifyServiceUrl(
@@ -786,7 +819,7 @@ module.exports = {
     openApiServiceDetails.confirmDialog();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Description saved'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
       'OPENAPI3 (' +
@@ -819,6 +852,9 @@ module.exports = {
     const clientServices = clientInfo.section.services;
     const openApiServiceDetails = mainPage.section.openApiServiceDetails;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -827,7 +863,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -856,7 +892,7 @@ module.exports = {
     openApiServiceDetails.confirmDelete();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.waitForElementNotPresent(
       clientServices.elements.serviceDescription,

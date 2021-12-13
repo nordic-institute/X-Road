@@ -25,7 +25,7 @@
  */
 
 // Tabs
-let mainPage, diagnosticsTab, keysTab, settingsTab, backupAndRestoreTab;
+let mainPage, diagnosticsTab, keysTab, settingsTab, backupAndRestoreTab, navigationBar;
 
 module.exports = {
   tags: ['ss', 'xroad-system-administrator', 'permissions'],
@@ -37,6 +37,9 @@ module.exports = {
     settingsTab = mainPage.section.settingsTab;
     diagnosticsTab = mainPage.section.diagnosticsTab;
     backupAndRestoreTab = settingsTab.sections.backupAndRestoreTab;
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
 
     // Actual test starts here...
     browser.LoginCommand(
@@ -50,7 +53,7 @@ module.exports = {
   },
 
   'can see elements in keys and certs': (browser) => {
-    mainPage.openKeysTab();
+    navigationBar.openKeysTab();
     browser.waitForElementVisible(mainPage.section.keysTab);
     keysTab.openSignAndAuthKeys();
     browser.waitForElementVisible(keysTab.elements.tokenName);
@@ -61,13 +64,13 @@ module.exports = {
   },
 
   'Can see functions in diagnostics-tab': (browser) => {
-    mainPage.openDiagnosticsTab();
+    navigationBar.openDiagnosticsTab();
     browser.waitForElementVisible(diagnosticsTab);
     browser.waitForElementVisible(diagnosticsTab.elements.globalConfiguration);
   },
 
   'can see functions in Settings-tab': (browser) => {
-    mainPage.openSettingsTab();
+    navigationBar.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
     settingsTab.openSystemParameters();
     browser.waitForElementVisible(

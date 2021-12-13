@@ -24,17 +24,21 @@
  * THE SOFTWARE.
  */
 
-let mainPage, settingsTab, systemParametersTab;
+let mainPage, settingsTab, systemParametersTab, navigationBar;
 
 module.exports = {
   tags: ['ss', 'settings', 'timestamping'],
   before: function (browser) {
     // Populate pageObjects for whole test suite
     mainPage = browser.page.ssMainPage();
+
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     settingsTab = mainPage.section.settingsTab;
     systemParametersTab = settingsTab.section.systemParametersTab;
     browser.LoginCommand(browser.globals.login_usr, browser.globals.login_pwd);
-    mainPage.openSettingsTab();
+    navigationBar.openSettingsTab();
     browser.waitForElementVisible(settingsTab);
   },
 

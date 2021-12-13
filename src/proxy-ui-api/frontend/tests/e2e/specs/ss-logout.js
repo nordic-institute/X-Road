@@ -52,7 +52,7 @@ module.exports = {
       browser.globals.logout_timeout_ms + 60000,
       1000,
     );
-    mainPage.closeSessionExpiredPopup();
+    navigationBar.closeSessionExpiredPopup();
     browser.waitForElementVisible(frontPage.elements.usernameInput);
   },
 };

@@ -47,7 +47,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -81,7 +81,7 @@ module.exports = {
     clientServices.initServiceUrl('https://www.niis.org/nosuch.wsdl');
     clientServices.confirmAddDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'WSDL download failed'
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Verify successful URL open
     clientServices.openAddWSDL();
@@ -118,7 +118,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -193,7 +193,7 @@ module.exports = {
       .selected;
     operationDetails.saveParameters();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     operationDetails.close();
 
     browser.waitForElementVisible(
@@ -250,7 +250,7 @@ module.exports = {
       .to.be.visible.and.text.to.equal('Continue');
     sslCheckFail.continue();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     operationDetails.close();
 
     browser.waitForElementVisible(
@@ -309,7 +309,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -340,7 +340,7 @@ module.exports = {
     addSubjectsPopup.selectSubject('Group1');
     addSubjectsPopup.addSelected();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights added successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.waitForElementVisible(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]',
@@ -376,7 +376,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -400,7 +400,7 @@ module.exports = {
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementNotPresent(mainPage.elements.snackBarMessage);
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]',
@@ -429,7 +429,7 @@ module.exports = {
     removeAllAccessRightsPopup.confirm();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Access rights removed successfully'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
     );
@@ -458,7 +458,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -468,7 +468,7 @@ module.exports = {
     clientServices.expandServiceDetails();
     clientServices.refreshServiceData();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Refreshed'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.getText(
       clientServices.elements.refreshTimestamp,
@@ -482,7 +482,7 @@ module.exports = {
     browser.logMessage('enabling service...');
     clientServices.toggleEnabled();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.logMessage('snackbar closed');
     browser.logMessage('enabling service done, snackbar should be closed now');
 
@@ -504,11 +504,11 @@ module.exports = {
     clientServices.initDisableNotice('Notice1');
     clientServices.confirmDisable();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description disabled'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     clientServices.toggleEnabled();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description enabled'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Verify editing, malformed URL
     clientServices.openServiceDetails();
@@ -523,7 +523,7 @@ module.exports = {
     serviceDetails.modifyServiceUrl('https://www.niis.org/nosuch.wsdl');
     serviceDetails.confirmDialog();
     browser.waitForElementVisible(mainPage.elements.alertMessage, 20000); //  'WSDL download failed', loading a missing file can sometimes take more time before failing
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
@@ -580,7 +580,7 @@ module.exports = {
     servicesPopup.accept();
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Description saved'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
       'WSDL (' +
@@ -621,7 +621,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov Internal Servers
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -651,7 +651,7 @@ module.exports = {
     browser.logMessage('delete was confirmed');
 
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.waitForElementNotPresent(
       clientServices.elements.serviceDescription,
@@ -678,7 +678,7 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Navigate
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
@@ -695,7 +695,7 @@ module.exports = {
       mainPage.elements.snackBarMessage,
       'WSDL added',
     );
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     browser.assert.containsText(
       clientServices.elements.serviceDescription,
@@ -731,7 +731,7 @@ module.exports = {
       'Service saved',
     );
     browser.logMessage('closing snackbar');
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Part 1 wait until at least 1 min has passed since refresh at the start of the test
     // Split this wait into two parts to not cause timeouts
@@ -827,7 +827,7 @@ module.exports = {
 
     serviceChangePopup.accept();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Refreshed'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
 
     // Verify that displayed services have changed
     browser.waitForElementVisible(

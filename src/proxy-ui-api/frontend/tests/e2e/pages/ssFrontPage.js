@@ -64,7 +64,7 @@ var loginCommands = {
     this.setValue('@passwordInput', this.api.globals.login_pwd);
     this.click('@loginButton');
     // wait for login to complete, and disable transitions
-    this.api.page.ssMainPage().verifyCurrentUser(this.api.globals.login_usr);
+    this.api.page.ssMainPage().section.navigationBar.verifyCurrentUser(this.api.globals.login_usr);
     this.makeTestable();
     return this;
   },

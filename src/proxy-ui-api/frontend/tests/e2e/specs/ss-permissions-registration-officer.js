@@ -57,7 +57,7 @@ module.exports = {
   },
 
   'Can add clients': (browser) => {
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementVisible(clientsTab.elements.addClientButton);
@@ -84,7 +84,7 @@ module.exports = {
 
   'Should see client details': (browser) => {
     // Registration officer should see clients list
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
 
     // Registration officer should see add client button
     browser.waitForElementVisible(clientsTab.elements.addClientButton);

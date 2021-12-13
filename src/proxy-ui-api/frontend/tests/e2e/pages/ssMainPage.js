@@ -30,6 +30,10 @@ const diagnosticsTab = require('./tabs/diagnosticsTab');
 const settingsTab = require('./tabs/settingsTab');
 const addSubjectsPopup = require('./common/addSubjectsPopup');
 
+const navigationBar = require('./navigationBar');
+
+
+
 var navigateCommands = {
   openClientsTab: function () {
     this.click('@clientsTab');
@@ -97,26 +101,7 @@ var navigateCommands = {
 };
 
 var clientInfoCommands = {
-  openDetailsTab: function () {
-    this.click('@detailsTab');
-    return this;
-  },
-  openServiceClientsTab: function () {
-    this.click('@serviceClientsTab');
-    return this;
-  },
-  openServicesTab: function () {
-    this.click('@servicesTab');
-    return this;
-  },
-  openInternalServersTab: function () {
-    this.click('@internalServersTab');
-    return this;
-  },
-  openLocalGroupsTab: function () {
-    this.click('@localGroupsTab');
-    return this;
-  },
+
 };
 
 var clientDetailsCommands = {
@@ -678,7 +663,6 @@ var confirmationDialogCommands = {
 
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
-  commands: [navigateCommands],
   elements: {
     clientsTab: {
       selector: '//a[@data-test="clients"]',
@@ -732,6 +716,7 @@ module.exports = {
     },
   },
   sections: {
+    navigationBar: navigationBar,
     clientsTab: clientsTab,
     keysTab: keysTab,
     diagnosticsTab: diagnosticsTab,
@@ -741,33 +726,7 @@ module.exports = {
         '//div[contains(@class, "v-main__wrap") and .//*[@data-test="clients" and @aria-selected="true"]]',
       locateStrategy: 'xpath',
       commands: [clientInfoCommands],
-      elements: {
-        detailsTab: {
-          selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Details")]',
-          locateStrategy: 'xpath',
-        },
-        serviceClientsTab: {
-          selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Service clients")]',
-          locateStrategy: 'xpath',
-        },
-        servicesTab: {
-          selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Services")]',
-          locateStrategy: 'xpath',
-        },
-        internalServersTab: {
-          selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Internal servers")]',
-          locateStrategy: 'xpath',
-        },
-        localGroupsTab: {
-          selector:
-            '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
-          locateStrategy: 'xpath',
-        },
-      },
+      elements: {},
       sections: {
         details: {
           selector:

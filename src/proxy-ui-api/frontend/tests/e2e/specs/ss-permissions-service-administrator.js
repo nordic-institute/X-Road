@@ -68,7 +68,7 @@ module.exports = {
   },
 
   'Can see functions under Clients-tab': (browser) => {
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.clickSearchIcon();
     browser.waitForElementVisible(searchField);
     browser.waitForElementNotPresent(clientsTab.elements.addClientButton);
@@ -107,7 +107,7 @@ module.exports = {
     browser,
   ) => {
     // Service administrator should see local groups list
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.openClient('TestService');
     // TODO This following locator is directly written to project, since it fails create proper locator when polling
     //  for 'clientLocalGroups', figure out why

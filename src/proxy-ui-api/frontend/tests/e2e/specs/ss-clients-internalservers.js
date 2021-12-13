@@ -37,6 +37,9 @@ module.exports = {
     const deletePopup = mainPage.section.deleteCertPopup;
     const clientInternalServers = clientInfo.section.internalServers;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Delete old test file
     try {
       fs.unlinkSync(
@@ -61,11 +64,11 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Test owner
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openInternalServersTab();
+    navigationBar.openInternalServersTab();
     browser.waitForElementVisible(clientInternalServers);
     browser.assert.containsText(
       clientInternalServers.elements.connectionTypeMenu,
@@ -73,11 +76,11 @@ module.exports = {
     );
 
     // Open TestService Internal Servers
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestSub');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openInternalServersTab();
+    navigationBar.openInternalServersTab();
     browser.waitForElementVisible(clientInternalServers);
 
     // Change connection type
@@ -91,7 +94,7 @@ module.exports = {
     );
     clientInternalServers.selectConnectionType('HTTP');
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Connection type updated'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.assert.containsText(
       clientInternalServers.elements.connectionTypeMenu,
       'HTTP',
@@ -116,7 +119,7 @@ module.exports = {
 
     browser.logMessage('closing alertMessage now');
 
-    mainPage.closeAlertMessage();
+    navigationBar.closeAlertMessage();
 
     // Open and verify certificate info
     clientInternalServers.openTLSCert();
@@ -137,7 +140,7 @@ module.exports = {
     browser.waitForElementVisible(certificateDetails);
     deletePopup.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Certificate deleted'
-    mainPage.closeSnackbar();
+    navigationBar.closeSnackbar();
     browser.waitForElementNotPresent(
       clientInternalServers.elements.tlsCertificate,
     );

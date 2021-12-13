@@ -34,6 +34,9 @@ module.exports = {
     const clientDetails = clientInfo.section.details;
     const certificatePopup = mainPage.section.certificatePopup;
 
+    //common elements
+    const navigationBar = mainPage.section.navigationBar;
+
     // Open SUT and check that page is loaded
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
@@ -42,10 +45,10 @@ module.exports = {
     frontPage.signinDefaultUser();
 
     // Open TestGov client details view
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.openClient('TestGov');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openDetailsTab();
+    navigationBar.openDetailsTab();
     browser.waitForElementVisible(clientDetails);
 
     // Verify info
@@ -86,9 +89,9 @@ module.exports = {
     certificatePopup.close();
 
     // Open TestService
-    mainPage.openClientsTab();
+    navigationBar.openClientsTab();
     clientsTab.openClient('TestService');
-    clientInfo.openDetailsTab();
+    navigationBar.openDetailsTab();
 
     // Verify info
     browser
