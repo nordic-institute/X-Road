@@ -2790,7 +2790,7 @@ For configuring the following security policies for the X-Road Security Server A
 
 ### 22.1 Configuring account lockout
 
-Configuring an account lockout policy in your Security Server Admin UI authentication will provide an extra layer of defence against password guessing attacks. After configuring the account lockout, when trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
+Configuring an account lockout policy in your Security Server Admin UI authentication will provide an extra layer of defence against password guessing attacks, such as brute force attacks. After configuring the account lockout, when trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
 
 The PAM service to configure the account lockout to is `xroad`.
 
@@ -2830,7 +2830,7 @@ session    required     pam_deny.so
 
 ### 22.2 Configuring password policies
 
-Configuring a password policy in your Security Server Admin UI authentication will provide an additional layer of defence against password spraying attacks. 
+Configuring a password policy in your Security Server Admin UI authentication will provide an additional layer of defence against password guessing attacks, such as password spraying. 
 
 User account passwords cannot be changed directly from the Security Server Admin UI, therefore the password policy must be configured on operating system user account level. The method of adding a new password policy varies significantly depending on your operating system, existing PAM configuration and authentication protocol.
 
