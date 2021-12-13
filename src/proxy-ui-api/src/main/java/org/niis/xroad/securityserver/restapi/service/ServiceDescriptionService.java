@@ -71,7 +71,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.Comparator;
 
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_SERVICE_CODE;
 import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_EXISTING_URL;
@@ -875,7 +874,7 @@ public class ServiceDescriptionService {
 
     /**
      * Returns title for client's service with specific serviceCode.
-     * Current implementation picks title of the latest version of the service title if multiple versions exist.
+     * If there are multiple versions, the method returns the last title based on a inverse alphabetical comparison.
      *
      * @param clientType
      * @param serviceCode
@@ -885,14 +884,10 @@ public class ServiceDescriptionService {
         ServiceType service = clientType.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
                 .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .max(comparingVersions())
+                .max((sOne, sTwo) -> sOne.getServiceVersion().compareToIgnoreCase(sTwo.getServiceVersion()))
                 .orElse(null);
 
         return service == null ? null : service.getTitle();
-    }
-
-    private Comparator<ServiceType> comparingVersions() {
-        return Comparator.comparing(service -> Integer.valueOf(service.getServiceVersion().replace("v","")));
     }
 
     /**
