@@ -47,9 +47,10 @@
           data-test="add-rest-button"
           class="rest-button"
           @click="showAddRestDialog"
-          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('services.addRest') }}</xrd-button
         >
+          <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          {{ $t('services.addRest') }}
+        </xrd-button>
 
         <xrd-button
           v-if="showAddWSDLButton"
@@ -57,15 +58,20 @@
           data-test="add-wsdl-button"
           class="ma-0"
           @click="showAddWsdlDialog"
-          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('services.addWsdl') }}</xrd-button
         >
+          <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          {{ $t('services.addWsdl') }}
+        </xrd-button>
       </div>
     </div>
 
-    <div v-if="filtered && filtered.length < 1">
-      {{ $t('services.noMatches') }}
-    </div>
+    <XrdEmptyPlaceholder
+      :data="filtered"
+      :filtered="search.length > 0"
+      :loading="loading"
+      :no-items-text="$t('noData.noServices')"
+      skeleton-type="table-heading"
+    />
 
     <template v-if="filtered">
       <xrd-expandable
@@ -231,6 +237,7 @@ export default Vue.extend({
   data() {
     return {
       search: '' as string,
+      loading: false,
       addWsdlDialog: false as boolean,
       addRestDialog: false as boolean,
       disableDescDialog: false as boolean,
@@ -653,6 +660,7 @@ export default Vue.extend({
     },
 
     fetchData(): void {
+      this.loading = true;
       api
         .get<ServiceDescription[]>(
           `/clients/${encodePathParameter(this.id)}/service-descriptions`,
@@ -665,7 +673,8 @@ export default Vue.extend({
         })
         .catch((error) => {
           this.$store.dispatch('showError', error);
-        });
+        })
+        .finally(() => (this.loading = false));
     },
   },
 });
@@ -716,7 +725,7 @@ export default Vue.extend({
 }
 
 .expandable {
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .service-url {

@@ -1,4 +1,8 @@
 #!/bin/bash
+if [[ -v XROAD_IGNORE_DATABASE_SETUP ]]; then
+  echo >&2 "XROAD_IGNORE_DATABASE_SETUP set, ignoring database setup"
+  exit 0
+fi
 
 log() { echo >&2 "$@"; }
 die() {
@@ -23,7 +27,11 @@ setup_database() {
   fi
 
   local -r db_properties=/etc/xroad/db.properties
-  local -r root_properties=/etc/xroad.properties
+  if [ -f /etc/xroad/xroad.properties ]; then
+    local -r root_properties=/etc/xroad/xroad.properties
+  else
+    local -r root_properties=/etc/xroad.properties
+  fi
   local -r db_name=serverconf
 
   local new_db_host="$1"
@@ -141,21 +149,31 @@ EOF
       fi
     } | psql_master || die "Creating database '${db_database}' on '${db_host}' failed, please check database availability and configuration in ${db_properties} and ${root_properties}"
 
-    crudini --set "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
-    crudini --set "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
+    if [[ -w "$root_properties" ]]; then
+      crudini --set --inplace "${root_properties}" '' "$db_name.database.admin_user" "${db_admin_conn_user}"
+      crudini --set --inplace "${root_properties}" '' "$db_name.database.admin_password" "${db_admin_password}"
+    else
+      log "$root_properties is not writable"
+    fi
   fi
 
-  touch ${db_properties}
-  chown xroad:xroad ${db_properties}
-  chmod 640 ${db_properties}
+  if [ ! -f "$db_properties" ]; then
+    touch ${db_properties}
+    chown xroad:xroad ${db_properties}
+    chmod 640 ${db_properties}
+  fi
 
-  crudini --set ${db_properties} '' ${db_name}.hibernate.jdbc.use_streams_for_binary true
-  crudini --set ${db_properties} '' ${db_name}.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
-  crudini --set ${db_properties} '' ${db_name}.hibernate.connection.driver_class org.postgresql.Driver
-  crudini --set ${db_properties} '' ${db_name}.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
-  crudini --set ${db_properties} '' ${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
-  crudini --set ${db_properties} '' ${db_name}.hibernate.connection.username "${db_conn_user}"
-  crudini --set ${db_properties} '' ${db_name}.hibernate.connection.password "${db_password}"
+  if [ -w "$db_properties" ]; then
+    crudini --set ${db_properties} '' ${db_name}.hibernate.jdbc.use_streams_for_binary true
+    crudini --set ${db_properties} '' ${db_name}.hibernate.dialect ee.ria.xroad.common.db.CustomPostgreSQLDialect
+    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.driver_class org.postgresql.Driver
+    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.url "jdbc:postgresql://$db_host/$db_database$db_options"
+    crudini --set ${db_properties} '' ${db_name}.hibernate.hikari.dataSource.currentSchema "${db_schema},public"
+    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.username "${db_conn_user}"
+    crudini --set ${db_properties} '' ${db_name}.hibernate.connection.password "${db_password}"
+  else
+    log "$db_properties is not writable, not updating database properties"
+  fi
 
   cd /usr/share/xroad/db/ || die "Running database migrations failed, please check that directory /usr/share/xroad/db exists"
 

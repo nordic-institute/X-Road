@@ -13,7 +13,11 @@ get_prop() {
 }
 
 init_local_postgres() {
-    local root_properties=/etc/xroad.properties
+    if [ -f /etc/xroad/xroad.properties ]; then
+      local -r root_properties=/etc/xroad/xroad.properties
+    else
+      local -r root_properties=/etc/xroad.properties
+    fi
     SERVICE_NAME=postgresql
 
     if [[ -f ${root_properties} && $(get_prop ${root_properties} postgres.connection.password) != "" ]]; then

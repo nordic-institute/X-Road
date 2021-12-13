@@ -184,7 +184,7 @@ module.exports = {
         .verifySubjectListRow('security-server-owners')
         .verifySubjectListRow('TestClient')
         .verifySubjectListRow('TestService')
-        .verifySubjectListRow( 'Management');
+        .verifySubjectListRow('Management');
       // Filter subjects in Add Subjects dialog
       addSubjectMemberStepPage
         .setFilter('TestSe')
@@ -270,7 +270,7 @@ module.exports = {
         '//div[contains(@class, "xrd-view-title")][contains(text(), "TestService")]',
       );
       browser.waitForElementVisible(
-        '//table[contains(@class, "service-clients-table")]//td[contains(text(), "TestClient")]',
+        '//*[@data-test="service-clients-main-view-table"]//div[contains(text(), "TestClient")]',
       );
       serviceClientsPage.openAddServiceClient();
       addSubjectMemberStepPage.verifyDisabledId('TestClient');

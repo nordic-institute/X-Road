@@ -14,10 +14,10 @@ if [ "$INSTALLED_VERSION" == "$PACKAGED_VERSION" ]; then
     if [ -n "$CONFIG_VERSION" ] && dpkg --compare-versions "$PACKAGED_VERSION" gt "$CONFIG_VERSION"; then
         echo "Updating configuration from $CONFIG_VERSION to $PACKAGED_VERSION"
         cp -a /root/etc/xroad/* /etc/xroad/
-        pg_ctlcluster 10 main start
-        pg_isready -t 10
-        dpkg-reconfigure xroad-proxy xroad-addon-messagelog
-        pg_ctlcluster 10 main stop
+        pg_ctlcluster 12 main start
+        pg_isready -t 12
+        dpkg-reconfigure xroad-proxy xroad-signer xroad-addon-messagelog
+        pg_ctlcluster 12 main stop
         sleep 1
         echo "$PACKAGED_VERSION" >/etc/xroad/version
     fi

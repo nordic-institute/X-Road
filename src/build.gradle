@@ -124,20 +124,32 @@ subprojects {
         from sourceSets.test.output
     }
 
+    java {
+      toolchain {
+          languageVersion = JavaLanguageVersion.of(8)
+      }
+    }
+
+    def javaCompiler = javaToolchains.compilerFor(java.toolchain)
+    def javaHome = javaCompiler.get().metadata.installationPath.asFile.absolutePath
+
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
-        sourceCompatibility = 1.8
-        targetCompatibility = 1.8
     }
 
     tasks.withType(JavaExec) {
+        javaLauncher = javaToolchains.launcherFor(java.toolchain)
         if (project.hasProperty("args")) {
             args = project.getProperty("args").tokenize()
         }
     }
 
+    tasks.withType(Exec) {
+        environment "JAVA_HOME", javaHome
+    }
+
     test {
-        if (JavaVersion.current() == JavaVersion.VERSION_1_8) {
+        if (java.toolchain.languageVersion.get() == JavaLanguageVersion.of(8)) {
             //workaround for JDK-8156584
             systemProperty("java.security.properties",
                 "${project.rootDir}/config/workaround-jdk-8156584-security.properties");

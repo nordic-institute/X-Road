@@ -6,7 +6,7 @@
 
 **X-ROAD 7**
 
-Version: 2.65 
+Version: 2.66 
 Doc. ID: UG-SS
 
 ---
@@ -98,6 +98,7 @@ Doc. ID: UG-SS
  22.09.2021 | 2.63    | Update backup encryption instructions | Jarkko Hyöty
  05.10.2021 | 2.64    | Moved the chapter about command line arguments to the system parameters document | Caro Hautamäki
  24.11.2021 | 2.65    | Updated anchors to match correct sections | Raido Kaju
+ 30.11.2021 | 2.66    | Added chapter about configuring account lockouts [22](#22-configuring-account-lockout)  | Caro Hautamäki
 
 ## Table of Contents <!-- omit in toc -->
 
@@ -229,7 +230,11 @@ Doc. ID: UG-SS
   * [19.5 Warning responses](#195-warning-responses)
 * [20 Migrating to Remote Database Host](#20-migrating-to-remote-database-host)
 * [21 Adding command line arguments](#21-adding-command-line-arguments)
-
+* [22 Configuring account lockout](#22-configuring-account-lockout)
+  * [22.1 Considerations and risks](#221-considerations-and-risks)
+  * [22.2 Account lockout examples](#222-account-lockout-examples)
+    * [22.2.1 Example on Ubuntu](#2221-example-on-ubuntu)
+    * [22.2.2 Example on RHEL](#2222-example-on-rhel)
 <!-- vim-markdown-toc -->
 <!-- tocstop -->
 
@@ -2770,4 +2775,46 @@ XROAD_OPMON_PARAM
 XROAD_PROXY_PARAM
 XROAD_PROXY_UI_API_PARAM
 XROAD_SIGNER_CONSOLE_PARAM
+```
+
+## 22 Configuring account lockout
+
+You may want to improve the security of your X-Road instance by configuring an account lockout policy in your Security Server Admin UI authentication. When trying to log in to the Security Server Admin UI with a locked account, the login screen will display a generic login error without disclosing the reason or any other login information.
+
+X-Road uses the Linux Pluggable Authentication Modules (PAM) to authenticate users. This makes it easy to configure the account management to your liking. The service to configure the account lockout to is `xroad`.
+
+For configuring the account lockout for the X-Road Security Server Admin UI in production, please refer to [The Linux-PAM System Administrator's Guide](http://www.linux-pam.org/Linux-PAM-html/Linux-PAM_SAG.html) for the full documentation on how to configure PAM.
+
+### 22.1 Considerations and risks
+
+After enabling the account lockout for the Security Server, you should be aware that a user can lock out any other user's account if they know the correct username.
+
+### 22.2 Account lockout examples
+
+The example configurations, in chapters [22.2.1](#2221-example-on-ubuntu) and [22.2.2](#2222-example-on-rhel), will lock the user's account, preventing login to the Security Server Admin UI for 15 minutes (I.e. 900 seconds) after they provide a wrong password in the Security Server Admin UI login three (3) consecutive times. This configuration also affects the root account. Note that editing the PAM configurations will take effect immediately without the need to restart anything.
+
+The example PAM configurations provided in this guide may or may not work on your system depending on your system and existing PAM configurations. You should always refer to the official PAM documentation before configuring the account lockout in production.
+
+#### 22.2.1 Example on Ubuntu
+Create a new configuration `/etc/pam.d/xroad` with the following content:
+```shell
+auth        required          pam_tally2.so deny=3 even_deny_root unlock_time=900 file=/var/lib/xroad/tallylog
+@include    common-auth    
+account     required          pam_tally2.so
+@include    common-account
+password    required          pam_deny.so    
+session     required          pam_deny.so    
+```
+
+#### 22.2.2 Example on RHEL
+On RHEL systems, the `/etc/pam.d/xroad` file ships with the Security Server installation package so you need to modify the existing file. Replace the `/etc/pam.d/xroad` contents with the following:
+```shell
+#%PAM-1.0
+auth       required     pam_tally2.so deny=3 even_deny_root unlock_time=900 file=/var/lib/xroad/tallylog
+auth       required     pam_unix.so
+account    required     pam_tally2.so
+account    required     pam_unix.so
+password   required     pam_deny.so
+password   required     pam_warn.so
+session    required     pam_deny.so
 ```

@@ -135,6 +135,12 @@
                     {{ globalConf.next_update_at | formatHoursMins }}
                   </td>
                 </tr>
+                <XrdEmptyPlaceholderRow
+                  :colspan="4"
+                  :loading="globalConfLoading"
+                  :data="globalConf"
+                  :no-items-text="$t('noData.noTimestampingServices')"
+                />
               </tbody>
             </table>
           </v-card-text>
@@ -185,6 +191,12 @@
                   </td>
                   <td></td>
                 </tr>
+                <XrdEmptyPlaceholderRow
+                  :colspan="5"
+                  :loading="timestampingLoading"
+                  :data="timestampingServices"
+                  :no-items-text="$t('noData.noTimestampingServices')"
+                />
               </tbody>
             </table>
           </v-card-text>
@@ -197,6 +209,12 @@
             }}</span>
           </v-card-title>
           <v-card-text class="xrd-card-text">
+            <XrdEmptyPlaceholder
+              :loading="ocspLoading"
+              :data="ocspResponderDiagnostics"
+              :no-items-text="$t('noData.noData')"
+            />
+
             <div
               v-for="ocspDiags in ocspResponderDiagnostics"
               :key="ocspDiags.distinguished_name"
@@ -249,6 +267,12 @@
                       {{ ocsp.next_update_at | formatHoursMins }}
                     </td>
                   </tr>
+                  <XrdEmptyPlaceholderRow
+                    :colspan="4"
+                    :loading="ocspLoading"
+                    :data="ocspDiags"
+                    :no-items-text="$t('noData.noCertificateAuthorities')"
+                  />
                 </tbody>
               </table>
             </div>

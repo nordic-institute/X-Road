@@ -79,6 +79,7 @@
       :can-backup="canBackup"
       :backups="backups"
       :filter="search"
+      :loading="loadingBackups"
       @refresh-data="fetchData"
     />
   </div>
@@ -121,6 +122,7 @@ export default Vue.extend({
       needsConfirmation: false,
       uploadedFile: null as File | null,
       backups: [] as Backup[],
+      loadingBackups: false,
     };
   },
   computed: {
@@ -142,6 +144,7 @@ export default Vue.extend({
   },
   methods: {
     async fetchData() {
+      this.loadingBackups = true;
       return api
         .get<Backup[]>('/backups')
         .then((res) => {
@@ -149,7 +152,8 @@ export default Vue.extend({
             return b.created_at.localeCompare(a.created_at);
           });
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.$store.dispatch('showError', error))
+        .finally(() => (this.loadingBackups = false));
     },
     async createBackup() {
       this.creatingBackup = true;

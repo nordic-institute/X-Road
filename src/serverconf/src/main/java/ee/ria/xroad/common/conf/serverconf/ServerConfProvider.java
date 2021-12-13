@@ -214,4 +214,11 @@ public interface ServerConfProvider {
     default void clearCache() {
         // by default there is no cache to clear
     }
+
+    /**
+     * @return true if this provider is capable of providing configuration
+     */
+    default boolean isAvailable() {
+        return true;
+    }
 }

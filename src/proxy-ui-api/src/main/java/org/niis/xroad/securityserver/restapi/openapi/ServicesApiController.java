@@ -42,7 +42,6 @@ import org.niis.xroad.securityserver.restapi.converter.EndpointConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceClientIdentifierConverter;
 import org.niis.xroad.securityserver.restapi.converter.ServiceConverter;
-import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.openapi.model.Endpoint;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
@@ -87,7 +86,6 @@ public class ServicesApiController implements ServicesApi {
     private final AccessRightService accessRightService;
     private final ServiceClientHelper serviceClientHelper;
     private final ServiceClientService serviceClientService;
-    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_CLIENT_SERVICES')")
@@ -189,6 +187,7 @@ public class ServicesApiController implements ServicesApi {
         }
         Set<ServiceClient> serviceClientsResult = serviceClientConverter.convertServiceClientDtos(
                 serviceClientDtos);
+
         return new ResponseEntity<>(serviceClientsResult, HttpStatus.OK);
     }
 

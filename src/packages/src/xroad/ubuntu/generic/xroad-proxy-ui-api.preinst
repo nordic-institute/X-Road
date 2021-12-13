@@ -19,14 +19,17 @@ function handle_error {
 if [[ "$1" = "upgrade" ]]; then
   invoke-rc.d --quiet xroad-jetty stop &>/dev/null || true
   # restart nginx (to possibly free port 4000), but only if it was running
-  invoke-rc.d --quiet nginx try-restart || true
+  invoke-rc.d --quiet nginx try-restart &>/dev/null || true
 fi
 
 #check certificates and request necessary subject information from user
-HOST=`hostname -f`
+HOST=$(hostname -f)
+if (( ${#HOST} > 64 )); then
+  HOST="$(hostname -s)"
+fi
 LIST=
-for i in `ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'`; do LIST+="IP:$i,"; done;
-ALT=${LIST}DNS:`hostname`,DNS:`hostname -f`
+for i in $(ip addr | grep 'scope global' | tr '/' ' ' | awk '{print $2}'); do LIST+="IP:$i,"; done;
+ALT="${LIST}DNS:$(hostname -f),DNS:$(hostname -s)"
 
 if [[ -f /etc/xroad/ssl/nginx.crt && -f /etc/xroad/ssl/nginx.key ]];
 then

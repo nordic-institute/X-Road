@@ -27,7 +27,7 @@
       type: image
       mode: pull
       server: https://images.linuxcontainers.org
-      protocol: lxd
+      protocol: simplestreams
       alias: centos/{{centos_releasever}}/amd64
     profiles: ["default"]
     wait_for_ipv4_addresses: true

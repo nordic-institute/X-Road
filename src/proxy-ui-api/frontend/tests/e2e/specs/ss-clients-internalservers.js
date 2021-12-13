@@ -114,7 +114,7 @@ module.exports = {
     );
     browser.waitForElementVisible(mainPage.elements.alertMessage); // 'Certificate already exists'
 
-    browser.logMessage("closing alertMessage now");
+    browser.logMessage('closing alertMessage now');
 
     mainPage.closeAlertMessage();
 

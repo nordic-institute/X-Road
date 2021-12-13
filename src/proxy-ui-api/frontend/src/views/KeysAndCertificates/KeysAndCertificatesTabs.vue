@@ -32,8 +32,8 @@
         :to="tab.to"
         :data-test="tab.key"
         exact-path
-        >{{ $t(tab.name) }}</v-tab
-      >
+        >{{ $t(tab.name) }}
+      </v-tab>
     </sub-tabs>
   </div>
 </template>

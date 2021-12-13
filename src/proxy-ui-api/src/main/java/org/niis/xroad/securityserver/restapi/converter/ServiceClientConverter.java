@@ -35,12 +35,14 @@ import ee.ria.xroad.common.identifier.XRoadObjectType;
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.restapi.openapi.BadRequestException;
+import org.niis.xroad.securityserver.restapi.converter.comparator.ServiceClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.dto.ServiceClientDto;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClient;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceClientType;
 import org.springframework.stereotype.Component;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -55,6 +57,7 @@ public class ServiceClientConverter {
     private final GlobalConfFacade globalConfFacade;
     private final ClientConverter clientConverter;
     private final GlobalGroupConverter globalGroupConverter;
+    private final ServiceClientSortingComparator serviceClientSortingComparator;
 
     /**
      * Convert ServiceClientDto to ServiceClient.
@@ -101,7 +104,8 @@ public class ServiceClientConverter {
     public Set<ServiceClient> convertServiceClientDtos(Iterable<ServiceClientDto> serviceClientDtos) {
         return Streams.stream(serviceClientDtos)
                 .map(this::convertServiceClientDto)
-                .collect(Collectors.toSet());
+                .sorted(serviceClientSortingComparator)
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     /**

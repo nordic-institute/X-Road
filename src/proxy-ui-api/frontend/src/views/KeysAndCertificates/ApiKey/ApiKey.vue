@@ -35,7 +35,11 @@
           help-text="keys.helpTextApi"
         ></help-button>
       </div>
-      <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
+      <xrd-button
+        v-if="canCreateApiKey"
+        data-test="api-key-create-key-button"
+        @click="createApiKey()"
+      >
         <xrd-icon-base class="xrd-large-button-icon"
           ><XrdIconAdd
         /></xrd-icon-base>
@@ -221,10 +225,12 @@ export default Vue.extend({
   methods: {
     loadKeys(): void {
       if (this.$store.getters.hasPermission(Permissions.VIEW_API_KEYS)) {
+        this.loading = true;
         api
           .get<ApiKey[]>('/api-keys')
           .then((resp) => (this.apiKeys = resp.data))
-          .catch((error) => this.$store.dispatch('showError', error));
+          .catch((error) => this.$store.dispatch('showError', error))
+          .finally(() => (this.loading = false));
       }
     },
     editKey(apiKey: ApiKey): void {

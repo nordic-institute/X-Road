@@ -4,8 +4,11 @@ abort() { local rc=$?; echo -e "FATAL: $*" >&2; exit $rc; }
 
 dump_file="$1"
 db_properties=/etc/xroad/db.properties
-root_properties=/etc/xroad.properties
-
+if [ -f /etc/xroad/xroad.properties ]; then
+  root_properties=/etc/xroad/xroad.properties
+else
+  root_properties=/etc/xroad.properties
+fi
 db_host="127.0.0.1:5432"
 db_conn_user="$(get_prop ${db_properties} 'serverconf.hibernate.connection.username' 'serverconf')"
 db_user="${db_conn_user%%@*}"
