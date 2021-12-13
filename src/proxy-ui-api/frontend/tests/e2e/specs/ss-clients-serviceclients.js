@@ -589,7 +589,7 @@ module.exports = {
       .count.to.equal(2);
     serviceClientsPage.enterServiceClientSearchWord('management');
     browser.expect.element(
-      '//*[@data-test="open-access-rights"]//*[contains(text(), "TestOrg")]',
+      '//*[@data-test="open-access-rights"][contains(text(), "TestOrg")]',
     ).to.be.visible;
 
     // Remove REST service description

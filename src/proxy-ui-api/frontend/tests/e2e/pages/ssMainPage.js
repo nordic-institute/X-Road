@@ -247,10 +247,6 @@ var localGroupPopupCommands = {
     this.click('@localGroupRemoveCancelButton');
     return this;
   },
-  clickDescriptionLabel: function () {
-    this.click('@localGroupDescriptionLabel');
-    return this;
-  },
   close: function () {
     this.click('@localGroupPopupCloseButton');
     return this;
@@ -427,20 +423,13 @@ var clientLocalGroupsCommands = {
   },
   verifyGroupListRow: function (row, code) {
     this.api.waitForElementVisible(
-      '(//table[contains(@class, "details-certificates")]/tr)[' +
-        row +
-        ']//span[contains(text(),"' +
-        code +
-        '")]',
+      `(//*[contains(@data-test, "local-groups-table")]//tr)[${row}]//*[contains(text(),"${code}")]`,
     );
     return this;
   },
   openDetails: function (code) {
     this.api.click(
-      this.selector +
-        '//table[contains(@class, "details-certificates")]//span[contains(text(),"' +
-        code +
-        '")]',
+      `${this.selector}//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"${code}")]`,
     );
     return this;
   },
@@ -850,29 +839,17 @@ module.exports = {
             },
             groupCodeCellAbb: {
               selector:
-                '//table[contains(@class, "details-certificates")]//span[contains(text(),"abb")]',
+                '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"abb")]',
               locateStrategy: 'xpath',
             },
             groupCodeCellBac: {
               selector:
-                '//table[contains(@class, "details-certificates")]//span[contains(text(),"bac")]',
+                '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"bac")]',
               locateStrategy: 'xpath',
             },
             groupCodeCellCbb: {
               selector:
-                '//table[contains(@class, "details-certificates")]//span[contains(text(),"cbb")]',
-              locateStrategy: 'xpath',
-            },
-            abbDetails: {
-              selector: '//span[contains(text(),"abb")]',
-              locateStrategy: 'xpath',
-            },
-            bacDetails: {
-              selector: '//span[contains(text(),"bac")]',
-              locateStrategy: 'xpath',
-            },
-            cbbDetails: {
-              selector: '//span[contains(text(),"cbb")]',
+                '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"cbb")]',
               locateStrategy: 'xpath',
             },
           },
@@ -1032,7 +1009,7 @@ module.exports = {
       commands: [localGroupPopupCommands],
       elements: {
         groupIdentifier: {
-          selector: '//span[contains(@class, "identifier-wrap")]',
+          selector: '//span[contains(@class, "identifier-wrap")]', // Title in the "xrd-sub-view-title" component
           locateStrategy: 'xpath',
         },
         localGroupAddMembersButton: {
@@ -1095,12 +1072,8 @@ module.exports = {
             '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
           locateStrategy: 'xpath',
         },
-        localGroupDescriptionLabel: {
-          selector: '//div[@data-test="ocal-group-edit-description-label"]',
-          locateStrategy: 'xpath',
-        },
         localGroupDescription: {
-          selector: '//div[contains(@class, "description-input")]//input',
+          selector: '//input[@data-test="local-group-edit-description-input"]',
           locateStrategy: 'xpath',
         },
         localGroupPopupCloseButton: {

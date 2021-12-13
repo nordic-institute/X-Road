@@ -321,7 +321,7 @@ module.exports = {
     localGroupPopup.close();
 
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
@@ -337,7 +337,7 @@ module.exports = {
     mainPage.closeAlertMessage();
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
     );
     clientLocalGroups.openDetails('cbb');
     browser.waitForElementVisible(localGroupPopup);
@@ -352,7 +352,7 @@ module.exports = {
     mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "' +
         maxLengthDescription +
         '")]]',
     );
@@ -368,7 +368,7 @@ module.exports = {
     mainPage.closeSnackbar();
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")] and .//*[contains(text(), "Group4")]]',
     );
     browser.end();
   },
@@ -397,7 +397,7 @@ module.exports = {
 
     // Delete and confirm
     browser.assert.elementPresent(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"bac")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"bac")]]',
     );
     clientLocalGroups.openDetails('abc');
     browser.waitForElementVisible(localGroupPopup);
@@ -411,7 +411,7 @@ module.exports = {
     localGroupPopup.confirmDelete();
     browser.waitForElementVisible(clientLocalGroups);
     browser.assert.not.elementPresent(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"abc")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"abc")]]',
     );
 
     // Delete and cancel
@@ -427,7 +427,7 @@ module.exports = {
     );
     localGroupPopup.close();
     browser.waitForElementVisible(
-      '//table[contains(@class, "details-certificates")]//tr[.//*[contains(text(),"cbb")]]',
+      '//*[contains(@data-test, "local-groups-table")]//tr[.//*[contains(text(),"cbb")]]',
     );
   },
 };
