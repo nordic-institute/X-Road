@@ -24,20 +24,30 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="system-settings-view">
     <!-- Title  -->
     <div class="table-toolbar align-fix mt-0 pl-0">
-      <div class="xrd-view-title align-fix">
+      <div
+        class="xrd-view-title align-fix"
+        data-test="system-settings-view-title"
+      >
         {{ $t('tab.settings.systemSettings') }}
       </div>
     </div>
 
     <div>
       <!-- System Parameters -->
-      <div id="anchor" class="mb-6">
+      <div
+        id="system-parameters-anchor"
+        class="mb-6"
+        data-test="system-settings-system-parameters-card"
+      >
         <v-card class="pb-4" flat>
           <div class="card-top">
-            <div class="card-main-title">
+            <div
+              class="card-main-title"
+              data-test="system-settings-system-parameters-title"
+            >
               {{ $t('systemSettings.systemParameters') }}
             </div>
           </div>
@@ -47,7 +57,7 @@
               <tr>
                 <td class="title-cell">
                   <div>
-                    <div>
+                    <div data-test="system-settings-instance-identifier-field">
                       {{ $t('systemSettings.instanceIdentifier') }}
                     </div>
                   </div>
@@ -58,7 +68,9 @@
               <tr>
                 <td>
                   <div>
-                    <div>
+                    <div
+                      data-test="system-settings-central-server-address-field"
+                    >
                       {{ $t('systemSettings.centralServerAddress') }}
                     </div>
                   </div>
@@ -67,6 +79,7 @@
                 <td class="action-cell">
                   <xrd-button
                     text
+                    data-test="system-settings-central-server-address-edit-button"
                     :outlined="false"
                     @click="onServerAddressEdit"
                     >{{ $t('action.edit') }}
@@ -80,7 +93,7 @@
     </div>
 
     <!-- Management Services -->
-    <div id="anchor" class="mb-6">
+    <div id="management-services-anchor" class="mb-6">
       <v-card class="pb-4" flat>
         <div class="card-top">
           <div class="card-main-title">
@@ -91,6 +104,7 @@
         <xrd-simple-dialog
           v-if="isEditingServerAddress"
           title="systemSettings.editCentralServerAddressTitle"
+          data-test="system-settings-central-server-address-edit-dialog"
           :dialog="isEditingServerAddress"
           :scrollable="false"
           :show-close="true"
@@ -109,6 +123,7 @@
               >
                 <v-text-field
                   v-model="renewedServerAddress"
+                  data-test="system-settings-central-server-address-edit-field"
                   :label="$t('systemSettings.centralServerAddress')"
                   autofocus
                   outlined
