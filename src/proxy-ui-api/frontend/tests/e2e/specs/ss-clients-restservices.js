@@ -154,7 +154,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -311,7 +311,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -398,7 +398,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -482,7 +482,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -612,7 +612,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -706,7 +706,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
@@ -860,7 +860,7 @@ module.exports = {
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
+    navigationBar.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
     // Verify cancel delete
