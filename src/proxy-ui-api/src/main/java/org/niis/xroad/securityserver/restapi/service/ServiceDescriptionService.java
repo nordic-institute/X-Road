@@ -874,8 +874,7 @@ public class ServiceDescriptionService {
 
     /**
      * Returns title for client's service with specific serviceCode.
-     * Current implementation picks title of the first matching service with given service code,
-     * if multiple versions exist.
+     * If there are multiple versions, the method returns the last title based on a inverse alphabetical comparison.
      *
      * @param clientType
      * @param serviceCode
@@ -885,7 +884,7 @@ public class ServiceDescriptionService {
         ServiceType service = clientType.getServiceDescription().stream()
                 .flatMap(sd -> sd.getService().stream())
                 .filter(serviceType -> serviceType.getServiceCode().equals(serviceCode))
-                .findFirst()
+                .max((sOne, sTwo) -> sOne.getServiceVersion().compareToIgnoreCase(sTwo.getServiceVersion()))
                 .orElse(null);
 
         return service == null ? null : service.getTitle();

@@ -786,16 +786,27 @@ public class ServiceDescriptionServiceIntegrationTest extends AbstractServiceInt
         sd1.getService().clear();
         sd1.getService().add(createServiceType(null, "foo", "v1"));
         sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
-        assertEquals(null, serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().clear();
         sd1.getService().add(createServiceType("", "foo", "v2"));
         sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
-        assertEquals("", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
 
         sd1.getService().clear();
+        sd1.getService().add(createServiceType("v4-title", "foo", "v4"));
         sd1.getService().add(createServiceType("v3-title", "foo", "v3"));
-        assertEquals("v3-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+        sd1.getService().add(createServiceType("v5-title", "foo", "v5"));
+
+        assertEquals("v5-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
+
+        sd1.getService().clear();
+        sd1.getService().add(createServiceType("AAA-title", "foo", "AAA"));
+        sd1.getService().add(createServiceType("XYZ-title", "foo", "XYZ"));
+        sd1.getService().add(createServiceType("v1-title", "foo", "v1"));
+        sd1.getService().add(createServiceType("V1`-title", "foo", "V1`"));
+
+        assertEquals("XYZ-title", serviceDescriptionService.getServiceTitle(testClient, "foo"));
     }
 
     private ServiceType createServiceType(String title, String serviceCode, String serviceVersion) {
