@@ -83,7 +83,12 @@ import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '../HelpButton.vue';
 import { mapGetters } from 'vuex';
-import { Key, Token, TokenCertificate } from '@/openapi-types';
+import {
+  Key,
+  Token,
+  TokenCertificate,
+  TokenCertificateSigningRequest,
+} from '@/openapi-types';
 import { deepClone } from '@/util/helpers';
 
 export default Vue.extend({
@@ -120,18 +125,16 @@ export default Vue.extend({
         return 0;
       });
 
-      if (!this.search) {
+      // Check that there is a search input
+      if (!this.search || this.search.length < 1) {
         return arr;
       }
 
       const mysearch = this.search.toLowerCase();
 
-      if (mysearch.length < 1) {
-        return this.tokens;
-      }
-
       arr.forEach((token: Token) => {
         token.keys.forEach((key: Key) => {
+          // Filter the certificates
           const certs = key.certificates.filter((cert: TokenCertificate) => {
             if (cert.owner_id) {
               return cert.owner_id.toLowerCase().includes(mysearch);
@@ -139,12 +142,30 @@ export default Vue.extend({
             return false;
           });
           key.certificates = certs;
+
+          // Filter the CSR:s
+          const csrs = key.certificate_signing_requests.filter(
+            (csr: TokenCertificateSigningRequest) => {
+              if (csr.id) {
+                return csr.id.toLowerCase().includes(mysearch);
+              }
+              return false;
+            },
+          );
+          key.certificate_signing_requests = csrs;
         });
       });
 
       arr.forEach((token: Token) => {
         const keys = token.keys.filter((key: Key) => {
           if (key.certificates && key.certificates.length > 0) {
+            return true;
+          }
+
+          if (
+            key.certificate_signing_requests &&
+            key.certificate_signing_requests.length > 0
+          ) {
             return true;
           }
 
