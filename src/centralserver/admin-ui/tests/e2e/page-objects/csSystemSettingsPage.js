@@ -29,6 +29,7 @@ const {
   navigateAndMakeTestable,
   instanceAndAddressIsVisible,
   dialogCancelButton,
+  dialogTitle,
 } = require('./csCommonObjectsPage');
 const systemSettingsCommands = {
   systemSettingsViewIsVisible() {
@@ -37,6 +38,7 @@ const systemSettingsCommands = {
   },
   serverAddressEditFieldIsVisible() {
     this.assert.visible('@systemSettingsServerAddressEditField');
+    return this;
   },
 
   initServerAddress(value) {
@@ -71,13 +73,23 @@ module.exports = {
       selector: '//div[@data-test="system-settings-system-parameters-title"]',
       locateStrategy: 'xpath',
     },
+    systemSettingsInstanceIdentifierFieldTitle: {
+      selector:
+        '//*[@data-test="system-settings-instance-identifier-field-title"]',
+      locateStrategy: 'xpath',
+    },
     systemSettingsInstanceIdentifierField: {
-      selector: '//div[@data-test="system-settings-instance-identifier-field"]',
+      selector: '//*[@data-test="system-settings-instance-identifier-field"]',
+      locateStrategy: 'xpath',
+    },
+    systemSettingsServerAddressFieldTitle: {
+      selector:
+        '//*[@data-test="system-settings-central-server-address-field-title"]',
       locateStrategy: 'xpath',
     },
     systemSettingsServerAddressField: {
       selector:
-        '//div[@data-test="system-settings-central-server-address-field"]',
+        '//*[@data-test="system-settings-central-server-address-field"]',
       locateStrategy: 'xpath',
     },
     systemSettingsServerAddressEditButton: {
@@ -91,5 +103,6 @@ module.exports = {
       locateStrategy: 'xpath',
     },
     dialogCancelButton,
+    dialogTitle,
   },
 };

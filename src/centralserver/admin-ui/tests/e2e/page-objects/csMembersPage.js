@@ -24,6 +24,10 @@
  * THE SOFTWARE.
  */
 
+const {
+  navigateAndMakeTestable,
+  verifyCurrentUser,
+} = require('./csCommonObjectsPage');
 const membersCommands = {
   membersViewIsVisible() {
     this.assert.visible('@membersView');
@@ -33,18 +37,8 @@ const membersCommands = {
     this.assert.visible('@instanceAndAddress');
     return this;
   },
-  verifyCurrentUser: function (user) {
-    this.api.assert.containsText(this.elements.userMenuButton, user);
-    return this;
-  },
-  navigateAndMakeTestable: function () {
-    this.logMessage('navigateAndMakeTestable()');
-    this.navigate();
-    this.waitForElementVisible('//*[@id="app"]');
-    this.makeTestable();
-    this.logMessage('navigateAndMakeTestable() done');
-    return this;
-  },
+  verifyCurrentUser,
+  navigateAndMakeTestable,
 };
 
 module.exports = {
