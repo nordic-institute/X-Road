@@ -26,6 +26,9 @@
 let login;
 let settings;
 const { User } = require('../constants');
+const {
+  VALID_SERVER_ADDRESS,
+} = require('../constants/InitializationParameterTestValues');
 module.exports = {
   tags: ['cs', 'systemSettings'],
   before(browser) {
@@ -40,19 +43,35 @@ module.exports = {
   after(browser) {
     browser.end();
   },
-  'SystemSettings view has correct titles and edit button enabled': async (
-    browser,
-  ) => {
-    await settings
-      .systemSettingsViewIsVisible()
-      .assert.elementPresent('@systemSettingsParametersCard')
-      .assert.elementPresent('@systemSettingsParametersTitle')
-      .assert.elementPresent('@systemSettingsInstanceIdentifierField')
-      .assert.elementPresent('@systemSettingsServerAddressField')
-      .assert.elementPresent('@systemSettingsServerAddressEditButton')
-      .click('@systemSettingsServerAddressEditButton')
-      .waitForElementVisible('@systemSettingsServerAddressEditField')
-      .click('@dialogCancelButton')
-      .waitForElementVisible('@systemSettingsServerAddressEditButton');
-  },
+  'SystemSettings/System Parameters view has correct titles and ServerAddress edit opens correct dialog':
+    async (browser) => {
+      await settings
+        .systemSettingsViewIsVisible()
+        .verify.elementPresent('@systemSettingsParametersCard')
+        .verify.elementPresent('@systemSettingsParametersTitle')
+        .verify.elementPresent('@systemSettingsInstanceIdentifierFieldTitle')
+        .verify.containsText(
+          '@systemSettingsInstanceIdentifierFieldTitle',
+          'Instance Identifier',
+        )
+        .verify.elementPresent('@systemSettingsInstanceIdentifierField')
+        .verify.elementPresent('@systemSettingsServerAddressFieldTitle')
+        .verify.containsText(
+          '@systemSettingsServerAddressFieldTitle',
+          'Central Server address',
+        )
+        .verify.elementPresent('@systemSettingsServerAddressField')
+        .verify.containsText(
+          '@systemSettingsServerAddressField',
+          VALID_SERVER_ADDRESS,
+        )
+        .verify.elementPresent('@systemSettingsServerAddressEditButton')
+        .assert.enabled('@systemSettingsServerAddressEditButton')
+        .click('@systemSettingsServerAddressEditButton')
+        .waitForElementVisible('@systemSettingsServerAddressEditField')
+        .serverAddressEditFieldIsVisible()
+        .verify.containsText('@dialogTitle', 'Edit Central Server address')
+        .click('@dialogCancelButton')
+        .waitForElementVisible('@systemSettingsServerAddressEditButton');
+    },
 };

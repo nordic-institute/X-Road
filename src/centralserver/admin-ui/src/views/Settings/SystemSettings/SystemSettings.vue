@@ -57,25 +57,27 @@
               <tr>
                 <td class="title-cell">
                   <div>
-                    <div data-test="system-settings-instance-identifier-field">
+                    <div data-test="system-settings-instance-identifier-field-title">
                       {{ $t('systemSettings.instanceIdentifier') }}
                     </div>
                   </div>
                 </td>
-                <td>{{ instanceIdentifier }}</td>
+                <td data-test="system-settings-instance-identifier-field">
+                  {{ instanceIdentifier }}
+                </td>
                 <td></td>
               </tr>
               <tr>
                 <td>
                   <div>
-                    <div
-                      data-test="system-settings-central-server-address-field"
-                    >
+                    <div data-test="system-settings-central-server-address-field-title">
                       {{ $t('systemSettings.centralServerAddress') }}
                     </div>
                   </div>
                 </td>
-                <td>{{ serverAddress }}</td>
+                <td data-test="system-settings-central-server-address-field">
+                  {{ serverAddress }}
+                </td>
                 <td class="action-cell">
                   <xrd-button
                     text
@@ -197,7 +199,7 @@
                   </div>
                 </div>
               </td>
-              <td>
+              <td data-test="">
                 {{ managementServices.centralServerAddress }}
               </td>
               <td></td>
