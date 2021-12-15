@@ -24,7 +24,14 @@
  * THE SOFTWARE.
  */
 
-module.exports = {
-  User: require('./User'),
-  CSInitParams: require('./InitializationParameterTestValues'),
-};
+module.exports = Object.freeze({
+  STRONG_PIN: 'Valid_Pin_11',
+  WEAK_PIN: '1',
+  VALID_INSTANCE: 'VALID_INSTANCE',
+  INVALID_INSTANCE: 'INVALID&&::INSTANCE',
+  VALID_SERVER_ADDRESS: 'valid.example.org',
+  INVALID_SERVER_ADDRESS: 'invalid...address...fo',
+  INSTANCE_INVALID_FIELD_NOTE: 'Use valid instance identifier characters only',
+  ADDRESS_INVALID_FIELD_NOTE:
+    'Valid IP address or fully qualified domain name needed',
+});
