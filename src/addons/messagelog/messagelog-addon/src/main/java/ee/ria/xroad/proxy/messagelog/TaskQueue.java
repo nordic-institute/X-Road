@@ -218,10 +218,10 @@ public class TaskQueue extends UntypedAbstractActor {
 
     static String getTaskQueueQuery() {
         return "select new " + Task.class.getName() + "(m.id, m.signatureHash) "
-                + "from MessageRecord m where m.signatureHash is not null order by m.id";
+                + "from MessageRecord m where m.timestampRecord is null order by m.id";
     }
 
     private static String getTaskQueueSizeQuery() {
-        return "select COUNT(*) from MessageRecord m where m.signatureHash is not null";
+        return "select COUNT(*) from MessageRecord m where m.timestampRecord is null";
     }
 }
