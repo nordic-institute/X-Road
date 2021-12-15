@@ -24,6 +24,11 @@
  * THE SOFTWARE.
  */
 
+const {
+  verifyCurrentUser,
+  navigateAndMakeTestable,
+} = require('./csCommonObjectsPage');
+
 const initializationCommands = {
   initializationViewIsVisible() {
     this.assert.visible('@initializationView');
@@ -71,18 +76,8 @@ const initializationCommands = {
     this.setValue('@confirmPinInput', value);
     return this;
   },
-  navigateAndMakeTestable: function () {
-    this.navigate();
-    this.waitForElementVisible('//*[@id="app"]');
-    this.makeTestable();
-    this.logMessage('navigateAndMakeTestable() done');
-    return this;
-  },
-
-  verifyCurrentUser: function (user) {
-    this.api.assert.containsText(this.elements.userMenuButton, user);
-    return this;
-  },
+  navigateAndMakeTestable,
+  verifyCurrentUser,
 };
 
 module.exports = {
