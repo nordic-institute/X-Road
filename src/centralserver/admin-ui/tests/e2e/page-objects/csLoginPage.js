@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-const { User } = require('../constants/');
+const { navigateAndMakeTestable } = require('./csCommonObjectsPage');
 const loginCommands = {
   clearUsername() {
     this.clearWithBackSpace('@usernameInput');
@@ -42,14 +42,7 @@ const loginCommands = {
     this.setValue('@passwordInput', password);
     return this;
   },
-  navigateAndMakeTestable: function () {
-    this.logMessage('navigateAndMakeTestable()');
-    this.navigate();
-    this.waitForElementVisible('//*[@id="app"]');
-    this.makeTestable();
-    this.logMessage('navigateAndMakeTestable() done');
-    return this;
-  },
+  navigateAndMakeTestable,
   signIn() {
     this.click('@loginButton');
     return this;

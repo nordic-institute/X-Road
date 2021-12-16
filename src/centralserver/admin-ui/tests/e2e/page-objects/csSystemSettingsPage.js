@@ -25,45 +25,70 @@
  */
 
 const {
-  navigateAndMakeTestable,
   verifyCurrentUser,
+  navigateAndMakeTestable,
+  instanceAndAddressIsVisible,
+  dialogCancelButton,
+  dialogTitle,
 } = require('./csCommonObjectsPage');
-const membersCommands = {
-  membersViewIsVisible() {
-    this.assert.visible('@membersView');
+const systemSettingsCommands = {
+  systemSettingsViewIsVisible() {
+    this.assert.visible('@systemSettingsView');
     return this;
   },
-  instanceAndAddressIsVisible() {
-    this.assert.visible('@instanceAndAddress');
+  serverAddressEditFieldIsVisible() {
+    this.assert.visible('@systemSettingsServerAddressEditField');
     return this;
   },
+
+  initServerAddress(value) {
+    this.assert.value('@systemSettingsServerAddressEditField', '');
+    this.setValue('@systemSettingsServerAddressEditField', value);
+    return this;
+  },
+  modifyServerAddress(value) {
+    this.waitForNonEmpty('@systemSettingsServerAddressEditField');
+    this.clearWithBackSpace('@systemSettingsServerAddressEditField');
+    this.setValue('@systemSettingsServerAddressEditField', value);
+    return this;
+  },
+  instanceAndAddressIsVisible,
   verifyCurrentUser,
   navigateAndMakeTestable,
 };
 
 module.exports = {
-  url: `${process.env.VUE_DEV_SERVER_URL}/#/members`,
-  commands: [membersCommands],
+  url: `${process.env.VUE_DEV_SERVER_URL}/#/settings/systemsettings`,
+  commands: [systemSettingsCommands],
   elements: {
-    membersView: {
-      selector: '//div[@data-test="members-view"]',
+    systemSettingsView: {
+      selector: '//div[@data-test="system-settings-view"]',
       locateStrategy: 'xpath',
     },
-    initNotificationNote: {
-      selector: '//div[@data-test="continue-init-notification"]',
+    systemSettingsParametersCard: {
+      selector: '//div[@data-test="system-settings-system-parameters-card"]',
       locateStrategy: 'xpath',
     },
-    userMenuButton: {
-      selector: '//button[@data-test="username-button"]',
+    systemSettingsInstanceIdentifierField: {
+      selector: '//*[@data-test="system-settings-instance-identifier-field"]',
       locateStrategy: 'xpath',
     },
-    instanceAndAddress: {
-      selector: '//div[@data-test="app-toolbar-server-instance-address"]',
+    systemSettingsServerAddressField: {
+      selector:
+        '//*[@data-test="system-settings-central-server-address-field"]',
       locateStrategy: 'xpath',
     },
-    nodeName: {
-      selector: '//div[@data-test="app-toolbar-node-name"]',
+    systemSettingsServerAddressEditButton: {
+      selector:
+        '//button[@data-test="system-settings-central-server-address-edit-button"][1]',
       locateStrategy: 'xpath',
     },
+    systemSettingsServerAddressEditField: {
+      selector:
+        '//input[@data-test="system-settings-central-server-address-edit-field"]',
+      locateStrategy: 'xpath',
+    },
+    dialogCancelButton,
+    dialogTitle,
   },
 };

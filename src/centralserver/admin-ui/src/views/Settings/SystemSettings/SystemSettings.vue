@@ -24,7 +24,7 @@
    THE SOFTWARE.
  -->
 <template>
-  <div>
+  <div data-test="system-settings-view">
     <!-- Title  -->
     <div class="table-toolbar align-fix mt-0 pl-0">
       <div class="xrd-view-title align-fix">
@@ -34,7 +34,11 @@
 
     <div>
       <!-- System Parameters -->
-      <div id="anchor" class="mb-6">
+      <div
+        id="system-parameters-anchor"
+        class="mb-6"
+        data-test="system-settings-system-parameters-card"
+      >
         <v-card class="pb-4" flat>
           <div class="card-top">
             <div class="card-main-title">
@@ -52,7 +56,9 @@
                     </div>
                   </div>
                 </td>
-                <td>{{ instanceIdentifier }}</td>
+                <td data-test="system-settings-instance-identifier-field">
+                  {{ instanceIdentifier }}
+                </td>
                 <td></td>
               </tr>
               <tr>
@@ -63,10 +69,13 @@
                     </div>
                   </div>
                 </td>
-                <td>{{ serverAddress }}</td>
+                <td data-test="system-settings-central-server-address-field">
+                  {{ serverAddress }}
+                </td>
                 <td class="action-cell">
                   <xrd-button
                     text
+                    data-test="system-settings-central-server-address-edit-button"
                     :outlined="false"
                     @click="onServerAddressEdit"
                     >{{ $t('action.edit') }}
@@ -80,7 +89,7 @@
     </div>
 
     <!-- Management Services -->
-    <div id="anchor" class="mb-6">
+    <div id="management-services-anchor" class="mb-6">
       <v-card class="pb-4" flat>
         <div class="card-top">
           <div class="card-main-title">
@@ -91,6 +100,7 @@
         <xrd-simple-dialog
           v-if="isEditingServerAddress"
           title="systemSettings.editCentralServerAddressTitle"
+          data-test="system-settings-central-server-address-edit-dialog"
           :dialog="isEditingServerAddress"
           :scrollable="false"
           :show-close="true"
@@ -109,6 +119,7 @@
               >
                 <v-text-field
                   v-model="renewedServerAddress"
+                  data-test="system-settings-central-server-address-edit-field"
                   :label="$t('systemSettings.centralServerAddress')"
                   autofocus
                   outlined
@@ -130,7 +141,11 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.serviceProviderIdentifier }}</td>
+              <td
+                data-test="system-settings-management-service-provider-identifier-field"
+              >
+                {{ managementServices.serviceProviderIdentifier }}
+              </td>
               <td class="action-cell">
                 <xrd-button text :outlined="false"
                   >{{ $t('action.edit') }}
@@ -146,7 +161,11 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.serviceProviderName }}</td>
+              <td
+                data-test="system-settings-management-service-provider-name-field"
+              >
+                {{ managementServices.serviceProviderName }}
+              </td>
               <td></td>
             </tr>
 
@@ -158,7 +177,9 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.managementServiceSecurityServer }}</td>
+              <td data-test="system-settings-management-security-server-field">
+                {{ managementServices.managementServiceSecurityServer }}
+              </td>
               <td></td>
             </tr>
 
@@ -170,7 +191,9 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.wsdlAddress }}</td>
+              <td data-test="system-settings-management-wsdl-address-field">
+                {{ managementServices.wsdlAddress }}
+              </td>
               <td></td>
             </tr>
 
@@ -267,7 +290,7 @@
  */
 import Vue, { VueConstructor } from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { ErrorInfo, InitializationStatus } from '@/openapi-types';
+import { ErrorInfo } from '@/openapi-types';
 import { StoreTypes } from '@/global';
 import { ValidationProvider } from 'vee-validate';
 import { AxiosError } from 'axios';
@@ -300,7 +323,7 @@ export default (
         serviceProviderIdentifier: 'SUBSYSTEM:DEV/ORG/111/MANAGEMENT',
         serviceProviderName: 'NIIS',
         managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
-        wsdlAddress: 'http://dev-cs.i.x-road.rocks/managementservices.wsdl',
+        wsdlAddress: 'https://dev-cs.i.x-road.rocks/managementservices.wsdl',
         centralServerAddress:
           this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
             ?.initialization_status?.central_server_address,

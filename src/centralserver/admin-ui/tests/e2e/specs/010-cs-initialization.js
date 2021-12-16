@@ -26,19 +26,17 @@
 let login;
 let initialization;
 let members;
-const { User } = require('../constants');
+const {
+  VALID_SERVER_ADDRESS,
+  VALID_INSTANCE,
+  STRONG_PIN,
+  WEAK_PIN,
+  INVALID_INSTANCE,
+  INVALID_SERVER_ADDRESS,
+  INSTANCE_INVALID_FIELD_NOTE,
+  ADDRESS_INVALID_FIELD_NOTE,
+} = require('../constants/InitializationParameterTestValues');
 
-const STRONG_PIN = 'Valid_Pin_11';
-const WEAK_PIN = '1';
-const VALID_INSTANCE = 'VALID_INSTANCE';
-const INVALID_INSTANCE = 'INVALID&&::INSTANCE';
-const VALID_SERVER_ADDRESS = 'valid.example.org';
-const INVALID_SERVER_ADDRESS = 'invalid...address...fo';
-// NOTE: update according to localization/en.json (or dig from there?)
-const INSTANCE_INVALID_FIELD_NOTE =
-  'Use valid instance identifier characters only';
-const ADDRESS_INVALID_FIELD_NOTE =
-  'Valid IP address or fully qualified domain name needed';
 /*
  *  NOTE: Keep initialization tests in this file or at least before
  *        other tests, i.e. in a file with number prefix that is smaller

@@ -23,32 +23,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-let login;
-let members;
-module.exports = {
-  tags: ['cs', 'login'],
-  before(browser) {
-    login = browser.page.csLoginPage();
-    members = browser.page.csMembersPage();
-  },
-  beforeEach() {
-    login.navigateAndMakeTestable();
-  },
-  after(browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    login
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    login
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-};
+
+module.exports = Object.freeze({
+  STRONG_PIN: 'Valid_Pin_11',
+  WEAK_PIN: '1',
+  VALID_INSTANCE: 'VALID_INSTANCE',
+  INVALID_INSTANCE: 'INVALID&&::INSTANCE',
+  VALID_SERVER_ADDRESS: 'valid.example.org',
+  INVALID_SERVER_ADDRESS: 'invalid...address...fo',
+  INSTANCE_INVALID_FIELD_NOTE: 'Use valid instance identifier characters only',
+  ADDRESS_INVALID_FIELD_NOTE:
+    'Valid IP address or fully qualified domain name needed',
+});
