@@ -39,6 +39,7 @@ import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
+import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
