@@ -43,23 +43,12 @@ module.exports = {
   after(browser) {
     browser.end();
   },
-  'SystemSettings/System Parameters view has correct titles and ServerAddress edit opens correct dialog':
+  'SystemSettings/System Parameters view has titles and ServerAddress edit opens correct dialog':
     async (browser) => {
       await settings
         .systemSettingsViewIsVisible()
         .verify.elementPresent('@systemSettingsParametersCard')
-        .verify.elementPresent('@systemSettingsParametersTitle')
-        .verify.elementPresent('@systemSettingsInstanceIdentifierFieldTitle')
-        .verify.containsText(
-          '@systemSettingsInstanceIdentifierFieldTitle',
-          'Instance Identifier',
-        )
         .verify.elementPresent('@systemSettingsInstanceIdentifierField')
-        .verify.elementPresent('@systemSettingsServerAddressFieldTitle')
-        .verify.containsText(
-          '@systemSettingsServerAddressFieldTitle',
-          'Central Server address',
-        )
         .verify.elementPresent('@systemSettingsServerAddressField')
         .verify.containsText(
           '@systemSettingsServerAddressField',
@@ -70,7 +59,6 @@ module.exports = {
         .click('@systemSettingsServerAddressEditButton')
         .waitForElementVisible('@systemSettingsServerAddressEditField')
         .serverAddressEditFieldIsVisible()
-        .verify.containsText('@dialogTitle', 'Edit Central Server address')
         .click('@dialogCancelButton')
         .waitForElementVisible('@systemSettingsServerAddressEditButton');
     },
