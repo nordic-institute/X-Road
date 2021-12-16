@@ -42,89 +42,90 @@
         class="alert"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
-          <div class="mr-4">
-            <xrd-icon-base color="red"
-              ><XrdIconErrorNotification
-            /></xrd-icon-base>
-          </div>
-          <div class="row-wrapper">
-            <!-- Show localised text by id -->
-            <div v-if="notification.errorMessageCode">
-              {{ $t(notification.errorMessageCode) }}
-            </div>
-
-            <!-- Show raw text -->
-            <div v-else-if="notification.errorMessageRaw">
-              {{ notification.errorMessageRaw }}
-            </div>
-
-            <!-- Show localised text by id from error object -->
-            <div
-              v-else-if="notification.errorObject && errorCode(notification)"
-            >
-              {{ $t('error_code.' + errorCode(notification)) }}
-            </div>
-
-            <!-- If error doesn't have a text or localisation key then just print the error object -->
-            <div v-else-if="notification.errorObject">
-              {{ notification.errorObject }}
-            </div>
-
-            <!-- Special case for pin code validation -->
-            <div v-if="errorCode(notification) === 'weak_pin'">
-              <div>
-                {{
-                  $t(`error_code.${errorMetadata(notification)[0]}`) +
-                  `: ${errorMetadata(notification)[1]}`
-                }}
+          <div class="icon-wrapper">
+            <v-icon class="icon"> icon-Error-notification</v-icon>
+            <div class="row-wrapper">
+              <!-- Show localised text by id -->
+              <div v-if="notification.errorMessageCode">
+                {{ $t(notification.errorMessageCode) }}
               </div>
-              <div>
-                {{
-                  $t(`error_code.${errorMetadata(notification)[2]}`) +
-                  `: ${errorMetadata(notification)[3]}`
-                }}
-              </div>
-            </div>
-            <div v-for="meta in errorMetadata(notification)" v-else :key="meta">
-              {{ meta }}
-            </div>
 
-            <!-- Show validation errors -->
-            <ul v-if="hasValidationErrors(notification)">
-              <li
-                v-for="validationError in validationErrors(notification)"
-                :key="validationError.field"
+              <!-- Show raw text -->
+              <div v-else-if="notification.errorMessageRaw">
+                {{ notification.errorMessageRaw }}
+              </div>
+
+              <!-- Show localised text by id from error object -->
+              <div
+                v-else-if="notification.errorObject && errorCode(notification)"
               >
-                {{ $t(`fields.${validationError.field}`) }}:
-                <template v-if="validationError.errorCodes.length === 1">
-                  {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-                </template>
-                <template v-else>
-                  <ul>
-                    <li
-                      v-for="errCode in validationError.errorCodes"
-                      :key="`${validationError.field}.${errCode}`"
-                    >
-                      {{ $t(`validationError.${errCode}`) }}
-                    </li>
-                  </ul>
-                </template>
-              </li>
-            </ul>
+                {{ $t('error_code.' + errorCode(notification)) }}
+              </div>
 
-            <!-- Error ID -->
-            <div v-if="errorId(notification)">
-              {{ $t('id') }}:
-              {{ errorId(notification) }}
-            </div>
+              <!-- If error doesn't have a text or localisation key then just print the error object -->
+              <div v-else-if="notification.errorObject">
+                {{ notification.errorObject }}
+              </div>
 
-            <!-- count -->
-            <div v-if="notification.count > 1">
-              {{ $t('count') }}
-              {{ notification.count }}
+              <!-- Special case for pin code validation -->
+              <div v-if="errorCode(notification) === 'weak_pin'">
+                <div>
+                  {{
+                    $t(`error_code.${errorMetadata(notification)[0]}`) +
+                    `: ${errorMetadata(notification)[1]}`
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t(`error_code.${errorMetadata(notification)[2]}`) +
+                    `: ${errorMetadata(notification)[3]}`
+                  }}
+                </div>
+              </div>
+              <div
+                v-for="meta in errorMetadata(notification)"
+                v-else
+                :key="meta"
+              >
+                {{ meta }}
+              </div>
+
+              <!-- Show validation errors -->
+              <ul v-if="hasValidationErrors(notification)">
+                <li
+                  v-for="validationError in validationErrors(notification)"
+                  :key="validationError.field"
+                >
+                  {{ $t(`fields.${validationError.field}`) }}:
+                  <template v-if="validationError.errorCodes.length === 1">
+                    {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+                  </template>
+                  <template v-else>
+                    <ul>
+                      <li
+                        v-for="errCode in validationError.errorCodes"
+                        :key="`${validationError.field}.${errCode}`"
+                      >
+                        {{ $t(`validationError.${errCode}`) }}
+                      </li>
+                    </ul>
+                  </template>
+                </li>
+              </ul>
+
+              <!-- Error ID -->
+              <div v-if="errorId(notification)">
+                {{ $t('id') }}:
+                {{ errorId(notification) }}
+              </div>
+
+              <!-- count -->
+              <div v-if="notification.count > 1">
+                {{ $t('count') }}
+                {{ notification.count }}
+              </div>
             </div>
           </div>
-
           <xrd-button
             v-if="errorId(notification)"
             text
