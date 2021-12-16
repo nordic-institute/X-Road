@@ -27,10 +27,7 @@
   <div data-test="system-settings-view">
     <!-- Title  -->
     <div class="table-toolbar align-fix mt-0 pl-0">
-      <div
-        class="xrd-view-title align-fix"
-        data-test="system-settings-view-title"
-      >
+      <div class="xrd-view-title align-fix">
         {{ $t('tab.settings.systemSettings') }}
       </div>
     </div>
@@ -44,10 +41,7 @@
       >
         <v-card class="pb-4" flat>
           <div class="card-top">
-            <div
-              class="card-main-title"
-              data-test="system-settings-system-parameters-title"
-            >
+            <div class="card-main-title">
               {{ $t('systemSettings.systemParameters') }}
             </div>
           </div>
@@ -57,7 +51,7 @@
               <tr>
                 <td class="title-cell">
                   <div>
-                    <div data-test="system-settings-instance-identifier-field-title">
+                    <div>
                       {{ $t('systemSettings.instanceIdentifier') }}
                     </div>
                   </div>
@@ -70,7 +64,7 @@
               <tr>
                 <td>
                   <div>
-                    <div data-test="system-settings-central-server-address-field-title">
+                    <div>
                       {{ $t('systemSettings.centralServerAddress') }}
                     </div>
                   </div>
@@ -147,7 +141,11 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.serviceProviderIdentifier }}</td>
+              <td
+                data-test="system-settings-management-service-provider-identifier-field"
+              >
+                {{ managementServices.serviceProviderIdentifier }}
+              </td>
               <td class="action-cell">
                 <xrd-button text :outlined="false"
                   >{{ $t('action.edit') }}
@@ -163,7 +161,11 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.serviceProviderName }}</td>
+              <td
+                data-test="system-settings-management-service-provider-name-field"
+              >
+                {{ managementServices.serviceProviderName }}
+              </td>
               <td></td>
             </tr>
 
@@ -175,7 +177,9 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.managementServiceSecurityServer }}</td>
+              <td data-test="system-settings-management-security-server-field">
+                {{ managementServices.managementServiceSecurityServer }}
+              </td>
               <td></td>
             </tr>
 
@@ -187,7 +191,9 @@
                   </div>
                 </div>
               </td>
-              <td>{{ managementServices.wsdlAddress }}</td>
+              <td data-test="system-settings-management-wsdl-address-field">
+                {{ managementServices.wsdlAddress }}
+              </td>
               <td></td>
             </tr>
 
@@ -199,7 +205,7 @@
                   </div>
                 </div>
               </td>
-              <td data-test="">
+              <td>
                 {{ managementServices.centralServerAddress }}
               </td>
               <td></td>
@@ -284,7 +290,7 @@
  */
 import Vue, { VueConstructor } from 'vue';
 import { DataTableHeader } from 'vuetify';
-import { ErrorInfo, InitializationStatus } from '@/openapi-types';
+import { ErrorInfo } from '@/openapi-types';
 import { StoreTypes } from '@/global';
 import { ValidationProvider } from 'vee-validate';
 import { AxiosError } from 'axios';
@@ -317,7 +323,7 @@ export default (
         serviceProviderIdentifier: 'SUBSYSTEM:DEV/ORG/111/MANAGEMENT',
         serviceProviderName: 'NIIS',
         managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
-        wsdlAddress: 'http://dev-cs.i.x-road.rocks/managementservices.wsdl',
+        wsdlAddress: 'https://dev-cs.i.x-road.rocks/managementservices.wsdl',
         centralServerAddress:
           this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
             ?.initialization_status?.central_server_address,

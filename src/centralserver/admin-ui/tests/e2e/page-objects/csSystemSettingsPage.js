@@ -69,22 +69,8 @@ module.exports = {
       selector: '//div[@data-test="system-settings-system-parameters-card"]',
       locateStrategy: 'xpath',
     },
-    systemSettingsParametersTitle: {
-      selector: '//div[@data-test="system-settings-system-parameters-title"]',
-      locateStrategy: 'xpath',
-    },
-    systemSettingsInstanceIdentifierFieldTitle: {
-      selector:
-        '//*[@data-test="system-settings-instance-identifier-field-title"]',
-      locateStrategy: 'xpath',
-    },
     systemSettingsInstanceIdentifierField: {
       selector: '//*[@data-test="system-settings-instance-identifier-field"]',
-      locateStrategy: 'xpath',
-    },
-    systemSettingsServerAddressFieldTitle: {
-      selector:
-        '//*[@data-test="system-settings-central-server-address-field-title"]',
       locateStrategy: 'xpath',
     },
     systemSettingsServerAddressField: {
