@@ -247,51 +247,61 @@ export default Vue.extend({
 @import '~styles/colors';
 
 .alerts-container {
-  width: 1000px;
   padding: 0;
 
   & > * {
-    margin-top: 0;
     margin-bottom: 4px;
   }
+}
 
-  .alert {
-    margin-top: 8px;
-    border: 2px solid $XRoad-WarmGrey30;
-    box-sizing: border-box;
-    border-radius: 4px;
+.alert {
+  margin-top: 8px;
+  border: 2px solid $XRoad-WarmGrey30;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
 
-    .row-wrapper-top {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-    }
+.row-wrapper-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    .row-wrapper {
-      display: flex;
-      flex-direction: column;
-      overflow: auto;
-      overflow-wrap: break-word;
-      justify-content: center;
-      margin-right: 30px;
-    }
+.icon-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 
-    .id-button {
-      margin-left: 0;
-      margin-right: auto;
-    }
-
-    .close-button {
-      height: 100%;
-      margin-left: auto;
-      margin-right: 5px;
-    }
-
-    .scrollable {
-      overflow-y: auto;
-      max-height: 300px;
-    }
+  .icon {
+    margin-right: 12px;
+    color: $XRoad-Error;
   }
+}
+
+.row-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overflow-wrap: break-word;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.id-button {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.buttons {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
 }
 </style>

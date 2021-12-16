@@ -80,31 +80,36 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 @import '~styles/colors';
 
 .alerts-container {
-  width: 1000px;
   padding: 0;
 
   & > * {
-    margin-top: 0;
     margin-bottom: 4px;
     border-radius: 0;
   }
 
   & > :first-child {
-    margin-top: 4px;
-  }
-
-  .alert {
     margin-top: 8px;
-    border-radius: 4px;
   }
+}
 
-  .alert-text {
-    color: $XRoad-Black100;
-    display: block;
-  }
+.alert {
+  margin-top: 8px;
+  border: 2px solid $XRoad-WarmGrey30;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
+
+.alert-text {
+  color: $XRoad-Black100;
+  display: block;
+}
+
+.clickable-link {
+  text-decoration: underline;
+  cursor: pointer;
 }
 </style>
