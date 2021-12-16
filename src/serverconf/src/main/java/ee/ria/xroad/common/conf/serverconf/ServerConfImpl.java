@@ -400,7 +400,8 @@ public class ServerConfImpl implements ServerConfProvider {
         });
     }
 
-    public void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType) throws Exception {
+    public void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType)
+            throws Exception {
         tx(session -> {
             messageRoomSubscriptionDAO.deleteMessageRoomSubscription(session, messageRoomSubscriptionType);
             return null;

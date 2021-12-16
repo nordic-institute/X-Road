@@ -27,8 +27,8 @@ package ee.ria.xroad.common.conf.serverconf.dao;
 
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
-
 import ee.ria.xroad.common.identifier.ClientId;
+
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 
@@ -37,10 +37,9 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+
 import java.util.Date;
 import java.util.List;
-
-import static ee.ria.xroad.common.conf.serverconf.ServerConfDatabaseCtx.doInTransaction;
 
 /**
  * Message room subscription data access object implementation.
@@ -79,14 +78,14 @@ public class MessageRoomSubscriptionDAOImpl extends AbstractDAOImpl<MessageRoomS
 
     public void saveMessageRoomSubscription(Session session, MessageRoomSubscriptionType messageRoomSubscriptionType)
             throws Exception {
-            messageRoomSubscriptionType.setId(getNextRecordId(session));
-            messageRoomSubscriptionType.setCreated(new Date());
-            session.save(messageRoomSubscriptionType);
+        messageRoomSubscriptionType.setId(getNextRecordId(session));
+        messageRoomSubscriptionType.setCreated(new Date());
+        session.save(messageRoomSubscriptionType);
     }
 
     public void deleteMessageRoomSubscription(Session session, MessageRoomSubscriptionType messageRoomSubscriptionType)
             throws Exception {
-            session.delete(messageRoomSubscriptionType);
+        session.delete(messageRoomSubscriptionType);
     }
 
     static long getNextRecordId(Session session) {
