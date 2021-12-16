@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -221,4 +222,24 @@ public interface ServerConfProvider {
     default boolean isAvailable() {
         return true;
     }
+
+    /**
+     * @param publisher the client identifier of the Message Room publisher
+     * @return the list of Message Room subscriptions for the Message Room identified
+     * by the publisher identifier.
+     */
+    List<MessageRoomSubscriptionType> getMessageRoomSubscriptions(ClientId publisher);
+
+    /**
+     * @param messageRoomId the client identifier of the Message Room publisher
+     * @param subscriberId the service identifier of the Message Room subscriber
+     * @throws Exception
+     */
+    void saveMessageRoomSubscription(ClientId messageRoomId, ServiceId subscriberId) throws Exception;
+
+    /**
+     * @param messageRoomSubscriptionType the message room subscription to be deleted
+     * @throws Exception
+     */
+    void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType) throws Exception;
 }

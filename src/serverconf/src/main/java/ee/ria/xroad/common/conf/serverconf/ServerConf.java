@@ -27,6 +27,7 @@ package ee.ria.xroad.common.conf.serverconf;
 
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -322,6 +323,40 @@ public class ServerConf {
         log.trace("getServiceDescriptionURL({})", service);
 
         return getInstance().getServiceDescriptionURL(service);
+    }
+
+    /**
+     * @param publisher the client identifier of the Message Room publisher
+     * @return the list of Message Room subscriptions for the Message Room identified
+     * by the publisher identifier.
+     */
+    public static List<MessageRoomSubscriptionType> getMessageRoomSubscriptions(ClientId publisher) {
+        log.trace("getMessageRoomSubscriptions({})", publisher);
+
+        return getInstance().getMessageRoomSubscriptions(publisher);
+    }
+
+    /**
+     * @param messageRoomId the client identifier of the Message Room publisher
+     * @param subscriberId the service identifier of the Message Room subscriber
+     * @throws Exception
+     */
+    public static void saveMessageRoomSubscription(ClientId messageRoomId, ServiceId subscriberId)
+            throws Exception {
+        log.trace("saveMessageRoomSubscription({}, {})", messageRoomId, subscriberId);
+
+        getInstance().saveMessageRoomSubscription(messageRoomId, subscriberId);
+    }
+
+    /**
+     * @param messageRoomSubscriptionType the message room subscription to be deleted
+     * @throws Exception
+     */
+    public static void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType)
+            throws Exception {
+        log.trace("deleteMessageRoomSubscription({})", messageRoomSubscriptionType);
+
+        getInstance().deleteMessageRoomSubscription(messageRoomSubscriptionType);
     }
 
     public static void logStatistics() {

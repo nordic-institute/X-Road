@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -173,4 +174,17 @@ public class EmptyServerConf implements ServerConfProvider {
         return null;
     }
 
+    @Override
+    public List<MessageRoomSubscriptionType> getMessageRoomSubscriptions(ClientId publisher) {
+        return null;
+    }
+
+    @Override
+    public void saveMessageRoomSubscription(ClientId messageRoomId, ServiceId subscriberId) throws Exception {
+    }
+
+    @Override
+    public void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType)
+            throws Exception {
+    }
 }

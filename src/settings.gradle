@@ -46,6 +46,7 @@ include "addons:messagelog:messagelog-addon"
 include "addons:messagelog:messagelog-archiver"
 include "addons:messagelog:messagelog-db"
 include "addons:metaservice"
+include "addons:messageroom"
 
 include "addons:proxymonitor-common"
 project(":addons:proxymonitor-common").projectDir = file('addons/proxymonitor/common')

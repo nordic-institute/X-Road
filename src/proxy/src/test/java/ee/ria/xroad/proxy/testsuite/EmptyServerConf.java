@@ -30,6 +30,7 @@ import ee.ria.xroad.common.conf.serverconf.IsAuthentication;
 import ee.ria.xroad.common.conf.serverconf.ServerConfProvider;
 import ee.ria.xroad.common.conf.serverconf.model.ClientType;
 import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
+import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityCategoryId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -236,5 +237,19 @@ public class EmptyServerConf implements ServerConfProvider {
         } else {
             throw new UnsupportedOperationException("The given parameter is not a REST service type!");
         }
+    }
+
+    @Override
+    public List<MessageRoomSubscriptionType> getMessageRoomSubscriptions(ClientId publisher) {
+        return null;
+    }
+
+    @Override
+    public void saveMessageRoomSubscription(ClientId messageRoomId, ServiceId subscriberId) throws Exception {
+    }
+
+    @Override
+    public void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType)
+            throws Exception {
     }
 }

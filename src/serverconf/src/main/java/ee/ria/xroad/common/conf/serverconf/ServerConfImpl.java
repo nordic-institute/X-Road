@@ -28,20 +28,8 @@ package ee.ria.xroad.common.conf.serverconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.InternalSSLKey;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.serverconf.dao.CertificateDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ClientDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.IdentifierDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServerConfDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.dao.ServiceDescriptionDAOImpl;
-import ee.ria.xroad.common.conf.serverconf.model.AccessRightType;
-import ee.ria.xroad.common.conf.serverconf.model.ClientType;
-import ee.ria.xroad.common.conf.serverconf.model.DescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.EndpointType;
-import ee.ria.xroad.common.conf.serverconf.model.ServerConfType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
-import ee.ria.xroad.common.conf.serverconf.model.ServiceType;
-import ee.ria.xroad.common.conf.serverconf.model.TspType;
+import ee.ria.xroad.common.conf.serverconf.dao.*;
+import ee.ria.xroad.common.conf.serverconf.model.*;
 import ee.ria.xroad.common.db.TransactionCallback;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.GlobalGroupId;
@@ -95,6 +83,7 @@ public class ServerConfImpl implements ServerConfProvider {
     private final CertificateDAOImpl certificateDao = new CertificateDAOImpl();
     private final ServerConfDAOImpl serverConfDao = new ServerConfDAOImpl();
     private final ServiceDescriptionDAOImpl serviceDescriptionDao = new ServiceDescriptionDAOImpl();
+    private final MessageRoomSubscriptionDAOImpl messageRoomSubscriptionDAO = new MessageRoomSubscriptionDAOImpl();
 
     @Override
     public SecurityServerId getIdentifier() {
@@ -380,6 +369,28 @@ public class ServerConfImpl implements ServerConfProvider {
             log.warn("Unable to check Serverconf availability", e);
             return false;
         }
+    }
+
+    @Override
+    public List<MessageRoomSubscriptionType> getMessageRoomSubscriptions(ClientId publisher) {
+        return tx(session -> messageRoomSubscriptionDAO.getMessageRoomSubscriptions(session, publisher));
+    }
+
+    public void saveMessageRoomSubscription(ClientId messageRoomId, ServiceId subscriberId) throws Exception {
+        tx(session -> {
+            ClientType clientType = getClient(session, messageRoomId);
+            MessageRoomSubscriptionType messageRoomSubscriptionType =
+                    new MessageRoomSubscriptionType(clientType, subscriberId.toShortString());
+            messageRoomSubscriptionDAO.saveMessageRoomSubscription(session, messageRoomSubscriptionType);
+            return null;
+        });
+    }
+
+    public void deleteMessageRoomSubscription(MessageRoomSubscriptionType messageRoomSubscriptionType) throws Exception {
+        tx(session -> {
+            messageRoomSubscriptionDAO.deleteMessageRoomSubscription(session, messageRoomSubscriptionType);
+            return null;
+        });
     }
 
     private static Endpoint createEndpoint(String method, String path) {

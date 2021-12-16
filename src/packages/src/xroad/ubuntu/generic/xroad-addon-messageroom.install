@@ -1,0 +1,5 @@
+../../../../src/xroad/common/addon/proxy/messageroom* usr/share/xroad/jlib/addon/proxy/
+../../../../../addons/messageroom/build/libs/messageroom-1.0.jar usr/share/xroad/jlib/addon/proxy/
+../../../../../LICENSE.txt usr/share/doc/xroad-addon-messageroom/
+../../../../../3RD-PARTY-NOTICES.txt usr/share/doc/xroad-addon-messageroom/
+../../../../../../CHANGELOG.md usr/share/doc/xroad-addon-messageroom/

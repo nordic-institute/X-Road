@@ -127,6 +127,12 @@ Depends: ${misc:Depends}, xroad-proxy (=${binary:Version}), xroad-opmonitor (=${
 Description: X-Road AddOn: operations monitoring service
  AddOn for operations monitoring.
 
+Package: xroad-addon-messageroom
+Architecture: all
+Depends: ${misc:Depends}, xroad-proxy (=${binary:Version})
+Description: X-Road AddOn: messageroom
+ AddOn for Message Rooms
+
 Package: xroad-securityserver-fi
 Conflicts: xroad-centralserver
 Architecture: all

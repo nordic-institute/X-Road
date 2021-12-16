@@ -1,0 +1,9 @@
+dependencies {
+    implementation project(':proxy')
+    implementation project(':common-util')
+    implementation project(':serverconf')
+    implementation project(":common-op-monitoring")
+    implementation project(":common-verifier")
+}
+
+compileJava.dependsOn processResources

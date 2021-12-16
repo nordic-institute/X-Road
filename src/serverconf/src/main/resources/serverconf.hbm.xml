@@ -193,4 +193,13 @@
         <property name="locale" access="field"/>
     </class>
 
+    <class name="ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType" table="MESSAGE_ROOM_SUBSCRIPTION">
+        <id name="id" type="long" access="field">
+            <generator class="native"/>
+        </id>
+        <many-to-one name="publisherClient" access="field" class="ClientType" column="client_id"
+                     not-null="true" cascade="none"/>
+        <property name="subscriberServiceId" access="field" not-null="true" column="service_id"/>
+        <property name="created" access="field" not-null="true"/>
+    </class>
 </hibernate-mapping>
