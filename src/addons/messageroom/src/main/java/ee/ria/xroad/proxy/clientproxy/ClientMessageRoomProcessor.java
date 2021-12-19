@@ -96,7 +96,7 @@ public class ClientMessageRoomProcessor extends AbstractClientMessageProcessor {
             restRequest = new RestRequest(
                     servletRequest.getMethod(),
                     "/r1/instanceIdentifier/memberClass/memberCode/subsystemCode/serviceCode/",
-                    servletRequest.getQueryString(),
+                    null,
                     headers(servletRequest),
                     null
             );
