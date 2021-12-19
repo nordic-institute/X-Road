@@ -25,6 +25,7 @@
  */
 package ee.ria.xroad.proxy.clientproxy;
 
+import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.conf.serverconf.IsAuthenticationData;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.message.RestRequest;
@@ -32,6 +33,7 @@ import ee.ria.xroad.common.monitoring.MessageInfo;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringData;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.common.MessageRoomUtil;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -50,6 +52,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.ErrorCodes.X_BAD_REQUEST;
 
 @Slf4j
 public class ClientMessageRoomProcessor extends AbstractClientMessageProcessor {
@@ -101,6 +105,11 @@ public class ClientMessageRoomProcessor extends AbstractClientMessageProcessor {
             checkRequestIdentifiers();
 
             senderId = restRequest.getClientId();
+
+            if (!MessageRoomUtil.isValidPublisher(senderId)) {
+                throw new CodedException(X_BAD_REQUEST,
+                        "Message Room messages are disabled for this client");
+            }
 
             verifyClientStatus(senderId);
             verifyClientAuthentication(senderId);

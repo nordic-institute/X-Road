@@ -38,6 +38,7 @@ import ee.ria.xroad.common.util.CachingStream;
 import ee.ria.xroad.common.util.CryptoUtils;
 import ee.ria.xroad.common.util.MimeTypes;
 import ee.ria.xroad.common.util.MimeUtils;
+import ee.ria.xroad.proxy.common.MessageRoomUtil;
 import ee.ria.xroad.proxy.protocol.ProxyMessage;
 import ee.ria.xroad.proxy.protocol.ProxyMessageDecoder;
 import ee.ria.xroad.proxy.protocol.ProxyMessageEncoder;
@@ -136,6 +137,11 @@ public class MessageRoomServiceHandlerImpl implements RestServiceHandler {
                 requestProxyMessage.getRest().getHeaders(),
                 servletRequest.getHeader(HEADER_REQUEST_ID)
         );
+
+        if (!MessageRoomUtil.isValidPublisher(requestProxyMessage.getRest().getServiceId().getClientId())) {
+            throw new CodedException(X_INVALID_REQUEST,
+                    "Message Room messages are disabled for this subsystem");
+        }
 
         JsonNode jsonMap = MAPPER.readTree(requestProxyMessage.getRestBody());
         JsonNode xRoadService = jsonMap.get("x-road-service");
