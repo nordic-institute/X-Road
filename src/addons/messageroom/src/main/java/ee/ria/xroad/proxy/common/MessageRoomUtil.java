@@ -25,7 +25,14 @@
  */
 package ee.ria.xroad.proxy.common;
 
+import ee.ria.xroad.common.conf.serverconf.model.MessageRoomSubscriptionType;
 import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.ServiceId;
+
+import java.util.List;
+import java.util.Optional;
+
+import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
 /**
  * Message rooms utility class.
@@ -39,5 +46,27 @@ public final class MessageRoomUtil {
                 .filter(s -> s.equals(clientId))
                 .findFirst()
                 .isPresent();
+    }
+
+    public static Optional<MessageRoomSubscriptionType> findSubscription(
+            List<MessageRoomSubscriptionType> subscriptions, ServiceId xRoadServiceId) {
+        return subscriptions.stream()
+                .filter(s -> s.getSubscriberServiceId().equals(xRoadServiceId.toShortString()))
+                .findFirst();
+    }
+
+    @SuppressWarnings("checkstyle:magicnumber")
+    public static ServiceId decodeServiceId(String value) {
+        final String[] parts = value.split("/", 6);
+        if (parts.length != 5) {
+            throw new IllegalArgumentException("Invalid Service Id");
+        }
+        return ServiceId.create(
+                uriSegmentPercentDecode(parts[0]),
+                uriSegmentPercentDecode(parts[1]),
+                uriSegmentPercentDecode(parts[2]),
+                uriSegmentPercentDecode(parts[3]),
+                uriSegmentPercentDecode(parts[4])
+        );
     }
 }

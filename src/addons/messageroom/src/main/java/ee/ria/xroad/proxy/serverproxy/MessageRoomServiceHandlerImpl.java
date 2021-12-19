@@ -64,7 +64,6 @@ import java.util.Optional;
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_REQUEST;
 import static ee.ria.xroad.common.util.MimeUtils.HEADER_REQUEST_ID;
-import static ee.ria.xroad.common.util.UriUtils.uriSegmentPercentDecode;
 
 /**
  * Handler for Message Room subscribe and unsubscribe services
@@ -150,7 +149,7 @@ public class MessageRoomServiceHandlerImpl implements RestServiceHandler {
                     "Missing x-road-service in message body");
         }
 
-        ServiceId xRoadServiceId = decodeServiceId(xRoadService.asText());
+        ServiceId xRoadServiceId = MessageRoomUtil.decodeServiceId(xRoadService.asText());
         if (!xRoadServiceId.getClientId().equals(requestProxyMessage.getRest().getClientId())) {
             throw new CodedException(X_INVALID_REQUEST,
                     "x-road-service is not owned by x-road-client");
@@ -179,7 +178,7 @@ public class MessageRoomServiceHandlerImpl implements RestServiceHandler {
         ClientId messageRoomId = requestProxyMessage.getRest().getServiceId().getClientId();
         List<MessageRoomSubscriptionType> subscriptions = ServerConf.getMessageRoomSubscriptions(messageRoomId);
 
-        Optional<MessageRoomSubscriptionType> match = findSubscription(subscriptions, xRoadServiceId);
+        Optional<MessageRoomSubscriptionType> match = MessageRoomUtil.findSubscription(subscriptions, xRoadServiceId);
         if (match.isPresent()) {
             throw new CodedException(X_INVALID_REQUEST, "Subscription already exists");
         }
@@ -196,7 +195,7 @@ public class MessageRoomServiceHandlerImpl implements RestServiceHandler {
         ClientId messageRoomId = requestProxyMessage.getRest().getServiceId().getClientId();
         List<MessageRoomSubscriptionType> subscriptions = ServerConf.getMessageRoomSubscriptions(messageRoomId);
 
-        Optional<MessageRoomSubscriptionType> match = findSubscription(subscriptions, xRoadServiceId);
+        Optional<MessageRoomSubscriptionType> match = MessageRoomUtil.findSubscription(subscriptions, xRoadServiceId);
         if (!match.isPresent()) {
             throw new CodedException(X_INVALID_REQUEST, "Subscription doesn't exist");
         }
@@ -221,27 +220,5 @@ public class MessageRoomServiceHandlerImpl implements RestServiceHandler {
     @Override
     public void finishHandling() {
         // NOP
-    }
-
-    private Optional<MessageRoomSubscriptionType> findSubscription(
-            List<MessageRoomSubscriptionType> subscriptions, ServiceId xRoadServiceId) {
-        return subscriptions.stream()
-                .filter(s -> s.getSubscriberServiceId().equals(xRoadServiceId.toShortString()))
-                .findFirst();
-    }
-
-    @SuppressWarnings("checkstyle:magicnumber")
-    private ServiceId decodeServiceId(String value) {
-        final String[] parts = value.split("/", 6);
-        if (parts.length != 5) {
-            throw new IllegalArgumentException("Invalid Service Id");
-        }
-        return ServiceId.create(
-                uriSegmentPercentDecode(parts[0]),
-                uriSegmentPercentDecode(parts[1]),
-                uriSegmentPercentDecode(parts[2]),
-                uriSegmentPercentDecode(parts[3]),
-                uriSegmentPercentDecode(parts[4])
-        );
     }
 }
