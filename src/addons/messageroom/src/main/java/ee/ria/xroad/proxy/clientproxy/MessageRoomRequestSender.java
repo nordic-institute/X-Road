@@ -139,6 +139,10 @@ public class MessageRoomRequestSender extends AbstractClientMessageProcessor {
             if (response != null) {
                 log.debug("Message Room message was successfully sent to: {}",
                         restRequest.getServiceId().toShortString());
+                if (response.getRestResponse().isErrorResponse()) {
+                    log.warn("Message Room request returned HTTP code: {}",
+                            response.getRestResponse().getResponseCode());
+                }
             }
         } catch (CodedException ex) {
             log.error("Sending Message Room message failed");
