@@ -148,12 +148,12 @@ export default Vue.extend({
   }
 
   & > :first-child {
-    margin-top: 8px;
+    margin-top: 16px;
   }
 }
 
 .alert {
-  margin-top: 8px;
+  margin-top: 16px;
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
