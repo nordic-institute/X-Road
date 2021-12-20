@@ -26,4 +26,5 @@
 
 module.exports = {
   User: require('./User'),
+  CSInitParams: require('./InitializationParameterTestValues'),
 };

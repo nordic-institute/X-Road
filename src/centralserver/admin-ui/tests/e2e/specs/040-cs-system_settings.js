@@ -24,31 +24,42 @@
  * THE SOFTWARE.
  */
 let login;
-let members;
+let settings;
+const { User } = require('../constants');
+const {
+  VALID_SERVER_ADDRESS,
+} = require('../constants/InitializationParameterTestValues');
 module.exports = {
-  tags: ['cs', 'login'],
+  tags: ['cs', 'systemSettings'],
   before(browser) {
     login = browser.page.csLoginPage();
-    members = browser.page.csMembersPage();
+    settings = browser.page.csSystemSettingsPage();
   },
   beforeEach() {
     login.navigateAndMakeTestable();
+    login.signInUser();
+    settings.navigateAndMakeTestable();
   },
   after(browser) {
     browser.end();
   },
-  'Wrong username is rejected': (browser) => {
-    login
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    login
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signIn()
-      .loginErrorMessageIsShown();
-  },
+  'SystemSettings/System Parameters view has titles and ServerAddress edit opens correct dialog':
+    async (browser) => {
+      await settings
+        .systemSettingsViewIsVisible()
+        .verify.elementPresent('@systemSettingsParametersCard')
+        .verify.elementPresent('@systemSettingsInstanceIdentifierField')
+        .verify.elementPresent('@systemSettingsServerAddressField')
+        .verify.containsText(
+          '@systemSettingsServerAddressField',
+          VALID_SERVER_ADDRESS,
+        )
+        .verify.elementPresent('@systemSettingsServerAddressEditButton')
+        .assert.enabled('@systemSettingsServerAddressEditButton')
+        .click('@systemSettingsServerAddressEditButton')
+        .waitForElementVisible('@systemSettingsServerAddressEditField')
+        .serverAddressEditFieldIsVisible()
+        .click('@dialogCancelButton')
+        .waitForElementVisible('@systemSettingsServerAddressEditButton');
+    },
 };
