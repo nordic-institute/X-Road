@@ -79,6 +79,7 @@
     "memberName": "Member name",
     "memberClass": "Member class",
     "memberCode": "Member code",
+    "name": "Name",
     "delete": "Delete",
     "register": "Register",
     "approve": "Approve",
