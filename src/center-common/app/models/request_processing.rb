@@ -107,12 +107,11 @@ class RequestProcessing < ActiveRecord::Base
   end
 
   def approve
-    if self.status != SUBMITTED_FOR_APPROVAL
+    if self.status != SUBMITTED_FOR_APPROVAL and self.status != WAITING
       raise "Cannot approve request with status '#{self.status}'!"
     end
 
-    logger.info(
-        "Approving processing for following requests: '#{requests.to_yaml}'")
+    logger.info("Approving processing for following requests: '#{requests.to_yaml}'")
 
     # Determine the request that came from the security server.
     from_server = requests.find {|req| req.origin == Request::SECURITY_SERVER}
@@ -127,7 +126,7 @@ class RequestProcessing < ActiveRecord::Base
   end
 
   def decline
-    if self.status != SUBMITTED_FOR_APPROVAL
+    if self.status != SUBMITTED_FOR_APPROVAL and self.status != WAITING
       raise "Cannot decline request with status '#{self.status}'!"
     end
 

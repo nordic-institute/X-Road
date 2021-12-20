@@ -128,7 +128,12 @@ var XROAD_REQUEST_EDIT = function(){
         $(".reg_request_revoke").hide();
 
         if (status == "WAITING") {
-            $(".reg_request_revoke").show();
+            if (requestData.source == "SECURITY_SERVER") {
+              // should check that prerequisites (e.g. client exists) before allowing approval
+              $(".reg_request_post_submit").show();
+            } else {
+              $(".reg_request_revoke").show();
+            }
             complementaryId.hide();
         } else if (status == "SUBMITTED FOR APPROVAL") {
             $(".reg_request_post_submit").show();
