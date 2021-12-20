@@ -322,10 +322,7 @@ export default (
           },
         )
         .catch((error) => {
-          return this.$store.dispatch(
-            StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW,
-            error,
-          );
+          return this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
         })
         .finally(() => {
           return this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);

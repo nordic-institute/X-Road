@@ -45,11 +45,8 @@
           /></xrd-icon-base>
 
           <div class="row-wrapper">
-            <div v-if="notification.successMessageCode">
-              {{ $t(notification.successMessageCode) }}
-            </div>
-            <div v-if="notification.successMessageRaw">
-              {{ notification.successMessageRaw }}
+            <div v-if="notification.successMessage">
+              {{ $t(notification.successMessage) }}
             </div>
           </div>
           <v-btn

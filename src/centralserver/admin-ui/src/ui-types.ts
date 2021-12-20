@@ -28,6 +28,7 @@
  These are not in openapi definitions.
 */
 import { Location } from 'vue-router';
+import { AxiosError } from 'axios';
 
 // Interface for Tab data
 export interface Tab {
@@ -55,11 +56,9 @@ export interface Notification {
   timeAdded: number;
   timeout: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject?: any;
-  errorMessageCode?: string;
-  errorMessageRaw?: string;
-  successMessageCode?: string;
-  successMessageRaw?: string;
+  errorObject?: AxiosError;
+  errorMessage?: string;
+  successMessage?: string;
   show: boolean;
   count: number;
   action?: NotificationAction;
@@ -67,6 +66,6 @@ export interface Notification {
 
 // Notification with an action is called with this
 export interface ActionError {
-  errorMessageCode?: string;
+  errorMessage?: string;
   action?: NotificationAction;
 }
