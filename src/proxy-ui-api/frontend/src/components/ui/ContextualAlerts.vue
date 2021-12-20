@@ -224,7 +224,7 @@ export default Vue.extend({
 }
 
 .alert {
-  margin-top: 16px;
+  margin-top: 8px;
   border: 2px solid $XRoad-WarmGrey30;
   box-sizing: border-box;
   border-radius: 4px;
