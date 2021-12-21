@@ -202,7 +202,7 @@ export default (
           );
         } else {
           if (error instanceof Error) {
-            await this.$store.dispatch('showError', error.message);
+            await this.$store.dispatch('showErrorMessage', error.message);
           } else {
             throw error;
           }
