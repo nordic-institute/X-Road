@@ -158,7 +158,7 @@ export default (
   },
   methods: {
     async submit() {
-      // Clear error notifications when route is changed
+      // Clear old error notifications (if they) before submit
       await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
 
       // Validate inputs
@@ -215,10 +215,7 @@ export default (
                 });
               });
             }
-            this.$store.dispatch(
-              StoreTypes.actions.SHOW_ERROR_MESSAGE,
-              this.$t('login.generalError'),
-            );
+            this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
             // Clear loading state
             this.loading = false;
           },

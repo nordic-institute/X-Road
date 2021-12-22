@@ -55,7 +55,6 @@ export interface NotificationAction {
 export interface Notification {
   timeAdded: number;
   timeout: number;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   errorObject?: AxiosError;
   errorMessage?: string;
   successMessage?: string;
