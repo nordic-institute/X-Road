@@ -29,6 +29,7 @@
 */
 import { Client } from '@/openapi-types';
 import { Location } from 'vue-router';
+import { AxiosError } from 'axios';
 
 // Interface for Tab data
 export interface Tab {
@@ -64,7 +65,7 @@ export interface Notification {
   timeAdded: number;
   timeout: number;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorObject?: any; // Axios error object
+  errorObject?: AxiosError; // Axios error object
   errorMessage?: string; // Localised error message
   successMessage?: string; // Localised success message
   show: boolean;

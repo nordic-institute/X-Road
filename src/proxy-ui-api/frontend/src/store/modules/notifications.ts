@@ -26,6 +26,7 @@
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState } from '../types';
 import { Notification } from '@/ui-types';
+import { AxiosError } from 'axios';
 
 export interface NotificationsState {
   errorNotifications: Notification[];
@@ -191,7 +192,7 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     commit('setErrorMessage', messageText);
   },
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  showError({ commit }, errorObject: any): void {
+  showError({ commit }, errorObject: AxiosError): void {
     // Show error using the error object
     // Don't show errors when the errorcode is 401 which is usually because of session expiring
     if (errorObject?.response?.status !== 401) {
