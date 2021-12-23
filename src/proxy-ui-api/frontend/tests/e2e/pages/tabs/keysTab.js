@@ -292,414 +292,195 @@ const keysTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/keys`,
   selector:
     '//div[.//a[contains(@class, "v-tab--active") and @data-test="keys"]]//div[contains(@class, "base-full-width")]',
-  locateStrategy: 'xpath',
   commands: keysTabCommands,
   elements: {
-    signAndAuthKeysTab: {
-      selector:
+    signAndAuthKeysTab:
         '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "SIGN and AUTH Keys")]',
-      locateStrategy: 'xpath',
-    },
-    APIKeysTab: {
-      selector:
+
+    APIKeysTab:
         '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "API Keys")]',
-      locateStrategy: 'xpath',
-    },
-    securityServerTLSKeyTab: {
-      selector:
+    securityServerTLSKeyTab:
         '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "Security Server TLS Key")]',
-      locateStrategy: 'xpath',
-    },
-    tokenName: {
-      selector: '//*[@data-test="token-name"]',
-      locateStrategy: 'xpath',
-    },
-    createAPIKeyButton: {
-      selector: '//*[@data-test="api-key-create-key-button"]',
-      locateStrategy: 'xpath',
-    },
-    generateKeyButton: {
-      selector:
+
+    tokenName:  '//*[@data-test="token-name"]',
+    createAPIKeyButton:  '//*[@data-test="api-key-create-key-button"]',
+    generateKeyButton:
         '//*[@data-test="security-server-tls-certificate-generate-key-button"]',
-      locateStrategy: 'xpath',
-    },
-    exportCertButton: {
-      selector:
+    exportCertButton:
         '//*[@data-test="security-server-tls-certificate-export-certificate-button"]',
-      locateStrategy: 'xpath',
-    },
   },
   sections: {
     signAuthKeysTab: {
       selector:
         '//div[.//a[contains(@class, "v-tab--active") and contains(text(), "SIGN and AUTH Keys")]]//div[contains(@class, "base-full-width")]',
-      locateStrategy: 'xpath',
       commands: [signAuthKeysTabCommands],
       elements: {
-        expandButton: {
-          selector:
+        expandButton:
             '//div[contains(@class, "expandable")]//button[contains(@class, "v-btn--icon")]',
-          locateStrategy: 'xpath',
-        },
-        tokenLink: {
-          selector: '//*[@data-test="token-name"]',
-          locateStrategy: 'xpath',
-        },
-        logoutButton: {
-          selector: '//button[@data-test="token-logout-button"]',
-          locateStrategy: 'xpath',
-        },
-        loginButton: {
-          selector: '//button[@data-test="token-login-button"]',
-          locateStrategy: 'xpath',
-        },
-        addTokenKeyButton: {
-          selector: '//button[@data-test="token-add-key-button"]',
-          locateStrategy: 'xpath',
-        },
-        importCertButton: {
-          selector: '//button[@data-test="token-import-cert-button"]',
-          locateStrategy: 'xpath',
-        },
-        authGenerateCSRButton: {
-          selector:
+        tokenLink:  '//*[@data-test="token-name"]',
+        logoutButton:  '//button[@data-test="token-logout-button"]',
+        loginButton:  '//button[@data-test="token-login-button"]',
+        addTokenKeyButton: '//button[@data-test="token-add-key-button"]',
+        importCertButton: '//button[@data-test="token-import-cert-button"]',
+        authGenerateCSRButton:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//button[.//*[contains(text(), "Generate CSR")]]',
-          locateStrategy: 'xpath',
-        },
-        authKeyIcon: {
-          selector:
+
+        authKeyIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//i[contains(@class, "icon-xrd_key")]',
-          locateStrategy: 'xpath',
-        },
-        authKeyLink: {
-          selector:
+        authKeyLink:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//div[contains(@class, "clickable-link")]',
-          locateStrategy: 'xpath',
-        },
-        authCertIcon: {
-          selector:
+        authCertIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//i[contains(@class, "icon-xrd_certificate")]',
-          locateStrategy: 'xpath',
-        },
-        signGenerateCSRButton: {
-          selector:
+
+        signGenerateCSRButton:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//button[.//*[contains(text(), "Generate CSR")]]',
-          locateStrategy: 'xpath',
-        },
-        signKeyIcon: {
-          selector:
+
+        signKeyIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//i[contains(@class, "icon-xrd_key")]',
-          locateStrategy: 'xpath',
-        },
-        signKeyLink: {
-          selector:
+        signKeyLink:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
-          locateStrategy: 'xpath',
-        },
-        signCertIcon: {
-          selector:
+
+        signCertIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//i[contains(@class, "icon-xrd_certificate")]',
-          locateStrategy: 'xpath',
-        },
-        initializedAuthCert: {
-          selector:
+          initializedAuthCert:
             '//tr[.//td[contains(text(), "Disabled")] and .//div[contains(@class, "status-text") and contains(text(), "Saved")]]//div[contains(@class, "clickable-link")]',
-          locateStrategy: 'xpath',
-        },
       },
     },
     logoutTokenPopup: {
       selector:
         '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Log out")]]',
-      locateStrategy: 'xpath',
       commands: [confirmationDialogCommands],
       elements: {
-        yesButton: {
-          selector: '//button[@data-test="dialog-save-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[@data-test="dialog-cancel-button"]',
-          locateStrategy: 'xpath',
-        },
+        yesButton: '//button[@data-test="dialog-save-button"]',
+        cancelButton:  '//button[@data-test="dialog-cancel-button"]',
+
       },
     },
     loginTokenPopup: {
       selector:
         '//div[contains(@class, "xrd-card") and .//*[@data-test="dialog-title" and contains(text(),"Log in")]]',
-      locateStrategy: 'xpath',
       commands: [loginDialogCommands],
       elements: {
-        yesButton: {
-          selector: '//button[@data-test="dialog-save-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[@data-test="dialog-cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        pinCode: {
-          selector: '//input[@name="tokenPin"]',
-          locateStrategy: 'xpath',
-        },
-        pinMessage: {
-          selector: '//div[contains(@class, "v-messages__wrapper")]',
-          locateStrategy: 'xpath',
-        },
+        yesButton: '//button[@data-test="dialog-save-button"]',
+        cancelButton:  '//button[@data-test="dialog-cancel-button"]',
+        pinCode:  '//input[@name="tokenPin"]',
+        pinMessage: '//div[contains(@class, "v-messages__wrapper")]',
       },
     },
     authKeyDetails: {
       selector:
         '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "identifier-wrap") and contains(text(),"AUTH Key details")]]',
-      locateStrategy: 'xpath',
       commands: [keyDetailsCommands],
       elements: {
-        saveButton: {
-          selector: '//button[.//*[contains(text(), "Save")]]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[.//*[contains(text(), "Cancel")]]',
-          locateStrategy: 'xpath',
-        },
-        deleteButton: {
-          selector: '//button[.//*[contains(text(), "Delete")]]',
-          locateStrategy: 'xpath',
-        },
-        friendlyName: {
-          selector: '//input[@name="keys.friendlyName"]',
-          locateStrategy: 'xpath',
-        },
-        label: {
-          selector:
+        saveButton:  '//button[.//*[contains(text(), "Save")]]',
+        cancelButton:  '//button[.//*[contains(text(), "Cancel")]]',
+        deleteButton: '//button[.//*[contains(text(), "Delete")]]',
+        friendlyName:  '//input[@name="keys.friendlyName"]',
+        label:
             '//div[contains(@class, "row-title") and contains(text(), "Label:")]//following-sibling::div[contains(@class, "row-data")]',
-          locateStrategy: 'xpath',
         },
       },
-    },
     signKeyDetails: {
       selector:
         '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "identifier-wrap") and contains(text(),"SIGN Key details")]]',
-      locateStrategy: 'xpath',
       commands: [keyDetailsCommands],
       elements: {
-        saveButton: {
-          selector: '//button[.//*[contains(text(), "Save")]]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[.//*[contains(text(), "Cancel")]]',
-          locateStrategy: 'xpath',
-        },
-        deleteButton: {
-          selector: '//button[.//*[contains(text(), "Delete")]]',
-          locateStrategy: 'xpath',
-        },
-        friendlyName: {
-          selector: '//input[@name="keys.friendlyName"]',
-          locateStrategy: 'xpath',
-        },
-        friendlyNameMessage: {
-          selector:
+        saveButton:  '//button[.//*[contains(text(), "Save")]]',
+        cancelButton: '//button[.//*[contains(text(), "Cancel")]]',
+        deleteButton:  '//button[.//*[contains(text(), "Delete")]]',
+        friendlyName:  '//input[@name="keys.friendlyName"]',
+        friendlyNameMessage:
             '//span[contains(@class, "validation-provider")]//div[contains(@class, "v-messages__message")]',
-          locateStrategy: 'xpath',
-        },
-        label: {
-          selector:
-            '//div[contains(@class, "row-title") and contains(text(), "Label:")]//following-sibling::div[contains(@class, "row-data")]',
-          locateStrategy: 'xpath',
-        },
+        label: '//div[contains(@class, "row-title") and contains(text(), "Label:")]//following-sibling::div[contains(@class, "row-data")]',
+
       },
     },
     tokenDetails: {
       selector:
         '//div[contains(@class, "xrd-view-common") and .//*[contains(@class, "identifier-wrap") and contains(text(),"Token details")]]',
-      locateStrategy: 'xpath',
       commands: [keyDetailsCommands],
       elements: {
-        saveButton: {
-          selector: '//button[.//*[contains(text(), "Save")]]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[.//*[contains(text(), "Cancel")]]',
-          locateStrategy: 'xpath',
-        },
-        friendlyName: {
-          selector: '//input[@name="keys.friendlyName"]',
-          locateStrategy: 'xpath',
-        },
-        type: {
-          selector:
+        saveButton:  '//button[.//*[contains(text(), "Save")]]',
+        cancelButton: '//button[.//*[contains(text(), "Cancel")]]',
+        friendlyName:
+          '//input[@name="keys.friendlyName"]',
+        type:
             '//div[contains(@class, "row-title") and contains(text(), "Type:")]//following-sibling::div[contains(@class, "row-data")]',
-          locateStrategy: 'xpath',
-        },
       },
     },
     addKeyWizardDetails: {
       selector:
         '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
-      locateStrategy: 'xpath',
       commands: [addKeywizardDetailCommands],
       elements: {
-        nextButton: {
-          selector: '//button[@data-test="next-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[@data-test="cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        keyLabel: {
-          selector: '//input[@data-test="key-label-button"]',
-          locateStrategy: 'xpath',
-        },
+        nextButton: '//button[@data-test="next-button"]',
+        cancelButton: '//button[@data-test="cancel-button"]',
+        keyLabel:  '//input[@data-test="key-label-button"]',
       },
     },
     addKeyWizardCSR: {
       selector:
         '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
-      locateStrategy: 'xpath',
       commands: [addKeywizardCSRCommands],
       elements: {
-        continueButton: {
-          selector: '//button[@data-test="save-button"]',
-          locateStrategy: 'xpath',
-        },
-        previousButton: {
-          selector: '//button[@data-test="previous-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[@data-test="cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        csrUsage: {
-          selector:
+        continueButton:'//button[@data-test="save-button"]',
+        previousButton: '//button[@data-test="previous-button"]',
+        cancelButton:  '//button[@data-test="cancel-button"]',
+        csrUsage:
             '//div[contains(@class, "v-select__selections") and ./input[@data-test="csr-usage-select"]]',
-          locateStrategy: 'xpath',
-        },
-        csrService: {
-          selector:
+        csrService:
             '//div[contains(@class, "v-select__selections") and input[@data-test="csr-certification-service-select"]]',
-          locateStrategy: 'xpath',
-        },
-        csrFormat: {
-          selector:
+        csrFormat:
             '//div[contains(@class, "v-select__selections") and input[@data-test="csr-format-select"]]',
-          locateStrategy: 'xpath',
-        },
-        csrClient: {
-          selector:
-            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
-          locateStrategy: 'xpath',
-        },
+        csrClient: '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
+
       },
     },
     addKeyWizardGenerate: {
       selector:
         '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "3")]]',
-      locateStrategy: 'xpath',
       commands: [addKeywizardGenerateCommands],
       elements: {
-        doneButton: {
-          selector: '(//button[@data-test="save-button"])[2]',
-          locateStrategy: 'xpath',
-        },
-        previousButton: {
-          selector: '//button[@data-test="previous-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '(//button[@data-test="cancel-button"])[2]',
-          locateStrategy: 'xpath',
-        },
-        generateButton: {
-          selector: '//button[@data-test="generate-csr-button"]',
-          locateStrategy: 'xpath',
-        },
-        organizationName: {
-          selector: '//input[@name="O" and @data-test="dynamic-csr-input"]',
-          locateStrategy: 'xpath',
-        },
-        serverDNS: {
-          selector: '//input[@name="CN" and @data-test="dynamic-csr-input"]',
-          locateStrategy: 'xpath',
-        },
+        doneButton: '(//button[@data-test="save-button"])[2]',
+        previousButton:  '//button[@data-test="previous-button"]',
+        cancelButton:  '(//button[@data-test="cancel-button"])[2]',
+        generateButton: '//button[@data-test="generate-csr-button"]',
+        organizationName: '//input[@name="O" and @data-test="dynamic-csr-input"]',
+        serverDNS: '//input[@name="CN" and @data-test="dynamic-csr-input"]',
       },
     },
     generateKeyCsrWizardCsr: {
       // Generate csr for existing sign key. Page 1, CSR details
       selector:
         '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "1")]]',
-      locateStrategy: 'xpath',
       commands: [addKeywizardCSRCommands],
       elements: {
-        continueButton: {
-          selector: '//button[@data-test="save-button"]',
-          locateStrategy: 'xpath',
-        },
-        previousButton: {
-          selector: '//button[@data-test="previous-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[@data-test="cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        csrUsage: {
-          selector:
+        continueButton: '//button[@data-test="save-button"]',
+        previousButton: '//button[@data-test="previous-button"]',
+
+        cancelButton: '//button[@data-test="cancel-button"]',
+        csrUsage:
             '//div[@role="button" and .//div[contains(@class, "v-select__selections") and input[@data-test="csr-usage-select"]]]',
-          locateStrategy: 'xpath',
-        },
-        csrService: {
-          selector:
+        csrService:
             '//div[contains(@class, "v-select__selections") and input[@data-test="csr-certification-service-select"]]',
-          locateStrategy: 'xpath',
-        },
-        csrFormat: {
-          selector:
+        csrFormat:
             '//div[contains(@class, "v-select__selections") and input[@data-test="csr-format-select"]]',
-          locateStrategy: 'xpath',
-        },
-        csrClient: {
-          selector:
-            '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
-          locateStrategy: 'xpath',
-        },
+        csrClient: '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
       },
     },
     generateKeyCsrWizardGenerate: {
       // Generate csr for existing sign key. Page 2, generate
       selector:
         '//div[contains(@class, "v-stepper__step--active") and .//*[contains(text(), "2")]]',
-      locateStrategy: 'xpath',
       commands: [addKeywizardGenerateCommands],
       elements: {
-        doneButton: {
-          selector: '(//button[@data-test="save-button"])[2]',
-          locateStrategy: 'xpath',
-        },
-        previousButton: {
-          selector: '//button[@data-test="previous-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '(//button[@data-test="cancel-button"])[2]',
-          locateStrategy: 'xpath',
-        },
-        generateButton: {
-          selector: '//button[@data-test="generate-csr-button"]',
-          locateStrategy: 'xpath',
-        },
-        organizationName: {
-          selector: '//input[@name="O" and @data-test="dynamic-csr-input"]',
-          locateStrategy: 'xpath',
-        },
-        serverDNS: {
-          selector: '//input[@name="CN" and @data-test="dynamic-csr-input"]',
-          locateStrategy: 'xpath',
-        },
+        doneButton: '(//button[@data-test="save-button"])[2]',
+        previousButton:  '//button[@data-test="previous-button"]',
+        cancelButton: '(//button[@data-test="cancel-button"])[2]',
+        generateButton:'//button[@data-test="generate-csr-button"]',
+        organizationName: '//input[@name="O" and @data-test="dynamic-csr-input"]',
+        serverDNS:  '//input[@name="CN" and @data-test="dynamic-csr-input"]',
+
       },
     },
   },
