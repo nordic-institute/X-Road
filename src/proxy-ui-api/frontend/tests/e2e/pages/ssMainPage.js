@@ -890,12 +890,10 @@ module.exports = {
         deleteServiceButton: '//button[@data-test="service-description-details-delete-button"]',
         confirmDeleteButton:  '//button[@data-test="dialog-save-button"]',
          cancelDeleteButton:  '//button[@data-test="dialog-cancel-button"]',
-        serviceURL:  '//*[contains(@class, "url-input")]//input',
-        serviceCode:  '//*[contains(@class, "code-input")]//input',
-        serviceType:
-            '//div[@data-test="service-description-details-url-type-value"]',
-        URLMessage:
-            '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
+        serviceURL: '//*[contains(@class, "url-input")]//input',
+        serviceCode: '//*[contains(@class, "code-input")]//input',
+        serviceType: '//div[@data-test="service-description-details-url-type-value"]',
+        URLMessage: '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
         codeMessage:
             '//*[contains(@class, "code-input")]//*[contains(@class, "v-messages__message")]',
         confirmDialogButton:
@@ -914,8 +912,7 @@ module.exports = {
         deleteServiceButton:
             '//button[@data-test="service-description-details-delete-button"]',
         confirmDeleteButton: '//button[@data-test="dialog-save-button"]',
-        cancelDeleteButton: {
-          selector: '//button[@data-test="dialog-cancel-button"]',
+        cancelDeleteButton: '//button[@data-test="dialog-cancel-button"]',
         serviceURL: '//*[contains(@class, "url-input")]//input',
         serviceCode:
             '//*[contains(@class, "code-input")]//input[@name="code_field"]',
@@ -1070,5 +1067,4 @@ module.exports = {
         cancelButton:  '//button[@data-test="dialog-cancel-button"]',
       },
     },
-  },
 };
