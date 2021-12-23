@@ -158,7 +158,7 @@ export default (
   },
   methods: {
     async submit() {
-      // Clear error notifications when route is changed
+      // Clear old error notifications (if they) before submit
       await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
 
       // Validate inputs
@@ -193,10 +193,7 @@ export default (
                 this.loading = false;
               })
               .catch((error) => {
-                this.$store.dispatch(
-                  StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE,
-                  error,
-                );
+                this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
                 this.loading = false;
               });
           },
@@ -218,19 +215,13 @@ export default (
                 });
               });
             }
-            this.$store.dispatch(
-              StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE,
-              'login.generalError',
-            );
+            this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
             // Clear loading state
             this.loading = false;
           },
         )
         .catch((error) => {
-          this.$store.dispatch(
-            StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW,
-            error,
-          );
+          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
           this.loading = false;
         });
     },
