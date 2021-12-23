@@ -49,32 +49,17 @@ module.exports = {
     `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}`,
   commands: commands,
   elements: {
-    addServiceClientButton: {
-      selector: '//button[@data-test="add-service-client"]',
-      locateStrategy: 'xpath',
-    },
-    unregisterButton: {
-      selector: '//button[@data-test="unregister-client-button"]',
-      locateStrategy: 'xpath',
-    },
-    addSubjectWizardHeader: {
-      selector: '//div[@data-test="add-subject-title"]',
-      locateStrategy: 'xpath',
-    },
-    searchField: {
-      selector: '//input[@data-test="search-service-client"]',
-      locateStrategy: 'xpath',
-    },
+    addServiceClientButton: '//button[@data-test="add-service-client"]',
+    unregisterButton:  '//button[@data-test="unregister-client-button"]',
+    addSubjectWizardHeader: '//div[@data-test="add-subject-title"]',
+    searchField:  '//input[@data-test="search-service-client"]',
+
   },
   sections: {
     serviceClientsTab: {
       selector:
         '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Service clients")]',
-      locateStrategy: 'xpath',
-    },
-    wizardSelectServices: {
-      selector:
-        '//div[contains(@class, "view-wrap")]//div[contains(@class, "v-stepper"]//span[contains(@class, "primary") and contains(text(), "2"]',
+    wizardSelectServices:  '//div[contains(@class, "view-wrap")]//div[contains(@class, "v-stepper"]//span[contains(@class, "primary") and contains(text(), "2"]',
     },
   },
 };

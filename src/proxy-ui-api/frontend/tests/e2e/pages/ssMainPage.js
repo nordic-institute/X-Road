@@ -680,56 +680,20 @@ module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
   elements: {
-    clientsTab: {
-      selector: '//a[@data-test="clients"]',
-      locateStrategy: 'xpath',
-    },
-    keysTab: {
-      selector: '//a[@data-test="keys"]',
-      locateStrategy: 'xpath',
-    },
-    diagnosticsTab: {
-      selector: '//a[@data-test="diagnostics"]',
-      locateStrategy: 'xpath',
-    },
-    settingsTab: {
-      selector: '//a[@data-test="settings"]',
-      locateStrategy: 'xpath',
-    },
-    userMenuButton: {
-      selector: '//button[@data-test="username-button"]',
-      locateStrategy: 'xpath',
-    },
-    userMenuitemLogout: {
-      selector: '//*[@data-test="logout-list-tile"]',
-      locateStrategy: 'xpath',
-    },
-    logoutOKButton: {
-      selector:
+    clientsTab:  '//a[@data-test="clients"]',
+    keysTab:  '//a[@data-test="keys"]',
+    diagnosticsTab: '//a[@data-test="diagnostics"]',
+    settingsTab: '//a[@data-test="settings"]',
+    userMenuButton: '//button[@data-test="username-button"]',
+    userMenuitemLogout: '//*[@data-test="logout-list-tile"]',
+    logoutOKButton:
         '//div[contains(@class, "v-dialog")]//button[.//*[contains(text(), "Ok")]]',
-      locateStrategy: 'xpath',
-    },
-    snackBarCloseButton: {
-      selector: '//button[@data-test="close-snackbar"]',
-      locateStrategy: 'xpath',
-    },
-    snackBarMessage: {
-      selector: '//div[@data-test="success-snackbar"]',
-      locateStrategy: 'xpath',
-    },
-    alertCloseButton: {
-      selector: '//button[@data-test="close-alert"]',
-      locateStrategy: 'xpath',
-    },
-    alertMessage: {
-      selector:
+    snackBarCloseButton: '//button[@data-test="close-snackbar"]',
+    snackBarMessage: '//div[@data-test="success-snackbar"]',
+    alertCloseButton: '//button[@data-test="close-alert"]',
+    alertMessage:
         '//div[@data-test="contextual-alert"]//div[contains(@class, "row-wrapper")]/div',
-      locateStrategy: 'xpath',
-    },
-    sessionExpiredPopupOkButton: {
-      selector: '//button[@data-test="session-expired-ok-button"]',
-      locateStrategy: 'xpath',
-    },
+    sessionExpiredPopupOkButton: '//button[@data-test="session-expired-ok-button"]',
   },
   sections: {
     clientsTab: clientsTab,
