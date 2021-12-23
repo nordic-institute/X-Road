@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container fluid fill-height class="login-view-wrap">
-    <AlertsContainer class="alerts" />
+    <alerts-container class="alerts" />
     <div class="graphics">
       <v-img
         :src="require('../assets/xroad7_large.svg')"
