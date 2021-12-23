@@ -28,7 +28,7 @@
     <xrd-table>
       <thead>
         <tr>
-          <th>{{ $t('name') }}</th>
+          <th>{{ $t('global.name') }}</th>
           <th></th>
         </tr>
       </thead>

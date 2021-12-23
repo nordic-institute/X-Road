@@ -1,97 +1,205 @@
 {
   "403": {
-    "topTitle": "Forbidden",
+    "goBack": "Go back",
     "mainTitle": "Permission denied",
     "text": "Seems like you do not have the permission to view this page. If you think this is a mistake, check if you are logged into the correct account or contact your administrator to inquire about your permissions.",
-    "goBack": "Go back"
+    "topTitle": "Forbidden"
   },
   "action": {
-    "addSubsystem": "Add subsystem",
+    "activate": "Activate",
+    "add": "Add",
     "addClient": "Add client",
     "addMember": "Add member",
+    "addSubsystem": "Add subsystem",
     "approve": "Approve",
-    "decline": "Decline",
-    "search": "Search",
-    "add": "Add",
-    "copyId": "Copy ID",
-    "export": "Export",
-    "emptySearch": "Your search for {msg} found no results.",
-    "goToFront": "Go to the front page",
-    "noData": "No data",
-    "ok": "Ok",
-    "close": "Close",
-    "copy": "Copy",
     "cancel": "Cancel",
-    "yes": "Yes",
-    "no": "No",
-    "edit": "Edit",
-    "refresh": "Refresh",
-    "delete": "Delete",
-    "download": "Download",
-    "upload": "Upload",
-    "remove": "Remove",
-    "removeAll": "Remove All",
-    "register": "Register",
-    "restore": "Restore",
-    "unregister": "Unregister",
-    "save": "Save",
+    "close": "Close",
     "confirm": "Confirm",
     "continue": "Continue",
-    "activate": "Activate",
+    "copy": "Copy",
+    "copyId": "Copy ID",
     "deactivate": "Disable",
-    "previous": "Previous",
+    "decline": "Decline",
+    "delete": "Delete",
     "done": "Done",
-    "next": "Next",
-    "submit": "Submit",
+    "download": "Download",
+    "edit": "Edit",
+    "emptySearch": "Your search for {msg} found no results.",
+    "export": "Export",
     "finish": "Finish",
-    "searching": "Searching..."
+    "goToFront": "Go to the front page",
+    "next": "Next",
+    "no": "No",
+    "noData": "No data",
+    "ok": "Ok",
+    "previous": "Previous",
+    "refresh": "Refresh",
+    "register": "Register",
+    "remove": "Remove",
+    "removeAll": "Remove All",
+    "restore": "Restore",
+    "save": "Save",
+    "search": "Search",
+    "searching": "Searching...",
+    "submit": "Submit",
+    "unregister": "Unregister",
+    "upload": "Upload",
+    "yes": "Yes"
+  },
+  "apiKey": {
+    "createApiKey": {
+      "button": "CREATE API KEY",
+      "step": {
+        "keyDetails": {
+          "apiKey": "API key",
+          "apiKeyID": "API key ID",
+          "assignedRoles": "Roles assigned",
+          "createKeyButton": "Create Key",
+          "name": "Key Details",
+          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
+        },
+        "roles": {
+          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key.",
+          "name": "Roles",
+          "selectRoles": "Select roles"
+        }
+      },
+      "success": "API key successfully created",
+      "title": "Create API key"
+    },
+    "role": {
+      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
+      "XROAD_SECURITY_OFFICER": "Security Officer",
+      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
+    },
+    "table": {
+      "action": {
+        "edit": {
+          "button": "Edit",
+          "dialog": {
+            "message": "Roles associated with the API key:",
+            "title": "Edit API Key (ID: {id})"
+          },
+          "success": "API key with ID {id} saved"
+        },
+        "revoke": {
+          "button": "Revoke key",
+          "confirmationDialog": {
+            "message": "Are you sure you want to revoke the API key with ID {id}?",
+            "title": "Are you sure?"
+          },
+          "success": "API key with ID {id} successfully revoked"
+        }
+      },
+      "header": {
+        "id": "ID",
+        "roles": "Roles"
+      }
+    }
+  },
+  "backup": {
+    "action": {
+      "restore": {
+        "dialog": {
+          "confirmation": "Are you sure you want to restore from {file}?",
+          "restoringTitle": "Restoring from backup in progress",
+          "title": "Are you sure?"
+        }
+      }
+    },
+    "backupConfiguration": {
+      "button": "Back up config."
+    },
+    "uploadBackup": {
+      "button": "Upload backup"
+    }
+  },
+  "error_code": {
+    "invalid_init_params": "Problem in initialization parameters",
+    "pin_min_char_classes_count": "PIN minimum character classes count",
+    "pin_min_length": "PIN minimum length",
+    "validation_failure": "Validation failure",
+    "weak_pin": "Weak PIN"
+  },
+  "fields": {
+    "init": {
+      "address": "Central Server Address",
+      "confirmPin": "Repeat PIN",
+      "identifier": "Instance Identifier",
+      "pin": "PIN",
+      "repeatPin": "Repeat PIN"
+    },
+    "initialServerConf": {
+      "centralServerAddress": "Central Server Address",
+      "instanceIdentifier": "Instance Identifier"
+    },
+    "password": "Password",
+    "username": "Username"
   },
   "filters": {
+    "apply": "Apply",
     "chooseFilters": "Choose filters",
     "clearFields": "Clear fields",
-    "apply": "Apply",
-    "managementRequests": {
-      "byStatus": "By status",
-      "byCreationDate": "By creation date",
-      "byServerOwnerName": "By server owner name",
-      "bySource": "By source",
-      "byServerOwnerClass": "By server owner class",
-      "byServerOwnerCode": "By server owner code",
-      "byServerCode": "By server code",
-      "byRequestType": "By request type"
-    },
     "groupMembers": {
-      "byType": "By type",
-      "member": "Member",
-      "subsystem": "Subsystem",
-      "byInstance": "By instance",
       "byClass": "By class",
       "byCode": "By code",
+      "byInstance": "By instance",
       "bySubsystem": "By subsystem",
+      "byType": "By type",
       "class": "Class",
-      "instance": "Instance"
+      "instance": "Instance",
+      "member": "Member",
+      "subsystem": "Subsystem"
+    },
+    "managementRequests": {
+      "byCreationDate": "By creation date",
+      "byRequestType": "By request type",
+      "byServerCode": "By server code",
+      "byServerOwnerClass": "By server owner class",
+      "byServerOwnerCode": "By server owner code",
+      "byServerOwnerName": "By server owner name",
+      "bySource": "By source",
+      "byStatus": "By status"
+    }
+  },
+  "footer": {
+    "copyright": {
+      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
+      "licenceInfo": "Licence info",
+      "title": "Copyright"
+    },
+    "software": {
+      "feedback": "Feedback",
+      "title": "Software",
+      "versionPrefix": "X-Road"
     }
   },
   "global": {
+    "approve": "Approve",
     "class": "Class",
     "code": "Code",
-    "subsystem": "Subsystem",
-    "memberName": "Member name",
-    "memberClass": "Member class",
-    "memberCode": "Member code",
+    "created": "Created",
     "delete": "Delete",
-    "register": "Register",
-    "approve": "Approve",
     "id": "Id",
     "instance": "Instance",
-    "type": "Type",
-    "created": "Created",
-    "status": "Status",
-    "server": "Server",
+    "memberClass": "Member class",
+    "memberCode": "Member code",
+    "memberName": "Member name",
+    "name": "Name",
     "navigation": {
       "back": "Back"
     },
-    "search": "Search"
+    "register": "Register",
+    "search": "Search",
+    "server": "Server",
+    "status": "Status",
+    "subsystem": "Subsystem",
+    "type": "Type"
+  },
+  "globalConf": {
+    "globalConf": "Global Configuration",
+    "internalConf": "Internal Configuration",
+    "trustedAnchors": "Trusted Anchor"
   },
   "globalGroup": {
     "addMembers": "Add Members",
@@ -115,264 +223,157 @@
     "updated": "Updated",
     "version": "Version"
   },
-  "footer": {
-    "software": {
-      "title": "Software",
-      "versionPrefix": "X-Road",
-      "feedback": "Feedback"
+  "init": {
+    "address": {
+      "info": "Central server’s public DNS name or external IP address. Used for inbound connections from the external network to the central server."
     },
-    "copyright": {
-      "title": "Copyright",
-      "company": "Nordic Institute for Interoperability Solutions (NIIS)",
-      "licenceInfo": "Licence info"
-    }
+    "csIdentification": "Central Server Identification",
+    "initialConfiguration": "Initial Configuration",
+    "instanceIdentifier": {
+      "info": "X-Road instance code, uniquely identifies this X-Road instance."
+    },
+    "notification": "The Central Server initialized! Now continue with the full configuration.",
+    "pin": {
+      "info": "PIN for accessing software token.",
+      "pinMatchError": "Password confirmation does not match",
+      "repeat": "Repeat PIN"
+    },
+    "softwareToken": "Software Token"
   },
   "keys": {
-    "logOut": "Log out",
-    "logIn": "Log in",
     "addKey": "Add key",
-    "token": "Token:",
+    "created": "Created",
+    "logIn": "Log in",
+    "logOut": "Log out",
     "signKey": "Sign key",
-    "created": "Created"
+    "token": "Token:"
   },
   "login": {
-    "logIn": "Log in",
-    "logOut": "Log out",
+    "errorMsg401": "Wrong username or password",
     "generalError": "Login failed. Please try again.",
-    "errorMsg401": "Wrong username or password"
+    "logIn": "Log in",
+    "logOut": "Log out"
   },
   "logout": {
     "idleWarning": "You have been idle for 30 minutes and your session has expired. For security reasons, you will be logged out.",
     "sessionExpired": "Session expired"
   },
-  "tab": {
-    "main": {
-      "members": "Members",
-      "securityServers": "Security Servers",
-      "managementRequests": "Management Requests",
-      "trustServices": "Trust Services",
-      "globalConfiguration": "Global configuration",
-      "settings": "Settings"
-    },
-    "settings": {
-      "systemSettings": "System Settings",
-      "backupAndRestore": "Backup And Restore",
-      "globalResources": "Global Resources",
-      "apiKeys": "API Keys"
-    },
-    "globalConf": {
-      "internalConf": "Internal Configuration",
-      "externalConf": "External Configuration",
-      "trustedAnchors": "Trusted Anchor"
-    }
-  },
-  "backup": {
-    "action": {
-      "restore": {
-        "dialog": {
-          "restoringTitle": "Restoring from backup in progress",
-          "title": "Are you sure?",
-          "confirmation": "Are you sure you want to restore from {file}?"
-        }
-      }
-    },
-    "backupConfiguration": {
-      "button": "Back up config."
-    },
-    "uploadBackup": {
-      "button": "Upload backup"
-    }
-  },
-  "error_code": {
-    "validation_failure": "Validation failure",
-    "invalid_init_params": "Problem in initialization parameters",
-    "weak_pin": "Weak PIN",
-    "pin_min_length": "PIN minimum length",
-    "pin_min_char_classes_count": "PIN minimum character classes count"
-  },
-  "fields": {
-    "password": "Password",
-    "username": "Username",
-    "init": {
-      "identifier": "Instance Identifier",
-      "address": "Central Server Address",
-      "pin": "PIN",
-      "repeatPin": "Repeat PIN",
-      "confirmPin": "Repeat PIN"
-    },
-    "initialServerConf": {
-      "centralServerAddress": "Central Server Address",
-      "instanceIdentifier": "Instance Identifier"
-    }
-  },
   "managementRequests": {
+    "addCertificate": "Add Certificate",
+    "addClient": "Add Client",
+    "approved": "Approved",
+    "changeOwner": "Change Owner",
+    "pending": "Pending",
+    "rejected": "Rejected",
+    "removeCertificate": "Remove Certificate",
+    "removeClient": "Remove Client",
+    "serverCode": "Server Code",
     "serverOnwerId": "Server Owner ID",
     "serverOwnerName": "Server Owner Name",
-    "serverCode": "Server Code",
-    "pending": "Pending",
-    "approved": "Approved",
-    "rejected": "Rejected",
-    "changeOwner": "Change Owner",
-    "addCertificate": "Add Certificate",
-    "removeCertificate": "Remove Certificate",
-    "addClient": "Add Client",
-    "removeClient": "Remove Client",
     "showOnlyPending": "Show only pending requests"
   },
   "members": {
-    "header": "Members",
     "addMember": "Add member",
     "deleteMember": "Delete member",
+    "header": "Members",
     "member": {
+      "details": {
+        "addMemberToGroup": "Add member to group",
+        "addServer": "Add server",
+        "addToGroup": "Add member to group",
+        "addedToGroup": "Added to the group",
+        "globalGroups": "Global Groups",
+        "group": "Group",
+        "ownedServers": "Owned Servers",
+        "server": "Server"
+      },
+      "managementRequests": {
+        "created": "Created",
+        "id": "Req id",
+        "showOnlyWaiting": "Show only waiting requests",
+        "status": "Status",
+        "type": "Request type"
+      },
       "pagenavigation": {
         "details": "Details",
         "managementRequests": "Management Requests",
         "subsystems": "Subsystems"
       },
-      "details": {
-        "ownedServers": "Owned Servers",
-        "globalGroups": "Global Groups",
-        "server": "Server",
-        "group": "Group",
-        "addedToGroup": "Added to the group",
-        "addToGroup": "Add member to group",
-        "addServer": "Add server",
-        "addMemberToGroup": "Add member to group"
-      },
       "subsystems": {
-        "subsystemcode": "Subsystem code",
-        "servercode": "Server code",
+        "addClient": "Add Client",
         "serverOwner": "Server owner",
+        "servercode": "Server code",
         "status": "Status",
-        "addClient": "Add Client"
-      },
-      "managementRequests": {
-        "id": "Req id",
-        "created": "Created",
-        "type": "Request type",
-        "status": "Status",
-        "showOnlyWaiting": "Show only waiting requests"
-      }
-    }
-  },
-  "apiKey": {
-    "role": {
-      "XROAD_SECURITY_OFFICER": "Security Officer",
-      "XROAD_REGISTRATION_OFFICER": "Registration Officer",
-      "XROAD_SYSTEM_ADMINISTRATOR": "System Administrator"
-    },
-    "createApiKey": {
-      "button": "CREATE API KEY",
-      "title": "Create API key",
-      "step": {
-        "roles": {
-          "name": "Roles",
-          "selectRoles": "Select roles",
-          "description": "Please select the roles associated with the API key. The roles define the permissions granted to the API key."
-        },
-        "keyDetails": {
-          "name": "Key Details",
-          "createKeyButton": "Create Key",
-          "apiKey": "API key",
-          "apiKeyID": "API key ID",
-          "assignedRoles": "Roles assigned",
-          "note": "NOTE: save the API key in a secure place. The API key is visible only at the time of key generation. It will not be presented again and cannot be retrieved later."
-        }
-      },
-      "success": "API key successfully created"
-    },
-    "table": {
-      "header": {
-        "id": "ID",
-        "roles": "Roles"
-      },
-      "action": {
-        "edit": {
-          "button": "Edit",
-          "dialog": {
-            "title": "Edit API Key (ID: {id})",
-            "message": "Roles associated with the API key:"
-          },
-          "success": "API key with ID {id} saved"
-        },
-        "revoke": {
-          "button": "Revoke key",
-          "success": "API key with ID {id} successfully revoked",
-          "confirmationDialog": {
-            "title": "Are you sure?",
-            "message": "Are you sure you want to revoke the API key with ID {id}?"
-          }
-        }
+        "subsystemcode": "Subsystem code"
       }
     }
   },
   "securityServers": {
-    "serverCode": "Server Code",
-    "ownerName": "Owner Name",
+    "address": "Address",
     "ownerClass": "Owner Class",
     "ownerCode": "Owner Code",
-    "address": "Address",
+    "ownerName": "Owner Name",
     "registered": "Registered",
     "securityServer": {
-      "tabs": {
-        "details": "Details",
-        "clients": "Clients",
-        "authCertificates": "Authentication Certificates",
-        "managementRequests": "Management Requests"
-      },
       "certificationAuthority": "Certification Authority",
+      "deleteServer": "Delete server",
+      "expires": "Expires",
       "serialNumber": "Serial Number",
       "subject": "Subject",
-      "expires": "Expires",
-      "deleteServer": "Delete server"
+      "tabs": {
+        "authCertificates": "Authentication Certificates",
+        "clients": "Clients",
+        "details": "Details",
+        "managementRequests": "Management Requests"
+      }
+    },
+    "serverCode": "Server Code"
+  },
+  "systemSettings": {
+    "centralServerAddress": "Central Server address",
+    "code": "Code",
+    "description": "Description",
+    "editCentralServerAddressSuccess": "Central server address successfully updated",
+    "editCentralServerAddressTitle": "Edit Central Server address",
+    "instanceIdentifier": "Instance Identifier",
+    "managementServiceSecurityServer": "Management Services' Security Server",
+    "managementServices": "Management Services",
+    "memberClasses": "Member classes",
+    "securityServerOwnerroupCode": "Security Server Owners Group Code",
+    "serviceProviderIdentifier": "Service Provider Identifier",
+    "serviceProviderName": "Service Provider Name",
+    "systemParameters": "System Parameters",
+    "wsdlAddress": "WSDL Address"
+  },
+  "tab": {
+    "globalConf": {
+      "externalConf": "External Configuration",
+      "internalConf": "Internal Configuration",
+      "trustedAnchors": "Trusted Anchor"
+    },
+    "main": {
+      "globalConfiguration": "Global configuration",
+      "managementRequests": "Management Requests",
+      "members": "Members",
+      "securityServers": "Security Servers",
+      "settings": "Settings",
+      "trustServices": "Trust Services"
+    },
+    "settings": {
+      "apiKeys": "API Keys",
+      "backupAndRestore": "Backup And Restore",
+      "globalResources": "Global Resources",
+      "systemSettings": "System Settings"
     }
   },
   "trustServices": {
-    "certificationServices": "Certification Services",
-    "timestampingServices": "Timestamping Services",
     "addCertificationService": "Add certification service",
     "addTimestampingService": "Add timestamping service",
     "approvedCertificationService": "Approved Certification service",
+    "certificationServices": "Certification Services",
+    "timestampingServices": "Timestamping Services",
     "validFrom": "Valid from",
     "validTo": "Valid to"
-  },
-  "systemSettings": {
-    "code": "Code",
-    "description": "Description",
-    "memberClasses": "Member classes",
-    "systemParameters": "System Parameters",
-    "managementServices": "Management Services",
-    "instanceIdentifier": "Instance Identifier",
-    "centralServerAddress": "Central Server address",
-    "editCentralServerAddressTitle": "Edit Central Server address",
-    "editCentralServerAddressSuccess": "Central server address successfully updated",
-    "serviceProviderIdentifier": "Service Provider Identifier",
-    "serviceProviderName": "Service Provider Name",
-    "managementServiceSecurityServer": "Management Services' Security Server",
-    "wsdlAddress": "WSDL Address",
-    "securityServerOwnerroupCode": "Security Server Owners Group Code"
-  },
-  "init": {
-    "initialConfiguration": "Initial Configuration",
-    "csIdentification": "Central Server Identification",
-    "softwareToken": "Software Token",
-    "notification": "The Central Server initialized! Now continue with the full configuration.",
-    "instanceIdentifier": {
-      "info": "X-Road instance code, uniquely identifies this X-Road instance."
-    },
-    "address": {
-      "info": "Central server’s public DNS name or external IP address. Used for inbound connections from the external network to the central server."
-    },
-    "pin": {
-      "info": "PIN for accessing software token.",
-      "repeat": "Repeat PIN",
-      "pinMatchError": "Password confirmation does not match"
-    }
-  },
-  "globalConf": {
-    "globalConf": "Global Configuration",
-    "internalConf": "Internal Configuration",
-    "trustedAnchors": "Trusted Anchor"
   },
   "validationError": {
     "AssertFalse": "value should be 'false'",
@@ -383,10 +384,18 @@
     "Email": "value does not meet the email format",
     "Future": "datetime value should be in the future",
     "FutureOrPresent": "datetime value should be now or in the future",
+    "IdentifierChars": "Instance identifier should not contain colon (:), semicolon (;), forward or backward slashes (/\\) or percent signs (%)",
+    "IdentifierCharsField": "Use valid instance identifier characters only",
     "Max": "numeric value exceeds the maximum allowed",
     "Min": "numeric value is under the minimum allowed",
     "Negative": "numeric value should be less than zero",
     "NegativeOrZero": "numeric value should be less or equal to zero",
+    "NoBackslashes": "value should not contain backslash (\\) symbols",
+    "NoColons": "value should not contain colon (:) symbols",
+    "NoForwardslashes": "value should not contain forward slash (/) symbols",
+    "NoPercents": "value should not contain percentage (%) symbols",
+    "NoSemicolons": "value should not contain semicolon (;) symbols",
+    "Normalized": "value should be normalized",
     "NotBlank": "value should not be blank",
     "NotEmpty": "value should not be empty",
     "NotNull": "value is required",
@@ -398,15 +407,7 @@
     "PositiveOrZero": "numeric value should be greater or equal to zero",
     "Size": "value does not meet length requirements",
     "SizeField": "value does not meet length requirements",
-    "Normalized": "value should be normalized",
-    "NoColons": "value should not contain colon (:) symbols",
-    "NoSemicolons": "value should not contain semicolon (;) symbols",
-    "NoForwardslashes": "value should not contain forward slash (/) symbols",
-    "NoBackslashes": "value should not contain backslash (\\) symbols",
-    "NoPercents": "value should not contain percentage (%) symbols",
     "ValidHostAddress": "Valid fully qualified domain name (e.g. host.example.org) or public IP address (eg. 192.168.123.123) needed",
-    "ValidHostAddressField": "Valid IP address or fully qualified domain name needed",
-    "IdentifierChars": "Instance identifier should not contain colon (:), semicolon (;), forward or backward slashes (/\\) or percent signs (%)",
-    "IdentifierCharsField": "Use valid instance identifier characters only"
+    "ValidHostAddressField": "Valid IP address or fully qualified domain name needed"
   }
 }

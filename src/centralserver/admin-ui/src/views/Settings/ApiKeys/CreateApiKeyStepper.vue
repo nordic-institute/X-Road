@@ -238,7 +238,7 @@ export default Vue.extend({
           this.apiKey = resp.data;
           this.$store.dispatch(
             StoreTypes.actions.SHOW_SUCCESS,
-            'apiKey.createApiKey.success',
+            this.$t('apiKey.createApiKey.success'),
           );
         })
         .catch((error) =>

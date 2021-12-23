@@ -24,6 +24,7 @@
  * THE SOFTWARE.
  */
 import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
+import { AxiosError } from 'axios';
 import { RootState, StoreTypes } from '@/global';
 import { ActionError, Notification } from '@/ui-types';
 
@@ -78,11 +79,7 @@ function containsNotification(
       return false;
     }
 
-    if (notification?.errorMessageRaw !== e?.errorMessageRaw) {
-      return false;
-    }
-
-    return notification?.errorMessageCode === e?.errorMessageCode;
+    return notification?.errorMessage === e?.errorMessage;
   });
 }
 
@@ -129,30 +126,16 @@ export const mutations: MutationTree<State> = {
   [StoreTypes.mutations.SET_NOTIFICATIONS_DEFAULT_STATE](state): void {
     Object.assign(state, getDefaultState());
   },
-  [StoreTypes.mutations.SET_SUCCESS_CODE](state: State, val: string): void {
+
+  [StoreTypes.mutations.SET_SUCCESS](state: State, val: string): void {
     const notification = createEmptyNotification(3000);
-    notification.successMessageCode = val;
+    notification.successMessage = val;
     state.successNotifications.push(notification);
   },
-  [StoreTypes.mutations.SET_SUCCESS_RAW](state: State, val: string): void {
-    const notification = createEmptyNotification(3000);
-    notification.successMessageRaw = val;
-    state.successNotifications.push(notification);
-  },
-  [StoreTypes.mutations.SET_ERROR_MESSAGE_CODE](
-    state: State,
-    val: string,
-  ): void {
+
+  [StoreTypes.mutations.SET_ERROR_MESSAGE](state: State, val: string): void {
     const notification = createEmptyNotification(-1);
-    notification.errorMessageCode = val;
-    addErrorNotification(state, notification);
-  },
-  [StoreTypes.mutations.SET_ERROR_MESSAGE_RAW](
-    state: State,
-    val: string,
-  ): void {
-    const notification = createEmptyNotification(-1);
-    notification.errorMessageRaw = val;
+    notification.errorMessage = val;
     addErrorNotification(state, notification);
   },
 
@@ -187,7 +170,7 @@ export const mutations: MutationTree<State> = {
   ): void {
     const notification = createEmptyNotification(-1);
     notification.action = val.action;
-    notification.errorMessageCode = val.errorMessageCode;
+    notification.errorMessage = val.errorMessage;
     addErrorNotification(state, notification);
   },
 
@@ -201,35 +184,23 @@ export const actions: ActionTree<State, RootState> = {
     // Clear the store state
     commit(StoreTypes.mutations.SET_NOTIFICATIONS_DEFAULT_STATE);
   },
-  [StoreTypes.actions.SHOW_SUCCESS](
-    { commit },
-    localisationCode: string,
-  ): void {
-    // Show success snackbar with a localisation code for text
-    commit(StoreTypes.mutations.SET_SUCCESS_CODE, localisationCode);
+
+  [StoreTypes.actions.SHOW_SUCCESS]({ commit }, messageText: string): void {
+    // Show success snackbar with text string
+    commit(StoreTypes.mutations.SET_SUCCESS, messageText);
   },
-  [StoreTypes.actions.SHOW_SUCCESS_RAW]({ commit }, messageText: string): void {
-    // Show success snackbar without localisation
-    commit(StoreTypes.mutations.SET_SUCCESS_RAW, messageText);
-  },
-  [StoreTypes.actions.SHOW_ERROR_MESSAGE_CODE](
-    { commit },
-    localisationCode: string,
-  ): void {
-    // Show error snackbar with a localisation code for text
-    commit(StoreTypes.mutations.SET_ERROR_MESSAGE_CODE, localisationCode);
-  },
-  [StoreTypes.actions.SHOW_ERROR_MESSAGE_RAW](
+
+  [StoreTypes.actions.SHOW_ERROR_MESSAGE](
     { commit },
     messageText: string,
   ): void {
-    // Show error snackbar without localisation
-    commit(StoreTypes.mutations.SET_ERROR_MESSAGE_RAW, messageText);
+    // Show error snackbar with text string
+    commit(StoreTypes.mutations.SET_ERROR_MESSAGE, messageText);
   },
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [StoreTypes.actions.SHOW_ERROR]({ commit }, errorObject: any): void {
-    // Show error using the error object
+  [StoreTypes.actions.SHOW_ERROR]({ commit }, errorObject: AxiosError): void {
+    // Show error using the x-road specific data in an axios error object
     // Don't show errors when the errorcode is 401 which is usually because of session expiring
     if (errorObject?.response?.status !== 401) {
       commit(StoreTypes.mutations.SET_ERROR_OBJECT, errorObject);
