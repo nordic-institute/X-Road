@@ -303,22 +303,24 @@ export default Vue.extend({
       }
 
       // Filter out service descriptions that don't include search term
-      const filtered = arr.filter((element) => {
-        return element.services.find((service) => {
-          return service.service_code
-            .toString()
-            .toLowerCase()
-            .includes(mysearch);
+      const filtered = arr.filter((element: ServiceDescription) => {
+        return element.services.find((service: Service) => {
+          return (
+            service.service_code.toString().toLowerCase().includes(mysearch) ||
+            service.url.toString().toLowerCase().includes(mysearch) ||
+            service.timeout.toString().toLowerCase().includes(mysearch)
+          );
         });
       });
 
       // Filter out services that don't include search term
-      filtered.forEach((element) => {
-        element.services = element.services.filter((service) => {
-          return service.service_code
-            .toString()
-            .toLowerCase()
-            .includes(mysearch);
+      filtered.forEach((element: ServiceDescription) => {
+        element.services = element.services.filter((service: Service) => {
+          return (
+            service.service_code.toString().toLowerCase().includes(mysearch) ||
+            service.url.toString().toLowerCase().includes(mysearch) ||
+            service.timeout.toString().toLowerCase().includes(mysearch)
+          );
         });
       });
 
