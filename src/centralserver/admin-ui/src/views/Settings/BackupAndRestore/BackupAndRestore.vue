@@ -78,7 +78,7 @@
         />
       </div>
     </div>
-    <BackupsDataTable />
+    <BackupsDataTable :search="search" />
   </div>
 </template>
 
