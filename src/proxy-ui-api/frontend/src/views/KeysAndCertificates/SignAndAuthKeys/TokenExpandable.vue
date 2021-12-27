@@ -40,9 +40,8 @@
         <span
           class="token-status-indicator token-name"
           :class="tokenStatusClass"
+          >{{ $t('keys.token') }} {{ token.name }}</span
         >
-          {{ $t('keys.token') }} {{ token.name }}
-        </span>
 
         <v-btn
           icon
@@ -63,9 +62,9 @@
             class="token-status token-status-indicator label"
             :class="tokenStatusClass"
           >
-            <v-icon class="token-status-indicator" :class="tokenStatusClass">{{
-              tokenIcon
-            }}</v-icon>
+            <v-icon class="token-status-indicator" :class="tokenStatusClass">
+              {{ tokenIcon }}
+            </v-icon>
             {{ $t(tokenLabelKey) }}
           </div>
           <TokenLoggingButton
@@ -87,9 +86,10 @@
             :disabled="!token.logged_in"
             data-test="token-add-key-button"
             @click="addKey()"
-            ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-            >{{ $t('keys.addKey') }}</xrd-button
           >
+            <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+            {{ $t('keys.addKey') }}
+          </xrd-button>
           <xrd-file-upload
             v-if="canImportCertificate"
             v-slot="{ upload }"
@@ -104,8 +104,8 @@
               @click="upload"
             >
               <v-icon class="xrd-large-button-icon">icon-Import</v-icon>
-              {{ $t('keys.importCert') }}</xrd-button
-            >
+              {{ $t('keys.importCert') }}
+            </xrd-button>
           </xrd-file-upload>
         </div>
 
@@ -470,7 +470,7 @@ export default Vue.extend({
 }
 
 .expandable {
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .action-slot-wrapper {

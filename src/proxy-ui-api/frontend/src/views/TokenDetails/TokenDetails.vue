@@ -81,9 +81,9 @@
                     data-test="token-open-pin-change-link"
                     @click="toggleChangePinOpen"
                   >
-                    <span class="font-weight-black">{{
-                      $t('token.changePin')
-                    }}</span>
+                    <span class="font-weight-black">
+                      {{ $t('token.changePin') }}
+                    </span>
                   </div>
                 </template>
                 <template #content>
@@ -158,16 +158,19 @@
         </v-row>
       </div>
       <div class="dtlv-actions-footer">
-        <xrd-button outlined data-test="token-details-cancel" @click="close()"
-          >{{ $t('action.cancel') }}
-        </xrd-button>
+        <xrd-button
+          outlined
+          data-test="token-details-cancel"
+          @click="close()"
+          >{{ $t('action.cancel') }}</xrd-button
+        >
         <xrd-button
           :loading="saveBusy"
           :disabled="!dirty || invalid"
           data-test="token-details-save"
           @click="save()"
-          >{{ $t('action.save') }}
-        </xrd-button>
+          >{{ $t('action.save') }}</xrd-button
+        >
       </div>
     </ValidationObserver>
   </div>

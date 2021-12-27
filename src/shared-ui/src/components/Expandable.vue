@@ -118,7 +118,7 @@ export default Vue.extend({
 .exp-header {
   display: flex;
   align-items: center;
-  height: 48px;
+  height: 56px;
   padding: 10px;
 }
 

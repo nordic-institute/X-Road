@@ -35,6 +35,7 @@ export default {
     noMatchesText: { control: 'text' },
     loading: { control: 'boolean' },
     filtered: { control: 'boolean' },
+    skeletonType: { control: 'text' },
   },
 };
 
@@ -52,4 +53,5 @@ Primary.args = {
   noMatchesText: 'no matches',
   filtered: false,
   loading: false,
+  skeletonType: 'table-heading',
 };

@@ -47,9 +47,10 @@
           data-test="add-rest-button"
           class="rest-button"
           @click="showAddRestDialog"
-          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('services.addRest') }}</xrd-button
         >
+          <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          {{ $t('services.addRest') }}
+        </xrd-button>
 
         <xrd-button
           v-if="showAddWSDLButton"
@@ -57,9 +58,10 @@
           data-test="add-wsdl-button"
           class="ma-0"
           @click="showAddWsdlDialog"
-          ><v-icon class="xrd-large-button-icon">icon-Add</v-icon
-          >{{ $t('services.addWsdl') }}</xrd-button
         >
+          <v-icon class="xrd-large-button-icon">icon-Add</v-icon>
+          {{ $t('services.addWsdl') }}
+        </xrd-button>
       </div>
     </div>
 
@@ -68,6 +70,7 @@
       :filtered="search.length > 0"
       :loading="loading"
       :no-items-text="$t('noData.noServices')"
+      skeleton-type="table-heading"
     />
 
     <template v-if="filtered">
@@ -300,22 +303,24 @@ export default Vue.extend({
       }
 
       // Filter out service descriptions that don't include search term
-      const filtered = arr.filter((element) => {
-        return element.services.find((service) => {
-          return service.service_code
-            .toString()
-            .toLowerCase()
-            .includes(mysearch);
+      const filtered = arr.filter((element: ServiceDescription) => {
+        return element.services.find((service: Service) => {
+          return (
+            service.service_code.toString().toLowerCase().includes(mysearch) ||
+            service.url.toString().toLowerCase().includes(mysearch) ||
+            service.timeout.toString().toLowerCase().includes(mysearch)
+          );
         });
       });
 
       // Filter out services that don't include search term
-      filtered.forEach((element) => {
-        element.services = element.services.filter((service) => {
-          return service.service_code
-            .toString()
-            .toLowerCase()
-            .includes(mysearch);
+      filtered.forEach((element: ServiceDescription) => {
+        element.services = element.services.filter((service: Service) => {
+          return (
+            service.service_code.toString().toLowerCase().includes(mysearch) ||
+            service.url.toString().toLowerCase().includes(mysearch) ||
+            service.timeout.toString().toLowerCase().includes(mysearch)
+          );
         });
       });
 
@@ -722,7 +727,7 @@ export default Vue.extend({
 }
 
 .expandable {
-  margin-bottom: 10px;
+  margin-bottom: 24px;
 }
 
 .service-url {

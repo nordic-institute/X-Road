@@ -35,7 +35,11 @@
           help-text="keys.helpTextApi"
         ></help-button>
       </div>
-      <xrd-button data-test="api-key-create-key-button" @click="createApiKey()">
+      <xrd-button
+        v-if="canCreateApiKey"
+        data-test="api-key-create-key-button"
+        @click="createApiKey()"
+      >
         <xrd-icon-base class="xrd-large-button-icon"
           ><XrdIconAdd
         /></xrd-icon-base>

@@ -139,11 +139,13 @@ export default Vue.extend({
   },
   computed: {
     searchResults(): ServiceCandidate[] {
-      return this.serviceCandidates.filter((candidate: ServiceCandidate) =>
-        candidate.service_code
-          .toLowerCase()
-          .includes(this.search.toLowerCase()),
-      );
+      const cleanedSearch = this.search.toLowerCase();
+      return this.serviceCandidates.filter((candidate: ServiceCandidate) => {
+        return (
+          candidate.service_code.toLowerCase().includes(cleanedSearch) ||
+          candidate.service_title?.toLowerCase().includes(cleanedSearch)
+        );
+      });
     },
   },
   methods: {

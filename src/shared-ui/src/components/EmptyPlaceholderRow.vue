@@ -27,7 +27,10 @@
 <template>
   <tr v-if="show">
     <td :colspan="colspan">
-      <div v-if="loading" class="empty-text">{{ $t('noData.loading') }}</div>
+      <div v-if="loading">
+        <v-progress-linear height="2" indeterminate></v-progress-linear>
+        <div class="empty-text">{{ $t('noData.loading') }}</div>
+      </div>
       <div v-else-if="showNoItems" class="empty-text">{{ noItemsText }}</div>
     </td>
   </tr>

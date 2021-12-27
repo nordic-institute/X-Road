@@ -26,7 +26,13 @@
  -->
 <template>
   <div v-if="show" class="emptystate-wrapper">
-    <div v-if="loading" class="empty-text">{{ $t('noData.loading') }}</div>
+    <div v-if="loading && skeletonType">
+      <v-skeleton-loader :type="skeletonType" class="mb-6"></v-skeleton-loader>
+      <v-skeleton-loader :type="skeletonType" class="mb-6"></v-skeleton-loader>
+      <v-skeleton-loader :type="skeletonType"></v-skeleton-loader>
+    </div>
+
+    <div v-else-if="loading" class="empty-text">{{ $t('noData.loading') }}</div>
     <div v-else-if="filtered" class="empty-text">
       <template v-if="noMatchesText">{{ noMatchesText }}</template>
       <template v-else>{{ $t('noData.noMatches') }}</template>
@@ -65,6 +71,12 @@ export default Vue.extend({
     loading: {
       type: Boolean,
       default: false,
+    },
+    // Type for skeleton loader. https://vuetifyjs.com/en/api/v-skeleton-loader/#props
+    skeletonType: {
+      type: String,
+      required: false,
+      default: undefined,
     },
   },
   computed: {
