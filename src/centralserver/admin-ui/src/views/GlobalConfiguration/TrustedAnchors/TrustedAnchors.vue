@@ -120,20 +120,20 @@ export default Vue.extend({
           text: 'Certificate HASH (SHA-224)',
           align: 'start',
           value: 'hash',
-          class: 'xrd-table-header mr-table-header-id',
+          class: 'xrd-table-header tra-table-header-hash',
         },
         {
           text: this.$t('global.created') as string,
           align: 'start',
           value: 'created',
-          class: 'xrd-table-header mr-table-header-created',
+          class: 'xrd-table-header tra-table-header-created',
         },
 
         {
           text: '',
           value: 'button',
           sortable: false,
-          class: 'xrd-table-header mr-table-header-buttons',
+          class: 'xrd-table-header tra-table-header-buttons',
         },
       ];
     },
