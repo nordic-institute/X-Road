@@ -99,46 +99,21 @@ module.exports = {
     `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/${subsystemId}/serviceclients/`,
   commands: commands,
   elements: {
-    wizardStepIndicator: {
-      selector: '//span[contains(@class, "primary") and contains(text(), "1")]',
-      locateStrategy: 'xpath',
-    },
-    addServiceButton: {
-      selector: '//button[@data-test="add-subjects-dialog"]',
-      locateStrategy: 'xpath',
-    },
-    removeAllButton: {
-      selector: '//button[@data-test="remove-all-access-rights"]',
-      locateStrategy: 'xpath',
-    },
-    closeButton: {
-      selector: '//button[@data-test="close"]',
-      locateStrategy: 'xpath',
-    },
+    wizardStepIndicator: '//span[contains(@class, "primary") and contains(text(), "1")]',
+    addServiceButton: '//button[@data-test="add-subjects-dialog"]',
+    removeAllButton:  '//button[@data-test="remove-all-access-rights"]',
+    closeButton:  '//button[@data-test="close"]',
   },
   sections: {
     addServicesPopup: {
       selector: '//div[@data-test="dialog-simple"]',
-      locateStrategy: 'xpath',
       commands: [addServiceCommands],
       elements: {
-        searchField: {
-          selector: '//input[@data-test="search-service-client"]',
-          locateStrategy: 'xpath',
-        },
-        addButton: {
-          selector: '//button[@data-test="dialog-save-button"]',
-          locateStrategy: 'xpath',
-        },
-        cancelButton: {
-          selector: '//button[@data-test="dialog-cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        closeButton: {
-          selector:
+        searchField: '//input[@data-test="search-service-client"]',
+        addButton: '//button[@data-test="dialog-save-button"]',
+        cancelButton: '//button[@data-test="dialog-cancel-button"]',
+        closeButton:
             '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
-          locateStrategy: 'xpath',
-        },
       },
     },
   },
