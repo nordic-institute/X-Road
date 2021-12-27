@@ -34,7 +34,7 @@
 
     <!-- Anchor -->
     <div id="anchor" class="mt-4">
-      <v-card class="pb-4" flat>
+      <v-card flat>
         <div class="card-top">
           <div class="card-main-title">Configuration parts</div>
           <div class="card-corner-button pr-4">
@@ -46,37 +46,39 @@
             </xrd-button>
           </div>
         </div>
+        <v-data-table
+          :loading="loading"
+          :headers="headers"
+          :items="trustedAnchors"
+          :search="search"
+          :must-sort="true"
+          :items-per-page="-1"
+          class="elevation-0 data-table"
+          item-key="id"
+          :loader-height="2"
+          hide-default-footer
+        >
+          <template #[`item.hash`]="{ item }">
+            <div class="hash-cell">
+              <xrd-icon-base class="mr-4 xrd-clickable"
+                ><XrdIconCertificate
+              /></xrd-icon-base>
+              <div>{{ item.hash }}</div>
+            </div>
+          </template>
 
-        <table class="xrd-table mt-0 pb-3">
-          <thead>
-            <tr>
-              <th class="title-col">Certificate HASH (SHA-224)</th>
+          <template #[`item.button`]>
+            <div class="cs-table-actions-wrap">
+              <xrd-button text :outlined="false">{{
+                $t('action.delete')
+              }}</xrd-button>
+            </div>
+          </template>
 
-              <th class="expiration-col">
-                {{ $t('keys.created') }}
-              </th>
-              <th></th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <!-- SOFTWARE token table body -->
-            <tr>
-              <td class="td-icon">
-                <div class="icon-column-wrap">
-                  <xrd-icon-base class="cert-icon"
-                    ><XrdIconCertificate
-                  /></xrd-icon-base>
-                  <div>
-                    42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:
-                  </div>
-                </div>
-              </td>
-              <td>2018-06-05 16:33:12</td>
-              <td class="xrd-clickable">{{ $t('action.delete') }}</td>
-            </tr>
-          </tbody>
-        </table>
+          <template #footer>
+            <div class="cs-table-custom-footer"></div>
+          </template>
+        </v-data-table>
       </v-card>
     </div>
   </div>
@@ -87,13 +89,55 @@
  * View for 'backup and restore' tab
  */
 import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
   components: {},
   data() {
-    return {};
+    return {
+      loading: false,
+      search: '',
+      trustedAnchors: [
+        {
+          hash: '42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:B8:0E:41:16:2A:97:EF:9F:',
+          created: '2021-02-01',
+        },
+        {
+          hash: '22:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:C2:6E:67:BC:07:FE:B8:0E:B8:0E:41:16:2A:97:EF:7F:',
+          created: '2021-05-05',
+        },
+        {
+          hash: '32:C2:6E:67:BC:07:FE:B8:0E:B8:0E:41:16:2A:97:EF:7F:41:16:2A:97:EF:9F:42:C2:6E:67:BC:07:FE:',
+          created: '2021-03-12',
+        },
+      ],
+    };
   },
-  computed: {},
+  computed: {
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: 'Certificate HASH (SHA-224)',
+          align: 'start',
+          value: 'hash',
+          class: 'xrd-table-header mr-table-header-id',
+        },
+        {
+          text: this.$t('global.created') as string,
+          align: 'start',
+          value: 'created',
+          class: 'xrd-table-header mr-table-header-created',
+        },
+
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header mr-table-header-buttons',
+        },
+      ];
+    },
+  },
 
   methods: {},
 });
@@ -133,6 +177,12 @@ export default Vue.extend({
   font-size: 18px;
   line-height: 24px;
   margin-left: 16px;
+}
+
+.hash-cell {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }
 
 .cert-icon {
