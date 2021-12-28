@@ -42,84 +42,85 @@
         class="alert"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
-          <div class="mr-4">
-            <xrd-icon-base color="red"
-              ><XrdIconErrorNotification
-            /></xrd-icon-base>
-          </div>
-          <div class="row-wrapper">
-            <!-- Show error message text -->
-            <div v-if="notification.errorMessage">
-              {{ notification.errorMessage }}
-            </div>
-
-            <!-- Show localised text by id from error object -->
-            <div
-              v-else-if="notification.errorObject && errorCode(notification)"
-            >
-              {{ $t('error_code.' + errorCode(notification)) }}
-            </div>
-
-            <!-- If error doesn't have a text or localisation key then just print the error object -->
-            <div v-else-if="notification.errorObject">
-              {{ notification.errorObject }}
-            </div>
-
-            <!-- Special case for pin code validation -->
-            <div v-if="errorCode(notification) === 'weak_pin'">
-              <div>
-                {{
-                  $t(`error_code.${errorMetadata(notification)[0]}`) +
-                  `: ${errorMetadata(notification)[1]}`
-                }}
+          <div class="icon-wrapper">
+            <v-icon class="icon"> icon-Error-notification</v-icon>
+            <div class="row-wrapper">
+              <!-- Show error message text -->
+              <div v-if="notification.errorMessage">
+                {{ notification.errorMessage }}
               </div>
-              <div>
-                {{
-                  $t(`error_code.${errorMetadata(notification)[2]}`) +
-                  `: ${errorMetadata(notification)[3]}`
-                }}
-              </div>
-            </div>
-            <div v-for="meta in errorMetadata(notification)" v-else :key="meta">
-              {{ meta }}
-            </div>
 
-            <!-- Show validation errors -->
-            <ul v-if="hasValidationErrors(notification)">
-              <li
-                v-for="validationError in validationErrors(notification)"
-                :key="validationError.field"
+              <!-- Show localised text by id from error object -->
+              <div
+                v-else-if="notification.errorObject && errorCode(notification)"
               >
-                {{ $t(`fields.${validationError.field}`) }}:
-                <template v-if="validationError.errorCodes.length === 1">
-                  {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
-                </template>
-                <template v-else>
-                  <ul>
-                    <li
-                      v-for="errCode in validationError.errorCodes"
-                      :key="`${validationError.field}.${errCode}`"
-                    >
-                      {{ $t(`validationError.${errCode}`) }}
-                    </li>
-                  </ul>
-                </template>
-              </li>
-            </ul>
+                {{ $t('error_code.' + errorCode(notification)) }}
+              </div>
 
-            <!-- Error ID -->
-            <div v-if="errorId(notification)">
-              {{ $t('id') }}:
-              {{ errorId(notification) }}
-            </div>
+              <!-- If error doesn't have a text or localisation key then just print the error object -->
+              <div v-else-if="notification.errorObject">
+                {{ notification.errorObject }}
+              </div>
 
-            <!-- count -->
-            <div v-if="notification.count > 1">
-              {{ $t('count') }}
-              {{ notification.count }}
+              <!-- Special case for pin code validation -->
+              <div v-if="errorCode(notification) === 'weak_pin'">
+                <div>
+                  {{
+                    $t(`error_code.${errorMetadata(notification)[0]}`) +
+                    `: ${errorMetadata(notification)[1]}`
+                  }}
+                </div>
+                <div>
+                  {{
+                    $t(`error_code.${errorMetadata(notification)[2]}`) +
+                    `: ${errorMetadata(notification)[3]}`
+                  }}
+                </div>
+              </div>
+              <div
+                v-for="meta in errorMetadata(notification)"
+                v-else
+                :key="meta"
+              >
+                {{ meta }}
+              </div>
+
+              <!-- Show validation errors -->
+              <ul v-if="hasValidationErrors(notification)">
+                <li
+                  v-for="validationError in validationErrors(notification)"
+                  :key="validationError.field"
+                >
+                  {{ $t(`fields.${validationError.field}`) }}:
+                  <template v-if="validationError.errorCodes.length === 1">
+                    {{ $t(`validationError.${validationError.errorCodes[0]}`) }}
+                  </template>
+                  <template v-else>
+                    <ul>
+                      <li
+                        v-for="errCode in validationError.errorCodes"
+                        :key="`${validationError.field}.${errCode}`"
+                      >
+                        {{ $t(`validationError.${errCode}`) }}
+                      </li>
+                    </ul>
+                  </template>
+                </li>
+              </ul>
+
+              <!-- Error ID -->
+              <div v-if="errorId(notification)">
+                {{ $t('id') }}:
+                {{ errorId(notification) }}
+              </div>
+
+              <!-- count -->
+              <div v-if="notification.count > 1">
+                {{ $t('count') }}
+                {{ notification.count }}
+              </div>
             </div>
           </div>
-
           <xrd-button
             v-if="errorId(notification)"
             text
@@ -242,51 +243,61 @@ export default Vue.extend({
 @import '~styles/colors';
 
 .alerts-container {
-  width: 1000px;
   padding: 0;
 
   & > * {
-    margin-top: 0;
     margin-bottom: 4px;
   }
+}
 
-  .alert {
-    margin-top: 8px;
-    border: 2px solid $XRoad-WarmGrey30;
-    box-sizing: border-box;
-    border-radius: 4px;
+.alert {
+  margin-top: 16px;
+  border: 2px solid $XRoad-WarmGrey30;
+  box-sizing: border-box;
+  border-radius: 4px;
+}
 
-    .row-wrapper-top {
-      display: flex;
-      flex-direction: row;
-      justify-content: flex-start;
-      align-items: center;
-    }
+.row-wrapper-top {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
 
-    .row-wrapper {
-      display: flex;
-      flex-direction: column;
-      overflow: auto;
-      overflow-wrap: break-word;
-      justify-content: center;
-      margin-right: 30px;
-    }
+.icon-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
 
-    .id-button {
-      margin-left: 0;
-      margin-right: auto;
-    }
-
-    .close-button {
-      height: 100%;
-      margin-left: auto;
-      margin-right: 5px;
-    }
-
-    .scrollable {
-      overflow-y: auto;
-      max-height: 300px;
-    }
+  .icon {
+    margin-right: 12px;
+    color: $XRoad-Error;
   }
+}
+
+.row-wrapper {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overflow-wrap: break-word;
+  justify-content: center;
+  margin-right: 30px;
+}
+
+.id-button {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.buttons {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
+.scrollable {
+  overflow-y: auto;
+  max-height: 300px;
 }
 </style>
