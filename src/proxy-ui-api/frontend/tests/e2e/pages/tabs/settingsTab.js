@@ -165,7 +165,6 @@ const settingsTab = {
             '//tr[@data-test="system.parameters-timestamping-service-row"]/td[1]',
         timestampingTableSecondCell:
             '//tr[@data-test="system.parameters-timestamping-service-row"]/td[2]',
-
       },
     },
     backupAndRestoreTab: {
@@ -178,7 +177,6 @@ const settingsTab = {
         backupButton: '//*[@data-test="backup-create-configuration"]',
         searchButton: '//button[contains(@class, "mdi-magnify")]',
         searchField: '//input[@data-test="search-input"]',
-
       },
       sections: {
         deleteBackupConfirmationDialog: {
@@ -188,10 +186,8 @@ const settingsTab = {
           elements: {
             confirmation:
                 '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[@data-test="dialog-save-button"]',
-
             cancel:
                 '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[@data-test="dialog-cancel-button"]',
-
           },
         },
         backupFileAlreadyExistsDialog: {
@@ -201,7 +197,6 @@ const settingsTab = {
           elements: {
             confirmation:  '//button[@data-test="dialog-save-button"]',
             cancel:  '//button[@data-test="dialog-cancel-button"]',
-
           },
         },
         restoreConfirmationDialog: {
@@ -211,7 +206,6 @@ const settingsTab = {
           elements: {
             confirmation: '//button[@data-test, "dialog-save-button"]',
             cancel: '//button[@data-test="dialog-cancel-button"]',
-
           },
         },
       },
