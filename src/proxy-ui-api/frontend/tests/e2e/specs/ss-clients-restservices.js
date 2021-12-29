@@ -27,7 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'restservices'],
   'Security server client add rest service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -126,7 +126,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit rest operation': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -280,7 +280,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add rest operation access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -362,7 +362,7 @@ module.exports = {
     browser.end();
   },
   'Security server client remove rest operation access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -444,7 +444,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add rest endpoints': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -571,7 +571,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit rest endpoints': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -661,7 +661,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit rest service': async (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -814,7 +814,7 @@ module.exports = {
     browser.end();
   },
   'Security server client delete rest service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
