@@ -34,6 +34,7 @@ const {
   certificatePopupCommands,
   certificatePopupElements,
 } = require('./popups/certificatePopup');
+const localGroupPopup = require("./popups/localGroupPopup");
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -97,84 +98,6 @@ const navigateCommands = {
       }
     });
 
-    return this;
-  },
-};
-
-var localGroupPopupCommands = {
-  waitForDescription: function (value) {
-    this.waitForValue('@localGroupDescription', value);
-    return this;
-  },
-  modifyCode: function (code) {
-    this.waitForNonEmpty('@localGroupCode');
-    this.clearValue2('@localGroupCode');
-    this.setValue('@localGroupCode', code);
-    return this;
-  },
-  modifyDescription: function (description) {
-    this.waitForNonEmpty('@localGroupDescription');
-    this.clearValue2('@localGroupDescription');
-    this.setValue('@localGroupDescription', description);
-    return this;
-  },
-  deleteThisGroup: function () {
-    this.click('@localGroupDeleteButton');
-    return this;
-  },
-  openAddMembers: function () {
-    this.click('@localGroupAddMembersButton');
-    return this;
-  },
-  searchMembers: function () {
-    this.click('@localGroupSearchWrap');
-    this.click('@localGroupSearchButton');
-    return this;
-  },
-  addSelectedMembers: function () {
-    this.click('@localGroupAddSelectedButton');
-    return this;
-  },
-  cancelAddMembersDialog: function () {
-    this.click('@localGroupCancelAddButton');
-    return this;
-  },
-  selectNewTestComMember: function () {
-    this.click('@localGroupTestComCheckbox');
-    return this;
-  },
-  selectMember: function (member) {
-    this.api.click(
-      `//tr[.//*[contains(text(), "${member}")]]//*[contains(@class, "v-input--selection-controls__ripple")]`,
-    );
-    return this;
-  },
-  clickRemoveAll: function () {
-    this.click('@localGroupRemoveAllButton');
-    return this;
-  },
-  clickRemoveTestComMember: function () {
-    this.click('@localGroupTestComRemoveButton');
-    return this;
-  },
-  confirmMemberRemove: function () {
-    this.click('@localGroupRemoveYesButton');
-    return this;
-  },
-  cancelMemberRemove: function () {
-    this.click('@localGroupRemoveCancelButton');
-    return this;
-  },
-  confirmDelete: function () {
-    this.click('@localGroupRemoveYesButton');
-    return this;
-  },
-  cancelDelete: function () {
-    this.click('@localGroupRemoveCancelButton');
-    return this;
-  },
-  close: function () {
-    this.click('@localGroupPopupCloseButton');
     return this;
   },
 };
@@ -467,40 +390,7 @@ module.exports = {
       commands: [certificatePopupCommands],
       elements: certificatePopupElements,
     },
-    localGroupPopup: {
-      selector:
-        '//div[contains(@class, "xrd-tab-max-width") and .//div[contains(@class, "cert-hash") and @data-test="local-group-title"]]',
-      commands: [localGroupPopupCommands],
-      elements: {
-        groupIdentifier: '//span[contains(@class, "identifier-wrap")]', // Title in the "xrd-sub-view-title" component
-        localGroupAddMembersButton: '//button[@data-test="add-members-button"]',
-        localGroupRemoveAllButton:
-          '//button[@data-test="remove-all-members-button"]',
-        localGroupDeleteButton:
-          '//button[@data-test="delete-local-group-button"]',
-        localGroupAddSelectedButton:
-          '//button[.//*[contains(text(), "Add selected")]]',
-        localGroupSearchButton: '//button[.//*[contains(text(), "Search")]]',
-        localGroupCancelAddButton: '//button[.//*[contains(text(), "Cancel")]]',
-        localGroupTestComCheckbox:
-          '//tr[.//*[contains(text(), "TestCom")]]//*[contains(@class, "v-input--selection-controls__ripple")]',
-        localGroupRemoveMemberButton:
-          '//button[.//*[contains(text(), "Add group")]]',
-        localGroupSearchWrap: '//div[contains(@class, "search-wrap")]',
-        localGroupRemoveYesButton: '//button[@data-test="dialog-save-button"]',
-        localGroupRemoveCancelButton:
-          '//button[@data-test="dialog-cancel-button"]',
-        localGroupTestComRemoveButton:
-          '//tr[.//*[contains(text(), "TestCom")]]//button[.//*[contains(text(), "Remove")]]',
-        localGroupTestGovRemoveButton:
-          '//tr[.//*[contains(text(), "TestGov")]]//button[.//*[contains(text(), "Remove")]]',
-        localGroupTestOrgRemoveButton:
-          '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
-        localGroupDescription:
-          '//input[@data-test="local-group-edit-description-input"]',
-        localGroupPopupCloseButton: '//button[.//*[contains(text(), "Close")]]',
-      },
-    },
+    localGroupPopup,
     servicesWarningPopup: {
       selector:
         '//div[contains(@class, "v-dialog") and .//*[contains(@class, "headline")]]',
