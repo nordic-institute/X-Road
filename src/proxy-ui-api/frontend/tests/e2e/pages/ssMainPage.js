@@ -34,7 +34,8 @@ const {
   certificatePopupCommands,
   certificatePopupElements,
 } = require('./popups/certificatePopup');
-const localGroupPopup = require("./popups/localGroupPopup");
+const localGroupPopup = require('./popups/localGroupPopup');
+const simpleSaveCancelPopup = require('./popups/simpleSaveCancelPopup');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -338,22 +339,6 @@ var addEndpointCommands = {
   },
 };
 
-var confirmationDialogCommands = {
-  confirm: function () {
-    this.api.keys(this.api.Keys.TAB);
-    this.api.keys(this.api.Keys.TAB);
-    this.api.keys(this.api.Keys.SPACE);
-    //this.click('@yesButton');
-    return this;
-  },
-  cancel: function () {
-    this.api.keys(this.api.Keys.TAB);
-    this.api.keys(this.api.Keys.SPACE);
-    //this.click('@cancelButton');
-    return this;
-  },
-};
-
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
@@ -587,41 +572,9 @@ module.exports = {
         deleteCancelButton: '//button[@data-test="dialog-cancel-button"]',
       },
     },
-    removeAccessRightPopup: {
-      selector:
-        '//div[contains(@class, "xrd-card") and //div[@data-test="dialog-simple"] and .//*[@data-test="dialog-title"]]',
-      commands: [confirmationDialogCommands],
-      elements: {
-        yesButton: '//button[@data-test="dialog-save-button"]',
-        cancelButton: '//button[@data-test="dialog-cancel-button"]',
-      },
-    },
-    removeAllAccessRightsPopup: {
-      selector:
-        '//div[contains(@class, "xrd-card") and //div[@data-test="dialog-simple"] and .//*[@data-test="dialog-title"]]',
-      commands: [confirmationDialogCommands],
-      elements: {
-        yesButton: '//button[@data-test="dialog-save-button"]',
-        cancelButton: '//button[@data-test="dialog-cancel-button"]',
-      },
-    },
-    deleteCertPopup: {
-      selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title" and //*[@data-test="dialog-content-text"]]]',
-      commands: [confirmationDialogCommands],
-      elements: {
-        yesButton: '//button[@data-test="dialog-save-button"]',
-        cancelButton: '//button[@data-test="dialog-cancel-button"]',
-      },
-    },
-    deleteCSRPopup: {
-      selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
-      commands: [confirmationDialogCommands],
-      elements: {
-        yesButton: '//button[@data-test="dialog-save-button"]',
-        cancelButton: '//button[@data-test="dialog-cancel-button"]',
-      },
-    },
+    removeAccessRightPopup: simpleSaveCancelPopup,
+    removeAllAccessRightsPopup: simpleSaveCancelPopup,
+    deleteCertPopup: simpleSaveCancelPopup,
+    deleteCSRPopup: simpleSaveCancelPopup,
   },
 };
