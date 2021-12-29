@@ -58,7 +58,7 @@ var clientInternalServersCommands = {
   addCert: function (certfile) {
     this.api.setValue(
       '//input[@type="file"]',
-      require('path').resolve(__dirname + certfile),
+      require('path').resolve(__dirname + '/..' + certfile),
     );
     return this;
   },
