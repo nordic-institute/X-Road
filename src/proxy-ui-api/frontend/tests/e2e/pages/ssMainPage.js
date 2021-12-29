@@ -29,8 +29,9 @@ const keysTab = require('./tabs/keysTab');
 const diagnosticsTab = require('./tabs/diagnosticsTab');
 const settingsTab = require('./tabs/settingsTab');
 const addSubjectsPopup = require('./common/addSubjectsPopup');
+const clientInfo = require('./tabs/clientsTabClientInfo');
 
-var navigateCommands = {
+const navigateCommands = {
   openClientsTab: function () {
     this.click('@clientsTab');
     return this;
@@ -96,36 +97,6 @@ var navigateCommands = {
   },
 };
 
-var clientInfoCommands = {
-  openDetailsTab: function () {
-    this.click('@detailsTab');
-    return this;
-  },
-  openServiceClientsTab: function () {
-    this.click('@serviceClientsTab');
-    return this;
-  },
-  openServicesTab: function () {
-    this.click('@servicesTab');
-    return this;
-  },
-  openInternalServersTab: function () {
-    this.click('@internalServersTab');
-    return this;
-  },
-  openLocalGroupsTab: function () {
-    this.click('@localGroupsTab');
-    return this;
-  },
-};
-
-var clientDetailsCommands = {
-  openSignCertificateInfo: function () {
-    this.click('@clientSignCertificate');
-    return this;
-  },
-};
-
 var certificatePopupCommands = {
   close: function () {
     this.click('@certificateInfoCloseButton');
@@ -134,43 +105,6 @@ var certificatePopupCommands = {
   deleteCert: function () {
     this.api.keys(this.api.Keys.PAGEUP);
     this.click('@deleteButton');
-    return this;
-  },
-};
-
-var clientInternalServersCommands = {
-  addCert: function (certfile) {
-    this.api.setValue(
-      '//input[@type="file"]',
-      require('path').resolve(__dirname + certfile),
-    );
-    return this;
-  },
-  openAddCertDialog: function () {
-    this.click('@addButton');
-    return this;
-  },
-  exportCert: function () {
-    this.click('@exportButton');
-    this.api.pause(1000);
-    this.api.keys(this.api.Keys.ENTER);
-    return this;
-  },
-  openTLSCert: function () {
-    this.click('@tlsCertificate');
-    return this;
-  },
-  selectConnectionType: function (type) {
-    this.click('@connectionTypeMenu');
-
-    this.api.pause(1000);
-    // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        type +
-        '")]',
-    );
-
     return this;
   },
 };
@@ -260,177 +194,6 @@ var servicesWarningPopupCommands = {
   },
   cancel: function () {
     this.click('@warningCancelButton');
-    return this;
-  },
-};
-
-var clientServicesCommands = {
-  filterBy: function (filter) {
-    this.clearValue2('@filterServices');
-    this.setValue('@filterServices', filter);
-    return this;
-  },
-  openAddWSDL: function () {
-    this.click('@addWSDLButton');
-    return this;
-  },
-  openAddREST: function () {
-    this.click('@addRESTButton');
-    return this;
-  },
-  confirmAddDialog: function () {
-    this.click('@confirmAddServiceButton');
-    return this;
-  },
-  cancelAddDialog: function () {
-    this.click('@cancelAddServiceButton');
-    return this;
-  },
-  initServiceUrl: function (url) {
-    this.logMessage('initServiceUrl -> ' + url);
-    this.assert.value('@newServiceUrl', '');
-    this.setValue('@newServiceUrl', url);
-    return this;
-  },
-  modifyServiceUrl: function (url) {
-    this.waitForNonEmpty('@newServiceUrl');
-    this.clearValue2('@newServiceUrl');
-    this.setValue('@newServiceUrl', url);
-    return this;
-  },
-  initServiceCode: function (code) {
-    this.assert.value('@newServiceCode', '');
-    this.clearValue2('@newServiceCode');
-    this.setValue('@newServiceCode', code);
-    return this;
-  },
-  modifyServiceCode: function (code) {
-    this.waitForNonEmpty('@newServiceCode');
-    this.clearValue2('@newServiceCode');
-    this.setValue('@newServiceCode', code);
-    return this;
-  },
-  selectRESTPath: function () {
-    this.click('@RESTPathRadioButtonClickArea');
-    return this;
-  },
-  selectOpenApi: function () {
-    this.click('@OpenApiRadioButtonClickArea');
-    return this;
-  },
-  openServiceDetails: function () {
-    this.click('@serviceDescription');
-    return this;
-  },
-  expandServiceDetails: function () {
-    this.click('@serviceExpandButton');
-    return this;
-  },
-  refreshServiceData: function () {
-    this.click('@refreshButton');
-    return this;
-  },
-  toggleEnabled: function () {
-    this.click('@serviceEnableToggle');
-    return this;
-  },
-  initDisableNotice: function (notice) {
-    this.assert.value('@disableNotice', '');
-    this.clearValue2('@disableNotice');
-    this.setValue('@disableNotice', notice);
-    return this;
-  },
-  modifyDisableNotice: function (notice) {
-    this.waitForNonEmpty('@disableNotice');
-    this.clearValue2('@disableNotice');
-    this.setValue('@disableNotice', notice);
-    return this;
-  },
-  confirmDisable: function () {
-    this.click('@confirmDisableButton');
-    return this;
-  },
-  cancelDisable: function () {
-    this.click('@cancelDisableButton');
-    return this;
-  },
-  openOperation: function (op) {
-    this.api.click(
-      this.selector +
-        `//td[@data-test="service-link" and contains(text(),"${op}")]`,
-    );
-    return this;
-  },
-  verifyServiceSSL: function (service, status) {
-    this.api.waitForElementVisible(
-      `//tr[.//td[@data-test="service-link" and contains(text(), "${service}")]]//*[contains(@class, "mdi-lock") and contains(@style, "${status}")]`,
-    );
-    return this;
-  },
-  verifyServiceURL: function (service, url) {
-    this.api.waitForElementVisible(
-      `//tr[.//td[@data-test="service-link" and contains(text(), "${service}")]]//*[contains(text(), "${url}")]`,
-    );
-    return this;
-  },
-};
-
-var clientLocalGroupsCommands = {
-  openAddLocalGroupDialog: function () {
-    this.click('@addGroupButton');
-    return this;
-  },
-  filterBy: function (filter) {
-    this.clearValue2('@filterInput');
-    this.setValue('@filterInput', filter);
-    return this;
-  },
-  openAddDialog: function () {
-    this.click('@addGroupButton');
-    return this;
-  },
-  confirmAddDialog: function () {
-    this.click('@confirmAddButton');
-    return this;
-  },
-  cancelAddDialog: function () {
-    this.click('@cancelAddButton');
-    return this;
-  },
-  initCode: function (code) {
-    this.assert.value('@groupCode', '');
-    this.clearValue2('@groupCode');
-    this.setValue('@groupCode', code);
-    return this;
-  },
-  initDescription: function (description) {
-    this.assert.value('@groupDescription', '');
-    this.clearValue2('@groupDescription');
-    this.setValue('@groupDescription', description);
-    return this;
-  },
-  openAbbDetails: function () {
-    this.click('@groupCodeCellAbb');
-    return this;
-  },
-  openBacDetails: function () {
-    this.click('@groupCodeCellBac');
-    return this;
-  },
-  openCbbDetails: function () {
-    this.click('@groupCodeCellCbb');
-    return this;
-  },
-  verifyGroupListRow: function (row, code) {
-    this.api.waitForElementVisible(
-      `(//*[contains(@data-test, "local-groups-table")]//tr)[${row}]//*[contains(text(),"${code}")]`,
-    );
-    return this;
-  },
-  openDetails: function (code) {
-    this.api.click(
-      `${this.selector}//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"${code}")]`,
-    );
     return this;
   },
 };
@@ -693,115 +456,15 @@ module.exports = {
     alertCloseButton: '//button[@data-test="close-alert"]',
     alertMessage:
       '//div[@data-test="contextual-alert"]//div[contains(@class, "row-wrapper")]/div',
-    sessionExpiredPopupOkButton: '//button[@data-test="session-expired-ok-button"]',
+    sessionExpiredPopupOkButton:
+      '//button[@data-test="session-expired-ok-button"]',
   },
   sections: {
     clientsTab: clientsTab,
     keysTab: keysTab,
     diagnosticsTab: diagnosticsTab,
     settingsTab: settingsTab,
-    clientInfo: {
-      selector:
-        '//div[contains(@class, "v-main__wrap") and .//*[@data-test="clients" and @aria-selected="true"]]',
-      commands: [clientInfoCommands],
-      elements: {
-        detailsTab:
-          '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Details")]',
-        serviceClientsTab:
-          '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Service clients")]',
-
-        servicesTab:
-          '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Services")]',
-
-        internalServersTab:
-          '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Internal servers")]',
-
-        localGroupsTab:
-          '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Local groups")]',
-
-      },
-      sections: {
-        details: {
-          selector:
-            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Details")]]//div[contains(@class, "xrd-view-common")]',
-          commands: [clientDetailsCommands],
-          elements: {
-            clientSignCertificate: {
-              selector: 'span.cert-name',
-              locateStrategy: 'css selector',
-            },
-          },
-        },
-        internalServers: {
-          selector:
-            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Internal servers")]]//div[contains(@class, "xrd-view-common")]',
-          commands: [clientInternalServersCommands],
-          elements: {
-            addButton: '//button[.//*[contains(text(), "Add")]]',
-            exportButton: '//button[.//*[contains(text(), "Export")]]',
-            connectionTypeMenu: '//div[contains(@class, "v-select__selection")]',
-            tlsCertificate:
-              '//table[contains(@class, "server-certificates")]//span[contains(@class, "certificate-link")]',
-          },
-        },
-        localGroups: {
-          selector:
-            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Local groups")]]//div[contains(@class, "xrd-view-common")]',
-          commands: [clientLocalGroupsCommands],
-          elements: {
-            filterInput: '//input',
-            addGroupButton: '//button[@data-test="add-local-group-button"]',
-            confirmAddButton: '//button[@data-test="dialog-save-button"]',
-            cancelAddButton: '//button[@data-test="dialog-cancel-button"]',
-            groupCode: '//input[@data-test="add-local-group-code-input"]',
-            groupDescription:
-              '//input[@data-test="add-local-group-description-input"]',
-            groupCodeCellAbb:
-              '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"abb")]',
-            groupCodeCellBac:
-              '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"bac")]',
-            groupCodeCellCbb:
-              '//*[contains(@data-test, "local-groups-table")]//*[contains(text(),"cbb")]',
-          },
-        },
-        services: {
-          selector:
-            '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Services")]]//div[contains(@class, "xrd-view-common")]',
-          commands: [clientServicesCommands],
-          elements: {
-            addWSDLButton: '//button[@data-test="add-wsdl-button"]',
-            addRESTButton: '//button[@data-test="add-rest-button"]',
-            filterServices: '//input[@data-test="search-service"]',
-            addDialogTitle: '//input[@data-test="dialog-title"]',
-            newServiceUrl: '//input[contains(@name, "serviceUrl")]',
-            newServiceCode: '//input[contains(@name, "serviceCode")]',
-            serviceUrlMessage: '//div[contains(@class, "v-messages__message")]',
-            serviceCodeMessage:
-              '//div[contains(@class, "v-input") and .//input[@name="serviceCode"]]//div[contains(@class, "v-messages__message")]',
-            confirmAddServiceButton: '//button[@data-test="dialog-save-button"]',
-            cancelAddServiceButton: '//button[@data-test="dialog-cancel-button"]',
-            RESTPathRadioButton: '//input[@name="REST"]',
-            RESTPathRadioButtonClickArea: '//input[@name="REST"]/following-sibling::div',
-            OpenApiRadioButton: '//input[@name="OPENAPI3"]',
-            OpenApiRadioButtonClickArea: '//input[@name="OPENAPI3"]/following-sibling::div',
-            serviceDescription: '//*[@data-test="service-description-header"]',
-            serviceExpandButton:
-              '//*[@data-test="service-description-accordion"]//button',
-            refreshButton: '//button[@data-test="refresh-button"]',
-            refreshTimestamp: '//*[contains(@class, "refresh-time")]',
-            serviceDetailsDeleteButton: '//button[.//*[contains(text(), "Delete")]]',
-            serviceDetailsSaveButton: '//button[.//*[contains(text(), "Save")]]',
-            serviceDetailsCancelButton: '//button[.//*[contains(text(), "Cancel")]]',
-            serviceEnableToggle:
-              '//*[contains(@class, "v-input--selection-controls__ripple")]',
-            confirmDisableButton: '//button[@data-test="dialog-save-button"]',
-            cancelDisableButton: '//button[@data-test="dialog-cancel-button"]',
-            disableNotice: '//div[contains(@class, "dlg-edit-row") and .//*[contains(@class, "dlg-row-title")]]//input',
-            operationUrl: '//td[@data-test="service-url"]',
-          },
-        },
-      },
-    },
+    clientInfo: clientInfo,
     certificatePopup: {
       selector: '//div[contains(@class, "certificate-details-wrapper")]',
       commands: [certificatePopupCommands],
@@ -825,24 +488,30 @@ module.exports = {
       elements: {
         groupIdentifier: '//span[contains(@class, "identifier-wrap")]', // Title in the "xrd-sub-view-title" component
         localGroupAddMembersButton: '//button[@data-test="add-members-button"]',
-        localGroupRemoveAllButton: '//button[@data-test="remove-all-members-button"]',
-        localGroupDeleteButton: '//button[@data-test="delete-local-group-button"]',
-        localGroupAddSelectedButton: '//button[.//*[contains(text(), "Add selected")]]',
+        localGroupRemoveAllButton:
+          '//button[@data-test="remove-all-members-button"]',
+        localGroupDeleteButton:
+          '//button[@data-test="delete-local-group-button"]',
+        localGroupAddSelectedButton:
+          '//button[.//*[contains(text(), "Add selected")]]',
         localGroupSearchButton: '//button[.//*[contains(text(), "Search")]]',
         localGroupCancelAddButton: '//button[.//*[contains(text(), "Cancel")]]',
         localGroupTestComCheckbox:
           '//tr[.//*[contains(text(), "TestCom")]]//*[contains(@class, "v-input--selection-controls__ripple")]',
-        localGroupRemoveMemberButton: '//button[.//*[contains(text(), "Add group")]]',
+        localGroupRemoveMemberButton:
+          '//button[.//*[contains(text(), "Add group")]]',
         localGroupSearchWrap: '//div[contains(@class, "search-wrap")]',
         localGroupRemoveYesButton: '//button[@data-test="dialog-save-button"]',
-        localGroupRemoveCancelButton: '//button[@data-test="dialog-cancel-button"]',
+        localGroupRemoveCancelButton:
+          '//button[@data-test="dialog-cancel-button"]',
         localGroupTestComRemoveButton:
           '//tr[.//*[contains(text(), "TestCom")]]//button[.//*[contains(text(), "Remove")]]',
         localGroupTestGovRemoveButton:
           '//tr[.//*[contains(text(), "TestGov")]]//button[.//*[contains(text(), "Remove")]]',
         localGroupTestOrgRemoveButton:
           '//tr[.//*[contains(text(), "TestOrg")]]//button[.//*[contains(text(), "Remove")]]',
-        localGroupDescription: '//input[@data-test="local-group-edit-description-input"]',
+        localGroupDescription:
+          '//input[@data-test="local-group-edit-description-input"]',
         localGroupPopupCloseButton: '//button[.//*[contains(text(), "Close")]]',
       },
     },
@@ -886,13 +555,16 @@ module.exports = {
       elements: {
         serviceDetailsCloseButton:
           '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
-        deleteServiceButton: '//button[@data-test="service-description-details-delete-button"]',
+        deleteServiceButton:
+          '//button[@data-test="service-description-details-delete-button"]',
         confirmDeleteButton: '//button[@data-test="dialog-save-button"]',
         cancelDeleteButton: '//button[@data-test="dialog-cancel-button"]',
         serviceURL: '//*[contains(@class, "url-input")]//input',
         serviceCode: '//*[contains(@class, "code-input")]//input',
-        serviceType: '//div[@data-test="service-description-details-url-type-value"]',
-        URLMessage: '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
+        serviceType:
+          '//div[@data-test="service-description-details-url-type-value"]',
+        URLMessage:
+          '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
         codeMessage:
           '//*[contains(@class, "code-input")]//*[contains(@class, "v-messages__message")]',
         confirmDialogButton:
@@ -934,20 +606,27 @@ module.exports = {
       elements: {
         parametersTab: '//*[@data-test="parameters"]',
         endpointsTab: '//*[@data-test="endpoints"]',
-        urlApplyToAllCheckbox: '//input[@data-test="url-all"]/following-sibling::div',
-        timeoutApplyToAllCheckbox: '//input[@data-test="timeout-all"]/following-sibling::div',
-        verifyCertApplyToAllCheckbox: '//input[@data-test="ssl-auth-all"]/following-sibling::div',
+        urlApplyToAllCheckbox:
+          '//input[@data-test="url-all"]/following-sibling::div',
+        timeoutApplyToAllCheckbox:
+          '//input[@data-test="timeout-all"]/following-sibling::div',
+        verifyCertApplyToAllCheckbox:
+          '//input[@data-test="ssl-auth-all"]/following-sibling::div',
         serviceURL: '//input[@data-test="service-url"]',
         timeout: '//input[@data-test="service-timeout"]',
         sslAuth: '//input[@data-test="ssl-auth"]',
-        sslAuthClickarea: '//input[@data-test="ssl-auth"]/following-sibling::div',
-        save2Button: '//button[@data-test="save-service-parameters"]/following-sibling::div',
+        sslAuthClickarea:
+          '//input[@data-test="ssl-auth"]/following-sibling::div',
+        save2Button:
+          '//button[@data-test="save-service-parameters"]/following-sibling::div',
         saveButton: '//button[@data-test="save-service-parameters"]',
         closeButton: '//button[@data-test="close"]',
         urlHelp: '//div[@data-test="service-parameters-service-url-label"]//i',
         timeoutHelp: '//div[@data-test="service-parameters-timeout-label"]//i',
-        verifyCertHelp: '//div[@data-test="service-parameters-verify-tls-label"]//i',
-        activeTooltip: '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
+        verifyCertHelp:
+          '//div[@data-test="service-parameters-verify-tls-label"]//i',
+        activeTooltip:
+          '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
         addSubjectsButton: '//button[@data-test="show-add-subjects"]',
         removeAllButton: '//button[@data-test="remove-subjects"]',
       },
@@ -962,7 +641,8 @@ module.exports = {
         serviceURL: '//input[@data-test="service-url"]',
         timeout: '//input[@data-test="service-timeout"]',
         sslAuth: '//input[@data-test="ssl-auth"]',
-        sslAuthClickarea: '//input[@data-test="ssl-auth"]/following-sibling::div',
+        sslAuthClickarea:
+          '//input[@data-test="ssl-auth"]/following-sibling::div',
         save2Button:
           '//button[@data-test="save-service-parameters"]/following-sibling::div',
         saveButton: '//button[@data-test="save-service-parameters"]',
@@ -970,7 +650,8 @@ module.exports = {
         closeButton: '//button[@data-test="close"]',
         urlHelp: '//div[@data-test="service-parameters-service-url-label"]//i',
         timeoutHelp: '//div[@data-test="service-parameters-timeout-label"]//i',
-        verifyCertHelp: '//div[@data-test="service-parameters-verify-tls-label"]//i',
+        verifyCertHelp:
+          '//div[@data-test="service-parameters-verify-tls-label"]//i',
         activeTooltip:
           '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
         addSubjectsButton: '//button[@data-test="show-add-subjects"]',
@@ -994,7 +675,8 @@ module.exports = {
         parametersTab: '//*[@data-test="parameters"]',
         endpointsTab: '//*[@data-test="endpoints"]',
         addButton: '//button[@data-test="endpoint-add"]',
-        closeButton: '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
+        closeButton:
+          '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
         editButton: '//button[@data-test="endpoint-edit"]',
         accessRightsButton: '//button[@data-test="endpoint-edit-accessrights"]',
       },
@@ -1008,7 +690,8 @@ module.exports = {
         addButton: '//button[@data-test="dialog-save-button"]',
         cancelButton: '//button[@data-test="dialog-cancel-button"]',
         requestPath: '//input[@data-test="endpoint-path"]',
-        requestPathMessage: '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
+        requestPathMessage:
+          '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
         methodDropdown: '//input[@data-test="endpoint-method"]/parent::*',
       },
     },
@@ -1021,7 +704,8 @@ module.exports = {
         cancelButton: '//button[.//*[contains(text(), "Cancel")]]',
         deleteButton: '//button[.//*[contains(text(), "Delete")]]',
         requestPath: '//input[@data-test="endpoint-path"]',
-        requestPathMessage: '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
+        requestPathMessage:
+          '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
         methodDropdown: '//input[@data-test="endpoint-method"]/parent::*',
         deleteYesButton: '//button[@data-test="dialog-save-button"]',
         deleteCancelButton: '//button[@data-test="dialog-cancel-button"]',
@@ -1055,7 +739,8 @@ module.exports = {
       },
     },
     deleteCSRPopup: {
-      selector: '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
+      selector:
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
       commands: [confirmationDialogCommands],
       elements: {
         yesButton: '//button[@data-test="dialog-save-button"]',
@@ -1063,4 +748,4 @@ module.exports = {
       },
     },
   },
-}
+};
