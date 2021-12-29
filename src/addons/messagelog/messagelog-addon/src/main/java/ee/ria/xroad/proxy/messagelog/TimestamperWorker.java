@@ -103,7 +103,7 @@ public class TimestamperWorker extends UntypedAbstractActor {
     }
 
     private AbstractTimestampRequest createTimestampRequest(Long[] logRecords,
-            String[] signatureHashes) throws Exception {
+            String[] signatureHashes) {
         if (logRecords.length == 1) {
             log.debug("Creating regular time-stamp");
 
