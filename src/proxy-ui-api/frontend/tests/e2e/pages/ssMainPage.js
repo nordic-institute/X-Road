@@ -30,6 +30,10 @@ const diagnosticsTab = require('./tabs/diagnosticsTab');
 const settingsTab = require('./tabs/settingsTab');
 const addSubjectsPopup = require('./common/addSubjectsPopup');
 const clientInfo = require('./tabs/clientsTabClientInfo');
+const {
+  certificatePopupCommands,
+  certificatePopupElements,
+} = require('./popups/certificatePopup');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -93,18 +97,6 @@ const navigateCommands = {
       }
     });
 
-    return this;
-  },
-};
-
-var certificatePopupCommands = {
-  close: function () {
-    this.click('@certificateInfoCloseButton');
-    return this;
-  },
-  deleteCert: function () {
-    this.api.keys(this.api.Keys.PAGEUP);
-    this.click('@deleteButton');
     return this;
   },
 };
@@ -468,18 +460,12 @@ module.exports = {
     certificatePopup: {
       selector: '//div[contains(@class, "certificate-details-wrapper")]',
       commands: [certificatePopupCommands],
-      elements: {
-        certificateInfoCloseButton: '//*[@data-test="close-x"]',
-        deleteButton: '//button[.//*[contains(text(), "Delete")]]',
-      },
+      elements: certificatePopupElements,
     },
     certificateDetails: {
       selector: '//*[@data-test="certificate-details-dialog"]',
       commands: [certificatePopupCommands],
-      elements: {
-        certificateInfoCloseButton: '//*[@data-test="close-x"]',
-        deleteButton: '//button[.//*[contains(text(), "Delete")]]',
-      },
+      elements: certificatePopupElements,
     },
     localGroupPopup: {
       selector:
