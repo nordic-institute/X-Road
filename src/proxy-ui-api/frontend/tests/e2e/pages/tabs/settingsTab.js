@@ -197,7 +197,7 @@ const settingsTab = {
           locateStrategy: 'xpath',
         },
         timestampingAddDialogServiceSelection: {
-          selector: '//input[@value="X-Road Test TSA CN"]/../../label',
+          selector: '//input[@value="Xroad Test TSA CN"]/../../label',
           locateStrategy: 'xpath',
         },
         timestampingTableFirstCell: {

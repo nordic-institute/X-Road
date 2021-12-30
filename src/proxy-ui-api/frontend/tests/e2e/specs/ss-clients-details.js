@@ -63,7 +63,7 @@ module.exports = {
         '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
       )
       .waitForElementVisible(
-        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+        '//span[contains(@class,"cert-name") and contains(text(),"Xroad Test CA CN")]',
       );
 
     // Open sign certificate
@@ -71,7 +71,7 @@ module.exports = {
     browser.waitForElementVisible(certificatePopup);
 
     // Verify sign certificate info
-    browser.assert.containsText(certificatePopup, 'X-Road Test CA CN');
+    browser.assert.containsText(certificatePopup, 'Xroad Test CA CN');
     browser.assert.containsText(certificatePopup, 'SHA256withRSA');
     browser.assert.containsText(
       certificatePopup,
@@ -108,7 +108,7 @@ module.exports = {
         '//tr[td[contains(text(),"Subsystem Code")] and td[contains(text(),"TestService")]]',
       )
       .waitForElementVisible(
-        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+        '//span[contains(@class,"cert-name") and contains(text(),"Xroad Test CA CN")]',
       );
 
     // Open sign certificate
@@ -116,7 +116,7 @@ module.exports = {
     browser.waitForElementVisible(certificatePopup);
 
     // Verify sign certificate info
-    browser.assert.containsText(certificatePopup, 'X-Road Test CA CN');
+    browser.assert.containsText(certificatePopup, 'Xroad Test CA CN');
     browser.assert.containsText(certificatePopup, 'SHA256withRSA');
     browser.assert.containsText(
       certificatePopup,

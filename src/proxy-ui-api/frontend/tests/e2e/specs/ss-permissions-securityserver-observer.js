@@ -131,7 +131,7 @@ module.exports = {
         '//tr[td[contains(text(),"Member Code")] and td[contains(text(),"0245437-2")]]',
       )
       .waitForElementVisible(
-        '//span[contains(@class,"cert-name") and contains(text(),"X-Road Test CA CN")]',
+        '//span[contains(@class,"cert-name") and contains(text(),"Xroad Test CA CN")]',
       );
   },
   'should see local groups list': (browser) => {

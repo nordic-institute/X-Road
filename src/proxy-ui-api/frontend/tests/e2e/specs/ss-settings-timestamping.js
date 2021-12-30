@@ -70,7 +70,7 @@ module.exports = {
     systemParametersTab.click('@timestampingAddButton');
     systemParametersTab.click('@timestampingAddDialogServiceSelection');
     systemParametersTab.click('@timestampingAddDialogAddButton');
-    systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN');
+    systemParametersTab.assertTimestampingTableContents('Xroad Test TSA CN');
 
     // add button is disabled if there is no room for new services
     systemParametersTab.waitForElementVisible('@timestampingServiceTableRow');
@@ -79,7 +79,7 @@ module.exports = {
 
   'Timestamp-table is visible': () => {
     // list shows name and url of the service
-    systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN');
+    systemParametersTab.assertTimestampingTableContents('Xroad Test TSA CN');
   },
   'service deletion can be cancelled': () => {
     systemParametersTab.openTimeStampingDeleteDialog();
@@ -87,6 +87,6 @@ module.exports = {
       '@timestampingDeleteDialogCancelButton',
     );
     systemParametersTab.click('@timestampingDeleteDialogCancelButton');
-    systemParametersTab.assertTimestampingTableContents('X-Road Test TSA CN');
+    systemParametersTab.assertTimestampingTableContents('Xroad Test TSA CN');
   },
 };
