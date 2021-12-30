@@ -26,29 +26,37 @@ import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 import ee.ria.xroad.common.util.FileContentChangeChecker;
+import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
 import static org.hamcrest.core.AllOf.allOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * Test to verify that CachingKeyConf works as expected when it comes to threading
@@ -67,9 +75,11 @@ public class CachingKeyConfImplTest {
     private static final BooleanSupplier VALID_SIGNING_INFO = ALWAYS_TRUE;
     public static final int NO_LOOPING = 1;
     public static final int NO_DELAY = 0;
+    private static final Path KEY_CONF = Paths.get("build", "tmp", "keyConf.xml");
 
     @Before
-    public void before() {
+    public void before() throws IOException {
+        Files.createFile(KEY_CONF);
         ServerConf.reload(new EmptyServerConf() {
             @Override
             public SecurityServerId getIdentifier() {
@@ -78,9 +88,13 @@ public class CachingKeyConfImplTest {
         });
     }
 
+    @After
+    public void after() throws Exception {
+        Files.deleteIfExists(KEY_CONF);
+    }
+
     @Test(timeout = 5000)
     public void testSigningInfoReads() throws Exception {
-        CachingKeyConfImpl.invalidateCaches();
         AtomicInteger callsToGetInfo = new AtomicInteger(0);
         ClientId client1 = ClientId.create("FI", "GOV", "1");
         ClientId client2 = ClientId.create("FI", "GOV", "1", "SS");
@@ -95,7 +109,6 @@ public class CachingKeyConfImplTest {
         assertEquals(expectedCacheHits, callsToGetInfo.get());
 
         // read cached data like in previous step, but one item becomes invalid suddenly -> one extra hit
-        CachingKeyConfImpl.invalidateCaches();
         BooleanSupplier suddenlyInvalid = new BooleanSupplier() {
             AtomicInteger counter = new AtomicInteger(0);
 
@@ -121,7 +134,7 @@ public class CachingKeyConfImplTest {
         // next thread 2 checks and causes extra hit, ... -> five extra hits
         // - some combination between those two
         doConcurrentAuthKeyReads(callsToGetInfo,
-                CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
+                CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 100);
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
         assertThat(callsToGetInfo.get(), allOf(
@@ -130,44 +143,42 @@ public class CachingKeyConfImplTest {
         log.debug("total cache hits: {}", callsToGetInfo.get());
     }
 
-    @Test(timeout = 5000)
+    @Test(timeout = 15000)
     public void testAuthKeyReadsWithChangedKeyConf() throws Exception {
-        CachingKeyConfImpl.invalidateCaches();
+
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
-        int expectedCacheHits = 0;
-        // first read keys from cache with 5 threads, key conf is not changing
-        // should cause 1 cache refresh
-        doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
-        expectedCacheHits = expectedCacheHits + 1;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        ToggleableBooleanSupplier keyConfHasChanged = new ToggleableBooleanSupplier(false);
 
-        // next read one key, but this time key conf has changed -> one more hit
-        doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, NO_LOOPING, NO_LOOPING, NO_DELAY);
-        expectedCacheHits = expectedCacheHits + 1;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
+                callsToGetAuthKeyInfo,
+                keyConfHasChanged,
+                VALID_AUTH_KEY,
+                VALID_SIGNING_INFO,
+                NO_DELAY);
+        try (FileWatcherRunner unused = CachingKeyConfImpl.createChangeWatcher(
+                new WeakReference<>(testCachingKeyConf),
+                new TestChangeChecker(keyConfHasChanged))) {
+            int expectedCacheHits = 1;
+            // should cause 1 cache refresh
+            testCachingKeyConf.getAuthKey();
+            assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
-        // if we read with 5 threads, and key conf is always changed, what can happen:
-        // - all threads check "keyConfHasChanged()" at the same time,
-        // and invalidate caches at the same time -> only one extra hit
-        // - thread 1 checks "keyConfHasChanged()", reads value and causes extra hit,
-        // next thread 2 checks and causes extra hit, ... -> five extra hits
-        // - some combination between those two
-        doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                CHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
-        int expectedMinimumCacheHits = expectedCacheHits + 1;
-        int expectedMaximumCacheHits = expectedCacheHits + 5;
-        log.debug("total cache hits: {}", callsToGetAuthKeyInfo.get());
-        assertThat(callsToGetAuthKeyInfo.get(), allOf(
-                greaterThanOrEqualTo(expectedMinimumCacheHits),
-                lessThanOrEqualTo(expectedMaximumCacheHits)));
+            keyConfHasChanged.setValue(true);
+
+            // change keyconf
+            Files.write(KEY_CONF, "test".getBytes());
+            // wait for change to propagate
+            testCachingKeyConf.latch.await();
+            // next read one key, but this time key conf has changed -> one more hit
+            testCachingKeyConf.getAuthKey();
+
+            expectedCacheHits++;
+            assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        }
     }
-
 
     @Test(timeout = 5000)
     public void testCachedAuthKeyIsInvalid() throws Exception {
-        CachingKeyConfImpl.invalidateCaches();
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         // read:
         // 1. return valid key normally
@@ -176,17 +187,29 @@ public class CachingKeyConfImplTest {
         int expectedCacheHits = 0;
         // first read keys from cache with 5 threads,
         // should cause 1 initial read and 1 cache refresh
-        doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 5, NO_LOOPING, NO_DELAY);
-        expectedCacheHits = expectedCacheHits + 1;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+        final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
+                callsToGetAuthKeyInfo,
+                UNCHANGED_KEY_CONF,
+                keyValidity,
+                VALID_SIGNING_INFO,
+                NO_DELAY);
+
+        CacheReadOperation readOperation = new CacheReadOperation(testCachingKeyConf) {
+            @Override
+            Object readFromCache(Object key) {
+                return testCachingKeyConf.getAuthKey();
+            }
+        };
+        doConcurrentCacheReads(readOperation, 5, NO_LOOPING);
+
+        assertEquals(++expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // next read one key, but this time key is not valid -> one more hit
         keyValidity.setValue(false);
-        doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 1, NO_LOOPING, NO_DELAY);
-        expectedCacheHits = expectedCacheHits + 1;
-        assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+
+        doConcurrentCacheReads(readOperation, 1, NO_LOOPING);
+
+        assertEquals(++expectedCacheHits, callsToGetAuthKeyInfo.get());
 
         // if we read with 5 threads, and key conf is always invalid, what can happen:
         // - all threads check "info.verifyValidity(new Date())" at the same time,
@@ -194,25 +217,25 @@ public class CachingKeyConfImplTest {
         // - thread 1 checks "info.verifyValidity", reads value and causes extra hit,
         // next thread 2 checks and causes extra hit, ... -> five extra hits
         // - some combination between those two
-        doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, keyValidity, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
+        doConcurrentCacheReads(readOperation, 5, NO_LOOPING);
+
         int expectedMinimumCacheHits = expectedCacheHits + 1;
         int expectedMaximumCacheHits = expectedCacheHits + 5;
         log.debug("total cache hits: {}", callsToGetAuthKeyInfo.get());
         assertThat(callsToGetAuthKeyInfo.get(), allOf(
                 greaterThanOrEqualTo(expectedMinimumCacheHits),
                 lessThanOrEqualTo(expectedMaximumCacheHits)));
+        testCachingKeyConf.destroy();
     }
 
     @Test(timeout = 5000)
     public void testAuthKeyReadsWithChangedServerId() throws Exception {
-        CachingKeyConfImpl.invalidateCaches();
         AtomicInteger callsToGetAuthKeyInfo = new AtomicInteger(0);
         int expectedCacheHits = 0;
         // first read keys from cache with 5 threads, server id is not changing
         // should cause 1 cache refresh
         doConcurrentAuthKeyReads(callsToGetAuthKeyInfo,
-                UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 500);
+                UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 5, NO_LOOPING, 100);
         expectedCacheHits++;
         assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
@@ -232,7 +255,7 @@ public class CachingKeyConfImplTest {
     /**
      * Operation that reads from the cache
      */
-    private abstract class CacheReadOperation {
+    private abstract static class CacheReadOperation {
         private CachingKeyConfImpl cache;
 
         CacheReadOperation(CachingKeyConfImpl cache) {
@@ -244,12 +267,12 @@ public class CachingKeyConfImplTest {
 
     /**
      * Test signing info reads from cache concurrently with 1..n threads
-     * @param dataRefreshes       counter for cache refreshes
-     * @param keyConfHasChanged   tells if key conf has changed
-     * @param authKeyIsValid      tells if key is valid (only set for new items added to cache)
-     * @param signingInfoIsValid  tells if signing info is valid
-     * @param concurrentThreads   how many threads read from cache
-     * @param loops               how many times each thread does its thing, on average
+     * @param dataRefreshes counter for cache refreshes
+     * @param keyConfHasChanged tells if key conf has changed
+     * @param authKeyIsValid tells if key is valid (only set for new items added to cache)
+     * @param signingInfoIsValid tells if signing info is valid
+     * @param concurrentThreads how many threads read from cache
+     * @param loops how many times each thread does its thing, on average
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentSigningInfoReads(AtomicInteger dataRefreshes,
@@ -260,7 +283,6 @@ public class CachingKeyConfImplTest {
             int concurrentThreads,
             int loops,
             int slowCacheReadTimeMs) throws Exception {
-
 
         final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
                 dataRefreshes,
@@ -282,17 +304,17 @@ public class CachingKeyConfImplTest {
             }
         };
         doConcurrentCacheReads(readOperation, concurrentThreads, loops);
+        testCachingKeyConf.destroy();
     }
-
 
     /**
      * Test auth key reads from cache concurrently with 1..n threads
-     * @param dataRefreshes       counter for cache refreshes
-     * @param keyConfHasChanged   tells if key conf has changed
-     * @param authKeyIsValid      tells if key is valid (only set for new items added to cache)
-     * @param signingInfoIsValid  tells if signing info is valid
-     * @param concurrentThreads   how many threads read from cache
-     * @param loops               how many times each thread does its thing, on average
+     * @param dataRefreshes counter for cache refreshes
+     * @param keyConfHasChanged tells if key conf has changed
+     * @param authKeyIsValid tells if key is valid (only set for new items added to cache)
+     * @param signingInfoIsValid tells if signing info is valid
+     * @param concurrentThreads how many threads read from cache
+     * @param loops how many times each thread does its thing, on average
      * @param slowCacheReadTimeMs how much cache refresh is slowed
      */
     private void doConcurrentAuthKeyReads(AtomicInteger dataRefreshes,
@@ -303,8 +325,7 @@ public class CachingKeyConfImplTest {
             int loops,
             int slowCacheReadTimeMs) throws Exception {
 
-
-        final TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
+        TestCachingKeyConfImpl testCachingKeyConf = new TestCachingKeyConfImpl(
                 dataRefreshes,
                 keyConfHasChanged,
                 authKeyIsValid,
@@ -318,6 +339,7 @@ public class CachingKeyConfImplTest {
             }
         };
         doConcurrentCacheReads(readOperation, concurrentThreads, loops);
+        testCachingKeyConf.destroy();
     }
 
     private void doConcurrentCacheReads(CacheReadOperation readOperation,
@@ -349,23 +371,43 @@ public class CachingKeyConfImplTest {
         return;
     }
 
+    private static class TestChangeChecker extends FileContentChangeChecker {
+        private BooleanSupplier keyConfHasChanged;
+
+        TestChangeChecker(BooleanSupplier keyConfHasChanged) throws Exception {
+            super(KEY_CONF.toString());
+            this.keyConfHasChanged = keyConfHasChanged;
+        }
+
+        @Override
+        protected String calculateConfFileChecksum(File file) {
+            return "dummyChecksum";
+        }
+
+        @Override
+        public boolean hasChanged() {
+            log.debug("asking if key conf has changed, answer: " + keyConfHasChanged.getAsBoolean());
+            return keyConfHasChanged.getAsBoolean();
+        }
+    }
+
     /**
      * Test cache implementation that allows for controlling key conf validity,
      * auth key validity, and cache refresh delay
      */
-    private class TestCachingKeyConfImpl extends CachingKeyConfImpl {
+    private static class TestCachingKeyConfImpl extends CachingKeyConfImpl {
         final AtomicInteger dataRefreshes;
         final BooleanSupplier keyConfHasChanged;
         final BooleanSupplier authKeyIsValid;
         final BooleanSupplier signingInfoIsValid;
         final int cacheReadDelayMs;
+        final CountDownLatch latch = new CountDownLatch(1);
 
         TestCachingKeyConfImpl(AtomicInteger dataRefreshes,
                 BooleanSupplier keyConfHasChanged,
                 BooleanSupplier authKeyIsValid,
                 BooleanSupplier signingInfoIsValid,
-                int cacheReadDelayMs
-        ) throws Exception {
+                int cacheReadDelayMs) throws Exception {
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;
@@ -374,19 +416,9 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
-        protected FileContentChangeChecker getKeyConfChangeChecker() throws Exception {
-            return new FileContentChangeChecker("dummyFileName") {
-                @Override
-                protected String calculateConfFileChecksum(File file) throws Exception {
-                    return "dummyChecksum";
-                }
-
-                @Override
-                public boolean hasChanged() throws Exception {
-                    log.debug("asking if key conf has changed, answer: " + keyConfHasChanged.getAsBoolean());
-                    return keyConfHasChanged.getAsBoolean();
-                }
-            };
+        protected void invalidateCaches() {
+            super.invalidateCaches();
+            latch.countDown();
         }
 
         private void delay(long delayMs) throws Exception {
@@ -400,7 +432,8 @@ public class CachingKeyConfImplTest {
         protected AuthKeyInfo getAuthKeyInfo(SecurityServerId serverId) throws Exception {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
-            return new AuthKeyInfo(null, null, null) {
+
+            return new AuthKeyInfo(null, null, null, null) {
                 @Override
                 boolean verifyValidity(Date atDate) {
                     return authKeyIsValid.getAsBoolean();
@@ -412,7 +445,7 @@ public class CachingKeyConfImplTest {
         protected SigningInfo getSigningInfo(ClientId clientId) throws Exception {
             dataRefreshes.incrementAndGet();
             delay(cacheReadDelayMs);
-            return new SigningInfo("keyid", "signmechanismname", null, null, null) {
+            return new SigningInfo("keyid", "signmechanismname", null, null, null, null) {
                 @Override
                 boolean verifyValidity(Date atDate) {
                     return signingInfoIsValid.getAsBoolean();
@@ -424,7 +457,7 @@ public class CachingKeyConfImplTest {
     /**
      * BooleanSupplier which allows for changing value
      */
-    private class ToggleableBooleanSupplier implements BooleanSupplier {
+    private static class ToggleableBooleanSupplier implements BooleanSupplier {
         private boolean value;
 
         ToggleableBooleanSupplier(boolean value) {
