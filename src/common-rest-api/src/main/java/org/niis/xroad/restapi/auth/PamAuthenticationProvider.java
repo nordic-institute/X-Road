@@ -25,6 +25,8 @@
  */
 package org.niis.xroad.restapi.auth;
 
+import ee.ria.xroad.common.SystemProperties;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jvnet.libpam.PAM;
 import org.jvnet.libpam.PAMException;
@@ -43,8 +45,11 @@ import org.springframework.security.core.GrantedAuthority;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static ee.ria.xroad.common.SystemProperties.NodeType.SLAVE;
 
 /**
  * PAM authentication provider.
@@ -134,6 +139,20 @@ public class PamAuthenticationProvider implements AuthenticationProvider {
             Collection<Role> xroadRoles = matchingGroups.stream()
                     .map(groupName -> Role.getForGroupName(groupName).get())
                     .collect(Collectors.toSet());
+            SystemProperties.NodeType nodeType = SystemProperties.getServerNodeType();
+            log.trace("Node type is {}", nodeType);
+            if (SLAVE.equals(nodeType)) {
+                log.debug("This is a secondary node - only observer role is permitted");
+                boolean hasObserverRole = xroadRoles.stream()
+                        .anyMatch(role -> role.equals(Role.XROAD_SECURITYSERVER_OBSERVER));
+                if (hasObserverRole) {
+                    log.trace("Observer role detected");
+                    xroadRoles = new HashSet<>(Collections.singletonList(Role.XROAD_SECURITYSERVER_OBSERVER));
+                } else {
+                    log.trace("No observer role detected");
+                    xroadRoles = new HashSet<>();
+                }
+            }
             Set<GrantedAuthority> grants = grantedAuthorityMapper.getAuthorities(xroadRoles);
             return new UsernamePasswordAuthenticationToken(user.getUserName(), authentication.getCredentials(), grants);
         } catch (PAMException e) {
