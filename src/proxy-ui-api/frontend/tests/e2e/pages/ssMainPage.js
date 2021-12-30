@@ -36,6 +36,7 @@ const {
 } = require('./popups/certificatePopup');
 const localGroupPopup = require('./popups/localGroupPopup');
 const simpleSaveCancelPopup = require('./popups/simpleSaveCancelPopup');
+const servicesWarningPopup = require('./popups/servicesWarningPopup');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -99,17 +100,6 @@ const navigateCommands = {
       }
     });
 
-    return this;
-  },
-};
-
-var servicesWarningPopupCommands = {
-  accept: function () {
-    this.click('@warningContinueButton');
-    return this;
-  },
-  cancel: function () {
-    this.click('@warningCancelButton');
     return this;
   },
 };
@@ -376,19 +366,7 @@ module.exports = {
       elements: certificatePopupElements,
     },
     localGroupPopup,
-    servicesWarningPopup: {
-      selector:
-        '//div[contains(@class, "v-dialog") and .//*[contains(@class, "headline")]]',
-      commands: [servicesWarningPopupCommands],
-      elements: {
-        warningContinueButton: '//button[.//*[contains(text(), "Continue")]]',
-        warningCancelButton: '//button[.//*[contains(text(), "Cancel")]]',
-        addedServices:
-          '//div[contains(@class, "dlg-warning-header") and contains(text(), "Adding services:")]/following-sibling::div',
-        deletedServices:
-          '//div[contains(@class, "dlg-warning-header") and contains(text(), "Deleting services:")]/following-sibling::div',
-      },
-    },
+    servicesWarningPopup: servicesWarningPopup,
     wsdlServiceDetails: {
       selector:
         '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
