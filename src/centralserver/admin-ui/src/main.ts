@@ -45,7 +45,17 @@ import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
 import i18n from './i18n';
+import { createPinia, PiniaVuePlugin } from 'pinia';
+import VueCompositionAPI from '@vue/composition-api';
+// import piniaPersist from 'pinia-plugin-persist';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
+Vue.use(VueCompositionAPI);
+Vue.use(PiniaVuePlugin);
+
+const pinia = createPinia();
+// pinia.use(piniaPersist);
+pinia.use(piniaPluginPersistedstate);
 Vue.config.productionTip = false;
 
 axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
@@ -54,6 +64,7 @@ axios.defaults.headers.get.Accepts = 'application/json';
 Vue.use(Router);
 
 new Vue({
+  pinia,
   router,
   store,
   i18n,

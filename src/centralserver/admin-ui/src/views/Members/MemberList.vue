@@ -30,7 +30,7 @@
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
         <xrd-search v-model="search" />
       </div>
-      <xrd-button data-test="add-member-button" @click="() => {}">
+      <xrd-button data-test="add-member-button" @click="piniaTest">
         <xrd-icon-base class="xrd-large-button-icon"
           ><xrd-icon-add
         /></xrd-icon-base>
@@ -38,7 +38,7 @@
         {{ $t('members.addMember') }}</xrd-button
       >
     </div>
-
+    numero: {{ getCount }}
     <!-- Table -->
     <v-data-table
       :loading="loading"
@@ -73,6 +73,8 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
+import { mapActions, mapState } from 'pinia';
+import { countStore } from '@/store/modules/piniaCount';
 
 export default Vue.extend({
   name: 'MemberList',
@@ -96,6 +98,7 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(countStore, ['getCount']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -120,11 +123,16 @@ export default Vue.extend({
     },
   },
   methods: {
+    ...mapActions(countStore, ['counterAdd', 'clearCounter']),
+
     toDetails(): void {
       this.$router.push({
         name: RouteName.MemberDetails,
         params: { memberid: 'netum' },
       });
+    },
+    piniaTest(): void {
+      this.counterAdd();
     },
   },
 });
