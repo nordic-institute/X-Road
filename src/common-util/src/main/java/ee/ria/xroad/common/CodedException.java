@@ -108,7 +108,7 @@ public class CodedException extends RuntimeException implements Serializable {
 
         this.faultCode = faultCode;
         faultDetail = String.valueOf(UUID.randomUUID());
-        faultString = String.format(format, args);
+        faultString = super.getMessage();
 
         setArguments(args);
     }

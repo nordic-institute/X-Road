@@ -41,6 +41,7 @@ import java.util.Map;
 import static ee.ria.xroad.common.ErrorCodes.X_HASHCHAIN_UNUSED_INPUTS;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_REF;
 import static ee.ria.xroad.common.ErrorCodes.X_INVALID_HASH_CHAIN_RESULT;
+import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
 import static ee.ria.xroad.common.util.MessageFileNames.MESSAGE;
@@ -255,6 +256,22 @@ public class HashChainVerifierTest {
         Map<String, DigestValue> inputs = makeInputs(MESSAGE, null);
 
         thrown.expectErrorSuffix(X_INVALID_HASH_CHAIN_REF);
+
+        HashChainVerifier.verify(
+                load("hc-verifier3-hashchainresult.xml"),
+                resolver, inputs);
+    }
+
+    @Test
+    public void invalidSchema() throws Exception {
+        thrown.expectError(X_MALFORMED_HASH_CHAIN);
+
+        Resolver resolver = new Resolver(
+                HASH_CHAIN, "hc-verifier5-hashchain-invalid-schema.xml",
+                MESSAGE, "hc-verifier3-message.xml");
+
+        Map<String, DigestValue> inputs = makeInputs(
+                MESSAGE, null);
 
         HashChainVerifier.verify(
                 load("hc-verifier3-hashchainresult.xml"),

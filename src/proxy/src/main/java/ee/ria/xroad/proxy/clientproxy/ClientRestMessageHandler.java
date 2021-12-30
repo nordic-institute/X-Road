@@ -45,8 +45,6 @@ import org.w3c.dom.Element;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -117,10 +115,8 @@ class ClientRestMessageHandler extends AbstractClientProxyHandler {
         final String responseContentType = decideErrorResponseContentType(request.getHeaders("Accept"));
         response.setContentType(responseContentType);
         if (XML_TYPES.contains(responseContentType)) {
-            DocumentBuilderFactory docFactory = XmlUtils.createDocumentBuilderFactory();
             try {
-                DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-                Document doc = docBuilder.newDocument();
+                Document doc = XmlUtils.newDocumentBuilder(false).newDocument();
                 Element errorRootElement = doc.createElement("error");
                 doc.appendChild(errorRootElement);
                 Element typeElement = doc.createElement("type");
