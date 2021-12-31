@@ -28,17 +28,9 @@ const diagnosticsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/diagnostics`,
   selector:
     '//div[.//a[contains(@class, "v-tab--active") and //span[@data-test="diagnostics-global-configuration"]]]//div[contains(@class, "base-full-width")]',
-  locateStrategy: 'xpath',
-  commands: [],
   elements: {
-    globalConfiguration: {
-      selector: '//span[@data-test="diagnostics-global-configuration"]',
-      locateStrategy: 'xpath',
-    },
-    javaVersion: {
-      selector: '//*[@data-test="java-version"]',
-      locateStrategy: 'xpath',
-    },
+    globalConfiguration:  '//span[@data-test="diagnostics-global-configuration"]',
+    javaVersion: '//*[@data-test="java-version"]',
   },
 };
 
