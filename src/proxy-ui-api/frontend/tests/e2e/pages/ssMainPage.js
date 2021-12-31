@@ -41,6 +41,7 @@ const {
   serviceDetailsCommands,
   serviceDetailsElements,
 } = require('./services/serviceDetails');
+const { operationDetailsElements, operationDetailsCommands} = require('./services/operationDetails');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -104,66 +105,6 @@ const navigateCommands = {
       }
     });
 
-    return this;
-  },
-};
-
-var wsdlOperationCommands = {
-  openEndpointsTab: function () {
-    this.click('@endpointsTab');
-    return this;
-  },
-  saveParameters: function () {
-    this.click('@saveButton');
-    return this;
-  },
-  close: function () {
-    this.click('@closeButton');
-    return this;
-  },
-  toggleUrlApplyToAll: function () {
-    this.click('@urlApplyToAllCheckbox');
-    return this;
-  },
-  toggleTimeoutApplyToAll: function () {
-    this.click('@timeoutApplyToAllCheckbox');
-    return this;
-  },
-  toggleVerifyCertApplyToAll: function () {
-    this.click('@verifyCertApplyToAllCheckbox');
-    return this;
-  },
-  modifyUrl: function (url) {
-    this.waitForNonEmpty('@serviceURL');
-    this.clearValue2('@serviceURL');
-    this.setValue('@serviceURL', url);
-    return this;
-  },
-  modifyTimeout: function (timeout) {
-    this.waitForNonEmpty('@timeout');
-    this.clearValue2('@timeout');
-    this.setValue('@timeout', timeout);
-    return this;
-  },
-  toggleCertVerification: function () {
-    this.click('@sslAuthClickarea');
-    return this;
-  },
-  openAddAccessRights: function () {
-    this.click('@addSubjectsButton');
-    return this;
-  },
-  removeAllAccessRights: function () {
-    this.click('@removeAllButton');
-    return this;
-  },
-  removeAccessRight: function (subject) {
-    this.api.click(
-      this.selector +
-        '//table[contains(@class, "group-members-table")]//tr[.//td[contains(text(), "' +
-        subject +
-        '")]]//button[@data-test="remove-subject"]',
-    );
     return this;
   },
 };
@@ -319,7 +260,7 @@ module.exports = {
       commands: [certificatePopupCommands],
       elements: certificatePopupElements,
     },
-    localGroupPopup,
+    localGroupPopup: localGroupPopup,
     servicesWarningPopup: servicesWarningPopup,
     wsdlServiceDetails: {
       selector:
@@ -342,61 +283,14 @@ module.exports = {
     wsdlOperationDetails: {
       selector:
         '//div[contains(@class, "base-full-width") and .//div[contains(@class, "apply-to-all-text")]]',
-      commands: [wsdlOperationCommands],
-      elements: {
-        parametersTab: '//*[@data-test="parameters"]',
-        endpointsTab: '//*[@data-test="endpoints"]',
-        urlApplyToAllCheckbox:
-          '//input[@data-test="url-all"]/following-sibling::div',
-        timeoutApplyToAllCheckbox:
-          '//input[@data-test="timeout-all"]/following-sibling::div',
-        verifyCertApplyToAllCheckbox:
-          '//input[@data-test="ssl-auth-all"]/following-sibling::div',
-        serviceURL: '//input[@data-test="service-url"]',
-        timeout: '//input[@data-test="service-timeout"]',
-        sslAuth: '//input[@data-test="ssl-auth"]',
-        sslAuthClickarea:
-          '//input[@data-test="ssl-auth"]/following-sibling::div',
-        save2Button:
-          '//button[@data-test="save-service-parameters"]/following-sibling::div',
-        saveButton: '//button[@data-test="save-service-parameters"]',
-        closeButton: '//button[@data-test="close"]',
-        urlHelp: '//div[@data-test="service-parameters-service-url-label"]//i',
-        timeoutHelp: '//div[@data-test="service-parameters-timeout-label"]//i',
-        verifyCertHelp:
-          '//div[@data-test="service-parameters-verify-tls-label"]//i',
-        activeTooltip:
-          '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
-        addSubjectsButton: '//button[@data-test="show-add-subjects"]',
-        removeAllButton: '//button[@data-test="remove-subjects"]',
-      },
+      commands: [operationDetailsCommands],
+      elements: operationDetailsElements,
     },
     restOperationDetails: {
       selector:
         '//div[contains(@class, "base-full-width") and .//*[@data-test="parameters"]]',
-      commands: [wsdlOperationCommands],
-      elements: {
-        parametersTab: '//*[@data-test="parameters"]',
-        endpointsTab: '//*[@data-test="endpoints"]',
-        serviceURL: '//input[@data-test="service-url"]',
-        timeout: '//input[@data-test="service-timeout"]',
-        sslAuth: '//input[@data-test="ssl-auth"]',
-        sslAuthClickarea:
-          '//input[@data-test="ssl-auth"]/following-sibling::div',
-        save2Button:
-          '//button[@data-test="save-service-parameters"]/following-sibling::div',
-        saveButton: '//button[@data-test="save-service-parameters"]',
-        addButton: '//button[@data-test="endpoint-add"]',
-        closeButton: '//button[@data-test="close"]',
-        urlHelp: '//div[@data-test="service-parameters-service-url-label"]//i',
-        timeoutHelp: '//div[@data-test="service-parameters-timeout-label"]//i',
-        verifyCertHelp:
-          '//div[@data-test="service-parameters-verify-tls-label"]//i',
-        activeTooltip:
-          '//div[contains(@class, "v-tooltip__content") and contains(@class,"menuable__content__active")]//span',
-        addSubjectsButton: '//button[@data-test="show-add-subjects"]',
-        removeAllButton: '//button[@data-test="remove-subjects"]',
-      },
+      commands: [operationDetailsCommands],
+      elements: operationDetailsElements,
     },
     sslCheckFailDialog: {
       selector:
