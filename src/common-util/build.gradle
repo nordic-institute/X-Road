@@ -45,7 +45,7 @@ dependencies {
 
     api 'org.apache.commons:commons-configuration2:2.7'
 
-    implementation 'ch.qos.logback:logback-classic:1.2.6'
+    implementation "ch.qos.logback:logback-classic:${logbackVersion}"
 
     testImplementation "org.mockito:mockito-core:$mockitoVersion"
     testImplementation project(':common-test')

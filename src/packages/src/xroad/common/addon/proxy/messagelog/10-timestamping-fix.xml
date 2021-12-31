@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.3.xsd">
+    <changeSet author="niis" id="10-timestamping-fix-1">
+        <dropIndex tableName="logrecord" indexName="IX_NOT_TIMESTAMPED_LOGRECORD"/>
+    </changeSet>
+    <changeSet author="niis" id="10-timestamping-fix-2">
+        <createIndex tableName="logrecord" indexName="IX_NOT_TIMESTAMPED_LOGRECORD">
+            <column name="id"/>
+            <column name="signaturehash"/>
+        </createIndex>
+        <modifySql dbms="postgresql">
+            <append value=" where discriminator = 'm' and timestamprecord is null"/>
+        </modifySql>
+    </changeSet>
+</databaseChangeLog>
