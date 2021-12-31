@@ -37,6 +37,10 @@ const {
 const localGroupPopup = require('./popups/localGroupPopup');
 const simpleSaveCancelPopup = require('./popups/simpleSaveCancelPopup');
 const servicesWarningPopup = require('./popups/servicesWarningPopup');
+const {
+  serviceDetailsCommands,
+  serviceDetailsElements,
+} = require('./services/serviceDetails');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -100,56 +104,6 @@ const navigateCommands = {
       }
     });
 
-    return this;
-  },
-};
-
-var serviceDetailsCommands = {
-  closeServiceDetails: function () {
-    this.click('@serviceDetailsCloseButton');
-    return this;
-  },
-  deleteService: function () {
-    this.click('@deleteServiceButton');
-    return this;
-  },
-  initServiceUrl: function (url) {
-    this.assert.value('@serviceURL', '');
-    this.setValue('@serviceURL', url);
-    return this;
-  },
-  modifyServiceUrl: function (url) {
-    this.waitForNonEmpty('@serviceURL');
-    this.clearValue2('@serviceURL');
-    this.setValue('@serviceURL', url);
-    return this;
-  },
-  initServiceCode: function (code) {
-    this.assert.value('@serviceCode', '');
-    this.clearValue2('@serviceCode');
-    this.setValue('@serviceCode', code);
-    return this;
-  },
-  modifyServiceCode: function (code) {
-    this.waitForNonEmpty('@serviceCode');
-    this.clearValue2('@serviceCode');
-    this.setValue('@serviceCode', code);
-    return this;
-  },
-  confirmDelete: function () {
-    this.click('@confirmDeleteButton');
-    return this;
-  },
-  cancelDelete: function () {
-    this.click('@cancelDeleteButton');
-    return this;
-  },
-  confirmDialog: function () {
-    this.click('@confirmDialogButton');
-    return this;
-  },
-  cancelDialog: function () {
-    this.click('@cancelDialogButton');
     return this;
   },
 };
@@ -371,72 +325,19 @@ module.exports = {
       selector:
         '//div[@data-test="service-description-details-dialog" and .//div[@data-test="wsdl-service-description-details-dialog"]]',
       commands: [serviceDetailsCommands],
-      elements: {
-        serviceDetailsCloseButton:
-          '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
-        deleteServiceButton:
-          '//button[@data-test="service-description-details-delete-button"]',
-        confirmDeleteButton: '//button[@data-test="dialog-save-button"]',
-        cancelDeleteButton: '//button[@data-test="dialog-cancel-button"]',
-        serviceURL: '//*[contains(@class, "url-input")]//input',
-        URLMessage:
-          '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
-        confirmDialogButton:
-          '//button[@data-test="service-description-details-save-button"]',
-        cancelDialogButton:
-          '//button[@data-test="service-description-details-cancel-button"]',
-      },
+      elements: serviceDetailsElements,
     },
     restServiceDetails: {
       selector:
         '//div[@data-test="service-description-details-dialog" and .//div[@data-test="rest-service-description-details-dialog"]]',
       commands: [serviceDetailsCommands],
-      elements: {
-        serviceDetailsCloseButton:
-          '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
-        deleteServiceButton:
-          '//button[@data-test="service-description-details-delete-button"]',
-        confirmDeleteButton: '//button[@data-test="dialog-save-button"]',
-        cancelDeleteButton: '//button[@data-test="dialog-cancel-button"]',
-        serviceURL: '//*[contains(@class, "url-input")]//input',
-        serviceCode: '//*[contains(@class, "code-input")]//input',
-        serviceType:
-          '//div[@data-test="service-description-details-url-type-value"]',
-        URLMessage:
-          '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
-        codeMessage:
-          '//*[contains(@class, "code-input")]//*[contains(@class, "v-messages__message")]',
-        confirmDialogButton:
-          '//button[@data-test="service-description-details-save-button"]',
-        cancelDialogButton:
-          '//button[@data-test="service-description-details-cancel-button"]',
-      },
+      elements: serviceDetailsElements,
     },
     openApiServiceDetails: {
       selector:
         '//div[@data-test="service-description-details-dialog" and .//div[@data-test="openapi-service-description-details-dialog"]]',
       commands: [serviceDetailsCommands],
-      elements: {
-        serviceDetailsCloseButton:
-          '//*[contains(@class, "cert-dialog-header")]//*[contains(@id, "close-x")]',
-        deleteServiceButton:
-          '//button[@data-test="service-description-details-delete-button"]',
-        confirmDeleteButton: '//button[@data-test="dialog-save-button"]',
-        cancelDeleteButton: '//button[@data-test="dialog-cancel-button"]',
-        serviceURL: '//*[contains(@class, "url-input")]//input',
-        serviceCode:
-          '//*[contains(@class, "code-input")]//input[@name="code_field"]',
-        serviceType:
-          '//div[@data-test="service-description-details-url-type-value"]',
-        URLMessage:
-          '//*[contains(@class, "validation-provider")]//*[contains(@class, "v-messages__message")]',
-        codeMessage:
-          '//*[contains(@class, "code-input")]//*[contains(@class, "v-messages__message")]',
-        confirmDialogButton:
-          '//button[@data-test="service-description-details-save-button"]',
-        cancelDialogButton:
-          '//button[@data-test="service-description-details-cancel-button"]',
-      },
+      elements: serviceDetailsElements,
     },
     wsdlOperationDetails: {
       selector:
