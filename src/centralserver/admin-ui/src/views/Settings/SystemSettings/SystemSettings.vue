@@ -132,7 +132,14 @@
           </div>
         </xrd-simple-dialog>
         <table class="xrd-table mt-0 pb-3">
-          <tbody>
+          <XrdEmptyPlaceholderRow
+            :colspan="2"
+            :loading="loadingServices"
+            :data="managementServices"
+            no-items-text="no items"
+          />
+
+          <tbody v-if="!loadingServices">
             <tr>
               <td class="title-cell">
                 <div>
@@ -229,7 +236,7 @@
 
     <!-- Table -->
     <v-data-table
-      :loading="loading"
+      :loading="loadingMemberClasses"
       :headers="headers"
       :items="memberClasses"
       :search="search"
@@ -238,6 +245,7 @@
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
+      :no-data-text="$t('noData.noMemberClasses')"
       hide-default-footer
     >
       <template #top>
@@ -266,7 +274,7 @@
       </template>
 
       <template #[`item.button`]>
-        <div class="button-wrap">
+        <div class="cs-table-actions-wrap">
           <xrd-button text :outlined="false"
             >{{ $t('action.edit') }}
           </xrd-button>
@@ -315,7 +323,8 @@ export default (
   data() {
     return {
       search: '' as string,
-      loading: false,
+      loadingMemberClasses: false,
+      loadingServices: false,
       showOnlyPending: false,
       isEditingServerAddress: false,
       renewedServerAddress: '',
