@@ -151,6 +151,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
         List<OCSPResp> ocspResponses = getOcspResponses(certChain.getAdditionalCerts());
         ocspResponses.add(new OCSPResp(keyInfo.getCert().getOcspBytes()));
+
         PrivateKey key = loadAuthPrivateKey(keyInfo);
 
         // Lower bound for validity is "now", verify validity of the chain at that time.
@@ -158,7 +159,7 @@ class CachingKeyConfImpl extends KeyConfImpl {
         CertChainVerifier verifier = new CertChainVerifier(certChain);
         verifier.verify(ocspResponses, notBefore);
 
-        final Date notAfter = getMinNotAfter(ocspResponses, certChain.notAfter());
+        final Date notAfter = calculateNotAfter(ocspResponses, certChain.notAfter());
         return new AuthKeyInfo(key, certChain, notBefore, notAfter);
     }
 
@@ -171,13 +172,13 @@ class CachingKeyConfImpl extends KeyConfImpl {
 
         //Signer already checks the validity of the signing certificate. Just record the bounds
         //the certificate and ocsp response is valid for.
-        Date notAfter = getMinNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
+        Date notAfter = calculateNotAfter(Collections.singletonList(ocsp), cert.getNotAfter());
         return new SigningInfo(signingInfo.getKeyId(), signingInfo.getSignMechanismName(), clientId, cert, new Date(),
                 notAfter);
     }
 
     // Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
-    static Date getMinNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
+    static Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
         final long freshnessMillis = 1000L * GlobalConf.getOcspFreshnessSeconds(false);
         final boolean verifyNextUpdate = GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate();
 

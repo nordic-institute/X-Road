@@ -22,6 +22,11 @@
  */
 package ee.ria.xroad.proxy.conf;
 
+import ee.ria.xroad.common.OcspTestUtils;
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.TestCertUtil;
+import ee.ria.xroad.common.conf.globalconf.EmptyGlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
@@ -30,6 +35,8 @@ import ee.ria.xroad.common.util.filewatcher.FileWatcherRunner;
 import ee.ria.xroad.proxy.testsuite.EmptyServerConf;
 
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.cert.ocsp.CertificateStatus;
+import org.bouncycastle.cert.ocsp.OCSPResp;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,8 +47,11 @@ import java.lang.ref.WeakReference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -52,6 +62,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BooleanSupplier;
 
+import static java.time.temporal.ChronoUnit.SECONDS;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.lessThanOrEqualTo;
@@ -79,13 +90,21 @@ public class CachingKeyConfImplTest {
 
     @Before
     public void before() throws IOException {
-        Files.createFile(KEY_CONF);
+        System.setProperty(SystemProperties.CONF_PATH, "build/tmp/");
+        GlobalConf.reload(new EmptyGlobalConf() {
+            @Override
+            public String getInstanceIdentifier() {
+                return "TEST";
+            }
+        });
         ServerConf.reload(new EmptyServerConf() {
             @Override
             public SecurityServerId getIdentifier() {
                 return SecurityServerId.create("TEST", "CLASS", "CODE", "SERVER");
             }
         });
+        Files.deleteIfExists(KEY_CONF);
+        Files.createFile(KEY_CONF);
     }
 
     @After
@@ -250,6 +269,27 @@ public class CachingKeyConfImplTest {
                 UNCHANGED_KEY_CONF, VALID_AUTH_KEY, VALID_SIGNING_INFO, 1, 2, NO_DELAY);
         expectedCacheHits++;
         assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
+    }
+
+    @Test
+    public void testCalculateNotAfter() throws Exception {
+        final X509Certificate ca = TestCertUtil.getCaCert();
+        final TestCertUtil.PKCS12 consumer = TestCertUtil.getConsumer();
+        final TestCertUtil.PKCS12 ocsp = TestCertUtil.getOcspSigner();
+
+        final Instant now = Instant.parse("2022-01-01T00:00:00Z");
+        final Date expected = Date.from(now.plusSeconds(1800).truncatedTo(SECONDS));
+        final OCSPResp response = OcspTestUtils.createOCSPResponse(
+                consumer.certChain[0],
+                ca,
+                ocsp.certChain[0],
+                ocsp.key,
+                CertificateStatus.GOOD,
+                Date.from(now.minusSeconds(1000)),
+                expected);
+
+        assertEquals(expected,
+                CachingKeyConfImpl.calculateNotAfter(Collections.singletonList(response), ca.getNotAfter()));
     }
 
     /**
