@@ -29,7 +29,7 @@ class SecurityHelperTest {
             Role.XROAD_SECURITY_OFFICER,
             Role.XROAD_REGISTRATION_OFFICER);
 
-    private static final SecurityHelper securityHelper = new SecurityHelper(null);
+    private static final SecurityHelper SECURITY_HELPER = new SecurityHelper(null);
 
     @BeforeEach
     public void setUp() {
@@ -43,26 +43,26 @@ class SecurityHelperTest {
 
     @Test
     void getNodeTypeAdjustedUserRolesForAdminInSecondaryNode() {
-        Set<Role> adjustedRoles = securityHelper.getNodeTypeAdjustedUserRoles(ADMIN_ROLES);
+        Set<Role> adjustedRoles = SECURITY_HELPER.getNodeTypeAdjustedUserRoles(ADMIN_ROLES);
         Assertions.assertTrue(adjustedRoles.stream().allMatch(Role.XROAD_SECURITYSERVER_OBSERVER::equals));
     }
 
     @Test
     void getNodeTypeAdjustedUserRolesForObserverInSecondaryNode() {
-        Set<Role> adjustedRoles = securityHelper.getNodeTypeAdjustedUserRoles(OBSERVER_ROLES);
+        Set<Role> adjustedRoles = SECURITY_HELPER.getNodeTypeAdjustedUserRoles(OBSERVER_ROLES);
         Assertions.assertTrue(adjustedRoles.stream().allMatch(Role.XROAD_SECURITYSERVER_OBSERVER::equals));
     }
 
     @Test
     void getNodeTypeAdjustedUserRolesForOfficerOnlyInSecondaryNode() {
-        Set<Role> adjustedRoles = securityHelper.getNodeTypeAdjustedUserRoles(OFFICER_ROLES);
+        Set<Role> adjustedRoles = SECURITY_HELPER.getNodeTypeAdjustedUserRoles(OFFICER_ROLES);
         Assertions.assertTrue(adjustedRoles.isEmpty());
     }
 
     @Test
     void agetNodeTypeAdjustedUserRolesForAdminInPrimaryNode() {
         System.setProperty(NODE_TYPE, "master"); // primary node in a cluster
-        Set<Role> adjustedRoles = securityHelper.getNodeTypeAdjustedUserRoles(ADMIN_ROLES);
+        Set<Role> adjustedRoles = SECURITY_HELPER.getNodeTypeAdjustedUserRoles(ADMIN_ROLES);
         Assertions.assertTrue(adjustedRoles.containsAll(ADMIN_ROLES));
     }
 }
