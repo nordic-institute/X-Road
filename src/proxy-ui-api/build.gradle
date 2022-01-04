@@ -20,7 +20,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "2020.0.4")
+    set('springCloudVersion', "2020.0.5")
 }
 
 sourceSets {

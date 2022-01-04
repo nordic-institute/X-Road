@@ -59,41 +59,16 @@ const clientsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/clients`,
   selector:
     '//div[.//a[contains(@class, "v-tab--active") and @data-test="clients"]]//div[contains(@class, "base-full-width")]',
-  locateStrategy: 'xpath',
   commands: clientsTabCommands,
   elements: {
-    searchIcon: {
-      selector: '//*[contains(@class, "mdi-magnify")]',
-      locateStrategy: 'xpath',
-    },
-    searchField: {
-      selector: '//*[@data-test="search-input"]',
-      locateStrategy: 'xpath',
-    },
-    addClientButton: {
-      selector: '//button[@data-test="add-client-button"]',
-      locateStrategy: 'xpath',
-    },
-    listNameHeader: {
-      selector: '//th[contains(@class, "xrd-table-header-name")]',
-      locateStrategy: 'xpath',
-    },
-    listIDHeader: {
-      selector: '//th[contains(@class, "xrd-table-header-id")]',
-      locateStrategy: 'xpath',
-    },
-    listStatusHeader: {
-      selector: '//th[contains(@class, "xrd-table-header-status")]',
-      locateStrategy: 'xpath',
-    },
-    testServiceListItem: {
-      selector: '//tbody//span[contains(text(),"TestService")]',
-      locateStrategy: 'xpath',
-    },
-    testGovListItem: {
-      selector: '//tbody//span[contains(text(),"TestGov")]',
-      locateStrategy: 'xpath',
-    },
+    searchIcon: '//*[contains(@class, "mdi-magnify")]',
+    searchField: '//*[@data-test="search-input"]',
+    addClientButton: '//button[@data-test="add-client-button"]',
+    listNameHeader: '//th[contains(@class, "xrd-table-header-name")]',
+    listIDHeader: '//th[contains(@class, "xrd-table-header-id")]',
+    listStatusHeader: '//th[contains(@class, "xrd-table-header-status")]',
+    testServiceListItem: '//tbody//span[contains(text(),"TestService")]',
+    testGovListItem: '//tbody//span[contains(text(),"TestGov")]',
   },
 };
 
