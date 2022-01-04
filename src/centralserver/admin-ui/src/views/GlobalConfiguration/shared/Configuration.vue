@@ -163,8 +163,8 @@
  */
 import Vue from 'vue';
 import TokenExpandable from './TokenExpandable.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
+import { tokenStore } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: {
@@ -186,9 +186,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters({
-      tokens: StoreTypes.getters.SORTED_TOKENS,
-    }),
+    ...mapState(tokenStore, { tokens: 'getSortedTokens' }),
   },
 
   methods: {

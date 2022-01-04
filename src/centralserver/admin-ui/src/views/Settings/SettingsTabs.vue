@@ -40,15 +40,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName, StoreTypes } from '@/global';
+import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
     SubTabs,
   },
   computed: {
+    ...mapState(userStore, ['getAllowedTabs']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
@@ -91,7 +94,7 @@ export default Vue.extend({
           ],
         },
       ];
-      return this.$store.getters[StoreTypes.getters.GET_ALLOWED_TABS](allTabs);
+      return this.getAllowedTabs(allTabs);
     },
   },
 });
