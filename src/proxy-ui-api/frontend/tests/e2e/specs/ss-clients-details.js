@@ -75,7 +75,7 @@ module.exports = {
     browser.assert.containsText(certificatePopup, 'SHA256withRSA');
     browser.assert.containsText(
       certificatePopup,
-      'FC:FF:02:D9:07:EC:37:6A:2E:E3:65:B7:DB:5A:EE:A0:E9:E1:8D:81',
+      'F0:3A:0B:F4:35:DF:E2:FD:B9:00:AD:F6:1E:6D:05:D0:60:39:1B:B3',
     );
     browser.assert.containsText(
       certificatePopup,
@@ -120,7 +120,7 @@ module.exports = {
     browser.assert.containsText(certificatePopup, 'SHA256withRSA');
     browser.assert.containsText(
       certificatePopup,
-      'FC:FF:02:D9:07:EC:37:6A:2E:E3:65:B7:DB:5A:EE:A0:E9:E1:8D:81',
+      'F0:3A:0B:F4:35:DF:E2:FD:B9:00:AD:F6:1E:6D:05:D0:60:39:1B:B3',
     );
     browser.assert.containsText(
       certificatePopup,
