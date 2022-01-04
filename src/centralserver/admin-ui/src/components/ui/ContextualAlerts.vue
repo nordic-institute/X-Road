@@ -166,10 +166,10 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
-import { StoreTypes } from '@/global';
 
 type ValidationError = {
   field: string;
@@ -179,11 +179,12 @@ type ValidationError = {
 export default Vue.extend({
   // Component for contextual notifications
   computed: {
-    ...mapGetters({
-      errorNotifications: StoreTypes.getters.ERROR_NOTIFICATIONS,
+    ...mapState(notificationsStore, {
+      errorNotifications: 'getErrorNotifications',
     }),
   },
   methods: {
+    ...mapActions(notificationsStore, ['deleteNotification']),
     errorCode(notification: Notification): string | undefined {
       return notification.errorObject?.response?.data?.error?.code;
     },
@@ -217,7 +218,7 @@ export default Vue.extend({
       );
     },
     closeError(id: number): void {
-      this.$store.commit(StoreTypes.mutations.DELETE_NOTIFICATION, id);
+      this.deleteNotification(id);
     },
     copyId(notification: Notification): void {
       const id = this.errorId(notification);

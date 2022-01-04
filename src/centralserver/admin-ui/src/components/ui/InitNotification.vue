@@ -42,7 +42,7 @@
         color="primary"
         outlined
         data-test="notification-button"
-        @click="continueInit"
+        @click="setContisdfnueInit(false)"
       >
         {{ $t('action.continue') }}
       </xrd-button>
@@ -52,18 +52,16 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { StoreTypes } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'InitNotification',
   computed: {
-    ...mapGetters({ showNotification: StoreTypes.getters.CONTINUE_INIT }),
+    ...mapState(notificationsStore, { showNotification: 'getContinueInit' }),
   },
   methods: {
-    continueInit(): void {
-      this.$store.commit(StoreTypes.mutations.SET_CONTINUE_INIT, false);
-    },
+    ...mapActions(notificationsStore, ['setContinueInit']),
   },
 });
 </script>

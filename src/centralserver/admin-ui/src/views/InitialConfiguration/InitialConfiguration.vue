@@ -168,7 +168,7 @@
 import Vue, { VueConstructor } from 'vue';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
-import { Colors, RouteName, StoreTypes } from '@/global';
+import { Colors, RouteName } from '@/global';
 import {
   ErrorInfo,
   InitializationStatus,
@@ -177,7 +177,9 @@ import {
 } from '@/openapi-types';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { State } from '@/store/modules/initialization';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { systemStore } from '@/store/modules/system';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -243,11 +245,17 @@ export default (
       },
     };
   },
-  computed: {},
-  created: function () {
-    const statusAtFirst: InitializationStatus =
-      this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-        ?.initialization_status;
+  computed: {
+    ...mapState(systemStore, ['getSystemStatus']),
+  },
+  created() {
+    if (!this.getSystemStatus?.initialization_status) {
+      // should not happen
+      return;
+    }
+
+    const statusAtFirst: InitializationStatus = this.getSystemStatus
+      ?.initialization_status as InitializationStatus;
 
     if (
       TokenInitStatus.INITIALIZED == statusAtFirst?.software_token_init_status
@@ -266,6 +274,12 @@ export default (
     }
   },
   methods: {
+    ...mapActions(notificationsStore, [
+      'showError',
+      'showSuccess',
+      'resetNotifications',
+    ]),
+    ...mapActions(systemStore, ['fetchSystemStatus', 'initalizationRequest']),
     async submit() {
       // validate inputs
       const formData: InitialServerConf = {};
@@ -278,9 +292,8 @@ export default (
       if (!this.disabledFields.pin) {
         formData.software_token_pin = this.pin;
       }
-      await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
-      await this.$store
-        .dispatch(StoreTypes.actions.INITIALIZATION_REQUEST, formData)
+      await this.resetNotifications();
+      await this.initalizationRequest(formData)
         .then(
           () => {
             this.$router
@@ -306,26 +319,26 @@ export default (
                   'init.identifier': identifierErrors,
                   'init.address': addressErrors,
                 });
-                this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+                this.showError(error);
               }
               return;
             }
             if (invalidParamsErrors(errorInfo).length > 0) {
-              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              this.showError(error);
               return;
             }
             if (isWeakPinError(errorInfo)) {
-              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+              this.showError(error);
               return;
             }
             throw error;
           },
         )
         .catch((error) => {
-          return this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+          return this.showError(error);
         })
         .finally(() => {
-          return this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
+          return this.fetchSystemStatus();
         });
 
       function isFieldError(error: ErrorInfo) {

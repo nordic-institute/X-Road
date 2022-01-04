@@ -107,8 +107,8 @@ import TokenLoggingButton from './TokenLoggingButton.vue';
 import { Prop } from 'vue/types/options';
 import { Colors } from '@/global';
 import { getTokenUIStatus, TokenUIStatus } from './TokenStatusHelper';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
+import { tokenStore } from '@/store/modules/tokens';
 
 export default Vue.extend({
   components: {
@@ -130,32 +130,20 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters({
+    ...mapState(tokenStore, {
       isExpanded: 'tokenExpanded',
     }),
     canActivateToken(): boolean {
       return true;
-      /*  return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-        Permissions.MOCK_PERMISSION1,
-      ); */
+      /* return userStore.hasPermission(Permissions.MOCK_PERMISSION1); */
     },
     canImportCertificate(): boolean {
       return true;
-      /*
-      return (
-        this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-          Permissions.MOCK_PERMISSION1,
-        ) ||
-        this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-          Permissions.MOCK_PERMISSION2,
-        )
-      ); */
+      // Add permission check from store
     },
     canAddKey(): boolean {
       return true;
-      /* return this.$store.getters[StoreTypes.getters.HAS_PERMISSION](
-        Permissions.MOCK_PERMISSION2,
-      ); */
+      // Add permission check from store
     },
 
     tokenLabelKey(): string {
@@ -194,18 +182,26 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(tokenStore, [
+      'setSelectedToken',
+      'setTokenHidden',
+      'setTokenExpanded',
+    ]),
     addKey(): void {
-      this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
+      this.setSelectedToken(this.token);
+      //this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
       this.$emit('add-key');
     },
 
     login(): void {
-      this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
+      this.setSelectedToken(this.token);
+      //this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
       this.$emit('token-login');
     },
 
     logout(): void {
-      this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
+      this.setSelectedToken(this.token);
+      //this.$store.commit(StoreTypes.mutations.SET_SELECTED_TOKEN, this.token);
       this.$emit('token-logout');
     },
 
@@ -236,14 +232,11 @@ export default Vue.extend({
     },
 
     descClose(tokenId: string) {
-      this.$store.commit(StoreTypes.mutations.SET_TOKEN_HIDDEN, tokenId);
+      this.setTokenHidden(tokenId);
     },
     descOpen(tokenId: string) {
-      this.$store.commit(StoreTypes.mutations.SET_TOKEN_EXPANDED, tokenId);
+      this.setTokenExpanded(tokenId);
     },
-    /* isExpanded(tokenId: string) {
-      return this.$store.getters.TOKEN_EXPANDED(tokenId);
-    }, */
     fetchData(): void {
       // Fetch tokens from backend
       this.$emit('refresh-list');

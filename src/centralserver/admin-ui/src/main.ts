@@ -40,7 +40,6 @@ import './plugins/vee-validate';
 import './filters';
 import App from './App.vue';
 import router from './router';
-import store from './store';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
@@ -66,7 +65,6 @@ Vue.use(Router);
 new Vue({
   pinia,
   router,
-  store,
   i18n,
   vuetify,
   render: (h) => h(App),
