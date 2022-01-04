@@ -73,7 +73,7 @@ module.exports = {
     browser.waitForElementNotPresent(addKeyWizardCSR.elements.csrClient);
     addKeyWizardCSR.selectUsageMethod('SIGNING');
     browser.waitForElementVisible(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('Xroad Test CA CN');
+    addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('DER');
     addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
 
@@ -147,7 +147,7 @@ module.exports = {
     browser.waitForElementVisible(addKeyWizardCSR);
     addKeyWizardCSR.selectUsageMethod('AUTHENTICATION');
     browser.waitForElementNotPresent(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('Xroad Test CA CN');
+    addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('DER');
 
     addKeyWizardCSR.next();
@@ -241,7 +241,7 @@ module.exports = {
     browser.waitForElementNotPresent(addKeyWizardCSR.elements.csrClient);
     addKeyWizardCSR.selectUsageMethod('SIGNING');
     browser.waitForElementVisible(addKeyWizardCSR.elements.csrClient);
-    addKeyWizardCSR.selectService('Xroad Test CA CN');
+    addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('PEM');
     addKeyWizardCSR.selectClient('REST-UI-TEST:GOV:0245437-2');
 
@@ -334,7 +334,7 @@ module.exports = {
 
     browser.waitForElementVisible(addKeyWizardCSR);
     addKeyWizardCSR.selectUsageMethod('AUTHENTICATION');
-    addKeyWizardCSR.selectService('Xroad Test CA CN');
+    addKeyWizardCSR.selectService('X-Road Test CA CN');
     addKeyWizardCSR.selectFormat('PEM');
 
     addKeyWizardCSR.next();
@@ -424,7 +424,7 @@ module.exports = {
       'SIGNING',
     );
     browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
-    generateKeyCsrWizardCsr.selectService('Xroad Test CA CN');
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('PEM');
     generateKeyCsrWizardCsr.selectClient('REST-UI-TEST:GOV:0245437-2');
     generateKeyCsrWizardCsr.next();
@@ -452,7 +452,7 @@ module.exports = {
       'SIGNING',
     );
     browser.waitForElementVisible(generateKeyCsrWizardCsr.elements.csrClient);
-    generateKeyCsrWizardCsr.selectService('Xroad Test CA CN');
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('PEM');
     generateKeyCsrWizardCsr.selectClient('REST-UI-TEST:GOV:0245437-2');
     generateKeyCsrWizardCsr.next();
@@ -605,9 +605,9 @@ module.exports = {
     );
     browser.assert.containsText(
       generateKeyCsrWizardCsr.elements.csrService,
-      'Xroad Test CA CN',
+      'X-Road Test CA CN',
     );
-    generateKeyCsrWizardCsr.selectService('Xroad Test CA CN');
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('DER');
     generateKeyCsrWizardCsr.next();
 
@@ -637,7 +637,7 @@ module.exports = {
     browser.waitForElementNotPresent(
       generateKeyCsrWizardCsr.elements.csrClient,
     );
-    generateKeyCsrWizardCsr.selectService('Xroad Test CA CN');
+    generateKeyCsrWizardCsr.selectService('X-Road Test CA CN');
     generateKeyCsrWizardCsr.selectFormat('DER');
 
     generateKeyCsrWizardCsr.next();
