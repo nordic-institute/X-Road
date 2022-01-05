@@ -46,14 +46,12 @@ import '@fontsource/open-sans';
 import i18n from './i18n';
 import { createPinia, PiniaVuePlugin } from 'pinia';
 import VueCompositionAPI from '@vue/composition-api';
-// import piniaPersist from 'pinia-plugin-persist';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
 Vue.use(VueCompositionAPI);
 Vue.use(PiniaVuePlugin);
 
 const pinia = createPinia();
-// pinia.use(piniaPersist);
 pinia.use(piniaPluginPersistedstate);
 Vue.config.productionTip = false;
 
