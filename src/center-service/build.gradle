@@ -5,7 +5,7 @@ dependencies {
     implementation  project(':common-verifier')
     implementation  project(':signer-protocol')
 
-    implementation  'org.postgresql:postgresql:42.2.16'
+    implementation  "org.postgresql:postgresql:$postgresqlVersion"
     implementation  'commons-configuration:commons-configuration:1.10'
 
     testImplementation project(path: ':common-util', configuration: 'testArtifacts')

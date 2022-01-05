@@ -13,10 +13,6 @@ jar {
   }
 }
 
-repositories {
-    jcenter()
-}
-
 dependencies {
 
     implementation project(':common-util')
