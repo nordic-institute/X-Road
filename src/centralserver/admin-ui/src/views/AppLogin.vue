@@ -162,10 +162,14 @@ export default (
   },
   methods: {
     ...mapActions(userStore, ['login', 'fetchUserData']),
-    ...mapActions(notificationsStore, ['showError', 'resetNotifications']),
+    ...mapActions(notificationsStore, [
+      'showError',
+      'showErrorMessage',
+      'resetNotifications',
+    ]),
     ...mapActions(systemStore, ['fetchSystemStatus', 'fetchServerVersion']),
     async submit() {
-      // Clear old error notifications (if they) before submit
+      // Clear old error notifications (if they exist) before submit
       await this.resetNotifications();
 
       // Validate inputs
@@ -220,8 +224,13 @@ export default (
                   password: [this.$t('login.errorMsg401') as string],
                 });
               });
+
+              // Wrong username or password error lands here. It has 401 code.
+              this.showErrorMessage(this.$t('login.generalError'));
+            } else {
+              this.showError(error);
             }
-            this.showError(error);
+
             // Clear loading state
             this.loading = false;
           },
