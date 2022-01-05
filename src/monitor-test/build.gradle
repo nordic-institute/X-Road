@@ -5,10 +5,6 @@ mainClassName = "ee.ria.xroad.monitor.test.MonitorTest"
 distZip.enabled = false
 distTar.enabled = false
 
-repositories {
-    jcenter()
-}
-
 dependencies {
 
     implementation project(':common-util')
