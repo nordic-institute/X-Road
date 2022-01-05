@@ -7,9 +7,9 @@ repositories {
 
 dependencies {
 
-    implementation group: 'com.google.guava', name: 'guava', version: '29.0-jre'
-    implementation 'org.slf4j:slf4j-api:1.7.30'
+    implementation group: 'com.google.guava', name: 'guava', version: "$guavaVersion"
+    implementation 'org.slf4j:slf4j-api:1.7.32'
 
-    testImplementation 'junit:junit:4.13'
+    testImplementation 'junit:junit:4.13.2'
 }
 
