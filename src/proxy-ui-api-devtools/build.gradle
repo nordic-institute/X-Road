@@ -4,7 +4,7 @@ plugins {
 }
 
 ext {
-    set('springCloudVersion', "Hoxton.SR8")
+    set('springCloudVersion', "Hoxton.SR12")
 }
 
 bootJar {
@@ -21,11 +21,13 @@ configurations {
 dependencies {
     implementation files('$buildDir/../../proxy-ui-api/build/libs/proxy-ui-api-1.0-plainDependency.jar')
     implementation project(path: ':proxy-ui-api')
+    implementation project(path: ':common-util')
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-actuator')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
+    implementation('org.glassfish:jakarta.el:3.0.4')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')
 

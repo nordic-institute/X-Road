@@ -31,4 +31,10 @@
         <packageUrl regex="true">^pkg:maven/org\.bouncycastle/bcprov\-jdk15on@.*$</packageUrl>
         <cve>CVE-2020-28052</cve>
     </suppress>
+     <suppress>
+      <notes><![CDATA[
+      file name: org.eclipse.core.contenttype-3.8.0.jar
+      ]]></notes>
+      <cve>CVE-2021-41033</cve>
+   </suppress>
 </suppressions>
