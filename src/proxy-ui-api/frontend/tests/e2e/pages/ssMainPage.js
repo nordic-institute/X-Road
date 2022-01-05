@@ -985,6 +985,10 @@ module.exports = {
           selector: '//button[.//*[contains(text(), "Delete")]]',
           locateStrategy: 'xpath',
         },
+        certificateHash: {
+          selector: '//*[@data-test="cert-hash-value"]',
+          locateStrategy: 'xpath',
+        },
       },
     },
     certificateDetails: {
