@@ -96,33 +96,15 @@ module.exports = {
     `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}/add`,
   commands: commands,
   elements: {
-    wizardStepIndicator: {
-      selector:
+    wizardStepIndicator:
         '//div[contains(@class, "v-stepper__step--active")]/span[contains(@class, "primary") and contains(text(), "2")]',
-      locateStrategy: 'xpath',
-    },
-    filterField: {
-      selector: '//input[@data-test="search-service-client-service"]',
-      locateStrategy: 'xpath',
-    },
-    cancelButton: {
-      selector:
+    filterField: '//input[@data-test="search-service-client-service"]',
+    cancelButton:
         '//div[contains(@class, "button-footer") and .//button[@data-test="previous-button"]]//button[@data-test="cancel-button"]',
-      locateStrategy: 'xpath',
-    },
-    addSelectedButton: {
-      selector:
+    addSelectedButton:
         '//div[contains(@class, "button-footer") and .//button[@data-test="previous-button"]]//button[@data-test="finish-button"]',
-      locateStrategy: 'xpath',
-    },
-    previousButton: {
-      selector: '//button[@data-test="previous-button"]',
-      locateStrategy: 'xpath',
-    },
-    selectedServices: {
-      selector:
+    previousButton: '//button[@data-test="previous-button"]',
+    selectedServices:
         '//td[@class="selection-checkbox"]//div[contains(@class, "v-input--is-label-active")]',
-      locateStrategy: 'xpath',
-    },
   },
 };
