@@ -139,7 +139,8 @@
     "backupConfiguration": {
       "button": "Back up config.",
       "message": {
-        "success": "Backup {file} successfully created"
+        "success": "Backup {file} successfully created",
+        "warning": "FIXME! Please note that {file} is deprecated"
       }
     },
     "uploadBackup": {

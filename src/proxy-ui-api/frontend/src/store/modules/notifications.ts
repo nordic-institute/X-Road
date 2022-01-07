@@ -113,6 +113,7 @@ function createEmptyNotification(timeout: number): Notification {
     timeAdded: Date.now(),
     show: true,
     count: 1,
+    isWarning: false,
   };
 }
 
@@ -151,7 +152,12 @@ export const mutations: MutationTree<NotificationsState> = {
     notification.errorObject = errorObject;
     addErrorNotification(state, notification);
   },
-
+  setWarningMessage(state: NotificationsState, val: string): void {
+    const notification = createEmptyNotification(-1);
+    notification.errorMessage = val;
+    notification.isWarning = true;
+    addErrorNotification(state, notification);
+  },
   deleteSuccessNotification(state: NotificationsState, id: number): void {
     state.successNotifications = state.successNotifications.filter(
       (item: Notification) => item.timeAdded !== id,
@@ -198,6 +204,10 @@ export const actions: ActionTree<NotificationsState, RootState> = {
     if (errorObject?.response?.status !== 401) {
       commit('setErrorObject', errorObject);
     }
+  },
+  showWarningMessage({ commit }, messageText: string): void {
+    // Show error snackbar without localisation
+    commit('setWarningMessage', messageText);
   },
   showStaticNotification({ commit }, notifications: string[]) {
     commit('setStaticNotification', notifications);

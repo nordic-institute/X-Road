@@ -93,7 +93,7 @@ import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Backup } from '@/openapi-types';
+import {Backup, BackupExt} from '@/openapi-types';
 import { FileUploadResult } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
@@ -158,12 +158,22 @@ export default Vue.extend({
     async createBackup() {
       this.creatingBackup = true;
       return api
-        .post<Backup>('/backups', null)
+        .post<BackupExt>('/backupsext', null)
         .then((resp) => {
+          if ( resp.data.deprecated_files.length > 0 ) {
+            resp.data.deprecated_files.forEach((value) => {
+            this.$store.dispatch(
+                'showWarningMessage',
+                this.$t('backup.backupConfiguration.message.warning', {
+                  file: value,
+                }),
+              );
+            });
+          }
           this.$store.dispatch(
             'showSuccess',
             this.$t('backup.backupConfiguration.message.success', {
-              file: resp.data.filename,
+              file: resp.data.backup.filename,
             }),
           );
           this.fetchData();
