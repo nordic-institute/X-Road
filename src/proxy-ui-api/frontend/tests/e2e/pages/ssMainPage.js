@@ -45,6 +45,11 @@ const {
   operationDetailsElements,
   operationDetailsCommands,
 } = require('./services/operationDetails');
+const {
+  restEndPointPopupCommands,
+  addRestEndPointPopupElements,
+  editRestEndPointPopupElements,
+} = require('./endpoints/restEndPointPopup');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -165,68 +170,6 @@ var restEndpointCommands = {
     return this;
   },
 };
-
-var addEndpointCommands = {
-  // previous value must be empty
-  initPath: function (path) {
-    this.assert.valueContains('@requestPath', '');
-    this.setValue('@requestPath', path);
-    return this;
-  },
-  // previous value must be non-empty
-  modifyPath: function (path) {
-    this.waitForNonEmpty('@requestPath');
-    this.clearValue2('@requestPath');
-    this.setValue('@requestPath', path);
-    return this;
-  },
-  selectRequestMethod: function (method) {
-    this.click('@methodDropdown');
-
-    this.api.pause(1000);
-    // The picker menu is attached to the main app dom tree, not the dialog
-    this.api.click(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        method +
-        '")]',
-    );
-
-    return this;
-  },
-  clickMethodMenu: function () {
-    this.click('@methodDropdown');
-    return this;
-  },
-  addSelected: function () {
-    this.click('@addButton');
-    return this;
-  },
-  cancel: function () {
-    this.click('@cancelButton');
-    return this;
-  },
-  deleteEndpoint: function () {
-    this.click('@deleteButton');
-    return this;
-  },
-  verifyMethodExists: function (method) {
-    this.api.waitForElementVisible(
-      '//div[@role="listbox"]//div[@role="option" and contains(./descendant-or-self::*/text(),"' +
-        method +
-        '")]',
-    );
-    return this;
-  },
-  confirmDelete: function () {
-    this.click('@deleteYesButton');
-    return this;
-  },
-  cancelDelete: function () {
-    this.click('@deleteCancelButton');
-    return this;
-  },
-};
-
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
@@ -313,32 +256,15 @@ module.exports = {
     wsdlAddSubjectsPopup: addSubjectsPopup,
     addEndpointPopup: {
       selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
-      commands: [addEndpointCommands],
-      elements: {
-        addButton: '//button[@data-test="dialog-save-button"]',
-        cancelButton: '//button[@data-test="dialog-cancel-button"]',
-        requestPath: '//input[@data-test="endpoint-path"]',
-        requestPathMessage:
-          '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
-        methodDropdown: '//input[@data-test="endpoint-method"]/parent::*',
-      },
+        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"] and .//input[@data-test="endpoint-path"]]',
+      commands: [restEndPointPopupCommands],
+      elements: addRestEndPointPopupElements,
     },
     editEndpointPopup: {
       selector:
         '//div[contains(@class, "xrd-tab-max-width") and //div[@data-test="endpoint-details-dialog"]]',
-      commands: [addEndpointCommands],
-      elements: {
-        addButton: '//button[.//*[contains(text(), "Save")]]',
-        cancelButton: '//button[.//*[contains(text(), "Cancel")]]',
-        deleteButton: '//button[.//*[contains(text(), "Delete")]]',
-        requestPath: '//input[@data-test="endpoint-path"]',
-        requestPathMessage:
-          '//div[contains(@class, "dlg-edit-row") and .//*[@data-test="endpoint-path"]]//*[contains(@class, "v-messages__message")]',
-        methodDropdown: '//input[@data-test="endpoint-method"]/parent::*',
-        deleteYesButton: '//button[@data-test="dialog-save-button"]',
-        deleteCancelButton: '//button[@data-test="dialog-cancel-button"]',
-      },
+      commands: [restEndPointPopupCommands],
+      elements: editRestEndPointPopupElements,
     },
     removeAccessRightPopup: simpleSaveCancelPopup,
     removeAllAccessRightsPopup: simpleSaveCancelPopup,
