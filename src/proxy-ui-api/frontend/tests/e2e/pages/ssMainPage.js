@@ -41,7 +41,10 @@ const {
   serviceDetailsCommands,
   serviceDetailsElements,
 } = require('./services/serviceDetails');
-const { operationDetailsElements, operationDetailsCommands} = require('./services/operationDetails');
+const {
+  operationDetailsElements,
+  operationDetailsCommands,
+} = require('./services/operationDetails');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -292,15 +295,7 @@ module.exports = {
       commands: [operationDetailsCommands],
       elements: operationDetailsElements,
     },
-    sslCheckFailDialog: {
-      selector:
-        '//*[@data-test="dialog-simple" and .//*[@data-test="dialog-title"]]',
-      commands: [sslCheckFailDialogCommands],
-      elements: {
-        continueButton: '//button[@data-test="dialog-save-button"]',
-        cancelButton: '//button[@data-test="dialog-cancel-button"]',
-      },
-    },
+    sslCheckFailDialog: simpleSaveCancelPopup,
     restServiceEndpoints: {
       selector:
         '//div[contains(@class, "base-full-width") and .//*[@data-test="endpoints"]]',

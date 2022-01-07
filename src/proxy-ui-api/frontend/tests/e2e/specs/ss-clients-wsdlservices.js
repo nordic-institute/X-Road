@@ -246,9 +246,9 @@ module.exports = {
     operationDetails.saveParameters();
     browser.waitForElementVisible(sslCheckFail);
     browser.expect
-      .element(sslCheckFail.elements.continueButton)
+      .element(sslCheckFail.elements.yesButton)
       .to.be.visible.and.text.to.equal('Continue');
-    sslCheckFail.continue();
+    sslCheckFail.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
