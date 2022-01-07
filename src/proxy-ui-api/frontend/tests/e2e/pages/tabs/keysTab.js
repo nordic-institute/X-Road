@@ -296,12 +296,10 @@ const keysTab = {
   elements: {
     signAndAuthKeysTab:
         '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "SIGN and AUTH Keys")]',
-
     APIKeysTab:
         '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "API Keys")]',
     securityServerTLSKeyTab:
         '//div[contains(@class, "v-tabs-bar__content")]//*[contains(@class, "v-tab") and contains(text(), "Security Server TLS Key")]',
-
     tokenName:  '//*[@data-test="token-name"]',
     createAPIKeyButton:  '//*[@data-test="api-key-create-key-button"]',
     generateKeyButton:
@@ -324,22 +322,18 @@ const keysTab = {
         importCertButton: '//button[@data-test="token-import-cert-button"]',
         authGenerateCSRButton:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//button[.//*[contains(text(), "Generate CSR")]]',
-
         authKeyIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//i[contains(@class, "icon-xrd_key")]',
         authKeyLink:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//div[contains(@class, "clickable-link")]',
         authCertIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "AUTH Key and Certificate")]]//i[contains(@class, "icon-xrd_certificate")]',
-
         signGenerateCSRButton:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//button[.//*[contains(text(), "Generate CSR")]]',
-
         signKeyIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//i[contains(@class, "icon-xrd_key")]',
         signKeyLink:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//div[contains(@class, "clickable-link")]',
-
         signCertIcon:
             '//table[./thead//th[@class="title-col" and contains(text(), "SIGN Key and Certificate")]]//i[contains(@class, "icon-xrd_certificate")]',
           initializedAuthCert:
@@ -392,7 +386,6 @@ const keysTab = {
         friendlyNameMessage:
             '//span[contains(@class, "validation-provider")]//div[contains(@class, "v-messages__message")]',
         label: '//div[contains(@class, "row-title") and contains(text(), "Label:")]//following-sibling::div[contains(@class, "row-data")]',
-
       },
     },
     tokenDetails: {
@@ -433,7 +426,6 @@ const keysTab = {
         csrFormat:
             '//div[contains(@class, "v-select__selections") and input[@data-test="csr-format-select"]]',
         csrClient: '//div[contains(@class, "v-select__selections") and input[@data-test="csr-client-select"]]',
-
       },
     },
     addKeyWizardGenerate: {
@@ -480,7 +472,6 @@ const keysTab = {
         generateButton:'//button[@data-test="generate-csr-button"]',
         organizationName: '//input[@name="O" and @data-test="dynamic-csr-input"]',
         serverDNS:  '//input[@name="CN" and @data-test="dynamic-csr-input"]',
-
       },
     },
   },
