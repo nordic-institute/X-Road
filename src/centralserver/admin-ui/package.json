@@ -33,7 +33,7 @@
   "devDependencies": {
     "@apidevtools/swagger-cli": "~4.0.4",
     "@mdi/font": "~5.9.55",
-    "@types/jest": "~26.0.8",
+    "@types/jest": "~27.4.0",
     "@types/lodash": "^4.14.177",
     "@typescript-eslint/eslint-plugin": "~4.26.1",
     "@typescript-eslint/parser": "~4.26.1",

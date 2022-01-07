@@ -1667,6 +1667,34 @@
     "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
       "decision": "ignore",
       "madeAt": 1637567933631
+    },
+    "1006846|@vue/cli-service>autoprefixer>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
+    },
+    "1006846|@vue/cli-service>css-loader>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
+    },
+    "1006846|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>autoprefixer>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
+    },
+    "1006846|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>autoprefixer>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
+    },
+    "1006846|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>autoprefixer>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
+    },
+    "1006846|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>css-loader>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
+    },
+    "1006846|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>css-loader>postcss-modules-local-by-default>icss-utils>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641554169035
     }
   },
   "rules": {},
