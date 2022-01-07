@@ -50,6 +50,7 @@ const {
   addRestEndPointPopupElements,
   editRestEndPointPopupElements,
 } = require('./endpoints/restEndPointPopup');
+const restServiceEndpointsPage = require('./endpoints/restServiceEndpointPage');
 
 const navigateCommands = {
   openClientsTab: function () {
@@ -117,59 +118,6 @@ const navigateCommands = {
   },
 };
 
-var sslCheckFailDialogCommands = {
-  continue: function () {
-    this.click('@continueButton');
-    return this;
-  },
-  cancel: function () {
-    this.click('@cancelButton');
-    return this;
-  },
-};
-
-var restEndpointCommands = {
-  openAddDialog: function () {
-    this.click('@addButton');
-    return this;
-  },
-  openParametersTab: function () {
-    this.click('@parametersTab');
-    return this;
-  },
-  verifyEndpointRow: function (row, method, path) {
-    //this.api.waitForElementVisible('(//table[.//*[contains(text(),"HTTP Request Method")]]/tbody/tr)['+row+']//td[contains(./descendant-or-self::*/text(),"'+method+'") and ..//td[contains(./descendant-or-self::*/text(),"'+path+'")]]');
-    //TODO: Sorting is not currently functional, so check only that the row exists
-    this.api.waitForElementVisible(
-      '//tbody/tr//td[contains(./descendant-or-self::*/text(),"' +
-        method +
-        '") and ..//td[contains(./descendant-or-self::*/text(),"' +
-        path +
-        '")]]',
-    );
-    return this;
-  },
-  openEndpointAccessRights: function (method, path) {
-    this.api.click(
-      `//td[contains(@class, "wrap-right-tight") and preceding-sibling::td/text() = "${path}" and preceding-sibling::td/span/text() = "${method}"]//button[@data-test="endpoint-edit-accessrights"]`,
-    );
-    return this;
-  },
-  openEndpoint: function (method, path) {
-    this.api.click(
-      '//tr[.//*[contains(text(),"' +
-        method +
-        '")] and .//*[contains(text(),"' +
-        path +
-        '")]]//button[@data-test="endpoint-edit"]',
-    );
-    return this;
-  },
-  close: function () {
-    this.click('@closeButton');
-    return this;
-  },
-};
 module.exports = {
   url: process.env.VUE_DEV_SERVER_URL,
   commands: [navigateCommands],
@@ -239,20 +187,7 @@ module.exports = {
       elements: operationDetailsElements,
     },
     sslCheckFailDialog: simpleSaveCancelPopup,
-    restServiceEndpoints: {
-      selector:
-        '//div[contains(@class, "base-full-width") and .//*[@data-test="endpoints"]]',
-      commands: [restEndpointCommands],
-      elements: {
-        parametersTab: '//*[@data-test="parameters"]',
-        endpointsTab: '//*[@data-test="endpoints"]',
-        addButton: '//button[@data-test="endpoint-add"]',
-        closeButton:
-          '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
-        editButton: '//button[@data-test="endpoint-edit"]',
-        accessRightsButton: '//button[@data-test="endpoint-edit-accessrights"]',
-      },
-    },
+    restServiceEndpoints: restServiceEndpointsPage,
     wsdlAddSubjectsPopup: addSubjectsPopup,
     addEndpointPopup: {
       selector:
