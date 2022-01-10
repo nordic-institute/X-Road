@@ -1,5 +1,8 @@
 # Change Log
 
+## 7.0.1 - 2022-01-10
+- XRDDEV-1889: Update dependencies with known vulnerabilities
+
 ## 7.0.0 - 2021-11-26
 - XRDDEV-1375: HSM token certificates do not show Deleted status
 - XRDDEV-1461: Permissions handling has inconsistencies when it comes to non-sign-non-auth keys
