@@ -1,6 +1,8 @@
 # Change Log
 
-## 6.26.1 - UNRELEASED
+## 6.26.1 - 2022-01-10
+- XRDDEV-1888: Update dependencies with known vulnerabilities
+- XRDDEV-1855: (backport) Restrict XXE globally
 
 ## 6.26.0 - 2021-03-22
 - XRDDEV-1357: Fix various permission check inconsistencies in the Security Server UI frontend implementation
