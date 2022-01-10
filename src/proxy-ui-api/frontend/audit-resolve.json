@@ -1267,6 +1267,14 @@
     "1006846|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
       "decision": "ignore",
       "madeAt": 1641549899949
+    },
+    "1006852|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1641825433408
+    },
+    "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1641825433408
     }
   },
   "rules": {},
