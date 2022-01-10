@@ -1247,6 +1247,26 @@
     "1006724|@vue/cli-plugin-unit-jest>jest>jest-cli>@jest/core>jest-runner>jest-jasmine2>jest-runtime>jest-config>jest-environment-jsdom>jsdom>request>http-signature>jsprim>json-schema": {
       "decision": "ignore",
       "madeAt": 1637668033344
+    },
+    "1006846|@vue/cli-service>cssnano>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641549899949
+    },
+    "1006846|@vue/cli-service>cssnano>cssnano-preset-default>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641549899949
+    },
+    "1006846|@vue/cli-service>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641549899949
+    },
+    "1006846|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>css-declaration-sorter>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641549899949
+    },
+    "1006846|@vue/cli-service>@intervolga/optimize-cssnano-plugin>cssnano>cssnano-preset-default>postcss-merge-longhand>stylehacks>postcss": {
+      "decision": "ignore",
+      "madeAt": 1641549899949
     }
   },
   "rules": {},

@@ -25,11 +25,11 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.domain.Role;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * test role
@@ -44,6 +44,7 @@ public class RoleTest {
         try {
             role = Role.getForKey(10);
             fail("should throw exception");
-        } catch (Exception expected) { }
+        } catch (Exception expected) {
+        }
     }
 }
