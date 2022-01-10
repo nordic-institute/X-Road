@@ -1699,6 +1699,14 @@
     "1006846|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>css-loader>postcss-modules-local-by-default>icss-utils>postcss": {
       "decision": "ignore",
       "madeAt": 1641549326236
+    },
+    "1006852|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1641825462222
+    },
+    "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1641825462222
     }
   },
   "rules": {},
