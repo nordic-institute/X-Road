@@ -134,13 +134,6 @@ export default Vue.extend({
   },
   created(): void {
     this.fetchData();
-    this.$store.dispatch('showStaticNotification', [
-      this.$t('info.backups_incompatible[0]'),
-      this.$t('info.backups_incompatible[1]'),
-    ]);
-  },
-  beforeDestroy() {
-    this.$store.dispatch('clearStaticNotification');
   },
   methods: {
     async fetchData() {
@@ -158,17 +151,13 @@ export default Vue.extend({
     async createBackup() {
       this.creatingBackup = true;
       return api
-        .post<BackupExt>('/backupsext', null)
+        .post<BackupExt>('/backups/ext', null)
         .then((resp) => {
-          if ( resp.data.deprecated_files.length > 0 ) {
-            resp.data.deprecated_files.forEach((value) => {
+          if ( resp.data.local_conf_present ) {
             this.$store.dispatch(
-                'showWarningMessage',
-                this.$t('backup.backupConfiguration.message.warning', {
-                  file: value,
-                }),
-              );
-            });
+              'showWarningMessage',
+              this.$t('backup.backupConfiguration.message.localConfWarning'),
+            );
           }
           this.$store.dispatch(
             'showSuccess',

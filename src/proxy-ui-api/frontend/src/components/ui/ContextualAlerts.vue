@@ -118,7 +118,7 @@
               </div>
 
               <!-- count -->
-              <div v-if="notification.count > 1">
+              <div v-if="notification.count > 1 && !notification.isWarning">
                 {{ $t('alert.count') }}
                 {{ notification.count }}
               </div>

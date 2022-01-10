@@ -64,6 +64,7 @@
   },
   "alert": {
     "count": "Amount of same errors:",
+    "warningCount": "Amount of same warnings",
     "id": "ID"
   },
   "apiKey": {
@@ -140,7 +141,7 @@
       "button": "Back up config.",
       "message": {
         "success": "Backup {file} successfully created",
-        "warning": "FIXME! Please note that {file} is deprecated"
+        "localConfWarning": "Warning! The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated and not included in the backups anymore. The file “/etc/xroad/services/local.properties” should be used instead."
       }
     },
     "uploadBackup": {
@@ -544,12 +545,6 @@
     "globalConfigurationInvalid": "Global configuration is expired",
     "secondaryNode": "You are on a secondary node in a Security Server cluster. Modifying configuration is disabled.",
     "softTokenPinNotEntered": "Please enter soft token PIN"
-  },
-  "info": {
-    "backups_incompatible": [
-      "The backup format has changed, and therefore, backups are incompatible between X-Road 6 and X-Road 7.",
-      "Also, please note that the \"/etc/xroad/services/local.conf\" file for configuration overrides is deprecated and is not included in the backups anymore. In version 7, the \"/etc/xroad/services/local.properties\" file should be used instead."
-    ]
   },
   "initialConfiguration": {
     "anchor": {
