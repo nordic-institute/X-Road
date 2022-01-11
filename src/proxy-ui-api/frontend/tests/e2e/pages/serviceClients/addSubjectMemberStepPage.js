@@ -97,38 +97,17 @@ module.exports = {
     `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/serviceclients/${subsystemId}/add`,
   commands: commands,
   elements: {
-    wizardStepIndicator: {
-      selector:
+    wizardStepIndicator:
         '//div[contains(@class, "v-stepper__step--active")]/span[contains(@class, "primary") and contains(text(), "1")]',
-      locateStrategy: 'xpath',
-    },
-    filterField: {
-      selector: '//input[@data-test="search-service-client"]',
-      locateStrategy: 'xpath',
-    },
-    cancelButton: {
-      selector:
+    filterField: '//input[@data-test="search-service-client"]',
+    cancelButton:
         '//div[@class="v-stepper__wrapper" and .//table[contains(@class, "service-clients-table")]]//button[@data-test="cancel-button"]',
-      locateStrategy: 'xpath',
-    },
-    nextButton: {
-      selector:
+    nextButton:
         '//div[@class="v-stepper__wrapper" and .//table[contains(@class, "service-clients-table")]]//button[@data-test="next-button"]',
-      locateStrategy: 'xpath',
-    },
-    addSubjectWizardHeader: {
-      selector: '//div[@data-test="add-subject-title"]',
-      locateStrategy: 'xpath',
-    },
-    selectedSubjects: {
-      selector:
+    addSubjectWizardHeader:'//div[@data-test="add-subject-title"]',
+    selectedSubjects:
         '//div[contains(@class, "checkbox-wrap")]/div[contains(@class, "v-radio") and contains(@class, "v-item--active")]',
-      locateStrategy: 'xpath',
-    },
-    selectedSubjectName: {
-      selector:
+    selectedSubjectName:
         '//tr[.//div[contains(@class, "v-radio") and contains(@class, "v-item--active")]]/td[3]',
-      locateStrategy: 'xpath',
-    },
   },
 };

@@ -24,56 +24,52 @@
    THE SOFTWARE.
  -->
 <template>
-  <v-card flat class="pb-3">
-    <xrd-table>
-      <thead>
-        <tr>
-          <th>{{ $t('global.name') }}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr :key="'conf_backup_20210505-105548.tar'">
-          <td>conf_backup_20210505-105548.tar</td>
-          <td>
-            <div class="d-flex justify-end">
-              <xrd-button
-                :min_width="50"
-                text
-                :outlined="false"
-                class="xrd-table-button"
-                data-test="backup-download"
-                >{{ $t('action.download') }}
-              </xrd-button>
-              <restore-backup-button />
-              <delete-backup-button />
-            </div>
-          </td>
-        </tr>
-        <tr :key="'conf_backup_20210404-092511.tar'">
-          <td>conf_backup_20210404-092511.tar</td>
-          <td>
-            <div class="d-flex justify-end">
-              <xrd-button
-                :min_width="50"
-                text
-                :outlined="false"
-                class="xrd-table-button"
-                data-test="backup-download"
-                >{{ $t('action.download') }}
-              </xrd-button>
-              <restore-backup-button />
-              <delete-backup-button />
-            </div>
-          </td>
-        </tr>
-      </tbody>
-    </xrd-table>
+  <v-card flat>
+    <v-data-table
+      :loading="loading"
+      :headers="headers"
+      :items="backups"
+      :search="search"
+      :must-sort="true"
+      :items-per-page="-1"
+      class="elevation-0 data-table"
+      item-key="id"
+      :loader-height="2"
+      hide-default-footer
+    >
+      <template #[`item.hash`]="{ item }">
+        <div class="hash-cell">
+          <xrd-icon-base class="mr-4 xrd-clickable"
+            ><XrdIconCertificate
+          /></xrd-icon-base>
+          <div>{{ item.hash }}</div>
+        </div>
+      </template>
+
+      <template #[`item.button`]>
+        <div class="cs-table-actions-wrap">
+          <xrd-button
+            text
+            :outlined="false"
+            class="xrd-table-button"
+            data-test="backup-download"
+            >{{ $t('action.download') }}
+          </xrd-button>
+          <restore-backup-button />
+          <delete-backup-button />
+        </div>
+      </template>
+
+      <template #footer>
+        <div class="cs-table-custom-footer"></div>
+      </template>
+    </v-data-table>
   </v-card>
 </template>
 
 <script lang="ts">
 import Vue from 'vue';
+import { DataTableHeader } from 'vuetify';
 import DeleteBackupButton from '@/views/Settings/BackupAndRestore/DeleteBackupButton.vue';
 import RestoreBackupButton from '@/views/Settings/BackupAndRestore/RestoreBackupButton.vue';
 
@@ -82,5 +78,50 @@ export default Vue.extend({
     DeleteBackupButton,
     RestoreBackupButton,
   },
+  props: {
+    search: {
+      type: String,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      loading: false,
+      backups: [
+        {
+          name: 'conf_backup_20210404-092511.tar',
+        },
+        {
+          name: 'conf_backup_20210505-105548.tar',
+        },
+        {
+          name: 'conf_backup_20210608-1012548.tar',
+        },
+      ],
+    };
+  },
+
+  computed: {
+    headers(): DataTableHeader[] {
+      return [
+        {
+          text: this.$t('global.name') as string,
+          align: 'start',
+          value: 'name',
+          class: 'xrd-table-header backups-table-header-name',
+        },
+        {
+          text: '',
+          value: 'button',
+          sortable: false,
+          class: 'xrd-table-header backups-table-header-buttons',
+        },
+      ];
+    },
+  },
 });
 </script>
+
+<style lang="scss" scoped>
+@import '~styles/tables';
+</style>

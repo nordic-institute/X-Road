@@ -308,6 +308,17 @@
       }
     }
   },
+  "noData": {
+    "loading": "Loading... Please wait",
+    "noBackups": "No backups yet",
+    "noCertificate": "No certificate",
+    "noCertificates": "No certificates",
+    "noData": "No data",
+    "noMatches": "No items matching criteria",
+    "noMemberClasses": "No member classes",
+    "noServices": "No services",
+    "noTokens": "No tokens"
+  },
   "securityServers": {
     "address": "Address",
     "ownerClass": "Owner Class",

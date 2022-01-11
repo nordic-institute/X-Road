@@ -48,13 +48,6 @@
       </tbody>
     </table>
 
-    <!--
-    <RegisterCertificateDialog
-      :dialog="registerDialog"
-      @save="registerCert"
-      @cancel="registerDialog = false"
-    /> -->
-
     <xrd-confirm-dialog
       :dialog="confirmDeleteCsr"
       title="keys.deleteCsrTitle"
@@ -70,7 +63,6 @@
  * Table component for an array of keys
  */
 import Vue from 'vue';
-//import RegisterCertificateDialog from './RegisterCertificateDialog.vue';
 import KeyRow from './KeyRow.vue';
 
 import {
@@ -86,7 +78,6 @@ import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
-    // RegisterCertificateDialog,
     KeyRow,
   },
   props: {

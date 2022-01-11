@@ -31,6 +31,13 @@
       </div>
     </div>
 
+    <XrdEmptyPlaceholder
+      :data="tokens"
+      :loading="loading"
+      :no-items-text="$t('noData.noTokens')"
+      skeleton-type="table-heading"
+    />
+
     <token-expandable
       v-for="token in tokens"
       :key="token.id"
@@ -178,7 +185,7 @@ export default Vue.extend({
   },
   data() {
     return {
-      search: '' as string,
+      loading: false,
       creatingBackup: false,
       uploadingBackup: false,
       needsConfirmation: false,
