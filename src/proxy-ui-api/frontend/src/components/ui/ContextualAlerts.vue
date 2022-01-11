@@ -156,6 +156,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
+import { Colors } from '@/global';
 
 type ValidationError = {
   field: string;
@@ -170,7 +171,7 @@ export default Vue.extend({
   methods: {
     notificationColor(notification: Notification) {
       // TODO - how to import these values from colors.css?
-      return notification.isWarning ? '#d6b312' : '#ec4040';
+      return notification.isWarning ? Colors.Warning : Colors.Error;
     },
     errorCode(notification: Notification): string | undefined {
       return notification.errorObject?.response?.data?.error?.code;
