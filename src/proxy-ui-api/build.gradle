@@ -291,7 +291,7 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 }
 
 // frontend npm audit
-if (!project.hasProperty('skip-frontend-build') && project.hasProperty('frontend-unit-tests')) {
+if (!project.hasProperty('skip-frontend-build')) {
     checkFrontAudit.dependsOn 'auditCheckUILibrary'
     auditCheckUILibrary.dependsOn 'installAuditCiGlobally'
 }
@@ -305,6 +305,9 @@ buildFront.dependsOn 'checkFrontLicense'
 checkFrontLicense.dependsOn 'buildUILibrary'
 buildUILibrary.dependsOn 'licenseCheckUILibrary'
 licenseCheckUILibrary.dependsOn 'installUILibrary'
+installUILibrary.dependsOn 'checkFrontAudit'
+checkFrontAudit.dependsOn 'auditCheckUILibrary'
+auditCheckUILibrary.dependsOn 'installAuditCiGlobally'
 
 
 
