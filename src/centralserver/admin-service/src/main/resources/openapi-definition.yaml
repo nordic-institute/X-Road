@@ -14,6 +14,106 @@ servers:
   - url: /api/v1
     description: basepath for API v1
 paths:
+  /globalconf/internal/keys:
+    get:
+      tags:
+        - globalconf
+      summary: CS administrator views the signing keys of the internal configuration source
+      operationId: getInternalGlobalconfKeys
+      responses:
+        '200':
+          description: internal global conf keys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Keys'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /globalconf/internal/anchors:
+    get:
+      tags:
+        - globalconf
+      summary: CS administrator views the anchors of the internal configuration source
+      operationId: getInternalGlobalconfAnchors
+      responses:
+        '200':
+          description: internal global conf anchors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationAnchors'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /globalconf/internal/url:
+    get:
+      tags:
+        - globalconf
+      summary: CS administrator views the url from where to download the internal configuration from
+      operationId: getInternalGlobalconfUrl
+      responses:
+        '200':
+          description: internal global conf download url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationDownloadUrl'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /globalconf/internal/parts:
+    get:
+      tags:
+        - globalconf
+      summary: CS administrator views the configuartion parts of the internal configuration source
+      operationId: getInternalGlobalconfParts
+      responses:
+        '200':
+          description: internal global conf parts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationParts'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
   /system/version:
     get:
       tags:
