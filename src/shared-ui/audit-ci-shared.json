@@ -2,6 +2,6 @@
   "high": true,
   "skip-dev": false,
   "package-manager": "auto",
-  "allowlist": [],
+  "allowlist": [1005024, 1005029, 1005154, 1005291],
   "registry": "https://registry.npmjs.org"
 }
