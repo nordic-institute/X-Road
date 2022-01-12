@@ -79,7 +79,7 @@ var navigateCommands = {
     const { exec } = require('child_process');
 
     // remove protocol and port data from globals.testdata
-    sshScript = `ssh ${this.api.globals.testdata
+    sshScript = `ssh -o StrictHostKeyChecking=no ${this.api.globals.testdata
       .split(':')[1]
       .substring(2)} "cp ${this.api.globals.testfiles_path}/${newfile} ${
       this.api.globals.testfiles_path

@@ -861,7 +861,7 @@ module.exports = {
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Uploading certificate succeeded'
     mainPage.closeSnackbar();
 
-    // Verify that a certificate has been added with the correct status
+    // Verify that one certificate has been added (position is not known for certain though)
     browser.perform(function () {
       browser.waitForElementVisible(
         '(//tr[.//div[contains(@class, "clickable-link")] and .//div[contains(@class, "status-text") and contains(text(), "Registered")]])[' +
@@ -873,9 +873,7 @@ module.exports = {
     // Open imported certificate
     browser.perform(function () {
       browser.click(
-        '(//tr[.//div[contains(@class, "status-text") and contains(text(), "Registered")]]//div[contains(@class, "clickable-link")])[' +
-          (initialCerts + 1) +
-          ']',
+        '//div[contains(@class, "clickable-link") and contains(text(), "X-Road Test CA CN 20")]'
       );
     });
 
