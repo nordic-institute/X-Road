@@ -16,6 +16,12 @@ servers:
 tags:
   - name: globalconf
     description: resources related to Global Configuration
+  - name: globalconf-anchors
+    description: resources related to Global Configuration anchors
+  - name: globalconf-tokens
+    description: resources related to Global Configuration tokens
+  - name: globalconf-keys
+    description: resources related to Global Configuration keys
   - name: system
     description: resources related to System info
   - name: initialization
@@ -24,7 +30,7 @@ paths:
   /globalconf/anchor:
     get:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: CS administrator views the anchor of a configuration source
       operationId: getAnchor
       description: <h3>Administrator views the anchor of a specified configuration source.</h3>
@@ -42,6 +48,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigurationAnchor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -53,7 +61,7 @@ paths:
   /globalconf/anchor/download:
     get:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: download configuration anchor information
       operationId: downloadAnchor
       description: <h3>Administrator downloads the configuration anchor information of a specified configuration source.</h3>
@@ -73,6 +81,8 @@ paths:
                 type: string
                 format: binary
                 description: configuration anchor file
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -84,7 +94,7 @@ paths:
   /globalconf/anchor/re-create:
     put:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: re-create the configuration source anchor file
       operationId: reCreateAnchor
       description: <h3>Administrator re-creates the configuration anchor of a specified configuration source.</h3>
@@ -102,6 +112,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigurationAnchor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -130,7 +142,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DownloadUrl'
+                $ref: '#/components/schemas/Url'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -142,16 +156,30 @@ paths:
   /globalconf/configuration-parts:
     get:
       tags:
-        - globalconf
-      summary: CS administrator views the configuartion parts of the internal configuration source
+        - globalconf-parts
+      summary: CS administrator views the configuration parts of a configuration source
       operationId: getConfigurationParts
+      description: <h3>Administrator views the configuration parts of a specified configuration source.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the configuration parts are fetched for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
       responses:
         '200':
-          description: internal global conf parts
+          description: global conf parts
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConfigurationParts'
+                type: array
+                uniqueItems: true
+                description: array of configuration parts
+                items:
+                  $ref: '#/components/schemas/ConfigurationPart'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -160,10 +188,17 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - globalconf
+        - globalconf-parts
       summary: CS administrator uploads additional configuration parts file
       operationId: uploadConfigurationParts
       description: <h3>Administrator uploads additional configuration parts file.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the configuration parts are uploaded for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
       requestBody:
         description: new additional configuration parts file to add
         content:
@@ -177,6 +212,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TrustedAnchor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -186,7 +223,7 @@ paths:
   /globalconf/configuration-parts/{type}/download:
     get:
       tags:
-        - globalconf
+        - globalconf-parts
       summary: download a configuration parts file
       operationId: downloadConfigurationParts
       description: <h3>Administrator downloads a configuration parts file.</h3>
@@ -197,6 +234,12 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/ConfigurationPartType'
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the configuration parts are uploaded for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
       responses:
         '200':
           description: configuration parts file
@@ -206,6 +249,83 @@ paths:
                 type: string
                 format: binary
                 description: configuration parts file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/keys/{id}:
+    delete:
+      tags:
+        - globalconf-keys
+      summary: delete key
+      operationId: deleteKey
+      description: <h3>Administrator deletes the key.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+        - in: query
+          name: ignore_warnings
+          description: if true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: key deletion was successful
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/keys/{id}/activate:
+    put:
+      tags:
+        - globalconf-keys
+      summary: activate key
+      operationId: activateKey
+      description: <h3>Administrator activates a key.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the key
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -217,7 +337,7 @@ paths:
   /globalconf/tokens:
     get:
       tags:
-        - globalconf
+        - globalconf-tokens
       summary: CS administrator views the tokens of a configuration source
       operationId: getTokens
       description: <h3>Administrator views tokens of a specified configuration source.</h3>
@@ -245,10 +365,119 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /globalconf/tokens/{id}/login:
+    put:
+      tags:
+        - globalconf-tokens
+      summary: login to token
+      operationId: loginToken
+      description: <h3>Administrator logs in to a token</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenPassword'
+      responses:
+        '200':
+          description: logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/tokens/{id}/logout:
+    put:
+      tags:
+        - globalconf-tokens
+      summary: logout from token
+      operationId: logoutToken
+      description: <h3>Administrator logs out from token.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: logged out
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/tokens/{id}/keys:
+    post:
+      tags:
+        - globalconf-tokens
+      summary: add new key
+      operationId: addKey
+      description: <h3>Adds key for selected token.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the token
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyLabel'
+      responses:
+        '201':
+          description: key created for the token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Key'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /globalconf/trusted-anchors:
     get:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: CS administrator views the trusted anchors
       operationId: getTrustedAnchors
       description: <h3>Administrator views the trusted anchors.</h3>
@@ -271,7 +500,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     post:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: CS administrator uploads a new additional trusted anchor
       operationId: uploadTrustedAnchor
       description: <h3>Administrator uploads a new additional trusted anchor.</h3>
@@ -299,7 +528,7 @@ paths:
   /globalconf/trusted-anchors/{hash}:
     delete:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: delete a trusted anchor
       operationId: deleteTrustedAnchor
       description: <h3>Administrator deletes a trusted anchor.</h3>
@@ -316,6 +545,8 @@ paths:
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -327,7 +558,7 @@ paths:
   /globalconf/trusted-anchors/{hash}/download:
     get:
       tags:
-        - globalconf
+        - globalconf-anchors
       summary: download trusted anchor
       operationId: downloadTrustedAnchor
       description: <h3>Administrator downloads the trusted anchor.</h3>
@@ -350,6 +581,8 @@ paths:
                 type: string
                 format: binary
                 description: trusted anchor file
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -590,6 +823,27 @@ components:
       type: string
       format: text
       description: Central server’s public DNS name or external IP address
+    ConfigurationAnchor:
+      type: object
+      description: global conf anchor
+      required:
+        - hash
+        - created_at
+      properties:
+        hash:
+          type: string
+          format: hash
+          description: anchor hash
+          example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
+          minLength: 1
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          description: anchor created at
+          example: '2022-01-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
     ConfigurationType:
       type: string
       format: enum
@@ -598,6 +852,19 @@ components:
       enum:
         - INTERNAL
         - EXTERNAL
+    Url:
+      type: object
+      description: a plain object with url property
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: url
+          description: a generic url
+          example: https://dev.xroad.rocks/service
+          minLength: 1
+          maxLength: 255
     HighAvailabilityStatus:
       type: object
       description: Central server's high availability status
@@ -646,6 +913,130 @@ components:
       properties:
         central_server_address:
           $ref: '#/components/schemas/CentralServerAddress'
+    KeyLabel:
+      type: object
+      properties:
+        label:
+          type: string
+          format: text
+          description: label for the new key
+          minLength: 1
+          maxLength: 255
+    Token:
+      type: object
+      description: Token. Also includes the possible actions that can be done to this object,
+        e.g DELETE (only for token related operations and does not consider user authorization).
+      required:
+        - id
+        - name
+        - keys
+        - status
+        - logged_in
+        - active
+        - available
+      properties:
+        id:
+          type: string
+          format: text
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          minLength: 1
+          readOnly: true
+        name:
+          type: string
+          format: text
+          description: token name
+          example: softToken-0
+          minLength: 1
+          maxLength: 255
+        keys:
+          type: array
+          description: token keys
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/Key'
+        status:
+          $ref: '#/components/schemas/TokenStatus'
+        logged_in:
+          type: boolean
+          description: if the token has been logged in to
+          example: true
+        active:
+          type: boolean
+          description: if the token is active
+          example: true
+        available:
+          type: boolean
+          description: if the token is available
+          example: true
+        serial_number:
+          type: string
+          format: text
+          description: serial number of the token
+          example: 12345
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+    TokenStatus:
+      type: string
+      format: text
+      description: token status
+      example: OK
+      enum:
+        - OK # Normal operation status
+        - USER_PIN_LOCKED # Blocked
+        - USER_PIN_INCORRECT # Incorrect PIN was entered
+        - USER_PIN_INVALID # Invalid PIN
+        - USER_PIN_EXPIRED # PIN expired
+        - USER_PIN_COUNT_LOW # Only a few tries left
+        - USER_PIN_FINAL_TRY # Final try
+        - NOT_INITIALIZED # Not inited
+    TokenPassword:
+      type: object
+      properties:
+        password:
+          type: string
+          format: text
+          description: password for logging in to the token
+          minLength: 1
+      example:
+        password: sm3!!ycat
+    Key:
+      type: object
+      description: Key for the certificate. Also includes the possible actions that can be done to this object,
+        e.g DELETE (only for key related operations and does not consider user authorization).
+      required:
+        - id
+        - label
+        - created_at
+        - active
+        - available
+      properties:
+        id:
+          type: string
+          format: text
+          description: key id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          minLength: 1
+          readOnly: true
+        label:
+          $ref: '#/components/schemas/KeyLabel'
+        created_at:
+          type: string
+          format: date-time
+          description: anchor created at
+          example: '2022-01-12T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        available:
+          type: boolean
+          description: if the key is available
+          example: true
+        active:
+          type: boolean
+          description: if the key is active
+          example: true
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
     TrustedAnchor:
       type: object
       description: trusted anchor for globalconf
@@ -671,6 +1062,41 @@ components:
           maxLength: 24
         possible_actions:
           $ref: '#/components/schemas/PossibleActions'
+    ConfigurationPart:
+      type: object
+      description: configuration part
+      required:
+        - configuration_part_type
+        - filename
+        - updated_at
+        - version
+        - optional
+      properties:
+        configuration_part_type:
+          $ref: '#/components/schemas/ConfigurationPartType'
+        filename:
+          type: string
+          format: filename
+          example: shared-params.xml
+          minLength: 1
+          maxLength: 255
+        updated_at:
+          type: string
+          format: date-time
+          description: anchor created at
+          example: '2022-01-12T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        version:
+          type: string
+          format: text
+          description: version of the conf part
+          example: 3
+          minLength: 1
+        optional:
+          type: boolean
+          description: if the part is optional
+          example: true
     ConfigurationPartUpload:
       type: object
       description: configuration parts file
@@ -722,6 +1148,16 @@ components:
       description: X-Road-ApiKey token=<api key>
       # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
   examples:
+    DeleteKeyWarningExample:
+      summary: Warning response when trying to delete an authentication key with a registered authentication certificate
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: auth_key_with_registered_cert_warning
+            metadata:
+              - 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
     ErrorExample:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/examples/ErrorExample'
     ErrorWithMetadataExample:
