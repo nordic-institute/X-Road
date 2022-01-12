@@ -21,24 +21,87 @@ tags:
   - name: initialization
     description: resources related to Central Server initialization
 paths:
-  /globalconf/anchors:
+  /globalconf/anchor:
     get:
       tags:
         - globalconf
-      summary: CS administrator views the anchors of a configuration source
-      operationId: getAnchors
-      description: <h3>Administrator views the anchors of a specified configuration source.</h3>
+      summary: CS administrator views the anchor of a configuration source
+      operationId: getAnchor
+      description: <h3>Administrator views the anchor of a specified configuration source.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the anchor is fetched for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
       responses:
         '200':
-          description: list of anchors
+          description: the configuration anchor
           content:
             application/json:
               schema:
-                type: array
-                uniqueItems: true
-                description: array of anchor objects
-                items:
-                  $ref: '#/components/schemas/ConfigurationAnchor'
+                $ref: '#/components/schemas/ConfigurationAnchor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/anchor/download:
+    get:
+      tags:
+        - globalconf
+      summary: download configuration anchor information
+      operationId: downloadAnchor
+      description: <h3>Administrator downloads the configuration anchor information of a specified configuration source.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the anchor is fetched for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
+      responses:
+        '200':
+          description: configuration anchor
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+                description: configuration anchor file
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/anchor/re-create:
+    put:
+      tags:
+        - globalconf
+      summary: re-create the configuration source anchor file
+      operationId: reCreateAnchor
+      description: <h3>Administrator re-creates the configuration anchor of a specified configuration source.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the anchor is re-created for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
+      responses:
+        '200':
+          description: the new configuration anchor resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigurationAnchor'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -52,7 +115,7 @@ paths:
       tags:
         - globalconf
       summary: CS administrator views the url from where to download the internal configuration from
-      operationId: getGlobalconfDownloadUrl
+      operationId: getDownloadUrl
       description: <h3>Administrator views the download url of a specified configuration source.</h3>
       parameters:
         - in: query
@@ -67,7 +130,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ConfigurationDownloadUrl'
+                $ref: '#/components/schemas/DownloadUrl'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -76,12 +139,12 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /globalconf/parts:
+  /globalconf/configuration-parts:
     get:
       tags:
         - globalconf
       summary: CS administrator views the configuartion parts of the internal configuration source
-      operationId: getInternalGlobalconfParts
+      operationId: getConfigurationParts
       responses:
         '200':
           description: internal global conf parts
@@ -89,6 +152,60 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigurationParts'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - globalconf
+      summary: CS administrator uploads additional configuration parts file
+      operationId: uploadConfigurationParts
+      description: <h3>Administrator uploads additional configuration parts file.</h3>
+      requestBody:
+        description: new additional configuration parts file to add
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ConfigurationPartUpload'
+      responses:
+        '200':
+          description: the new trusted anchor resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedAnchor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/configuration-parts/{type}/download:
+    get:
+      tags:
+        - globalconf
+      summary: download a configuration parts file
+      operationId: downloadConfigurationParts
+      description: <h3>Administrator downloads a configuration parts file.</h3>
+      parameters:
+        - in: path
+          name: type
+          description: the type of the configuration part
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationPartType'
+      responses:
+        '200':
+          description: configuration parts file
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+                description: configuration parts file
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -126,8 +243,6 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /globalconf/trusted-anchors:
@@ -135,7 +250,7 @@ paths:
       tags:
         - globalconf
       summary: CS administrator views the trusted anchors
-      operationId: getAnchors
+      operationId: getTrustedAnchors
       description: <h3>Administrator views the trusted anchors.</h3>
       responses:
         '200':
@@ -148,6 +263,93 @@ paths:
                 description: array of trusted anchor objects
                 items:
                   $ref: '#/components/schemas/TrustedAnchor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - globalconf
+      summary: CS administrator uploads a new additional trusted anchor
+      operationId: uploadTrustedAnchor
+      description: <h3>Administrator uploads a new additional trusted anchor.</h3>
+      requestBody:
+        description: the new trusted anchor file to add
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+              description: trusted anchor file
+      responses:
+        '200':
+          description: the new trusted anchor resource
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrustedAnchor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/trusted-anchors/{hash}:
+    delete:
+      tags:
+        - globalconf
+      summary: delete a trusted anchor
+      operationId: deleteTrustedAnchor
+      description: <h3>Administrator deletes a trusted anchor.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: hash of the trusted anchor
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/trusted-anchors/{hash}/download:
+    get:
+      tags:
+        - globalconf
+      summary: download trusted anchor
+      operationId: downloadTrustedAnchor
+      description: <h3>Administrator downloads the trusted anchor.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: hash of the trusted anchor
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: trusted anchor
+          content:
+            application/xml:
+              schema:
+                type: string
+                format: binary
+                description: trusted anchor file
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -327,6 +529,17 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
+    ConfigurationPartType:
+      type: string
+      format: enum
+      description: the type of a globalconf configuration part
+      example: SHARED_PARAMETERS
+      enum:
+        - SHARED_PARAMETERS
+        - PRIVATE_PARAMETERS
+        - FETCHINTERVAL
+        - MONITORING
+        - NEXTUPDATE
     InitializationStatus:
       type: object
       description: Initialization status of the Central Server
@@ -400,6 +613,23 @@ components:
           example: node_0
           minLength: 1
           maxLength: 255
+    PossibleActions:
+      type: array
+      description: array containing the possible actions that can be done for this item
+      items:
+        $ref: '#/components/schemas/PossibleAction'
+    PossibleAction:
+      type: string
+      format: enum
+      description: an action to change state or edit anchors, keys or configuration parts
+      example: DELETE
+      enum:
+        - DELETE
+        - DOWNLOAD
+        - ACTIVATE
+        - LOGIN
+        - LOGOUT
+        - GENERATE_KEY
     SystemStatus:
       type: object
       description: Central server's status
@@ -416,6 +646,40 @@ components:
       properties:
         central_server_address:
           $ref: '#/components/schemas/CentralServerAddress'
+    TrustedAnchor:
+      type: object
+      description: trusted anchor for globalconf
+      required:
+        - hash
+        - created_at
+        - instance_identifier
+        - possible_actions
+      properties:
+        hash:
+          type: string
+          format: hash
+          description: anchor hash
+          example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
+          minLength: 1
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          description: anchor created at
+          example: '2022-01-12T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        possible_actions:
+          $ref: '#/components/schemas/PossibleActions'
+    ConfigurationPartUpload:
+      type: object
+      description: configuration parts file
+      properties:
+        file:
+          type: string
+          format: binary
+        configuration_part_type:
+          $ref: '#/components/schemas/ConfigurationPartType'
     User:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/User'
     Version:
@@ -442,6 +706,8 @@ components:
       description: an existing item already exists
     Forbidden:
       description: request has been refused
+    NoContent:
+      description: request was successful
     NotFound:
       description: resource requested does not exists
     Unauthorized:
