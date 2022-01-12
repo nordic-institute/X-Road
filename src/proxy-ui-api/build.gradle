@@ -301,7 +301,6 @@ checkFrontLicense.dependsOn 'buildUILibrary'
 buildUILibrary.dependsOn 'licenseCheckUILibrary'
 licenseCheckUILibrary.dependsOn 'installUILibrary'
 installUILibrary.dependsOn 'checkFrontAudit'
-//checkFrontAudit.dependsOn 'installAuditCiGlobally'
 checkFrontAudit.dependsOn 'auditCheckUILibrary'
 auditCheckUILibrary.dependsOn 'installAuditCiGlobally'
 
