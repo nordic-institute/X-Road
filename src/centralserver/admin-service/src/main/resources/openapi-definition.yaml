@@ -439,7 +439,7 @@ paths:
   /globalconf/tokens/{id}/keys:
     post:
       tags:
-        - globalconf-tokens
+        - globalconf-keys
       summary: add new key
       operationId: addKey
       description: <h3>Adds key for selected token.</h3>
@@ -663,7 +663,6 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-
   /initialization:
     post:
       tags:
@@ -1100,6 +1099,9 @@ components:
     ConfigurationPartUpload:
       type: object
       description: configuration parts file
+      required:
+        - file
+        - configuration_part_type
       properties:
         file:
           type: string
