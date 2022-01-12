@@ -13,83 +13,70 @@ info:
 servers:
   - url: /api/v1
     description: basepath for API v1
+tags:
+  - name: globalconf
+    description: resources related to Global Configuration
+  - name: system
+    description: resources related to System info
+  - name: initialization
+    description: resources related to Central Server initialization
 paths:
-  /globalconf/internal/keys:
+  /globalconf/anchors:
     get:
       tags:
         - globalconf
-      summary: CS administrator views the signing keys of the internal configuration source
-      operationId: getInternalGlobalconfKeys
+      summary: CS administrator views the anchors of a configuration source
+      operationId: getAnchors
+      description: <h3>Administrator views the anchors of a specified configuration source.</h3>
       responses:
         '200':
-          description: internal global conf keys
+          description: list of anchors
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Keys'
-        '400':
-          description: request was invalid
+                type: array
+                uniqueItems: true
+                description: array of anchor objects
+                items:
+                  $ref: '#/components/schemas/ConfigurationAnchor'
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
-  /globalconf/internal/anchors:
-    get:
-      tags:
-        - globalconf
-      summary: CS administrator views the anchors of the internal configuration source
-      operationId: getInternalGlobalconfAnchors
-      responses:
-        '200':
-          description: internal global conf anchors
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ConfigurationAnchors'
-        '400':
-          description: request was invalid
-        '401':
-          description: authentication credentials are missing
-        '403':
-          description: request has been refused
-        '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '500':
-          description: internal server error
-  /globalconf/internal/url:
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/url:
     get:
       tags:
         - globalconf
       summary: CS administrator views the url from where to download the internal configuration from
-      operationId: getInternalGlobalconfUrl
+      operationId: getGlobalconfDownloadUrl
+      description: <h3>Administrator views the download url of a specified configuration source.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the download url is fetched for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
       responses:
         '200':
-          description: internal global conf download url
+          description: global conf download url
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigurationDownloadUrl'
-        '400':
-          description: request was invalid
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
-  /globalconf/internal/parts:
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/parts:
     get:
       tags:
         - globalconf
@@ -102,18 +89,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigurationParts'
-        '400':
-          description: request was invalid
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/tokens:
+    get:
+      tags:
+        - globalconf
+      summary: CS administrator views the tokens of a configuration source
+      operationId: getTokens
+      description: <h3>Administrator views tokens of a specified configuration source.</h3>
+      parameters:
+        - in: query
+          name: configuration_type
+          description: the type of the configuration for which the tokens are fetched for
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationType'
+      responses:
+        '200':
+          description: list of tokens
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of token objects
+                items:
+                  $ref: '#/components/schemas/Token'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /globalconf/trusted-anchors:
+    get:
+      tags:
+        - globalconf
+      summary: CS administrator views the trusted anchors
+      operationId: getAnchors
+      description: <h3>Administrator views the trusted anchors.</h3>
+      responses:
+        '200':
+          description: list of anchors
+          content:
+            application/json:
+              schema:
+                type: array
+                uniqueItems: true
+                description: array of trusted anchor objects
+                items:
+                  $ref: '#/components/schemas/TrustedAnchor'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/version:
     get:
       tags:
@@ -127,18 +169,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Version'
-        '400':
-          description: request was invalid
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
+          $ref: '#/components/responses/InternalServerError'
   /system/status:
     get:
       tags:
@@ -152,18 +190,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/SystemStatus'
-        '400':
-          description: request was invalid
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
+          $ref: '#/components/responses/InternalServerError'
   /system/status/server-address:
     put:
       tags:
@@ -185,17 +219,15 @@ paths:
               schema:
                 $ref: '#/components/schemas/SystemStatus'
         '400':
-          description: request was invalid
+          $ref: '#/components/responses/BadRequest'
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
+          $ref: '#/components/responses/InternalServerError'
 
   /initialization:
     post:
@@ -262,45 +294,37 @@ paths:
                 validation_errors_response:
                   $ref: '#/components/examples/ValidationErrorsExample'
         '401':
-          description: authentication credentials are missing
+          $ref: '#/components/responses/Unauthorized'
         '403':
-          description: request has been refused
+          $ref: '#/components/responses/Forbidden'
         '404':
-          description: resource requested does not exists
-        '406':
-          description: request specified an invalid format
-        '409':
-          description: an existing item already exists
+          $ref: '#/components/responses/NotFound'
         '500':
-          description: internal server error
+          $ref: '#/components/responses/InternalServerError'
   /initialization/status:
-      get:
-        tags:
-          - initialization
-        summary: Check the initialization status of the Central Server
-        operationId: getInitializationStatus
-        description: <h3>Administrator checks the initialization status of the Central Server.</h3>
-        responses:
-          '200':
-            description: initialization status of the Central Server
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/InitializationStatus'
-          '400':
-            description: request was invalid
-          '401':
-            description: authentication credentials are missing
-          '403':
-            description: request has been refused
-          '404':
-            description: resource requested does not exists
-          '406':
-            description: request specified an invalid format
-          '409':
-            description: an existing item already exists
-          '500':
-            description: internal server error
+    get:
+      tags:
+        - initialization
+      summary: Check the initialization status of the Central Server
+      operationId: getInitializationStatus
+      description: <h3>Administrator checks the initialization status of the Central Server.</h3>
+      responses:
+        '200':
+          description: initialization status of the Central Server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializationStatus'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     InitializationStatus:
@@ -353,6 +377,14 @@ components:
       type: string
       format: text
       description: Central server’s public DNS name or external IP address
+    ConfigurationType:
+      type: string
+      format: enum
+      description: configuration type
+      example: INTERNAL
+      enum:
+        - INTERNAL
+        - EXTERNAL
     HighAvailabilityStatus:
       type: object
       description: Central server's high availability status
@@ -403,6 +435,19 @@ components:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     CodeWithDetails:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+  responses:
+    BadRequest:
+      description: request was invalid
+    Conflict:
+      description: an existing item already exists
+    Forbidden:
+      description: request has been refused
+    NotFound:
+      description: resource requested does not exists
+    Unauthorized:
+      description: authentication credentials are missing
+    InternalServerError:
+      description: internal server error
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
@@ -454,4 +499,4 @@ components:
             "initialServerConf.instanceIdentifier":
               - IdentifierChars
 security:
-  - ApiKeyAuth: []
+  - ApiKeyAuth: [ ]
