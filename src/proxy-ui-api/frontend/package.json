@@ -10,7 +10,7 @@
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "test:coverage": "vue-cli-service test:unit --coverage",
-    "check-audit": "audit-ci --config audit-ci.json",
+    "check-audit": "audit-ci --config ../../shared-ui/audit-ci-shared.json",
     "npx-check-audit": "npx audit-ci@5.1.2 --config ../../shared-ui/audit-ci-shared.json",
     "resolve-audit": "resolve-audit",
     "generate-types": "openapi --input ../src/main/resources/openapi-definition.yaml --output ./src/openapi-types --exportCore false --exportServices false",
