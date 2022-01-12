@@ -290,11 +290,6 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
-// frontend npm audit
-if (!project.hasProperty('skip-frontend-build')) {
-    checkFrontAudit.dependsOn 'auditCheckUILibrary'
-    auditCheckUILibrary.dependsOn 'installAuditCiGlobally'
-}
 
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
