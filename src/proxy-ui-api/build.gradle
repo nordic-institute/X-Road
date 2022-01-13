@@ -71,9 +71,9 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
 
-    // do a front audit with npm run check-audit
-    // check-audit uses a shared ignore list from /shared-ui/audit-resolve.json
-    args = ['run', 'check-audit']
+    // do a front audit with npm run npx-check-audit
+    // npx-check-audit uses a shared ignore list from /shared-ui/audit-resolve.json
+    args = ['run', 'npx-check-audit']
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -119,7 +119,7 @@ task buildUILibrary(type: NpmTask) {
 }
 
 // check frontend ui library npm audit
-task auditCheckUILibrary(type: NpmTask, dependsOn: 'installAuditCiGlobally') {
+task auditCheckUILibrary(type: NpmTask) {
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
@@ -127,44 +127,6 @@ task auditCheckUILibrary(type: NpmTask, dependsOn: 'installAuditCiGlobally') {
     outputs.upToDateWhen { true }
     // audit-check-ui-lib uses a shared ignore list from /shared-ui/audit-resolve.json
     args = ['run', 'audit-check-ui-lib']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
-// Install npm audit helper tool globally 
-task installAuditCiGlobally(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    outputs.upToDateWhen { true }
-    // install audit-ci globally so it can be used before full npm installs
-    args = ['install', '--global', 'audit-ci@5.1.2']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }   
-}
-
-// uninstall npm audit helper tool globally 
-task uninstallAuditCiGlobally(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    outputs.upToDateWhen { true }
-    args = ['uninstall', '--global', 'audit-ci']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
-}
-
-// run npm audit helper tool
-task testCheckAudit(type: NpmTask) {
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
-    outputs.upToDateWhen { true }
-    args = ['run', 'check-audit']
-
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -184,7 +146,7 @@ task licenseCheckUILibrary(type: NpmTask) {
 }
 
 // check that npm run test:unit passes
-task frontendUnitTests(type: NpmTask, dependsOn: 'installAuditCiGlobally') {
+task frontendUnitTests(type: NpmTask) {
     onlyIf {
         (!project.hasProperty('skip-frontend-build') && project.hasProperty('frontend-unit-tests'))
     }
@@ -302,8 +264,6 @@ buildUILibrary.dependsOn 'licenseCheckUILibrary'
 licenseCheckUILibrary.dependsOn 'installUILibrary'
 installUILibrary.dependsOn 'checkFrontAudit'
 checkFrontAudit.dependsOn 'auditCheckUILibrary'
-auditCheckUILibrary.dependsOn 'installAuditCiGlobally'
-
 
 
 clean.delete << file('frontend/node_modules')
