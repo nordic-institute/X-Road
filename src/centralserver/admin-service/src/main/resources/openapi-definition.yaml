@@ -144,7 +144,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Url'
+                $ref: '#/components/schemas/GlobalConfDownloadUrl'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -711,6 +711,28 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /system/management-services:
+    get:
+      tags:
+        - system
+      summary: get the current management services configuration
+      operationId: getManagementServices
+      description: <h3>Administrator views the management services configuration of the Central Server.</h3>
+      responses:
+        '200':
+          description: the management services configuration
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementServices'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /initialization:
     post:
       tags:
@@ -884,7 +906,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberClassUpdate'
+              $ref: '#/components/schemas/MemberClassDescription'
       responses:
         '200':
           description: the new status of the updated member class
@@ -1033,19 +1055,18 @@ components:
       enum:
         - INTERNAL
         - EXTERNAL
-    Url:
+    GlobalConfDownloadUrl:
       type: object
-      description: a plain object with url property
+      description: the global conf download url object
       required:
         - url
       properties:
         url:
           type: string
           format: url
-          description: a generic url
-          example: https://dev.xroad.rocks/service
+          description: the global conf download url
+          example: https://dev.xroad.rocks/globalconf
           minLength: 1
-          maxLength: 255
     HighAvailabilityStatus:
       type: object
       description: Central server's high availability status
@@ -1064,9 +1085,8 @@ components:
     MemberClass:
       type: object
       description: Central server's member classes
-      required:
-        - code
-        - description
+      allOf:
+        - $ref: '#/components/schemas/MemberClassDescription'
       properties:
         code:
           type: string
@@ -1075,20 +1095,15 @@ components:
           example: ORG
           minLength: 1
           maxLength: 255
-        description:
-          type: string
-          format: text
-          description: member class description
-          example: Non-profit organisations
-          minLength: 1
-          maxLength: 255
-    MemberClassUpdate:
+      required:
+        - code
+    MemberClassDescription:
       type: object
-      description: Central server's member class request body object
+      description: Central server's member class description
       required:
         - description
       properties:
-        member_class_description:
+        description:
           type: string
           format: text
           description: member class description
@@ -1129,6 +1144,61 @@ components:
           description: label for the new key
           minLength: 1
           maxLength: 255
+    ServiceProviderId:
+      type: object
+      required:
+        - service_provider_id
+      properties:
+        service_provider_id:
+          type: string
+          format: text
+          description: encoded service provider id
+          example: SUBSYSTEM:CS:ORG:Client
+          minLength: 1
+          maxLength: 1279
+    ManagementServices:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/ServiceProviderId'
+      properties:
+        service_provider_name:
+          type: string
+          format: text
+          description: name of the service provider
+          example: NIIS
+          minLength: 1
+          maxLength: 255
+        security_server_id:
+          type: string
+          format: text
+          description: encoded id of the security server that provider the management services
+          example: CS:ORG:111:SS1
+          minLength: 1
+          maxLength: 1279
+        wsdl_address:
+          type: string
+          format: url
+          description: the url of the management service wsdl
+          example: https://dev.xroad.rocks/managementservices.wsdl
+          minLength: 1
+        services_address:
+          type: string
+          format: url
+          description: the url of the management services
+          example: https://dev.xroad.rocks/managementservice/manage/
+          minLength: 1
+        security_server_owners_global_group_code:
+          type: string
+          format: text
+          description: the url of the management services
+          example: https://dev.xroad.rocks/managementservice/manage/
+          minLength: 1
+      required:
+        - security_server_id
+        - security_server_owners_global_group_code
+        - service_provider_name
+        - services_address
+        - wsdl_address
     Token:
       type: object
       description: Token. Also includes the possible actions that can be done to this object,
