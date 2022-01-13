@@ -60,7 +60,7 @@ public class SystemApiController implements SystemApi {
 
 
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<SystemStatus> systemStatus() {
+    public ResponseEntity<SystemStatus> getSystemStatus() {
         return getSystemStatusResponseEntity();
     }
 
@@ -89,7 +89,7 @@ public class SystemApiController implements SystemApi {
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<Version> systemVersion() {
+    public ResponseEntity<Version> getSystemVersion() {
         return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
     }
 

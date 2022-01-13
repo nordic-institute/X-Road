@@ -72,7 +72,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
     public void testGetVersionEndpoint() {
-        ResponseEntity<Version> response = systemApiController.systemVersion();
+        ResponseEntity<Version> response = systemApiController.getSystemVersion();
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
@@ -82,7 +82,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     @Test
     @WithMockUser(authorities = { "VIEW_VERSION" })
     public void testGetSystemStatusEndpoint() {
-        ResponseEntity<SystemStatus> response = systemApiController.systemStatus();
+        ResponseEntity<SystemStatus> response = systemApiController.getSystemStatus();
         assertNotNull(response, "System status response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
         assertNotNull(response.getBody());

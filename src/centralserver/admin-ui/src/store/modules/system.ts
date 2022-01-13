@@ -28,8 +28,6 @@ import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
 import { RootState, StoreTypes } from '@/global';
 import {
   CentralServerAddress,
-  InstanceIdentifier,
-  ServerAddressUpdateBody,
   SystemStatus,
   TokenInitStatus,
   Version,
@@ -100,10 +98,10 @@ export const actions: ActionTree<State, RootState> = {
   },
   async [StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS](
     { commit },
-    newAddress: ServerAddressUpdateBody,
+    newAddress: CentralServerAddress,
   ) {
     return api
-      .put<SystemStatus>('/system/status/server-address', newAddress)
+      .put<SystemStatus>('/system/server-address', newAddress)
       .then((resp) =>
         commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
       );

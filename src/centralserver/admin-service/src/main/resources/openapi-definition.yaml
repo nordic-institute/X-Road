@@ -624,7 +624,7 @@ paths:
       tags:
         - system
       summary: get information for the system version
-      operationId: systemVersion
+      operationId: getSystemVersion
       responses:
         '200':
           description: system version information
@@ -645,7 +645,7 @@ paths:
       tags:
         - system
       summary: get the system status
-      operationId: systemStatus
+      operationId: getSystemStatus
       responses:
         '200':
           description: system status
@@ -661,7 +661,27 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /system/status/server-address:
+  /system/server-address:
+    get:
+      tags:
+        - system
+      summary: get the server address
+      operationId: getCentralServerAddress
+      responses:
+        '200':
+          description: central server address response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralServerAddress'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     put:
       tags:
         - system
