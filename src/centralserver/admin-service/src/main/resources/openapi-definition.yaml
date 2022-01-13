@@ -597,6 +597,28 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /system/instance-identifier:
+    get:
+      tags:
+        - system
+      summary: get the instance identifier
+      operationId: getInstanceIdentifier
+      description: <h3>Administrator views the instance identifier of the Central Server.</h3>
+      responses:
+        '200':
+          description: the instance identifier
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InstanceIdentifier'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /system/version:
     get:
       tags:
@@ -651,7 +673,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServerAddressUpdateBody'
+              $ref: '#/components/schemas/CentralServerAddress'
       responses:
         '200':
           description: System status with updated Central Server address
@@ -842,7 +864,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberClassDescription'
+              $ref: '#/components/schemas/MemberClassUpdate'
       responses:
         '200':
           description: the new status of the updated member class
@@ -905,25 +927,21 @@ components:
     InitializationStatus:
       type: object
       description: Initialization status of the Central Server
-      required:
-        - instance_identifier
-        - central_server_address
-        - software_token_init_status
+      allOf:
+      - $ref: '#/components/schemas/InstanceIdentifier'
+      - $ref: '#/components/schemas/CentralServerAddress'
       properties:
-        instance_identifier:
-          $ref: '#/components/schemas/InstanceIdentifier'
-        central_server_address:
-          $ref: '#/components/schemas/CentralServerAddress'
-        software_token_init_status:
+        software_token_init_status: # property for enum
           $ref: '#/components/schemas/TokenInitStatus'
+      required:
+        - software_token_init_status
     InitialServerConf:
       type: object
       description: central server initial configuration
+      allOf:
+        - $ref: '#/components/schemas/InstanceIdentifier'
+        - $ref: '#/components/schemas/CentralServerAddress'
       properties:
-        instance_identifier:
-          $ref: '#/components/schemas/InstanceIdentifier'
-        central_server_address:
-          $ref: '#/components/schemas/CentralServerAddress'
         software_token_pin:
           type: string
           format: text
@@ -931,10 +949,12 @@ components:
           example: sup3rs3cr3t_p!n
           minLength: 1
           maxLength: 255
+      required:
+        - software_token_pin
     TokenInitStatus:
       type: string
       format: enum
-      description: whether a token has been initialized or not – if the software token init status
+      description: whether a token has been initialized or not – if the token init status
         cannot be resolved (e.g. signer module is offline), the value is UNKNOWN
       example: INITIALIZED
       enum:
@@ -942,16 +962,28 @@ components:
         - NOT_INITIALIZED
         - UNKNOWN
     InstanceIdentifier:
-      type: string
-      format: text
-      description: Valid instance identifier, shall not contain colon, semicolon, forwardslash, backslash, percent or control characters.
-      example: FI-TEST
-      minLength: 1
-      maxLength: 255
+      type: object
+      description: the instance identifier of the Central Server
+      required:
+        - instance_identifier
+      properties:
+        instance_identifier:
+          type: string
+          format: text
+          description: Valid instance identifier, shall not contain colon, semicolon, forwardslash, backslash, percent or control characters.
+          example: FI-TEST
+          minLength: 1
+          maxLength: 255
     CentralServerAddress:
-      type: string
-      format: text
-      description: Central server’s public DNS name or external IP address
+      type: object
+      description: address of the central server
+      required:
+        - central_server_address
+      properties:
+        central_server_address:
+          type: string
+          format: text
+          description: Central server’s public DNS name or external IP address
     ConfigurationAnchor:
       type: object
       description: global conf anchor
@@ -1030,13 +1062,13 @@ components:
           example: Non-profit organisations
           minLength: 1
           maxLength: 255
-    MemberClassDescription:
+    MemberClassUpdate:
       type: object
-      description: Central server's member class description
+      description: Central server's member class request body object
       required:
         - description
       properties:
-        description:
+        member_class_description:
           type: string
           format: text
           description: member class description
@@ -1068,14 +1100,6 @@ components:
           $ref: '#/components/schemas/InitializationStatus'
         high_availability_status:
           $ref: '#/components/schemas/HighAvailabilityStatus'
-    ServerAddressUpdateBody:
-      type: object
-      description: New Central server address
-      required:
-        - central_server_address
-      properties:
-        central_server_address:
-          $ref: '#/components/schemas/CentralServerAddress'
     KeyLabel:
       type: object
       properties:
