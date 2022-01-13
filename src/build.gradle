@@ -16,7 +16,7 @@ plugins {
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.5.8' apply false
+    id 'org.springframework.boot' version '2.6.2' apply false
 }
 
 repositories {
