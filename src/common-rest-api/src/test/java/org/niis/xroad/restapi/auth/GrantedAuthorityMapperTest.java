@@ -25,8 +25,8 @@
  */
 package org.niis.xroad.restapi.auth;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.niis.xroad.restapi.domain.Role;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -34,18 +34,18 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test GrantedAuthorityMapper
  */
 public class GrantedAuthorityMapperTest {
 
-    private GrantedAuthorityMapper mapper;
+    private static GrantedAuthorityMapper mapper;
 
-    @Before
-    public void setup() {
+    @BeforeAll
+    static void setup() {
         mapper = new GrantedAuthorityMapper();
     }
 
@@ -56,7 +56,7 @@ public class GrantedAuthorityMapperTest {
                 Collections.singletonList(Role.valueOf(roleName)));
         assertTrue(authorities.size() > 1);
         Set<String> authStrings = authorities.stream().map(
-                auth -> auth.getAuthority())
+                        auth -> auth.getAuthority())
                 .collect(Collectors.toSet());
         assertTrue(authStrings.contains("ROLE_" + roleName));
         assertTrue(authStrings.contains("ADD_CLIENT"));
@@ -69,7 +69,7 @@ public class GrantedAuthorityMapperTest {
         Set<GrantedAuthority> authorities = mapper.getAuthorities(
                 Collections.singletonList(Role.valueOf(roleName)));
         Set<String> authStrings = authorities.stream().map(
-                auth -> auth.getAuthority())
+                        auth -> auth.getAuthority())
                 .collect(Collectors.toSet());
         assertTrue(authStrings.contains("INIT_CONFIG"));
     }

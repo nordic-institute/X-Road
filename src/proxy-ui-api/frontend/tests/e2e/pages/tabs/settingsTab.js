@@ -136,155 +136,76 @@ const confirmationDialog = {
 const settingsTab = {
   url: `${process.env.VUE_DEV_SERVER_URL}/settings`,
   selector: '//div[@data-test="settings-tab-view"]',
-  locateStrategy: 'xpath',
   commands: settingsTabCommands,
   elements: {
-    systemParametersTab: {
-      selector: '//a[@data-test="system-parameters-tab-button"]',
-      locateStrategy: 'xpath',
-    },
-    backupAndRestoreTab: {
-      selector: '//a[@data-test="backupandrestore-tab-button"]',
-      locateStrategy: 'xpath',
-    },
+    systemParametersTab: '//a[@data-test="system-parameters-tab-button"]',
+    backupAndRestoreTab: '//a[@data-test="backupandrestore-tab-button"]',
   },
   sections: {
     systemParametersTab: {
       selector: '//div[@data-test="system-parameters-tab-view"]',
-      locateStrategy: 'xpath',
       commands: systemParametersTabCommands,
       elements: {
-        timestampingServiceTableRow: {
-          selector:
-            '//tr[@data-test="system.parameters-timestamping-service-row"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingDeleteButton: {
-          selector:
+        timestampingServiceTableRow: '//tr[@data-test="system.parameters-timestamping-service-row"]',
+        timestampingDeleteButton:
             '//button[@data-test="system-parameters-timestamping-service-delete-button"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingAddButton: {
-          selector:
+        timestampingAddButton:
             '//button[@data-test="system-parameters-timestamping-services-add-button"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingAddButtonDisabled: {
-          selector:
+        timestampingAddButtonDisabled:
             '//button[@data-test="system-parameters-timestamping-services-add-button" and @disabled="disabled"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingDeleteDialog: {
-          selector: '//div[@data-test="dialog-simple"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingDeleteDialogCancelButton: {
-          selector: '//button[@data-test="dialog-cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingDeleteDialogSaveButton: {
-          selector: '//button[@data-test="dialog-save-button"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingAddDialogAddButton: {
-          selector:
-            '//button[@data-test="system-parameters-add-timestamping-service-dialog-add-button"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingAddDialogCancelButton: {
-          selector:
+        timestampingDeleteDialog:  '//div[@data-test="dialog-simple"]',
+        timestampingDeleteDialogCancelButton:
+          '//button[@data-test="dialog-cancel-button"]',
+        timestampingDeleteDialogSaveButton: '//button[@data-test="dialog-save-button"]',
+        timestampingAddDialogAddButton: '//button[@data-test="system-parameters-add-timestamping-service-dialog-add-button"]',
+        timestampingAddDialogCancelButton:
             '//button[@data-test="system-parameters-add-timestamping-service-dialog-cancel-button"]',
-          locateStrategy: 'xpath',
-        },
-        timestampingAddDialogServiceSelection: {
-          selector: '//input[@value="X-Road Test TSA CN"]/../../label',
-          locateStrategy: 'xpath',
-        },
-        timestampingTableFirstCell: {
-          selector:
+        timestampingAddDialogServiceSelection: '//input[@value="X-Road Test TSA CN"]/../../label',
+        timestampingTableFirstCell:
             '//tr[@data-test="system.parameters-timestamping-service-row"]/td[1]',
-          locateStrategy: 'xpath',
-        },
-        timestampingTableSecondCell: {
-          selector:
+        timestampingTableSecondCell:
             '//tr[@data-test="system.parameters-timestamping-service-row"]/td[2]',
-          locateStrategy: 'xpath',
-        },
       },
     },
     backupAndRestoreTab: {
       selector:
         '//div[contains(@class, "v-tabs-bar__content")]//a[contains(@class, "v-tab") and contains(text(), "Backup And Restore")]',
-      locateStrategy: 'xpath',
       commands: backupAndRestoreCommands,
       elements: {
-        anchorDownloadButton: {
-          selector:
+        anchorDownloadButton:
             '//*[@data-test="system-parameters-configuration-anchor-download-button"]',
-          locateStrategy: 'xpath',
-        },
-        backupButton: {
-          selector: '//*[@data-test="backup-create-configuration"]',
-          locateStrategy: 'xpath',
-        },
-        searchButton: {
-          selector: '//button[contains(@class, "mdi-magnify")]',
-          locateStrategy: 'xpath',
-        },
-        searchField: {
-          selector: '//input[@data-test="search-input"]',
-          locateStrategy: 'xpath',
-        },
+        backupButton: '//*[@data-test="backup-create-configuration"]',
+        searchButton: '//button[contains(@class, "mdi-magnify")]',
+        searchField: '//input[@data-test="search-input"]',
       },
       sections: {
         deleteBackupConfirmationDialog: {
           selector:
             '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]',
-          locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
-            confirmation: {
-              selector:
+            confirmation:
                 '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[@data-test="dialog-save-button"]',
-              locateStrategy: 'xpath',
-            },
-            cancel: {
-              selector:
+            cancel:
                 '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text" and contains(text(), "Are you sure you want to delete")]]//button[@data-test="dialog-cancel-button"]',
-              locateStrategy: 'xpath',
-            },
           },
         },
         backupFileAlreadyExistsDialog: {
           selector:
             '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text"]]',
-          locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
-            confirmation: {
-              selector: '//button[@data-test="dialog-save-button"]',
-              locateStrategy: 'xpath',
-            },
-            cancel: {
-              selector: '//button[@data-test="dialog-cancel-button"]',
-              locateStrategy: 'xpath',
-            },
+            confirmation:  '//button[@data-test="dialog-save-button"]',
+            cancel:  '//button[@data-test="dialog-cancel-button"]',
           },
         },
         restoreConfirmationDialog: {
           selector:
             '//div[@data-test="dialog-simple" and .//div[@data-test="dialog-content-text"]]',
-          locateStrategy: 'xpath',
           commands: confirmationDialog,
           elements: {
-            confirmation: {
-              selector: '//button[@data-test, "dialog-save-button"]',
-              locateStrategy: 'xpath',
-            },
-            cancel: {
-              selector: '//button[@data-test="dialog-cancel-button"]',
-              locateStrategy: 'xpath',
-            },
+            confirmation: '//button[@data-test, "dialog-save-button"]',
+            cancel: '//button[@data-test="dialog-cancel-button"]',
           },
         },
       },

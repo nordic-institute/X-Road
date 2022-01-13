@@ -27,6 +27,7 @@ package org.niis.xroad.restapi.auth;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventLoggingFacade;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.util.SecurityHelper;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -55,14 +56,16 @@ public class PamAuthenticationProviderConfig {
 
     private final GrantedAuthorityMapper grantedAuthorityMapper;
     private final AuditEventLoggingFacade auditEventLoggingFacade;
+    private final SecurityHelper securityHelper;
 
     /**
      * constructor
      */
     public PamAuthenticationProviderConfig(GrantedAuthorityMapper grantedAuthorityMapper,
-            AuditEventLoggingFacade auditEventLoggingFacade) {
+            AuditEventLoggingFacade auditEventLoggingFacade, SecurityHelper securityHelper) {
         this.grantedAuthorityMapper = grantedAuthorityMapper;
         this.auditEventLoggingFacade = auditEventLoggingFacade;
+        this.securityHelper = securityHelper;
     }
 
     /**
@@ -74,7 +77,7 @@ public class PamAuthenticationProviderConfig {
         AuthenticationIpWhitelist formLoginWhitelist = new AuthenticationIpWhitelist();
         formLoginWhitelist.setWhitelistEntries(FORM_LOGIN_IP_WHITELIST);
         return new PamAuthenticationProvider(formLoginWhitelist, grantedAuthorityMapper, RestApiAuditEvent.FORM_LOGIN,
-                auditEventLoggingFacade);
+                auditEventLoggingFacade, securityHelper);
     }
 
     /**
@@ -85,7 +88,7 @@ public class PamAuthenticationProviderConfig {
     public PamAuthenticationProvider keyManagementWhitelist(
             @Qualifier(KEY_MANAGEMENT_API_WHITELIST) AuthenticationIpWhitelist keyManagementWhitelist) {
         return new PamAuthenticationProvider(keyManagementWhitelist, grantedAuthorityMapper,
-                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade);
+                RestApiAuditEvent.KEY_MANAGEMENT_PAM_LOGIN, auditEventLoggingFacade, securityHelper);
     }
 }
 

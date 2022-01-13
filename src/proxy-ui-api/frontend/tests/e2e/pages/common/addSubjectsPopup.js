@@ -78,29 +78,13 @@ const commands = {
 const addSubjectsPopup = {
   selector:
     '//div[contains(@class, "xrd-card") and .//span[contains(@class, "headline") and @data-test="access-rights-dialog-title"]]',
-  locateStrategy: 'xpath',
   commands: [commands],
   elements: {
-    searchButton: {
-      selector: '//button[@data-test="search-button"]',
-      locateStrategy: 'xpath',
-    },
-    addButton: {
-      selector: '//button[@data-test="save"]',
-      locateStrategy: 'xpath',
-    },
-    cancelButton: {
-      selector: '//button[@data-test="cancel-button"]',
-      locateStrategy: 'xpath',
-    },
-    serviceClientTypeDropdown: {
-      selector: '//input[@data-test="serviceClientType"]/parent::*',
-      locateStrategy: 'xpath',
-    },
-    timeoutApplyToAllCheckbox: {
-      selector: '//input[@data-test="timeout-all"]/following-sibling::div',
-      locateStrategy: 'xpath',
-    },
+    searchButton: '//button[@data-test="search-button"]',
+    addButton:  '//button[@data-test="save"]',
+    cancelButton: '//button[@data-test="cancel-button"]',
+    serviceClientTypeDropdown: '//input[@data-test="serviceClientType"]/parent::*',
+    timeoutApplyToAllCheckbox: '//input[@data-test="timeout-all"]/following-sibling::div',
   },
 };
 
