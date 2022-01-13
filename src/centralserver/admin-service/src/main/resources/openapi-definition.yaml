@@ -733,6 +733,36 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - system
+      summary: update the management services configuration
+      operationId: updateManagementServices
+      description: <h3>CS Administrator updates the management services configuration of the Central Server.</h3>
+      requestBody:
+        description: the new service provider identifier of the management services
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceProviderId'
+      responses:
+        '200':
+          description: the new status of the updated management services
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementServices'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /initialization:
     post:
       tags:
@@ -955,6 +985,60 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
+    SubSystem:
+      type: object
+      description: x-road subsystem
+      required:
+        - instance_id
+        - member_class
+        - member_code
+        - subsystem_code
+      properties:
+        id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional).
+            Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 1023
+          readOnly: true
+        instance_id:
+          type: string
+          format: text
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          minLength: 1
+          maxLength: 255
+        member_name:
+          type: string
+          format: text
+          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          readOnly: true
+          minLength: 1
+          maxLength: 255
+        member_class:
+          type: string
+          format: text
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          minLength: 1
+          maxLength: 255
+        member_code:
+          type: string
+          format: text
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          minLength: 1
+          maxLength: 255
+        subsystem_code:
+          type: string
+          format: text
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: ABC
+          minLength: 1
+          maxLength: 255
     ConfigurationPartType:
       type: string
       format: enum
@@ -1146,21 +1230,13 @@ components:
           maxLength: 255
     ServiceProviderId:
       type: object
-      required:
-        - service_provider_id
-      properties:
-        service_provider_id:
-          type: string
-          format: text
-          description: encoded service provider id
-          example: SUBSYSTEM:CS:ORG:Client
-          minLength: 1
-          maxLength: 1279
+      allOf:
+        - $ref: '#/components/schemas/SubSystem'
     ManagementServices:
       type: object
-      allOf:
-        - $ref: '#/components/schemas/ServiceProviderId'
       properties:
+        service_provider_id:
+          $ref: '#/components/schemas/ServiceProviderId'
         service_provider_name:
           type: string
           format: text
