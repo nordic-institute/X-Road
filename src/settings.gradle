@@ -29,6 +29,7 @@ include "monitor"
 include "monitor-common"
 include "monitor-test"
 include "op-monitor-daemon"
+include "shared-ui"
 
 include "centralserver"
 include "centralserver:admin-ui"
@@ -58,5 +59,3 @@ project(":addons:proxymonitor-metaservice").projectDir = file('addons/proxymonit
 
 include "addons:op-monitoring"
 include "addons:wsdlvalidator"
-
-include "shared-ui"

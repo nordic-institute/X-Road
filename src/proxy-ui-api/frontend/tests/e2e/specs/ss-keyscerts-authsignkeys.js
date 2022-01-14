@@ -29,7 +29,7 @@ var fs = require('fs');
 module.exports = {
   tags: ['ss', 'keyscerts', 'signauthkeys'],
   'Security server add signkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -105,7 +105,7 @@ module.exports = {
     browser.end();
   },
   'Security server add authkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -181,7 +181,7 @@ module.exports = {
     browser.end();
   },
   'Security server add signkey pem/empty label': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -280,7 +280,7 @@ module.exports = {
     browser.end();
   },
   'Security server add authkey pem/empty label': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -375,7 +375,7 @@ module.exports = {
     browser.end();
   },
   'Security server generate sign key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -490,7 +490,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete sign key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -553,7 +553,7 @@ module.exports = {
     browser.end();
   },
   'Security server generate auth key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -676,7 +676,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete auth key csr': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -739,7 +739,7 @@ module.exports = {
     browser.end();
   },
   'Security server import authkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
@@ -803,7 +803,7 @@ module.exports = {
     browser.end();
   },
   'Security server import signkey': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const keysTab = browser.page.tabs.keysTab();
     const signAuthTab = keysTab.section.signAuthKeysTab;
