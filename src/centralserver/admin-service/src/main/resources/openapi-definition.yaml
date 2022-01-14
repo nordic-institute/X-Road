@@ -29,6 +29,239 @@ tags:
   - name: member-classes
     description: resources related to Central Server's member classes
 paths:
+  /backups:
+    get:
+      tags:
+        - backups
+      summary: get central server backups
+      operationId: getBackups
+      description: <h3>Administrator views the backups for the central server.</h3>
+      responses:
+        '200':
+          description: list of central server backups
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of backup objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Backup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - backups
+      summary: add new backup for the central server
+      operationId: addBackup
+      description:
+        <h3>Adds central server backup to the system.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup generation script.</p>
+      responses:
+        '201':
+          description: item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+        '202':
+          description: item accepted
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /backups/upload:
+    post:
+      tags:
+        - backups
+      summary: upload new backup for the central server
+      operationId: uploadBackup
+      description:
+        <h3>Uploads new central server backup to the system.</h3>
+        <p>Note that it is possible to overwrite an existing backup file with the same name.
+        <ul>
+        <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = false causes the operation to fail with a warning in response's ErrorInfo object.</li>
+        <li>Attempt to upload a new backup file having the same name with an existing backup and with query parameter <code>ignore_warnings</code> = true will overwrite the existing backup.</li>
+        </ul>
+        </p>
+        <p>The warning response has a warning code <code>warning_file_already_exists</code> and the metadata field contains the name of the existing backup</p>
+      parameters:
+        - in: query
+          name: ignore_warnings
+          description: If true, any ignorable warnings are ignored. if false (or missing),
+            any warnings cause request to fail.
+          required: false
+          schema:
+            type: boolean
+            default: false
+      requestBody:
+        description: backup to add
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BackupArchive'
+      responses:
+        '201':
+          description: item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Backup'
+        '202':
+          description: item accepted
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/UploadExistingBackupWarningExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /backups/{filename}:
+    delete:
+      tags:
+        - backups
+      summary: delete central server backup
+      operationId: deleteBackup
+      description: <h3>Administrator deletes the backup of the central server.</h3>
+      parameters:
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /backups/{filename}/restore:
+    put:
+      tags:
+        - backups
+      summary: restore central server configuration from backup
+      operationId: restoreBackup
+      description:
+        <h3>Administrator restores the central server configuration from backup.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup restore script.</p>
+      parameters:
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: restore was successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokensLoggedOut'
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /backups/{filename}/download:
+    get:
+      tags:
+        - backups
+      summary: download central server backup
+      operationId: downloadBackup
+      description: <h3>Administrator downloads the backup of the central server.</h3>
+      parameters:
+        - in: path
+          name: filename
+          description: filename of the backup
+          required: true
+          schema:
+            type: string
+            format: filename
+            minLength: 1
+            maxLength: 255
+      responses:
+        '200':
+          description: backup file downloaded
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+                description: backup file
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /globalconf/anchor:
     get:
       tags:
@@ -985,6 +1218,42 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
+    Backup:
+      type: object
+      description: central server backup
+      required:
+        - filename
+        - created_at
+      properties:
+        filename:
+          type: string
+          format: filename
+          description: backup filename
+          example: configuration_backup_20181224.tar
+          minLength: 1
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          description: backup created at
+          example: '2022-01-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    BackupArchive:
+      type: object
+      description: central server backup archive file
+      properties:
+        file:
+          type: string
+          format: binary
+    TokensLoggedOut:
+      description: response that tells if hsm tokens were logged out during the restore process
+      type: object
+      properties:
+        hsm_tokens_logged_out:
+          description: whether any hsm tokens were logged out during the restore process
+          type: boolean
+          default: false
     Client:
       type: object
       description: x-road client
@@ -1550,6 +1819,16 @@ components:
             - "server_address_not_provided"
             - "instance_id_not_provided"
             - "pin_code_exists"
+    UploadExistingBackupWarningExample:
+      summary: Warning response when uploading a new backup configuration file with an existing name
+      value:
+        status: 400
+        error:
+          code: warnings_detected
+        warnings:
+          - code: warning_file_already_exists
+            metadata:
+              - conf_backup_20201006-094932.tar
     ErrorWeakPinMetadataExample:
       summary: Initialization or pin change error with metadata when the provided pin is too weak
       value:
