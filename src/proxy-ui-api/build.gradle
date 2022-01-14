@@ -2,12 +2,8 @@ plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
     id 'com.github.node-gradle.node' version "$nodePluginVersion"
-    id 'org.openapi.generator' version "$openapiGeneratorVersion"
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
     id 'org.niis.xroad.oasvalidatorplugin'
-}
-
-ext {
-    set('springCloudVersion', "2020.0.5")
 }
 
 sourceSets {

@@ -1,24 +1,8 @@
-import org.niis.xroad.oasvalidatorplugin.Oas3ValidatorGradlePlugin
-
-buildscript {
-    ext {
-        // currently duplicate with proxy-ui-api build.gradle, probably should fix
-        openapiGeneratorVersion = '5.2.1'
-        swaggerParserVersion = '2.0.28'
-    }
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
-    id 'org.openapi.generator' version "$openapiGeneratorVersion"
-}
-
-ext {
-    set('springCloudVersion', "2020.0.4")
+    id 'org.openapi.generator' version "$openApiGeneratorVersion"
+    id 'org.niis.xroad.oasvalidatorplugin'
 }
 
 sourceSets {
@@ -26,8 +10,6 @@ sourceSets {
         java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
     }
 }
-
-apply plugin: Oas3ValidatorGradlePlugin
 
 dependencyManagement {
     imports {
@@ -59,6 +41,7 @@ dependencies {
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
+    implementation 'io.springfox:springfox-core:3.0.0'
 }
 
 bootJar {
@@ -122,5 +105,3 @@ validateApiDefinitions {
 }
 
 tasks.openApiGenerate.dependsOn 'validateApiDefinitions'
-
-
