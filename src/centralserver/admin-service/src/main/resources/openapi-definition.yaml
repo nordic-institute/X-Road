@@ -740,12 +740,12 @@ paths:
       operationId: updateManagementServices
       description: <h3>CS Administrator updates the management services configuration of the Central Server.</h3>
       requestBody:
-        description: the new service provider identifier of the management services
+        description: the subsystem that is the new service provider identifier of the management services
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ServiceProviderId'
+              $ref: '#/components/schemas/SubSystem'
       responses:
         '200':
           description: the new status of the updated management services
@@ -994,28 +994,11 @@ components:
         - member_code
         - subsystem_code
       properties:
-        id:
-          type: string
-          format: text
-          description: <instance_id>:<member_class>:<member_code>:<subsystem>(optional).
-            Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI:GOV:123:ABC
-          minLength: 1
-          maxLength: 1023
-          readOnly: true
         instance_id:
           type: string
           format: text
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
-          minLength: 1
-          maxLength: 255
-        member_name:
-          type: string
-          format: text
-          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
-          readOnly: true
           minLength: 1
           maxLength: 255
         member_class:
@@ -1228,15 +1211,17 @@ components:
           description: label for the new key
           minLength: 1
           maxLength: 255
-    ServiceProviderId:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/SubSystem'
     ManagementServices:
       type: object
       properties:
         service_provider_id:
-          $ref: '#/components/schemas/ServiceProviderId'
+          type: string
+          format: text
+          description: encoded id of the subsystem that provides the management services
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 1279
+          readOnly: true
         service_provider_name:
           type: string
           format: text
@@ -1244,37 +1229,43 @@ components:
           example: NIIS
           minLength: 1
           maxLength: 255
+          readOnly: true
         security_server_id:
           type: string
           format: text
-          description: encoded id of the security server that provider the management services
+          description: encoded id of the security server that provides the management services
           example: CS:ORG:111:SS1
           minLength: 1
           maxLength: 1279
+          readOnly: true
         wsdl_address:
           type: string
           format: url
           description: the url of the management service wsdl
           example: https://dev.xroad.rocks/managementservices.wsdl
           minLength: 1
+          readOnly: true
         services_address:
           type: string
           format: url
           description: the url of the management services
           example: https://dev.xroad.rocks/managementservice/manage/
           minLength: 1
+          readOnly: true
         security_server_owners_global_group_code:
           type: string
           format: text
           description: the url of the management services
           example: https://dev.xroad.rocks/managementservice/manage/
           minLength: 1
+          readOnly: true
       required:
         - security_server_id
         - security_server_owners_global_group_code
         - service_provider_name
         - services_address
         - wsdl_address
+        - service_provider_id
     Token:
       type: object
       description: Token. Also includes the possible actions that can be done to this object,
