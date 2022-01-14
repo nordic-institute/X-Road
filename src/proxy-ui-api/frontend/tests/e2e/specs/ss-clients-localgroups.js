@@ -27,7 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'localgroups'],
   'Security server client local groups filtering': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -70,7 +70,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add local group': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -164,7 +164,7 @@ module.exports = {
     browser.end();
   },
   'Security server add local group member': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -218,7 +218,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete local group members': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -285,7 +285,7 @@ module.exports = {
     browser.end();
   },
   'Security server edit local group': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -373,7 +373,7 @@ module.exports = {
     browser.end();
   },
   'Security server delete local group': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;

@@ -1,9 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'base'
     id 'com.github.node-gradle.node' version "$nodePluginVersion"

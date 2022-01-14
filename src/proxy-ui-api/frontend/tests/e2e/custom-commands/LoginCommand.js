@@ -29,7 +29,7 @@ module.exports = class LoginCommand {
     username = this.api.globals.login_usr,
     password = this.api.globals.login_pwd,
   ) {
-    const frontPage = this.api.page.ssFrontPage();
+    const frontPage = this.api.page.ssLoginPage();
     const mainPage = this.api.page.ssMainPage();
     frontPage.navigateAndMakeTestable();
     this.api.waitForElementVisible('//*[@id="app"]');
