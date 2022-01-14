@@ -1275,6 +1275,18 @@
     "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
       "madeAt": 1641825433408
+    },
+    "1006865|axios>follow-redirects": {
+      "decision": "ignore",
+      "madeAt": 1642080494771
+    },
+    "1006865|openapi-typescript-codegen>axios>follow-redirects": {
+      "decision": "ignore",
+      "madeAt": 1642080494771
+    },
+    "1006865|@vue/cli-service>@types/webpack-dev-server>http-proxy-middleware>http-proxy>follow-redirects": {
+      "decision": "ignore",
+      "madeAt": 1642080494772
     }
   },
   "rules": {},

@@ -40,7 +40,7 @@ const navigateToServiceClientsTab = (pages) => {
 module.exports = {
   tags: ['ss', 'clients', 'serviceclients'],
   'Security server service clients check services': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -89,7 +89,7 @@ module.exports = {
     browser.end();
   },
   'Security server service clients add access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -176,7 +176,7 @@ module.exports = {
     browser.end();
   },
   'Security server service clients remove access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -252,7 +252,7 @@ module.exports = {
   },
   'Security server service clients list shows wsdl service with access rights':
     (browser) => {
-      const frontPage = browser.page.ssFrontPage();
+      const frontPage = browser.page.ssLoginPage();
       const mainPage = browser.page.ssMainPage();
       const serviceClientsPage =
         browser.page.serviceClients.serviceClientsPage();
@@ -343,7 +343,7 @@ module.exports = {
     },
   'Security server service clients list shows rest service with service level access right':
     (browser) => {
-      const frontPage = browser.page.ssFrontPage();
+      const frontPage = browser.page.ssLoginPage();
       const mainPage = browser.page.ssMainPage();
       const serviceClientsPage =
         browser.page.serviceClients.serviceClientsPage();
@@ -508,7 +508,7 @@ module.exports = {
       browser.end();
     },
   'Security server service client view filtering': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
 

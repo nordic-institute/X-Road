@@ -33,7 +33,7 @@ module.exports = {
     browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
   },
   'Security server client add wsdl service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -102,7 +102,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit wsdl operation': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -246,9 +246,9 @@ module.exports = {
     operationDetails.saveParameters();
     browser.waitForElementVisible(sslCheckFail);
     browser.expect
-      .element(sslCheckFail.elements.continueButton)
+      .element(sslCheckFail.elements.yesButton)
       .to.be.visible.and.text.to.equal('Continue');
-    sslCheckFail.continue();
+    sslCheckFail.confirm();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service saved'
     mainPage.closeSnackbar();
     operationDetails.close();
@@ -293,7 +293,7 @@ module.exports = {
     browser.end();
   },
   'Security server client add wsdl operation access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -358,7 +358,7 @@ module.exports = {
     browser.end();
   },
   'Security server client remove wsdl operation access rights': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -440,7 +440,7 @@ module.exports = {
     browser.end();
   },
   'Security server client edit wsdl service': async (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -606,7 +606,7 @@ module.exports = {
     browser.end();
   },
   'Security server client delete wsdl service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
@@ -660,7 +660,7 @@ module.exports = {
     browser.end();
   },
   'Security server client refresh wsdl service': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
     const clientInfo = mainPage.section.clientInfo;
