@@ -25,7 +25,7 @@
  */
 
 const getPages = (browser) => {
-  const frontPage = browser.page.ssFrontPage();
+  const frontPage = browser.page.ssLoginPage();
   const mainPage = browser.page.ssMainPage();
   const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
   const addSubjectMemberStepPage =
