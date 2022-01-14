@@ -116,15 +116,9 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
     }
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
-    if (project.hasProperty('strict-frontend-audit')) {
-        // do a strict front audit with npm run check-audit
-        // check-audit uses ignore list from audit-resolve.json
-        // To update that, do "npm run resolve-audit" from frontend dir
-        args = ['run', 'check-audit']
-    } else {
-        // do a loose front audit with npm in-built audit
-        args = ['audit', '--production', '--audit-level=moderate']
-    }
+    // do a front end audit with npm run npx-check-audit
+    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+    args = ['run', 'npx-check-audit']
     execOverrides {
         it.workingDir = 'frontend'
     }
