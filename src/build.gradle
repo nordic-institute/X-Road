@@ -80,8 +80,10 @@ allprojects {
 
     repositories {
       mavenCentral()
-      mavenLocal()
     }
+
+    group = 'ee.ria.xroad'
+    version = '1.0'
 
     jacoco {
         toolVersion = "0.8.7"
