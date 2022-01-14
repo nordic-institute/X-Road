@@ -1707,6 +1707,10 @@
     "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
       "madeAt": 1641825462222
+    },
+    "1006865|@vue/cli-service>@types/webpack-dev-server>http-proxy-middleware>http-proxy>follow-redirects": {
+      "decision": "ignore",
+      "madeAt": 1642140239959
     }
   },
   "rules": {},
