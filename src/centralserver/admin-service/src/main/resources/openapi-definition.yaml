@@ -14,8 +14,12 @@ servers:
   - url: /api/v1
     description: basepath for API v1
 tags:
+  - name: backups
+    description: resources related to Backups and Backup Restoration
+  - name: certification-services
+    description: resources related to Certification Services
   - name: globalconf
-    description: resources related to Global Configuration
+    description: general resources related to Global Configuration
   - name: globalconf-anchors
     description: resources related to Global Configuration anchors
   - name: globalconf-tokens
@@ -29,6 +33,59 @@ tags:
   - name: member-classes
     description: resources related to Central Server's member classes
 paths:
+  /certification-services:
+    get:
+      tags:
+        - certification-services
+      summary: get all certification services
+      operationId: getCertificationServices
+      description: <h3>CS administrator views the list of certification services that have been approved and described for this X-Road instance.</h3>
+      responses:
+        '200':
+          description: list of certification services
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of certification service objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ApprovedCertificationService'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - certification-services
+      summary: add a new certification service
+      operationId: addCertificationService
+      description: <h3>CS administrator adds a certification service to the list of approved certification services.</h3>
+      requestBody:
+        description: the new certification service with settings
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificationServiceFileAndSettings'
+      responses:
+        '200':
+          description: list of certification services
+          content:
+            application/json:
+              schema:
+                type: array
+                description: updated array of certification service objects
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/ApprovedCertificationService'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /backups:
     get:
       tags:
@@ -1218,6 +1275,52 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
+    ApprovedCertificationService:
+      type: object
+      description: certification service
+      required:
+        - service_name
+        - valid_from
+        - valid_to
+      properties:
+        service_name:
+          type: string
+          format: text
+          description: name of the certification service
+          example: X-Road Test CA CN
+          minLength: 1
+          maxLength: 255
+        valid_from:
+          type: string
+          format: date-time
+          description: start of the validity period
+          example: '2022-01-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        valid_to:
+          type: string
+          format: date-time
+          description: end of the validity period
+          example: '2022-01-15T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+    CertificationServiceFileAndSettings:
+      type: object
+      description: certification service file and settings
+      properties:
+        certificate:
+          type: string
+          description: the certificate file
+          format: binary
+        tls_auth:
+          type: boolean
+          description: can the CA be used for TLS auhtentication
+        certificate_profile_info:
+          type: string
+          format: text
+          description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
+          example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
+          minLength: 1
     Backup:
       type: object
       description: central server backup
