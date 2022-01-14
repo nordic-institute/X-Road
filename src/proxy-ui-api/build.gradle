@@ -110,7 +110,7 @@ task buildFront(type: NpmTask) {
     }
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+task checkFrontAudit(type: NpmTask) {
     onlyIf {
         (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
     }

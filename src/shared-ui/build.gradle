@@ -46,7 +46,7 @@ task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
     args = ['pack', '--quiet']
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+task checkFrontAudit(type: NpmTask) {
     inputs.files("package.json", "package-lock.json")
     outputs.dir("dist")
     // do a front end audit with npm run npx-check-audit
