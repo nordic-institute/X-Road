@@ -24,34 +24,29 @@
  * THE SOFTWARE.
  */
 
-let frontPage;
-
-module.exports = {
-  tags: ['ss', 'login'],
-  before: function (browser) {
-    frontPage = browser.page.ssLoginPage();
-
-    frontPage.navigateAndMakeTestable();
+const servicesWarningPopupCommands = {
+  accept: function () {
+    this.click('@warningContinueButton');
+    return this;
   },
-
-  afterEach: function (browser) {
-    browser.refresh();
-  },
-  after: function (browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    frontPage
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signin()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    frontPage
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signin()
-      .loginErrorMessageIsShown();
+  cancel: function () {
+    this.click('@warningCancelButton');
+    return this;
   },
 };
+
+const servicesWarningPopup = {
+  selector:
+    '//div[contains(@class, "v-dialog") and .//*[contains(@class, "headline")]]',
+  commands: [servicesWarningPopupCommands],
+  elements: {
+    warningContinueButton: '//button[.//*[contains(text(), "Continue")]]',
+    warningCancelButton: '//button[.//*[contains(text(), "Cancel")]]',
+    addedServices:
+      '//div[contains(@class, "dlg-warning-header") and contains(text(), "Adding services:")]/following-sibling::div',
+    deletedServices:
+      '//div[contains(@class, "dlg-warning-header") and contains(text(), "Deleting services:")]/following-sibling::div',
+  },
+};
+
+module.exports = servicesWarningPopup;

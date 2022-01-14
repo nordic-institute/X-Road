@@ -99,10 +99,11 @@ module.exports = {
     `${process.env.VUE_DEV_SERVER_URL}/#/subsystem/${subsystemId}/serviceclients/`,
   commands: commands,
   elements: {
-    wizardStepIndicator: '//span[contains(@class, "primary") and contains(text(), "1")]',
+    wizardStepIndicator:
+      '//span[contains(@class, "primary") and contains(text(), "1")]',
     addServiceButton: '//button[@data-test="add-subjects-dialog"]',
-    removeAllButton:  '//button[@data-test="remove-all-access-rights"]',
-    closeButton:  '//button[@data-test="close"]',
+    removeAllButton: '//button[@data-test="remove-all-access-rights"]',
+    closeButton: '//button[@data-test="close"]',
   },
   sections: {
     addServicesPopup: {
@@ -113,7 +114,7 @@ module.exports = {
         addButton: '//button[@data-test="dialog-save-button"]',
         cancelButton: '//button[@data-test="dialog-cancel-button"]',
         closeButton:
-            '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
+          '//*[contains(@class, "cert-dialog-header")]//*[@data-test="close-x"]',
       },
     },
   },
