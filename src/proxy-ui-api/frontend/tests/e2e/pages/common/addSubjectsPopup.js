@@ -84,7 +84,6 @@ const addSubjectsPopup = {
     addButton:  '//button[@data-test="save"]',
     cancelButton: '//button[@data-test="cancel-button"]',
     serviceClientTypeDropdown: '//input[@data-test="serviceClientType"]/parent::*',
-    timeoutApplyToAllCheckbox: '//input[@data-test="timeout-all"]/following-sibling::div',
   },
 };
 

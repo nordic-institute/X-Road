@@ -27,7 +27,7 @@
 module.exports = {
   tags: ['ss', 'clients', 'clientslist'],
   'Security server clients list': (browser) => {
-    const frontPage = browser.page.ssFrontPage();
+    const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();
     const clientsTab = mainPage.section.clientsTab;
 

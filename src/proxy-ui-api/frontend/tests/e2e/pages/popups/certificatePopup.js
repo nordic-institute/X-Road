@@ -24,34 +24,23 @@
  * THE SOFTWARE.
  */
 
-let frontPage;
+const certificatePopupCommands = {
+  close: function () {
+    this.click('@certificateInfoCloseButton');
+    return this;
+  },
+  deleteCert: function () {
+    this.api.keys(this.api.Keys.PAGEUP);
+    this.click('@deleteButton');
+    return this;
+  },
+};
+const certificatePopupElements = {
+  certificateInfoCloseButton: '//*[@data-test="close-x"]',
+  deleteButton: '//button[.//*[contains(text(), "Delete")]]',
+};
 
 module.exports = {
-  tags: ['ss', 'login'],
-  before: function (browser) {
-    frontPage = browser.page.ssLoginPage();
-
-    frontPage.navigateAndMakeTestable();
-  },
-
-  afterEach: function (browser) {
-    browser.refresh();
-  },
-  after: function (browser) {
-    browser.end();
-  },
-  'Wrong username is rejected': (browser) => {
-    frontPage
-      .enterUsername('invalid')
-      .enterPassword(browser.globals.login_pwd)
-      .signin()
-      .loginErrorMessageIsShown();
-  },
-  'Wrong password is rejected': (browser) => {
-    frontPage
-      .enterUsername(browser.globals.login_usr)
-      .enterPassword('invalid')
-      .signin()
-      .loginErrorMessageIsShown();
-  },
+  certificatePopupCommands,
+  certificatePopupElements,
 };
