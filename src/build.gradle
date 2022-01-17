@@ -11,12 +11,12 @@ buildscript {
 
 plugins {
     id 'org.sonarqube' version '3.3'
-    id 'org.owasp.dependencycheck' version '6.3.2'
+    id 'org.owasp.dependencycheck' version '6.5.3'
     id 'jacoco'
     id 'java'
     id 'idea'
     id "io.spring.dependency-management" version "1.0.11.RELEASE" apply false
-    id 'org.springframework.boot' version '2.6.2' apply false
+    id 'org.springframework.boot' version "${springBootVersion}" apply false
 }
 
 repositories {
@@ -61,6 +61,12 @@ dependencyCheck {
         autoconfEnabled = false
         composerEnabled = false
         nodeEnabled = false
+        nodeAudit {
+          enabled = false
+        }
+        ossIndex {
+          enabled = false
+        }
     }
 }
 
@@ -73,8 +79,10 @@ allprojects {
 
     repositories {
       mavenCentral()
-      mavenLocal()
     }
+
+    group = 'ee.ria.xroad'
+    version = '1.0'
 
     jacoco {
         toolVersion = "0.8.7"
@@ -93,7 +101,7 @@ allprojects {
     }
 }
 
-subprojects {
+configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
 
     apply plugin: 'eclipse'
     apply plugin: 'java'

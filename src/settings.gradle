@@ -33,6 +33,7 @@ include "monitor"
 include "monitor-common"
 include "monitor-test"
 include "op-monitor-daemon"
+include "shared-ui"
 
 // Utils
 include "signer-console"
