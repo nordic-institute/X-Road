@@ -86,7 +86,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /certification-services/{id}:
+  /certification-services/{hash}:
     get:
       tags:
         - certification-services
@@ -95,13 +95,14 @@ paths:
       description: <h3>CS administrator views the details of an approved certification service.</h3>
       parameters:
         - in: path
-          name: id
-          description: the primary key of the certification service
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
       responses:
         '200':
           description: a certification service
@@ -127,13 +128,14 @@ paths:
       description: <h3>CS Administrator deletes a certification service.</h3>
       parameters:
         - in: path
-          name: id
-          description: the primary key of the certification service
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
       responses:
         '204':
           description: certification service deletion was successful
@@ -164,13 +166,14 @@ paths:
       description: <h3>CS administrator edits the settings of a certification service.</h3>
       parameters:
         - in: path
-          name: id
-          description: the primary key of the certification service
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
       requestBody:
         description: the updated settings of the certification service
         required: true
@@ -195,7 +198,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /certification-services/{id}/ocsp-responders:
+  /certification-services/{hash}/ocsp-responders:
     get:
       tags:
         - certification-services-ocsp-responders
@@ -204,13 +207,14 @@ paths:
       description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
       parameters:
         - in: path
-          name: id
-          description: the primary key of the certification service
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
       responses:
         '200':
           description: list of ocsp responders belonging to the certification service
@@ -232,7 +236,195 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /certification-services/{id}/intermediate-cas:
+    post:
+      tags:
+        - certification-services-ocsp-responders
+      summary: add an ocsp responder to a certification service
+      operationId: addCertificationServiceOcspResponder
+      description: <h3>CS administrator adds an OCSP responder service information for a CA.</h3>
+      requestBody:
+        description: ocsp responder to add
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - url
+                - certificate
+              allOf:
+                - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: updated list of ocsp responders belonging to the certification service
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of ocsp responders
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/OcspResponder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /certification-services/{hash}/ocsp-responders/{ocsp_hash}:
+    get:
+      tags:
+        - certification-services-ocsp-responders
+      summary: get an ocsp responder of a certification service
+      operationId: getCertificationServiceOcspResponder
+      description: <h3>CS administrator views the details of an approved certification service's ocsp responder.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+        - in: path
+          name: ocsp_hash
+          description: SHA-1 hash of the certificate of the ocsp responder
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: ocsp responder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcspResponder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - certification-services-ocsp-responders
+      summary: delete an ocsp responder of a certification service
+      operationId: deleteCertificationServiceOcspResponder
+      description: <h3>CS administrator deletes an approved certification service's ocsp responder.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+        - in: path
+          name: ocsp_hash
+          description: SHA-1 hash of the certificate of the ocsp responder
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '204':
+          description: ocsp responder deletion was successful
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - certification-services-ocsp-responders
+      summary: update an ocsp responder of a certification service
+      operationId: updateCertificationServiceOcspResponder
+      description: <h3>CS administrator updated the details of an approved certification service's ocsp responder.</h3>
+      requestBody:
+        description: update ocsp responder url, upload a new certificate file, or do both
+        content:
+          multipart/form-data:
+            schema:
+              anyOf:
+                - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+        - in: path
+          name: ocsp_hash
+          description: SHA-1 hash of the certificate of the ocsp responder
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: the updated ocsp responder
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OcspResponder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /certification-services/{hash}/intermediate-cas:
     get:
       tags:
         - certification-services-intermediate-cas
@@ -241,13 +433,14 @@ paths:
       description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
       parameters:
         - in: path
-          name: id
-          description: the primary key of the certification service
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
       responses:
         '200':
           description: list of intermediate certificate authorities belonging to the certification service
@@ -735,7 +928,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /globalconf/keys/{id}:
+  /globalconf/keys/{hash}:
     delete:
       tags:
         - globalconf-keys
@@ -744,13 +937,14 @@ paths:
       description: <h3>Administrator deletes the key.</h3>
       parameters:
         - in: path
-          name: id
-          description: id of the key
+          name: hash
+          description: SHA-1 hash of the certificate of the key
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
         - in: query
           name: ignore_warnings
           description: if true, any ignorable warnings are ignored. if false (or missing),
@@ -781,7 +975,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /globalconf/keys/{id}/activate:
+  /globalconf/keys/{hash}/activate:
     put:
       tags:
         - globalconf-keys
@@ -790,13 +984,14 @@ paths:
       description: <h3>Administrator activates a key.</h3>
       parameters:
         - in: path
-          name: id
-          description: id of the key
+          name: hash
+          description: SHA-1 hash of the certificate of the key
           required: true
           schema:
             type: string
             format: text
             minLength: 1
+            maxLength: 40
       responses:
         '204':
           $ref: '#/components/responses/NoContent'
@@ -1636,9 +1831,9 @@ components:
           example: DNS:*.example.org
           minLength: 1
           maxLength: 1000
-    CertificationServiceFile:
+    CertificateFile:
       type: object
-      description: certification service file and settings
+      description: certificate file
       required:
         - certificate
       properties:
@@ -1648,7 +1843,7 @@ components:
           format: binary
     CertificationServiceSettings:
       type: object
-      description: certification service file and settings
+      description: certification service settings
       required:
         - tls_auth
         - certificate_profile_info
@@ -1666,7 +1861,7 @@ components:
       type: object
       description: certification service file and settings
       allOf:
-        - $ref: '#/components/schemas/CertificationServiceFile'
+        - $ref: '#/components/schemas/CertificateFile'
         - $ref: '#/components/schemas/CertificationServiceSettings'
     Backup:
       type: object
@@ -1940,10 +2135,15 @@ components:
           maxLength: 255
     OcspResponder:
       type: object
-      description: OCSP responder diagnostics
+      description: OCSP responder
+      allOf:
+        - $ref: '#/components/schemas/OcspResponderUrl'
+        - $ref: '#/components/schemas/OcspResponderCertificate'
+    OcspResponderUrl:
+      type: object
+      description: OCSP responder
       required:
         - url
-        - certificate
       properties:
         url:
           type: string
@@ -1953,6 +2153,12 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
+    OcspResponderCertificate:
+      type: object
+      description: OCSP responder certificate
+      required:
+        - certificate
+      properties:
         certificate:
           $ref: '#/components/schemas/CertificateDetails'
     PossibleActions:
