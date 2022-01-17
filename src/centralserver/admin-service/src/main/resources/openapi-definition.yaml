@@ -119,6 +119,82 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - certification-services
+      summary: delete certification service
+      operationId: deleteCertificationService
+      description: <h3>CS Administrator deletes a certification service.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: the primary key of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '204':
+          description: certification service deletion was successful
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - certification-services
+      summary: update the certification service
+      operationId: updateCertificationService
+      description: <h3>CS administrator edits the settings of a certification service.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: the primary key of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        description: the updated settings of the certification service
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CertificationServiceSettings'
+      responses:
+        '200':
+          description: the new status of the certification service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedCertificationService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /certification-services/{id}/ocsp-responders:
     get:
       tags:
@@ -1560,14 +1636,23 @@ components:
           example: DNS:*.example.org
           minLength: 1
           maxLength: 1000
-    CertificationServiceFileAndSettings:
+    CertificationServiceFile:
       type: object
       description: certification service file and settings
+      required:
+        - certificate
       properties:
         certificate:
           type: string
           description: the certificate file
           format: binary
+    CertificationServiceSettings:
+      type: object
+      description: certification service file and settings
+      required:
+        - tls_auth
+        - certificate_profile_info
+      properties:
         tls_auth:
           type: boolean
           description: can the CA be used for TLS auhtentication
@@ -1577,6 +1662,12 @@ components:
           description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
           example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
           minLength: 1
+    CertificationServiceFileAndSettings:
+      type: object
+      description: certification service file and settings
+      allOf:
+        - $ref: '#/components/schemas/CertificationServiceFile'
+        - $ref: '#/components/schemas/CertificationServiceSettings'
     Backup:
       type: object
       description: central server backup
