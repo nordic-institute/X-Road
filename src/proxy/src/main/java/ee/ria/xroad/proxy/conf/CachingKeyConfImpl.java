@@ -177,16 +177,20 @@ class CachingKeyConfImpl extends KeyConfImpl {
                 notAfter);
     }
 
-    // Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
-    // An OCSP reponse validity time is min(thisUpdate + ocspFresnessSeconds, nextUpdate) or just (thisUpdate + ocspFresnessSeconds) if nextUpdate is not enforced or missing
+    /*
+     * Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
+     * An OCSP reponse validity time is min(thisUpdate + ocspFresnessSeconds, nextUpdate) or just
+     * (thisUpdate + ocspFresnessSeconds) if nextUpdate is not enforced or missing
+     */
     static Date calculateNotAfter(List<OCSPResp> ocspResponses, Date notAfter) throws OCSPException {
         final long freshnessMillis = 1000L * GlobalConf.getOcspFreshnessSeconds(false);
         final boolean verifyNextUpdate = GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate();
 
         for (OCSPResp resp : ocspResponses) {
+            //ok to expect only one response since we request ocsp responses for one certificate at a time
             final SingleResp singleResp = ((BasicOCSPResp) resp.getResponseObject()).getResponses()[0];
-            final Date tmp = new Date(singleResp.getThisUpdate().getTime() + freshnessMillis);
-            if (tmp.before(notAfter)) notAfter = tmp;
+            final Date freshUntil = new Date(singleResp.getThisUpdate().getTime() + freshnessMillis);
+            if (freshUntil.before(notAfter)) notAfter = freshUntil;
             if (verifyNextUpdate) {
                 final Date nextUpdate = singleResp.getNextUpdate();
                 if (nextUpdate != null && nextUpdate.before(notAfter)) {
@@ -233,7 +237,6 @@ class CachingKeyConfImpl extends KeyConfImpl {
                         log.error("Failed to check if key conf has changed", e);
                     }
                     if (changed) conf.invalidateCaches();
-                })
-                .buildAndStartWatcher();
+                }).buildAndStartWatcher();
     }
 }
