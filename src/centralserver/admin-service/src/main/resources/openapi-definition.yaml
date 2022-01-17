@@ -86,6 +86,113 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /certification-services/{id}:
+    get:
+      tags:
+        - certification-services
+      summary: get a certification service by its id
+      operationId: getCertificationServiceById
+      description: <h3>CS administrator views the details of an approved certification service.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: the primary key of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: a certification service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovedCertificationService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /certification-services/{id}/ocsp-responders:
+    get:
+      tags:
+        - certification-services-ocsp-responders
+      summary: get the ocsp responders of a certification service
+      operationId: getCertificationServiceOcspResponders
+      description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: the primary key of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: list of ocsp responders belonging to the certification service
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of ocsp responders
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/OcspResponder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /certification-services/{id}/intermediate-cas:
+    get:
+      tags:
+        - certification-services-intermediate-cas
+      summary: get the intermediate certificate authorities of a certification service
+      operationId: getCertificationServiceIntermediateCas
+      description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: the primary key of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: list of intermediate certificate authorities belonging to the certification service
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of certificate authorities
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/OcspResponder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /backups:
     get:
       tags:
@@ -1279,31 +1386,180 @@ components:
       type: object
       description: certification service
       required:
-        - service_name
-        - valid_from
-        - valid_to
+        - id
+        - ca_certificate
+        - tls_auth
+        - certificate_profile_info
       properties:
-        service_name:
+        id:
           type: string
           format: text
-          description: name of the certification service
-          example: X-Road Test CA CN
+          description: unique identifier
+          example: 123
+          readOnly: true
+        ca_certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+        tls_auth:
+          type: boolean
+          description: can the CA be used for TLS auhtentication
+        certificate_profile_info:
+          type: string
+          format: text
+          description: fully qualified class name that implements the ee.ria.xroad.common.certificateprofile.CertificateProfileInfoProvider interface
+          example: ee.ria.xroad.common.certificateprofile.impl.FiVRKCertificateProfileInfoProvider
+          minLength: 1
+        ocsp_responders:
+          type: array
+          description: array containing ocsp responders
+          items:
+            $ref: '#/components/schemas/OcspResponder'
+        intermediate_cas:
+          type: array
+          description: array containing intermediate CAs
+          items:
+            $ref: '#/components/schemas/CertificateAuthority'
+    CertificateAuthority:
+      type: object
+      description: approved certificate authority information
+      required:
+        - ca_certificate
+        - ocsp_responders
+      properties:
+        ca_certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+        ocsp_responders:
+          type: array
+          description: array containing ocsp responders
+          items:
+            $ref: '#/components/schemas/OcspResponder'
+    CertificateDetails:
+      type: object
+      description: certificate details for any kind of certificate (TLS, auth, sign)
+      required:
+        - issuer_distinguished_name
+        - issuer_common_name
+        - subject_distinguished_name
+        - subject_common_name
+        - not_before
+        - not_after
+        - serial
+        - version
+        - signature_algorithm
+        - signature
+        - public_key_algorithm
+        - rsa_public_key_modulus
+        - rsa_public_key_exponent
+        - hash
+        - key_usages
+        - subject_alternative_names
+      properties:
+        issuer_distinguished_name:
+          type: string
+          format: text
+          description: certificate issuer distinguished name
+          example: issuer123
           minLength: 1
           maxLength: 255
-        valid_from:
+        issuer_common_name:
+          type: string
+          format: text
+          description: certificate issuer common name
+          example: domain.com
+          minLength: 1
+          maxLength: 255
+        subject_distinguished_name:
+          type: string
+          format: text
+          description: certificate subject distinguished name
+          example: subject123
+          minLength: 1
+          maxLength: 255
+        subject_common_name:
+          type: string
+          format: text
+          description: certificate subject common name
+          example: domain.com
+          minLength: 1
+          maxLength: 255
+        not_before:
           type: string
           format: date-time
-          description: start of the validity period
-          example: '2022-01-15T00:00:00.001Z'
+          description: certificate validity not before
+          example: '2022-01-17T00:00:00.001Z'
           minLength: 24
           maxLength: 24
-        valid_to:
+        not_after:
           type: string
           format: date-time
-          description: end of the validity period
-          example: '2022-01-15T00:00:00.001Z'
+          description: certificate validity not after
+          example: '2022-01-17T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+        serial:
+          type: string
+          format: text
+          description: serial number
+          example: '123456789'
+          minLength: 1
+          maxLength: 255
+        version:
+          type: integer
+          format: int32
+          example: 3
+          description: version
+        signature_algorithm:
+          type: string
+          format: sha-256
+          description: certificate signature algorithm
+          example: sha256WithRSAEncryption
+          minLength: 1
+          maxLength: 255
+        signature:
+          type: string
+          format: text
+          description: hex encoded certificate signature
+          example: '30af2fdc1780...'
+          minLength: 1
+          maxLength: 255
+        public_key_algorithm:
+          type: string
+          format: sha-256
+          description: certificate public key algorithm
+          example: 'sha256WithRSAEncryption'
+          minLength: 1
+          maxLength: 255
+        rsa_public_key_modulus:
+          type: string
+          format: hex
+          description: hex encoded RSA public key modulus (if RSA key)
+          example: c44421d601...
+          minLength: 1
+          maxLength: 1000
+        rsa_public_key_exponent:
+          type: integer
+          format: int32
+          description: RSA public key exponent (if RSA key) as an integer
+          example: 65537
+        hash:
+          type: string
+          format: text
+          description: certificate SHA-1 hash
+          example: 1234567890ABCDEF
+          minLength: 1
+          maxLength: 40
+        key_usages:
+          type: array
+          description: certificate key usage array
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/KeyUsage'
+        subject_alternative_names:
+          type: string
+          format: text
+          description: certificate subject alternative names
+          example: DNS:*.example.org
+          minLength: 1
+          maxLength: 1000
     CertificationServiceFileAndSettings:
       type: object
       description: certification service file and settings
@@ -1548,6 +1804,21 @@ components:
           example: node_0
           minLength: 1
           maxLength: 255
+    KeyUsage:
+      type: string
+      format: enum
+      description: certificate key usage
+      example: NON_REPUDIATION
+      enum:
+        - DIGITAL_SIGNATURE
+        - NON_REPUDIATION
+        - KEY_ENCIPHERMENT
+        - DATA_ENCIPHERMENT
+        - KEY_AGREEMENT
+        - KEY_CERT_SIGN
+        - CRL_SIGN
+        - ENCIPHER_ONLY
+        - DECIPHER_ONLY
     MemberClass:
       type: object
       description: Central server's member classes
@@ -1576,6 +1847,23 @@ components:
           example: Non-profit organisations
           minLength: 1
           maxLength: 255
+    OcspResponder:
+      type: object
+      description: OCSP responder diagnostics
+      required:
+        - url
+        - certificate
+      properties:
+        url:
+          type: string
+          format: url
+          description: url of the OCSP responder
+          example: http://dev.xroad.rocks:123
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+        certificate:
+          $ref: '#/components/schemas/CertificateDetails'
     PossibleActions:
       type: array
       description: array containing the possible actions that can be done for this item
