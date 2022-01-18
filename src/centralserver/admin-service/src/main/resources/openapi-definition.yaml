@@ -18,6 +18,14 @@ tags:
     description: resources related to Backups and Backup Restoration
   - name: certification-services
     description: resources related to Certification Services
+  - name: certification-services-ocsp-responders
+    description: resources related to OCSP Responders belonging to Certification Services
+  - name: certification-services-intermediate-cas
+    description: resources related to Intermediate Certificate Authorities belonging to Certification Services
+  - name: ocsp-responders
+    description: resources related to OCSP Responders
+  - name: intermediate-cas
+    description: resources related to Intermediate Certificate Authorities
   - name: globalconf
     description: general resources related to Global Configuration
   - name: globalconf-anchors
@@ -90,8 +98,8 @@ paths:
     get:
       tags:
         - certification-services
-      summary: get a certification service by its id
-      operationId: getCertificationServiceById
+      summary: get a certification service by its certificate hash
+      operationId: getCertificationServiceByHash
       description: <h3>CS administrator views the details of an approved certification service.</h3>
       parameters:
         - in: path
@@ -183,7 +191,7 @@ paths:
               $ref: '#/components/schemas/CertificationServiceSettings'
       responses:
         '200':
-          description: the new status of the certification service
+          description: the new state of the certification service
           content:
             application/json:
               schema:
@@ -284,25 +292,16 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-  /certification-services/{hash}/ocsp-responders/{ocsp_hash}:
+  /ocsp-responders/{hash}:
     get:
       tags:
-        - certification-services-ocsp-responders
-      summary: get an ocsp responder of a certification service
-      operationId: getCertificationServiceOcspResponder
-      description: <h3>CS administrator views the details of an approved certification service's ocsp responder.</h3>
+        - ocsp-responders
+      summary: get an ocsp responder
+      operationId: getOcspResponder
+      description: <h3>CS administrator views the details of an ocsp responder.</h3>
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate of the certification service
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 40
-        - in: path
-          name: ocsp_hash
           description: SHA-1 hash of the certificate of the ocsp responder
           required: true
           schema:
@@ -329,22 +328,13 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
-        - certification-services-ocsp-responders
-      summary: delete an ocsp responder of a certification service
-      operationId: deleteCertificationServiceOcspResponder
-      description: <h3>CS administrator deletes an approved certification service's ocsp responder.</h3>
+        - ocsp-responders
+      summary: delete an ocsp responder
+      operationId: deleteOcspResponder
+      description: <h3>CS administrator deletes an ocsp responder.</h3>
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate of the certification service
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 40
-        - in: path
-          name: ocsp_hash
           description: SHA-1 hash of the certificate of the ocsp responder
           required: true
           schema:
@@ -376,10 +366,10 @@ paths:
           $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
-        - certification-services-ocsp-responders
-      summary: update an ocsp responder of a certification service
-      operationId: updateCertificationServiceOcspResponder
-      description: <h3>CS administrator updated the details of an approved certification service's ocsp responder.</h3>
+        - ocsp-responders
+      summary: update an ocsp responder
+      operationId: updateOcspResponder
+      description: <h3>CS administrator updates the details of an ocsp responder.</h3>
       requestBody:
         description: update ocsp responder url, upload a new certificate file, or do both
         content:
@@ -391,15 +381,6 @@ paths:
       parameters:
         - in: path
           name: hash
-          description: SHA-1 hash of the certificate of the certification service
-          required: true
-          schema:
-            type: string
-            format: text
-            minLength: 1
-            maxLength: 40
-        - in: path
-          name: ocsp_hash
           description: SHA-1 hash of the certificate of the ocsp responder
           required: true
           schema:
@@ -449,6 +430,203 @@ paths:
               schema:
                 type: array
                 description: array of certificate authorities
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - certification-services-intermediate-cas
+      summary: add a new intermediate certificate authority to a certification service
+      operationId: addCertificationServiceIntermediateCas
+      description: <h3>CS administrator configures an intermediate CA for a certification service.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the certification service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      requestBody:
+        description: the new intermediate certificate authority certificate file
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CertificateFile'
+      responses:
+        '200':
+          description: list of cas
+          content:
+            application/json:
+              schema:
+                type: array
+                description: updated array of cas
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/CertificateAuthority'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /intermediate-cas/{hash}:
+    get:
+      tags:
+        - intermediate-cas
+      summary: get an intermediate certificate authority
+      operationId: getIntermediateCa
+      description: <h3>CS administrator views the details of an intermediate CA.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the intermediate certificate authority cert
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: intermediate certificate authority
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateAuthority'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - intermediate-cas
+      summary: delete an intermediate certificate authority
+      operationId: deleteIntermediateCa
+      description: <h3>CS administrator deletes an intermediate CA.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the intermediate certificate authority cert
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '204':
+          description: ca deletion was successful
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                warnings_response:
+                  $ref: '#/components/examples/DeleteKeyWarningExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /intermediate-cas/{hash}/ocsp-responders:
+    get:
+      tags:
+        - intermediate-cas-ocsp-responders
+      summary: get the ocsp responders of an intermediate certificate authority
+      operationId: getIntermediateCaOcspResponders
+      description: <h3>CS administrator views the OCSP responders configured for an intermediate CA.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the intermediate certificate authority
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: list of ocsp responders belonging to the intermediate certificate authority
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of ocsp responders
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/OcspResponder'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - intermediate-cas-ocsp-responders
+      summary: add an ocsp responder to an intermediate certificate authority
+      operationId: addIntermediateCaOcspResponder
+      description: <h3>CS administrator adds an OCSP responder service information for an intermediate CA.</h3>
+      requestBody:
+        description: ocsp responder to add
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - url
+                - certificate
+              allOf:
+                - $ref: '#/components/schemas/OcspResponderUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the certificate of the intermediate certificate authority
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: updated list of ocsp responders belonging to the intermediate certificate authority
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of ocsp responders
                 uniqueItems: true
                 items:
                   $ref: '#/components/schemas/OcspResponder'
@@ -2141,7 +2319,7 @@ components:
         - $ref: '#/components/schemas/OcspResponderCertificate'
     OcspResponderUrl:
       type: object
-      description: OCSP responder
+      description: OCSP responder url
       required:
         - url
       properties:
