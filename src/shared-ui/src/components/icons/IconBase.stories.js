@@ -25,10 +25,6 @@
  * THE SOFTWARE.
  */
 import IconBase from './IconBase.vue';
-import IconCalendar from './IconCalendar.vue';
-import IconCertificate from './IconCertificate.vue';
-import IconDeclined from './IconDeclined.vue';
-import IconKey from './IconKey.vue';
 import IconSvg from './IconSvg.vue';
 // New svg icons
 import XrdIconAdd from './XrdIconAdd.vue';
@@ -83,10 +79,6 @@ const Template = (args, { argTypes }) => ({
   props: Object.keys(argTypes),
   components: {
     IconBase,
-    IconCertificate,
-    IconCalendar,
-    IconDeclined,
-    IconKey,
     IconSvg,
     XrdIconAdd,
     XrdIconAddCertificate,
@@ -125,11 +117,6 @@ const Template = (args, { argTypes }) => ({
     XrdIconWarning,
   },
   template: `<p>
-  <v-icon>icon-AddCertificate</v-icon>
-  <v-icon>icon-ChangeOwner</v-icon>
-  <v-icon>icon-Key</v-icon>
-  <v-icon dark>icon-Add</v-icon>
-  <v-icon dark>mdi-close-circle</v-icon>
   <i class="icon-Add icon"></i>
   <icon-base icon-name="icon-Edit"></icon-base>
   <icon-base
@@ -141,19 +128,6 @@ const Template = (args, { argTypes }) => ({
 
   <v-icon>icon-Edit</v-icon>
   <!-- or you can use the default, which is 18 -->
-  <icon-base icon-name="calendar" v-bind="$props"><icon-calendar /></icon-base>
-
-  <icon-base icon-name="calendar" v-bind="$props"><IconDeclined /></icon-base>
-  <icon-base icon-name="calendar" v-bind="$props"><IconKey /></icon-base>
-  <icon-base icon-name="calendar" v-bind="$props"><icon-key /></icon-base>
-  <icon-base icon-name="calendar" v-bind="$props"><icon-key /></icon-base>
-  <!-- or make it a little bigger too :) -->
-  <icon-base
-    width="30"
-    height="30"
-    icon-name="calendar"
-    v-bind="$props"
-  ><icon-certificate /></icon-base>
   <icon-svg icon-name="addUser"></icon-svg>
   <icon-svg icon-name="addCertificate"></icon-svg>
   <icon-svg icon-name="removeUser"></icon-svg>
