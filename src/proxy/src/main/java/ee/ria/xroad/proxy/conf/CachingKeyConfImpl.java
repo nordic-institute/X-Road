@@ -177,6 +177,10 @@ class CachingKeyConfImpl extends KeyConfImpl {
                 notAfter);
     }
 
+    protected void watcherStarted() {
+        //for testability
+    }
+
     /*
      * Upper bound for validity is the minimum of certificates "notAfter" and OCSP responses validity time
      * An OCSP reponse validity time is min(thisUpdate + ocspFresnessSeconds, nextUpdate) or just
@@ -222,7 +226,8 @@ class CachingKeyConfImpl extends KeyConfImpl {
             FileContentChangeChecker changeChecker) {
         return FileWatcherRunner.create()
                 .watchForChangesIn(Paths.get(changeChecker.getFileName()))
-                .listenToCreate().listenToModify()
+                .listenToCreate()
+                .listenToModify()
                 .andOnChangeNotify(() -> {
                     final CachingKeyConfImpl conf = ref.get();
                     if (conf == null) {
@@ -237,6 +242,13 @@ class CachingKeyConfImpl extends KeyConfImpl {
                         log.error("Failed to check if key conf has changed", e);
                     }
                     if (changed) conf.invalidateCaches();
-                }).buildAndStartWatcher();
+                })
+                .andOnStartupNotify(() -> {
+                    final CachingKeyConfImpl conf = ref.get();
+                    if (conf != null) {
+                        conf.watcherStarted();
+                    }
+                })
+                .buildAndStartWatcher();
     }
 }

@@ -177,18 +177,20 @@ public class CachingKeyConfImplTest {
         try (FileWatcherRunner unused = CachingKeyConfImpl.createChangeWatcher(
                 new WeakReference<>(testCachingKeyConf),
                 new TestChangeChecker(keyConfHasChanged))) {
+
+            testCachingKeyConf.ready.await();
+
             int expectedCacheHits = 1;
             // should cause 1 cache refresh
             testCachingKeyConf.getAuthKey();
             assertEquals(expectedCacheHits, callsToGetAuthKeyInfo.get());
 
             keyConfHasChanged.setValue(true);
-
             // change keyconf
             Files.write(KEY_CONF, "test".getBytes());
             // wait for change to propagate
-            testCachingKeyConf.latch.await();
             // next read one key, but this time key conf has changed -> one more hit
+            testCachingKeyConf.changed.await();
             testCachingKeyConf.getAuthKey();
 
             expectedCacheHits++;
@@ -441,13 +443,14 @@ public class CachingKeyConfImplTest {
         final BooleanSupplier authKeyIsValid;
         final BooleanSupplier signingInfoIsValid;
         final int cacheReadDelayMs;
-        final CountDownLatch latch = new CountDownLatch(1);
+        final CountDownLatch changed = new CountDownLatch(1);
+        final CountDownLatch ready = new CountDownLatch(1);
 
         TestCachingKeyConfImpl(AtomicInteger dataRefreshes,
                 BooleanSupplier keyConfHasChanged,
                 BooleanSupplier authKeyIsValid,
                 BooleanSupplier signingInfoIsValid,
-                int cacheReadDelayMs) throws Exception {
+                int cacheReadDelayMs) {
             this.dataRefreshes = dataRefreshes;
             this.keyConfHasChanged = keyConfHasChanged;
             this.authKeyIsValid = authKeyIsValid;
@@ -456,9 +459,14 @@ public class CachingKeyConfImplTest {
         }
 
         @Override
+        protected void watcherStarted() {
+            ready.countDown();
+        }
+
+        @Override
         protected void invalidateCaches() {
             super.invalidateCaches();
-            latch.countDown();
+            changed.countDown();
         }
 
         private void delay(long delayMs) throws Exception {
