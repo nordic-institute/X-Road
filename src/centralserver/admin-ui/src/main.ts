@@ -61,9 +61,9 @@ axios.defaults.headers.get.Accepts = 'application/json';
 Vue.use(Router);
 
 new Vue({
-  pinia,
   router,
   i18n,
   vuetify,
+  pinia,
   render: (h) => h(App),
 }).$mount('#app');

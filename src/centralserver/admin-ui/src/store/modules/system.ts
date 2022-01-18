@@ -70,10 +70,10 @@ export const systemStore = defineStore('systemStore', {
       if (!initializationStatus) return false;
 
       return (
-        0 < initializationStatus?.instance_identifier.length &&
-        0 < initializationStatus?.central_server_address.length &&
+        0 < initializationStatus.instance_identifier.length &&
+        0 < initializationStatus.central_server_address.length &&
         TokenInitStatus.INITIALIZED ==
-          initializationStatus?.software_token_init_status
+          initializationStatus.software_token_init_status
       );
     },
   },

@@ -38,7 +38,7 @@
         {{ $t('members.addMember') }}</xrd-button
       >
     </div>
-    numero: {{ getCount }}
+
     <!-- Table -->
     <v-data-table
       :loading="loading"

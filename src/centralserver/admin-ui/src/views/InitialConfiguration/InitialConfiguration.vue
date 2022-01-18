@@ -292,50 +292,38 @@ export default (
       if (!this.disabledFields.pin) {
         formData.software_token_pin = this.pin;
       }
-      await this.resetNotifications();
+      this.resetNotifications();
       await this.initalizationRequest(formData)
-        .then(
-          () => {
-            this.$router
-              .push({
-                name: RouteName.Members,
-              })
-              .catch(swallowRedirectedNavigationError);
-          },
-          (error: AxiosError) => {
-            const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
-            if (isFieldError(errorInfo)) {
-              const fieldErrors = errorInfo.error?.validation_errors;
-              if (fieldErrors) {
-                const identifierErrors: string[] = getTranslatedFieldErrors(
-                  'initialServerConf.instanceIdentifier',
-                  fieldErrors,
-                );
-                const addressErrors: string[] = getTranslatedFieldErrors(
-                  'initialServerConf.centralServerAddress',
-                  fieldErrors,
-                );
-                this.$refs.initializationForm.setErrors({
-                  'init.identifier': identifierErrors,
-                  'init.address': addressErrors,
-                });
-                this.showError(error);
-              }
-              return;
-            }
-            if (invalidParamsErrors(errorInfo).length > 0) {
-              this.showError(error);
-              return;
-            }
-            if (isWeakPinError(errorInfo)) {
-              this.showError(error);
-              return;
-            }
-            throw error;
-          },
-        )
+        .then(() => {
+          this.$router
+            .push({
+              name: RouteName.Members,
+            })
+            .catch(swallowRedirectedNavigationError);
+        })
         .catch((error) => {
-          return this.showError(error);
+          const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
+          if (isFieldError(errorInfo)) {
+            const fieldErrors = errorInfo.error?.validation_errors;
+            if (fieldErrors) {
+              const identifierErrors: string[] = getTranslatedFieldErrors(
+                'initialServerConf.instanceIdentifier',
+                fieldErrors,
+              );
+              const addressErrors: string[] = getTranslatedFieldErrors(
+                'initialServerConf.centralServerAddress',
+                fieldErrors,
+              );
+              this.$refs.initializationForm.setErrors({
+                'init.identifier': identifierErrors,
+                'init.address': addressErrors,
+              });
+              this.showError(error);
+            }
+            return;
+          }
+
+          this.showError(error);
         })
         .finally(() => {
           return this.fetchSystemStatus();

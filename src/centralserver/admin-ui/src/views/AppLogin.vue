@@ -225,7 +225,6 @@ export default (
                 });
               });
 
-              // Wrong username or password error lands here. It has 401 code.
               this.showErrorMessage(this.$t('login.generalError'));
             } else {
               this.showError(error);

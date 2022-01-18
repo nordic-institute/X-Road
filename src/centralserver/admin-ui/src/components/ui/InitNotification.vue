@@ -42,7 +42,7 @@
         color="primary"
         outlined
         data-test="notification-button"
-        @click="setContisdfnueInit(false)"
+        @click="setContinueInit(false)"
       >
         {{ $t('action.continue') }}
       </xrd-button>
