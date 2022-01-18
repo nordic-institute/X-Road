@@ -40,6 +40,8 @@ tags:
     description: resources related to Central Server initialization
   - name: member-classes
     description: resources related to Central Server's member classes
+  - name: timestamping-services
+    description: resources related to Central Server's Timestamping Services
 paths:
   /certification-services:
     get:
@@ -1829,6 +1831,170 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /timestamping-services:
+    get:
+      tags:
+        - timestamping-services
+      summary: get the timestamping services
+      operationId: getTimestampingServices
+      description: <h3>CS administrator views the approved timestamping services configured for this X-Road instance.</h3>
+      responses:
+        '200':
+          description: list of timestamping services
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of timestamping services
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/TimestampingService'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - timestamping-services
+      summary: add a timestamping service
+      operationId: addTimestampingServices
+      description: <h3>CS administrator adds a timestamping service to the list of approved timestamping services.</h3>
+      requestBody:
+        description: timestamping service to add
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - url
+                - certificate
+              allOf:
+                - $ref: '#/components/schemas/TimestampingServiceUrl'
+                - $ref: '#/components/schemas/CertificateFile'
+      responses:
+        '200':
+          description: updated list of timestamping services
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of timestamping service
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/TimestampingService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /timestamping-services/{hash}:
+    get:
+      tags:
+        - timestamping-services
+      summary: get a timestamping service by its certificate hash
+      operationId: getTimestampingService
+      description: <h3>CS administrator views an approved timestamping service's details.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the timestamping service's certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: a timestamping service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - timestamping-services
+      summary: delete a timestamping service by its certificate hash
+      operationId: deleteTimestampingService
+      description: <h3>CS administrator deletes an approved timestamping service.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the timestamping service's certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '204':
+          description: timestamping service deletion was successful
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - timestamping-services
+      summary: update a timestamping service
+      operationId: updateTimestampingService
+      description: <h3>CS administrator edits the URL of a timestamping server.</h3>
+      parameters:
+        - in: path
+          name: hash
+          description: SHA-1 hash of the timestamping service's certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      requestBody:
+        description: the new url of the timestamping service
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimestampingServiceUrl'
+      responses:
+        '200':
+          description: the updated timestamping service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimestampingService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     ApprovedCertificationService:
@@ -2334,6 +2500,34 @@ components:
     OcspResponderCertificate:
       type: object
       description: OCSP responder certificate
+      required:
+        - certificate
+      properties:
+        certificate:
+          $ref: '#/components/schemas/CertificateDetails'
+    TimestampingService:
+      type: object
+      description: timestamping service
+      allOf:
+        - $ref: '#/components/schemas/TimestampingServiceUrl'
+        - $ref: '#/components/schemas/TimestampingServiceCertificate'
+    TimestampingServiceUrl:
+      type: object
+      description: timestamping service url
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          format: url
+          description: url of the timestamping service
+          example: http://dev.xroad.rocks:8899
+          minLength: 1
+          maxLength: 255
+          readOnly: true
+    TimestampingServiceCertificate:
+      type: object
+      description: timestamping service certificate
       required:
         - certificate
       properties:
