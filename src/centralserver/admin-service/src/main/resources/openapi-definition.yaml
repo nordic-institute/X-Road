@@ -1736,7 +1736,9 @@ paths:
         - member-classes
       summary: add a new member class
       operationId: addMemberClass
-      description: <h3>CS Administrator adds a new member class.</h3>
+      description:
+        <h3>CS Administrator adds a new member class.</h3>
+        <p>The member class will be validated and if the validation fails a validation error is returned.</p>
       requestBody:
         description: new additional member class to add
         required: true
@@ -1752,7 +1754,16 @@ paths:
               schema:
                 $ref: '#/components/schemas/MemberClass'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: there are errors in the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -1993,6 +2004,131 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /members:
+    get:
+      tags:
+        - members
+      summary: find members
+      operationId: findMembers
+      description: <h3>CS administrator searches for X-Road members.</h3>
+      parameters:
+        - in: query
+          name: name
+          description: pass an optional search string (name) for looking up members
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: instance
+          description: pass an optional search string (instance) for looking up members
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: member_class
+          description: pass an optional search string (member_class) for looking up members
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: member_code
+          description: pass an optional search string (member_code) for looking up members
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: subsystem_code
+          description: pass an optional search string (subsystem_code) for looking up members
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 0
+            maxLength: 255
+        - in: query
+          name: show_subsystems
+          description: to include subsystems for search results
+          required: false
+          schema:
+            type: boolean
+            default: false
+        - in: query
+          name: show_members
+          description: to include members for search results
+          required: false
+          schema:
+            type: boolean
+            default: true
+      responses:
+        '200':
+          description: list of members
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of members
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/Member'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - members
+      summary: add new member to the central server
+      operationId: addMember
+      description:
+        <h3>CS administrator registers an organization as an X-Road member.</h3>
+        <p>The member id will be validated and if the validation fails a validation error is returned.</p>
+      requestBody:
+        description: member to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberNameClassAndCode'
+      responses:
+        '201':
+          description: new member created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '400':
+          description: there are errors in the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 components:
@@ -2243,12 +2379,57 @@ components:
           description: whether any hsm tokens were logged out during the restore process
           type: boolean
           default: false
-    Client:
+    MemberNameClassAndCode:
       type: object
-      description: x-road client
+      description: x-road member name, class and code for when adding a new member
+      required:
+        - member_name
+        - member_class
+        - member_code
+      allOf:
+        - $ref: '#/components/schemas/MemberName'
+        - $ref: '#/components/schemas/MemberClassAndCode'
+    MemberName:
+      type: object
+      description: x-road member name
+      required:
+        - member_name
+      properties:
+        member_name:
+          type: string
+          format: text
+          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          readOnly: true
+          minLength: 1
+          maxLength: 255
+    MemberClassAndCode:
+      type: object
+      description: x-road member class and code
       required:
         - member_class
         - member_code
+      properties:
+        member_class:
+          type: string
+          format: text
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          minLength: 1
+          maxLength: 255
+        member_code:
+          type: string
+          format: text
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          minLength: 1
+          maxLength: 255
+    Member:
+      type: object
+      description: x-road member
+      allOf:
+        - $ref: '#/components/schemas/MemberName'
+        - $ref: '#/components/schemas/MemberClassAndCode'
       properties:
         id:
           type: string
@@ -2266,28 +2447,6 @@ components:
           minLength: 1
           maxLength: 255
           readOnly: true
-        member_name:
-          type: string
-          format: text
-          description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
-          readOnly: true
-          minLength: 1
-          maxLength: 255
-        member_class:
-          type: string
-          format: text
-          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: GOV
-          minLength: 1
-          maxLength: 255
-        member_code:
-          type: string
-          format: text
-          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: 123
-          minLength: 1
-          maxLength: 255
         subsystem_code:
           type: string
           format: text
@@ -2295,13 +2454,13 @@ components:
           example: ABC
           minLength: 1
           maxLength: 255
-        client_type:
-          $ref: '#/components/schemas/ClientType'
-    ClientType:
+        member_type:
+          $ref: '#/components/schemas/MemberType'
+    MemberType:
       type: string
       format: text
-      description: subject type
-      example: GLOBALGROUP
+      description: member type
+      example: SUBSYSTEM
       readOnly: true
       enum:
         - GLOBALGROUP
