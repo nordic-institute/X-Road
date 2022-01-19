@@ -2099,7 +2099,7 @@ paths:
         <h3>CS administrator registers an organization as an X-Road member.</h3>
         <p>The member id will be validated and if the validation fails a validation error is returned.</p>
       requestBody:
-        description: member to add
+        description: member name, class and code
         required: true
         content:
           application/json:
@@ -2129,6 +2129,47 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '409':
           $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /members/{id}:
+    patch:
+      tags:
+        - members
+      summary: update the name of a member
+      operationId: updateMemberName
+      description: <h3>CS administrator edits the name of an X-Road member.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      requestBody:
+        description: member name
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberName'
+      responses:
+        '200':
+          description: the updated member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 components:
