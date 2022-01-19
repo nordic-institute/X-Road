@@ -206,17 +206,6 @@ function getTranslatedFieldErrors(
   }
 }
 
-function invalidParamsErrors(errorInfo: ErrorInfo): Array<string> {
-  if (
-    400 === errorInfo.status &&
-    'invalid_init_params' === errorInfo.error?.code
-  ) {
-    return errorInfo.error.metadata || [];
-  } else {
-    return [];
-  }
-}
-
 export default (
   Vue as VueConstructor<
     Vue & {
@@ -334,11 +323,6 @@ export default (
         return (
           400 === errorStatus && 'validation_failure' === error?.error?.code
         );
-      }
-
-      function isWeakPinError(error: ErrorInfo) {
-        const errorStatus = error.status;
-        return 400 === errorStatus && 'weak_pin' === error?.error?.code;
       }
     },
   },
