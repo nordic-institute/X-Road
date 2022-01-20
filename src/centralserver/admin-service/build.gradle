@@ -134,4 +134,3 @@ dependencies {
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
 }
-

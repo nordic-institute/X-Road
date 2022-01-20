@@ -83,7 +83,11 @@ public class ApplicationExceptionHandler {
                 RestApiAuditEvent.API_KEY_AUTHENTICATION, RestApiAuditEvent.AUTH_CREDENTIALS_DISCOVERY)) {
             auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.UNSPECIFIED_AUTHENTICATION, e);
         }
-        log.error(EXCEPTION_CAUGHT, e);
+        if (log.isDebugEnabled()) {
+            log.error(EXCEPTION_CAUGHT, e);
+        } else {
+            log.error("Authentication failure: {}", e.getMessage());
+        }
         return exceptionTranslator.toResponseEntity(e, HttpStatus.UNAUTHORIZED);
     }
 
@@ -96,7 +100,11 @@ public class ApplicationExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
         auditEventLoggingFacade.auditLogFail(RestApiAuditEvent.UNSPECIFIED_ACCESS_CHECK, e);
-        log.error(EXCEPTION_CAUGHT, e);
+        if (log.isDebugEnabled()) {
+            log.error("Access denied", e);
+        } else {
+            log.error("Access denied: {}", e.getMessage());
+        }
         return exceptionTranslator.toResponseEntity(e, HttpStatus.FORBIDDEN);
     }
 
