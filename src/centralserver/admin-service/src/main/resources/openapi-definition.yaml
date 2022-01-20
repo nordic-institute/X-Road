@@ -2326,6 +2326,182 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /global-groups/{group_id}:
+    get:
+      tags:
+        - global-groups
+      summary: get global group information
+      operationId: getGlobalGroup
+      description: <h3>CS administrator views the details of a global group.</h3>
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the global group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: global group
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalGroup'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - global-groups
+      summary: update global group description
+      operationId: updateGlobalGroupDescription
+      description: <h3>CS administrator changes the description of the global group.</h3>
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the global group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GlobalGroupDescription'
+      responses:
+        '200':
+          description: global group modified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalGroup'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - global-groups
+      summary: delete global group
+      operationId: deleteGlobalGroup
+      description:
+        <h3>CS administrator deletes a global group.</h3>
+        <p>The access rights that were granted for the group will not be available for the X-Road members and subsystems that were the members of this group.</p>
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the global group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /global-groups/{group_id}/members:
+    post:
+      tags:
+        - global-groups
+      summary: add new members for the global group
+      operationId: addGlobalGroupMembers
+      description: <h3>CS administrator adds an X-Road member or a member's subsystem to a global group.</h3>
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the global group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Members'
+      responses:
+        '201':
+          description: new members added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Members'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /global-groups/{group_id}/members/delete:
+    post:
+      tags:
+        - global-groups
+      summary: delete members from global group
+      operationId: deleteGlobalGroupMembers
+      description: <h3>Administrator deletes members from global group.</h3>
+      parameters:
+        - in: path
+          name: group_id
+          description: id of the global group
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Members'
+      responses:
+        '204':
+          description: members deleted
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     ApprovedCertificationService:
@@ -2423,6 +2599,19 @@ components:
           description: security server address (ip or name)
           example: 192.168.1.100
           maxLength: 255
+    Members:
+      type: object
+      description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
+      properties:
+        items:
+          type: array
+          description: array of members to be added
+          example: ["FI:GOV:123", "FI:GOV:123:SS1", "FI:GOV:123:SS2"]
+          items:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
     CertificateDetails:
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -2752,19 +2941,6 @@ components:
           uniqueItems: true
           items:
             $ref: '#/components/schemas/GroupMember'
-    GlobalGroupCode:
-      type: object
-      description: group code
-      required:
-        - code
-      properties:
-        code:
-          type: string
-          format: text
-          description: group code
-          example: groupcode
-          minLength: 1
-          maxLength: 255
     GlobalGroupDescription:
       type: object
       description: group description
