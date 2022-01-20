@@ -42,6 +42,10 @@ tags:
     description: resources related to Central Server's member classes
   - name: timestamping-services
     description: resources related to Central Server's Timestamping Services
+  - name: security-servers
+    description: resources related to Security Servers
+  - name: global-groups
+    description: resources related to Globalgroups
 paths:
   /certification-services:
     get:
@@ -2132,6 +2136,37 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /members/{id}:
+    delete:
+      tags:
+        - members
+      summary: delete a member
+      operationId: deleteMember
+      description: <h3>CS administrator deletes an X-Road member.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     patch:
       tags:
         - members
@@ -2170,6 +2205,125 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /security-servers:
+    get:
+      tags:
+        - security-servers
+      summary: find security servers
+      operationId: findSecurityServers
+      description: <h3>CS administrator searches for X-Road Security Servers that are registered in the central server.</h3>
+      parameters:
+        - in: query
+          name: owner_member
+          description: a member id – return only security servers that are owned by this member
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+            example: 'CS:ORG:123'
+        - in: query
+          name: contains_member
+          description: a member id – return only security servers that contain this member
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+            example: 'CS:ORG:123'
+      responses:
+        '200':
+          description: list of security servers
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of security servers
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/SecurityServer'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /global-groups:
+    get:
+      tags:
+        - global-groups
+      summary: find global groups
+      operationId: findGlobalGroups
+      description: <h3>CS administrator searches for global groups.</h3>
+      parameters:
+        - in: query
+          name: contains_member
+          description: a member id – only global groups that contain this member will be returned
+          required: false
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+            example: 'CS:ORG:123'
+      responses:
+        '200':
+          description: list of global groups
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of global groups
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/GlobalGroup'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - global-groups
+      summary: add new global group
+      operationId: addGlobalGroup
+      description: <h3>CS administrator adds a global group to the central server.</h3>
+      requestBody:
+        description: global group code and description
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
+      responses:
+        '201':
+          description: new global group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GlobalGroup'
+        '400':
+          description: there are errors in the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 components:
@@ -2224,6 +2378,51 @@ components:
           description: array containing ocsp responders
           items:
             $ref: '#/components/schemas/OcspResponder'
+    SecurityServer:
+      type: object
+      description: security server information
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          format: text
+          description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+          example: FI:GOV:123:sserver1
+        instance_id:
+          type: string
+          format: text
+          description: xroad instance id
+          example: FI
+          minLength: 1
+          maxLength: 255
+        member_class:
+          type: string
+          format: text
+          description: member class
+          example: GOV
+          minLength: 1
+          maxLength: 255
+        member_code:
+          type: string
+          format: text
+          description: member code
+          example: 123
+          minLength: 1
+          maxLength: 255
+        server_code:
+          type: string
+          format: text
+          description: security server code
+          example: server123
+          minLength: 1
+          maxLength: 255
+        server_address:
+          type: string
+          format: text
+          description: security server address (ip or name)
+          example: 192.168.1.100
+          maxLength: 255
     CertificateDetails:
       type: object
       description: certificate details for any kind of certificate (TLS, auth, sign)
@@ -2518,6 +2717,117 @@ components:
         - FETCHINTERVAL
         - MONITORING
         - NEXTUPDATE
+    GlobalGroup:
+      type: object
+      description: group
+      required:
+        - code
+        - description
+      allOf:
+        - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
+      properties:
+        id:
+          type: string
+          format: text
+          description: unique identifier
+          example: 123
+          readOnly: true
+        member_count:
+          type: integer
+          format: int32
+          description: member count
+          example: 10
+          minimum: 0
+          maximum: 1000000
+        updated_at:
+          type: string
+          format: date-time
+          description: last time updated
+          example: '2022-01-20T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        members:
+          type: array
+          description: group members
+          uniqueItems: true
+          items:
+            $ref: '#/components/schemas/GroupMember'
+    GlobalGroupCode:
+      type: object
+      description: group code
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          format: text
+          description: group code
+          example: groupcode
+          minLength: 1
+          maxLength: 255
+    GlobalGroupDescription:
+      type: object
+      description: group description
+      required:
+        - description
+      properties:
+        description:
+          type: string
+          format: text
+          description: group description
+          example: description
+          minLength: 1
+          maxLength: 255
+    GlobalGroupCodeAndDescription:
+      type: object
+      description: group code and description
+      required:
+        - code
+        - description
+      properties:
+        code:
+          type: string
+          format: text
+          description: group code
+          example: groupcode
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          format: text
+          description: group description
+          example: description
+          minLength: 1
+          maxLength: 255
+    GroupMember:
+      type: object
+      description: group member
+      required:
+        - id
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+          format: text
+          description: group member id
+          example: FI:GOV:123:SS1
+          minLength: 1
+          maxLength: 1023
+        name:
+          type: string
+          format: text
+          description: group member name
+          example: Member123
+          minLength: 1
+          maxLength: 255
+        created_at:
+          type: string
+          format: date-time
+          description: group member created at
+          example: '2022-01-20T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
     InitializationStatus:
       type: object
       description: Initialization status of the Central Server
