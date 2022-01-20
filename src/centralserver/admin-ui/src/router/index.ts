@@ -24,10 +24,11 @@
  * THE SOFTWARE.
  */
 import Router, { NavigationGuardNext, Route } from 'vue-router';
-import { sync } from 'vuex-router-sync';
-import store from '@/store';
 import routes from './routes';
-import { RouteName, StoreTypes } from '@/global';
+import { RouteName } from '@/global';
+import { notificationsStore } from '@/store/modules/notifications';
+import { userStore } from '@/store/modules/user';
+import { systemStore } from '@/store/modules/system';
 
 // Create the router
 const router = new Router({
@@ -41,16 +42,18 @@ router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
     return;
   }
 
+  // Pinia stores
+  const user = userStore();
+  const notifications = notificationsStore();
+  const system = systemStore();
+
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
   // user to be redirected to a view that contains api calls (s)he is not allowed.
-  if (
-    store.getters[StoreTypes.getters.IS_SESSION_ALIVE] &&
-    store.getters[StoreTypes.getters.IS_AUTHENTICATED]
-  ) {
+  if (user.isSessionAlive && user.isAuthenticated) {
     // Server is not initialized
     if (
-      !store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED] &&
+      !system.isServerInitialized &&
       to.name != RouteName.Initialisation &&
       from.name != RouteName.Initialisation
     ) {
@@ -60,18 +63,14 @@ router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
     } else {
       // Clear success, error and continue init notifications when the route changed, except when coming from Initialization.
       if (from.name !== RouteName.Initialisation) {
-        await store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+        notifications.resetNotifications();
       }
       /*
     Check permissions here
     */
       if (!to?.meta?.permissions) {
         next();
-      } else if (
-        store.getters[StoreTypes.getters.HAS_ANY_OF_PERMISSIONS](
-          to.meta.permissions,
-        )
-      ) {
+      } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
         // This route is allowed
         next();
       } else {
@@ -90,7 +89,5 @@ router.beforeEach(async (to: Route, from: Route, next: NavigationGuardNext) => {
     });
   }
 });
-
-sync(store, router);
 
 export default router;

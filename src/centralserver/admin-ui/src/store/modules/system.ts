@@ -23,97 +23,84 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 import axios from 'axios';
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState, StoreTypes } from '@/global';
+
+import * as api from '@/util/api';
 import {
-  CentralServerAddress,
-  InstanceIdentifier,
+  InitializationStatus,
+  InitialServerConf,
   ServerAddressUpdateBody,
   SystemStatus,
   TokenInitStatus,
   Version,
 } from '@/openapi-types';
-import * as api from '@/util/api';
+import { defineStore } from 'pinia';
+import { notificationsStore } from './notifications';
 
-export interface State {
-  serverVersion: Version | undefined;
-  systemStatus: SystemStatus | undefined;
-}
-
-export const getDefaultState = (): State => {
-  return {
-    serverVersion: undefined,
-    systemStatus: {
-      initialization_status: {
-        instance_identifier: '',
-        central_server_address: '',
-        software_token_init_status: TokenInitStatus.UNKNOWN,
-      },
-      high_availability_status: {
-        is_ha_configured: false,
-        node_name: undefined,
-      },
+export const systemStore = defineStore('systemStore', {
+  state: () => {
+    return {
+      serverVersion: undefined as Version | undefined,
+      systemStatus: {
+        initialization_status: {
+          instance_identifier: '',
+          central_server_address: '',
+          software_token_init_status: TokenInitStatus.UNKNOWN,
+        },
+        high_availability_status: {
+          is_ha_configured: false,
+          node_name: undefined,
+        },
+      } as SystemStatus,
+    };
+  },
+  persist: true,
+  getters: {
+    getServerVersion(state) {
+      return state.serverVersion;
     },
-  };
-};
+    getSystemStatus(state) {
+      return state.systemStatus;
+    },
+    isServerInitialized(): boolean {
+      const initializationStatus: InitializationStatus | undefined =
+        this.systemStatus?.initialization_status;
 
-// Initial state. The state can be reset with this.
-const moduleState = getDefaultState();
+      if (!initializationStatus) return false;
 
-// noinspection JSUnusedLocalSymbols
-export const getters: GetterTree<State, RootState> = {
-  [StoreTypes.getters.SERVER_VERSION](state) {
-    return state.serverVersion;
-  },
-  [StoreTypes.getters.SYSTEM_STATUS](state) {
-    return state.systemStatus;
-  },
-};
-
-export const mutations: MutationTree<State> = {
-  [StoreTypes.mutations.SET_SERVER_VERSION]: (state, version: Version) => {
-    state.serverVersion = version;
-  },
-  [StoreTypes.mutations.SET_SYSTEM_STATUS]: (
-    state,
-    systemStatus: SystemStatus,
-  ) => {
-    state.systemStatus = systemStatus;
-  },
-};
-
-export const actions: ActionTree<State, RootState> = {
-  async [StoreTypes.actions.FETCH_SERVER_VERSION]({ commit }) {
-    return axios
-      .get<Version>('/system/version')
-      .then((resp) =>
-        commit(StoreTypes.mutations.SET_SERVER_VERSION, resp.data),
+      return (
+        0 < initializationStatus.instance_identifier.length &&
+        0 < initializationStatus.central_server_address.length &&
+        TokenInitStatus.INITIALIZED ==
+          initializationStatus.software_token_init_status
       );
+    },
   },
-  async [StoreTypes.actions.FETCH_SYSTEM_STATUS]({ commit }) {
-    return api
-      .get<Version>('/system/status')
-      .then((resp) =>
-        commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
-      );
-  },
-  async [StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS](
-    { commit },
-    newAddress: ServerAddressUpdateBody,
-  ) {
-    return api
-      .put<SystemStatus>('/system/status/server-address', newAddress)
-      .then((resp) =>
-        commit(StoreTypes.mutations.SET_SYSTEM_STATUS, resp.data),
-      );
-  },
-};
 
-export const module: Module<State, RootState> = {
-  namespaced: false,
-  state: moduleState,
-  getters,
-  actions,
-  mutations,
-};
+  actions: {
+    async fetchServerVersion() {
+      return axios
+        .get<Version>('/system/version')
+        .then((resp) => (this.serverVersion = resp.data));
+    },
+    async fetchSystemStatus() {
+      return api
+        .get<SystemStatus>('/system/status')
+        .then((resp) => (this.systemStatus = resp.data));
+    },
+    async updateCentralServerAddress(newAddress: ServerAddressUpdateBody) {
+      return api
+        .put<SystemStatus>('/system/status/server-address', newAddress)
+        .then((resp) => (this.systemStatus = resp.data));
+    },
+
+    async initalizationRequest(formData: InitialServerConf) {
+      const notifications = notificationsStore();
+
+      return api.post('/initialization', formData).then(() => {
+        notifications.setContinueInit(true);
+      });
+    },
+  },
+});

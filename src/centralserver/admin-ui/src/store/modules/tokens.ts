@@ -23,8 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState, StoreTypes } from '@/global';
+
+import { defineStore } from 'pinia';
+
 import {
   Token,
   TokenType,
@@ -33,141 +34,128 @@ import {
 } from '@/mock-openapi-types';
 import { deepClone } from '@/util/helpers';
 
-export interface TokensState {
-  expandedTokens: string[];
-  tokens: Token[];
-  selectedToken: Token | undefined;
-}
+export const tokenStore = defineStore('tokenStore', {
+  state: () => {
+    return {
+      expandedTokens: [] as string[],
+      tokens: [
+        {
+          id: '87768768678768',
+          name: 'this is a token name',
+          type: TokenType.SOFTWARE,
+          keys: [
+            {
+              id: 'sdfsdf9384',
+              name: 'keyone',
+              label: 'ready label one',
+              certificates: [],
+              certificate_signing_requests: [],
+              usage: KeyUsageType.SIGNING,
+            },
+            {
+              id: '32123123321',
+              name: 'keytwo',
+              label: 'ready label two',
+              certificates: [],
+              certificate_signing_requests: [],
+              usage: KeyUsageType.SIGNING,
+            },
+          ], // Array<Key>;
+          status: TokenStatus.USER_PIN_EXPIRED,
+          logged_in: false,
+          available: true,
+          saved_to_configuration: true,
+          read_only: false,
+          serial_number: 'jdjhkfjhkdfs',
+        },
+        {
+          id: '09896745443678768',
+          name: 'kuuioi',
+          type: TokenType.SOFTWARE,
+          keys: [
+            {
+              id: '323223232',
+              name: 'key3',
+              label: 'ready label 3',
+              certificates: [],
+              certificate_signing_requests: [],
+              usage: KeyUsageType.SIGNING,
+            },
+          ],
+          status: TokenStatus.USER_PIN_EXPIRED,
+          logged_in: true,
+          available: true,
+          saved_to_configuration: true,
+          read_only: false,
+          serial_number: 'yfjhgjghgfhs',
+        },
+      ] as Token[],
+      selectedToken: undefined as Token | undefined,
 
-export const tokensState: TokensState = {
-  expandedTokens: [],
-  // Mock data. Remove when the api is done.
-  tokens: [
-    {
-      id: '87768768678768',
-      name: 'this is a token name',
-      type: TokenType.SOFTWARE,
-      keys: [
-        {
-          id: 'sdfsdf9384',
-          name: 'keyone',
-          label: 'ready label one',
-          certificates: [],
-          certificate_signing_requests: [],
-          usage: KeyUsageType.SIGNING,
-        },
-        {
-          id: '32123123321',
-          name: 'keytwo',
-          label: 'ready label two',
-          certificates: [],
-          certificate_signing_requests: [],
-          usage: KeyUsageType.SIGNING,
-        },
-      ], // Array<Key>;
-      status: TokenStatus.USER_PIN_EXPIRED,
-      logged_in: false,
-      available: true,
-      saved_to_configuration: true,
-      read_only: false,
-      serial_number: 'jdjhkfjhkdfs',
-    },
-    {
-      id: '09896745443678768',
-      name: 'kuuioi',
-      type: TokenType.SOFTWARE,
-      keys: [
-        {
-          id: '323223232',
-          name: 'key3',
-          label: 'ready label 3',
-          certificates: [],
-          certificate_signing_requests: [],
-          usage: KeyUsageType.SIGNING,
-        },
-      ],
-      status: TokenStatus.USER_PIN_EXPIRED,
-      logged_in: true,
-      available: true,
-      saved_to_configuration: true,
-      read_only: false,
-      serial_number: 'yfjhgjghgfhs',
-    },
-  ],
-  selectedToken: undefined,
-};
-
-export const tokensGetters: GetterTree<TokensState, RootState> = {
-  tokenExpanded: (state) => (id: string) => {
-    return state.expandedTokens.includes(id);
+      count: 20,
+    };
   },
-  [StoreTypes.getters.TOKENS](state): Token[] {
-    return state.tokens;
-  },
-  [StoreTypes.getters.SORTED_TOKENS](state): Token[] {
-    if (!state.tokens || state.tokens.length === 0) {
-      return [];
-    }
+  getters: {
+    tokenExpanded: (state) => (id: string) => {
+      return state.expandedTokens.includes(id);
+    },
 
-    // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-    const arr = deepClone(state.tokens).sort((a, b) => {
-      if (a.id < b.id) {
-        return -1;
-      }
-      if (a.id > b.id) {
-        return 1;
+    getTokens(state) {
+      return state.tokens;
+    },
+
+    getSortedTokens(state) {
+      if (!state.tokens || state.tokens.length === 0) {
+        return [];
       }
 
-      // equal id:s. (should not happen)
-      return 0;
-    });
+      // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
+      const arr = deepClone(state.tokens).sort((a, b) => {
+        if (a.id < b.id) {
+          return -1;
+        }
+        if (a.id > b.id) {
+          return 1;
+        }
 
-    return arr;
-  },
-  [StoreTypes.getters.SELECTED_TOKEN](state): Token | undefined {
-    return state.selectedToken;
-  },
-};
+        // equal id:s. (should not happen)
+        return 0;
+      });
 
-// Mutations
-export const mutations: MutationTree<TokensState> = {
-  [StoreTypes.mutations.SET_TOKEN_HIDDEN](state, id: string) {
-    const index = state.expandedTokens.findIndex((element) => {
-      return element === id;
-    });
-
-    if (index >= 0) {
-      state.expandedTokens.splice(index, 1);
-    }
+      return arr;
+    },
+    getSelectedToken(state) {
+      return state.selectedToken;
+    },
   },
 
-  [StoreTypes.mutations.SET_TOKEN_EXPANDED](state, id: string) {
-    const index = state.expandedTokens.findIndex((element) => {
-      return element === id;
-    });
+  actions: {
+    setTokenHidden(id: string) {
+      const index = this.expandedTokens.findIndex((element) => {
+        return element === id;
+      });
 
-    if (index === -1) {
-      state.expandedTokens.push(id);
-    }
+      if (index >= 0) {
+        this.expandedTokens.splice(index, 1);
+      }
+    },
+
+    setTokenExpanded(id: string) {
+      const index = this.expandedTokens.findIndex((element) => {
+        return element === id;
+      });
+
+      if (index === -1) {
+        this.expandedTokens.push(id);
+      }
+    },
+
+    setTokens(tokens: Token[]) {
+      this.tokens = tokens;
+    },
+
+    setSelectedToken(token: Token) {
+      this.selectedToken = token;
+    },
   },
-
-  [StoreTypes.mutations.SET_TOKENS](state, tokens: Token[]) {
-    state.tokens = tokens;
-  },
-
-  [StoreTypes.mutations.SET_SELECTED_TOKEN](state, token: Token) {
-    state.selectedToken = token;
-  },
-};
-
-export const actions: ActionTree<TokensState, RootState> = {
-  // Actions
-};
-
-export const module: Module<TokensState, RootState> = {
-  namespaced: false,
-  state: tokensState,
-  getters: tokensGetters,
-  actions,
-  mutations,
-};
+});

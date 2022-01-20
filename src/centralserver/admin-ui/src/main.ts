@@ -40,12 +40,19 @@ import './plugins/vee-validate';
 import './filters';
 import App from './App.vue';
 import router from './router';
-import store from './store';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
 import i18n from './i18n';
+import { createPinia, PiniaVuePlugin } from 'pinia';
+import VueCompositionAPI from '@vue/composition-api';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
+Vue.use(VueCompositionAPI);
+Vue.use(PiniaVuePlugin);
+
+const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
 Vue.config.productionTip = false;
 
 axios.defaults.baseURL = process.env.VUE_APP_BASE_URL;
@@ -55,8 +62,8 @@ Vue.use(Router);
 
 new Vue({
   router,
-  store,
   i18n,
   vuetify,
+  pinia,
   render: (h) => h(App),
 }).$mount('#app');

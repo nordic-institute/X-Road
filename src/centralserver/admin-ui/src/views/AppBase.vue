@@ -60,8 +60,10 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { RouteName, StoreTypes, Timeouts } from '@/global';
+import { RouteName, Timeouts } from '@/global';
 import { get } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   data() {
@@ -71,8 +73,9 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(userStore, ['isSessionAlive']),
     showDialog(): boolean {
-      return this.$store.getters[StoreTypes.getters.IS_SESSION_ALIVE] === false;
+      return this.isSessionAlive === false;
     },
   },
   created() {
@@ -83,6 +86,8 @@ export default Vue.extend({
     // Set interval to poll backend for session
   },
   methods: {
+    ...mapActions(userStore, ['setSessionAlive']),
+    ...mapActions(userStore, { storeLogout: 'logout' }),
     pollSessionStatus() {
       return get('/notifications/session-status')
         .then(() => {
@@ -91,13 +96,13 @@ export default Vue.extend({
         })
         .catch((error) => {
           if (error?.response?.status === 401) {
-            this.$store.commit(StoreTypes.mutations.SET_SESSION_ALIVE, false);
+            this.setSessionAlive(false);
             clearInterval(this.sessionPollInterval);
           }
         });
     },
     logout(): void {
-      this.$store.dispatch(StoreTypes.actions.LOGOUT);
+      this.storeLogout();
       this.$router.replace({ name: RouteName.Login });
     },
   },

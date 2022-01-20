@@ -73,6 +73,8 @@ import {
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
 import { Prop } from 'vue/types/options';
+import { mapActions } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -119,6 +121,7 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     canDeleteCsr(key: Key): boolean {
       // Decide if the user can delete CSR based on the key usage type and permissions
       // TODO
@@ -147,11 +150,11 @@ export default Vue.extend({
           )}/csrs/${encodePathParameter(this.selectedCsr.id)}`,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', 'keys.csrDeleted');
+          this.showSuccess(this.$t('keys.csrDeleted'));
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },

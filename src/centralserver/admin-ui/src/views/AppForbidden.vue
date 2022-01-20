@@ -69,17 +69,21 @@
 import Vue from 'vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import { StoreTypes } from '@/global';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
     TabsBase,
     AlertsContainer,
   },
+  computed: {
+    ...mapState(userStore, ['getFirstAllowedTab']),
+  },
   methods: {
     home(): void {
       this.$router.replace({
-        name: this.$store.getters[StoreTypes.getters.FIRST_ALLOWED_TAB].to.name,
+        name: this.getFirstAllowedTab.to.name,
       });
     },
     goBack(): void {

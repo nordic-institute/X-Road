@@ -115,8 +115,12 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
+import { mapActions } from 'pinia';
+import { userStore } from '@/store/modules/user';
+import { notificationsStore } from '@/store/modules/notifications';
+import { systemStore } from '@/store/modules/system';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import { RouteName, StoreTypes } from '@/global';
+import { RouteName } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 
@@ -157,9 +161,16 @@ export default (
     },
   },
   methods: {
+    ...mapActions(userStore, ['login', 'fetchUserData']),
+    ...mapActions(notificationsStore, [
+      'showError',
+      'showErrorMessage',
+      'resetNotifications',
+    ]),
+    ...mapActions(systemStore, ['fetchSystemStatus', 'fetchServerVersion']),
     async submit() {
-      // Clear old error notifications (if they) before submit
-      await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
+      // Clear old error notifications (if they exist) before submit
+      await this.resetNotifications();
 
       // Validate inputs
       const isValid = await this.$refs.form.validate();
@@ -176,12 +187,11 @@ export default (
       this.$refs.form.reset();
       this.loading = true;
 
-      this.$store
-        .dispatch(StoreTypes.actions.LOGIN, loginData)
+      this.login(loginData)
         .then(
           () => {
             // Auth ok. Start phase 2 (fetch user data and current security server info).
-            this.fetchUserData()
+            this.requestUserData()
               .then(this.fetchServerVersion)
               .then(this.fetchSystemStatus)
               .then(() => {
@@ -193,7 +203,7 @@ export default (
                 this.loading = false;
               })
               .catch((error) => {
-                this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+                this.showError(error);
                 this.loading = false;
               });
           },
@@ -214,29 +224,25 @@ export default (
                   password: [this.$t('login.errorMsg401') as string],
                 });
               });
+
+              this.showErrorMessage(this.$t('login.generalError'));
+            } else {
+              this.showError(error);
             }
-            this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+
             // Clear loading state
             this.loading = false;
           },
         )
         .catch((error) => {
-          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+          this.showError(error);
           this.loading = false;
         });
     },
-    async fetchUserData() {
+    async requestUserData() {
       this.$refs.form.reset();
       this.loading = true;
-      return this.$store.dispatch(StoreTypes.actions.FETCH_USER_DATA);
-    },
-
-    async fetchServerVersion() {
-      return this.$store.dispatch(StoreTypes.actions.FETCH_SERVER_VERSION);
-    },
-
-    async fetchSystemStatus() {
-      return this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
+      return this.fetchUserData();
     },
   },
 });
