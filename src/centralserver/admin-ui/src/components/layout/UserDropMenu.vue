@@ -28,7 +28,7 @@
     <v-menu bottom right>
       <template #activator="{ on }">
         <v-btn text class="no-uppercase" data-test="username-button" v-on="on">
-          {{ username }}
+          {{ getUsername }}
           <v-icon>mdi-chevron-down</v-icon>
         </v-btn>
       </template>
@@ -50,16 +50,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { RouteName, StoreTypes } from '@/global';
+import { RouteName } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   computed: {
-    ...mapGetters({ username: StoreTypes.getters.USERNAME }),
+    ...mapState(userStore, ['getUsername']),
   },
   methods: {
+    ...mapActions(userStore, { storeLogout: 'logout' }),
     logout(): void {
-      this.$store.dispatch(StoreTypes.actions.LOGOUT);
+      this.storeLogout();
       this.$router.replace({ name: RouteName.Login });
     },
   },

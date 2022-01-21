@@ -213,7 +213,7 @@
                 </div>
               </td>
               <td>
-                {{ managementServices.centralServerAddress }}
+                {{ serverAddress }}
               </td>
               <td></td>
             </tr>
@@ -299,9 +299,12 @@
 import Vue, { VueConstructor } from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { ErrorInfo } from '@/openapi-types';
-import { StoreTypes } from '@/global';
 import { ValidationProvider } from 'vee-validate';
 import { AxiosError } from 'axios';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { systemStore } from '@/store/modules/system';
+
 import {
   getErrorInfo,
   getTranslatedFieldErrors,
@@ -333,9 +336,7 @@ export default (
         serviceProviderName: 'NIIS',
         managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
         wsdlAddress: 'https://dev-cs.i.x-road.rocks/managementservices.wsdl',
-        centralServerAddress:
-          this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-            ?.initialization_status?.central_server_address,
+
         securityServerOwnerroupCode: 'security-server-owners',
       },
       memberClasses: [
@@ -355,6 +356,7 @@ export default (
     };
   },
   computed: {
+    ...mapState(systemStore, ['getSystemStatus']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -378,29 +380,32 @@ export default (
       ];
     },
 
-    serverAddress(): string {
-      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-        ?.initialization_status?.central_server_address;
+    serverAddress(): string | undefined {
+      return this.getSystemStatus?.initialization_status
+        ?.central_server_address;
     },
-    instanceIdentifier(): string {
-      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-        ?.initialization_status?.instance_identifier;
+    instanceIdentifier(): string | undefined {
+      return this.getSystemStatus?.initialization_status?.instance_identifier;
     },
   },
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
+    ...mapActions(systemStore, [
+      'fetchSystemStatus',
+      'updateCentralServerAddress',
+    ]),
     async onServerAddressSave(serverAddress: string): Promise<void> {
       try {
-        await this.$store.dispatch(
-          StoreTypes.actions.UPDATE_CENTRAL_SERVER_ADDRESS,
-          {
-            central_server_address: serverAddress,
-          },
-        );
-        await this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
-        await this.$store.dispatch(
-          StoreTypes.actions.SHOW_SUCCESS,
+        await this.updateCentralServerAddress({
+          central_server_address: serverAddress,
+        });
+
+        await this.fetchSystemStatus();
+
+        this.showSuccess(
           this.$t('systemSettings.editCentralServerAddressSuccess'),
         );
+
         this.isEditingServerAddress = false;
       } catch (updateError: unknown) {
         const errorInfo: ErrorInfo = getErrorInfo(updateError as AxiosError);
@@ -417,17 +422,14 @@ export default (
           }
           this.isEditingServerAddress = true;
         } else {
-          await this.$store.dispatch(
-            StoreTypes.actions.SHOW_ERROR,
-            updateError,
-          );
+          this.showError(updateError as AxiosError);
           this.isEditingServerAddress = false;
         }
         return;
       }
     },
     onServerAddressEdit(): void {
-      this.renewedServerAddress = this.serverAddress;
+      this.renewedServerAddress = this.serverAddress ? this.serverAddress : '';
       this.isEditingServerAddress = true;
     },
     onCancelAddressEdit(): void {

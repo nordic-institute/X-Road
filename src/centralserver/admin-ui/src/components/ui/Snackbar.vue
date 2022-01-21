@@ -65,8 +65,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { Colors, StoreTypes } from '@/global';
+import { Colors } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -76,13 +77,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters({
-      successNotifications: StoreTypes.getters.SUCCESS_NOTIFICATIONS,
+    ...mapState(notificationsStore, {
+      successNotifications: 'getSuccessNotifications',
     }),
   },
   methods: {
+    ...mapActions(notificationsStore, ['deleteSuccessNotification']),
     closeSuccess(id: number): void {
-      this.$store.commit(StoreTypes.mutations.DELETE_SUCCESS_NOTIFICATION, id);
+      this.deleteSuccessNotification(id);
     },
   },
 });

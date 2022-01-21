@@ -43,8 +43,6 @@ import Vue from 'vue';
 import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
 import { RouteName } from '@/global';
 
 export default Vue.extend({
@@ -56,7 +54,6 @@ export default Vue.extend({
     Snackbar,
   },
   computed: {
-    ...mapGetters([StoreTypes.getters.USERNAME]),
     loginView(): boolean {
       return this.$route.name !== RouteName.Login;
     },

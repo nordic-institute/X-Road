@@ -30,7 +30,7 @@
         <div class="xrd-view-title">{{ $t('members.header') }}</div>
         <xrd-search v-model="search" />
       </div>
-      <xrd-button data-test="add-member-button" @click="() => {}">
+      <xrd-button data-test="add-member-button">
         <xrd-icon-base class="xrd-large-button-icon"
           ><xrd-icon-add
         /></xrd-icon-base>

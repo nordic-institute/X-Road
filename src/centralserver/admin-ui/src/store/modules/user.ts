@@ -23,191 +23,174 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { mainTabs, RootState, StoreTypes } from '@/global';
-import { RouteConfig } from 'vue-router';
-import routes from '@/router/routes';
+import { defineStore } from 'pinia';
 import { Tab } from '@/ui-types';
 import { User } from '@/openapi-types';
+import { mainTabs } from '@/global';
 import { get } from '@/util/api';
+import { RouteConfig } from 'vue-router';
+import routes from '@/router/routes';
 
-export interface State {
-  authenticated: boolean;
-  bannedRoutes: undefined | string[];
-  isSessionAlive: boolean | undefined;
-  username: string;
-  permissions: string[];
-}
+export const userStore = defineStore('userStore', {
+  state: () => {
+    return {
+      authenticated: false,
+      bannedRoutes: [] as string[],
+      isSessionAlive: false,
+      username: 'dsf' as string,
+      permissions: [] as string[],
+      count: 0,
+    };
+  },
+  persist: true,
+  getters: {
+    getUsername(): string {
+      return this.username;
+    },
+    isAuthenticated(): boolean {
+      return this.authenticated;
+    },
+    hasPermission: (state) => {
+      // Return true if the user has given permission
+      return (permission: string) => state.permissions.includes(permission);
+    },
 
-export const getDefaultState = (): State => {
-  return {
-    authenticated: false,
-    bannedRoutes: undefined,
-    isSessionAlive: undefined,
-    username: '',
-    permissions: [],
-  };
-};
+    hasAnyOfPermissions: (state) => {
+      // Return true if the user has at least one of the tabs permissions
+      return (perm: string[]): boolean =>
+        perm?.some((permission) => state.permissions.includes(permission));
+    },
 
-// Initial state. The state can be reseted with this.
-const moduleState = getDefaultState();
+    getAllowedTabs: (state) => (tabs: Tab[]) => {
+      // returns filtered array of Tab objects based on the 'permission' attribute
+      return tabs?.filter((tab: Tab) => {
+        const neededPermissions = tab.permissions;
 
-export const getters: GetterTree<State, RootState> = {
-  [StoreTypes.getters.IS_AUTHENTICATED](state) {
-    return state.authenticated;
-  },
-  [StoreTypes.getters.IS_SESSION_ALIVE](state) {
-    return state.isSessionAlive;
-  },
-  [StoreTypes.getters.USERNAME](state) {
-    return state.username;
-  },
-  [StoreTypes.getters.HAS_PERMISSION]: (state) => (permission: string) => {
-    return state.permissions.includes(permission);
-  },
-  [StoreTypes.getters.HAS_ANY_OF_PERMISSIONS]: (state) => (perm: string[]) => {
-    // Return true if the user has at least one of the tabs permissions
-    return perm?.some((permission) => state.permissions.includes(permission));
-  },
-  [StoreTypes.getters.GET_ALLOWED_TABS]: (state, getters) => (tabs: Tab[]) => {
-    // returns filtered array of Tab objects based on the 'permission' attribute
-    return tabs?.filter((tab: Tab) => {
-      const neededPermissions = tab.permissions;
-      return !!(
-        neededPermissions &&
-        getters[StoreTypes.getters.HAS_ANY_OF_PERMISSIONS](neededPermissions)
-      );
-    });
-  },
-  [StoreTypes.getters.FIRST_ALLOWED_TAB](state, getters) {
-    return getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs)[0];
-  },
-};
-
-export const mutations: MutationTree<State> = {
-  [StoreTypes.mutations.AUTH_USER](state) {
-    state.authenticated = true;
-  },
-  [StoreTypes.mutations.SET_SESSION_ALIVE]: (state, value: boolean) => {
-    state.isSessionAlive = value;
-  },
-  [StoreTypes.mutations.CLEAR_AUTH_DATA](state) {
-    Object.assign(state, getDefaultState());
-  },
-  [StoreTypes.mutations.SET_USERNAME]: (state, username: string) => {
-    state.username = username;
-  },
-  [StoreTypes.mutations.SET_PERMISSIONS]: (state, permissions: string[]) => {
-    state.permissions = permissions;
-
-    // Function for checking routes recursively
-    function getAllowed(route: RouteConfig): void {
-      if (!state.bannedRoutes) return;
-
-      // Check that the route has name and permissions
-      if (route.name && route?.meta?.permissions) {
-        // Find out routes that the user doesn't have permissions to access
-        if (
-          !route.meta.permissions.some((permission: string) =>
-            permissions.includes(permission),
+        return !!(
+          neededPermissions &&
+          neededPermissions?.some((permission) =>
+            state.permissions.includes(permission),
           )
-        ) {
-          // Add a banned route to the array
-          state.bannedRoutes.push(route.name);
-        }
-      }
-
-      // Check the child routes recursively
-      if (route.children) {
-        route.children.forEach((child: RouteConfig) => {
-          getAllowed(child);
-        });
-      }
-    }
-
-    // Init banned routes array
-    state.bannedRoutes = [];
-    // Go through the route permissions
-    routes.forEach((route) => {
-      getAllowed(route);
-    });
-  },
-};
-
-export const actions: ActionTree<State, RootState> = {
-  [StoreTypes.actions.LOGIN]({ commit, dispatch }, authData) {
-    const data = `username=${encodeURIComponent(
-      authData.username,
-    )}&password=${encodeURIComponent(authData.password)}`;
-
-    return axiosAuth({
-      url: '/login',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data,
-    }).then(() => {
-      commit(StoreTypes.mutations.AUTH_USER);
-      commit(StoreTypes.mutations.SET_SESSION_ALIVE, true);
-      dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
-    });
-  },
-
-  async [StoreTypes.actions.FETCH_SESSION_STATUS]({ commit }) {
-    return axios
-      .get('/notifications/session-status')
-      .then((res) => {
-        commit(
-          StoreTypes.mutations.SET_SESSION_ALIVE,
-          res?.data?.valid ?? false,
         );
-      })
-      .catch(() => {
-        commit(StoreTypes.mutations.SET_SESSION_ALIVE, false);
       });
+    },
+
+    getFirstAllowedTab(): Tab {
+      return this.getAllowedTabs(mainTabs)[0];
+    },
   },
 
-  async [StoreTypes.actions.FETCH_USER_DATA]({ commit }) {
-    return get<User>('/user')
-      .then((user) => {
-        commit(StoreTypes.mutations.SET_USERNAME, user?.data?.username);
-        commit(StoreTypes.mutations.SET_PERMISSIONS, user?.data?.permissions);
-      })
-      .catch((error) => {
-        throw error;
+  actions: {
+    async login(authData: { username: string; password: string }) {
+      const data = `username=${encodeURIComponent(
+        authData.username,
+      )}&password=${encodeURIComponent(authData.password)}`;
+
+      return axiosAuth({
+        url: '/login',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        data,
+      }).then(() => {
+        this.authenticated = true;
+        this.isSessionAlive = true;
+
+        // IS this needed??
+        //dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
       });
-  },
+    },
 
-  [StoreTypes.actions.LOGOUT]({ commit }, reload = true) {
-    // Clear auth data
-    commit(StoreTypes.mutations.CLEAR_AUTH_DATA);
+    async fetchSessionStatus() {
+      return axios
+        .get('/notifications/session-status')
+        .then((res) => {
+          this.isSessionAlive = res?.data?.valid ?? false;
+        })
+        .catch(() => {
+          this.isSessionAlive = false;
+        });
+    },
 
-    // Call backend for logout
-    axiosAuth
-      .post('/logout')
-      .catch(() => {
-        // Nothing to do
-      })
-      .finally(() => {
-        if (reload) {
-          // Reload the browser page to clean up the memory
-          location.reload();
+    async fetchUserData() {
+      return get<User>('/user')
+        .then((user) => {
+          this.username = user?.data?.username;
+          this.setPermissions(user?.data?.permissions);
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    setPermissions(permissions: string[]) {
+      this.permissions = permissions;
+
+      const tempBannedRoutes: string[] = [];
+
+      // Recursive function for checking routes recursively
+      function getAllowed(route: RouteConfig, permissions: string[]): void {
+        if (!tempBannedRoutes) return;
+
+        // Check that the route has name and permissions
+        if (route.name && route?.meta?.permissions) {
+          // Find out routes that the user doesn't have permissions to access
+          if (
+            !route.meta.permissions.some((permission: string) =>
+              permissions.includes(permission),
+            )
+          ) {
+            // Add a banned route to the array
+            tempBannedRoutes.push(route.name);
+          }
         }
+
+        // Check the child routes recursively
+        if (route.children) {
+          route.children.forEach((child: RouteConfig) => {
+            getAllowed(child, permissions);
+          });
+        }
+      }
+
+      // Init banned routes array
+      this.bannedRoutes = [];
+      // Go through the route permissions
+      routes.forEach((route) => {
+        getAllowed(route, this.permissions);
       });
-  },
+      this.bannedRoutes = tempBannedRoutes;
+    },
 
-  [StoreTypes.actions.CLEAR_AUTH]: ({ commit }) => {
-    commit(StoreTypes.mutations.CLEAR_AUTH_DATA);
-  },
-};
+    logout(reload = true) {
+      // Clear auth data
+      this.clearAuth();
 
-export const module: Module<State, RootState> = {
-  namespaced: false,
-  state: moduleState,
-  getters,
-  actions,
-  mutations,
-};
+      // Call backend for logout
+      axiosAuth
+        .post('/logout')
+        .catch(() => {
+          // Nothing to do
+        })
+        .finally(() => {
+          if (reload) {
+            // Reload the browser page to clean up the memory
+            location.reload();
+          }
+        });
+    },
+
+    clearAuth() {
+      // Clear auth by resetting the state
+      this.$reset();
+    },
+
+    setSessionAlive(value: boolean) {
+      this.isSessionAlive = value;
+    },
+  },
+});

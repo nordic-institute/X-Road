@@ -24,13 +24,10 @@
  * THE SOFTWARE.
  */
 
-import { createLocalVue } from '@vue/test-utils';
-import Vuex, { Store } from 'vuex';
-import { State, module as storeConfig } from '@/store/modules/user';
-import { mainTabs, StoreTypes } from '@/global';
-
-// the locally brewed deepClone was not deep enough...
-import cloneDeep from 'lodash/cloneDeep';
+import { mainTabs } from '@/global';
+import { createPinia } from 'pinia';
+import { setActivePinia } from 'pinia';
+import { userStore } from '@/store/modules/user';
 
 const testPermissions: string[] = [
   'EDIT_APPROVED_TSA',
@@ -83,45 +80,43 @@ const memberPermissions: Array<string> = [
   'VIEW_MEMBER_DETAILS',
   'SEARCH_MEMBERS',
 ];
-let userStore: Store<State>;
 
 describe('user store user.ts  -- setters & getters', () => {
   beforeEach(() => {
-    const localVue = createLocalVue();
-    localVue.use(Vuex);
-    const renewedStoreConfig = cloneDeep(storeConfig);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    userStore = new Vuex.Store<State>(renewedStoreConfig);
+    // creates a fresh pinia and make it active so it's automatically picked
+    // up by any useStore() call without having to pass it to it:
+    // `useStore(pinia)`
+    setActivePinia(createPinia());
   });
-  it('SET_PERMISSIONS fills permissions & bannedRoutes', () => {
-    userStore.commit(StoreTypes.mutations.SET_PERMISSIONS, testPermissions);
-    const storedState: State = userStore.state;
-    expect(storedState.permissions).toHaveLength(testPermissions.length);
-    expect(storedState.permissions).toEqual(testPermissions);
-    expect(storedState.bannedRoutes?.length).toBeLessThan(
-      storedState.permissions.length,
-    );
-    // member-details  needs "VIEW_MEMBER_DETAILS" - permission which is not contained in testPermissions
-    expect(storedState.bannedRoutes).toContainEqual('member-details');
-    expect(storedState.permissions).not.toContainEqual('VIEW_MEMBER_DETAILS');
-  });
-  it('GET_ALLOWED_TABS filters correctly', () => {
-    userStore.commit(StoreTypes.mutations.SET_PERMISSIONS, memberPermissions);
-    expect(mainTabs).not.toBeUndefined();
-    const allowedTabs =
-      userStore.getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs);
 
+  it('SET_PERMISSIONS fills permissions & bannedRoutes', () => {
+    const store = userStore();
+    store.setPermissions(testPermissions);
+
+    expect(store.permissions).toHaveLength(testPermissions.length);
+    expect(store.permissions).toEqual(testPermissions);
+    expect(store.bannedRoutes?.length).toBeLessThan(store.permissions.length);
+    // member-details  needs "VIEW_MEMBER_DETAILS" - permission which is not contained in testPermissions
+    expect(store.bannedRoutes).toContainEqual('member-details');
+    expect(store.permissions).not.toContainEqual('VIEW_MEMBER_DETAILS');
+  });
+
+  it('GET_ALLOWED_TABS filters correctly', () => {
+    const store = userStore();
+    store.setPermissions(memberPermissions);
+    expect(mainTabs).not.toBeUndefined();
+
+    const allowedTabs = store.getAllowedTabs(mainTabs);
     expect(allowedTabs).not.toBeUndefined();
     expect(allowedTabs.length).toBeLessThan(mainTabs.length);
     expect(allowedTabs.length).toEqual(1);
     expect(allowedTabs[0].name).toEqual('tab.main.members');
   });
-  it('FIRST_ALLOWED_TAB returns right tab', () => {
-    userStore.commit(StoreTypes.mutations.SET_PERMISSIONS, memberPermissions);
-    const { FIRST_ALLOWED_TAB } = StoreTypes.getters;
-    const firstTab = userStore.getters[FIRST_ALLOWED_TAB];
 
+  it('FIRST_ALLOWED_TAB returns right tab', () => {
+    const store = userStore();
+    store.setPermissions(memberPermissions);
+    const firstTab = store.getFirstAllowedTab;
     expect(firstTab).not.toBeNull();
     expect(firstTab.name).toEqual('tab.main.members');
   });

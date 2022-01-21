@@ -195,10 +195,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Roles, StoreTypes } from '@/global';
+import { Roles } from '@/global';
 import { ApiKey } from '@/api-types';
 import * as api from '@/util/api';
 import { toClipboard } from '@/util/helpers';
+import { mapActions } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 
 export default Vue.extend({
   name: 'CreateApiKeyStepper',
@@ -227,6 +229,7 @@ export default Vue.extend({
     },
   },
   methods: {
+    ...mapActions(notificationsStore, ['showError', 'showSuccess']),
     close(): void {
       this.$router.back();
     },
@@ -236,14 +239,9 @@ export default Vue.extend({
         .post<ApiKey>('/api-keys', this.selectedRoles)
         .then((resp) => {
           this.apiKey = resp.data;
-          this.$store.dispatch(
-            StoreTypes.actions.SHOW_SUCCESS,
-            this.$t('apiKey.createApiKey.success'),
-          );
+          this.showSuccess(this.$t('apiKey.createApiKey.success'));
         })
-        .catch((error) =>
-          this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error),
-        )
+        .catch((error) => this.showError(error))
         .finally(() => (this.generatingKey = false));
     },
     copyKey(): void {

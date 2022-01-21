@@ -23,24 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { AxiosError } from 'axios';
-import { RootState, StoreTypes } from '@/global';
+
 import { ActionError, Notification } from '@/ui-types';
+import { defineStore } from 'pinia';
+import { TranslateResult } from 'vue-i18n';
+import { AxiosError } from 'axios';
 
-export interface State {
-  errorNotifications: Notification[];
-  successNotifications: Notification[];
-  continueInitialisation: boolean;
-}
-
-const getDefaultState = () => {
-  return {
-    errorNotifications: [],
-    successNotifications: [],
-    continueInitialisation: false,
-  };
-};
+// Helper functions
 
 // Finds if an array of notifications contains a similar notification.
 function containsNotification(
@@ -84,17 +73,21 @@ function containsNotification(
 }
 
 // Add error notification to the store
-function addErrorNotification(state: State, notification: Notification): void {
+function addErrorNotification(
+  errorNotifications: Notification[],
+  notification: Notification,
+): Notification[] {
   // Check for duplicate
-  const index = containsNotification(state.errorNotifications, notification);
+  const index = containsNotification(errorNotifications, notification);
 
   if (index > -1) {
     // If there is a duplicate, remove it and increase the count
-    notification.count = state.errorNotifications[index].count + 1;
-    state.errorNotifications.splice(index, 1);
+    notification.count = errorNotifications[index].count + 1;
+    errorNotifications.splice(index, 1);
   }
 
-  state.errorNotifications.push(notification);
+  errorNotifications.push(notification);
+  return errorNotifications;
 }
 
 function createEmptyNotification(timeout: number): Notification {
@@ -107,111 +100,92 @@ function createEmptyNotification(timeout: number): Notification {
   };
 }
 
-// Initial state. The state can be reseted with this.
-const notificationsState: State = getDefaultState();
-
-export const getters: GetterTree<State, RootState> = {
-  [StoreTypes.getters.SUCCESS_NOTIFICATIONS](state: State): Notification[] {
-    return state.successNotifications;
+export const notificationsStore = defineStore('notificationsStore', {
+  state: () => {
+    return {
+      errorNotifications: [] as Notification[],
+      successNotifications: [] as Notification[],
+      continueInitialisation: false,
+    };
   },
-  [StoreTypes.getters.ERROR_NOTIFICATIONS](state: State): Notification[] {
-    return state.errorNotifications;
-  },
-  [StoreTypes.getters.CONTINUE_INIT](state: State): boolean {
-    return state.continueInitialisation;
-  },
-};
-
-export const mutations: MutationTree<State> = {
-  [StoreTypes.mutations.SET_NOTIFICATIONS_DEFAULT_STATE](state): void {
-    Object.assign(state, getDefaultState());
-  },
-
-  [StoreTypes.mutations.SET_SUCCESS](state: State, val: string): void {
-    const notification = createEmptyNotification(3000);
-    notification.successMessage = val;
-    state.successNotifications.push(notification);
+  getters: {
+    getSuccessNotifications(state) {
+      return state.successNotifications;
+    },
+    getErrorNotifications(state) {
+      return state.errorNotifications;
+    },
+    getContinueInit(state) {
+      return state.continueInitialisation;
+    },
   },
 
-  [StoreTypes.mutations.SET_ERROR_MESSAGE](state: State, val: string): void {
-    const notification = createEmptyNotification(-1);
-    notification.errorMessage = val;
-    addErrorNotification(state, notification);
-  },
+  actions: {
+    resetNotifications() {
+      // Clear the store state
+      this.$reset();
+    },
 
-  [StoreTypes.mutations.SET_ERROR_OBJECT](
-    state: State,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    errorObject: any,
-  ): void {
-    const notification = createEmptyNotification(-1);
-    notification.errorObject = errorObject;
-    addErrorNotification(state, notification);
-  },
+    showSuccess(messageText: string | TranslateResult): void {
+      // Show success snackbar with text string
+      const notification = createEmptyNotification(3000);
+      notification.successMessage = messageText as string;
+      this.successNotifications.push(notification);
+    },
 
-  [StoreTypes.mutations.DELETE_SUCCESS_NOTIFICATION](
-    state: State,
-    id: number,
-  ): void {
-    state.successNotifications = state.successNotifications.filter(
-      (item: Notification) => item.timeAdded !== id,
-    );
-  },
+    showErrorMessage(messageText: string | TranslateResult): void {
+      // Show error snackbar with text string
+      //commit(StoreTypes.mutations.SET_ERROR_MESSAGE, messageText);
+      const notification = createEmptyNotification(-1);
+      notification.errorMessage = messageText as string;
+      this.errorNotifications = addErrorNotification(
+        this.errorNotifications,
+        notification,
+      );
+    },
 
-  [StoreTypes.mutations.DELETE_NOTIFICATION](state: State, id: number): void {
-    state.errorNotifications = state.errorNotifications.filter(
-      (item: Notification) => item.timeAdded !== id,
-    );
-  },
+    // Show error notification with axios error object
+    showError(errorObject: AxiosError): void {
+      // Show error using the x-road specific data in an axios error object
+      // Don't show errors when the errorcode is 401 which is usually because of session expiring
+      if (errorObject?.response?.status !== 401) {
+        const notification = createEmptyNotification(-1);
+        notification.errorObject = errorObject;
+        this.errorNotifications = addErrorNotification(
+          this.errorNotifications,
+          notification,
+        );
+      }
+    },
 
-  [StoreTypes.mutations.SET_ERROR_ACTION](
-    state: State,
-    val: ActionError,
-  ): void {
-    const notification = createEmptyNotification(-1);
-    notification.action = val.action;
-    notification.errorMessage = val.errorMessage;
-    addErrorNotification(state, notification);
-  },
+    deleteSuccessNotification(id: number): void {
+      this.successNotifications = this.successNotifications.filter(
+        (item: Notification) => item.timeAdded !== id,
+      );
+    },
+    deleteNotification(id: number): void {
+      this.errorNotifications = this.errorNotifications.filter(
+        (item: Notification) => item.timeAdded !== id,
+      );
+    },
 
-  [StoreTypes.mutations.SET_CONTINUE_INIT](state: State, val: boolean): void {
-    state.continueInitialisation = val;
-  },
-};
+    // Add error with an action
+    setErrorAction(val: ActionError): void {
+      const notification = createEmptyNotification(-1);
+      notification.action = val.action;
+      notification.errorMessage = val.errorMessage;
+      this.errorNotifications = addErrorNotification(
+        this.errorNotifications,
+        notification,
+      );
+    },
 
-export const actions: ActionTree<State, RootState> = {
-  [StoreTypes.actions.RESET_NOTIFICATIONS_STATE]({ commit }): void {
-    // Clear the store state
-    commit(StoreTypes.mutations.SET_NOTIFICATIONS_DEFAULT_STATE);
-  },
+    setContinueInit(val: boolean): void {
+      this.continueInitialisation = val;
+    },
 
-  [StoreTypes.actions.SHOW_SUCCESS]({ commit }, messageText: string): void {
-    // Show success snackbar with text string
-    commit(StoreTypes.mutations.SET_SUCCESS, messageText);
+    clearCounter() {
+      this.$reset();
+    },
   },
-
-  [StoreTypes.actions.SHOW_ERROR_MESSAGE](
-    { commit },
-    messageText: string,
-  ): void {
-    // Show error snackbar with text string
-    commit(StoreTypes.mutations.SET_ERROR_MESSAGE, messageText);
-  },
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [StoreTypes.actions.SHOW_ERROR]({ commit }, errorObject: AxiosError): void {
-    // Show error using the x-road specific data in an axios error object
-    // Don't show errors when the errorcode is 401 which is usually because of session expiring
-    if (errorObject?.response?.status !== 401) {
-      commit(StoreTypes.mutations.SET_ERROR_OBJECT, errorObject);
-    }
-  },
-};
-
-export const module: Module<State, RootState> = {
-  namespaced: false,
-  state: notificationsState,
-  getters,
-  actions,
-  mutations,
-};
+});
