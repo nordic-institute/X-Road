@@ -48,6 +48,8 @@ tags:
     description: resources related to Globalgroups
   - name: security-servers-certs
     description: resources related to Security Servers' Authentication Certificates
+  - name: central-services
+    description: resources related to Central Services
 paths:
   /certification-services:
     get:
@@ -2774,6 +2776,168 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
+  /central-services:
+    get:
+      tags:
+        - central-services
+      summary: get central services
+      operationId: getCentralServices
+      description: <h3>CS administrator fetches all Central Services.</h3>
+      responses:
+        '200':
+          description: list of central services
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of central services
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/CentralService'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    post:
+      tags:
+        - central-services
+      summary: add new central service
+      operationId: addCentralService
+      description: <h3>CS administrator adds a Central Service to the central server.</h3>
+      requestBody:
+        description: central service
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CentralService'
+      responses:
+        '201':
+          description: new central service created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralService'
+        '400':
+          description: there are errors in the request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                validation_errors_response:
+                  $ref: '#/components/examples/ValidationErrorsExample'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /central-services/{code}:
+    get:
+      tags:
+        - central-services
+      summary: get central service by its code
+      operationId: getCentralService
+      description: <h3>CS administrator views the details of a Central Service.</h3>
+      parameters:
+        - in: path
+          name: code
+          description: code of the central service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '200':
+          description: central service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - central-services
+      summary: update central service
+      operationId: updateCentralService
+      description: <h3>CS administrator updates the Central Service.</h3>
+      parameters:
+        - in: path
+          name: code
+          description: code of the central service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      requestBody:
+        description: the implementing service of the central service
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Service'
+      responses:
+        '200':
+          description: the updated central service
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CentralService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - central-services
+      summary: delete central service
+      operationId: deleteCentralService
+      description: <h3>CS administrator deletes a Central Service.</h3>
+      parameters:
+        - in: path
+          name: code
+          description: code of the central service
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   schemas:
     ApprovedCertificationService:
@@ -3177,6 +3341,45 @@ components:
           maxLength: 255
         member_type:
           $ref: '#/components/schemas/MemberType'
+    CentralService:
+      type: object
+      description: x-road central service
+      properties:
+        central_service_code:
+          type: string
+          format: text
+          description: central service code
+          example: myService
+          minLength: 1
+          maxLength: 255
+        implementing_service:
+          $ref: '#/components/schemas/Service'
+    Service:
+      type: object
+      description: x-road service
+      properties:
+        member_id:
+          type: string
+          format: text
+          description: the encoded string representation of the x-road member id
+          example: FI:GOV:123:ABC
+          minLength: 1
+          maxLength: 1023
+          readOnly: true
+        service_code:
+          type: string
+          format: text
+          description: service code
+          example: myService
+          minLength: 1
+          maxLength: 255
+        service_version:
+          type: string
+          format: text
+          description: service version
+          example: v2
+          minLength: 1
+          maxLength: 255
     MemberType:
       type: string
       format: text
