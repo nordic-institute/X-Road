@@ -46,6 +46,8 @@ tags:
     description: resources related to Security Servers
   - name: global-groups
     description: resources related to Globalgroups
+  - name: security-servers-certs
+    description: resources related to Security Servers' Authentication Certificates
 paths:
   /certification-services:
     get:
@@ -2077,6 +2079,15 @@ paths:
           schema:
             type: boolean
             default: true
+        - in: query
+          name: security_server
+          description: a security server id – only return members that belong to this security server
+          required: false
+          schema:
+            type: string
+            format: text
+            description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+            example: FI:GOV:123:sserver1
       responses:
         '200':
           description: list of members
@@ -2136,6 +2147,39 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
   /members/{id}:
+    get:
+      tags:
+        - members
+      summary: get a member by its id
+      operationId: getMember
+      description: <h3>CS administrator views a member's details.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the member
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: a member
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Member'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       tags:
         - members
@@ -2250,6 +2294,234 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /security-servers/{id}:
+    get:
+      tags:
+        - security-servers
+      summary: get a security server by its id
+      operationId: getSecurityServer
+      description: <h3>CS administrator views a Security Server's details.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: a security server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - security-servers
+      summary: delete a security server
+      operationId: deleteSecurityServer
+      description:
+        <h3>
+          CS administrator deletes a security server. System generates deletion requests for the clients and
+        authentication certificates registered for the deleted server.
+        </h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    patch:
+      tags:
+        - security-servers
+      summary: update the security server's address
+      operationId: updateSecurityServerAddress
+      description: <h3>CS administrator changes the address of a security server.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      requestBody:
+        description: security server address
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SecurityServerAddress'
+      responses:
+        '200':
+          description: the updated security server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityServer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /security-servers/{id}/authentication-certificates:
+    get:
+      tags:
+        - security-servers-certs
+      summary: get a security server's authentication certificates
+      operationId: getSecurityServerAuthCerts
+      description: <h3>CS administrator views a Security Server's authentication certificates.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+      responses:
+        '200':
+          description: list of auth certs
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of auth certs
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+  /security-servers/{id}/authentication-certificates/{hash}:
+    get:
+      tags:
+        - security-servers-certs
+      summary: get a security server's authentication certificate
+      operationId: getSecurityServerAuthCert
+      description: <h3>CS administrator views a Security Server's authentication certificate.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: hash
+          description: SHA-1 hash of the authentication certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '200':
+          description: auth cert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CertificateDetails'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      tags:
+        - security-servers-certs
+      summary: delete a security server's authentication certificate
+      operationId: deleteSecurityServerAuthCert
+      description: <h3>CS administrator deletes a Security Server's authentication certificate.</h3>
+      parameters:
+        - in: path
+          name: id
+          description: id of the security server
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 1023
+        - in: path
+          name: hash
+          description: SHA-1 hash of the authentication certificate
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 40
+      responses:
+        '204':
+          $ref: '#/components/responses/NoContent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /global-groups:
@@ -2554,11 +2826,25 @@ components:
           description: array containing ocsp responders
           items:
             $ref: '#/components/schemas/OcspResponder'
+    SecurityServerAddress:
+      type: object
+      description: security server address
+      required:
+        - server_address
+      properties:
+        server_address:
+          type: string
+          format: text
+          description: security server address (ip or name)
+          example: 192.168.1.100
+          maxLength: 255
     SecurityServer:
       type: object
       description: security server information
       required:
         - id
+      allOf:
+        - $ref: '#/components/schemas/SecurityServerAddress'
       properties:
         id:
           type: string
@@ -2593,12 +2879,18 @@ components:
           example: server123
           minLength: 1
           maxLength: 255
-        server_address:
+        registered_at:
+          type: string
+          format: date-time
+          description: the date-time when the server was registered
+          example: '2022-01-17T00:00:00.001Z'
+          minLength: 24
+          maxLength: 24
+        owner:
           type: string
           format: text
-          description: security server address (ip or name)
-          example: 192.168.1.100
-          maxLength: 255
+          description: <instance_id>:<member_class>:<member_code>:<security_server_code>
+          example: FI:GOV:123:sserver1
     Members:
       type: object
       description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
@@ -2810,7 +3102,7 @@ components:
           default: false
     MemberNameClassAndCode:
       type: object
-      description: x-road member name, class and code for when adding a new member
+      description: x-road member name, class and code
       required:
         - member_name
         - member_class
