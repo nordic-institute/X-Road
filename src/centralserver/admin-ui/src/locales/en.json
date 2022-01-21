@@ -354,7 +354,9 @@
     "serviceProviderIdentifier": "Service Provider Identifier",
     "serviceProviderName": "Service Provider Name",
     "systemParameters": "System Parameters",
-    "wsdlAddress": "WSDL Address"
+    "wsdlAddress": "WSDL Address",
+    "editMemberClassTitle": "Edit member class",
+    "addMemberClassTitle": "Add member class"
   },
   "tab": {
     "globalConf": {
