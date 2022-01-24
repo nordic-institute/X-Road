@@ -188,9 +188,6 @@ export default (
 
       try {
         await this.login(loginData);
-        await this.fetchServerVersion();
-        await this.fetchSystemStatus();
-        await this.routeToMembersPage();
       } catch (error) {
         // Display invalid username/password error in inputs
         if (error?.response?.status === 401) {
@@ -211,7 +208,16 @@ export default (
         } else {
           this.showError(error);
         }
-        // Clear loading state
+        this.loading = false;
+        return;
+      }
+      try {
+        await this.requestUserData();
+        await this.fetchServerVersion();
+        await this.fetchSystemStatus();
+        await this.routeToMembersPage();
+      } catch (error) {
+        this.showError(error);
         this.loading = false;
       }
     },
@@ -221,7 +227,7 @@ export default (
       return this.fetchUserData();
     },
     async routeToMembersPage() {
-      this.$router.replace({ name: RouteName.Members, })
+      this.$router.replace({ name: RouteName.Members })
         .catch(swallowRedirectedNavigationError);
       this.loading = false;
     },
