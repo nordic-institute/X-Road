@@ -271,7 +271,7 @@ export default (
     ...mapActions(systemStore, ['fetchSystemStatus', 'initalizationRequest']),
     async submit() {
       // validate inputs
-      const formData: InitialServerConf = {};
+      const formData: InitialServerConf = {} as InitialServerConf;
       if (!this.disabledFields.instanceIdentifier) {
         formData.instance_identifier = this.instanceIdentifier;
       }
