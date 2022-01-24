@@ -108,6 +108,8 @@ configure(subprojects.findAll { !["shared-ui"].contains(it.name) }) {
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
+    group = 'ee.ria.xroad'
+    version = '1.0'
 
     configurations {
         testArtifacts.extendsFrom testRuntime
