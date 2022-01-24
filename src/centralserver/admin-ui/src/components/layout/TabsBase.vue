@@ -52,9 +52,11 @@
 <script lang="ts">
 import Vue from 'vue';
 import { Tab } from '@/ui-types';
-import { mainTabs, StoreTypes } from '@/global';
+import { mainTabs } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './UserDropMenu.vue';
+import { mapState } from 'pinia';
+import { userStore } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -67,8 +69,9 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(userStore, ['getAllowedTabs']),
     allowedTabs(): Tab[] {
-      return this.$store.getters[StoreTypes.getters.GET_ALLOWED_TABS](mainTabs);
+      return this.getAllowedTabs(mainTabs);
     },
   },
 });

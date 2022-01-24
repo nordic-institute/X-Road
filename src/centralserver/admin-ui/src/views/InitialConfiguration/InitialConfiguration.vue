@@ -168,7 +168,7 @@
 import Vue, { VueConstructor } from 'vue';
 import { extend, ValidationObserver, ValidationProvider } from 'vee-validate';
 import i18n from '@/i18n';
-import { Colors, RouteName, StoreTypes } from '@/global';
+import { Colors, RouteName } from '@/global';
 import {
   ErrorInfo,
   InitializationStatus,
@@ -177,7 +177,9 @@ import {
 } from '@/openapi-types';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
 import { AxiosError } from 'axios';
-import { State } from '@/store/modules/initialization';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import { systemStore } from '@/store/modules/system';
 
 const PASSWORD_MATCH_ERROR: string = i18n.t('init.pin.pinMatchError') as string;
 
@@ -199,17 +201,6 @@ function getTranslatedFieldErrors(
     return errors.map((errorKey: string) => {
       return i18n.t(`validationError.${errorKey}Field`).toString();
     });
-  } else {
-    return [];
-  }
-}
-
-function invalidParamsErrors(errorInfo: ErrorInfo): Array<string> {
-  if (
-    400 === errorInfo.status &&
-    'invalid_init_params' === errorInfo.error?.code
-  ) {
-    return errorInfo.error.metadata || [];
   } else {
     return [];
   }
@@ -243,11 +234,17 @@ export default (
       },
     };
   },
-  computed: {},
-  created: function () {
-    const statusAtFirst: InitializationStatus =
-      this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-        ?.initialization_status;
+  computed: {
+    ...mapState(systemStore, ['getSystemStatus']),
+  },
+  created() {
+    if (!this.getSystemStatus?.initialization_status) {
+      // should not happen
+      return;
+    }
+
+    const statusAtFirst: InitializationStatus = this.getSystemStatus
+      ?.initialization_status as InitializationStatus;
 
     if (
       TokenInitStatus.INITIALIZED == statusAtFirst?.software_token_init_status
@@ -266,6 +263,12 @@ export default (
     }
   },
   methods: {
+    ...mapActions(notificationsStore, [
+      'showError',
+      'showSuccess',
+      'resetNotifications',
+    ]),
+    ...mapActions(systemStore, ['fetchSystemStatus', 'initalizationRequest']),
     async submit() {
       // validate inputs
       const formData: InitialServerConf = {};
@@ -278,54 +281,41 @@ export default (
       if (!this.disabledFields.pin) {
         formData.software_token_pin = this.pin;
       }
-      await this.$store.dispatch(StoreTypes.actions.RESET_NOTIFICATIONS_STATE);
-      await this.$store
-        .dispatch(StoreTypes.actions.INITIALIZATION_REQUEST, formData)
-        .then(
-          () => {
-            this.$router
-              .push({
-                name: RouteName.Members,
-              })
-              .catch(swallowRedirectedNavigationError);
-          },
-          (error: AxiosError) => {
-            const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
-            if (isFieldError(errorInfo)) {
-              const fieldErrors = errorInfo.error?.validation_errors;
-              if (fieldErrors) {
-                const identifierErrors: string[] = getTranslatedFieldErrors(
-                  'initialServerConf.instanceIdentifier',
-                  fieldErrors,
-                );
-                const addressErrors: string[] = getTranslatedFieldErrors(
-                  'initialServerConf.centralServerAddress',
-                  fieldErrors,
-                );
-                this.$refs.initializationForm.setErrors({
-                  'init.identifier': identifierErrors,
-                  'init.address': addressErrors,
-                });
-                this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
-              }
-              return;
-            }
-            if (invalidParamsErrors(errorInfo).length > 0) {
-              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
-              return;
-            }
-            if (isWeakPinError(errorInfo)) {
-              this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
-              return;
-            }
-            throw error;
-          },
-        )
+      this.resetNotifications();
+      await this.initalizationRequest(formData)
+        .then(() => {
+          this.$router
+            .push({
+              name: RouteName.Members,
+            })
+            .catch(swallowRedirectedNavigationError);
+        })
         .catch((error) => {
-          return this.$store.dispatch(StoreTypes.actions.SHOW_ERROR, error);
+          const errorInfo: ErrorInfo = error.response?.data || { status: 0 };
+          if (isFieldError(errorInfo)) {
+            const fieldErrors = errorInfo.error?.validation_errors;
+            if (fieldErrors) {
+              const identifierErrors: string[] = getTranslatedFieldErrors(
+                'initialServerConf.instanceIdentifier',
+                fieldErrors,
+              );
+              const addressErrors: string[] = getTranslatedFieldErrors(
+                'initialServerConf.centralServerAddress',
+                fieldErrors,
+              );
+              this.$refs.initializationForm.setErrors({
+                'init.identifier': identifierErrors,
+                'init.address': addressErrors,
+              });
+              this.showError(error);
+            }
+            return;
+          }
+
+          this.showError(error);
         })
         .finally(() => {
-          return this.$store.dispatch(StoreTypes.actions.FETCH_SYSTEM_STATUS);
+          return this.fetchSystemStatus();
         });
 
       function isFieldError(error: ErrorInfo) {
@@ -333,11 +323,6 @@ export default (
         return (
           400 === errorStatus && 'validation_failure' === error?.error?.code
         );
-      }
-
-      function isWeakPinError(error: ErrorInfo) {
-        const errorStatus = error.status;
-        return 400 === errorStatus && 'weak_pin' === error?.error?.code;
       }
     },
   },

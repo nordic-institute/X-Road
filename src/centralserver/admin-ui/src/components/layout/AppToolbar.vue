@@ -64,8 +64,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Colors, StoreTypes } from '@/global';
-import { Store } from 'vuex';
+import { Colors } from '@/global';
+import { mapState } from 'pinia';
+import { systemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'Toolbar',
@@ -75,22 +76,22 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(systemStore, ['getSystemStatus']),
+    ...mapState(systemStore, ['getSystemStatus', 'isServerInitialized']),
     initializationParameters() {
-      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-        ?.initialization_status;
+      return this.getSystemStatus?.initialization_status;
     },
     isInitialized(): boolean {
-      return this.$store.getters[StoreTypes.getters.IS_SERVER_INITIALIZED];
+      return this.isServerInitialized;
     },
     isAuthenticated(): boolean {
       return true;
     },
     systemStatus() {
-      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS];
+      return this.getSystemStatus;
     },
     isHighAvailabilityConfigured() {
-      return this.$store.getters[StoreTypes.getters.SYSTEM_STATUS]
-        ?.high_availability_status.is_ha_configured;
+      return this.getSystemStatus?.high_availability_status?.is_ha_configured;
     },
   },
 });

@@ -105,13 +105,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { StoreTypes } from '@/global';
-import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
+import { systemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'AppFooter',
   computed: {
-    ...mapGetters({ version: StoreTypes.getters.SERVER_VERSION }),
+    ...mapState(systemStore, { version: 'getServerVersion' }),
   },
 });
 </script>
