@@ -8,12 +8,13 @@
     "test:unit": "vue-cli-service test:unit",
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
+    "check-audit": "audit-ci --config ../../shared-ui/audit-ci-shared.json",
+    "npx-check-audit": "npx audit-ci@5.1.2 --config ../../shared-ui/audit-ci-shared.json",
+    "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "bundle-openapi": "swagger-cli bundle -t yaml -o ../admin-service/build/openapi/openapi-definition-bundled.yaml ../admin-service/src/main/resources/openapi-definition.yaml",
-    "check-audit": "check-audit",
     "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules",
     "generate-types": "npm run bundle-openapi && openapi --input ../admin-service/build/openapi/openapi-definition-bundled.yaml --output ./src/openapi-types --exportCore true --client fetch",
     "license-add": "license-check-and-add add -f license-check-and-add-config.json",
-    "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "resolve-audit": "resolve-audit"
   },
   "dependencies": {
@@ -50,7 +51,6 @@
     "eslint-plugin-prettier": "~3.4.0",
     "eslint-plugin-vue": "~7.10.0",
     "license-check-and-add": "~4.0.2",
-    "npm-audit-resolver": "2.3.1",
     "openapi-typescript-codegen": "^0.9.3",
     "prettier": "~2.3.0",
     "sass": "~1.32.6",
