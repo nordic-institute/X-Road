@@ -109,6 +109,8 @@ configure(subprojects.findAll { !["frontend","shared-ui","admin-ui"].contains(it
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
     apply plugin: 'jacoco'
+    group = 'ee.ria.xroad'
+    version = '1.0'
 
     java {
         toolchain {
