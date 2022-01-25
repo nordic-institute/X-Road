@@ -93,8 +93,6 @@ while getopts ":s:f:Sbh" opt ; do
   esac
 done
 
-warn_about_incompatibility
-
 check_user
 check_security_server_id
 check_backup_file_name
