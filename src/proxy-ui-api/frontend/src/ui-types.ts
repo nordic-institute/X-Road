@@ -70,4 +70,5 @@ export interface Notification {
   successMessage?: string; // Localised success message
   show: boolean;
   count: number;
+  isWarning: boolean;
 }
