@@ -26,7 +26,7 @@
 <template>
   <div class="cert-hash">
     <div class="hash-info">{{ $t('cert.hashInfo') }}</div>
-    <div>{{ hash | colonize }}</div>
+    <div data-test="cert-hash-value">{{ hash | colonize }}</div>
   </div>
 </template>
 
