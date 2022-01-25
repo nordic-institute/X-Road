@@ -47,19 +47,6 @@ public class CachingConfigurationDirectory extends ConfigurationDirectoryV2 {
     /**
      * Constructs new caching directory from the given path.
      *
-     * @param directoryPath the path to the directory.
-     * @throws Exception if loading configuration fails
-     */
-    public CachingConfigurationDirectory(String directoryPath) throws Exception {
-        super(directoryPath, false);
-        expireSeconds = SystemProperties.getConfigurationClientUpdateIntervalSeconds();
-        cache = new TimeBasedObjectCache(expireSeconds);
-        reload();
-    }
-
-    /**
-     * Constructs new caching directory from the given path.
-     *
      * @param directoryPath   the path to the directory.
      * @param reloadIfChanged if true, automatic reload and detection of
      *                        parameters is performed.
