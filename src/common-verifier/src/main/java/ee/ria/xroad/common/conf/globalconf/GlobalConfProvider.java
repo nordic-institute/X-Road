@@ -29,7 +29,6 @@ import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.cert.CertChain;
 import ee.ria.xroad.common.certificateprofile.AuthCertificateProfileInfo;
 import ee.ria.xroad.common.certificateprofile.SignCertificateProfileInfo;
-import ee.ria.xroad.common.conf.ConfProvider;
 import ee.ria.xroad.common.conf.globalconf.sharedparameters.v2.ApprovedTSAType;
 import ee.ria.xroad.common.identifier.CentralServiceId;
 import ee.ria.xroad.common.identifier.ClientId;
@@ -47,13 +46,12 @@ import java.util.Set;
 /**
  * API for implementing global configuration providers.
  */
-public interface GlobalConfProvider extends ConfProvider {
+public interface GlobalConfProvider {
 
     /**
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
-     * Configuration is considered to be valid if all the files of all
-     * the instances are up-to-date (not expired).
+     * Configuration is considered valid if main/home instance parameteres are validall the files of all
      * @return true if the global configuration is valid
      */
     boolean isValid();
@@ -211,7 +209,6 @@ public interface GlobalConfProvider extends ConfProvider {
      * @param serverId the security server id
      * @return the client id that owns the security server with the specified id
      * or null if the given id does not match an existing server
-     * @throws Exception if an error occurs
      */
     ClientId getServerOwner(SecurityServerId serverId);
 

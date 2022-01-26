@@ -68,7 +68,7 @@ public class TimestampVerifierTest {
                 "../common-util/src/test/resources/globalconf_good_v2");
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
-        GlobalConf.reload(new GlobalConfImpl(new ConfigurationDirectoryV2(getConfigurationPath())));
+        GlobalConf.reload();
     }
 
     /**

@@ -89,7 +89,7 @@ public class GlobalConfTest {
 
         createConfigurationFiles();
 
-        GlobalConf.reload(new GlobalConfImpl(new ConfigurationDirectoryV2(getConfigurationPath())));
+        GlobalConf.reload();
     }
 
     private static void createConfigurationFiles() throws IOException {
@@ -363,7 +363,7 @@ public class GlobalConfTest {
      */
     @Test
     public void getVerificationCaCerts() {
-        List<X509Certificate> certs = GlobalConf.getInstance().getVerificationCaCerts();
+        List<X509Certificate> certs = GlobalConf.getVerificationCaCerts();
 
         assertEquals(4, certs.size());
     }

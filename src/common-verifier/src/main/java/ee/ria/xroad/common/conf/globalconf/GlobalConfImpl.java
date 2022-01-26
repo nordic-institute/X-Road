@@ -58,6 +58,8 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
+import java.time.Instant;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -86,31 +88,38 @@ public class GlobalConfImpl implements GlobalConfProvider {
     // Default value used when no configurations are available
     private static final int DEFAULT_OCSP_FRESHNESS = 3600;
 
-    private ConfigurationDirectoryV2 confDir;
+    private volatile ConfigurationDirectoryV2 confDir;
 
-    GlobalConfImpl(boolean reloadIfChanged) {
+    private final boolean runUpdateThread;
+
+    GlobalConfImpl(boolean runUpdateThread) {
         try {
-            confDir = new CachingConfigurationDirectory(getConfigurationPath(),
-                reloadIfChanged);
+            this.runUpdateThread = runUpdateThread;
+            confDir = new ConfigurationDirectoryV2(getConfigurationPath());
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }
     }
 
-    public GlobalConfImpl(ConfigurationDirectoryV2 confDir) {
-        this.confDir = confDir;
-    }
-
     // ------------------------------------------------------------------------
-
     @Override
     public boolean isValid() {
+        // it is important to get handle of confDir as this variable is volatile
+        ConfigurationDirectoryV2 checkDir = confDir;
+        String mainInstance = checkDir.getInstanceIdentifier();
+        OffsetDateTime now = OffsetDateTime.now();
         try {
-            confDir.verifyUpToDate();
-
+            if (now.isAfter(checkDir.getPrivate(mainInstance).getExpiresOn())) {
+                log.warn("Main privateParameters expired at {}", checkDir.getPrivate(mainInstance).getExpiresOn());
+                return false;
+            }
+            if (now.isAfter(checkDir.getShared(mainInstance).getExpiresOn())) {
+                log.warn("Main sharedParameters expired at {}", checkDir.getPrivate(mainInstance).getExpiresOn());
+                return false;
+            }
             return true;
         } catch (Exception e) {
-            log.warn("Global configuration is invalid", e);
+            log.warn("Error checking global configuration validity", e);
 
             return false;
         }
@@ -647,29 +656,6 @@ public class GlobalConfImpl implements GlobalConfProvider {
     public int getTimestampingIntervalSeconds() {
         return getPrivateParameters().getTimeStampingIntervalSeconds()
                 .intValue();
-    }
-
-    // ------------------------------------------------------------------------
-
-    @Override
-    public boolean hasChanged() {
-        return false;
-    }
-
-    @Override
-    public void load(String fileName) throws Exception {
-        confDir.setPath(Paths.get(getConfigurationPath()));
-        confDir.reload();
-    }
-
-    @Override
-    public void save() throws Exception {
-        // do nothing
-    }
-
-    @Override
-    public void save(OutputStream out) throws Exception {
-        // do nothing
     }
 
     // ------------------------------------------------------------------------

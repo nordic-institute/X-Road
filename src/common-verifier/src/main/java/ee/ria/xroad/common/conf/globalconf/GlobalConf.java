@@ -49,7 +49,6 @@ import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_INTERNAL_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
-import static ee.ria.xroad.common.ErrorCodes.translateException;
 
 /**
  * Global configuration.
@@ -57,16 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.translateException;
 @Slf4j
 public final class GlobalConf {
 
-    private static GlobalConfProviderFactory instanceFactory;
-    static {
-        try {
-            instanceFactory = new GlobalConfProviderFactory();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static volatile GlobalConfProvider instance;
+    private static GlobalConfProvider instance;
 
     private GlobalConf() {
     }
@@ -74,11 +64,11 @@ public final class GlobalConf {
     /**
      * Returns the singleton instance of the configuration.
      */
-    static GlobalConfProvider getInstance() {
+    static private GlobalConfProvider getInstance() {
         if (instance == null) {
             synchronized (GlobalConfProvider.class) {
                 if (instance == null) {
-                    instance = instanceFactory.createInstance(true);
+                    instance = new GlobalConfImpl(true);
                 }
             }
         }
@@ -86,44 +76,13 @@ public final class GlobalConf {
     }
 
     /**
-     * Reloads the configuration.
-     */
-    public static synchronized void reload() {
-        if (instance != null) {
-            try {
-                log.trace("reload called");
-                instance.load(null);
-            } catch (Exception e) {
-                throw translateException(e);
-            }
-        } else {
-            log.trace("reload called, create new GlobalConfImpl");
-            instance = instanceFactory.createInstance(true);
-        }
-    }
-
-    /**
      * Reloads the configuration with given configuration instance.
+     * Used in tests. DO NOT USE in other circumstances.
      * @param conf the configuration provider instance
      */
     public static void reload(GlobalConfProvider conf) {
         log.trace("reload called with parameter class {}", conf.getClass());
         instance = conf;
-    }
-
-    /**
-     * Reloads the configuration if the underlying configuration
-     * file has changed.
-     */
-    public static synchronized void reloadIfChanged() {
-        log.trace("reloadIfChanged called");
-        if (instance != null) {
-            try {
-                instance.load(null);
-            } catch (Exception e) {
-                throw translateException(e);
-            }
-        }
     }
 
     // ------------------------------------------------------------------------
@@ -638,6 +597,15 @@ public final class GlobalConf {
         log.trace("getOcspFreshnessSeconds()");
 
         return getInstance().getOcspFreshnessSeconds(smallestValue);
+    }
+
+    /**
+     * @return all CA certificates that are suitable for verification, that is
+     * pki elements that are not marked authenticationOnly
+     */
+    public static List<X509Certificate> getVerificationCaCerts(){
+        log.trace("getVerificationCaCerts()");
+        return getInstance().getVerificationCaCerts();
     }
 
     /**

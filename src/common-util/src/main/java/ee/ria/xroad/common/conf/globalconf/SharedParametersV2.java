@@ -51,8 +51,10 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import javax.xml.bind.JAXBElement;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -92,8 +94,47 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SecurityServerType> securityServersById = new HashMap<>();
 
-    SharedParametersV2() {
+    private OffsetDateTime expiresOn;
+
+    SharedParametersV2(byte[] content) throws Exception {
         super(ObjectFactory.class, SharedParametersSchemaValidatorV2.class);
+        super.load(content);
+    }
+
+    public SharedParametersV2(Path sharedParametersPath) throws Exception {
+        super(ObjectFactory.class, SharedParametersSchemaValidatorV2.class);
+        load(sharedParametersPath.toString());
+
+        super.load(sharedParametersPath.toString());
+
+        try {
+            cacheCaCerts();
+            cacheKnownAddresses();
+            cacheSecurityServers();
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+    }
+
+    // do not use load and reload on this class, it is used as pseudo-immutable
+    @Override
+    public void load(byte[] data) throws Exception {
+        throw new IllegalStateException("load() not supported");
+    }
+
+    @Override
+    public void load(String fileName) throws Exception {
+        throw new IllegalStateException("load() not supported");
+    }
+
+    @Override
+    public void reload() throws Exception {
+        throw new IllegalStateException("reload() not supported");
+    }
+
+    @Override
+    public void save() throws Exception {
+        super.save();
     }
 
     ClientId createMemberId(MemberType member) {
@@ -166,46 +207,12 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return subjectsAndCaCerts.get(certHolder.getIssuer());
     }
 
-    @Override
-    public void load(String fileName) throws Exception {
-        super.load(fileName);
-
-        if (fileName == null) {
-            return;
-        }
-
-        try {
-            clearCache();
-            cacheCaCerts();
-            cacheKnownAddresses();
-            cacheSecurityServers();
-        } catch (Exception e) {
-            throw translateException(e);
-        }
-    }
-
     static MemberType getOwner(SecurityServerType serverType) {
         if (!(serverType.getOwner() instanceof MemberType)) {
             throw new RuntimeException("Server owner must be member");
         }
 
         return (MemberType) serverType.getOwner();
-    }
-
-    // ------------------------------------------------------------------------
-
-    private void clearCache() {
-        subjectsAndCaCerts.clear();
-        caCertsAndCertProfiles.clear();
-        caCertsAndApprovedCAData.clear();
-        caCertsAndOcspData.clear();
-        memberAddresses.clear();
-        memberAuthCerts.clear();
-        serverByAuthCert.clear();
-        securityServerClients.clear();
-        verificationCaCerts.clear();
-        knownAddresses.clear();
-        securityServersById.clear();
     }
 
     private void cacheCaCerts() throws CertificateException, IOException {
@@ -346,5 +353,13 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return typesUnderCA.stream()
                 .map(c -> readCertificate(c.getCert()))
                 .collect(Collectors.toList());
+    }
+
+    public void setExpiresOn(OffsetDateTime expiresOn) {
+        this.expiresOn = expiresOn;
+    }
+
+    public OffsetDateTime getExpiresOn() {
+        return expiresOn;
     }
 }

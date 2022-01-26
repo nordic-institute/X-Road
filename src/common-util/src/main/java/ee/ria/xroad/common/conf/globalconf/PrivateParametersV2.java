@@ -31,6 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 
 import java.math.BigInteger;
+import java.nio.file.Path;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,8 +41,16 @@ import java.util.stream.Collectors;
  */
 public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> {
 
-    PrivateParametersV2() {
+    private OffsetDateTime expiresOn;
+
+    PrivateParametersV2(byte[] content) throws Exception {
         super(ObjectFactory.class, PrivateParametersSchemaValidatorV2.class);
+        load(content);
+    }
+
+    PrivateParametersV2(Path privateParametersPath) throws Exception {
+        super(ObjectFactory.class, PrivateParametersSchemaValidatorV2.class);
+        load(privateParametersPath.toString());
     }
 
     String getInstanceIdentifier() {
@@ -59,5 +69,13 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
 
     ManagementServiceType getManagementService() {
         return confType.getManagementService();
+    }
+
+    public void setExpiresOn(OffsetDateTime expiresOn) {
+        this.expiresOn = expiresOn;
+    }
+
+    public OffsetDateTime getExpiresOn() {
+        return expiresOn;
     }
 }
