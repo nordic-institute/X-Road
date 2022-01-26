@@ -50,6 +50,18 @@ execute_backup () {
   fi
 }
 
+warn_about_localconf () {
+  if [ -f /etc/xroad/services/local.conf ]; then
+    echo
+    echo "=== Warning! ==========================================================================="
+    echo "The file “/etc/xroad/services/local.conf” used for configuration overrides is deprecated"
+    echo "and not included in the backups anymore."
+    echo "The file “/etc/xroad/services/local.properties” should be used instead."
+    echo "=== Warning! ==========================================================================="
+    echo
+  fi
+}
+
 while getopts ":s:f:Sbh" opt ; do
   case $opt in
     h)
@@ -81,8 +93,6 @@ while getopts ":s:f:Sbh" opt ; do
   esac
 done
 
-warn_about_incompatibility
-
 check_user
 check_security_server_id
 check_backup_file_name
@@ -93,5 +103,6 @@ GPG_KEYIDS=$(get_proxy_prop proxy.ini proxy "backup-encryption-keyids")
 echo "GPG_KEYIDS=$GPG_KEYIDS"
 
 execute_backup
+warn_about_localconf
 
 # vim: ts=2 sw=2 sts=2 et filetype=sh

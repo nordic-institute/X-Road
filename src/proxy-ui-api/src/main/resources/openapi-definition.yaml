@@ -128,6 +128,47 @@ paths:
           description: an existing item already exists
         '500':
           description: internal server error
+  /backups/ext:
+    post:
+      tags:
+        - backups
+      summary: add new backup for the security server and return extra backup state
+      operationId: addBackupExt
+      description:
+        <h3>Adds security server backup to the system.</h3>
+        <p>This endpoint can also return metadata in the error response. The metadata array contains the output of a failed backup generation script.</p>
+      responses:
+        '201':
+          description: item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BackupExt'
+        '202':
+          description: item accepted
+        '400':
+          description: request was invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorInfo'
+              examples:
+                error_response:
+                  $ref: '#/components/examples/ErrorExample'
+                error_metadata_response:
+                  $ref: '#/components/examples/ErrorWithMetadataExample'
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server error
   /backups/upload:
     post:
       tags:
@@ -5222,6 +5263,17 @@ components:
           example: '2018-12-15T00:00:00.001Z'
           minLength: 24
           maxLength: 24
+    BackupExt:
+      type: object
+      description: security server backup with extra information
+      required:
+        - backup
+        - local_conf_present
+      properties:
+        backup:
+          $ref: '#/components/schemas/Backup'
+        local_conf_present:
+          type: boolean
     BackupArchive:
       type: object
       description: security server backup archive file

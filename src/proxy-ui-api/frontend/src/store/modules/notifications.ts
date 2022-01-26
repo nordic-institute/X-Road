@@ -31,14 +31,12 @@ import { AxiosError } from 'axios';
 export interface NotificationsState {
   errorNotifications: Notification[];
   successNotifications: Notification[];
-  staticNotification: string[]; // only one notification but may have multiple rows – hence the array
 }
 
 const getDefaultState = () => {
   return {
     errorNotifications: [],
     successNotifications: [],
-    staticNotification: [],
   };
 };
 
@@ -113,6 +111,7 @@ function createEmptyNotification(timeout: number): Notification {
     timeAdded: Date.now(),
     show: true,
     count: 1,
+    isWarning: false,
   };
 }
 
@@ -125,9 +124,6 @@ export const getters: GetterTree<NotificationsState, RootState> = {
   },
   errorNotifications(state: NotificationsState): Notification[] {
     return state.errorNotifications;
-  },
-  staticNotification(state: NotificationsState) {
-    return state.staticNotification;
   },
 };
 
@@ -151,7 +147,12 @@ export const mutations: MutationTree<NotificationsState> = {
     notification.errorObject = errorObject;
     addErrorNotification(state, notification);
   },
-
+  setWarningMessage(state: NotificationsState, val: string): void {
+    const notification = createEmptyNotification(-1);
+    notification.errorMessage = val;
+    notification.isWarning = true;
+    addErrorNotification(state, notification);
+  },
   deleteSuccessNotification(state: NotificationsState, id: number): void {
     state.successNotifications = state.successNotifications.filter(
       (item: Notification) => item.timeAdded !== id,
@@ -166,15 +167,6 @@ export const mutations: MutationTree<NotificationsState> = {
 
   clearErrorNotifications(state: NotificationsState): void {
     state.errorNotifications = [];
-  },
-  setStaticNotification(
-    state: NotificationsState,
-    notificationMessages: string[],
-  ): void {
-    state.staticNotification = notificationMessages;
-  },
-  clearStaticNotification(state: NotificationsState): void {
-    state.staticNotification = [];
   },
 };
 
@@ -199,11 +191,9 @@ export const actions: ActionTree<NotificationsState, RootState> = {
       commit('setErrorObject', errorObject);
     }
   },
-  showStaticNotification({ commit }, notifications: string[]) {
-    commit('setStaticNotification', notifications);
-  },
-  clearStaticNotification({ commit }) {
-    commit('clearStaticNotification');
+  showWarningMessage({ commit }, messageText: string): void {
+    // Show error snackbar without localisation
+    commit('setWarningMessage', messageText);
   },
 };
 

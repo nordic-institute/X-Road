@@ -237,6 +237,7 @@ export enum Colors {
   WarmGrey70 = '#b4afc2',
   WarmGrey100 = '#575169',
   Error = '#ec4040',
+  Warning = '#f5a623',
   Success100 = '#0cc177',
   Success10 = '#e6f8f1',
   Background = '#e5e5e5',
