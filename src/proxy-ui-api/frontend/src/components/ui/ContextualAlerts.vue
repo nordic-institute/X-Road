@@ -153,7 +153,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 import { Colors } from '@/global';
@@ -166,13 +167,16 @@ type ValidationError = {
 export default Vue.extend({
   // Component for contextual notifications
   computed: {
-    ...mapGetters(['errorNotifications']),
+    ...mapState(notificationsStore, {
+      errorNotifications: 'getErrorNotifications',
+    }),
   },
   methods: {
     notificationColor(notification: Notification) {
       // TODO - how to import these values from colors.css?
       return notification.isWarning ? Colors.Warning : Colors.Error;
     },
+    ...mapActions(notificationsStore, ['deleteNotification']),
     errorCode(notification: Notification): string | undefined {
       return notification.errorObject?.response?.data?.error?.code;
     },
@@ -206,7 +210,7 @@ export default Vue.extend({
       );
     },
     closeError(id: number): void {
-      this.$store.commit('deleteNotification', id);
+      this.deleteNotification(id);
     },
     copyId(notification: Notification): void {
       const id = this.errorId(notification);
