@@ -35,6 +35,7 @@ import lombok.Getter;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static ee.ria.xroad.common.ErrorCodes.X_CANNOT_CREATE_CERT_PATH;
@@ -96,7 +97,7 @@ public class CertChain {
      * @param instanceIdentifier the instance identifier
      * @param cert the end entity certificate
      * @param additionalCerts additional certificates that can be used to
-     * construct the cert chain.
+     *         construct the cert chain.
      * @return the certificate chain
      */
     public static CertChain create(String instanceIdentifier,
@@ -106,7 +107,7 @@ public class CertChain {
                     GlobalConf.getCaCert(instanceIdentifier, cert);
             return new CertChain(instanceIdentifier, cert, trustAnchor,
                     additionalCerts != null
-                        ? additionalCerts : new ArrayList<X509Certificate>());
+                            ? additionalCerts : new ArrayList<X509Certificate>());
         } catch (Exception ex) {
             throw translateWithPrefix(X_CANNOT_CREATE_CERT_PATH, ex);
         }
@@ -114,7 +115,8 @@ public class CertChain {
 
     /**
      * @return the complete chain used to create this instance,
-     * starting with the end entity and ending with trusted root. */
+     *         starting with the end entity and ending with trusted root.
+     */
     public List<X509Certificate> getAllCerts() {
         List<X509Certificate> allCerts = new ArrayList<>();
         allCerts.add(getEndEntityCert());
@@ -126,13 +128,31 @@ public class CertChain {
 
     /**
      * @return the chain used to create this instance withouth the trusted root,
-     * starting with the end entity followed by any additional certs. */
+     *         starting with the end entity followed by any additional certs.
+     */
     public List<X509Certificate> getAllCertsWithoutTrustedRoot() {
         List<X509Certificate> allCerts = new ArrayList<>();
         allCerts.add(getEndEntityCert());
         allCerts.addAll(getAdditionalCerts());
 
         return allCerts;
+    }
+
+    /**
+     * @return the minimum of the certificate chain notAfter values
+     */
+    public Date notAfter() {
+        Date minNotAfter = endEntityCert.getNotAfter();
+        Date tmp = trustedRootCert.getNotAfter();
+        if (tmp.before(minNotAfter)) minNotAfter = tmp;
+
+        for (X509Certificate c : additionalCerts) {
+            tmp = c.getNotAfter();
+            if (tmp.before(minNotAfter)) {
+                minNotAfter = tmp;
+            }
+        }
+        return minNotAfter;
     }
 
     @Override
