@@ -101,7 +101,7 @@ const navigateCommands = {
     const { exec } = require('child_process');
 
     // remove protocol and port data from globals.testdata
-    sshScript = `ssh ${this.api.globals.testdata
+    sshScript = `ssh -o StrictHostKeyChecking=no ${this.api.globals.testdata
       .split(':')[1]
       .substring(2)} "cp ${this.api.globals.testfiles_path}/${newfile} ${
       this.api.globals.testfiles_path
@@ -147,7 +147,11 @@ module.exports = {
     certificatePopup: {
       selector: '//div[contains(@class, "certificate-details-wrapper")]',
       commands: [certificatePopupCommands],
-      elements: certificatePopupElements,
+      elements: {
+        certificateInfoCloseButton: '//*[@data-test="close-x"]',
+        deleteButton: '//button[.//*[contains(text(), "Delete")]]',
+        certificateHash: '//*[@data-test="cert-hash-value"]',
+      },
     },
     certificateDetails: {
       selector: '//*[@data-test="certificate-details-dialog"]',

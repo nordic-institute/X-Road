@@ -36,14 +36,15 @@
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="contextual-alert"
-        color="red"
+        :color="notificationColor(notification)"
         border="left"
         colored-border
         class="alert"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
-            <v-icon class="icon"> icon-Error-notification</v-icon>
+            <v-icon v-if="notification.isWarning" class="warning-icon"> icon-Warning</v-icon>
+            <v-icon v-else class="error-icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
               <!-- Show message text -->
               <div v-if="notification.errorMessage">
@@ -117,7 +118,7 @@
               </div>
 
               <!-- count -->
-              <div v-if="notification.count > 1">
+              <div v-if="notification.count > 1 && !notification.isWarning">
                 {{ $t('alert.count') }}
                 {{ notification.count }}
               </div>
@@ -155,6 +156,7 @@ import Vue from 'vue';
 import { mapGetters } from 'vuex';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
+import { Colors } from '@/global';
 
 type ValidationError = {
   field: string;
@@ -167,6 +169,10 @@ export default Vue.extend({
     ...mapGetters(['errorNotifications']),
   },
   methods: {
+    notificationColor(notification: Notification) {
+      // TODO - how to import these values from colors.css?
+      return notification.isWarning ? Colors.Warning : Colors.Error;
+    },
     errorCode(notification: Notification): string | undefined {
       return notification.errorObject?.response?.data?.error?.code;
     },
@@ -243,9 +249,13 @@ export default Vue.extend({
   justify-content: space-between;
   align-items: center;
 
-  .icon {
+  .error-icon {
     margin-right: 12px;
     color: $XRoad-Error;
+  }
+  .warning-icon {
+    margin-right: 12px;
+    color: $XRoad-Warning;
   }
 }
 

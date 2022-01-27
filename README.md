@@ -1,25 +1,21 @@
-# X-Road Data Exchange Layer
+# X-Road® Data Exchange Layer
 
 [![Go to X-Road Community Slack](https://img.shields.io/badge/Go%20to%20Community%20Slack-grey.svg)](https://jointxroad.slack.com/)
 [![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/join-the-xroad-community)
 
-![X-Road logo](xroad_logo_small.png) ![European Regional Development Fund](eu_logo.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
+![X-Road logo](xroad_logo_small.png)
 
 ## About the repository 
 
-This repository contains information about the X-Road, source codes, its development, installation and documentation.
+This repository contains information about the [X-Road](https://x-road.global), its source code, development, installation and documentation.
 
 ## X-Road source code
 
-[Source code](https://github.com/nordic-institute/X-Road/tree/develop/src) of X-Road is open for all and it is licenced under MIT licence.
-
-## Introduction to X-Road
-
-Short [X-Road introduction video](https://youtu.be/9PaHinkJlvA)
+The [source code](https://github.com/nordic-institute/X-Road/tree/develop/src) of X-Road is published under the MIT open source licence. X-Road is free of charge and can be implemented by any organisation.
 
 **What is X-Road?**
 
-X-Road, the data exchange layer for information systems, is a technological and organizational environment enabling a secure Internet-based data exchange between information systems.
+X-Road® is open-source software and ecosystem solution that provides unified and secure data exchange between organisations.
 
 ![X-Road overview](X-Road_overview.png)
 
@@ -31,7 +27,7 @@ X-Road Data Exchange Layer is a standardised, cohesive, collaborative, interoper
 * Standardised data security and privacy protection
 * Easy implementation, data access via interfaces – after connecting all included services are available
 
-See [Data Exchange Layer X-Road](https://www.niis.org/data-exchange-layer-x-road/) for more information about X-Road.
+See [X-Road product website](https://x-road.global) for more information about X-Road.
 
 ## Development of X-Road
 
@@ -43,6 +39,7 @@ GitHub repository.
 
 Submit a pull request to [X-Road source code Github repository](https://github.com/nordic-institute/X-Road)
 or an enhancement request to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
+
 [Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
 get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
 [X-Road Backlog](https://jira.niis.org/projects/XRDDEV/).
@@ -62,19 +59,19 @@ X-Road central servers, configuration proxies and security servers can be automa
 
 ## X-Road technical documentation
 
-* [Documentation table of contents](doc/README.md)
+* [Documentation](https://docs.x-road.global)
 * [Knowledge base](https://confluence.niis.org/display/XRDKB)
 * [Release notes](https://confluence.niis.org/display/XRDKB/Release+Notes)
 
 ## Further information about X-Road
 
-[X-Road implementations worldwide](https://x-road.global/xroad-world-map)
+[X-Road developer resources](https://x-road.global/resources)
 
 ## Support disclaimer
 
 The following activities, among others, are undertaken by the
 [Nordic Institute for Interoperability Solutions (NIIS)](https://www.niis.org/)
-with regard to the X-Road core:
+with regard to the X-Road core software:
 
 * management, development, verification, and audit of the source code
 * administration of documentation
@@ -84,6 +81,10 @@ with regard to the X-Road core:
 * providing second-line support for the NIIS members
 * international cooperation.
 
-[X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible services, integrating informations systems with X-Road etc.
+[X-Road Technology Partners](https://x-road.global/xroad-technology-partners) are enterprises providing X-Road support and consultation services, e.g. deploying independent X-Road instances, developing X-Road extensions and X-Road-compatible services, integrating informations systems with X-Road etc.
 
-No support for X-Road deployment is provided here.
+[X-Road Community](https://x-road.global) is the global community of X-Road users and enthusisasts. The community is for anyone interested in X-Road. It's about learning from others and sharing the skills and experiences of how to create better digital services both technically and business-wise.
+
+[X-Road Academy](https://x-road.thinkific.com) provides online training for developers, users, operators, consultants, service providers and for anyone willing to learn more about X-Road.
+
+![European Regional Development Fund](eu_logo.png "European Regional Development Fund - DO NOT REMOVE THIS IMAGE BEFORE 01.11.2022")
