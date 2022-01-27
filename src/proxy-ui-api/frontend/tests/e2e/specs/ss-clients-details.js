@@ -73,10 +73,8 @@ module.exports = {
     // Verify sign certificate info
     browser.assert.containsText(certificatePopup, 'X-Road Test CA CN');
     browser.assert.containsText(certificatePopup, 'SHA256withRSA');
-    browser.assert.containsText(
-      certificatePopup,
-      '93:7F:89:09:B0:8F:B3:DA:40:96:50:8A:24:8A:0C:E2:F8:77:AC:A7',
-    );
+    let hashRegex = /^(([A-F0-9]{2}:?){20})$/;
+    browser.expect.element(certificatePopup.elements.certificateHash).text.to.match(hashRegex);
     browser.assert.containsText(
       certificatePopup,
       'SERIALNUMBER=REST-UI-TEST/ss1-vrk/GOV, CN=0245437-2, O=VRK, C=FI',
@@ -118,10 +116,7 @@ module.exports = {
     // Verify sign certificate info
     browser.assert.containsText(certificatePopup, 'X-Road Test CA CN');
     browser.assert.containsText(certificatePopup, 'SHA256withRSA');
-    browser.assert.containsText(
-      certificatePopup,
-      '93:7F:89:09:B0:8F:B3:DA:40:96:50:8A:24:8A:0C:E2:F8:77:AC:A7',
-    );
+    browser.expect.element(certificatePopup.elements.certificateHash).text.to.match(hashRegex);
     browser.assert.containsText(
       certificatePopup,
       'SERIALNUMBER=REST-UI-TEST/ss1-vrk/GOV, CN=0245437-2, O=VRK, C=FI',
