@@ -28,20 +28,23 @@ package org.niis.xroad.centralserver.restapi.repository;
 
 import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Repository
-public interface MemberClassRepository extends CrudRepository<MemberClass, Long> {
+public interface MemberClassRepository extends JpaRepository<MemberClass, Long> {
+
     Optional<MemberClass> findByCodeIgnoreCase(String code);
 
-    Set<MemberClassDto> findAllAsDtoBy();
-
     @Query("select case when count(m) = 0 then false else true end "
-            + "from XRoadMember m where m.memberClass = :memberClass")
-    boolean isInUse(MemberClass memberClass);
+            + "from MemberClass m where m = :memberClass "
+            + "and exists (select 0 from XRoadMember x where x.memberClass = m)")
+    Boolean isInUse(MemberClass memberClass);
+
+    List<MemberClassDto> findAllAsDtoBy(Sort sort);
 }

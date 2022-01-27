@@ -32,6 +32,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class MemberClassControllerTest extends AbstractApiControllerTestContext {
     @Autowired
     private MemberClassController memberClassController;
@@ -43,6 +46,8 @@ public class MemberClassControllerTest extends AbstractApiControllerTestContext 
         mc.setCode("FOO");
         mc.setDescription("Description");
         ResponseEntity<MemberClass> response = memberClassController.addMemberClass(mc);
+        assertTrue(response.getStatusCode().is2xxSuccessful());
+        assertEquals(mc.getCode(), response.getBody().getCode());
     }
 
 }

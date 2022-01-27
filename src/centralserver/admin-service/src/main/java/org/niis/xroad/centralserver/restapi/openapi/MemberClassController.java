@@ -42,7 +42,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @RestController
@@ -58,7 +58,8 @@ public class MemberClassController implements MemberClassesApi {
     @PreAuthorize("hasAuthority('ADD_MEMBER_CLASS')")
     @AuditEventMethod(event = RestApiAuditEvent.ADD_MEMBER_CLASS)
     public ResponseEntity<MemberClass> addMemberClass(MemberClass memberClass) {
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS_CODE, memberClass.getCode());
+        auditData.put(RestApiAuditProperty.CODE, memberClass.getCode());
+        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClass.getDescription());
         var result = service.add(new MemberClassDto(memberClass.getCode(), memberClass.getDescription()));
         return ResponseEntity.ok(convert(result));
     }
@@ -67,7 +68,7 @@ public class MemberClassController implements MemberClassesApi {
     @PreAuthorize("hasAuthority('DELETE_MEMBER_CLASS')")
     @AuditEventMethod(event = RestApiAuditEvent.DELETE_MEMBER_CLASS)
     public ResponseEntity<Void> deleteMemberClass(String code) {
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS_CODE, code);
+        auditData.put(RestApiAuditProperty.CODE, code);
         service.delete(code);
         return ResponseEntity.ok().build();
     }
@@ -75,7 +76,7 @@ public class MemberClassController implements MemberClassesApi {
     @Override
     @PreAuthorize("hasAuthority('VIEW_MEMBER_CLASSES')")
     public ResponseEntity<Set<MemberClass>> getMemberClasses() {
-        var memberClasses = service.list();
+        var memberClasses = service.findAll();
         return ResponseEntity.ok(convert(memberClasses));
     }
 
@@ -83,7 +84,8 @@ public class MemberClassController implements MemberClassesApi {
     @PreAuthorize("hasAuthority('EDIT_MEMBER_CLASS')")
     @AuditEventMethod(event = RestApiAuditEvent.EDIT_MEMBER_CLASS)
     public ResponseEntity<MemberClass> updateMemberClassDescription(String code, MemberClass memberClass) {
-        auditData.put(RestApiAuditProperty.MEMBER_CLASS_CODE, code);
+        auditData.put(RestApiAuditProperty.CODE, code);
+        auditData.put(RestApiAuditProperty.DESCRIPTION, memberClass.getDescription());
         var result = service.update(new MemberClassDto(code, memberClass.getDescription()));
         return ResponseEntity.ok(convert(result));
     }
@@ -96,7 +98,7 @@ public class MemberClassController implements MemberClassesApi {
     }
 
     private static Set<MemberClass> convert(Collection<MemberClassDto> dtos) {
-        var result = new HashSet<MemberClass>(dtos.size());
+        var result = new LinkedHashSet<MemberClass>(dtos.size());
         for (var dto : dtos) {
             result.add(convert(dto));
         }

@@ -31,14 +31,16 @@ import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.ConflictException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
+import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_DELETE_FAILED;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
+import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_IS_IN_USE;
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_NOT_FOUND;
 
 /**
@@ -57,8 +59,8 @@ public class MemberClassService {
     /**
      * List all member classes
      */
-    public Set<MemberClassDto> list() {
-        return repository.findAllAsDtoBy();
+    public List<MemberClassDto> findAll() {
+        return repository.findAllAsDtoBy(Sort.by(Sort.Order.asc("code").ignoreCase()));
     }
 
     /**
@@ -75,9 +77,10 @@ public class MemberClassService {
      * @return
      */
     public MemberClassDto add(final MemberClassDto memberClassDto) {
-        return toDto(repository.findByCodeIgnoreCase(memberClassDto.getCode())
-                .orElseGet(() -> repository.save(
-                        new MemberClass(memberClassDto.getCode(), memberClassDto.getDescription()))));
+        repository.findByCodeIgnoreCase(memberClassDto.getCode()).ifPresent(m -> {
+            throw new ConflictException(MEMBER_CLASS_EXISTS, memberClassDto.getCode());
+        });
+        return toDto(repository.save(new MemberClass(memberClassDto.getCode(), memberClassDto.getDescription())));
     }
 
     /**
@@ -88,7 +91,7 @@ public class MemberClassService {
         return toDto(repository.findByCodeIgnoreCase(memberClassDto.getCode()).map(m -> {
             m.setDescription(memberClassDto.getDescription());
             return repository.save(m);
-        }).orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, memberClassDto.getCode())));
+        }).orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClassDto.getCode())));
     }
 
     /**
@@ -98,14 +101,13 @@ public class MemberClassService {
      * @throws NotFoundException if the member class does not exist
      */
     public void delete(String code) {
-        repository.findByCodeIgnoreCase(code).map(m -> {
+        repository.findByCodeIgnoreCase(code).ifPresentOrElse(m -> {
             if (!repository.isInUse(m)) {
                 repository.delete(m);
-                return true;
-            } else {
-                throw new ConflictException(MEMBER_CLASS_DELETE_FAILED, code);
-            }
-        }).orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, code));
+            } else throw new ConflictException(MEMBER_CLASS_IS_IN_USE, "code", code);
+        }, () -> {
+            throw new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code);
+        });
     }
 
     private static MemberClassDto toDto(MemberClass memberClass) {

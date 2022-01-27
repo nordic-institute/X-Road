@@ -32,10 +32,10 @@ import org.niis.xroad.restapi.exceptions.ErrorDeviation;
 import java.util.Arrays;
 
 public enum ErrorMessage {
-    MEMBER_CLASS_DELETE_FAILED(
-            "Cannot delete member class: Found X-Road members belonging to the class."
-                    + " Only classes with no registered members can be deleted."),
-    MEMBER_CLASS_NOT_FOUND("No member class with the specifier code found.");
+    MEMBER_CLASS_IS_IN_USE("Cannot delete member class: Found X-Road members belonging to the class."
+            + " Only classes with no registered members can be deleted."),
+    MEMBER_CLASS_NOT_FOUND("No member class with the specifier code found."),
+    MEMBER_CLASS_EXISTS("Member class with the same code already exists.");
 
     @Getter
     final String description;

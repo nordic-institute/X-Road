@@ -1,6 +1,5 @@
 /*
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,31 +23,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Vue from 'vue';
-import VueRouter, { RouteConfig } from 'vue-router';
-import Home from '../views/Home.vue';
-
-Vue.use(VueRouter);
-
-const routes: Array<RouteConfig> = [
-  {
-    path: '/',
-    name: 'Home',
-    component: Home,
+let login;
+let settings;
+module.exports = {
+  tags: ['cs', 'memberClasses'],
+  before(browser) {
+    login = browser.page.csLoginPage();
+    settings = browser.page.csSystemSettingsPage();
   },
-  {
-    path: '/about',
-    name: 'About',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () =>
-      import(/* webpackChunkName: "about" */ '../views/About.vue'),
+  beforeEach() {
+    login.navigateAndMakeTestable();
+    login.signInUser();
+    settings.navigateAndMakeTestable();
   },
-];
-
-const router = new VueRouter({
-  routes,
-});
-
-export default router;
+  after(browser) {
+    browser.end();
+  },
+  'Test member classes':
+    async (browser) => {
+      let memberClass = "__test" + Math.random().toString(36).substring(2);
+      await settings
+        .systemSettingsViewIsVisible()
+        .click('@systemSettingsAddMemberClassButton')
+        .updateValue('//input[@data-test="system-settings-member-class-code-edit-field"]', memberClass)
+        .updateValue('//input[@data-test="system-settings-member-class-description-edit-field"]', memberClass)
+        .click("@dialogSaveButton")
+        .click("@snackBarCloseButton")
+        .click('//tr[.//td="' + memberClass + '"]//button[@data-test="system-settings-edit-member-class-button"]')
+        .updateValue('//input[@data-test="system-settings-member-class-description-edit-field"]',
+          "edited " + memberClass)
+        .click('@dialogSaveButton')
+        .click("@snackBarCloseButton")
+        .click('//tr[.//td="' + memberClass + '"]//button[@data-test="system-settings-delete-member-class-button"]')
+        .click('@dialogSaveButton')
+        .click("@snackBarCloseButton")
+    },
+};

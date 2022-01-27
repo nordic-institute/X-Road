@@ -35,7 +35,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.transaction.Transactional;
 
-import java.util.Set;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -50,9 +50,8 @@ public class MemberClassServiceTest {
     @Transactional
     public void testService() {
         service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST", "Description"));
         service.add(new MemberClassDto("TEST2", "Description"));
-        final Set<MemberClassDto> all = service.list();
+        final List<MemberClassDto> all = service.findAll();
         assertEquals(2, all.size());
         service.delete("TEST");
         service.update(new MemberClassDto("TEST2", "Description2"));

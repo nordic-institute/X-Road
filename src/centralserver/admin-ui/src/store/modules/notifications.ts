@@ -27,7 +27,7 @@
 import { ActionError, Notification } from '@/ui-types';
 import { defineStore } from 'pinia';
 import { TranslateResult } from 'vue-i18n';
-import { AxiosError } from 'axios';
+import axios from 'axios';
 
 // Helper functions
 
@@ -145,16 +145,22 @@ export const notificationsStore = defineStore('notificationsStore', {
     },
 
     // Show error notification with axios error object
-    showError(errorObject: AxiosError): void {
+    showError(errorObject: unknown): void {
       // Show error using the x-road specific data in an axios error object
       // Don't show errors when the errorcode is 401 which is usually because of session expiring
-      if (errorObject?.response?.status !== 401) {
-        const notification = createEmptyNotification(-1);
-        notification.errorObject = errorObject;
-        this.errorNotifications = addErrorNotification(
-          this.errorNotifications,
-          notification,
-        );
+      if (axios.isAxiosError(errorObject)) {
+        if (errorObject?.response?.status !== 401) {
+          const notification = createEmptyNotification(-1);
+          notification.errorObject = errorObject;
+          this.errorNotifications = addErrorNotification(
+            this.errorNotifications,
+            notification,
+          );
+        }
+      } else if (errorObject instanceof Error) {
+        this.showErrorMessage(errorObject.message);
+      } else {
+        this.showErrorMessage('Unexpected error');
       }
     },
 

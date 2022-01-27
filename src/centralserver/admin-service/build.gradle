@@ -8,7 +8,7 @@ plugins {
 
 apply plugin: 'com.github.hierynomus.license'
 
-archivesBaseName ='centralserver-admin-service'
+archivesBaseName = 'centralserver-admin-service'
 
 configurations {
     dist {
@@ -38,18 +38,18 @@ openApiGenerate {
     apiPackage = "org.niis.xroad.centralserver.openapi"
     modelPackage = "org.niis.xroad.centralserver.openapi.model"
     importMappings = [
-        User : "org.niis.xroad.restapi.openapi.model.User",
-        ErrorInfo : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
-        CodeWithDetails : "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
+        User           : "org.niis.xroad.restapi.openapi.model.User",
+        ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
+        CodeWithDetails: "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
     ]
     globalProperties = [
-        modelDocs: "false",
-        apis     : "", // must use empty strings instead of "true":
+        modelDocs              : "false",
+        apis                   : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : "",
+        models                 : "",
         generateSupportingFiles: "false",
-        skipDefaultInterface: "true",
-        supportingFiles: 'ApiUtil.java'
+        skipDefaultInterface   : "true",
+        supportingFiles        : 'ApiUtil.java'
     ]
     configOptions = [
         interfaceOnly: "true",
@@ -61,12 +61,6 @@ openApiGenerate {
 tasks.openApiGenerate {
     inputs.files(openApiGenerate.inputSpec)
     outputs.dir(openApiGenerate.outputDir)
-}
-
-processResources {
-    from(configurations.dist) {
-        into 'public/'
-    }
 }
 
 compileJava.dependsOn tasks.openApiGenerate
@@ -86,15 +80,6 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
-bootJar {
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Central Server Admin Service' ,
-            'Implementation-Version': "$xroadVersion-$xroadBuildType"
-        )
-    }
-}
 
 dependencyManagement {
     imports {
@@ -133,4 +118,24 @@ dependencies {
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
     implementation('org.openapitools:jackson-databind-nullable:0.2.1')
     implementation('javax.validation:validation-api')
+}
+
+task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+    from configurations.dist
+    into 'build/admin-ui/public'
+}
+
+bootJar {
+    if (!project.hasProperty('skipFront')) {
+        dependsOn copyUi
+        classpath += file('build/admin-ui')
+    } else {
+        println("Warning: Excluding frontend from boot jar")
+    }
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Admin Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
+    }
 }

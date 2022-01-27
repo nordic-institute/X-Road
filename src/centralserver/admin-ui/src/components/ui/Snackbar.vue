@@ -26,13 +26,13 @@
 <template>
   <div>
     <!-- Success -->
-    <transition-group name="fade">
+    <transition-group :name="transitionName">
       <v-snackbar
         v-for="notification in successNotifications"
         :key="notification.timeAdded"
         v-model="notification.show"
         data-test="success-snackbar"
-        :timeout="notification.timeout"
+        :timeout="snackbarTimeout(notification.timeout)"
         :color="colors.Success10"
         multi-line
         class="success-snackbar"
@@ -40,9 +40,9 @@
         @input="closeSuccess(notification.timeAdded)"
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
-          <xrd-icon-base :color="colors.Success100"
-            ><XrdIconChecker
-          /></xrd-icon-base>
+          <xrd-icon-base :color="colors.Success100">
+            <XrdIconChecker />
+          </xrd-icon-base>
 
           <div class="row-wrapper">
             <div v-if="notification.successMessage">
@@ -55,7 +55,9 @@
             data-test="close-snackbar"
             @click="closeSuccess(notification.timeAdded)"
           >
-            <xrd-icon-base><XrdIconClose /> </xrd-icon-base>
+            <xrd-icon-base>
+              <XrdIconClose />
+            </xrd-icon-base>
           </v-btn>
         </div>
       </v-snackbar>
@@ -68,6 +70,13 @@ import Vue from 'vue';
 import { Colors } from '@/global';
 import { mapActions, mapState } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
+import { Notification } from '@/ui-types';
+
+declare global {
+  interface Window {
+    e2eTestingMode?: boolean;
+  }
+}
 
 export default Vue.extend({
   // Component for snackbar notifications
@@ -80,11 +89,17 @@ export default Vue.extend({
     ...mapState(notificationsStore, {
       successNotifications: 'getSuccessNotifications',
     }),
+    // Check global window value to see if e2e testing mode should be enabled
+    transitionName: () => (window.e2eTestingMode === true ? null : 'fade'),
   },
   methods: {
     ...mapActions(notificationsStore, ['deleteSuccessNotification']),
     closeSuccess(id: number): void {
       this.deleteSuccessNotification(id);
+    },
+    // Check global window value to see if e2e testing mode should be enabled
+    snackbarTimeout(notification: Notification) {
+      return window.e2eTestingMode === true ? -1 : notification.timeout;
     },
   },
 });
@@ -132,6 +147,7 @@ export default Vue.extend({
 .fade-leave-active {
   transition: opacity 1s;
 }
+
 .fade-enter,
 .fade-leave-to {
   opacity: 0;

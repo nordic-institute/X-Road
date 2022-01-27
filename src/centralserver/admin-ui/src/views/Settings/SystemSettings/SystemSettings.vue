@@ -329,7 +329,7 @@ export default (
           }
           this.isEditingServerAddress = true;
         } else {
-          this.showError(updateError as AxiosError);
+          this.showError(updateError);
           this.isEditingServerAddress = false;
         }
         return;

@@ -1,13 +1,39 @@
+<!--
+   The MIT License
+   Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
+   Copyright (c) 2018 Estonian Information System Authority (RIA),
+   Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
+   Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+ -->
 <template>
   <div>
     <!-- Table -->
     <v-data-table
       :headers="headers"
-      :items="memberClassStore.memberClasses"
+      :items="memberClasses"
       :must-sort="true"
-      :items-per-page="5"
+      sort-by="code"
+      :items-per-page="itemsPerPage"
       class="elevation-0 data-table"
-      item-key="id"
+      item-key="code"
       :loader-height="2"
       :no-data-text="$t('noData.noMemberClasses')"
     >
@@ -20,6 +46,7 @@
             <xrd-button
               outlined
               class="mr-4"
+              data-test="system-settings-add-member-class-button"
               @click="openMemberClassDialog(undefined)"
             >
               <xrd-icon-base class="xrd-large-button-icon">
@@ -36,34 +63,44 @@
           <xrd-button
             text
             :outlined="false"
+            data-test="system-settings-edit-member-class-button"
             @click="openMemberClassDialog(item)"
           >
             {{ $t('action.edit') }}
           </xrd-button>
 
-          <xrd-button text :outlined="false" @click="confirmDelete(item)">
+          <xrd-button
+            text
+            :outlined="false"
+            data-test="system-settings-delete-member-class-button"
+            @click="confirmDelete(item)"
+          >
             {{ $t('action.delete') }}
           </xrd-button>
         </div>
       </template>
     </v-data-table>
     <xrd-confirm-dialog
-      data-test="system-parameters-member-class-delete-confirm-dialog"
+      v-if="activeItem !== undefined"
+      data-test="system-settings-member-class-delete-confirm-dialog"
       :dialog="confirmDeleteDialog"
-      :loading="activeItem === undefined"
-      :title="$t('action.confirm')"
-      text="Delete member class?"
+      title="action.confirm"
+      text="systemSettings.deleteMemberClass"
       @cancel="cancelDelete"
       @accept="acceptDelete"
     />
     <xrd-simple-dialog
-      title="systemSettings.editMemberClassTitle"
-      data-test="system-settings-member-class-dialog"
+      :title="
+        adding
+          ? 'systemSettings.addMemberClassTitle'
+          : 'systemSettings.editMemberClassTitle'
+      "
+      data-test="system-settings-member-class-edit-dialog"
       :dialog="memberClassDialog"
-      :scrollable=false
-      :show-close=true
+      :scrollable="false"
+      :show-close="true"
       save-button-text="action.save"
-      :disableSave="!valid"
+      :disable-save="!valid"
       @save="onSaveMemberClass"
       @cancel="memberClassDialog = false"
     >
@@ -73,14 +110,15 @@
             v-if="activeItem !== undefined"
             ref="form"
             v-model="valid"
-            lazy-validation>
+            lazy-validation
+          >
             <v-text-field
               v-model="activeItem.code"
               data-test="system-settings-member-class-code-edit-field"
               :disabled="!adding"
               :label="$t('systemSettings.code')"
               :rules="fieldRules"
-              autofocus
+              :autofocus="adding"
               outlined
               class="dlg-row-input"
               name="code"
@@ -90,6 +128,7 @@
               data-test="system-settings-member-class-description-edit-field"
               :label="$t('systemSettings.description')"
               :rules="fieldRules"
+              :autofocus="!adding"
               outlined
               class="dlg-row-input"
               name="memberClass"
@@ -106,7 +145,7 @@ import Vue from 'vue';
 import { MemberClass } from '@/openapi-types';
 import { mapStores } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
-import { memberClassStore } from '@/store/modules/member-class';
+import { useMemberClassStore } from '@/store/modules/member-class';
 import { DataTableHeader } from 'vuetify';
 
 export default Vue.extend({
@@ -114,13 +153,22 @@ export default Vue.extend({
     confirmDeleteDialog: false,
     memberClassDialog: false,
     activeItem: undefined as undefined | MemberClass,
-    adding : false,
+    adding: false,
     valid: true,
   }),
   computed: {
-    ...mapStores(memberClassStore, notificationsStore),
+    ...mapStores(useMemberClassStore, notificationsStore),
+    memberClasses() {
+      return this.memberClassStore.memberClasses;
+    },
     fieldRules() {
-      return [(v : string) => v.length <= 255 && v.length > 0];
+      return [
+        (v: string) =>
+          (v.length <= 255 && v.length > 0) || this.$t('validationError.Size'),
+      ];
+    },
+    itemsPerPage() {
+      return this.memberClassStore.memberClasses.length > 5 ? 5 : -1;
     },
     headers(): DataTableHeader[] {
       return [
@@ -155,11 +203,15 @@ export default Vue.extend({
     },
     async acceptDelete() {
       if (this.activeItem !== undefined) {
-        await this.memberClassStore.delete(this.activeItem).catch((error) => {
+        try {
+          await this.memberClassStore.delete(this.activeItem);
+          this.notificationsStoreStore.showSuccess(
+            this.$t('systemSettings.memberClassDeleted'),
+          );
+        } catch (error: unknown) {
           this.notificationsStoreStore.showError(error);
-        });
+        }
         this.activeItem = undefined;
-        await this.memberClassStore.fetchAll();
       }
       this.confirmDeleteDialog = false;
     },
@@ -169,23 +221,26 @@ export default Vue.extend({
     },
     async onSaveMemberClass() {
       if (this.activeItem !== undefined) {
-        const action = this.adding ?
-          this.memberClassStore.add(this.activeItem) :
-          this.memberClassStore.update(this.activeItem);
-        await action.catch((error) => {
+        try {
+          await (this.adding
+            ? this.memberClassStore.add(this.activeItem)
+            : this.memberClassStore.update(this.activeItem));
+          this.notificationsStoreStore.showSuccess(
+            this.$t('systemSettings.memberClassSaved'),
+          );
+        } catch (error: unknown) {
           this.notificationsStoreStore.showError(error);
-        });
+        }
       }
       this.activeItem = undefined;
       this.memberClassDialog = false;
-      return this.memberClassStore.fetchAll();
     },
-    openMemberClassDialog(item: MemberClass | undefined ) {
+    openMemberClassDialog(item: MemberClass | undefined) {
       if (item === undefined) {
-        this.activeItem = { code : "", description : "" }
+        this.activeItem = { code: '', description: '' };
         this.adding = true;
       } else {
-        this.activeItem = {...item};
+        this.activeItem = { ...item };
         this.adding = false;
       }
       this.memberClassDialog = true;
