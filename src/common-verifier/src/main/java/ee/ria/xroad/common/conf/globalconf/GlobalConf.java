@@ -64,7 +64,7 @@ public final class GlobalConf {
     /**
      * Returns the singleton instance of the configuration.
      */
-    static private GlobalConfProvider getInstance() {
+    static GlobalConfProvider getInstance() {
         if (instance == null) {
             synchronized (GlobalConfProvider.class) {
                 if (instance == null) {
@@ -73,6 +73,15 @@ public final class GlobalConf {
             }
         }
         return instance;
+    }
+
+    /**
+     * Reloads the configuration.
+     * Used in tests. DO NOT USE in other circumstances.
+     */
+    public static void reload() {
+        log.trace("reload called");
+        instance = new GlobalConfImpl(false);
     }
 
     /**
@@ -603,7 +612,7 @@ public final class GlobalConf {
      * @return all CA certificates that are suitable for verification, that is
      * pki elements that are not marked authenticationOnly
      */
-    public static List<X509Certificate> getVerificationCaCerts(){
+    public static List<X509Certificate> getVerificationCaCerts() {
         log.trace("getVerificationCaCerts()");
         return getInstance().getVerificationCaCerts();
     }

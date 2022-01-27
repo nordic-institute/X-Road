@@ -29,9 +29,7 @@ import ee.ria.xroad.common.ErrorCodes;
 import ee.ria.xroad.common.ExpectedCodedException;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestSecurityUtil;
-import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconf.GlobalConfImpl;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -46,7 +44,6 @@ import java.io.FileInputStream;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static org.junit.Assert.assertNotNull;
 
 /**

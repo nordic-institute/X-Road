@@ -54,11 +54,8 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.cert.X509CertificateHolder;
 
-import java.io.OutputStream;
 import java.math.BigInteger;
-import java.nio.file.Paths;
 import java.security.cert.X509Certificate;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;

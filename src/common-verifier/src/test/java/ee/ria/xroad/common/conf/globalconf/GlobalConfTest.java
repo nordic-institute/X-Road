@@ -59,7 +59,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static ee.ria.xroad.common.SystemProperties.getConfigurationPath;
 import static ee.ria.xroad.common.TestCertUtil.getCertChainCert;
 import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;

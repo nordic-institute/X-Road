@@ -103,8 +103,6 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     public SharedParametersV2(Path sharedParametersPath) throws Exception {
         super(ObjectFactory.class, SharedParametersSchemaValidatorV2.class);
-        load(sharedParametersPath.toString());
-
         super.load(sharedParametersPath.toString());
 
         try {
@@ -114,27 +112,6 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         } catch (Exception e) {
             throw translateException(e);
         }
-    }
-
-    // do not use load and reload on this class, it is used as pseudo-immutable
-    @Override
-    public void load(byte[] data) throws Exception {
-        throw new IllegalStateException("load() not supported");
-    }
-
-    @Override
-    public void load(String fileName) throws Exception {
-        throw new IllegalStateException("load() not supported");
-    }
-
-    @Override
-    public void reload() throws Exception {
-        throw new IllegalStateException("reload() not supported");
-    }
-
-    @Override
-    public void save() throws Exception {
-        super.save();
     }
 
     ClientId createMemberId(MemberType member) {

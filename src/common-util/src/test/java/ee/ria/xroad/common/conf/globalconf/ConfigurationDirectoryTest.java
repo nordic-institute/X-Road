@@ -30,9 +30,6 @@ import ee.ria.xroad.common.util.ExpectedCodedException;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.nio.file.Paths;
-
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
