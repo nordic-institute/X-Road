@@ -44,21 +44,20 @@ import java.net.URL;
 @Slf4j
 public abstract class SchemaValidator {
 
-    protected static Schema createSchema(String fileName) {
+
+    public static Schema createSchema(String fileName) {
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI,
                 "com.sun.org.apache.xerces.internal.jaxp.validation.XMLSchemaFactory", null);
         try {
             URL schemaLocation = ResourceUtils.getClasspathResource(fileName);
-
             return factory.newSchema(schemaLocation);
         } catch (SAXException e) {
             log.error("Creating schema from file '{}' failed", fileName, e);
-
-            throw new RuntimeException("Unable to create schema validator", e);
+            throw new IllegalStateException("Unable to create schema validator", e);
         }
     }
 
-    protected static void validate(Schema schema, Source source, String errorCode) throws Exception {
+    public static void validate(Schema schema, Source source, String errorCode) throws Exception {
         if (schema == null) {
             throw new IllegalStateException("Schema is not initialized");
         }
