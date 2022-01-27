@@ -261,6 +261,11 @@ public class EmptyGlobalConf implements GlobalConfProvider {
     }
 
     @Override
+    public void reload() {
+      // nothing to reload here
+    }
+
+    @Override
     public boolean isValid() {
         return true;
     }

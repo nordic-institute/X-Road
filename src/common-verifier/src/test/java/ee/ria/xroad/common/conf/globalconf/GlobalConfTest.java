@@ -88,6 +88,7 @@ public class GlobalConfTest {
 
         createConfigurationFiles();
 
+        GlobalConf.setRunUpdateThread(false);
         GlobalConf.reload();
     }
 

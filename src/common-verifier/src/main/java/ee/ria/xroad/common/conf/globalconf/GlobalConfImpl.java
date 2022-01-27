@@ -87,12 +87,19 @@ public class GlobalConfImpl implements GlobalConfProvider {
 
     private volatile ConfigurationDirectoryV2 confDir;
 
-    private final boolean runUpdateThread;
-
-    GlobalConfImpl(boolean runUpdateThread) {
+    GlobalConfImpl() {
         try {
-            this.runUpdateThread = runUpdateThread;
             confDir = new ConfigurationDirectoryV2(getConfigurationPath());
+        } catch (Exception e) {
+            throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
+        }
+    }
+
+    @Override
+    public void reload() {
+        ConfigurationDirectoryV2 original = confDir;
+        try {
+            confDir = new ConfigurationDirectoryV2(getConfigurationPath(), original);
         } catch (Exception e) {
             throw translateWithPrefix(X_MALFORMED_GLOBALCONF, e);
         }

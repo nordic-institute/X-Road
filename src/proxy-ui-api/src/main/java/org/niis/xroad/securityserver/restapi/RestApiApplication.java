@@ -26,6 +26,7 @@
 package org.niis.xroad.securityserver.restapi;
 
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import org.niis.xroad.securityserver.restapi.service.VersionService;
 import org.springframework.boot.SpringApplication;
@@ -48,6 +49,9 @@ public class RestApiApplication {
      * start application
      */
     public static void main(String[] args) {
+        // proxy-ui-api handles configuration updates independently so disable update thread here
+        GlobalConf.setRunUpdateThread(false);
+
         Version.outputVersionInfo(APP_NAME, VersionService.MIN_SUPPORTED_JAVA_VERSION,
                 VersionService.MAX_SUPPORTED_JAVA_VERSION);
         SpringApplication.run(RestApiApplication.class, args

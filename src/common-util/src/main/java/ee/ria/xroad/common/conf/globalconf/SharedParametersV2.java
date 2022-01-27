@@ -96,14 +96,17 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     private OffsetDateTime expiresOn;
 
+    // variable to prevent using load methods after constrution
+    private boolean initCompleted;
+
     SharedParametersV2(byte[] content) throws Exception {
-        super(ObjectFactory.class, SharedParametersSchemaValidatorV2.class);
-        super.load(content);
+        super(ObjectFactory.class, content, SharedParametersSchemaValidatorV2.class);
+        initCompleted = true;
     }
 
     public SharedParametersV2(Path sharedParametersPath) throws Exception {
-        super(ObjectFactory.class, SharedParametersSchemaValidatorV2.class);
-        super.load(sharedParametersPath.toString());
+        super(ObjectFactory.class, sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
+        initCompleted = true;
 
         try {
             cacheCaCerts();
@@ -111,6 +114,24 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
             cacheSecurityServers();
         } catch (Exception e) {
             throw translateException(e);
+        }
+    }
+
+    @Override
+    public void load(String fileName) throws Exception {
+        throwIfInitCompleted();
+        super.load(fileName);
+    }
+
+    @Override
+    public void load(byte[] data) throws Exception {
+        throwIfInitCompleted();
+        super.load(data);
+    }
+
+    private void throwIfInitCompleted() {
+        if (initCompleted) {
+            throw new IllegalStateException("This object can not be reloaded");
         }
     }
 

@@ -25,16 +25,40 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-/**
- * Test globalconf implementation.
- */
-public class TestGlobalConfImpl extends GlobalConfImpl {
+import ee.ria.xroad.common.SystemProperties;
+import ee.ria.xroad.common.util.TimeUtils;
 
-    /**
-     * Constructs a new test globalconf.
-     */
-    public TestGlobalConfImpl() {
-        super();
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * Global configuration updater thread
+ */
+@Slf4j
+class GlobalConfUpdater extends Thread {
+
+    private GlobalConfImpl globalConfImpl;
+    private int pollIntervalMs;
+
+    GlobalConfUpdater(GlobalConfImpl impl) {
+        super("GlobalConfUpdaterThread");
+        globalConfImpl = impl;
+        pollIntervalMs = TimeUtils.secondsToMillis(SystemProperties.getConfigurationClientUpdateIntervalSeconds());
+        this.start();
     }
 
+    @Override
+    public void run() {
+        try {
+            while (true) {
+                sleep(pollIntervalMs);
+                try {
+                    globalConfImpl.reload();
+                } catch (Exception e) {
+                    log.error("Error refreshing global configuration", e);
+                }
+            }
+        } catch (InterruptedException e) {
+            log.info("Global configuraiton updater interrupted, exiting");
+        }
+    }
 }

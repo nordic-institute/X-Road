@@ -42,15 +42,35 @@ import java.util.stream.Collectors;
 public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> {
 
     private OffsetDateTime expiresOn;
+    // variable to prevent using load methods after constrution
+    private boolean initCompleted;
 
     PrivateParametersV2(byte[] content) throws Exception {
-        super(ObjectFactory.class, PrivateParametersSchemaValidatorV2.class);
-        load(content);
+        super(ObjectFactory.class, content, PrivateParametersSchemaValidatorV2.class);
+        initCompleted = true;
     }
 
     PrivateParametersV2(Path privateParametersPath) throws Exception {
-        super(ObjectFactory.class, PrivateParametersSchemaValidatorV2.class);
-        load(privateParametersPath.toString());
+        super(ObjectFactory.class, privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
+        initCompleted = true;
+    }
+
+    @Override
+    public void load(String fileName) throws Exception {
+        throwIfInitCompleted();
+        super.load(fileName);
+    }
+
+    @Override
+    public void load(byte[] data) throws Exception {
+        throwIfInitCompleted();
+        super.load(data);
+    }
+
+    private void throwIfInitCompleted() {
+        if (initCompleted) {
+            throw new IllegalStateException("This object can not be reloaded");
+        }
     }
 
     String getInstanceIdentifier() {

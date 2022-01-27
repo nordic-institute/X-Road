@@ -57,6 +57,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 public final class GlobalConf {
 
     private static GlobalConfProvider instance;
+    private static boolean runUpdateThread = true;
 
     private GlobalConf() {
     }
@@ -68,20 +69,34 @@ public final class GlobalConf {
         if (instance == null) {
             synchronized (GlobalConfProvider.class) {
                 if (instance == null) {
-                    instance = new GlobalConfImpl(true);
+                    GlobalConfImpl impl = new GlobalConfImpl();
+                    instance = impl;
+                    if (runUpdateThread) {
+                        new GlobalConfUpdater(impl);
+                    }
                 }
             }
         }
         return instance;
     }
 
+    public static void setRunUpdateThread(boolean runThread) {
+        if (instance != null) {
+            throw new IllegalStateException("Can not call setRunUpdateThread after instance has been created");
+        }
+        runUpdateThread = runThread;
+    }
+
     /**
      * Reloads the configuration.
-     * Used in tests. DO NOT USE in other circumstances.
      */
     public static void reload() {
         log.trace("reload called");
-        instance = new GlobalConfImpl(false);
+        if (instance == null) {
+            getInstance();
+        } else {
+            instance.reload();
+        }
     }
 
     /**

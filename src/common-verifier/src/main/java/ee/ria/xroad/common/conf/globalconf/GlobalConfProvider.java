@@ -49,6 +49,11 @@ import java.util.Set;
 public interface GlobalConfProvider {
 
     /**
+     * Reloads configuration from disk
+     */
+    void reload();
+
+    /**
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
      * Configuration is considered valid if main/home instance parameteres are validall the files of all
