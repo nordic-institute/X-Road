@@ -93,7 +93,7 @@ import Vue from 'vue';
 import BackupsDataTable from '@/views/Settings/BackupAndRestore/BackupsDataTable.vue';
 import { Permissions } from '@/global';
 import * as api from '@/util/api';
-import { Backup } from '@/openapi-types';
+import {Backup, BackupExt} from '@/openapi-types';
 import { FileUploadResult } from '@niis/shared-ui';
 
 const uploadBackup = (backupFile: File, ignoreWarnings = false) => {
@@ -134,13 +134,6 @@ export default Vue.extend({
   },
   created(): void {
     this.fetchData();
-    this.$store.dispatch('showStaticNotification', [
-      this.$t('info.backups_incompatible[0]'),
-      this.$t('info.backups_incompatible[1]'),
-    ]);
-  },
-  beforeDestroy() {
-    this.$store.dispatch('clearStaticNotification');
   },
   methods: {
     async fetchData() {
@@ -158,12 +151,18 @@ export default Vue.extend({
     async createBackup() {
       this.creatingBackup = true;
       return api
-        .post<Backup>('/backups', null)
+        .post<BackupExt>('/backups/ext', null)
         .then((resp) => {
+          if ( resp.data.local_conf_present ) {
+            this.$store.dispatch(
+              'showWarningMessage',
+              this.$t('backup.backupConfiguration.message.localConfWarning'),
+            );
+          }
           this.$store.dispatch(
             'showSuccess',
             this.$t('backup.backupConfiguration.message.success', {
-              file: resp.data.filename,
+              file: resp.data.backup.filename,
             }),
           );
           this.fetchData();
