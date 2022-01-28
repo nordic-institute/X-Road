@@ -3051,7 +3051,7 @@ components:
             $ref: '#/components/schemas/OcspResponder'
           type: array
         tls_auth:
-          description: can the CA be used for TLS auhtentication
+          description: can the CA be used for TLS authentication
           type: boolean
       required:
         - id
@@ -3278,7 +3278,7 @@ components:
           minLength: 1
           type: string
         tls_auth:
-          description: can the CA be used for TLS auhtentication
+          description: can the CA be used for TLS authentication
           type: boolean
       required:
         - tls_auth
