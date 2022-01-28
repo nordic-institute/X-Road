@@ -20,10 +20,6 @@ tags:
     description: resources related to Central Services
   - name: certification-services
     description: resources related to Certification Services
-  - name: certification-services-ocsp-responders
-    description: resources related to OCSP Responders belonging to Certification Services
-  - name: certification-services-intermediate-cas
-    description: resources related to Intermediate Certificate Authorities belonging to Certification Services
   - name: globalconf
     description: general resources related to Global Configuration
   - name: globalconf-anchors
@@ -658,7 +654,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: get the intermediate certificate authorities of a certification service
       tags:
-        - certification-services-intermediate-cas
+        - certification-services
     post:
       description: <h3>CS administrator configures an intermediate CA for a certification service.</h3>
       operationId: addCertificationServiceIntermediateCas
@@ -697,7 +693,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: add a new intermediate certificate authority to a certification service
       tags:
-        - certification-services-intermediate-cas
+        - certification-services
   /certification-services/{hash}/ocsp-responders:
     get:
       description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
@@ -735,7 +731,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: get the ocsp responders of a certification service
       tags:
-        - certification-services-ocsp-responders
+        - certification-services
     post:
       description: <h3>CS administrator adds an OCSP responder service information for a CA.</h3>
       operationId: addCertificationServiceOcspResponder
@@ -783,7 +779,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: add an ocsp responder to a certification service
       tags:
-        - certification-services-ocsp-responders
+        - certification-services
   /global-groups:
     get:
       description: <h3>CS administrator searches for global groups.</h3>
