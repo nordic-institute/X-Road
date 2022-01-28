@@ -24,49 +24,60 @@
  * THE SOFTWARE.
  */
 
-const navigateToServiceClientsTab = (pages) => {
-  const { browser, mainPage, clientInfo, clientsTab, serviceClientsPage } =
-    pages;
+// Page objects
+let frontPage, mainPage, serviceClientDetails, serviceClientsPage, endpointAccessRightsPage;
 
-  mainPage.openClientsTab();
-  browser.waitForElementVisible(clientsTab);
-  clientsTab.openClient('TestClient');
-  browser.waitForElementVisible(clientInfo);
-  browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
-  clientInfo.openServiceClientsTab();
-  browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-};
+// Other elements created from pageobject
+let clientsTab, clientInfo, addServicesPopup, removeAccessRightPopup, removeAllAccessRightsPopup, operationDetails, addSubjectsPopup, serviceDetails, clientServices;
+let restOperationDetails, restEndpoints, addEndpointPopup, addEndpointAccessRightPopup;
 
 module.exports = {
-  tags: ['ss', 'clients', 'serviceclients'],
-  'Security server service clients check services': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const serviceClientDetails =
-      browser.page.serviceClients.serviceClientDetails();
-    const pages = {
-      browser,
-      frontPage,
-      mainPage,
-      clientsTab,
-      clientInfo,
-      serviceClientsPage,
-      serviceClientDetails,
-    };
+  tags: ['ss', 'clients', 'serviceclients', 'WIP'],
 
-    // Open SUT and check that page is loaded
+  before: function (browser) {
+    frontPage = browser.page.ssLoginPage();
+    mainPage = browser.page.ssMainPage();
+    serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
+    serviceClientDetails = browser.page.serviceClients.serviceClientDetails();
+    endpointAccessRightsPage = browser.page.endpoints.accessRightsPage();
+    clientsTab = mainPage.section.clientsTab;
+    clientInfo = mainPage.section.clientInfo;
+    addServicesPopup = serviceClientDetails.section.addServicesPopup;
+    removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
+    removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
+    operationDetails = mainPage.section.wsdlOperationDetails;
+    addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
+    serviceDetails = mainPage.section.wsdlServiceDetails;
+    clientServices = clientInfo.section.services;
+    restOperationDetails = mainPage.section.restOperationDetails;
+    restEndpoints = mainPage.section.restServiceEndpoints;
+    addEndpointPopup = mainPage.section.addEndpointPopup;
+    addEndpointAccessRightPopup = endpointAccessRightsPage.section.addSubjectsPopup;
+    },
+
+
+  beforeEach: function (browser) {
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
 
     // Enter valid credentials
     frontPage.signinDefaultUser();
 
-    navigateToServiceClientsTab(pages);
-    serviceClientsPage.openServiceClient('TestCom');
+    // navigates to service- clientstab before test
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openClient('TestClient');
+    browser.waitForElementVisible(clientInfo);
+    browser.expect.element(clientInfo.elements.serviceClientsTab).to.be.visible;
+    clientInfo.openServiceClientsTab();
+    browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
+  },
+  afterEach: function (browser) {
+    browser.end();
+  },
 
+  'Security server service clients check services': (browser) => {
+    serviceClientsPage.openServiceClient('TestCom');
     // check displayed info
     browser.waitForElementVisible(
       '//table[@data-test="service-clients-table"]',
@@ -86,35 +97,9 @@ module.exports = {
 
     serviceClientDetails.verifyAccessRightVisible('testOp1');
 
-    browser.end();
+
   },
   'Security server service clients add access rights': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const serviceClientDetails =
-      browser.page.serviceClients.serviceClientDetails();
-    const addServicesPopup = serviceClientDetails.section.addServicesPopup;
-    const pages = {
-      browser,
-      frontPage,
-      mainPage,
-      clientsTab,
-      clientInfo,
-      serviceClientsPage,
-      serviceClientDetails,
-    };
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    navigateToServiceClientsTab(pages);
     serviceClientsPage.openServiceClient('TestCom');
 
     serviceClientDetails.verifyAccessRightVisible('testOp1');
@@ -173,39 +158,9 @@ module.exports = {
     serviceClientDetails.verifyAccessRightVisible('testOp2');
     serviceClientDetails.verifyAccessRightVisible('testOpA');
 
-    browser.end();
   },
   'Security server service clients remove access rights': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-    const serviceClientDetails =
-      browser.page.serviceClients.serviceClientDetails();
-    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
-    const removeAllAccessRightsPopup =
-      mainPage.section.removeAllAccessRightsPopup;
-    const pages = {
-      browser,
-      frontPage,
-      mainPage,
-      clientsTab,
-      clientInfo,
-      serviceClientsPage,
-      serviceClientDetails,
-    };
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    navigateToServiceClientsTab(pages);
     serviceClientsPage.openServiceClient('TestCom');
-
     // Remove access right, cancel
 
     serviceClientDetails.removeAccessRight('testOp2');
@@ -248,28 +203,8 @@ module.exports = {
     serviceClientDetails.verifyAccessRightNotPresent('testOpA');
     serviceClientDetails.verifyAccessRightNotPresent('testOpX');
 
-    browser.end();
   },
-  'Security server service clients list shows wsdl service with access rights':
-    (browser) => {
-      const frontPage = browser.page.ssLoginPage();
-      const mainPage = browser.page.ssMainPage();
-      const serviceClientsPage =
-        browser.page.serviceClients.serviceClientsPage();
-
-      const clientsTab = mainPage.section.clientsTab;
-      const clientInfo = mainPage.section.clientInfo;
-      const operationDetails = mainPage.section.wsdlOperationDetails;
-      const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-      const serviceDetails = mainPage.section.wsdlServiceDetails;
-      const clientServices = clientInfo.section.services;
-
-      // Open SUT and check that page is loaded
-      frontPage.navigateAndMakeTestable();
-      browser.waitForElementVisible('//*[@id="app"]');
-
-      // Enter valid credentials
-      frontPage.signinDefaultUser();
+  'Security server service clients list shows wsdl service with access rights':  (browser) => {
 
       // Navigate to service clients -tab
       mainPage.openClientsTab();
@@ -339,36 +274,9 @@ module.exports = {
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
       mainPage.closeSnackbar();
 
-      browser.end();
     },
   'Security server service clients list shows rest service with service level access right':
     (browser) => {
-      const frontPage = browser.page.ssLoginPage();
-      const mainPage = browser.page.ssMainPage();
-      const serviceClientsPage =
-        browser.page.serviceClients.serviceClientsPage();
-      const endpointAccessRightsPage =
-        browser.page.endpoints.accessRightsPage();
-
-      const clientsTab = mainPage.section.clientsTab;
-      const clientInfo = mainPage.section.clientInfo;
-      const restOperationDetails = mainPage.section.restOperationDetails;
-      const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-      const restEndpoints = mainPage.section.restServiceEndpoints;
-      const clientServices = clientInfo.section.services;
-      const addEndpointPopup = mainPage.section.addEndpointPopup;
-      const addEndpointAccessRightPopup =
-        endpointAccessRightsPage.section.addSubjectsPopup;
-      const removeAllAccessRightsPopup =
-        mainPage.section.removeAllAccessRightsPopup;
-      const serviceDetails = mainPage.section.restServiceDetails;
-
-      // Open SUT and check that page is loaded
-      frontPage.navigateAndMakeTestable();
-      browser.waitForElementVisible('//*[@id="app"]');
-
-      // Enter valid credentials
-      frontPage.signinDefaultUser();
 
       // Navigate to service clients -tab
       mainPage.openClientsTab();
@@ -505,28 +413,9 @@ module.exports = {
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
       mainPage.closeSnackbar();
 
-      browser.end();
     },
   'Security server service client view filtering': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
-
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const restOperationDetails = mainPage.section.restOperationDetails;
-    const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-    const clientServices = clientInfo.section.services;
-    const serviceDetails = mainPage.section.restServiceDetails;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate to service clients -tab
+ // Navigate to service clients -tab
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
@@ -601,7 +490,5 @@ module.exports = {
     serviceDetails.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
-
-    browser.end();
   },
 };
