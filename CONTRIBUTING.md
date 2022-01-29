@@ -1,5 +1,8 @@
 # Contributing to X-Road
 
+[![Go to X-Road Community Slack](https://img.shields.io/badge/Go%20to%20Community%20Slack-grey.svg)](https://jointxroad.slack.com/)
+[![Get invited](https://img.shields.io/badge/No%20Slack-Get%20invited-green.svg)](https://x-road.global/join-the-xroad-community)
+
 First off, thanks for taking the time to contribute! ❤️ 
 
 All types of contributions are encouraged and valued. See the [Table of Contents](#table-of-contents) for different ways to help and details about how this project handles them. Please make sure to read the relevant section before making your contribution. It will make it a lot easier for us maintainers and smooth out the experience for all involved. The community looks forward to your contributions. 🎉
@@ -29,12 +32,14 @@ All types of contributions are encouraged and valued. See the [Table of Contents
 
 Before you ask a question, it is best to check the existing resources first:
 
-- [X-Road documentation portal](https://docs.x-road.global)
-- [Knowledge Base](https://confluence.niis.org/display/XRDKB)
+- [X-Road documentation portal](https://docs.x-road.global);
+- [Knowledge Base](https://confluence.niis.org/display/XRDKB);
 - [List of X-Road resources](https://x-road.global/resources).
 
 If you then still feel the need to ask a question and need clarification, please submit a question to the [X-Road community Slack](https://jointxroad.slack.com/)
 or open an [issue](https://github.com/nordic-institute/X-Road/issues/new).
+
+If you're not a member of the X-Road community Slack yet, you can join [here](https://x-road.global/community).
 
 ## I Want To Contribute
 
