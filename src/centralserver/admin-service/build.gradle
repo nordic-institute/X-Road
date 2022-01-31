@@ -33,8 +33,8 @@ bootRun {
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources/openapi".toString()
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
     apiPackage = "org.niis.xroad.centralserver.openapi"
     modelPackage = "org.niis.xroad.centralserver.openapi.model"
     importMappings = [
@@ -53,7 +53,8 @@ openApiGenerate {
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true"
+        useTags      : "true",
+        skipDefaultInterface : "true"
     ]
 }
 

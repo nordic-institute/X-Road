@@ -30,7 +30,6 @@ import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -40,11 +39,6 @@ import java.util.Optional;
 public interface MemberClassRepository extends JpaRepository<MemberClass, Long> {
 
     Optional<MemberClass> findByCodeIgnoreCase(String code);
-
-    @Query("select case when count(m) = 0 then false else true end "
-            + "from MemberClass m where m = :memberClass "
-            + "and exists (select 0 from XRoadMember x where x.memberClass = m)")
-    Boolean isInUse(MemberClass memberClass);
 
     List<MemberClassDto> findAllAsDtoBy(Sort sort);
 }

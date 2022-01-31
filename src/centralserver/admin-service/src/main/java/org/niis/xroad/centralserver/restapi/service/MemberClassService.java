@@ -29,7 +29,8 @@ package org.niis.xroad.centralserver.restapi.service;
 import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
-import org.niis.xroad.centralserver.restapi.service.exception.ConflictException;
+import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
+import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.NotFoundException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -50,37 +51,39 @@ import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessag
 @Transactional
 public class MemberClassService {
 
-    private final MemberClassRepository repository;
+    private final MemberClassRepository memberClasses;
+    private final XRoadMemberRepository members;
 
-    public MemberClassService(MemberClassRepository repository) {
-        this.repository = repository;
+    public MemberClassService(MemberClassRepository memberClasses, XRoadMemberRepository members) {
+        this.memberClasses = memberClasses;
+        this.members = members;
     }
 
     /**
      * List all member classes
      */
     public List<MemberClassDto> findAll() {
-        return repository.findAllAsDtoBy(Sort.by(Sort.Order.asc("code").ignoreCase()));
+        return memberClasses.findAllAsDtoBy(Sort.by(Sort.Order.asc("code").ignoreCase()));
     }
 
     /**
-     * Get a member class corresponding to the code
+     * Find a member class corresponding to the code
      * @param code member class code
      */
-    public Optional<MemberClassDto> get(String code) {
-        return repository.findByCodeIgnoreCase(code).map(m -> new MemberClassDto(m.getCode(), m.getDescription()));
+    public Optional<MemberClassDto> find(String code) {
+        return memberClasses.findByCodeIgnoreCase(code).map(m -> new MemberClassDto(m.getCode(), m.getDescription()));
     }
 
     /**
      * Add a new member class
-     * @param memberClassDto
-     * @return
+     * @param memberClassDto member class to add
+     * @throws DataIntegrityException if the member class already exists
      */
     public MemberClassDto add(final MemberClassDto memberClassDto) {
-        repository.findByCodeIgnoreCase(memberClassDto.getCode()).ifPresent(m -> {
-            throw new ConflictException(MEMBER_CLASS_EXISTS, memberClassDto.getCode());
+        memberClasses.findByCodeIgnoreCase(memberClassDto.getCode()).ifPresent(m -> {
+            throw new DataIntegrityException(MEMBER_CLASS_EXISTS, memberClassDto.getCode());
         });
-        return toDto(repository.save(new MemberClass(memberClassDto.getCode(), memberClassDto.getDescription())));
+        return toDto(memberClasses.save(new MemberClass(memberClassDto.getCode(), memberClassDto.getDescription())));
     }
 
     /**
@@ -88,23 +91,23 @@ public class MemberClassService {
      * @throws NotFoundException if the member class does not exist
      */
     public MemberClassDto update(final MemberClassDto memberClassDto) {
-        return toDto(repository.findByCodeIgnoreCase(memberClassDto.getCode()).map(m -> {
+        return toDto(memberClasses.findByCodeIgnoreCase(memberClassDto.getCode()).map(m -> {
             m.setDescription(memberClassDto.getDescription());
-            return repository.save(m);
+            return memberClasses.save(m);
         }).orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClassDto.getCode())));
     }
 
     /**
      * Delete member class.
      * @param code member class code
-     * @throws ConflictException if the member class is in use
+     * @throws DataIntegrityException if the member class is in use
      * @throws NotFoundException if the member class does not exist
      */
     public void delete(String code) {
-        repository.findByCodeIgnoreCase(code).ifPresentOrElse(m -> {
-            if (!repository.isInUse(m)) {
-                repository.delete(m);
-            } else throw new ConflictException(MEMBER_CLASS_IS_IN_USE, "code", code);
+        memberClasses.findByCodeIgnoreCase(code).ifPresentOrElse(m -> {
+            if (!members.existsByMemberClass(m)) {
+                memberClasses.delete(m);
+            } else throw new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code);
         }, () -> {
             throw new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", code);
         });

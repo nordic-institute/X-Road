@@ -24,15 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service.exception;
+package org.niis.xroad.centralserver.restapi.repository;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.niis.xroad.centralserver.restapi.entity.MemberClass;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-@ResponseStatus(HttpStatus.CONFLICT)
-public class ConflictException extends UncheckedServiceException {
+@Repository
+public interface XRoadMemberRepository extends JpaRepository<XRoadMember, Integer> {
 
-    public ConflictException(ErrorMessage code, String... metadata) {
-        super(code, metadata);
-    }
+    boolean existsByMemberClass(MemberClass memberClass);
 }

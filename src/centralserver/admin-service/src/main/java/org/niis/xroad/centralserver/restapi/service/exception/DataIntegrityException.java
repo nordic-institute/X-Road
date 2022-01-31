@@ -24,39 +24,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service;
+package org.niis.xroad.centralserver.restapi.service.exception;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.transaction.Transactional;
+@ResponseStatus(HttpStatus.CONFLICT)
+public class DataIntegrityException extends UncheckedServiceException {
 
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
-
-    @Autowired
-    private MemberClassService service;
-
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals(2, all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    public DataIntegrityException(ErrorMessage code, String... metadata) {
+        super(code, metadata);
     }
-
 }
