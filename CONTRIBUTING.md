@@ -91,7 +91,8 @@ Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
 Before submitting a bug:
 
 - Make sure that you are using the latest version.
-- Check the [Knowledge Base](https://confluence.niis.org/display/XRDKB) and [X-Road community Slack](https://jointxroad.slack.com/) for a list of common questions and problems.
+- Check the [Knowledge Base](https://confluence.niis.org/display/XRDKB) for a list of common questions and problems.
+- Check the [X-Road community Slack](https://jointxroad.slack.com/) for a list of common questions and problems.
 - Perform a [cursory search](https://jira.niis.org/projects/XRDDEV/) to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
 
 When submitting a bug, explain the problem and include additional details to help maintainers reproduce the problem:
@@ -99,7 +100,10 @@ When submitting a bug, explain the problem and include additional details to hel
 - Summary of the problem.
 - X-Road software version.
 - Host OS and version.
-- More detailed description of the problem.
+- More detailed description of the problem that includes:
+  - Steps to reproduce the issue.
+  - Expected result.
+  - Actual result.
 - Related log files.
 
 #### Submitting an Enhancement Request
@@ -136,7 +140,7 @@ strongly recommended.
 
 ### Submitting a Pull Request
 
-To ease the review work and to make clearer what changes are done, a pull request should contain one feature or bug fix. The larger the pull request is, the more complex it is to review. Pull requests are generally reviewed and accepted on first-come, first-served (FCFS) basis.
+To ease the review work and to make clearer what changes are done, a pull request should contain one feature or bug fix. The larger the pull request is, the more complex it is to review. Pull requests are generally reviewed and accepted on first-come, first-served (FCFS) basis. Also, it's recommended to start the [CLA process](#sign-the-cla) already before opening a pull request.
 
 If a pull request implements a new feature or a bigger change in an existing feature, it's strongly recommended to submit an enhancement request in advance and indicate in the enhancement request that the implementation will be provided too. In that way, it's possible to ensure in advance that the pull request will be approved.
 
@@ -153,8 +157,10 @@ Before opening a pull request, it's recommended to review the following checklis
 - Is the source code available?
 - Are all the required dependencies available?
 - No merge conflicts?
-- Is there enough test coverage? The test coverage should be equal or higher than in the previous version.
-- SonarQube shows no bugs or code smells of severity blocker or critical?
+- Is there enough test coverage?
+  - During the pull request review process it's checked that the test coverage is equal or higher than in the previous version.
+- SonarQube checks pass?
+  - During the pull request review process it's checked that SonarQube shows no bugs or code smells of severity blocker or critical.
 - Does the build and the test cases work?
 - Does the packaging work (Ubuntu & RHEL)?
 - Can the software be installed on a clean system (Ubuntu & RHEL)?
