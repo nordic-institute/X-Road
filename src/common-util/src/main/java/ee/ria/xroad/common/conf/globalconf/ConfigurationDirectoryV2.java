@@ -180,7 +180,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         OffsetDateTime now = OffsetDateTime.now();
         return sharedParameters.values()
                 .stream()
-                .filter(p -> p.getExpiresOn().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now))
+                .filter(p -> p.getInstanceIdentifier().equals(instanceIdentifier) || p.getExpiresOn().isAfter(now))
                 .collect(Collectors.toList());
     }
 
