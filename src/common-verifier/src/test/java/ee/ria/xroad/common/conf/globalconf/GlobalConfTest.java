@@ -84,11 +84,11 @@ public class GlobalConfTest {
      */
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
+        GlobalConf.reset();
         System.setProperty(SystemProperties.CONFIGURATION_PATH, GOOD_CONF_DIR);
 
         createConfigurationFiles();
 
-        GlobalConf.setRunUpdateThread(false);
         GlobalConf.reload();
     }
 

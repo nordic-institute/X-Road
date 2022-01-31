@@ -57,7 +57,9 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 public final class GlobalConf {
 
     private static GlobalConfProvider instance;
+    private static GlobalConfImpl implementation;
     private static boolean runUpdateThread = true;
+    private static GlobalConfUpdater confUpdater;
 
     private GlobalConf() {
     }
@@ -69,10 +71,10 @@ public final class GlobalConf {
         if (instance == null) {
             synchronized (GlobalConfProvider.class) {
                 if (instance == null) {
-                    GlobalConfImpl impl = new GlobalConfImpl();
-                    instance = impl;
+                    implementation = new GlobalConfImpl();
+                    instance = implementation;
                     if (runUpdateThread) {
-                        new GlobalConfUpdater(impl);
+                        confUpdater = new GlobalConfUpdater(implementation);
                     }
                 }
             }
@@ -81,20 +83,31 @@ public final class GlobalConf {
     }
 
     public static void setRunUpdateThread(boolean runThread) {
-        if (instance != null) {
-            throw new IllegalStateException("Can not call setRunUpdateThread after instance has been created");
+        synchronized (GlobalConfProvider.class) {
+            runUpdateThread = runThread;
+            if (runThread) {
+              if (confUpdater == null && implementation != null) {
+                  confUpdater = new GlobalConfUpdater(implementation);
+              }
+            } else {
+                if (confUpdater != null) {
+                    confUpdater.interrupt();
+                    confUpdater = null;
+                }
+            }
         }
-        runUpdateThread = runThread;
     }
 
     /**
      * Reloads the configuration.
      */
     public static void reload() {
-        log.trace("reload called");
+        log.debug("reload called");
         if (instance == null) {
+            log.debug("creating instance");
             getInstance();
         } else {
+            log.debug("reloading instance");
             instance.reload();
         }
     }
@@ -106,7 +119,24 @@ public final class GlobalConf {
      */
     public static void reload(GlobalConfProvider conf) {
         log.trace("reload called with parameter class {}", conf.getClass());
-        instance = conf;
+        synchronized (GlobalConfProvider.class) {
+            setRunUpdateThread(false);
+            implementation = null;
+            instance = conf;
+        }
+    }
+
+    /**
+     * Resets global configuration to empty.
+     * Used in tests. DO NOT USE in other circumstances.
+     */
+    public static void reset() {
+        log.trace("reset called");
+        synchronized (GlobalConfProvider.class) {
+            setRunUpdateThread(false);
+            implementation = null;
+            instance = null;
+        }
     }
 
     // ------------------------------------------------------------------------

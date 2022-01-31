@@ -56,7 +56,7 @@ public interface GlobalConfProvider {
     /**
      * Returns true, if the global configuration is valid and can be used
      * for security-critical tasks.
-     * Configuration is considered valid if main/home instance parameteres are validall the files of all
+     * Configuration is considered valid if main/home instance parameteres are valid
      * @return true if the global configuration is valid
      */
     boolean isValid();
