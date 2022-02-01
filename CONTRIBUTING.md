@@ -92,7 +92,7 @@ Before submitting a bug:
 
 - Make sure that you are using the latest version.
 - Check the [Knowledge Base](https://confluence.niis.org/display/XRDKB) for a list of common questions and problems.
-- Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a feature. Also, check the Slack archives for previous questions on the same topic.
+- Ask the community on the [X-Road community Slack](https://jointxroad.slack.com/) if the problem is a known issue or a feature. Also, check the Slack history for previous questions on the same topic.
 - Perform a [cursory search](https://jira.niis.org/projects/XRDDEV/) to see if the problem has already been reported. If it has and the issue is still open, add a comment to the existing issue instead of opening a new one.
 
 When submitting a bug, explain the problem and include additional details to help maintainers reproduce the problem:
