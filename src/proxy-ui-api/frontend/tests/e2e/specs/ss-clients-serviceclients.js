@@ -28,8 +28,8 @@
 let frontPage, mainPage, serviceClientDetails, serviceClientsPage, endpointAccessRightsPage;
 
 // Other elements created from pageobject
-let clientsTab, clientInfo, addServicesPopup, removeAccessRightPopup, removeAllAccessRightsPopup, operationDetails, addSubjectsPopup, serviceDetails, clientServices;
-let restOperationDetails, restEndpoints, addEndpointPopup, addEndpointAccessRightPopup;
+let clientsTab, clientInfo, addServicesPopup, removeAccessRightPopup, removeAllAccessRightsPopup, operationDetails, addSubjectsPopup, clientServices;
+let restOperationDetails, restEndpoints, addEndpointPopup, addEndpointAccessRightPopup, restServiceDetails, wsdlServiceDetails;
 
 module.exports = {
   tags: ['ss', 'clients', 'serviceclients', 'WIP'],
@@ -47,7 +47,8 @@ module.exports = {
     removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
     operationDetails = mainPage.section.wsdlOperationDetails;
     addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-    serviceDetails = mainPage.section.wsdlServiceDetails;
+    wsdlServiceDetails = mainPage.section.wsdlServiceDetails;
+    restServiceDetails = mainPage.section.restServiceDetails;
     clientServices = clientInfo.section.services;
     restOperationDetails = mainPage.section.restOperationDetails;
     restEndpoints = mainPage.section.restServiceEndpoints;
@@ -268,15 +269,14 @@ module.exports = {
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
       clientServices.openServiceDetails();
-      browser.waitForElementVisible(serviceDetails);
-      serviceDetails.deleteService();
-      serviceDetails.confirmDelete();
+      browser.waitForElementVisible(wsdlServiceDetails);
+      wsdlServiceDetails.deleteService();
+      wsdlServiceDetails.confirmDelete();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
       mainPage.closeSnackbar();
 
     },
-  'Security server service clients list shows rest service with service level access right':
-    (browser) => {
+  'Security server service clients list shows rest service with service level access right': (browser) => {
 
       // Navigate to service clients -tab
       mainPage.openClientsTab();
@@ -407,9 +407,9 @@ module.exports = {
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
       clientServices.openServiceDetails();
-      browser.waitForElementVisible(serviceDetails);
-      serviceDetails.deleteService();
-      serviceDetails.confirmDelete();
+      browser.waitForElementVisible(restServiceDetails);
+      restServiceDetails.deleteService();
+      restServiceDetails.confirmDelete();
       browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
       mainPage.closeSnackbar();
 
@@ -485,9 +485,9 @@ module.exports = {
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
     clientServices.openServiceDetails();
-    browser.waitForElementVisible(serviceDetails);
-    serviceDetails.deleteService();
-    serviceDetails.confirmDelete();
+    browser.waitForElementVisible(restServiceDetails);
+    restServiceDetails.deleteService();
+    restServiceDetails.confirmDelete();
     browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
     mainPage.closeSnackbar();
   },
