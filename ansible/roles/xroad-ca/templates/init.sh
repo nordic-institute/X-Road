@@ -31,7 +31,7 @@ openssl req -batch -config CA.cnf -subj "/O=$DN_OCSP_O/CN=$DN_OCSP_CN" -key priv
 openssl ca -batch -config CA.cnf -name CA_default -extensions ocsp -days 7300 -notext -md sha256 -in csr/ocsp.csr.pem -out certs/ocsp.cert.pem
 
 echo "Generating TSA Certificate"
-openssl genrsa -aes256 -out private/tsa.key.pem 4096
+openssl genrsa -out private/tsa.key.pem 4096
 chmod g+r private/tsa.key.pem
 openssl req -batch -config CA.cnf -subj "/O=$DN_TSA_O/CN=$DN_TSA_CN" -key private/tsa.key.pem -new -sha256 -out csr/tsa.csr.pem
 openssl ca -batch -config CA.cnf -name CA_default -extensions tsa_ext -days 7300 -notext -md sha256 -in csr/tsa.csr.pem -out certs/tsa.cert.pem
