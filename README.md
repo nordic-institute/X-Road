@@ -37,15 +37,7 @@ GitHub repository.
 
 **How to contribute?**
 
-Submit a pull request to [X-Road source code Github repository](https://github.com/nordic-institute/X-Road)
-or an enhancement request to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1).
-
-[Sign up](https://jira.niis.org/secure/Signup!default.jspa) for an account and
-get access to the [X-Road Service Desk](https://jira.niis.org/servicedesk/customer/portal/1) and
-[X-Road Backlog](https://jira.niis.org/projects/XRDDEV/).
-
-More information about contributions can be found in the [X-Road Development](https://github.com/nordic-institute/X-Road-development#how-to-contribute)
-repository.
+Guidelines for the X-Road contributors are available [here](CONTRIBUTING.md).
 
 ## X-Road installation
 
