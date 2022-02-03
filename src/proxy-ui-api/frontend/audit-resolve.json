@@ -1270,11 +1270,15 @@
     },
     "1006852|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
-      "madeAt": 1641807632053
+      "madeAt": 1643883732433
     },
     "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
-      "madeAt": 1641807632053
+      "madeAt": 1643883732433
+    },
+    "1006898|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1643883732433
     }
   },
   "rules": {},

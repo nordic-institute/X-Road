@@ -1550,11 +1550,11 @@
     },
     "1005154|@storybook/vue>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@storybook/vue>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
@@ -1562,43 +1562,43 @@
     },
     "1005154|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@storybook/vue>@storybook/core>@storybook/core-server>cpy>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>cpy>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@vue/cli-plugin-eslint>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@vue/cli-plugin-typescript>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@vue/cli-service>copy-webpack-plugin>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@vue/cli-service>globby>fast-glob>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005154|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
       "decision": "ignore",
-      "madeAt": 1637253743221
+      "madeAt": 1643882135831
     },
     "1005174|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>react-dev-utils>browserslist": {
       "decision": "ignore",
@@ -1698,11 +1698,19 @@
     },
     "1006852|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
-      "madeAt": 1641807611513
+      "madeAt": 1643882145542
     },
     "1006854|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
-      "madeAt": 1641807611513
+      "madeAt": 1643882145542
+    },
+    "1005154|@storybook/addon-essentials>@storybook/addon-controls>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1643882135831
+    },
+    "1006898|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
+      "decision": "ignore",
+      "madeAt": 1643882145542
     }
   },
   "rules": {},
