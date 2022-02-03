@@ -46,6 +46,8 @@ tags:
     description: resources related to Security Servers' Authentication Certificates
   - name: system
     description: resources related to System info
+  - name: management-services
+    description: resources related to Management Services
   - name: timestamping-services
     description: resources related to Central Server's Timestamping Services
 paths:
@@ -2631,16 +2633,16 @@ paths:
       summary: get the instance identifier
       tags:
         - system
-  /system/management-services:
+  /management-services-configuration:
     get:
       description: <h3>Administrator views the management services configuration of the Central Server.</h3>
-      operationId: getManagementServices
+      operationId: getManagementServicesConfiguration
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementServices'
+                $ref: '#/components/schemas/ManagementServicesConfiguration'
           description: the management services configuration
         '401':
           $ref: '#/components/responses/Unauthorized'
@@ -2652,10 +2654,10 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: get the current management services configuration
       tags:
-        - system
+        - management-services
     patch:
       description: <h3>CS Administrator updates the management services configuration of the Central Server.</h3>
-      operationId: updateManagementServices
+      operationId: updateManagementServicesConfiguration
       requestBody:
         content:
           application/json:
@@ -2668,7 +2670,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ManagementServices'
+                $ref: '#/components/schemas/ManagementServicesConfiguration'
           description: the new status of the updated management services
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2682,7 +2684,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: update the management services configuration
       tags:
-        - system
+        - management-services
   /system/server-address:
     get:
       operationId: getCentralServerAddress
@@ -3332,34 +3334,29 @@ components:
           minLength: 1
           type: string
       required:
-        - configuration_part_type
+        - content_identifier
         - filename
         - updated_at
         - version
         - optional
       type: object
-    ConfigurationPartContentIdentifier: # TODO: lets not hard code these
+    ConfigurationPartContentIdentifier:
       description: the content identifier of a globalconf configuration part
-      enum:
-        - SHARED-PARAMETERS
-        - PRIVATE-PARAMETERS
-        - FETCHINTERVAL
-        - MONITORING
-        - NEXTUPDATE
-      example: SHARED_PARAMETERS
-      format: enum
+      example: SHARED-PARAMETERS
+      format: text
+      minLength: 1
       type: string
     ConfigurationPartUpload:
       description: configuration parts file
       properties:
-        configuration_part_type:
+        content_identifier:
           $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
         file:
           format: binary
           type: string
       required:
         - file
-        - configuration_part_type
+        - content_identifier
       type: object
     ConfigurationType:
       description: configuration type
@@ -3394,6 +3391,13 @@ components:
           format: text
           readOnly: true
           type: string
+        code:
+          type: string
+          format: text
+          description: group code
+          example: groupcode
+          minLength: 1
+          maxLength: 255
         member_count:
           description: member count
           example: 10
@@ -3608,7 +3612,7 @@ components:
       example: NON_REPUDIATION
       format: enum
       type: string
-    ManagementServices:
+    ManagementServicesConfiguration:
       allOf:
         - $ref: '#/components/schemas/ServiceProviderId'
       properties:
@@ -3621,10 +3625,11 @@ components:
           readOnly: true
           type: string
         security_server_owners_global_group_code:
-          description: the url of the management services
-          example: https://dev.xroad.rocks/managementservice/manage/
+          description: the global group code of security server owners
+          example: security-server-owners
           format: text
           minLength: 1
+          maxLength: 255
           readOnly: true
           type: string
         service_provider_name:
