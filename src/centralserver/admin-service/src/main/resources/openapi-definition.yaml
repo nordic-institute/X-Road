@@ -16,6 +16,8 @@ servers:
 tags:
   - name: backups
     description: resources related to Backups and Backup Restoration
+  - name: clients
+    description: resources related to Clients (Members and Subsystems)
   - name: central-services
     description: resources related to Central Services
   - name: certification-services
@@ -1987,12 +1989,12 @@ paths:
       summary: update member class description
       tags:
         - member-classes
-  /members:
+  /clients:
     get:
-      description: <h3>CS administrator searches for X-Road members.</h3>
-      operationId: findMembers
+      description: <h3>CS administrator searches for X-Road clients.</h3>
+      operationId: findClients
       parameters:
-        - description: pass an optional search string (name) for looking up members
+        - description: an optional search string (member name)
           in: query
           name: name
           required: false
@@ -2001,7 +2003,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: pass an optional search string (instance) for looking up members
+        - description: an optional search string (instance)
           in: query
           name: instance
           required: false
@@ -2010,7 +2012,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: pass an optional search string (member_class) for looking up members
+        - description: an optional search string (member_class)
           in: query
           name: member_class
           required: false
@@ -2019,7 +2021,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: pass an optional search string (member_code) for looking up members
+        - description: an optional search string (member_code)
           in: query
           name: member_code
           required: false
@@ -2028,7 +2030,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: pass an optional search string (subsystem_code) for looking up members
+        - description: an optional search string (subsystem_code)
           in: query
           name: subsystem_code
           required: false
@@ -2037,21 +2039,13 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: to include subsystems for search results
+        - description: an optional parameter limiting search to either members or subsystems. If not used, both are searched for
           in: query
-          name: show_subsystems
+          name: client_type
           required: false
           schema:
-            default: false
-            type: boolean
-        - description: to include members for search results
-          in: query
-          name: show_members
-          required: false
-          schema:
-            default: true
-            type: boolean
-        - description: a security server id – only return members that belong to this security server
+            $ref: '#/components/schemas/ClientType'
+        - description: a security server id – only return clients that belong to this security server
           in: query
           name: security_server
           required: false
@@ -2067,38 +2061,39 @@ paths:
               schema:
                 description: array of members
                 items:
-                  $ref: '#/components/schemas/Member'
+                  $ref: '#/components/schemas/Client'
                 type: array
                 uniqueItems: true
-          description: list of members
+          description: list of clients
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: find members
+      summary: find clients
       tags:
-        - members
+        - clients
     post:
       description:
-        <h3>CS administrator registers an organization as an X-Road member.</h3>
+        <h3>CS administrator creates a new client (member or subsystem).</h3>
         <p>The member id will be validated and if the validation fails a validation error is returned.</p>
-      operationId: addMember
+        <p>Client's association with security servers is created through management requests.</p>
+      operationId: addClient
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberNameClassAndCode'
-        description: member name, class and code
+              $ref: '#/components/schemas/Client'
+        description: client details
         required: true
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Member'
-          description: new member created
+                $ref: '#/components/schemas/Client'
+          description: new client created
         '400':
           content:
             application/json:
@@ -2118,15 +2113,16 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: add new member to the central server
+      summary: add new client to the central server
       tags:
-        - members
-  /members/{id}:
+        - clients
+  /clients/{id}:
     delete:
-      description: <h3>CS administrator deletes an X-Road member.</h3>
-      operationId: deleteMember
+      description: <h3>CS administrator deletes a client</h3>
+      operationId: deleteClient
       parameters:
-        - description: id of the member
+        - description: the encoded string representation of the x-road member or subsystem id
+          example: FI:GOV:123:ABC
           in: path
           name: id
           required: true
@@ -2150,14 +2146,15 @@ paths:
           $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: delete a member
+      summary: delete a client
       tags:
-        - members
+        - clients
     get:
-      description: <h3>CS administrator views a member's details.</h3>
-      operationId: getMember
+      description: <h3>CS administrator views a client's details.</h3>
+      operationId: getClient
       parameters:
-        - description: id of the member
+        - description: the encoded string representation of the x-road member or subsystem id
+          example: FI:GOV:123:ABC
           in: path
           name: id
           required: true
@@ -2171,8 +2168,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Member'
-          description: a member
+                $ref: '#/components/schemas/Client'
+          description: a client
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -2183,14 +2180,17 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: get a member by its id
+      summary: get a client by its id
       tags:
-        - members
+        - clients
     patch:
-      description: <h3>CS administrator edits the name of an X-Road member.</h3>
+      description:
+        <h3>CS administrator edits the name of an X-Road member.</h3>
+        <p>Attempting to edit name with subsystem id results in http 400</p>
       operationId: updateMemberName
       parameters:
-        - description: id of the member
+        - description: the encoded string representation of the x-road member
+          example: FI:GOV:123
           in: path
           name: id
           required: true
@@ -2211,7 +2211,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Member'
+                $ref: '#/components/schemas/Client'
           description: the updated member
         '400':
           $ref: '#/components/responses/BadRequest'
@@ -2225,7 +2225,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: update the name of a member
       tags:
-        - members
+        - clients
   /ocsp-responders/{hash}:
     delete:
       description: <h3>CS administrator deletes an ocsp responder.</h3>
@@ -3662,30 +3662,35 @@ components:
         - wsdl_address
         - service_provider_id
       type: object
-    Member:
+    Client:
       allOf:
         - $ref: '#/components/schemas/MemberName'
         - $ref: '#/components/schemas/MemberClassAndCode'
       description: x-road member
+      required:
+        - member_name
+        - member_class
+        - member_code
+        - client_type
       properties:
         id:
-          description: the encoded string representation of the x-road member id
+          description: the encoded string representation of the x-road member or subsystem id
           example: FI:GOV:123:ABC
           format: text
           maxLength: 1023
           minLength: 1
-          readOnly: true
           type: string
+          readOnly: true
         instance_id:
           description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: FI
           format: text
           maxLength: 255
           minLength: 1
-          readOnly: true
           type: string
-        member_type:
-          $ref: '#/components/schemas/MemberType'
+          readOnly: true
+        client_type:
+          $ref: '#/components/schemas/ClientType'
         subsystem_code:
           description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
           example: ABC
@@ -3748,11 +3753,10 @@ components:
       properties:
         member_name:
           description: Member name. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
+          example: Member123
           format: text
           maxLength: 255
           minLength: 1
-          readOnly: true
           type: string
       required:
         - member_name
@@ -3767,15 +3771,13 @@ components:
         - member_class
         - member_code
       type: object
-    MemberType:
-      description: member type
+    ClientType:
+      description: client type
       enum:
-        - GLOBALGROUP
         - MEMBER
         - SUBSYSTEM
       example: SUBSYSTEM
       format: text
-      readOnly: true
       type: string
     Members:
       description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
