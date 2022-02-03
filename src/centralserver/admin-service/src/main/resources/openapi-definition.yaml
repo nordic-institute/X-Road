@@ -20,16 +20,18 @@ tags:
     description: resources related to Central Services
   - name: certification-services
     description: resources related to Certification Services
-  - name: globalconf
-    description: general resources related to Global Configuration
-  - name: globalconf-anchors
-    description: resources related to Global Configuration anchors
-  - name: globalconf-tokens
-    description: resources related to Global Configuration tokens
-  - name: globalconf-keys
-    description: resources related to Global Configuration keys
+  - name: configuration-sources
+    description: general resources related to Configuration Sources
+  - name: configuration-source-anchors
+    description: resources related to Configuration Source Anchors
+  - name: configuration-parts
+    description: resources related to Configuration Parts
+  - name: tokens
+    description: resources related to Tokens
+  - name: signing-keys
+    description: resources related to Global Configuration Signing Keys
   - name: global-groups
-    description: resources related to Globalgroups
+    description: resources related to Global Groups
   - name: initialization
     description: resources related to Central Server initialization
   - name: intermediate-cas
@@ -1032,13 +1034,13 @@ paths:
       summary: delete members from global group
       tags:
         - global-groups
-  /globalconf/anchor:
+  /configuration-sources/{configuration_type}/anchor:
     get:
       description: <h3>Administrator views the anchor of a specified configuration source.</h3>
       operationId: getAnchor
       parameters:
         - description: the type of the configuration for which the anchor is fetched for
-          in: query
+          in: path
           name: configuration_type
           required: true
           schema:
@@ -1062,14 +1064,14 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator views the anchor of a configuration source
       tags:
-        - globalconf-anchors
-  /globalconf/anchor/download:
+        - configuration-source-anchors
+  /configuration-sources/{configuration_type}/anchor/download:
     get:
       description: <h3>Administrator downloads the configuration anchor information of a specified configuration source.</h3>
       operationId: downloadAnchor
       parameters:
         - description: the type of the configuration for which the anchor is fetched for
-          in: query
+          in: path
           name: configuration_type
           required: true
           schema:
@@ -1095,14 +1097,14 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: download configuration anchor information
       tags:
-        - globalconf-anchors
-  /globalconf/anchor/re-create:
+        - configuration-source-anchors
+  /configuration-sources/{configuration_type}/anchor/re-create:
     put:
       description: <h3>Administrator re-creates the configuration anchor of a specified configuration source.</h3>
       operationId: reCreateAnchor
       parameters:
         - description: the type of the configuration for which the anchor is re-created for
-          in: query
+          in: path
           name: configuration_type
           required: true
           schema:
@@ -1126,14 +1128,15 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: re-create the configuration source anchor file
       tags:
-        - globalconf-anchors
-  /globalconf/configuration-parts:
+        - configuration-source-anchors
+  /configuration-sources/{configuration_type}/configuration-parts:
+    # Note: only ConfigurationType INTERNAL is supported
     get:
       description: <h3>Administrator views the configuration parts of a specified configuration source.</h3>
       operationId: getConfigurationParts
       parameters:
         - description: the type of the configuration for which the configuration parts are fetched for
-          in: query
+          in: path
           name: configuration_type
           required: true
           schema:
@@ -1159,13 +1162,13 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator views the configuration parts of a configuration source
       tags:
-        - globalconf-parts
+        - configuration-parts
     post:
-      description: <h3>Administrator uploads additional configuration parts file.</h3>
+      description: <h3>Administrator uploads additional configuration parts file. Note - only supported for ConfigurationType = INTERNAL</h3>
       operationId: uploadConfigurationParts
       parameters:
         - description: the type of the configuration for which the configuration parts are uploaded for
-          in: query
+          in: path
           name: configuration_type
           required: true
           schema:
@@ -1194,24 +1197,33 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator uploads additional configuration parts file
       tags:
-        - globalconf-parts
-  /globalconf/configuration-parts/{type}/download:
+        - configuration-parts
+  /configuration-sources/{configuration_type}/configuration-parts/{content_identifier}/{version}/download:
     get:
       description: <h3>Administrator downloads a configuration parts file.</h3>
       operationId: downloadConfigurationParts
       parameters:
-        - description: the type of the configuration part
+        - description: the type of the configuration
           in: path
-          name: type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationPartType'
-        - description: the type of the configuration for which the configuration parts are uploaded for
-          in: query
           name: configuration_type
           required: true
           schema:
             $ref: '#/components/schemas/ConfigurationType'
+        - description: the content identifier of the configuration part
+          in: path
+          name: content_identifier
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
+        - description: version of the configuration part. 0 = all versions
+          in: path
+          name: version
+          required: true
+          schema:
+            example: 2
+            format: int32
+            minimum: 0
+            type: integer
       responses:
         '200':
           content:
@@ -1233,19 +1245,18 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: download a configuration parts file
       tags:
-        - globalconf-parts
-  /globalconf/keys/{hash}:
+        - configuration-parts
+  /signing-keys/{id}:
     delete:
-      description: <h3>Administrator deletes the key.</h3>
+      description: <h3>Administrator deletes the configuration signing key.</h3>
       operationId: deleteKey
       parameters:
-        - description: SHA-1 hash of the certificate of the key
+        - description: Id of the signing key
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
         - description: if true, any ignorable warnings are ignored. if false (or missing), any warnings cause request to fail
@@ -1279,19 +1290,18 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: delete key
       tags:
-        - globalconf-keys
-  /globalconf/keys/{hash}/activate:
+        - signing-keys
+  /signing-keys/{id}/activate:
     put:
-      description: <h3>Administrator activates a key.</h3>
+      description: <h3>Administrator activates a configuration signing key.</h3>
       operationId: activateKey
       parameters:
-        - description: SHA-1 hash of the certificate of the key
+        - description: Id of the signing key
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -1309,18 +1319,11 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: activate key
       tags:
-        - globalconf-keys
-  /globalconf/tokens:
+        - signing-keys
+  /tokens:
     get:
-      description: <h3>Administrator views tokens of a specified configuration source.</h3>
+      description: <h3>Administrator views tokens</h3>
       operationId: getTokens
-      parameters:
-        - description: the type of the configuration for which the tokens are fetched for
-          in: query
-          name: configuration_type
-          required: true
-          schema:
-            $ref: '#/components/schemas/ConfigurationType'
       responses:
         '200':
           content:
@@ -1340,33 +1343,30 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator views the tokens of a configuration source
       tags:
-        - globalconf-tokens
-  /globalconf/tokens/{id}/keys:
+        - tokens
+  /configuration-sources/{configuration_type}/signing-keys:
     post:
-      description: <h3>Adds key for selected token.</h3>
+      description: <h3>Adds configuration signing key for selected configuration source and token.</h3>
       operationId: addKey
       parameters:
-        - description: id of the token
+        - description: the type of the configuration for which the signing key is generated
           in: path
-          name: id
+          name: configuration_type
           required: true
           schema:
-            format: text
-            minLength: 1
-            type: string
+            $ref: '#/components/schemas/ConfigurationType'
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/KeyLabel'
-        required: true
+              $ref: '#/components/schemas/ConfigurationSigningKeyAdd'
       responses:
         '201':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Key'
-          description: key created for the token
+                $ref: '#/components/schemas/ConfigurationSigningKey'
+          description: created signing key
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1379,8 +1379,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: add new key
       tags:
-        - globalconf-keys
-  /globalconf/tokens/{id}/login:
+        - signing-keys
+  /tokens/{id}/login:
     put:
       description: <h3>Administrator logs in to a token</h3>
       operationId: loginToken
@@ -1418,8 +1418,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: login to token
       tags:
-        - globalconf-tokens
-  /globalconf/tokens/{id}/logout:
+        - tokens
+  /tokens/{id}/logout:
     put:
       description: <h3>Administrator logs out from token.</h3>
       operationId: logoutToken
@@ -1451,8 +1451,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: logout from token
       tags:
-        - globalconf-tokens
-  /globalconf/trusted-anchors:
+        - tokens
+  /trusted-anchors:
     get:
       description: <h3>Administrator views the trusted anchors.</h3>
       operationId: getTrustedAnchors
@@ -1475,7 +1475,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator views the trusted anchors
       tags:
-        - globalconf-anchors
+        - trusted-anchors
     post:
       description: <h3>Administrator uploads a new additional trusted anchor.</h3>
       operationId: uploadTrustedAnchor
@@ -1503,8 +1503,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator uploads a new additional trusted anchor
       tags:
-        - globalconf-anchors
-  /globalconf/trusted-anchors/{hash}:
+        - trusted-anchors
+  /trusted-anchors/{hash}:
     delete:
       description: <h3>Administrator deletes a trusted anchor.</h3>
       operationId: deleteTrustedAnchor
@@ -1533,8 +1533,8 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: delete a trusted anchor
       tags:
-        - globalconf-anchors
-  /globalconf/trusted-anchors/{hash}/download:
+        - trusted-anchors
+  /trusted-anchors/{hash}/download:
     get:
       description: <h3>Administrator downloads the trusted anchor.</h3>
       operationId: downloadTrustedAnchor
@@ -1569,14 +1569,14 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: download trusted anchor
       tags:
-        - globalconf-anchors
-  /globalconf/url:
+        - trusted-anchors
+  /configuration-sources/{configuration_type}/download-url:
     get:
       description: <h3>Administrator views the download url of a specified configuration source.</h3>
       operationId: getDownloadUrl
       parameters:
         - description: the type of the configuration for which the download url is fetched for
-          in: query
+          in: path
           name: configuration_type
           required: true
           schema:
@@ -1600,7 +1600,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: CS administrator views the url from where to download the internal configuration from
       tags:
-        - globalconf
+        - configuration-sources
   /initialization:
     post:
       description:
@@ -3306,8 +3306,8 @@ components:
     ConfigurationPart:
       description: configuration part
       properties:
-        configuration_part_type:
-          $ref: '#/components/schemas/ConfigurationPartType'
+        content_identifier:
+          $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
         filename:
           example: shared-params.xml
           format: filename
@@ -3338,11 +3338,11 @@ components:
         - version
         - optional
       type: object
-    ConfigurationPartType:
-      description: the type of a globalconf configuration part
+    ConfigurationPartContentIdentifier: # TODO: lets not hard code these
+      description: the content identifier of a globalconf configuration part
       enum:
-        - SHARED_PARAMETERS
-        - PRIVATE_PARAMETERS
+        - SHARED-PARAMETERS
+        - PRIVATE-PARAMETERS
         - FETCHINTERVAL
         - MONITORING
         - NEXTUPDATE
@@ -3353,7 +3353,7 @@ components:
       description: configuration parts file
       properties:
         configuration_part_type:
-          $ref: '#/components/schemas/ConfigurationPartType'
+          $ref: '#/components/schemas/ConfigurationPartContentIdentifier'
         file:
           format: binary
           type: string
@@ -3536,8 +3536,8 @@ components:
       required:
         - instance_identifier
       type: object
-    Key:
-      description: Key for the certificate. Also includes the possible actions that can be done to this object, e.g DELETE (only for key related operations and does not consider user authorization).
+    ConfigurationSigningKey:
+      description: Signing context (key identifier used by the signer and signing certificate) for signing the global configuration. Also includes the possible actions that can be done to this object, e.g DELETE (only for key related operations and does not consider user authorization).
       properties:
         active:
           description: if the key is active
@@ -3555,12 +3555,24 @@ components:
           minLength: 24
           type: string
         id:
-          description: key id
+          type: string
+          description: unique identifier
+          example: 123
+          minLength: 1
+        key_hash:
+          description: key hash
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           format: text
           minLength: 1
           readOnly: true
           type: string
+        token_id:
+          type: string
+          format: text
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          minLength: 1
+          readOnly: true          
         label:
           $ref: '#/components/schemas/KeyLabel'
         possible_actions:
@@ -3955,6 +3967,24 @@ components:
       required:
         - url
       type: object
+    ConfigurationSigningKeyAdd:
+      properties:
+        key_label:
+          description: label for the new key
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        token_id:
+          description: token id
+          example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
+          format: text
+          minLength: 1
+          type: string
+          required:
+            - token_id
+            - key_label
+      type: object 
     Token:
       description: Token. Also includes the possible actions that can be done to this object, e.g DELETE (only for token related operations and does not consider user authorization).
       properties:
@@ -3973,12 +4003,6 @@ components:
           minLength: 1
           readOnly: true
           type: string
-        keys:
-          description: token keys
-          items:
-            $ref: '#/components/schemas/Key'
-          type: array
-          uniqueItems: true
         logged_in:
           description: if the token has been logged in to
           example: true
