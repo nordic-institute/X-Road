@@ -31,17 +31,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Configuration directory interface.
  */
 public interface ConfigurationDirectory {
-    String FILES = "files";
     String METADATA_SUFFIX = ".metadata";
     String INSTANCE_IDENTIFIER_FILE = "instance-identifier";
 
@@ -104,27 +107,28 @@ public interface ConfigurationDirectory {
     }
 
     /**
-     * Deletes the file and accompanying expire date.
-     *
-     * @param fileName the file name
+     * Deletes directories inside directory confPath that are not in the list of directories to keep.
+     * @param confPath base configuration directory
+     * @param foldersToKeep set of folders to keep, all other folders are deleted
      */
-    static void delete(String fileName) {
-        File file = new File(fileName);
-
-        if (!file.delete()) {
-            LOG.error("Failed to delete file {}", file);
-        }
-
-        File metadataFile = new File(fileName + METADATA_SUFFIX);
-
-        if (!metadataFile.delete()) {
-            LOG.error("Failed to delete file {}", metadataFile);
-        }
-
-        File directory = file.getParentFile();
-
-        if (directory.isDirectory()) {
-            directory.delete(); // No need to check for return value.
+    static void deleteExtraDirs(String confPath, Set<String> foldersToKeep) {
+        try {
+            List<Path> foldersToDelete = Files.walk(Paths.get(confPath))
+                    .filter(s -> Files.isDirectory(s) && !foldersToKeep.contains(s.getFileName().toString()))
+                    .collect(Collectors.toList());
+            for (Path folder : foldersToDelete) {
+                Files.walk(folder)
+                        .filter(Files::isDirectory)
+                        .forEach(path -> {
+                            try {
+                                Files.delete(path);
+                            } catch (IOException e) {
+                                LOG.error("Error deleting file " + path.toString(), e);
+                            }
+                        });
+            }
+        } catch (IOException e) {
+            LOG.error("Error deleting directory", e);
         }
     }
 

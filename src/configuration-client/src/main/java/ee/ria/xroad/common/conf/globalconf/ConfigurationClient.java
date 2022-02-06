@@ -38,6 +38,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -53,16 +54,12 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
 class ConfigurationClient {
     private final Map<String, Set<ConfigurationSource>> additionalSources = new HashMap<>();
 
-    private final DownloadedFiles downloadedFiles;
     private final ConfigurationDownloader downloader;
-    private final int version;
 
     private ConfigurationSource configurationAnchor;
 
     synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
-
-        downloadedFiles.reset();
 
         if (configurationAnchor == null || configurationAnchor.hasChanged()) {
             log.debug("Initializing configuration anchor");
@@ -71,16 +68,10 @@ class ConfigurationClient {
         }
 
         downloadConfigurationFromAnchor();
+        readAdditionalConfigurationSources();
 
         if (!additionalSources.isEmpty()) {
             downloadConfigurationFromAdditionalSources();
-        }
-
-        // Only sync if download was successful.
-        try {
-            downloadedFiles.sync();
-        } catch (Exception e) {
-            log.error("Failed to sync downloaded files list", e);
         }
     }
 
@@ -106,8 +97,6 @@ class ConfigurationClient {
         }
 
         saveInstanceIdentifier();
-
-        initAdditionalConfigurationSources();
     }
 
     void saveInstanceIdentifier() throws Exception {
@@ -115,7 +104,7 @@ class ConfigurationClient {
                 configurationAnchor.getInstanceIdentifier());
     }
 
-    void initAdditionalConfigurationSources() {
+    void readAdditionalConfigurationSources() {
         log.trace("initAdditionalConfigurationSources()");
 
         additionalSources.clear();
@@ -131,7 +120,7 @@ class ConfigurationClient {
                         privateParameters.getConfigurationSource());
             }
         } catch (Exception e) {
-            log.error("Failed to initialize configuration directory " + confDir, e);
+            log.error("Failed to read additional configuration sources from" + confDir, e);
         }
     }
 
@@ -139,35 +128,42 @@ class ConfigurationClient {
         log.debug("downloadConfFromAnchor()");
 
         handleResult(downloader.download(configurationAnchor), true);
-
-        downloader.getAdditionalSources()
-                .forEach(this::putAdditionalConfigurationSources);
     }
 
     private void downloadConfigurationFromAdditionalSources() throws Exception {
         log.trace("Downloading configuration from additional sources ({})", additionalSources.size());
 
-        FederationConfigurationSourceFilter filter =
+        FederationConfigurationSourceFilter sourceFilter =
                 new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
 
-        for (Set<ConfigurationSource> sources : additionalSources.values()) {
-            for (ConfigurationSource source : sources) {
-                if (!filter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
-                    continue;
-                }
+        Set<String> directoriesToKeep = additionalSources.keySet()
+                 .stream()
+                 .filter(sourceFilter::shouldDownloadConfigurationFor)
+                 .map(ConfigurationUtils::escapeInstanceIdentifier)
+                 .collect(Collectors.toSet());
 
+        // always keep main instance directory
+        directoriesToKeep.add(ConfigurationUtils.escapeInstanceIdentifier(configurationAnchor.getInstanceIdentifier()));
+
+        // delete all additional configurations no longer referenced in anchor
+        ConfigurationDirectory.deleteExtraDirs(SystemProperties.getConfigurationPath(), directoriesToKeep);
+
+        List<String> instancesToUse = additionalSources.keySet()
+                .stream()
+                .filter(sourceFilter::shouldDownloadConfigurationFor)
+                .collect(Collectors.toList());
+
+        for (String instanceId: instancesToUse) {
+            for (ConfigurationSource source : additionalSources.get(instanceId)) {
                 DownloadResult result = downloader.download(
                         source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
-                handleResult(result, source.getInstanceIdentifier().equals(
-                        configurationAnchor.getInstanceIdentifier()));
+                handleResult(result, false);
             }
         }
     }
 
     private void handleResult(DownloadResult result, boolean throwIfFailure) throws Exception {
-        if (result.isSuccess()) {
-            handleSuccess(result);
-        } else {
+        if (!result.isSuccess()) {
             try {
                 handleFailure(result);
             } catch (Exception e) {
@@ -176,17 +172,6 @@ class ConfigurationClient {
                 }
             }
         }
-    }
-
-    private void handleSuccess(DownloadResult result) {
-        log.trace("handleSuccess()");
-
-        Configuration configuration = result.getConfiguration();
-
-        downloadedFiles.add(configuration.getFiles().stream()
-                .map(downloader::getFileName)
-                .map(Object::toString)
-                .collect(Collectors.toSet()));
     }
 
     private void handleFailure(DownloadResult result) throws Exception {

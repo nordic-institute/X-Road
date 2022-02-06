@@ -27,7 +27,6 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
-import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -45,11 +44,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
@@ -76,19 +73,12 @@ class ConfigurationDownloader {
 
     protected final FileNameProvider fileNameProvider;
     protected final String[] instanceIdentifiers;
-    private final int version;
 
     private Map<ConfigurationSource, ConfigurationLocation>
             lastSuccessfulLocation = new HashMap<>();
 
-    @Getter
-    protected final Map<String, Set<ConfigurationSource>> additionalSources =
-            new HashMap<>();
-
-    ConfigurationDownloader(FileNameProvider fileNameProvider, int version,
-            String... instanceIdentifiers) {
+    ConfigurationDownloader(FileNameProvider fileNameProvider, String... instanceIdentifiers) {
         this.fileNameProvider = fileNameProvider;
-        this.version = version;
         this.instanceIdentifiers = instanceIdentifiers;
     }
 
@@ -162,35 +152,64 @@ class ConfigurationDownloader {
         log.info("Downloading configuration from {}",
                 location.getDownloadURL());
 
-        additionalSources.clear();
-
         Configuration configuration =
                 getParser().parse(location, contentIdentifiers);
 
-        configuration.eachFile(this::handle);
+        // first download all parts into memory and verify then
+        List<DownloadedContent> downloadedContents = downloadAllContent(configuration);
+
+        // when everything is ok save contents and/or update expiry dates
+        persistAllContent(downloadedContents);
 
         return configuration;
     }
 
-    @SneakyThrows
-    void handle(ConfigurationLocation location, ConfigurationFile file) {
-        log.trace("handle({})", file);
+    List<DownloadedContent> downloadAllContent(Configuration configuration) throws Exception {
+        log.trace("downloadAllContent");
 
-        verifyInstanceIdentifier(location.getSource().getInstanceIdentifier(),
-                file);
+        List<DownloadedContent> result = new ArrayList<>();
+        ConfigurationLocation location = configuration.getLocation();
 
-        Path contentFileName = getFileName(file);
-        if (shouldDownload(file, contentFileName)) {
-            byte[] content = downloadContent(location, file);
+        for (ConfigurationFile file: configuration.getFiles()) {
+            Path contentFileName = getFileName(file);
+            if (shouldDownload(file, contentFileName)) {
+                byte[] content = downloadContent(location, file);
 
-            verifyContent(content, file);
-            handleContent(content, file);
+                verifyContent(content, file);
+                handleContent(content, file);
 
-            persistContent(content, contentFileName, file);
-        } else {
-            log.trace("{} is up to date", file.getContentLocation());
+                result.add(new DownloadedContent(file, content));
+            } else {
+                log.trace("{} is up to date", file.getContentLocation());
 
-            updateExpirationDate(contentFileName, file);
+                result.add(new DownloadedContent(file, null));
+            }
+
+        }
+
+        return result;
+    }
+
+    void persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+        for (DownloadedContent downloadedContent: downloadedContents) {
+            Path contentFileName = getFileName(downloadedContent.file);
+            if (downloadedContent.content != null) {
+                persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
+            } else {
+                updateExpirationDate(contentFileName, downloadedContent.file);
+            }
+        }
+    }
+
+    protected static class DownloadedContent {
+        ConfigurationFile file;
+
+        // if null content was not downloaded as it was not changed
+        byte[] content;
+
+        public DownloadedContent(ConfigurationFile file, byte[] content) {
+            this.file = file;
+            this.content = content;
         }
     }
 
@@ -268,25 +287,6 @@ class ConfigurationDownloader {
             ConfigurationFile file) throws Exception {
         verifyInstanceIdentifier(privateParameters.getInstanceIdentifier(),
                 file);
-        addAdditionalConfigurationSources(privateParameters);
-    }
-
-    void addAdditionalConfigurationSources(
-            PrivateParametersV2 privateParameters) {
-        // If there are any additional configuration sources,
-        // we need to download the shared parameters from these
-        // configuration sources.
-        Set<ConfigurationSource> sources = new HashSet<>();
-
-        if (!privateParameters.getConfigurationSource().isEmpty()) {
-            log.trace("Received private parameters with additional "
-                    + privateParameters.getConfigurationSource().size()
-                    + " configuration sources");
-            sources.addAll(privateParameters.getConfigurationSource());
-        }
-
-        additionalSources.put(privateParameters.getInstanceIdentifier(),
-                sources);
     }
 
     void handleSharedParameters(SharedParametersV2 sharedParameters,
