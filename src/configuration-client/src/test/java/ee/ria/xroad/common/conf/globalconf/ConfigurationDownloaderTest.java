@@ -25,8 +25,6 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-
 import lombok.Getter;
 import lombok.Value;
 import org.hamcrest.Description;
@@ -230,7 +228,7 @@ public class ConfigurationDownloaderTest {
             String... successfulLocationUrls) {
         FileNameProvider fileNameProvider = file -> new File("f").toPath();
 
-        return new ConfigurationDownloader(fileNameProvider, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+        return new ConfigurationDownloader(fileNameProvider) {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);
