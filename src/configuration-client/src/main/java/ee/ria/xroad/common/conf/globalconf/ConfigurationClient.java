@@ -28,8 +28,6 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.CodedException;
 import ee.ria.xroad.common.SystemProperties;
 
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.FileNotFoundException;
@@ -49,14 +47,26 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
  * Configuration client downloads the configuration from sources found in the configuration anchor.
  */
 @Slf4j
-@RequiredArgsConstructor
-@AllArgsConstructor
 class ConfigurationClient {
     private final Map<String, Set<ConfigurationSource>> additionalSources = new HashMap<>();
+
+    private final String globalConfigurationDir;
 
     private final ConfigurationDownloader downloader;
 
     private ConfigurationSource configurationAnchor;
+
+    ConfigurationClient(String globalConfigurationDir) {
+        this.globalConfigurationDir = globalConfigurationDir;
+        downloader = new ConfigurationDownloader(globalConfigurationDir);
+    }
+
+    ConfigurationClient(String globalConfigurationDir, ConfigurationDownloader downloader,
+                               ConfigurationSource configurationAnchor) {
+        this.globalConfigurationDir = globalConfigurationDir;
+        this.downloader = downloader;
+        this.configurationAnchor = configurationAnchor;
+    }
 
     synchronized void execute() throws Exception {
         log.debug("Configuration client executing...");
@@ -100,7 +110,7 @@ class ConfigurationClient {
     }
 
     void saveInstanceIdentifier() throws Exception {
-        ConfigurationDirectory.saveInstanceIdentifier(SystemProperties.getConfigurationPath(),
+        ConfigurationDirectory.saveInstanceIdentifier(globalConfigurationDir,
                 configurationAnchor.getInstanceIdentifier());
     }
 
@@ -109,7 +119,7 @@ class ConfigurationClient {
 
         additionalSources.clear();
 
-        String confDir = SystemProperties.getConfigurationPath();
+        String confDir = globalConfigurationDir;
 
         try {
             ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(confDir);
@@ -146,7 +156,7 @@ class ConfigurationClient {
         directoriesToKeep.add(ConfigurationUtils.escapeInstanceIdentifier(configurationAnchor.getInstanceIdentifier()));
 
         // delete all additional configurations no longer referenced in anchor
-        ConfigurationDirectory.deleteExtraDirs(SystemProperties.getConfigurationPath(), directoriesToKeep);
+        ConfigurationDirectory.deleteExtraDirs(globalConfigurationDir, directoriesToKeep);
 
         List<String> instancesToUse = additionalSources.keySet()
                 .stream()

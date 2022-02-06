@@ -78,22 +78,12 @@ public class ConfigurationParser {
         CONTENT
     }
 
-    private final String[] supportedInstanceIdentifiers;
-
     protected Configuration configuration;
 
     private String[] contentIdentifiers;
     private MimeStreamParser parser;
 
     private byte[] signedData;
-
-    /**
-     * @param supportedInstanceIdentifiers the list of instance identifiers
-     * that are to be downloaded
-     */
-    public ConfigurationParser(String... supportedInstanceIdentifiers) {
-        this.supportedInstanceIdentifiers = supportedInstanceIdentifiers;
-    }
 
     /**
      * Parses the configuration directory from the given input stream.
@@ -343,12 +333,6 @@ public class ConfigurationParser {
         }
 
         private boolean shouldHandleContent(ConfigurationFile f) {
-            if (!ArrayUtils.isEmpty(supportedInstanceIdentifiers)
-                    && !StringUtils.isBlank(f.getInstanceIdentifier())
-                    && !ArrayUtils.contains(supportedInstanceIdentifiers, f.getInstanceIdentifier())) {
-                return false;
-            }
-
             return ArrayUtils.isEmpty(contentIdentifiers)
                     || ArrayUtils.contains(contentIdentifiers, f.getContentIdentifier());
         }
