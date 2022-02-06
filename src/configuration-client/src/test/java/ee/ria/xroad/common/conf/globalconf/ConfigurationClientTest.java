@@ -30,7 +30,9 @@ import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -54,6 +56,8 @@ import static org.junit.Assert.fail;
  */
 @Slf4j
 public class ConfigurationClientTest {
+    @Rule
+    public TemporaryFolder tempConfFolder = new TemporaryFolder();
 
     /**
      * Test to ensure a simple configuration will be downloaded.
@@ -145,15 +149,14 @@ public class ConfigurationClientTest {
         };
     }
 
-    private static ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
+    private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
         ConfigurationAnchorV2 configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
-        FileNameProvider fileNameProvider = new FileNameProviderImpl(confPath);
-
-        ConfigurationDownloader configurations = new ConfigurationDownloader(fileNameProvider) {
+        ConfigurationDownloader configurations = new ConfigurationDownloader(
+                tempConfFolder.getRoot().getAbsolutePath()) {
             @Override
             ConfigurationParser getParser() {
-                return new ConfigurationParser(instanceIdentifiers) {
+                return new ConfigurationParser() {
                     @Override
                     protected InputStream getInputStream() throws Exception {
                         String downloadURL = configuration.getLocation().getDownloadURL();
@@ -178,6 +181,7 @@ public class ConfigurationClientTest {
             @Override
             void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
                 receivedParts.add(file.getContentIdentifier());
+                super.persistContent(content, destination, file);
             }
 
             @Override
@@ -193,6 +197,6 @@ public class ConfigurationClientTest {
             }
         };
 
-        return new ConfigurationClient(configurations, configurationAnchor);
+        return new ConfigurationClient(tempConfFolder.getRoot().getAbsolutePath(), configurations, configurationAnchor);
     }
 }

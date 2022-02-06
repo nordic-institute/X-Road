@@ -143,7 +143,7 @@ public final class ConfigurationClientMain {
 
         FileNameProvider fileNameProvider = new FileNameProviderImpl(configurationPath);
 
-        client = new ConfigurationClient(new ConfigurationDownloader(fileNameProvider)) {
+        client = new ConfigurationClient(configurationPath) {
             @Override
             void readAdditionalConfigurationSources() {
                 // do not read additional sources;
@@ -156,10 +156,9 @@ public final class ConfigurationClientMain {
     private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-
         // Create configuration that does not persist files to disk.
-        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider()) {
+        ConfigurationDownloader configurationDowloader =
+                new ConfigurationDownloader(SystemProperties.getConfigurationPath()) {
             @Override
             void persistAllContent(
                     List<ConfigurationDownloader.DownloadedContent> downloadedContents) throws Exception {
@@ -167,7 +166,9 @@ public final class ConfigurationClientMain {
             }
         };
 
-        client = new ConfigurationClient(configuration) {
+        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath(), configurationDowloader,
+                configurationAnchor) {
             @Override
             void saveInstanceIdentifier() {
                 // Not needed.
@@ -203,19 +204,10 @@ public final class ConfigurationClientMain {
         shutdown();
     }
 
-    private static ConfigurationClient createClient() {
-        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider());
-        return new ConfigurationClient(configuration);
-    }
-
-    private static FileNameProviderImpl getDefaultFileNameProvider() {
-        return new FileNameProviderImpl(SystemProperties.getConfigurationPath());
-    }
-
     private static void setup() {
         log.trace("setUp()");
 
-        client = createClient();
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath());
 
         adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 

@@ -32,7 +32,6 @@ import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -226,9 +225,7 @@ public class ConfigurationDownloaderTest {
 
     private ConfigurationDownloader getDownloader(
             String... successfulLocationUrls) {
-        FileNameProvider fileNameProvider = file -> new File("f").toPath();
-
-        return new ConfigurationDownloader(fileNameProvider) {
+        return new ConfigurationDownloader("f") {
 
             ConfigurationParser parser =
                     new TestConfigurationParser(successfulLocationUrls);

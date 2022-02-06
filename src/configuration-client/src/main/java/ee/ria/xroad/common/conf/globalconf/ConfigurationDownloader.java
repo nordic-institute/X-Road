@@ -71,19 +71,19 @@ class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
 
+    private final String globalConfigurationDir;
     protected final FileNameProvider fileNameProvider;
-    protected final String[] instanceIdentifiers;
 
     private Map<ConfigurationSource, ConfigurationLocation>
             lastSuccessfulLocation = new HashMap<>();
 
-    ConfigurationDownloader(FileNameProvider fileNameProvider, String... instanceIdentifiers) {
-        this.fileNameProvider = fileNameProvider;
-        this.instanceIdentifiers = instanceIdentifiers;
+    ConfigurationDownloader(String globalConfigurationDir) {
+        this.globalConfigurationDir = globalConfigurationDir;
+        fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
     }
 
     ConfigurationParser getParser() {
-        return new ConfigurationParser(instanceIdentifiers);
+        return new ConfigurationParser();
     }
 
     @SneakyThrows
