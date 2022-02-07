@@ -139,14 +139,13 @@ public final class ConfigurationClientMain {
                 configurationAnchorFile, configurationPath);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, configurationPath);
-
-        FileNameProvider fileNameProvider = new FileNameProviderImpl(configurationPath);
 
         client = new ConfigurationClient(configurationPath) {
             @Override
-            void readAdditionalConfigurationSources() {
-                // do not read additional sources;
+            protected void deleteExtraConfigurationDirectories(
+                    PrivateParametersV2 privateParameters,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
             }
         };
 
@@ -159,16 +158,24 @@ public final class ConfigurationClientMain {
         // Create configuration that does not persist files to disk.
         ConfigurationDownloader configurationDowloader =
                 new ConfigurationDownloader(SystemProperties.getConfigurationPath()) {
-            @Override
-            void persistAllContent(
-                    List<ConfigurationDownloader.DownloadedContent> downloadedContents) throws Exception {
-                // empty because we don't want to persist files to disk
-            }
+
+           @Override
+           void persistAllContent(
+               List<ConfigurationDownloader.DownloadedContent> downloadedContents) throws Exception {
+               // empty because we don't want to persist files to disk
+           }
         };
 
         ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
         client = new ConfigurationClient(SystemProperties.getConfigurationPath(), configurationDowloader,
                 configurationAnchor) {
+            @Override
+            protected void deleteExtraConfigurationDirectories(
+                    PrivateParametersV2 privateParameters,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete any files
+            }
+
             @Override
             void saveInstanceIdentifier() {
                 // Not needed.
