@@ -30,12 +30,14 @@ import ee.ria.xroad.common.util.AtomicSave;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -106,29 +108,28 @@ public interface ConfigurationDirectory {
     }
 
     /**
-     * Deletes directories inside directory confPath that are not in the list of directories to keep.
+     * Recursively deletes directories inside directory confPath that are not in the list of directories to keep.
      * @param confPath base configuration directory
      * @param foldersToKeep set of folders to keep, all other folders are deleted
      */
     static void deleteExtraDirs(String confPath, Set<String> foldersToKeep) {
-        try {
-            List<Path> foldersToDelete = Files.walk(Paths.get(confPath))
-                    .filter(s -> Files.isDirectory(s) && !foldersToKeep.contains(s.getFileName().toString()))
-                    .collect(Collectors.toList());
-            for (Path folder : foldersToDelete) {
-                Files.walk(folder)
-                        .filter(Files::isDirectory)
-                        .forEach(path -> {
-                            try {
-                                Files.delete(path);
-                            } catch (IOException e) {
-                                LOG.error("Error deleting file " + path.toString(), e);
-                            }
-                        });
+        File[] dirContents = (new File(confPath)).listFiles();
+        for (File file : dirContents) {
+            if (file.isDirectory() && !foldersToKeep.contains(file.getName())) {
+                deleteDirectory(file.toPath());
             }
-        } catch (IOException e) {
-            LOG.error("Error deleting directory", e);
         }
+    }
+
+    static void deleteDirectory(Path directory) {
+       try {
+           Files.walk(directory)
+                   .sorted(Comparator.reverseOrder())
+                   .map(Path::toFile)
+                   .forEach(File::delete);
+       } catch (IOException e) {
+           LOG.error("Error deleting directory " + directory.toString(), e);
+       }
     }
 
     /**

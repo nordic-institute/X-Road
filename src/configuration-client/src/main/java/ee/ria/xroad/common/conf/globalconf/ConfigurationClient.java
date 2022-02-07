@@ -33,11 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.FileNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -48,8 +44,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_INVALID_XML;
  */
 @Slf4j
 class ConfigurationClient {
-    private final Map<String, Set<ConfigurationSource>> additionalSources = new HashMap<>();
-
     private final String globalConfigurationDir;
 
     private final ConfigurationDownloader downloader;
@@ -78,11 +72,14 @@ class ConfigurationClient {
         }
 
         downloadConfigurationFromAnchor();
-        readAdditionalConfigurationSources();
+        PrivateParametersV2 privateParameters = loadPrivateParameters();
 
-        if (!additionalSources.isEmpty()) {
-            downloadConfigurationFromAdditionalSources();
-        }
+        FederationConfigurationSourceFilter sourceFilter =
+                new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
+
+        deleteExtraConfigurationDirectories(privateParameters, sourceFilter);
+
+        downloadConfigurationFromAdditionalSources(privateParameters, sourceFilter);
     }
 
     private void initConfigurationAnchor() throws Exception {
@@ -114,60 +111,53 @@ class ConfigurationClient {
                 configurationAnchor.getInstanceIdentifier());
     }
 
-    void readAdditionalConfigurationSources() {
-        log.trace("initAdditionalConfigurationSources()");
-
-        additionalSources.clear();
-
-        String confDir = globalConfigurationDir;
-
-        try {
-            ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(confDir);
-            PrivateParametersV2 privateParameters = dir.getPrivate(configurationAnchor.getInstanceIdentifier());
-
-            if (privateParameters != null) {
-                putAdditionalConfigurationSources(privateParameters.getInstanceIdentifier(),
-                        privateParameters.getConfigurationSource());
-            }
-        } catch (Exception e) {
-            log.error("Failed to read additional configuration sources from" + confDir, e);
-        }
-    }
-
     private void downloadConfigurationFromAnchor() throws Exception {
         log.debug("downloadConfFromAnchor()");
 
         handleResult(downloader.download(configurationAnchor), true);
     }
 
-    private void downloadConfigurationFromAdditionalSources() throws Exception {
-        log.trace("Downloading configuration from additional sources ({})", additionalSources.size());
+    private PrivateParametersV2 loadPrivateParameters() {
+        try {
+            ConfigurationDirectoryV2 dir = new ConfigurationDirectoryV2(globalConfigurationDir);
+            return dir.getPrivate(configurationAnchor.getInstanceIdentifier());
+        } catch (Exception e) {
+            log.error("Failed to read additional configuration sources from" + globalConfigurationDir, e);
+            return null;
+        }
+    }
 
-        FederationConfigurationSourceFilter sourceFilter =
-                new FederationConfigurationSourceFilterImpl(configurationAnchor.getInstanceIdentifier());
+    protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
+                                                     FederationConfigurationSourceFilter sourceFilter) {
+        Set<String> directoriesToKeep;
+        if (privateParameters != null) {
+            directoriesToKeep = privateParameters.getConfigurationSource()
+                    .stream()
+                    .map(ConfigurationSource::getInstanceIdentifier)
+                    .filter(sourceFilter::shouldDownloadConfigurationFor)
+                    .map(ConfigurationUtils::escapeInstanceIdentifier)
+                    .collect(Collectors.toSet());
 
-        Set<String> directoriesToKeep = additionalSources.keySet()
-                 .stream()
-                 .filter(sourceFilter::shouldDownloadConfigurationFor)
-                 .map(ConfigurationUtils::escapeInstanceIdentifier)
-                 .collect(Collectors.toSet());
+        } else {
+            directoriesToKeep = new HashSet<>();
+        }
 
         // always keep main instance directory
         directoriesToKeep.add(ConfigurationUtils.escapeInstanceIdentifier(configurationAnchor.getInstanceIdentifier()));
 
         // delete all additional configurations no longer referenced in anchor
         ConfigurationDirectory.deleteExtraDirs(globalConfigurationDir, directoriesToKeep);
+    }
 
-        List<String> instancesToUse = additionalSources.keySet()
-                .stream()
-                .filter(sourceFilter::shouldDownloadConfigurationFor)
-                .collect(Collectors.toList());
-
-        for (String instanceId: instancesToUse) {
-            for (ConfigurationSource source : additionalSources.get(instanceId)) {
-                DownloadResult result = downloader.download(
-                        source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
-                handleResult(result, false);
+    private void downloadConfigurationFromAdditionalSources(PrivateParametersV2 privateParameters,
+                                                FederationConfigurationSourceFilter sourceFilter) throws Exception {
+        if (privateParameters != null) {
+            for (ConfigurationSource source : privateParameters.getConfigurationSource()) {
+                if (sourceFilter.shouldDownloadConfigurationFor(source.getInstanceIdentifier())) {
+                    DownloadResult result = downloader.download(
+                            source, ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS);
+                    handleResult(result, false);
+                }
             }
         }
     }
@@ -204,9 +194,5 @@ class ConfigurationClient {
         if (lastException != null) {
             throw lastException;
         }
-    }
-
-    private void putAdditionalConfigurationSources(String instanceIdentifier, Collection<ConfigurationSource> sources) {
-        additionalSources.put(instanceIdentifier, new HashSet<>(sources));
     }
 }
