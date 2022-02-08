@@ -3006,6 +3006,8 @@ components:
       description: authentication credentials are missing
   schemas:
     ApprovedCertificationService:
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: certification service
       properties:
         ca_certificate:
@@ -3080,6 +3082,8 @@ components:
         - central_server_address
       type: object
     CentralService:
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: x-road central service
       properties:
         central_service_code:
@@ -3093,6 +3097,8 @@ components:
           $ref: '#/components/schemas/Service'
       type: object
     CertificateAuthority:
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: approved certificate authority information
       properties:
         id:
@@ -3275,15 +3281,10 @@ components:
     CodeWithDetails:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationAnchor:
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: global conf anchor # potential-common-api
       properties:
-        created_at:
-          description: anchor created at
-          example: '2022-01-15T00:00:00.001Z'
-          format: date-time
-          maxLength: 24
-          minLength: 24
-          type: string
         hash:
           description: anchor hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
@@ -3310,8 +3311,8 @@ components:
           description: if the part is optional
           example: true
           type: boolean
-        updated_at:
-          description: anchor created at
+        file_updated_at:
+          description: file updated at
           example: '2022-01-12T00:00:00.001Z'
           format: date-time
           maxLength: 24
@@ -3326,7 +3327,7 @@ components:
       required:
         - content_identifier
         - filename
-        - updated_at
+        - file_updated_at
         - version
         - optional
       type: object
@@ -3373,6 +3374,7 @@ components:
     GlobalGroup:
       allOf:
         - $ref: '#/components/schemas/GlobalGroupCodeAndDescription'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: group
       properties:
         id:
@@ -3401,13 +3403,6 @@ components:
             $ref: '#/components/schemas/GroupMember'
           type: array
           uniqueItems: true
-        updated_at:
-          description: last time updated
-          example: '2022-01-20T00:00:00.001Z'
-          format: date-time
-          maxLength: 24
-          minLength: 24
-          type: string
       required:
         - code
         - description
@@ -3542,7 +3537,7 @@ components:
           example: true
           type: boolean
         created_at:
-          description: anchor created at
+          description: configuration signing key created at
           example: '2022-01-12T00:00:00.001Z'
           format: date-time
           maxLength: 24
@@ -3656,6 +3651,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/MemberName'
         - $ref: '#/components/schemas/MemberClassAndCode'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: x-road member
       required:
         - member_name
@@ -3692,6 +3688,7 @@ components:
     MemberClass:
       allOf:
         - $ref: '#/components/schemas/MemberClassDescription'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: Central server's member classes
       properties:
         code:
@@ -3782,10 +3779,31 @@ components:
             type: string
           type: array
       type: object
+    ModificationTimestamps:
+      description: created_at and updated_at timestamps
+      properties:
+        created_at:
+          description: object creation time
+          example: '2022-01-20T00:00:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          readOnly: true
+          type: string
+        updated_at:
+          description: last time updated
+          example: '2022-01-22T07:30:00.001Z'
+          format: date-time
+          maxLength: 24
+          minLength: 24
+          readOnly: true
+          type: string
+      type: object
     OcspResponder:
       allOf:
         - $ref: '#/components/schemas/OcspResponderUrl'
         - $ref: '#/components/schemas/OcspResponderCertificate'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: OCSP responder
       properties:
         id:
@@ -3838,6 +3856,7 @@ components:
     SecurityServer:
       allOf:
         - $ref: '#/components/schemas/SecurityServerAddress'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: security server information
       properties:
         id:
@@ -3948,6 +3967,7 @@ components:
       allOf:
         - $ref: '#/components/schemas/TimestampingServiceUrl'
         - $ref: '#/components/schemas/TimestampingServiceCertificate'
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: timestamping service
       type: object
     TimestampingServiceCertificate:
@@ -4080,15 +4100,10 @@ components:
           type: boolean
       type: object
     TrustedAnchor:
+      allOf:
+        - $ref: '#/components/schemas/ModificationTimestamps'
       description: trusted anchor for globalconf
       properties:
-        created_at:
-          description: anchor created at
-          example: '2022-01-12T00:00:00.001Z'
-          format: date-time
-          maxLength: 24
-          minLength: 24
-          type: string
         hash:
           description: anchor hash
           example: 42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3:22:55:42:34:C3
