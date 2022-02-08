@@ -3798,6 +3798,9 @@ components:
           minLength: 24
           readOnly: true
           type: string
+      required:
+        - created_at
+        - updated_at
       type: object
     OcspResponder:
       allOf:
@@ -3831,7 +3834,6 @@ components:
           format: url
           maxLength: 255
           minLength: 1
-          readOnly: true
           type: string
       required:
         - url
@@ -3928,7 +3930,6 @@ components:
           format: text
           maxLength: 1023
           minLength: 1
-          readOnly: true
           type: string
         service_code:
           description: service code
@@ -4006,9 +4007,9 @@ components:
           format: text
           minLength: 1
           type: string
-          required:
-            - token_id
-            - key_label
+      required:
+        - token_id
+        - key_label
       type: object 
     Token:
       description: Token. Also includes the possible actions that can be done to this object, e.g DELETE (only for token related operations and does not consider user authorization).
