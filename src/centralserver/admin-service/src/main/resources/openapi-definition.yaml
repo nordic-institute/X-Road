@@ -511,18 +511,17 @@ paths:
       summary: add a new certification service
       tags:
         - certification-services
-  /certification-services/{hash}:
+  /certification-services/{id}:
     delete:
       description: <h3>CS Administrator deletes a certification service.</h3>
       operationId: deleteCertificationService
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -554,13 +553,12 @@ paths:
       description: <h3>CS administrator views the details of an approved certification service.</h3>
       operationId: getCertificationServiceByHash
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -587,13 +585,12 @@ paths:
       description: <h3>CS administrator edits the settings of a certification service.</h3>
       operationId: updateCertificationService
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       requestBody:
@@ -623,18 +620,17 @@ paths:
       summary: update the certification service
       tags:
         - certification-services
-  /certification-services/{hash}/intermediate-cas:
+  /certification-services/{id}/intermediate-cas:
     get:
       description: <h3>CS administrator views the intermediate CAs configured for a certification service.</h3>
       operationId: getCertificationServiceIntermediateCas
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -665,13 +661,12 @@ paths:
       description: <h3>CS administrator configures an intermediate CA for a certification service.</h3>
       operationId: addCertificationServiceIntermediateCas
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       requestBody:
@@ -700,18 +695,17 @@ paths:
       summary: add a new intermediate certificate authority to a certification service
       tags:
         - certification-services
-  /certification-services/{hash}/ocsp-responders:
+  /certification-services/{id}/ocsp-responders:
     get:
       description: <h3>CS administrator views the OCSP responders configured for a CA.</h3>
       operationId: getCertificationServiceOcspResponders
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -742,13 +736,12 @@ paths:
       description: <h3>CS administrator adds an OCSP responder service information for a CA.</h3>
       operationId: addCertificationServiceOcspResponder
       parameters:
-        - description: SHA-1 hash of the certificate of the certification service
+        - description: unique identifier of the certification service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       requestBody:
@@ -1696,18 +1689,17 @@ paths:
       summary: Check the initialization status of the Central Server
       tags:
         - initialization
-  /intermediate-cas/{hash}:
+  /intermediate-cas/{id}:
     delete:
       description: <h3>CS administrator deletes an intermediate CA.</h3>
       operationId: deleteIntermediateCa
       parameters:
-        - description: SHA-1 hash of the intermediate certificate authority cert
+        - description: unique identifier of the intermediate certificate authority
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -1739,13 +1731,12 @@ paths:
       description: <h3>CS administrator views the details of an intermediate CA.</h3>
       operationId: getIntermediateCa
       parameters:
-        - description: SHA-1 hash of the intermediate certificate authority cert
+        - description: unique identifier of the intermediate certificate authority
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -1768,18 +1759,17 @@ paths:
       summary: get an intermediate certificate authority
       tags:
         - intermediate-cas
-  /intermediate-cas/{hash}/ocsp-responders:
+  /intermediate-cas/{id}/ocsp-responders:
     get:
       description: <h3>CS administrator views the OCSP responders configured for an intermediate CA.</h3>
       operationId: getIntermediateCaOcspResponders
       parameters:
-        - description: SHA-1 hash of the certificate of the intermediate certificate authority
+        - description: unique identifier of the intermediate certificate authority
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -1810,13 +1800,12 @@ paths:
       description: <h3>CS administrator adds an OCSP responder service information for an intermediate CA.</h3>
       operationId: addIntermediateCaOcspResponder
       parameters:
-        - description: SHA-1 hash of the certificate of the intermediate certificate authority
+        - description: unique identifier of the intermediate certificate authority
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       requestBody:
@@ -2226,18 +2215,17 @@ paths:
       summary: update the name of a member
       tags:
         - clients
-  /ocsp-responders/{hash}:
+  /ocsp-responders/{id}:
     delete:
       description: <h3>CS administrator deletes an ocsp responder.</h3>
       operationId: deleteOcspResponder
       parameters:
-        - description: SHA-1 hash of the certificate of the ocsp responder
+        - description: unique identifier of the ocsp responder
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -2269,13 +2257,12 @@ paths:
       description: <h3>CS administrator views the details of an ocsp responder.</h3>
       operationId: getOcspResponder
       parameters:
-        - description: SHA-1 hash of the certificate of the ocsp responder
+        - description: unique identifier of the ocsp responder
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -2302,13 +2289,12 @@ paths:
       description: <h3>CS administrator updates the details of an ocsp responder.</h3>
       operationId: updateOcspResponder
       parameters:
-        - description: SHA-1 hash of the certificate of the ocsp responder
+        - description: unique identifier of the ocsp responder
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       requestBody:
@@ -3111,6 +3097,12 @@ components:
     CertificateAuthority:
       description: approved certificate authority information
       properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: text
+          readOnly: true
+          type: string
         ca_certificate:
           $ref: '#/components/schemas/CertificateDetails'
         ocsp_responders:
@@ -3797,7 +3789,15 @@ components:
         - $ref: '#/components/schemas/OcspResponderUrl'
         - $ref: '#/components/schemas/OcspResponderCertificate'
       description: OCSP responder
-      type: object
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: text
+          readOnly: true
+          type: string
+      required:
+        - id
     OcspResponderCertificate:
       description: OCSP responder certificate
       properties:
