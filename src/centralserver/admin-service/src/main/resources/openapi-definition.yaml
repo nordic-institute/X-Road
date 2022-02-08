@@ -3042,7 +3042,7 @@ components:
         - certificate_profile_info
       type: object
     Backup:
-      description: central server backup
+      description: central server backup # potential-common-api
       properties:
         created_at:
           description: backup created at
@@ -3063,7 +3063,7 @@ components:
         - created_at
       type: object
     BackupArchive:
-      description: central server backup archive file
+      description: central server backup archive file # potential-common-api
       properties:
         file:
           format: binary
@@ -3113,7 +3113,7 @@ components:
         - ocsp_responders
       type: object
     CertificateDetails:
-      description: certificate details for any kind of certificate (TLS, auth, sign)
+      description: certificate details for any kind of certificate (TLS, auth, sign) # potential-common-api
       properties:
         hash:
           description: certificate SHA-1 hash
@@ -3275,7 +3275,7 @@ components:
     CodeWithDetails:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
     ConfigurationAnchor:
-      description: global conf anchor
+      description: global conf anchor # potential-common-api
       properties:
         created_at:
           description: anchor created at
@@ -3447,7 +3447,7 @@ components:
         - description
       type: object
     GroupMember:
-      description: group member
+      description: group member # potential-common-api
       properties:
         created_at:
           description: group member created at
@@ -3588,7 +3588,7 @@ components:
           type: string
       type: object
     KeyUsage:
-      description: certificate key usage
+      description: certificate key usage # potential-common-api
       enum:
         - DIGITAL_SIGNATURE
         - NON_REPUDIATION
@@ -3770,7 +3770,7 @@ components:
       format: text
       type: string
     Members:
-      description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id
+      description: Request object containing an array of member ids. The id must be an X-Road member id or subsystem id # potential-common-api
       properties:
         items:
           description: array of members to be added
@@ -3831,7 +3831,7 @@ components:
       format: enum
       type: string
     PossibleActions:
-      description: array containing the possible actions that can be done for this item
+      description: array containing the possible actions that can be done for this item # potential-common-api
       items:
         $ref: '#/components/schemas/PossibleAction'
       type: array
@@ -4038,7 +4038,7 @@ components:
         - available
       type: object
     TokenInitStatus:
-      description: whether a token has been initialized or not – if the token init status cannot be resolved (e.g. signer module is offline), the value is UNKNOWN
+      description: whether a token has been initialized or not – if the token init status cannot be resolved (e.g. signer module is offline), the value is UNKNOWN # potential-common-api
       enum:
         - INITIALIZED
         - NOT_INITIALIZED
@@ -4047,6 +4047,7 @@ components:
       format: enum
       type: string
     TokenPassword:
+      description: password for logging in to the token # potential-common-api
       example:
         password: sm3!!ycat
       properties:
@@ -4057,7 +4058,7 @@ components:
           type: string
       type: object
     TokenStatus:
-      description: token status
+      description: token status # potential-common-api
       enum:
         - OK # Normal operation status
         - USER_PIN_LOCKED # Blocked
