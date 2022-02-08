@@ -29,10 +29,13 @@ let frontPage, mainPage, serviceClientDetails, serviceClientsPage, endpointAcces
 
 // Other elements created from pageobject
 let clientsTab, clientInfo, addServicesPopup, removeAccessRightPopup, removeAllAccessRightsPopup, operationDetails, addSubjectsPopup, clientServices;
-let restOperationDetails, restEndpoints, addEndpointPopup, addEndpointAccessRightPopup, restServiceDetails, wsdlServiceDetails;
+let restOperationDetails, restEndpoints, addEndpointPopup, addEndpointAccessRightPopup;
+
+// Two separate service details
+let restServiceDetails, wsdlServiceDetails;
 
 module.exports = {
-  tags: ['ss', 'clients', 'serviceclients', 'WIP'],
+  tags: ['ss', 'clients', 'serviceclients'],
 
   before: function (browser) {
     frontPage = browser.page.ssLoginPage();
