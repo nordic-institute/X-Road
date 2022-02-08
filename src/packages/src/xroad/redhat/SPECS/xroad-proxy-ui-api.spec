@@ -1,8 +1,4 @@
 %include %{_specdir}/common.inc
-# do not repack jars
-%define __jar_repack %{nil}
-# produce .elX dist tag on both centos and redhat
-%define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-proxy-ui-api
 Version:            %{xroad_version}
@@ -76,7 +72,9 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
-service xroad-jetty stop || true
+if [ "$1" -gt 1 ]; then
+  systemctl --quiet stop xroad-jetty.service >/dev/null 2>&1 || true
+fi
 
 %post
 %systemd_post xroad-proxy-ui-api.service
