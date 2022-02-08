@@ -21,10 +21,10 @@
     "src/mock-openapi-types/",
     "**/openapi-types.ts",
     "scripts/dtsgen-wrapper.js",
-    "tests/e2e/testdata/*.gz",
-    "tests/e2e/testdata/*.gz.crdownload"
+    "tests/e2e/testdata/",
+    "build/"
   ],
-  "license": "LICENSE.txt",
+  "license": "../../LICENSE.txt",
   "licenseFormats": {
     "ts|js|css|scss": {
       "prepend": "/*",
