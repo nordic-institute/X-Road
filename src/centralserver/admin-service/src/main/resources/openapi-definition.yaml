@@ -44,8 +44,6 @@ tags:
     description: resources related to OCSP Responders
   - name: security-servers
     description: resources related to Security Servers
-  - name: security-servers-certs
-    description: resources related to Security Servers' Authentication Certificates
   - name: system
     description: resources related to System info
   - name: management-services
@@ -2515,7 +2513,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: get a security server's authentication certificates
       tags:
-        - security-servers-certs
+        - security-servers
   /security-servers/{id}/authentication-certificates/{hash}:
     delete:
       description: <h3>CS administrator deletes a Security Server's authentication certificate.</h3>
@@ -2554,7 +2552,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: delete a security server's authentication certificate
       tags:
-        - security-servers-certs
+        - security-servers
     get:
       description: <h3>CS administrator views a Security Server's authentication certificate.</h3>
       operationId: getSecurityServerAuthCert
@@ -2596,7 +2594,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: get a security server's authentication certificate
       tags:
-        - security-servers-certs
+        - security-servers
   /system/instance-identifier:
     get:
       description: <h3>Administrator views the instance identifier of the Central Server.</h3>
