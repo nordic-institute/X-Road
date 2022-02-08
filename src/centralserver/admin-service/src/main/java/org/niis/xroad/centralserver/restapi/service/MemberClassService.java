@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 import static org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage.MEMBER_CLASS_EXISTS;
@@ -71,7 +72,7 @@ public class MemberClassService {
      * @param code member class code
      */
     public Optional<MemberClassDto> find(String code) {
-        return memberClasses.findByCodeIgnoreCase(code).map(m -> new MemberClassDto(m.getCode(), m.getDescription()));
+        return memberClasses.findByCode(code).map(m -> new MemberClassDto(m.getCode(), m.getDescription()));
     }
 
     /**
@@ -80,10 +81,11 @@ public class MemberClassService {
      * @throws DataIntegrityException if the member class already exists
      */
     public MemberClassDto add(final MemberClassDto memberClassDto) {
-        memberClasses.findByCodeIgnoreCase(memberClassDto.getCode()).ifPresent(m -> {
-            throw new DataIntegrityException(MEMBER_CLASS_EXISTS, memberClassDto.getCode());
+        final String code = memberClassDto.getCode().toUpperCase(Locale.ROOT);
+        memberClasses.findByCode(code).ifPresent(m -> {
+            throw new DataIntegrityException(MEMBER_CLASS_EXISTS, code);
         });
-        return toDto(memberClasses.save(new MemberClass(memberClassDto.getCode(), memberClassDto.getDescription())));
+        return toDto(memberClasses.save(new MemberClass(code, memberClassDto.getDescription())));
     }
 
     /**
@@ -91,7 +93,7 @@ public class MemberClassService {
      * @throws NotFoundException if the member class does not exist
      */
     public MemberClassDto update(final MemberClassDto memberClassDto) {
-        return toDto(memberClasses.findByCodeIgnoreCase(memberClassDto.getCode()).map(m -> {
+        return toDto(memberClasses.findByCode(memberClassDto.getCode()).map(m -> {
             m.setDescription(memberClassDto.getDescription());
             return memberClasses.save(m);
         }).orElseThrow(() -> new NotFoundException(MEMBER_CLASS_NOT_FOUND, "code", memberClassDto.getCode())));
@@ -104,7 +106,7 @@ public class MemberClassService {
      * @throws NotFoundException if the member class does not exist
      */
     public void delete(String code) {
-        memberClasses.findByCodeIgnoreCase(code).ifPresentOrElse(m -> {
+        memberClasses.findByCode(code).ifPresentOrElse(m -> {
             if (!members.existsByMemberClass(m)) {
                 memberClasses.delete(m);
             } else throw new DataIntegrityException(MEMBER_CLASS_IS_IN_USE, "code", code);

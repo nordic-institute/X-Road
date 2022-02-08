@@ -38,7 +38,7 @@ import java.util.Optional;
 @Repository
 public interface MemberClassRepository extends JpaRepository<MemberClass, Long> {
 
-    Optional<MemberClass> findByCodeIgnoreCase(String code);
+    Optional<MemberClass> findByCode(String code);
 
     List<MemberClassDto> findAllAsDtoBy(Sort sort);
 }
