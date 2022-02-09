@@ -1981,6 +1981,25 @@ paths:
       description: <h3>CS administrator searches for X-Road clients.</h3>
       operationId: findClients
       parameters:
+        - description: >
+                Generic filtering query parameter selects only items that contain parameter
+                value in properties (name, instance, member_class, member_code, subsystem_code, security_server) . Needs to be properly encoded for the
+                special characters, too.
+          in: query
+          name: q
+          required: false
+          schema:
+            example: foobar
+            format: text
+            minLength: 3
+            maxLength: 25
+            type: string          
+        - description: optional paging and sorting parameters
+          in: query
+          name: paging_sorting
+          required: false
+          schema:
+            $ref: '#/components/schemas/PagingSortingParameters'
         - description: an optional search string (member name)
           in: query
           name: name
@@ -2046,12 +2065,8 @@ paths:
           content:
             application/json:
               schema:
-                description: array of members
-                items:
-                  $ref: '#/components/schemas/Client'
-                type: array
-                uniqueItems: true
-          description: list of clients
+                $ref: '#/components/schemas/PagedClients'
+          description: paged clients results
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -2328,6 +2343,25 @@ paths:
       description: <h3>CS administrator searches for X-Road Security Servers that are registered in the central server.</h3>
       operationId: findSecurityServers
       parameters:
+        - description: >
+                Generic filtering query parameter selects only items that contain parameter
+                value in properties (owner_member, contains_member). Needs to be properly encoded for the
+                special characters, too.
+          in: query
+          name: q
+          required: false
+          schema:
+            example: foobar
+            format: text
+            minLength: 3
+            maxLength: 25
+            type: string          
+        - description: optional result limiting parameters
+          in: query
+          name: result_limits
+          required: false
+          schema:
+            $ref: '#/components/schemas/PagingSortingParameters'
         - description: a member id – return only security servers that are owned by this member
           in: query
           name: owner_member
@@ -2353,12 +2387,8 @@ paths:
           content:
             application/json:
               schema:
-                description: array of security servers
-                items:
-                  $ref: '#/components/schemas/SecurityServer'
-                type: array
-                uniqueItems: true
-          description: list of security servers
+                $ref: '#/components/schemas/PagedSecurityServers'
+          description: paged security servers results
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -3909,6 +3939,76 @@ components:
       required:
         - id
       type: object
+    PagedClients:
+      description: array containing the possible actions that can be done for this item # potential-common-api
+      properties:
+        clients:
+          description: clients
+          items:
+            $ref: '#/components/schemas/Client'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagedSecurityServers:
+      description: array containing the possible actions that can be done for this item # potential-common-api
+      properties:
+        clients:
+          description: clients
+          items:
+            $ref: '#/components/schemas/SecurityServer'
+          type: array
+        paging_metadata:
+          $ref: '#/components/schemas/PagingMetadata'
+      required:
+        - items
+        - paging_metadata
+      type: object
+    PagingMetadata:
+      description: metadata about paged results
+      properties:
+        total_items:
+          description: Total number of items in the query results
+          type: integer
+          format: int32
+      required:
+        - total_items
+      type: object
+    PagingSortingParameters:
+      description: parameters for sorting and paging search results
+      properties:
+        sort:
+          description: Indicates item property that is to be used as sorting key.
+          example: title
+          minLength: 2
+          pattern: '[a-z_]+'
+          maxLength: 25
+          type: string
+        sort_desc:
+          description: >
+              Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
+              parameter indicates ascending direction.
+          default: false
+          type: boolean
+        limit:
+          description: >
+              Indicates the maximum number of items for the returned page.   If parameter is
+              omitted, then the default amount of 25   is returned.
+          default: 25
+          type: integer
+          format: int32
+        offset:
+          description: >
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.  If the parameter omitted or the value 0 (zero)
+              is given, the first page is returned.
+          default: 0
+          type: integer
+          format: int32
+      type: object
     SecurityServerAddress:
       description: security server address
       properties:
@@ -3988,7 +4088,6 @@ components:
           format: url
           maxLength: 255
           minLength: 1
-          readOnly: true
           type: string
       required:
         - url
