@@ -85,19 +85,35 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
-%post
+if [ "$1" -gt 1 ] ; then
+  mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+  rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
+fi
+
+%post -p /bin/bash
+%systemd_post xroad-addon-messagelog.service
+
 if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
   rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
 else
   /usr/share/xroad/scripts/setup_messagelog_db.sh
 fi
-%systemd_post xroad-addon-messagelog.service
+
+if [ "$1" -gt 1 ]; then
+  prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
+
+  if [[ $prev_version = 6.* || $prev_version = 7.0.0 || $prev_version = 7.0.1 ]]; then
+    # Special handling for upgrade from 6.x (and a fix for 7.0)
+    systemctl --quiet preset xroad-addon-messagelog.service &>/dev/null || :
+  fi
+
+  rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
+fi
 
 %preun
 %systemd_preun xroad-addon-messagelog.service
 
 %postun
-
 if [ "$1" -eq 0 ]; then
   # addon removed
   rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
