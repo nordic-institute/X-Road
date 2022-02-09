@@ -25,40 +25,26 @@
  */
 package ee.ria.xroad.common.conf.globalconf;
 
-import ee.ria.xroad.common.SystemProperties;
-import ee.ria.xroad.common.util.TimeUtils;
-
 import lombok.extern.slf4j.Slf4j;
+import org.quartz.DisallowConcurrentExecution;
+import org.quartz.Job;
+import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 
 /**
- * Global configuration updater thread
+ * Periodic reload of global configuration
  */
 @Slf4j
-class GlobalConfUpdater extends Thread {
-
-    private GlobalConfImpl globalConfImpl;
-    private int pollIntervalMs;
-
-    GlobalConfUpdater(GlobalConfImpl impl) {
-        super("GlobalConfUpdaterThread");
-        globalConfImpl = impl;
-        pollIntervalMs = TimeUtils.secondsToMillis(SystemProperties.getConfigurationClientUpdateIntervalSeconds());
-        this.start();
-    }
-
+@DisallowConcurrentExecution
+public class GlobalConfUpdater implements Job {
     @Override
-    public void run() {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            while (true) {
-                sleep(pollIntervalMs);
-                try {
-                    globalConfImpl.reload();
-                } catch (Exception e) {
-                    log.error("Error refreshing global configuration", e);
-                }
-            }
-        } catch (InterruptedException e) {
-            log.info("Global configuraiton updater interrupted, exiting");
+            log.trace("Updating globalconf");
+            GlobalConf.reload();
+        } catch (Exception e) {
+            log.error("Error updating globalconf", e);
+            throw new JobExecutionException(e);
         }
     }
 }

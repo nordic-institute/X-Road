@@ -57,9 +57,6 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 public final class GlobalConf {
 
     private static GlobalConfProvider instance;
-    private static GlobalConfImpl implementation;
-    private static boolean runUpdateThread = true;
-    private static GlobalConfUpdater confUpdater;
 
     private GlobalConf() {
     }
@@ -71,31 +68,11 @@ public final class GlobalConf {
         if (instance == null) {
             synchronized (GlobalConfProvider.class) {
                 if (instance == null) {
-                    implementation = new GlobalConfImpl();
-                    instance = implementation;
-                    if (runUpdateThread) {
-                        confUpdater = new GlobalConfUpdater(implementation);
-                    }
+                    instance = new GlobalConfImpl();
                 }
             }
         }
         return instance;
-    }
-
-    public static void setRunUpdateThread(boolean runThread) {
-        synchronized (GlobalConfProvider.class) {
-            runUpdateThread = runThread;
-            if (runThread) {
-              if (confUpdater == null && implementation != null) {
-                  confUpdater = new GlobalConfUpdater(implementation);
-              }
-            } else {
-                if (confUpdater != null) {
-                    confUpdater.interrupt();
-                    confUpdater = null;
-                }
-            }
-        }
     }
 
     /**
@@ -120,8 +97,6 @@ public final class GlobalConf {
     public static void reload(GlobalConfProvider conf) {
         log.trace("reload called with parameter class {}", conf.getClass());
         synchronized (GlobalConfProvider.class) {
-            setRunUpdateThread(false);
-            implementation = null;
             instance = conf;
         }
     }
@@ -133,8 +108,6 @@ public final class GlobalConf {
     public static void reset() {
         log.trace("reset called");
         synchronized (GlobalConfProvider.class) {
-            setRunUpdateThread(false);
-            implementation = null;
             instance = null;
         }
     }

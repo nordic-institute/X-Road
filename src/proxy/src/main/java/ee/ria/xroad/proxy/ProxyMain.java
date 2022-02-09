@@ -33,6 +33,7 @@ import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -109,8 +110,6 @@ public final class ProxyMain {
     private static ActorSystem actorSystem;
 
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
-
-    private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
 
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
@@ -207,6 +206,8 @@ public final class ProxyMain {
         }
 
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
+        jobManager.registerRepeatingJob(GlobalConfUpdater.class,
+                SystemProperties.getConfigurationClientUpdateIntervalSeconds());
     }
 
     private static void loadConfigurations() {
