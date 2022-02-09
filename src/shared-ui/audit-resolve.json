@@ -1711,6 +1711,58 @@
     "1006898|@vue/cli-service>webpack-dev-server>selfsigned>node-forge": {
       "decision": "ignore",
       "madeAt": 1643882145542
+    },
+    "1006947|@storybook/vue>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223074
+    },
+    "1006947|@storybook/vue>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223074
+    },
+    "1006947|@storybook/addon-essentials>@storybook/addon-controls>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@storybook/addon-essentials>@storybook/addon-docs>@storybook/builder-webpack4>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@storybook/vue>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>@storybook/builder-webpack4>@storybook/core-common>webpack>watchpack>watchpack-chokidar2>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@storybook/vue>@storybook/core>@storybook/core-server>cpy>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@storybook/addon-essentials>@storybook/addon-docs>@storybook/core>@storybook/core-server>cpy>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@vue/cli-plugin-eslint>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@vue/cli-plugin-typescript>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@vue/cli-service>copy-webpack-plugin>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@vue/cli-service>globby>fast-glob>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
+    },
+    "1006947|@vue/cli-service>webpack-dev-server>chokidar>glob-parent": {
+      "decision": "ignore",
+      "madeAt": 1644409223075
     }
   },
   "rules": {},
