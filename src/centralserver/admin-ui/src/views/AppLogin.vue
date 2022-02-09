@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -104,7 +105,8 @@
               :disabled="isDisabled"
               :loading="loading"
               @click="submit"
-              >{{ $t('login.logIn') }}
+            >
+              {{ $t('login.logIn') }}
             </xrd-button>
           </v-card-actions>
         </v-card>
@@ -123,6 +125,7 @@ import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { RouteName } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
+import axios from 'axios';
 
 export default (
   Vue as VueConstructor<
@@ -188,9 +191,9 @@ export default (
 
       try {
         await this.login(loginData);
-      } catch (error) {
+      } catch (error: unknown) {
         // Display invalid username/password error in inputs
-        if (error?.response?.status === 401) {
+        if (axios.isAxiosError(error) && error?.response?.status === 401) {
           // Clear inputs
           this.username = '';
           this.password = '';
@@ -227,7 +230,8 @@ export default (
       return this.fetchUserData();
     },
     async routeToMembersPage() {
-      this.$router.replace({ name: RouteName.Members })
+      this.$router
+        .replace({ name: RouteName.Members })
         .catch(swallowRedirectedNavigationError);
       this.loading = false;
     },

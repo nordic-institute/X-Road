@@ -96,7 +96,6 @@ paths:
           description: request specified an invalid format
         '500':
           description: internal server error
-
   /initialization:
     post:
       tags:
@@ -174,33 +173,169 @@ paths:
         '500':
           description: internal server error
   /initialization/status:
-      get:
-        tags:
-          - initialization
-        summary: Check the initialization status of the Central Server
-        operationId: getInitializationStatus
-        description: <h3>Administrator checks the initialization status of the Central Server.</h3>
-        responses:
-          '200':
-            description: initialization status of the Central Server
-            content:
-              application/json:
-                schema:
-                  $ref: '#/components/schemas/InitializationStatus'
-          '400':
-            description: request was invalid
-          '401':
-            description: authentication credentials are missing
-          '403':
-            description: request has been refused
-          '404':
-            description: resource requested does not exists
-          '406':
-            description: request specified an invalid format
-          '409':
-            description: an existing item already exists
-          '500':
-            description: internal server error
+    get:
+      tags:
+        - initialization
+      summary: Check the initialization status of the Central Server
+      operationId: getInitializationStatus
+      description: <h3>Administrator checks the initialization status of the Central Server.</h3>
+      responses:
+        '200':
+          description: initialization status of the Central Server
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializationStatus'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: an existing item already exists
+        '500':
+          description: internal server
+  /member-classes:
+    get:
+      tags:
+        - member-classes
+      summary: List member classes
+      operationId: getMemberClasses
+      description: <h3>CS Administrator lists member classes.</h3>
+      responses:
+        '200':
+          description: array of member classes
+          content:
+            application/json:
+              schema:
+                type: array
+                description: array of member classes
+                uniqueItems: true
+                items:
+                  $ref: '#/components/schemas/MemberClass'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - member-classes
+      summary: Add a member class
+      operationId: addMemberClass
+      description: <h3>CS Administrator adds a new member class.</h3>
+      requestBody:
+        description: new additional member class to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberClass'
+      responses:
+        '200':
+          description: the added member class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberClass'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /member-classes/{code}:
+    put:
+      tags:
+        - member-classes
+      summary: Update member class description
+      operationId: updateMemberClassDescription
+      description: CS Administrator updates a member class description.
+      parameters:
+        - in: path
+          name: code
+          description: code of the member class
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      requestBody:
+        description: the new description of the member class
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberClass'
+      responses:
+        '200':
+          description: the new status of the updated member class
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MemberClass'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    delete:
+      tags:
+        - member-classes
+      summary: Delete a member class
+      operationId: deleteMemberClass
+      description: CS Administrator deletes a member class.
+      parameters:
+        - in: path
+          name: code
+          description: code of the member class
+          required: true
+          schema:
+            type: string
+            format: text
+            minLength: 1
+            maxLength: 255
+      responses:
+        '204':
+          description: Deletion succeeded
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
 components:
   schemas:
     InitializationStatus:
@@ -303,6 +438,26 @@ components:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/ErrorInfo'
     CodeWithDetails:
       $ref: '../../../../../common-rest-api/src/main/resources/common-openapi-definition.yaml#/components/schemas/CodeWithDetails'
+    MemberClass:
+      type: object
+      description: Central server's member classes
+      properties:
+        code:
+          type: string
+          format: text
+          description: member class code
+          example: ORG
+          minLength: 1
+          maxLength: 255
+        description:
+          type: string
+          format: text
+          description: member class description
+          example: Non-profit organisations
+          minLength: 1
+          maxLength: 255
+      required:
+        - code
   securitySchemes:
     ApiKeyAuth:
       type: apiKey
@@ -354,4 +509,4 @@ components:
             "initialServerConf.instanceIdentifier":
               - IdentifierChars
 security:
-  - ApiKeyAuth: []
+  - ApiKeyAuth: [ ]
