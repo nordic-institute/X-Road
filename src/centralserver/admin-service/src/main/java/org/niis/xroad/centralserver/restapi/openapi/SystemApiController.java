@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
 import org.niis.xroad.centralserver.openapi.model.CentralServerAddress;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
+import org.niis.xroad.centralserver.openapi.model.InstanceIdentifier;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
@@ -64,6 +65,15 @@ public class SystemApiController implements SystemApi {
         return getSystemStatusResponseEntity();
     }
 
+    @Override
+    public ResponseEntity<InstanceIdentifier> getInstanceIdentifier() {
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @Override
+    public ResponseEntity<CentralServerAddress> getCentralServerAddress() {
+        throw new RuntimeException("not implemented yet");
+    }
 
     /**
      * PUT /system/status/server-address : update the server address
