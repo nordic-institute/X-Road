@@ -3869,7 +3869,7 @@ components:
         - url
       type: object
     PossibleAction:
-      description: an action to change state or edit anchors, keys or configuration parts
+      description: an action to change state or edit anchors, keys or configuration parts # set of values not final or complete
       enum:
         - DELETE
         - DOWNLOAD
