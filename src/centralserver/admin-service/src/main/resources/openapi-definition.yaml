@@ -3940,7 +3940,7 @@ components:
         - id
       type: object
     PagedClients:
-      description: array containing the possible actions that can be done for this item # potential-common-api
+      description: array of Clients with paging metadata
       properties:
         clients:
           description: clients
@@ -3954,7 +3954,7 @@ components:
         - paging_metadata
       type: object
     PagedSecurityServers:
-      description: array containing the possible actions that can be done for this item # potential-common-api
+      description: array of SecurityServers with paging metadata
       properties:
         clients:
           description: clients
