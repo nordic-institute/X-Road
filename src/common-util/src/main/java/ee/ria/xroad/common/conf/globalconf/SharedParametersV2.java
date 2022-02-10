@@ -102,12 +102,14 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     // variable to prevent using load methods after construction
     private final boolean initCompleted;
 
-    SharedParametersV2(byte[] content) throws Exception {
+    // This constructor is used for simple verifications after configuration download.
+    // It does not initialise class fully!
+    SharedParametersV2(byte[] content) {
         super(content, SharedParametersSchemaValidatorV2.class);
         initCompleted = true;
     }
 
-    public SharedParametersV2(Path sharedParametersPath) throws Exception {
+    public SharedParametersV2(Path sharedParametersPath) {
         super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
         initCompleted = true;
 
