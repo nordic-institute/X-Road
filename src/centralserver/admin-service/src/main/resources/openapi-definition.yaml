@@ -3677,16 +3677,80 @@ components:
         - wsdl_address
         - service_provider_id
       type: object
+    MemberId:
+      description: XroadId of a member
+      properties:
+        instance_id:
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+          readOnly: true
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - instance_id
+        - member_class
+        - member_code
+      type: object
+    ClientId:
+      allOf:
+        - $ref: '#/components/schemas/MemberId'
+      description: XroadId of a member or a subsystem
+      properties:
+        subsystem_code:
+          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: ABC
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - instance_id
+        - member_class
+        - member_code
+      type: object
+    SecurityServerId:
+      allOf:
+        - $ref: '#/components/schemas/MemberId'
+      description: XroadId of a security server
+      properties:
+        server_code:
+          description: security server code
+          example: server123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - instance_id
+        - member_class
+        - member_code
+        - server_code
+      type: object
     Client:
       allOf:
         - $ref: '#/components/schemas/MemberName'
-        - $ref: '#/components/schemas/MemberClassAndCode'
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: x-road member
       required:
+        - id
         - member_name
-        - member_class
-        - member_code
+        - xroad_id
         - client_type
       properties:
         id:
@@ -3697,23 +3761,10 @@ components:
           minLength: 1
           type: string
           readOnly: true
-        instance_id:
-          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-          readOnly: true
+        xroad_id:
+          $ref: '#/components/schemas/ClientId'
         client_type:
           $ref: '#/components/schemas/ClientType'
-        subsystem_code:
-          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: ABC
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
       type: object
     MemberClass:
       allOf:
@@ -3730,27 +3781,6 @@ components:
           type: string
       required:
         - code
-      type: object
-    MemberClassAndCode:
-      description: x-road member class and code
-      properties:
-        member_class:
-          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: GOV
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        member_code:
-          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: 123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-      required:
-        - member_class
-        - member_code
       type: object
     MemberClassDescription:
       description: Central server's member class description
@@ -3777,16 +3807,6 @@ components:
           type: string
       required:
         - member_name
-      type: object
-    MemberNameClassAndCode:
-      allOf:
-        - $ref: '#/components/schemas/MemberName'
-        - $ref: '#/components/schemas/MemberClassAndCode'
-      description: x-road member name, class and code
-      required:
-        - member_name
-        - member_class
-        - member_code
       type: object
     ClientType:
       description: client type
@@ -3893,33 +3913,15 @@ components:
       properties:
         id:
           description: <instance_id>:<member_class>:<member_code>:<security_server_code>
-          example: FI:GOV:123:sserver1
+          example: FI:GOV:123:server123
           format: text
           type: string
-        instance_id:
-          description: xroad instance id
-          example: FI
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        member_class:
-          description: member class
-          example: GOV
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        member_code:
-          description: member code
-          example: 123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
+          readOnly: true
+        xroad_id:
+          $ref: '#/components/schemas/SecurityServerId'
         owner:
-          description: <instance_id>:<member_class>:<member_code>:<security_server_code>
-          example: FI:GOV:123:sserver1
+          description: <instance_id>:<member_class>:<member_code>
+          example: FI:GOV:123
           format: text
           type: string
         registered_at:
@@ -3929,15 +3931,9 @@ components:
           maxLength: 24
           minLength: 24
           type: string
-        server_code:
-          description: security server code
-          example: server123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
       required:
         - id
+        - xroad_id
       type: object
     PagedClients:
       description: array of Clients with paging metadata
