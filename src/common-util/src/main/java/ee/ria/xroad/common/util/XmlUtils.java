@@ -38,6 +38,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
+import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.OutputKeys;
@@ -74,6 +75,43 @@ public final class XmlUtils {
     private static final String ELEMENT_NOT_FOUND_WARNING = "Element not found with getElementXPathNS {}";
     private static final int DEFAULT_INDENT = 4;
 
+    private static final DocumentBuilderFactory BUILDER_FACTORY;
+    private static final DocumentBuilderFactory NAMESPACE_AWARE_BUILDER_FACTORY;
+
+    private static final DocumentBuilderFactory DOCUMENT_PARSING_FACTORY;
+    private static final DocumentBuilderFactory NAMESPACE_AWARE_DOCUMENT_PARSING_FACTORY;
+
+    private static final TransformerFactory TRANSFORMER_FACTORY = createTransformerFactory();
+
+    static {
+        /* Per JSR-206, section 4.14, a configured DocumentBuilderFactory or TransformerFactory can be shared
+         * for calling newDocumentBuilder() and newTransformer().
+         * Sharing is desirable, since creating the factory is a heavy operation.
+         *
+         * The factory must not be mutated after is it created, therefore we create several preconfigured ones for
+         * different cases.
+         */
+        DocumentBuilderFactory factory;
+
+        BUILDER_FACTORY = createDocumentBuilderFactory();
+
+        factory = createDocumentBuilderFactory();
+        factory.setNamespaceAware(true);
+        NAMESPACE_AWARE_BUILDER_FACTORY = factory;
+
+        factory = createDocumentBuilderFactory();
+        factory.setNamespaceAware(true);
+        factory.setIgnoringComments(true);
+        factory.setValidating(false);
+        NAMESPACE_AWARE_DOCUMENT_PARSING_FACTORY = factory;
+
+        factory = createDocumentBuilderFactory();
+        factory.setNamespaceAware(false);
+        factory.setIgnoringComments(true);
+        factory.setValidating(false);
+        DOCUMENT_PARSING_FACTORY = factory;
+    }
+
     private XmlUtils() {
     }
 
@@ -105,14 +143,11 @@ public final class XmlUtils {
      * @throws Exception if an error occurs
      */
     public static Document parseDocument(InputStream documentXml, boolean namespaceAware) throws Exception {
-        DocumentBuilderFactory dbf = createDocumentBuilderFactory();
-
-        dbf.setNamespaceAware(namespaceAware);
-        dbf.setIgnoringComments(true);
-
-        dbf.setValidating(false);
-
-        return dbf.newDocumentBuilder().parse(documentXml);
+        if (namespaceAware) {
+            return NAMESPACE_AWARE_DOCUMENT_PARSING_FACTORY.newDocumentBuilder().parse(documentXml);
+        } else {
+            return DOCUMENT_PARSING_FACTORY.newDocumentBuilder().parse(documentXml);
+        }
     }
 
     /**
@@ -126,7 +161,7 @@ public final class XmlUtils {
         StringWriter writer = new StringWriter();
         Result result = new StreamResult(writer);
 
-        Transformer t = createTransformerFactory().newTransformer();
+        Transformer t = TRANSFORMER_FACTORY.newTransformer();
         t.transform(source, result);
 
         return writer.toString();
@@ -242,7 +277,7 @@ public final class XmlUtils {
 
     /**
      * Pretty prints the document to string using default charset.
-     * @param document  the document
+     * @param document the document
      * @return printed document in String form
      * @throws Exception if any errors occur
      */
@@ -261,7 +296,7 @@ public final class XmlUtils {
         StringWriter stringWriter = new StringWriter();
         StreamResult output = new StreamResult(stringWriter);
 
-        Transformer transformer = createTransformerFactory().newTransformer();
+        Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
         transformer.setOutputProperty(OutputKeys.ENCODING, charset);
         if (indent > 0) {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
@@ -302,6 +337,14 @@ public final class XmlUtils {
         return dbf;
     }
 
+    public static DocumentBuilder newDocumentBuilder(boolean namespaceAware) throws ParserConfigurationException {
+        if (namespaceAware) {
+            return NAMESPACE_AWARE_BUILDER_FACTORY.newDocumentBuilder();
+        } else {
+            return BUILDER_FACTORY.newDocumentBuilder();
+        }
+    }
+
     /**
      * Creates XMLReader and sets the features of the reader
      * @return
@@ -314,9 +357,14 @@ public final class XmlUtils {
         return reader;
     }
 
-    private static TransformerFactory createTransformerFactory() throws TransformerConfigurationException {
+    private static TransformerFactory createTransformerFactory() {
         final TransformerFactory factory = TransformerFactory.newInstance();
-        factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (TransformerConfigurationException e) {
+            //Unexpected
+            throw new IllegalStateException(e);
+        }
         return factory;
     }
 }

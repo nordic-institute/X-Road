@@ -26,29 +26,29 @@
 package ee.ria.xroad.common.hashchain;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.util.SchemaValidator;
 import ee.ria.xroad.common.util.XmlUtils;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.xml.security.signature.XMLSignatureInput;
 import org.apache.xml.security.transforms.Transforms;
 import org.w3c.dom.Document;
+import org.xml.sax.InputSource;
+import org.xml.sax.XMLReader;
 
+import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
+import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamSource;
+import javax.xml.transform.sax.SAXSource;
 import javax.xml.validation.Schema;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -65,6 +65,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_HASH_CHAIN;
 import static ee.ria.xroad.common.util.CryptoUtils.calculateDigest;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 import static ee.ria.xroad.common.util.CryptoUtils.getAlgorithmId;
+import static ee.ria.xroad.common.util.SchemaValidator.createSchema;
 
 /**
  * Verification of hash chains.
@@ -76,6 +77,22 @@ public final class HashChainVerifier {
     private static JAXBContext jaxbCtx;
 
     private static final String INVALID_HASH_STEP_URI_MSG = "Invalid hash step URI: %s";
+
+    private static final SAXParserFactory SAX_PARSER_FACTORY;
+
+    private static final Schema HASH_CHAIN_SCHEMA = createSchema("hashchain.xsd");
+
+    static {
+        SAX_PARSER_FACTORY = SAXParserFactory.newInstance();
+        SAX_PARSER_FACTORY.setNamespaceAware(true);
+        SAX_PARSER_FACTORY.setValidating(false);
+        SAX_PARSER_FACTORY.setXIncludeAware(false);
+        try {
+            SAX_PARSER_FACTORY.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
 
     private InputStream hashChainResultXml;
     private HashChainReferenceResolver referenceResolver;
@@ -95,11 +112,12 @@ public final class HashChainVerifier {
      * Silently returns when all the inputs are correctly referenced by the hash chain. Throws exception on error.
      * @param hashChainResultXml hash chain result that is the starting point of the verification.
      * @param referenceResolver used to resolve references from hash chain result and hash chains.
-     * The resolver is not called for file names that are given as inputs that have the target present.
+     *         The resolver is not called for file names that are given as inputs that have the target present.
      * @param inputs set of inputs that are to be verified with respect to the hash chain result.
-     * All the inputs must be referenced by the hash chain in order to the verification to succeed.
-     * The parameter should contain mapping from file names to input hashes. The Input object (key value) can be null,
-     * in which case the reference resolver is used to download the input data for hashing.
+     *         All the inputs must be referenced by the hash chain in order to the verification to succeed.
+     *         The parameter should contain mapping from file names to input hashes. The Input object (key value) can be
+     *         null,
+     *         in which case the reference resolver is used to download the input data for hashing.
      * @throws Exception in case of any errors
      */
     public static void verify(InputStream hashChainResultXml, HashChainReferenceResolver referenceResolver,
@@ -151,23 +169,22 @@ public final class HashChainVerifier {
         return validateAndParse(xml, HashChainResultType.class);
     }
 
-
     private static HashChainType parseHashChain(InputStream xml) throws Exception {
         return validateAndParse(xml, HashChainType.class);
     }
 
-    @SuppressWarnings("unchecked")
     private static <T> T validateAndParse(InputStream xml, Class<T> type) throws Exception {
-        // They have made it rather impossible to get the actual source from JAXBSource so let's
-        // pass StreamSource which we are actually able to handle later in SchemaVerfier.
-        byte[] xmlBytes = IOUtils.toByteArray(xml);
-
-        HashChainValidator.validate(new StreamSource(new ByteArrayInputStream(xmlBytes)));
-
+        final XMLReader reader = SAX_PARSER_FACTORY.newSAXParser().getXMLReader();
+        final InputSource inputSource = new InputSource(xml);
+        Source source = new SAXSource(reader, inputSource);
         Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-        JAXBElement<T> element = (JAXBElement<T>) unmarshaller.unmarshal(new ByteArrayInputStream(xmlBytes));
-
-        return element.getValue();
+        unmarshaller.setSchema(HASH_CHAIN_SCHEMA);
+        try {
+            JAXBElement<T> element = unmarshaller.unmarshal(source, type);
+            return element.getValue();
+        } catch (UnmarshalException e) {
+            throw new CodedException(X_MALFORMED_HASH_CHAIN, e, "Parsing hash chain failed");
+        }
     }
 
     /**
@@ -293,9 +310,7 @@ public final class HashChainVerifier {
         JAXBElement<TransformsType> transformsElement = new ObjectFactory().createTransforms(transforms);
 
         // Create the Document
-        DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        Document document = db.newDocument();
+        Document document = XmlUtils.newDocumentBuilder(false).newDocument();
 
         Marshaller marshaller = jaxbCtx.createMarshaller();
         marshaller.marshal(transformsElement, document);
@@ -346,7 +361,7 @@ public final class HashChainVerifier {
         }
 
         // Found the hash chain. Look for a step with given ID.
-        for (HashStepType step: hashChain.getHashStep()) {
+        for (HashStepType step : hashChain.getHashStep()) {
             if (fragment.equals(step.getId())) {
                 return new ImmutablePair<>(step, hashChain);
             }
@@ -371,18 +386,6 @@ public final class HashChainVerifier {
         }
 
         return ret;
-    }
-
-    static class HashChainValidator extends SchemaValidator {
-        private static Schema schema;
-
-        static {
-            schema = createSchema("hashchain.xsd");
-        }
-
-        public static void validate(Source source) throws Exception {
-            validate(schema, source, X_MALFORMED_HASH_CHAIN);
-        }
     }
 
     static {
