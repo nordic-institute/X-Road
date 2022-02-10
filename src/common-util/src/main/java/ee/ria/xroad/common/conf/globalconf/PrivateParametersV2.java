@@ -30,6 +30,9 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ManagementServic
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.PrivateParametersType;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
@@ -40,18 +43,20 @@ import java.util.stream.Collectors;
  * Contains private parameters of a configuration instance.
  */
 public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> {
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     private OffsetDateTime expiresOn;
+
     // variable to prevent using load methods after constrution
     private boolean initCompleted;
 
-    PrivateParametersV2(byte[] content) throws Exception {
-        super(ObjectFactory.class, content, PrivateParametersSchemaValidatorV2.class);
+    PrivateParametersV2(byte[] content) {
+        super(content, PrivateParametersSchemaValidatorV2.class);
         initCompleted = true;
     }
 
-    PrivateParametersV2(Path privateParametersPath) throws Exception {
-        super(ObjectFactory.class, privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
+    PrivateParametersV2(Path privateParametersPath) {
+        super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
         initCompleted = true;
     }
 
@@ -97,5 +102,18 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
 
     public OffsetDateTime getExpiresOn() {
         return expiresOn;
+    }
+
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

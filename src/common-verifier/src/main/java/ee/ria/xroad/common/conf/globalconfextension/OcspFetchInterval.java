@@ -29,10 +29,14 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.ocspfetchintervalparameters.OcspFetchIntervalType;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
 /**
  * Ocsp fetch interval parameters
  */
 public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     /**
      * The default file name of the configuration part
@@ -51,10 +55,23 @@ public class OcspFetchInterval extends AbstractXmlConf<OcspFetchIntervalType> {
     public static final int OCSP_FETCH_INTERVAL_MIN = 60;
 
     OcspFetchInterval() {
-        super(ObjectFactory.class, OcspFetchIntervalSchemaValidator.class);
+        super(OcspFetchIntervalSchemaValidator.class);
     }
 
     int getOcspFetchInterval() {
         return confType.getOcspFetchInterval();
+    }
+
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

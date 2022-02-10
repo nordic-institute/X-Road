@@ -48,7 +48,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -74,6 +76,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 @Getter(AccessLevel.PACKAGE)
 public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> {
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     // Cached items, filled at conf reload
     private final Map<X500Name, X509Certificate> subjectsAndCaCerts =
@@ -96,16 +99,16 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     private OffsetDateTime expiresOn;
 
-    // variable to prevent using load methods after constrution
-    private boolean initCompleted;
+    // variable to prevent using load methods after construction
+    private final boolean initCompleted;
 
     SharedParametersV2(byte[] content) throws Exception {
-        super(ObjectFactory.class, content, SharedParametersSchemaValidatorV2.class);
+        super(content, SharedParametersSchemaValidatorV2.class);
         initCompleted = true;
     }
 
     public SharedParametersV2(Path sharedParametersPath) throws Exception {
-        super(ObjectFactory.class, sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
+        super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
         initCompleted = true;
 
         try {
@@ -359,5 +362,18 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
 
     public OffsetDateTime getExpiresOn() {
         return expiresOn;
+    }
+
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
