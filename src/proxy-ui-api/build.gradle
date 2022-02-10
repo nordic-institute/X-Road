@@ -1,9 +1,3 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-}
-
 plugins {
     id 'io.spring.dependency-management'
     id 'org.springframework.boot'
@@ -30,6 +24,7 @@ dependencyManagement {
 
 dependencies {
     npm project(path: ':shared-ui', configuration: 'npm')
+
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')
@@ -37,19 +32,18 @@ dependencies {
     implementation project(':common-ui')
     implementation project(':common-rest-api')
 
-
     implementation('org.springframework.boot:spring-boot-starter-security')
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-jpa')
     implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation('org.springframework.cloud:spring-cloud-starter-sleuth')
     implementation('org.kohsuke:libpam4j:1.11')
     implementation('org.apache.commons:commons-compress:1.21')
     implementation('wsdl4j:wsdl4j:1.6.3')
-    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:6.3.0')
+    implementation('com.github.vladimir-bukhtoyarov:bucket4j-core:7.0.0')
     implementation("io.swagger.parser.v3:swagger-parser-v3:${swaggerParserVersion}")
-    implementation('io.swagger:swagger-annotations:1.6.3')
-    implementation 'io.springfox:springfox-core:3.0.0'
+    implementation('io.swagger:swagger-annotations:1.6.4')
 
     testImplementation project(':common-util')
     testImplementation project(':common-test')
@@ -58,9 +52,9 @@ dependencies {
     testImplementation('org.hsqldb:hsqldb')
 
     implementation('com.fasterxml.jackson.datatype:jackson-datatype-jsr310')
-    implementation('org.openapitools:jackson-databind-nullable:0.2.1')
+    implementation('org.openapitools:jackson-databind-nullable:0.2.2')
     implementation('javax.validation:validation-api')
-    // /openapi-generator related
+    implementation 'io.springfox:springfox-core:3.0.0'
 }
 
 bootRun {
@@ -116,21 +110,15 @@ task buildFront(type: NpmTask) {
     }
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
+task checkFrontAudit(type: NpmTask) {
     onlyIf {
         (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
     }
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
-    if (project.hasProperty('strict-frontend-audit')) {
-        // do a strict front audit with npm run check-audit
-        // check-audit uses ignore list from audit-resolve.json
-        // To update that, do "npm run resolve-audit" from frontend dir
-        args = ['run', 'check-audit']
-    } else {
-        // do a loose front audit with npm in-built audit
-        args = ['audit', '--production', '--audit-level=moderate']
-    }
+    // do a front end audit with npm run npx-check-audit
+    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+    args = ['run', 'npx-check-audit']
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -271,11 +259,6 @@ openApiGenerate {
     outputDir = "$buildDir/generated-sources/openapi".toString()
     apiPackage = "org.niis.xroad.securityserver.restapi.openapi"
     modelPackage = "org.niis.xroad.securityserver.restapi.openapi.model"
-    importMappings = [
-        User : "org.niis.xroad.restapi.openapi.model.User",
-        ErrorInfo : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
-        CodeWithDetails : "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
-    ]
     globalProperties = [
         modelDocs: "false",
         apis     : "", // must use empty strings instead of "true":

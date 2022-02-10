@@ -119,7 +119,10 @@
     "pin_min_char_classes_count": "PIN minimum character classes count",
     "pin_min_length": "PIN minimum length",
     "validation_failure": "Validation failure",
-    "weak_pin": "Weak PIN"
+    "weak_pin": "Weak PIN",
+    "member_class_is_in_use": "Cannot delete member class: Found X-Road members belonging to the class. Only classes with no registered members can be deleted.",
+    "member_class_not_found": "No member class with the specifier code found.",
+    "member_class_exists": "Member class with the same code already exists."
   },
   "fields": {
     "init": {
@@ -354,7 +357,12 @@
     "serviceProviderIdentifier": "Service Provider Identifier",
     "serviceProviderName": "Service Provider Name",
     "systemParameters": "System Parameters",
-    "wsdlAddress": "WSDL Address"
+    "wsdlAddress": "WSDL Address",
+    "editMemberClassTitle": "Edit member class",
+    "addMemberClassTitle": "Add member class",
+    "deleteMemberClass": "Delete member class?",
+    "memberClassSaved": "Member class saved.",
+    "memberClassDeleted": "Member class deleted."
   },
   "tab": {
     "globalConf": {

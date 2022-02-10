@@ -40,7 +40,7 @@ import static java.util.Objects.requireNonNull;
 /**
  * A class that runs {@link FileWatcher} in a thread and stops is upon request.
  */
-public final class FileWatcherRunner {
+public final class FileWatcherRunner implements AutoCloseable {
 
     private final ExecutorService executor;
     private final FileWatcher watcher;
@@ -159,6 +159,11 @@ public final class FileWatcherRunner {
         watcher.stop();
         // use shutdown to interrupt the thread because it's probably waiting for events.
         executor.shutdownNow();
+    }
+
+    @Override
+    public void close() throws Exception {
+        stop();
     }
 
 }

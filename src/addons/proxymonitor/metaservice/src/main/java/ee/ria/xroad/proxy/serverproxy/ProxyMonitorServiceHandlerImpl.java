@@ -56,8 +56,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -174,11 +172,8 @@ public class ProxyMonitorServiceHandlerImpl implements ServiceHandler {
      * @throws Exception
      */
     private Document parse(ProxyMessage proxyRequestMessage) throws Exception {
-        DocumentBuilderFactory dbf = XmlUtils.createDocumentBuilderFactory();
-        dbf.setNamespaceAware(true);
-        DocumentBuilder db = dbf.newDocumentBuilder();
         byte[] bytes = proxyRequestMessage.getSoap().getBytes();
-        return db.parse(new ByteArrayInputStream(bytes));
+        return XmlUtils.parseDocument(new ByteArrayInputStream(bytes), true);
     }
 
     @Override

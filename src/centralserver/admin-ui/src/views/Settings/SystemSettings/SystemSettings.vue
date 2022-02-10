@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -233,62 +234,7 @@
         </table>
       </v-card>
     </div>
-
-    <!-- Table -->
-    <v-data-table
-      :loading="loadingMemberClasses"
-      :headers="headers"
-      :items="memberClasses"
-      :search="search"
-      :must-sort="true"
-      :items-per-page="-1"
-      class="elevation-0 data-table"
-      item-key="id"
-      :loader-height="2"
-      :no-data-text="$t('noData.noMemberClasses')"
-      hide-default-footer
-    >
-      <template #top>
-        <div class="card-top">
-          <div class="card-main-title">
-            {{ $t('systemSettings.memberClasses') }}
-          </div>
-          <div class="card-corner-button">
-            <xrd-button outlined class="mr-4">
-              <xrd-icon-base class="xrd-large-button-icon">
-                <XrdIconAdd />
-              </xrd-icon-base>
-              {{ $t('action.add') }}
-            </xrd-button>
-          </div>
-        </div>
-      </template>
-
-      <template #[`item.serverCode`]="{ item }">
-        <div class="server-code">
-          <xrd-icon-base class="mr-4">
-            <XrdIconSecurityServer />
-          </xrd-icon-base>
-          {{ item.serverCode }}
-        </div>
-      </template>
-
-      <template #[`item.button`]>
-        <div class="cs-table-actions-wrap">
-          <xrd-button text :outlined="false"
-            >{{ $t('action.edit') }}
-          </xrd-button>
-
-          <xrd-button text :outlined="false"
-            >{{ $t('action.delete') }}
-          </xrd-button>
-        </div>
-      </template>
-
-      <template #footer>
-        <div class="custom-footer"></div>
-      </template>
-    </v-data-table>
+    <MemberClasses />
   </div>
 </template>
 
@@ -297,13 +243,13 @@
  * View for 'system settings' tab
  */
 import Vue, { VueConstructor } from 'vue';
-import { DataTableHeader } from 'vuetify';
 import { ErrorInfo } from '@/openapi-types';
 import { ValidationProvider } from 'vee-validate';
 import { AxiosError } from 'axios';
 import { mapActions, mapState } from 'pinia';
 import { notificationsStore } from '@/store/modules/notifications';
 import { systemStore } from '@/store/modules/system';
+import MemberClasses from '@/views/Settings/SystemSettings/MemberClasses.vue';
 
 import {
   getErrorInfo,
@@ -321,12 +267,12 @@ export default (
   >
 ).extend({
   components: {
+    MemberClasses,
     ValidationProvider,
   },
   data() {
     return {
       search: '' as string,
-      loadingMemberClasses: false,
       loadingServices: false,
       showOnlyPending: false,
       isEditingServerAddress: false,
@@ -336,50 +282,12 @@ export default (
         serviceProviderName: 'NIIS',
         managementServiceSecurityServer: 'SERVER:DEV/ORG/111/SS1',
         wsdlAddress: 'https://dev-cs.i.x-road.rocks/managementservices.wsdl',
-
         securityServerOwnerroupCode: 'security-server-owners',
       },
-      memberClasses: [
-        {
-          code: 'COM',
-          description: 'Commercial',
-        },
-        {
-          code: 'ORG',
-          description: 'Organisation',
-        },
-        {
-          code: 'TRE',
-          description: 'Tamperial',
-        },
-      ],
     };
   },
   computed: {
     ...mapState(systemStore, ['getSystemStatus']),
-    headers(): DataTableHeader[] {
-      return [
-        {
-          text: this.$t('systemSettings.code') as string,
-          align: 'start',
-          value: 'code',
-          class: 'xrd-table-header member-classes-table-header-code',
-        },
-        {
-          text: this.$t('systemSettings.description') as string,
-          align: 'start',
-          value: 'description',
-          class: 'xrd-table-header member-classes-table-header-description',
-        },
-        {
-          text: '',
-          value: 'button',
-          sortable: false,
-          class: 'xrd-table-header member-classes-table-header-buttons',
-        },
-      ];
-    },
-
     serverAddress(): string | undefined {
       return this.getSystemStatus?.initialization_status
         ?.central_server_address;
@@ -422,7 +330,7 @@ export default (
           }
           this.isEditingServerAddress = true;
         } else {
-          this.showError(updateError as AxiosError);
+          this.showError(updateError);
           this.isEditingServerAddress = false;
         }
         return;

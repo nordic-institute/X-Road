@@ -1,5 +1,6 @@
 /*
  * The MIT License
+ *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -29,7 +30,9 @@ const {
   navigateAndMakeTestable,
   instanceAndAddressIsVisible,
   dialogCancelButton,
+  dialogSaveButton,
   dialogTitle,
+  snackBarCloseButton,
 } = require('./csCommonObjectsPage');
 const systemSettingsCommands = {
   systemSettingsViewIsVisible() {
@@ -88,7 +91,14 @@ module.exports = {
         '//input[@data-test="system-settings-central-server-address-edit-field"]',
       locateStrategy: 'xpath',
     },
+    systemSettingsAddMemberClassButton: {
+      selector:
+        '//button[@data-test="system-settings-add-member-class-button"]',
+      locateStrategy: 'xpath',
+    },
     dialogCancelButton,
     dialogTitle,
+    dialogSaveButton,
+    snackBarCloseButton,
   },
 };

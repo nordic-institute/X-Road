@@ -78,8 +78,8 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyList;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -274,7 +274,7 @@ public class ProxyMonitorServiceHandlerMetricsTest {
         metrics.add(type);
 
         MonitorClient mockMonitorClient = mock(MonitorClient.class);
-        when(mockMonitorClient.getMetrics(org.mockito.Matchers.anyList(),
+        when(mockMonitorClient.getMetrics(anyList(),
                 anyBoolean())).thenReturn(metricSetType);
 
         RestoreMonitorClientAfterTest.setMonitorClient(mockMonitorClient);

@@ -47,8 +47,13 @@ public class MemberClass extends AuditableEntity {
     private String code;
     private String description;
 
-    public MemberClass() {
+    protected MemberClass() {
         //JPA
+    }
+
+    public MemberClass(String code, String description) {
+        this.code = code;
+        this.description = description;
     }
 
     @Id

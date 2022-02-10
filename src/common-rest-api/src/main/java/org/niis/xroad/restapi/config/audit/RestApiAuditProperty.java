@@ -108,7 +108,10 @@ public enum RestApiAuditProperty {
 
     INSTANCE_IDENTIFIER,
     CENTRAL_SERVER_ADDRESS,
-    HA_NODE;
+    HA_NODE,
+
+    CODE,
+    DESCRIPTION;
 
     /**
      * Gets logged property name for the enum value.

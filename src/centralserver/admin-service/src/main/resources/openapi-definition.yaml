@@ -1846,7 +1846,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: get list of member classes
+      summary: List member classes
       tags:
         - member-classes
     post:
@@ -1920,46 +1920,48 @@ paths:
       summary: delete a member class
       tags:
         - member-classes
-    patch:
-      description: <h3>CS Administrator updates a member class description.</h3>
+    put:
+      tags:
+        - member-classes
+      summary: Update member class description # note: this is PATCH in other similar endpoints
       operationId: updateMemberClassDescription
+      description: CS Administrator updates a member class description.
       parameters:
-        - description: code of the member class
-          in: path
+        - in: path
           name: code
+          description: code of the member class
           required: true
           schema:
-            format: text
-            maxLength: 255
-            minLength: 1
             type: string
+            format: text
+            minLength: 1
+            maxLength: 255
       requestBody:
+        description: the new description of the member class
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MemberClassDescription'
-        description: the new description of the member class
-        required: true
+              $ref: '#/components/schemas/MemberClass'
       responses:
         '200':
+          description: the new status of the updated member class
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/MemberClass'
-          description: the new status of the updated member class
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: request was invalid
         '401':
-          $ref: '#/components/responses/Unauthorized'
+          description: authentication credentials are missing
         '403':
-          $ref: '#/components/responses/Forbidden'
+          description: request has been refused
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
         '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: update member class description
-      tags:
-        - member-classes
+          description: internal server error
   /clients:
     get:
       description: <h3>CS administrator searches for X-Road clients.</h3>
@@ -1977,7 +1979,7 @@ paths:
             format: text
             minLength: 3
             maxLength: 25
-            type: string          
+            type: string
         - description: optional paging and sorting parameters
           in: query
           name: paging_sorting
@@ -2339,7 +2341,7 @@ paths:
             format: text
             minLength: 3
             maxLength: 25
-            type: string          
+            type: string
         - description: optional result limiting parameters
           in: query
           name: result_limits
@@ -3571,7 +3573,7 @@ components:
           description: token id
           example: 0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF
           minLength: 1
-          readOnly: true          
+          readOnly: true
         label:
           $ref: '#/components/schemas/KeyLabel'
         possible_actions:
@@ -4085,7 +4087,7 @@ components:
       required:
         - token_id
         - key_label
-      type: object 
+      type: object
     Token:
       description: Token. Also includes the possible actions that can be done to this object, e.g DELETE (only for token related operations and does not consider user authorization).
       properties:
@@ -4219,4 +4221,4 @@ components:
       name: Authorization
       type: apiKey
 security:
-  - ApiKeyAuth: []
+  - ApiKeyAuth: [ ]

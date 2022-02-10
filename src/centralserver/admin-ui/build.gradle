@@ -21,64 +21,77 @@ dependencies {
 node {
     download = true
     version = nodeVersion
-    npmInstallCommand = "ci"
+
+    if (System.getenv().containsKey("CI")) {
+        npmInstallCommand = "ci"
+    }
 }
 
-task npmInstallDeps(type: NpmTask) {
-  inputs.files(configurations.npm)
-  args = ['install', '--quiet'] + inputs.files.collect { it.toString() }
-  outputs.files(fileTree("node_modules/@niis/shared-ui") {
-      // npmInstall will overwrite this with a different version (!?)
-      exclude("package.json")
-  })
+task npmUpdateDeps(type: NpmTask) {
+    inputs.files(configurations.npm, 'package.json')
+    outputs.files('package-lock.json')
+    args = ['--quiet', 'install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
+}
+
+task cleanNpmUpdateDeps {
+    //NOP, we do not want to accidentally delete package-lock.json
 }
 
 npmInstall {
-    dependsOn += 'npmInstallDeps'
+    dependsOn += 'npmUpdateDeps'
 }
 
-task npmBuild(type: NpmTask, dependsOn: ["checkFrontAudit"]) {
-    inputs.files(fileTree(".") {
-        exclude(
-            "build.gradle",
-            "build/",
-            "dist/",
-            "node_modules/.cache/"
-        )
-    })
-    outputs.dir("dist")
-    args = ['run', '--quiet', 'build']
+task npmGenerateTypes(type: NpmTask, dependsOn: ['npmInstall']) {
+    inputs.files('./package.json',
+        '../admin-service/src/main/resources/openapi-definition.yaml')
+    outputs.dir('src/openapi-types')
+    outputs.dir('build/openapi')
+    args = ['--quiet', 'run', 'generate-types']
+
+    doFirst {
+        project.delete('src/openapi')
+    }
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files fileTree(".") {
-        exclude(
-            "build.gradle",
-            "build/",
-            "dist/",
-            "node_modules/.cache/"
-        )
-    }
-    outputs.dir("dist")
-    if (project.hasProperty('strict-frontend-audit')) {
-        // do a strict front audit with npm run check-audit
-        // check-audit uses ignore list from audit-resolve.json
-        // To update that, do "npm run resolve-audit" from frontend dir
-        args = ['run', 'check-audit']
-    } else {
-        // do a loose front audit with npm in-built audit
-        args = ['audit', '--production', '--audit-level=moderate']
-    }
+task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
+    inputs.files(
+        'src/',
+        'public/',
+        'package.json',
+        'package-lock.json',
+        'vue.config.js',
+        'tsconfig.js',
+        'babel.config.js',
+        fileTree('node_modules') {
+            exclude '.cache'
+            exclude 'webpack-dev-server/ssl'
+        }
+    )
+    outputs.dir('dist')
+    args = ['run', '--quiet', 'build:gradle']
+}
+
+task checkFrontAudit(type: NpmTask, dependsOn: 'npmBuild') {
+    inputs.files(
+        'package.json',
+        'package-lock.json',
+        'dist'
+    )
+    outputs.upToDateWhen { true }
+    args = ['run', 'npx-check-audit']
 }
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files("src/", "test/", "public/")
+    inputs.files(
+        "test/",
+        "public/",
+        fileTree('src/') {
+            exclude 'openapi-types'
+        }
+    )
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
-    execOverrides {
-        it.workingDir = 'frontend'
-    }
 }
 
 clean {
@@ -87,6 +100,8 @@ clean {
 }
 
 assemble.dependsOn npmBuild
+check.dependsOn checkFrontAudit
+check.dependsOn checkFrontLicense
 
 artifacts {
     dist(file("dist/")) {
@@ -95,53 +110,14 @@ artifacts {
 }
 
 // run e2e tests vs remote url
-if (!project.hasProperty("testTargetUrl")) {
-    ext.testTargetUrl = ""
-}
-
-if (!project.hasProperty("testDataUrl")) {
-    ext.testDataUrl = ""
-}
-
-if (!project.hasProperty("withTags")) {
-    ext.withTags = ""
-}
-
-if (!project.hasProperty("withoutTags")) {
-    ext.withoutTags = ""
-}
-
-if (!project.hasProperty("failScreenshot")) {
-    ext.failScreenshot = ""
-}
-
-if (!project.hasProperty("runHeadless")) {
-    ext.runHeadless = ""
-}
-
 task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
-
     doFirst {
-        if (testTargetUrl.isEmpty()) {
-            throw new GradleException('testTargetUrl property was empty, it is mandatory for e2eTests')
-        }
-        if (testDataUrl.isEmpty()) {
-            throw new GradleException('testDataUrl property was empty, it is mandatory for e2eTests')
-        }
+        assert project.hasProperty("testTargetUrl"): 'testTargetUrl is mandatory for e2eTests'
     }
+    args = ['run', 'test:e2e', '--', "--url=${project.properties.testTargetUrl}"]
 
-    inputs.files fileTree(".") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("./dist")
-
-    args = ['run', 'test:e2e', '--', '--url=' + testTargetUrl, '--testdata=' + testDataUrl, '--tag=' + withTags, '--skiptags=' + withoutTags]
-
-    if (!runHeadless.isEmpty()) {
-        if (runHeadless == "true") {
-            args.add("--headless")
-        }
-    }
-
-    execOverrides {
-        it.workingDir = '.'
-    }
+    if (project.hasProperty("testDataUrl")) args.add("--testdata=${project.properties.testDataUrl}")
+    if (project.hasProperty("withTags")) args.add("--tag=${project.properties.withTags}")
+    if (project.hasProperty("withoutTags")) args.add("--skiptags=${project.properties.withoutTags}")
+    if (project.hasProperty("runHeadless")) args.add('--headless')
 }

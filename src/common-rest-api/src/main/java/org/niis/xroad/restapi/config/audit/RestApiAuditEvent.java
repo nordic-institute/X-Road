@@ -114,7 +114,11 @@ public enum RestApiAuditEvent {
     RESTORE_BACKUP("Restore configuration"),
 
     UNSPECIFIED_ACCESS_CHECK("Access check"), // for AccessDeniedExceptions without more specific detail
-    UNSPECIFIED_AUTHENTICATION("Authentication"); // for AuthenticationExceptions without more specific detail
+    UNSPECIFIED_AUTHENTICATION("Authentication"),  // for AuthenticationExceptions without more specific detail
+
+    ADD_MEMBER_CLASS("Add member class"),
+    DELETE_MEMBER_CLASS("Delete member class"),
+    EDIT_MEMBER_CLASS("Edit member class description");
 
     private final String eventName;
 

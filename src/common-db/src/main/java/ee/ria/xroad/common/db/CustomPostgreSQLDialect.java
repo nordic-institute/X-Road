@@ -30,5 +30,6 @@ import org.hibernate.dialect.PostgreSQL9Dialect;
 /**
  * @deprecated To be removed
  */
+@Deprecated
 public class CustomPostgreSQLDialect extends PostgreSQL9Dialect {
 }

@@ -26,45 +26,36 @@
 package ee.ria.xroad.proxy.conf;
 
 import ee.ria.xroad.common.cert.CertChain;
-import ee.ria.xroad.common.cert.CertChainVerifier;
 import ee.ria.xroad.common.conf.globalconf.AuthKey;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 
 import java.security.PrivateKey;
 import java.util.Date;
-import java.util.List;
 
 @Slf4j
 @Getter
-@RequiredArgsConstructor
 class AuthKeyInfo extends AbstractDateValidatableInfo {
 
     private final PrivateKey pkey;
     private final CertChain certChain;
-    private final List<OCSPResp> ocspResponses;
+    private final Date notAfter;
+    private final Date notBefore;
+
+    AuthKeyInfo(PrivateKey pkey, CertChain certChain, Date notBefore, Date notAfter) {
+        this.pkey = pkey;
+        this.certChain = certChain;
+        this.notBefore = notBefore;
+        this.notAfter = notAfter;
+    }
 
     AuthKey getAuthKey() {
         return new AuthKey(certChain, pkey);
     }
 
     @Override
-    boolean verifyValidity(Date atDate) {
-        try {
-            log.trace("AuthKeyInfo.verifyValidity date: {}", atDate);
-
-            CertChainVerifier verifier = new CertChainVerifier(certChain);
-            verifier.verify(ocspResponses, atDate);
-
-            return true;
-        } catch (Exception e) {
-            log.warn("Cached authentication info failed verification: {}", e);
-
-            return false;
-        }
+    boolean verifyValidity(final Date atDate) {
+        return !(notAfter.before(atDate) || notBefore.after(atDate));
     }
-
 }

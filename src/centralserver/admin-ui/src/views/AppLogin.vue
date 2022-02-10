@@ -1,5 +1,6 @@
 <!--
    The MIT License
+
    Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
    Copyright (c) 2018 Estonian Information System Authority (RIA),
    Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -104,7 +105,8 @@
               :disabled="isDisabled"
               :loading="loading"
               @click="submit"
-              >{{ $t('login.logIn') }}
+            >
+              {{ $t('login.logIn') }}
             </xrd-button>
           </v-card-actions>
         </v-card>
@@ -123,6 +125,7 @@ import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { RouteName } from '@/global';
 import AlertsContainer from '@/components/ui/AlertsContainer.vue';
 import { swallowRedirectedNavigationError } from '@/util/helpers';
+import axios from 'axios';
 
 export default (
   Vue as VueConstructor<
@@ -174,7 +177,6 @@ export default (
 
       // Validate inputs
       const isValid = await this.$refs.form.validate();
-
       if (!isValid) {
         return;
       }
@@ -187,62 +189,51 @@ export default (
       this.$refs.form.reset();
       this.loading = true;
 
-      this.login(loginData)
-        .then(
-          () => {
-            // Auth ok. Start phase 2 (fetch user data and current security server info).
-            this.requestUserData()
-              .then(this.fetchServerVersion)
-              .then(this.fetchSystemStatus)
-              .then(() => {
-                this.$router
-                  .replace({
-                    name: RouteName.Members,
-                  })
-                  .catch(swallowRedirectedNavigationError);
-                this.loading = false;
-              })
-              .catch((error) => {
-                this.showError(error);
-                this.loading = false;
-              });
-          },
-          (error) => {
-            // Display invalid username/password error in inputs
-            if (error?.response?.status === 401) {
-              // Clear inputs
-              this.username = '';
-              this.password = '';
-              this.$refs.form.reset();
-
-              // The whole view needs to be rendered so the "required" rule doesn't block
-              // "wrong unsername or password" error in inputs
-              this.$nextTick(() => {
-                // Set inputs to error state
-                this.$refs.form.setErrors({
-                  username: [''],
-                  password: [this.$t('login.errorMsg401') as string],
-                });
-              });
-
-              this.showErrorMessage(this.$t('login.generalError'));
-            } else {
-              this.showError(error);
-            }
-
-            // Clear loading state
-            this.loading = false;
-          },
-        )
-        .catch((error) => {
+      try {
+        await this.login(loginData);
+      } catch (error: unknown) {
+        // Display invalid username/password error in inputs
+        if (axios.isAxiosError(error) && error?.response?.status === 401) {
+          // Clear inputs
+          this.username = '';
+          this.password = '';
+          this.$refs.form.reset();
+          // The whole view needs to be rendered so the "required" rule doesn't block
+          // "wrong unsername or password" error in inputs
+          this.$nextTick(() => {
+            // Set inputs to error state
+            this.$refs.form.setErrors({
+              username: [''],
+              password: [this.$t('login.errorMsg401') as string],
+            });
+          });
+          this.showErrorMessage(this.$t('login.generalError'));
+        } else {
           this.showError(error);
-          this.loading = false;
-        });
+        }
+        this.loading = false;
+        return;
+      }
+      try {
+        await this.requestUserData();
+        await this.fetchServerVersion();
+        await this.fetchSystemStatus();
+        await this.routeToMembersPage();
+      } catch (error) {
+        this.showError(error);
+        this.loading = false;
+      }
     },
     async requestUserData() {
       this.$refs.form.reset();
       this.loading = true;
       return this.fetchUserData();
+    },
+    async routeToMembersPage() {
+      this.$router
+        .replace({ name: RouteName.Members })
+        .catch(swallowRedirectedNavigationError);
+      this.loading = false;
     },
   },
 });

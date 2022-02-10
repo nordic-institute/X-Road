@@ -8,7 +8,7 @@ plugins {
 
 apply plugin: 'com.github.hierynomus.license'
 
-archivesBaseName ='centralserver-admin-service'
+archivesBaseName = 'centralserver-admin-service'
 
 configurations {
     dist {
@@ -33,27 +33,28 @@ bootRun {
 
 openApiGenerate {
     generatorName = "spring"
-    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml".toString()
-    outputDir = "$buildDir/generated-sources/openapi".toString()
+    inputSpec = "$projectDir/src/main/resources/openapi-definition.yaml"
+    outputDir = "$buildDir/generated-sources/openapi"
     apiPackage = "org.niis.xroad.centralserver.openapi"
     modelPackage = "org.niis.xroad.centralserver.openapi.model"
     importMappings = [
-        User : "org.niis.xroad.restapi.openapi.model.User",
-        ErrorInfo : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
-        CodeWithDetails : "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
+        User           : "org.niis.xroad.restapi.openapi.model.User",
+        ErrorInfo      : "org.niis.xroad.restapi.openapi.model.ErrorInfo",
+        CodeWithDetails: "org.niis.xroad.restapi.openapi.model.CodeWithDetails"
     ]
     globalProperties = [
-        modelDocs: "false",
-        apis     : "", // must use empty strings instead of "true":
+        modelDocs              : "false",
+        apis                   : "", // must use empty strings instead of "true":
         // https://github.com/OpenAPITools/openapi-generator/tree/master/modules/openapi-generator-gradle-plugin
-        models   : "",
+        models                 : "",
         generateSupportingFiles: "false",
-        skipDefaultInterface: "true",
-        supportingFiles: 'ApiUtil.java'
+        skipDefaultInterface   : "true",
+        supportingFiles        : 'ApiUtil.java'
     ]
     configOptions = [
         interfaceOnly: "true",
-        useTags      : "true"
+        useTags      : "true",
+        skipDefaultInterface : "true"
     ]
 }
 
@@ -61,12 +62,6 @@ openApiGenerate {
 tasks.openApiGenerate {
     inputs.files(openApiGenerate.inputSpec)
     outputs.dir(openApiGenerate.outputDir)
-}
-
-processResources {
-    from(configurations.dist) {
-        into 'public/'
-    }
 }
 
 compileJava.dependsOn tasks.openApiGenerate
@@ -86,15 +81,6 @@ licenseMain.enabled = false
 
 licenseFormat.dependsOn licenseFormatJava
 licenseTest.dependsOn licenseTestJava
-
-bootJar {
-    manifest {
-        attributes(
-            'Implementation-Title': 'X-Road Central Server Admin Service' ,
-            'Implementation-Version': "$xroadVersion-$xroadBuildType"
-        )
-    }
-}
 
 dependencyManagement {
     imports {
@@ -135,3 +121,22 @@ dependencies {
     implementation('javax.validation:validation-api')
 }
 
+task copyUi(type: ProcessResources, dependsOn: [configurations.dist]) {
+    from configurations.dist
+    into 'build/admin-ui/public'
+}
+
+bootJar {
+    if (!project.hasProperty('skipFront')) {
+        dependsOn copyUi
+        classpath += file('build/admin-ui')
+    } else {
+        println("Warning: Excluding frontend from boot jar")
+    }
+    manifest {
+        attributes(
+            'Implementation-Title': 'X-Road Central Server Admin Service',
+            'Implementation-Version': "$xroadVersion-$xroadBuildType"
+        )
+    }
+}
