@@ -490,16 +490,12 @@ paths:
               $ref: '#/components/schemas/CertificationServiceFileAndSettings'
         description: the new certification service with settings
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                description: updated array of certification service objects
-                items:
-                  $ref: '#/components/schemas/ApprovedCertificationService'
-                type: array
-                uniqueItems: true
-          description: list of certification services
+                $ref: '#/components/schemas/ApprovedCertificationService'
+          description: created item
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -657,7 +653,7 @@ paths:
         - certification-services
     post:
       description: <h3>CS administrator configures an intermediate CA for a certification service.</h3>
-      operationId: addCertificationServiceIntermediateCas
+      operationId: addCertificationServiceIntermediateCa
       parameters:
         - description: unique identifier of the certification service
           in: path
@@ -674,16 +670,12 @@ paths:
               $ref: '#/components/schemas/CertificateFile'
         description: the new intermediate certificate authority certificate file
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                description: updated array of cas
-                items:
-                  $ref: '#/components/schemas/CertificateAuthority'
-                type: array
-                uniqueItems: true
-          description: list of cas
+                $ref: '#/components/schemas/CertificateAuthority'
+          description: created item
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -754,16 +746,12 @@ paths:
                 - certificate
         description: ocsp responder to add
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                description: array of ocsp responders
-                items:
-                  $ref: '#/components/schemas/OcspResponder'
-                type: array
-                uniqueItems: true
-          description: updated list of ocsp responders belonging to the certification service
+                $ref: '#/components/schemas/OcspResponder'
+          description: created item
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1176,7 +1164,7 @@ paths:
         description: new additional configuration parts file to add
         required: true
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -1484,7 +1472,7 @@ paths:
         description: the new trusted anchor file to add
         required: true
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -1818,16 +1806,12 @@ paths:
                 - certificate
         description: ocsp responder to add
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                description: array of ocsp responders
-                items:
-                  $ref: '#/components/schemas/OcspResponder'
-                type: array
-                uniqueItems: true
-          description: updated list of ocsp responders belonging to the intermediate certificate authority
+                $ref: '#/components/schemas/OcspResponder'
+          description: created item
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
@@ -1878,7 +1862,7 @@ paths:
         description: new additional member class to add
         required: true
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
@@ -2817,7 +2801,7 @@ paths:
         - timestamping-services
     post:
       description: <h3>CS administrator adds a timestamping service to the list of approved timestamping services.</h3>
-      operationId: addTimestampingServices
+      operationId: addTimestampingService
       requestBody:
         content:
           multipart/form-data:
@@ -2831,16 +2815,12 @@ paths:
         description: timestamping service to add
         required: true
       responses:
-        '200':
+        '201':
           content:
             application/json:
               schema:
-                description: array of timestamping service
-                items:
-                  $ref: '#/components/schemas/TimestampingService'
-                type: array
-                uniqueItems: true
-          description: updated list of timestamping services
+                $ref: '#/components/schemas/TimestampingService'
+          description: created item
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
