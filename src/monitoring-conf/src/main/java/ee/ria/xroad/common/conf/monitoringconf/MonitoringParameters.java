@@ -30,11 +30,14 @@ import ee.ria.xroad.common.conf.globalconf.monitoringparameters.MonitoringClient
 import ee.ria.xroad.common.conf.globalconf.monitoringparameters.MonitoringParametersType;
 import ee.ria.xroad.common.conf.globalconf.monitoringparameters.ObjectFactory;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
 /**
  * Monitoring parameters
  */
 public class MonitoringParameters extends AbstractXmlConf<MonitoringParametersType> {
-
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
     /**
      * The default file name of monitoring parameters.
      */
@@ -42,11 +45,23 @@ public class MonitoringParameters extends AbstractXmlConf<MonitoringParametersTy
             "monitoring-params.xml";
 
     MonitoringParameters() {
-        super(ObjectFactory.class, MonitoringParametersSchemaValidator.class);
+        super(MonitoringParametersSchemaValidator.class);
     }
 
     MonitoringClientType getMonitoringClient() {
         return confType.getMonitoringClient();
     }
 
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

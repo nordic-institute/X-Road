@@ -73,7 +73,7 @@ public class AsicContainerVerifierTest {
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE,
                 "../common-util/src/test/resources/configuration-anchor1.xml");
 
-        GlobalConf.reload(new TestGlobalConfImpl(false) {
+        GlobalConf.reload(new TestGlobalConfImpl() {
             @Override
             public X509Certificate getCaCert(String instanceIdentifier, X509Certificate memberCert) throws Exception {
                 return TestCertUtil.getCaCert();
