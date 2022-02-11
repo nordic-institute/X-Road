@@ -25,9 +25,11 @@
  */
 package ee.ria.xroad.opmonitordaemon;
 
+import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.opmonitoring.OpMonitoringSystemProperties;
 import ee.ria.xroad.common.util.AdminPort;
 import ee.ria.xroad.common.util.JobManager;
@@ -141,6 +143,9 @@ public final class OpMonitorDaemonMain {
         SERVICES.add(jobManager);
         SERVICES.add(new OpMonitorDaemon());
         SERVICES.add(createAdminPort());
+
+        jobManager.registerRepeatingJob(GlobalConfUpdater.class,
+                SystemProperties.getConfigurationClientUpdateIntervalSeconds());
     }
 
     private static AdminPort createAdminPort() throws Exception {
