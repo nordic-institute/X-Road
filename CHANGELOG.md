@@ -1,5 +1,10 @@
 # Change Log
 
+## 7.0.2 - 2022-02-11
+- XRDDEV-1920: Restoring a backup fails for Security Servers that have not been freshly installed since 6.24.0
+- XRDDEV-1921: Upgrading X-Road on RHEL does not create symlink for messagelog.conf
+- XRDDEV-1927: local.properties not enforcing Java memory properties in messagelog-archiver
+
 ## 7.0.1 - 2022-01-10
 - XRDDEV-1889: Update dependencies with known vulnerabilities
 

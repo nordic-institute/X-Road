@@ -1,8 +1,4 @@
 %include %{_specdir}/common.inc
-# do not repack jars
-%define __jar_repack %{nil}
-# produce .elX dist tag on both centos and redhat
-%define dist %(/usr/lib/rpm/redhat/dist.sh)
 
 Name:               xroad-proxy
 Version:            %{xroad_version}
@@ -13,7 +9,7 @@ Group:              Applications/Internet
 License:            MIT
 BuildRequires:      systemd
 Requires(post):     systemd
-Requires(post):     /usr/sbin/semanage, /usr/sbin/setsebool
+Requires(post):     systemd, /usr/sbin/semanage, /usr/sbin/setsebool
 Requires(preun):    systemd
 Requires(postun):   systemd
 Requires:           net-tools, tar
@@ -123,7 +119,7 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
-if [ $1 -gt 1 ] ; then
+if [ "$1" -gt 1 ] ; then
     # upgrade
     # remove the previous port forwarding rules (if any)
     if [ -e /etc/sysconfig/xroad-proxy ]; then
@@ -137,9 +133,8 @@ fi
 
 %post
 %systemd_post xroad-proxy.service
-%systemd_post xroad-confclient.service
 
-if [ $1 -eq 1 ] ; then
+if [ "$1" -eq 1 ] ; then
     # Initial installation
     /usr/share/xroad/scripts/xroad-initdb.sh
     if ! grep -qs DISABLE_PORT_REDIRECT /etc/sysconfig/xroad-proxy; then
@@ -150,14 +145,14 @@ EOF
     fi
 fi
 
-if [ $1 -gt 1 ] ; then
+if [ "$1" -gt 1 ] ; then
     # upgrade
     if [ ! -e /etc/sysconfig/xroad-proxy ]; then
         echo 'DISABLE_PORT_REDIRECT=false' >>/etc/sysconfig/xroad-proxy
     fi
 fi
 
-if [ $1 -gt 1 ] ; then
+if [ "$1" -gt 1 ] ; then
     # upgrade
     # migrate from client-fastest-connecting-ssl-use-uri-cache to client-fastest-connecting-ssl-uri-cache-period
     local_ini=/etc/xroad/conf.d/local.ini
@@ -180,7 +175,7 @@ fi
 
 /usr/share/xroad/scripts/xroad-proxy-setup.sh
 
-if [ $1 -gt 1 ]; then
+if [ "$1" -gt 1 ]; then
     # upgrade
     if grep -q "^6\.7\." %{_localstatedir}/lib/rpm-state/%{name}/prev-version; then
         # 6.7.x -> 6.8 specific migration
@@ -189,7 +184,7 @@ if [ $1 -gt 1 ]; then
     rm -rf %{_localstatedir}/lib/rpm-state/%{name}
 fi
 
-if [ $1 -gt 1 ]; then
+if [ "$1" -gt 1 ]; then
   # upgrade, generate gpg keypair when needed
   if [ ! -d /etc/xroad/gpghome ] ; then
     ID=$(/usr/share/xroad/scripts/get_security_server_id.sh)
@@ -221,22 +216,19 @@ function migrate_conf_value {
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy ocsp-cache-path signer ocsp-cache-path
 migrate_conf_value /etc/xroad/conf.d/local.ini proxy enforce-token-pin-policy signer enforce-token-pin-policy
 
-if [ $1 -eq 1 ] && [ -x %{_bindir}/systemctl ]; then
+if [ "$1" -eq 1 ]; then
     # initial installation
-    %{_bindir}/systemctl try-restart rsyslog.service
+    %systemd_try_restart rsyslog.service
 fi
 
 %preun
 %systemd_preun xroad-proxy.service
-%systemd_preun xroad-confclient.service
 
 %postun
-%systemd_postun_with_restart xroad-proxy.service
-%systemd_postun_with_restart xroad-confclient.service
-%systemd_postun_with_restart rsyslogd.service
+%systemd_postun_with_restart xroad-proxy.service xroad-confclient.service rsyslog.service
 
 %posttrans
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
-%{_bindir}/systemctl --quiet try-restart nginx.service >/dev/null 2>&1 || true
+%systemd_try_restart nginx.service
 
 %changelog
