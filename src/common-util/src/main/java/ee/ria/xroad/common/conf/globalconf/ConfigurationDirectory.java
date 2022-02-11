@@ -42,7 +42,6 @@ import java.nio.file.StandardCopyOption;
  */
 public interface ConfigurationDirectory {
     String FILES = "files";
-    String METADATA_SUFFIX = ".metadata";
     String INSTANCE_IDENTIFIER_FILE = "instance-identifier";
 
     // Logger specified here because annotation does not work in interface.
@@ -84,8 +83,8 @@ public interface ConfigurationDirectory {
      * @throws Exception if an error occurs
      */
     static void saveMetadata(Path fileName, ConfigurationPartMetadata metadata) throws Exception {
-        AtomicSave.execute(fileName.toString() + METADATA_SUFFIX, "expires", metadata.toByteArray(),
-                StandardCopyOption.ATOMIC_MOVE);
+        AtomicSave.execute(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA,
+                "expires", metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     /**
@@ -115,7 +114,7 @@ public interface ConfigurationDirectory {
             LOG.error("Failed to delete file {}", file);
         }
 
-        File metadataFile = new File(fileName + METADATA_SUFFIX);
+        File metadataFile = new File(fileName + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA);
 
         if (!metadataFile.delete()) {
             LOG.error("Failed to delete file {}", metadataFile);

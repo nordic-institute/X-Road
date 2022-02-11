@@ -80,7 +80,7 @@ class DownloadedFiles {
         return stream.filter(Files::isRegularFile)
                 .filter(p -> !p.endsWith(ConfigurationDirectory.FILES))
                 .filter(p -> !p.endsWith(ConfigurationDirectory.INSTANCE_IDENTIFIER_FILE))
-                .filter(p -> !p.toString().endsWith(ConfigurationDirectory.METADATA_SUFFIX));
+                .filter(p -> !p.toString().endsWith(ConfigurationConstants.FILE_NAME_SUFFIX_METADATA));
     }
 
     void delete(Path path) {

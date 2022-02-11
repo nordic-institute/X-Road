@@ -63,9 +63,6 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
 @Slf4j
 public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
-    public static final String PRIVATE_PARAMETERS_XML = "private-params.xml";
-    public static final String SHARED_PARAMETERS_XML = "shared-params.xml";
-
     @Getter
     @Setter
     private Path path;
@@ -251,7 +248,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
      * @throws Exception if the metadata cannot be loaded
      */
     public static ConfigurationPartMetadata getMetadata(Path fileName) throws Exception {
-        File file = new File(fileName.toString() + METADATA_SUFFIX);
+        File file = new File(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA);
 
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
@@ -286,7 +283,8 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path privateParametersPath = Paths.get(instanceDir.toString(), PRIVATE_PARAMETERS_XML);
+        Path privateParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
         if (Files.exists(privateParametersPath)) {
             try {
                 log.trace("Loading private parameters from {}", privateParametersPath);
@@ -314,7 +312,8 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path sharedParametersPath = Paths.get(instanceDir.toString(), SHARED_PARAMETERS_XML);
+        Path sharedParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         if (Files.exists(sharedParametersPath)) {
             try {
                 log.trace("Loading shared parameters from {}", sharedParametersPath);
