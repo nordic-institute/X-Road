@@ -62,6 +62,9 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
  */
 @Slf4j
 public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
+    // overrides expires field from metadata
+    // currently used by asicverifier
+    public static OffsetDateTime expiresOverride;
 
     @Getter
     @Setter
@@ -256,7 +259,11 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     }
 
     private static OffsetDateTime getFileExpiresOn(Path filePath) throws Exception {
-        return getMetadata(filePath).getExpirationDate();
+        if (expiresOverride == null) {
+            return getMetadata(filePath).getExpirationDate();
+        } else {
+            return expiresOverride;
+        }
     }
 
     private static boolean isInThePast(OffsetDateTime someTime) {

@@ -31,6 +31,7 @@ import ee.ria.xroad.common.Version;
 import ee.ria.xroad.common.asic.AsicContainerEntries;
 import ee.ria.xroad.common.asic.AsicContainerVerifier;
 import ee.ria.xroad.common.asic.AsicUtils;
+import ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2;
 import ee.ria.xroad.common.conf.globalconf.GlobalConf;
 
 import org.apache.commons.io.IOUtils;
@@ -40,6 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.OffsetDateTime;
 import java.util.Scanner;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -70,6 +72,8 @@ public final class AsicVerifierMain {
 
     private static void loadConf(String confPath) {
         System.setProperty(SystemProperties.CONFIGURATION_PATH, confPath);
+        // ignore configuration expiry when checking
+        ConfigurationDirectoryV2.expiresOverride = OffsetDateTime.MAX;
 
         System.out.println("Loading configuration from " + confPath + "...");
         try {
