@@ -231,6 +231,11 @@ module.exports = {
       // Add wsdl
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
+      // assert that no services exist yet
+      browser.waitForElementNotPresent(
+        clientServices.elements.serviceDescription,
+      );
+
       clientServices.openAddWSDL();
       clientServices.initServiceUrl(
         browser.globals.testdata + '/' + browser.globals.wsdl_url_1,
