@@ -25,20 +25,13 @@
  */
 package ee.ria.xroad.proxy.conf;
 
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
-import ee.ria.xroad.common.conf.globalconfextension.GlobalConfExtensions;
 import ee.ria.xroad.common.identifier.ClientId;
-import ee.ria.xroad.common.ocsp.OcspVerifier;
-import ee.ria.xroad.common.ocsp.OcspVerifierOptions;
 import ee.ria.xroad.proxy.signedmessage.SignerSigningKey;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.cert.ocsp.OCSPResp;
 
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
@@ -51,40 +44,17 @@ class SigningInfo extends AbstractDateValidatableInfo {
     private final String signMechanismName;
     private final ClientId clientId;
     private final X509Certificate cert;
-    private final OCSPResp ocsp;
+    private final Date notBefore;
+    private final Date notAfter;
 
     // ------------------------------------------------------------------------
 
     @Override
     boolean verifyValidity(Date atDate) {
-        try {
-            log.trace("SigningInfo.verifyValidity date: {}", atDate);
-
-            verifyCert(atDate);
-            verifyOcsp(atDate, clientId.getXRoadInstance());
-
-            return true;
-        } catch (Exception e) {
-            log.warn("Cached signing info for member '{}' failed verification: {}", clientId, e);
-
-            return false;
-        }
+        return !(notAfter.before(atDate) || notBefore.after(atDate));
     }
 
     SigningCtx getSigningCtx() {
         return new SigningCtxImpl(clientId, new SignerSigningKey(keyId, signMechanismName), cert);
-    }
-
-    // ------------------------------------------------------------------------
-
-    private void verifyCert(Date atDate) throws CertificateExpiredException, CertificateNotYetValidException {
-        cert.checkValidity(atDate);
-    }
-
-    private void verifyOcsp(Date atDate, String instanceIdentifier) throws Exception {
-        X509Certificate issuer = GlobalConf.getCaCert(instanceIdentifier, cert);
-        OcspVerifier verifier = new OcspVerifier(GlobalConf.getOcspFreshnessSeconds(false),
-                new OcspVerifierOptions(GlobalConfExtensions.getInstance().shouldVerifyOcspNextUpdate()));
-        verifier.verifyValidityAndStatus(ocsp, cert, issuer, atDate);
     }
 }

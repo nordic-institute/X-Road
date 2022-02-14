@@ -46,6 +46,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.eclipse.jetty.util.StringUtil;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,7 +62,7 @@ import static java.util.Objects.requireNonNull;
  */
 @Slf4j
 public final class TokenConf extends AbstractXmlConf<KeyConfType> {
-
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
     /**
      * Specialized exception instead of a generic exception for TokenConf errors.
      */
@@ -84,7 +87,7 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
     }
 
     private TokenConf() {
-        super(ObjectFactory.class, new ObjectFactory().createKeyConf(new KeyConfType()), null);
+        super(new ObjectFactory().createKeyConf(new KeyConfType()), null);
     }
 
     /**
@@ -332,5 +335,17 @@ public final class TokenConf extends AbstractXmlConf<KeyConfType> {
         return SystemProperties.getKeyConfFile();
     }
 
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

@@ -33,7 +33,7 @@ import ee.ria.xroad.common.PortNumbers;
 import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.SystemPropertiesLoader;
 import ee.ria.xroad.common.Version;
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+import ee.ria.xroad.common.conf.globalconf.GlobalConfUpdater;
 import ee.ria.xroad.common.conf.serverconf.CachingServerConfImpl;
 import ee.ria.xroad.common.conf.serverconf.ServerConf;
 import ee.ria.xroad.common.monitoring.MonitorAgent;
@@ -49,7 +49,6 @@ import ee.ria.xroad.proxy.messagelog.MessageLog;
 import ee.ria.xroad.proxy.opmonitoring.OpMonitoring;
 import ee.ria.xroad.proxy.serverproxy.ServerProxy;
 import ee.ria.xroad.proxy.util.CertHashBasedOcspResponder;
-import ee.ria.xroad.proxy.util.GlobalConfUpdater;
 import ee.ria.xroad.proxy.util.ServerConfStatsLogger;
 import ee.ria.xroad.signer.protocol.SignerClient;
 
@@ -111,8 +110,6 @@ public final class ProxyMain {
     private static ActorSystem actorSystem;
 
     private static ServiceLoader<AddOn> addOns = ServiceLoader.load(AddOn.class);
-
-    private static final int GLOBAL_CONF_UPDATE_REPEAT_INTERVAL = 60;
 
     private static final int STATS_LOG_REPEAT_INTERVAL = 60;
 
@@ -208,8 +205,9 @@ public final class ProxyMain {
             SERVICES.add(new HealthCheckPort());
         }
 
-        jobManager.registerRepeatingJob(GlobalConfUpdater.class, GLOBAL_CONF_UPDATE_REPEAT_INTERVAL);
         jobManager.registerRepeatingJob(ServerConfStatsLogger.class, STATS_LOG_REPEAT_INTERVAL);
+        jobManager.registerRepeatingJob(GlobalConfUpdater.class,
+                SystemProperties.getConfigurationClientUpdateIntervalSeconds());
     }
 
     private static void loadConfigurations() {
@@ -219,7 +217,6 @@ public final class ProxyMain {
             if (SystemProperties.getServerConfCachePeriod() > 0) {
                 ServerConf.reload(new CachingServerConfImpl());
             }
-            GlobalConf.reload();
         } catch (Exception e) {
             log.error("Failed to initialize configurations", e);
         }

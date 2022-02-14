@@ -45,8 +45,8 @@ import java.util.List;
 
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS;
 import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML;
-import static ee.ria.xroad.common.conf.globalconf.ConfigurationDirectoryV2.SHARED_PARAMETERS_XML;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS;
+import static ee.ria.xroad.common.conf.globalconf.ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS;
 import static ee.ria.xroad.common.util.CryptoUtils.createDigestCalculator;
 import static ee.ria.xroad.common.util.CryptoUtils.encodeBase64;
 
@@ -68,15 +68,15 @@ public final class GenerateTestData {
     public static void main(String[] args) throws Exception {
         // simple conf with private & shared params + additional file
         new TestConfDir("test-conf-simple").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
-                        "EE", "/" + PRIVATE_PARAMETERS_XML), PRIVATE_PARAMETERS_XML)
-            .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/" + SHARED_PARAMETERS_XML),
-                    SHARED_PARAMETERS_XML)
+                        "EE", "/" + FILE_NAME_PRIVATE_PARAMETERS), FILE_NAME_PRIVATE_PARAMETERS)
+            .addEntry(new ConfDirEntry(CONTENT_ID_SHARED_PARAMETERS, "EE", "/"
+                            + FILE_NAME_SHARED_PARAMETERS), FILE_NAME_SHARED_PARAMETERS)
             .addEntry(new ConfDirEntry("FOO", "EE", "/foo.xml"), "/foo.xml")
                 .save();
 
         // detached conf scenario
         new TestConfDir("test-conf-detached").addEntry(new ConfDirEntry(CONTENT_ID_PRIVATE_PARAMETERS,
-                        "EE", "/" + PRIVATE_PARAMETERS_XML), PRIVATE_PARAMETERS_XML).save();
+                        "EE", "/" + FILE_NAME_PRIVATE_PARAMETERS), FILE_NAME_PRIVATE_PARAMETERS).save();
     }
 
     @RequiredArgsConstructor

@@ -25,3 +25,7 @@ if [ "$1" -gt 1 ] ; then \
     fi \
 fi \
 %{nil}
+
+%define systemd_try_restart() \
+systemctl --quiet try-restart %{?*} >/dev/null 2>&1 || : \
+%{nil}
