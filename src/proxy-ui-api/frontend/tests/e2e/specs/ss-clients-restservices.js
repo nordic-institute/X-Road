@@ -25,7 +25,7 @@
  */
 
 module.exports = {
-  tags: ['ss', 'clients', 'restservices'],
+  tags: ['1908', 'ss', 'clients', 'restservices'],
   'Security server client add rest service': (browser) => {
     const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();

@@ -25,7 +25,7 @@
  */
 
 module.exports = {
-  tags: ['ss', 'clients', 'openapiservices'],
+  tags: ['1908', 'ss', 'clients', 'openapiservices'],
   'Security server client add openapi service': (browser) => {
     const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();

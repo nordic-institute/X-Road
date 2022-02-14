@@ -35,7 +35,7 @@ let restOperationDetails, restEndpoints, addEndpointPopup, addEndpointAccessRigh
 let restServiceDetails, wsdlServiceDetails;
 
 module.exports = {
-  tags: ['ss', 'clients', 'serviceclients'],
+  tags: ['1908', 'ss', 'clients', 'serviceclients'],
 
   before: function (browser) {
     frontPage = browser.page.ssLoginPage();

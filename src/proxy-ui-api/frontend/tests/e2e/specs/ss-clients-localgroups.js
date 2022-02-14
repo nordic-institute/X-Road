@@ -25,7 +25,7 @@
  */
 
 module.exports = {
-  tags: ['ss', 'clients', 'localgroups'],
+  tags: ['1908', 'ss', 'clients', 'localgroups'],
   'Security server client local groups filtering': (browser) => {
     const frontPage = browser.page.ssLoginPage();
     const mainPage = browser.page.ssMainPage();

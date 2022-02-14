@@ -31,7 +31,7 @@ let clientServices, serviceDetails;
 
 
 module.exports = {
-  tags: ['ss', 'clients', 'serviceclients', 'addserviceclient'],
+  tags: ['1908', 'ss', 'clients', 'serviceclients', 'addserviceclient'],
   before: function (browser){
     frontPage = browser.page.ssLoginPage();
     mainPage = browser.page.ssMainPage();
