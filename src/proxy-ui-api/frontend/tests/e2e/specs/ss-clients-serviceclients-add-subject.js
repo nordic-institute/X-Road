@@ -98,6 +98,21 @@ module.exports = {
     browser.waitForElementVisible(frontPage.elements.usernameInput);
   },
   after: function (browser){
+      browser.LoginCommand();
+      // Remove WSDL service description
+      frontPage.navigateAndMakeTestable();
+      browser.waitForElementVisible('//*[@id="app"]');
+      clientsTab.openClient('TestService');
+      browser.waitForElementVisible(clientInfo);
+      clientInfo.openServicesTab();
+      browser.waitForElementVisible(clientServices);
+      clientServices.openServiceDetails();
+      browser.waitForElementVisible(serviceDetails);
+      serviceDetails.deleteService();
+      serviceDetails.confirmDelete();
+      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
+      mainPage.closeSnackbar();
+
     browser.end();
   },
 
