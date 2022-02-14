@@ -232,9 +232,17 @@ module.exports = {
       clientInfo.openServicesTab();
       browser.waitForElementVisible(clientServices);
       // assert that no services exist yet
-      browser.waitForElementNotPresent(
-        clientServices.elements.serviceDescription,
+      browser.assert.containsText(
+        clientServices,
+        'No services',
       );
+// note that if we wanted to assert we have x number of services,
+// we cannot just use the expect (2) without something else (1), since loading the serviceDescriptions
+// takes a few moments, and as implemented the expect count can return 0 too early when right number is > 0
+//      (1) browser.pause(10000);
+//      (2) browser.expect
+//        .elements(clientServices.elements.serviceDescription)
+//        .count.to.equal(0);
 
       clientServices.openAddWSDL();
       clientServices.initServiceUrl(
