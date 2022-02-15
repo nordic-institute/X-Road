@@ -285,13 +285,15 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import {
   TimestampingServiceDiagnostics,
   OcspResponderDiagnostics,
   GlobalConfDiagnostics,
 } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   data: () => ({
@@ -303,13 +305,14 @@ export default Vue.extend({
     ocspLoading: false,
   }),
   computed: {
-    ...mapGetters(['securityServerVersion']),
+    ...mapState(useSystemStore, ['securityServerVersion']),
   },
 
   created() {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     fetchData(): void {
       this.globalConfLoading = true;
       this.timestampingLoading = true;
@@ -323,7 +326,7 @@ export default Vue.extend({
           this.timestampingServices = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.timestampingLoading = false;
@@ -335,7 +338,7 @@ export default Vue.extend({
           this.globalConf = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.globalConfLoading = false;
@@ -347,7 +350,7 @@ export default Vue.extend({
           this.ocspResponderDiagnostics = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.ocspLoading = false;

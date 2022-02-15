@@ -90,6 +90,9 @@ import { Permissions } from '@/global';
 import { KeysSortColumn } from './keyColumnSorting';
 import * as Sorting from './keyColumnSorting';
 import { Prop } from 'vue/types/options';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+
 export default Vue.extend({
   components: {
     KeyRow,
@@ -123,6 +126,7 @@ export default Vue.extend({
   },
 
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     sortedKeys(): Key[] {
       return Sorting.keyArraySort(
         this.keys,
@@ -132,13 +136,13 @@ export default Vue.extend({
     },
     canCreateCsr(): boolean {
       return (
-        this.$store.getters.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
-        this.$store.getters.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
+        this.hasPermission(Permissions.GENERATE_AUTH_CERT_REQ) ||
+        this.hasPermission(Permissions.GENERATE_SIGN_CERT_REQ)
       );
     },
     canImportFromToken(): boolean {
       // Can the user import certificate from hardware token
-      return this.$store.getters.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
+      return this.hasPermission(Permissions.IMPORT_UNKNOWN_CERT);
     },
   },
 

@@ -72,10 +72,14 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
+
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGeneral } from '@/store/modules/general';
 
 export default Vue.extend({
   components: {
@@ -97,24 +101,19 @@ export default Vue.extend({
       configuratonAnchor: undefined as Anchor | undefined,
     };
   },
-  computed: {
-    ...mapGetters([
-      'filteredServiceList',
-      'isUsageReadOnly',
-      'selectedMember',
-      'usage',
-    ]),
-  },
+
   methods: {
+    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
+    ...mapActions(useNotifications, ['showError']),
     // Fetch anchor data so it can be shown in the UI
     fetchConfigurationAnchor() {
       api
         .get<Anchor>('/system/anchor')
         .then((resp) => (this.configuratonAnchor = resp.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
 
       // Fetch member classes for owner member step after anchor is ready
-      this.$store.dispatch('fetchMemberClassesForCurrentInstance');
+      this.fetchMemberClassesForCurrentInstance();
     },
     done(): void {
       this.$emit('done');
