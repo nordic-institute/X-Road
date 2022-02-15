@@ -167,9 +167,11 @@
 
 <script lang="ts">
 import Vue, { PropType } from 'vue';
-import { mapGetters } from 'vuex';
 import * as api from '@/util/api';
 import { Client } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useGeneral } from '@/store/modules/general';
 
 const initialState = () => {
   return {
@@ -207,17 +209,19 @@ export default Vue.extend({
     return { ...initialState() };
   },
   computed: {
-    ...mapGetters(['xroadInstances', 'memberClasses']),
+    ...mapState(useGeneral, ['xroadInstances', 'memberClasses']),
     canSave(): boolean {
       return this.selectedIds.length > 0;
     },
   },
   created() {
-    this.$store.dispatch('fetchXroadInstances');
-    this.$store.dispatch('fetchMemberClasses');
+    this.fetchXroadInstances();
+    this.fetchMemberClasses();
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError']),
+    ...mapActions(useGeneral, ['fetchMemberClasses', 'fetchXroadInstances']),
     checkboxChange(id: string, event: boolean): void {
       if (event) {
         this.selectedIds.push(id);
@@ -264,7 +268,7 @@ export default Vue.extend({
           }
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.loading = false;
