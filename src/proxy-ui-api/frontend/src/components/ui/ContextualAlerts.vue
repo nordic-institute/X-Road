@@ -43,7 +43,9 @@
       >
         <div class="row-wrapper-top scrollable identifier-wrap">
           <div class="icon-wrapper">
-            <v-icon v-if="notification.isWarning" class="warning-icon"> icon-Warning</v-icon>
+            <v-icon v-if="notification.isWarning" class="warning-icon"
+              >icon-Warning</v-icon
+            >
             <v-icon v-else class="error-icon"> icon-Error-notification</v-icon>
             <div class="row-wrapper">
               <!-- Show message text -->
@@ -101,7 +103,7 @@
                   <template v-else>
                     <ul>
                       <li
-                        v-for="errCode in validationError.errCodes"
+                        v-for="errCode in validationError.errorCodes"
                         :key="`${validationError.field}.${errCode}`"
                       >
                         {{ $t(`validationError.${errCode}`) }}
@@ -154,7 +156,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { mapActions, mapState } from 'pinia';
-import { notificationsStore } from '@/store/modules/notifications';
+import { useNotifications } from '@/store/modules/notifications';
 import { toClipboard } from '@/util/helpers';
 import { Notification } from '@/ui-types';
 import { Colors } from '@/global';
@@ -167,7 +169,7 @@ type ValidationError = {
 export default Vue.extend({
   // Component for contextual notifications
   computed: {
-    ...mapState(notificationsStore, {
+    ...mapState(useNotifications, {
       errorNotifications: 'getErrorNotifications',
     }),
   },
@@ -176,7 +178,7 @@ export default Vue.extend({
       // TODO - how to import these values from colors.css?
       return notification.isWarning ? Colors.Warning : Colors.Error;
     },
-    ...mapActions(notificationsStore, ['deleteNotification']),
+    ...mapActions(useNotifications, ['deleteNotification']),
     errorCode(notification: Notification): string | undefined {
       return notification.errorObject?.response?.data?.error?.code;
     },
