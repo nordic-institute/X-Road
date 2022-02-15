@@ -97,9 +97,12 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import { RouteName } from '@/global';
 import { KeyUsageType, TokenCertificate } from '@/openapi-types';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   props: {
@@ -114,12 +117,23 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client', 'signCertificates', 'clientLoading']),
+    ...mapState(useClientStore, [
+      'client',
+      'signCertificates',
+      'clientLoading',
+    ]),
   },
   created() {
-    this.fetchSignCertificates(this.id);
+    this.certificatesLoading = true;
+    this.fetchSignCertificates(this.id)
+      .catch((error) => {
+        this.showError(error);
+      })
+      .finally(() => (this.certificatesLoading = false));
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useClientStore, ['fetchSignCertificates']),
     viewCertificate(cert: TokenCertificate) {
       this.$router.push({
         name: RouteName.Certificate,
@@ -128,15 +142,6 @@ export default Vue.extend({
           usage: KeyUsageType.SIGNING,
         },
       });
-    },
-    fetchSignCertificates(id: string) {
-      this.certificatesLoading = true;
-      this.$store
-        .dispatch('fetchSignCertificates', id)
-        .catch((error) => {
-          this.$store.dispatch('showError', error);
-        })
-        .finally(() => (this.certificatesLoading = false));
     },
   },
 });

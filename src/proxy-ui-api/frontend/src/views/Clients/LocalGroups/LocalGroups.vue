@@ -89,11 +89,15 @@ import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import * as api from '@/util/api';
 import NewGroupDialog from './NewGroupDialog.vue';
-import { mapGetters } from 'vuex';
+
 import { Permissions, RouteName } from '@/global';
 import { selectedFilter } from '@/util/helpers';
 import { LocalGroup } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -115,9 +119,10 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['client']),
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useClientStore, ['client']),
     showAddGroup(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ADD_LOCAL_GROUP);
+      return this.hasPermission(Permissions.ADD_LOCAL_GROUP);
     },
     headers(): DataTableHeader[] {
       return [
@@ -152,6 +157,7 @@ export default Vue.extend({
     this.fetchGroups(this.id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     addGroup(): void {
       this.addGroupDialog = true;
     },
@@ -196,7 +202,7 @@ export default Vue.extend({
           });
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.loading = false));
     },
