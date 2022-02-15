@@ -294,168 +294,6 @@ paths:
       summary: restore central server configuration from backup
       tags:
         - backups
-  /central-services:
-    get:
-      description: <h3>CS administrator fetches all Central Services.</h3>
-      operationId: getCentralServices
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                description: array of central services
-                items:
-                  $ref: '#/components/schemas/CentralService'
-                type: array
-                uniqueItems: true
-          description: list of central services
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: get central services
-      tags:
-        - central-services
-    post:
-      description: <h3>CS administrator adds a Central Service to the central server.</h3>
-      operationId: addCentralService
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CentralService'
-        description: central service
-        required: true
-      responses:
-        '201':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CentralService'
-          description: new central service created
-        '400':
-          content:
-            application/json:
-              examples:
-                error_response:
-                  $ref: '#/components/examples/ErrorExample'
-                validation_errors_response:
-                  $ref: '#/components/examples/ValidationErrorsExample'
-              schema:
-                $ref: '#/components/schemas/ErrorInfo'
-          description: there are errors in the request
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '409':
-          $ref: '#/components/responses/Conflict'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: add new central service
-      tags:
-        - central-services
-  /central-services/{code}:
-    delete:
-      description: <h3>CS administrator deletes a Central Service.</h3>
-      operationId: deleteCentralService
-      parameters:
-        - description: code of the central service
-          in: path
-          name: code
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
-      responses:
-        '204':
-          $ref: '#/components/responses/NoContent'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: delete central service
-      tags:
-        - central-services
-    get:
-      description: <h3>CS administrator views the details of a Central Service.</h3>
-      operationId: getCentralService
-      parameters:
-        - description: code of the central service
-          in: path
-          name: code
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CentralService'
-          description: central service
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: get central service by its code
-      tags:
-        - central-services
-    patch:
-      description: <h3>CS administrator updates the Central Service.</h3>
-      operationId: updateCentralService
-      parameters:
-        - description: code of the central service
-          in: path
-          name: code
-          required: true
-          schema:
-            format: text
-            minLength: 1
-            type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Service'
-        description: the implementing service of the central service
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CentralService'
-          description: the updated central service
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
-      summary: update central service
-      tags:
-        - central-services
   /certification-services:
     get:
       description: <h3>CS administrator views the list of certification services that have been approved and described for this X-Road instance.</h3>
@@ -2834,18 +2672,17 @@ paths:
       summary: add a timestamping service
       tags:
         - timestamping-services
-  /timestamping-services/{hash}:
+  /timestamping-services/{id}:
     delete:
       description: <h3>CS administrator deletes an approved timestamping service.</h3>
       operationId: deleteTimestampingService
       parameters:
-        - description: SHA-1 hash of the timestamping service's certificate
+        - description: unique identifier of the timestamping service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -2868,13 +2705,12 @@ paths:
       description: <h3>CS administrator views an approved timestamping service's details.</h3>
       operationId: getTimestampingService
       parameters:
-        - description: SHA-1 hash of the timestamping service's certificate
+        - description: unique identifier of the timestamping service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       responses:
@@ -2901,13 +2737,12 @@ paths:
       description: <h3>CS administrator edits the URL of a timestamping server.</h3>
       operationId: updateTimestampingService
       parameters:
-        - description: SHA-1 hash of the timestamping service's certificate
+        - description: unique identifier of the timestamping service
           in: path
-          name: hash
+          name: id
           required: true
           schema:
             format: text
-            maxLength: 40
             minLength: 1
             type: string
       requestBody:
@@ -3092,21 +2927,6 @@ components:
           type: string
       required:
         - central_server_address
-      type: object
-    CentralService:
-      allOf:
-        - $ref: '#/components/schemas/ModificationTimestamps'
-      description: x-road central service
-      properties:
-        central_service_code:
-          description: central service code
-          example: myService
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        implementing_service:
-          $ref: '#/components/schemas/Service'
       type: object
     CertificateAuthority:
       allOf:
@@ -3992,31 +3812,6 @@ components:
       required:
         - server_address
       type: object
-    Service:
-      description: x-road service
-      properties:
-        member_id:
-          description: the encoded string representation of the x-road member id
-          example: FI:GOV:123:ABC
-          format: text
-          maxLength: 1023
-          minLength: 1
-          type: string
-        service_code:
-          description: service code
-          example: myService
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        service_version:
-          description: service version
-          example: v2
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-      type: object
     ServiceProviderId:
       properties:
         service_provider_id:
@@ -4041,6 +3836,15 @@ components:
         - $ref: '#/components/schemas/TimestampingServiceCertificate'
         - $ref: '#/components/schemas/ModificationTimestamps'
       description: timestamping service
+      properties:
+        id:
+          description: unique identifier
+          example: 123
+          format: text
+          readOnly: true
+          type: string
+      required:
+        - id
       type: object
     TimestampingServiceCertificate:
       description: timestamping service certificate
