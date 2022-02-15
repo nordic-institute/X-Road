@@ -50,6 +50,7 @@ public class RestApiApplication {
     public static void main(String[] args) {
         Version.outputVersionInfo(APP_NAME, VersionService.MIN_SUPPORTED_JAVA_VERSION,
                 VersionService.MAX_SUPPORTED_JAVA_VERSION);
+
         SpringApplication.run(RestApiApplication.class, args
         );
     }

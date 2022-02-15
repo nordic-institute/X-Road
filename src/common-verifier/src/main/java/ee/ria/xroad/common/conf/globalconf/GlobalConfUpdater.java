@@ -23,9 +23,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package ee.ria.xroad.proxy.util;
-
-import ee.ria.xroad.common.conf.globalconf.GlobalConf;
+package ee.ria.xroad.common.conf.globalconf;
 
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
@@ -42,10 +40,10 @@ public class GlobalConfUpdater implements Job {
     @Override
     public void execute(JobExecutionContext context) throws JobExecutionException {
         try {
-            log.trace("Reloading globalconf");
-            GlobalConf.reloadIfChanged();
+            log.trace("Updating globalconf");
+            GlobalConf.reload();
         } catch (Exception e) {
-            log.error("Error reloading globalconf", e);
+            log.error("Error updating globalconf", e);
             throw new JobExecutionException(e);
         }
     }

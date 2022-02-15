@@ -73,7 +73,6 @@ public final class AsicVerifierMain {
 
         System.out.println("Loading configuration from " + confPath + "...");
         try {
-            GlobalConf.reload();
             verifyConfPathCorrectness();
         } catch (CodedException e) {
             System.err.println("Unable to load configuration: "

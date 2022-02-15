@@ -29,11 +29,14 @@ import ee.ria.xroad.common.conf.AbstractXmlConf;
 import ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters.ObjectFactory;
 import ee.ria.xroad.common.conf.globalconf.ocspnextupdateparameters.OcspNextUpdateType;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+
 /**
  * Ocsp next update parameters
  */
 public class OcspNextUpdate extends AbstractXmlConf<OcspNextUpdateType> {
-
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
     /**
      * The default file name of the configuration part
      */
@@ -46,10 +49,23 @@ public class OcspNextUpdate extends AbstractXmlConf<OcspNextUpdateType> {
     public static final boolean OCSP_NEXT_UPDATE_DEFAULT = true;
 
     OcspNextUpdate() {
-        super(ObjectFactory.class, OcspNextUpdateSchemaValidator.class);
+        super(OcspNextUpdateSchemaValidator.class);
     }
 
     boolean shouldVerifyOcspNextUpdate() {
         return confType.isVerifyNextUpdate();
+    }
+
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
