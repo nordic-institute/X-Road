@@ -24,11 +24,8 @@
  * THE SOFTWARE.
  */
 
-
-
 let frontPage, mainPage, serviceClientsPage, addSubjectMemberStepPage, addSubjectServiceStepPage, clientInfo, clientsTab;
 let clientServices, serviceDetails;
-
 
 module.exports = {
   tags: ['ss', 'clients', 'serviceclients', 'addserviceclient'],
@@ -37,8 +34,7 @@ module.exports = {
     mainPage = browser.page.ssMainPage();
     serviceClientsPage = browser.page.serviceClients.serviceClientsPage();
     addSubjectMemberStepPage = browser.page.serviceClients.addSubjectMemberStepPage();
-    addSubjectServiceStepPage =
-      browser.page.serviceClients.addSubjectServiceStepPage();
+    addSubjectServiceStepPage = browser.page.serviceClients.addSubjectServiceStepPage();
     clientInfo = mainPage.section.clientInfo;
     clientsTab =  mainPage.section.clientsTab;
     clientServices = clientInfo.section.services;
@@ -68,12 +64,10 @@ module.exports = {
     );
     mainPage.logout();
     browser.waitForElementVisible(frontPage.elements.usernameInput);
-
   },
 
   beforeEach: function (browser){
     browser.LoginCommand();
-
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
     clientsTab.openClient('TestService');
@@ -81,7 +75,6 @@ module.exports = {
     // Navigate to service clients -tab
     clientInfo.openServiceClientsTab();
     browser.waitForElementVisible(serviceClientsPage.section.serviceClientsTab);
-
     // Verify buttons are visible
     browser.expect.element(serviceClientsPage.elements.addServiceClientButton).to
       .be.visible;
@@ -98,21 +91,20 @@ module.exports = {
     browser.waitForElementVisible(frontPage.elements.usernameInput);
   },
   after: function (browser){
-      browser.LoginCommand();
-      // Remove WSDL service description
-      frontPage.navigateAndMakeTestable();
-      browser.waitForElementVisible('//*[@id="app"]');
-      clientsTab.openClient('TestService');
-      browser.waitForElementVisible(clientInfo);
-      clientInfo.openServicesTab();
-      browser.waitForElementVisible(clientServices);
-      clientServices.openServiceDetails();
-      browser.waitForElementVisible(serviceDetails);
-      serviceDetails.deleteService();
-      serviceDetails.confirmDelete();
-      browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
-      mainPage.closeSnackbar();
-
+    browser.LoginCommand();
+    // Remove WSDL service description
+    frontPage.navigateAndMakeTestable();
+    browser.waitForElementVisible('//*[@id="app"]');
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+    clientServices.openServiceDetails();
+    browser.waitForElementVisible(serviceDetails);
+    serviceDetails.deleteService();
+    serviceDetails.confirmDelete();
+    browser.waitForElementVisible(mainPage.elements.snackBarMessage); // 'Service description deleted'
+    mainPage.closeSnackbar();
     browser.end();
   },
 
