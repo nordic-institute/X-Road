@@ -17,7 +17,7 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
             </constraint>
         </field>
     </bean>
-    <bean class="ServerAddressUpdateBody" ignore-annotations="false">
+    <bean class="CentralServerAddress" ignore-annotations="false">
         <field name="centralServerAddress">
             <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidHostAddress">
             </constraint>

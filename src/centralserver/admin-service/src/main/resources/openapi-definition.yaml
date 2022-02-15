@@ -3818,21 +3818,14 @@ components:
           description: object creation time
           example: '2022-01-20T00:00:00.001Z'
           format: date-time
-          maxLength: 24
-          minLength: 24
           readOnly: true
           type: string
         updated_at:
           description: last time updated
           example: '2022-01-22T07:30:00.001Z'
           format: date-time
-          maxLength: 24
-          minLength: 24
           readOnly: true
           type: string
-      required:
-        - created_at
-        - updated_at
       type: object
     OcspResponder:
       allOf:

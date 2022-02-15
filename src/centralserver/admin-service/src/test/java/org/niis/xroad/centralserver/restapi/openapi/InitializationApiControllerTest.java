@@ -34,11 +34,12 @@ import org.niis.xroad.centralserver.openapi.model.InitialServerConf;
 import org.niis.xroad.centralserver.openapi.model.InitializationStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.restapi.util.TokenTestUtils;
-import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.ConstraintViolationException;
 
 import static ee.ria.xroad.commonui.SignerProxy.SSL_TOKEN_ID;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -168,9 +169,8 @@ public class InitializationApiControllerTest extends AbstractApiControllerTestCo
         )).thenReturn("");
         when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any()))
                 .thenReturn("");
-        BadRequestException badRequestException = assertThrows(BadRequestException.class,
+        ConstraintViolationException exception = assertThrows(ConstraintViolationException.class,
                 () -> initializationApiController.initCentralServer(testConf));
-        assertEquals(1, badRequestException.getErrorDeviation().getMetadata().size());
     }
 
     @Test
