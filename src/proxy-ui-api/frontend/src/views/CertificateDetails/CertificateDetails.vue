@@ -117,6 +117,9 @@ import CertificateHash from '@/components/certificate/CertificateHash.vue';
 import UnregisterErrorDialog from './UnregisterErrorDialog.vue';
 import { encodePathParameter } from '@/util/api';
 import { PossibleActions } from '@/openapi-types/models/PossibleActions';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -146,20 +149,15 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
       if (this.possibleActions.includes(PossibleAction.DELETE)) {
         if (this.usage === KeyUsageType.SIGNING) {
-          return this.$store.getters.hasPermission(
-            Permissions.DELETE_SIGN_CERT,
-          );
+          return this.hasPermission(Permissions.DELETE_SIGN_CERT);
         } else if (this.usage === KeyUsageType.AUTHENTICATION) {
-          return this.$store.getters.hasPermission(
-            Permissions.DELETE_AUTH_CERT,
-          );
+          return this.hasPermission(Permissions.DELETE_AUTH_CERT);
         } else {
-          return this.$store.getters.hasPermission(
-            Permissions.DELETE_UNKNOWN_CERT,
-          );
+          return this.hasPermission(Permissions.DELETE_UNKNOWN_CERT);
         }
       } else {
         return false;
@@ -169,7 +167,7 @@ export default Vue.extend({
     showUnregister(): boolean {
       if (
         this.possibleActions.includes(PossibleAction.UNREGISTER) &&
-        this.$store.getters.hasPermission(Permissions.SEND_AUTH_CERT_DEL_REQ)
+        this.hasPermission(Permissions.SEND_AUTH_CERT_DEL_REQ)
       ) {
         return true;
       } else {
@@ -184,13 +182,9 @@ export default Vue.extend({
 
       if (this.possibleActions.includes(PossibleAction.ACTIVATE)) {
         if (this.usage === KeyUsageType.SIGNING) {
-          return this.$store.getters.hasPermission(
-            Permissions.ACTIVATE_DISABLE_SIGN_CERT,
-          );
+          return this.hasPermission(Permissions.ACTIVATE_DISABLE_SIGN_CERT);
         } else {
-          return this.$store.getters.hasPermission(
-            Permissions.ACTIVATE_DISABLE_AUTH_CERT,
-          );
+          return this.hasPermission(Permissions.ACTIVATE_DISABLE_AUTH_CERT);
         }
       }
 
@@ -204,13 +198,9 @@ export default Vue.extend({
 
       if (this.possibleActions.includes(PossibleAction.DISABLE)) {
         if (this.usage === KeyUsageType.SIGNING) {
-          return this.$store.getters.hasPermission(
-            Permissions.ACTIVATE_DISABLE_SIGN_CERT,
-          );
+          return this.hasPermission(Permissions.ACTIVATE_DISABLE_SIGN_CERT);
         } else {
-          return this.$store.getters.hasPermission(
-            Permissions.ACTIVATE_DISABLE_AUTH_CERT,
-          );
+          return this.hasPermission(Permissions.ACTIVATE_DISABLE_AUTH_CERT);
         }
       }
 
@@ -222,6 +212,7 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -235,7 +226,7 @@ export default Vue.extend({
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
 
       // Fetch possible actions
@@ -247,7 +238,7 @@ export default Vue.extend({
           this.possibleActions = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
     showConfirmDelete(): void {
@@ -260,29 +251,29 @@ export default Vue.extend({
         .remove(`/token-certificates/${encodePathParameter(this.hash)}`)
         .then(() => {
           this.close();
-          this.$store.dispatch('showSuccess', this.$t('cert.certDeleted'));
+          this.showSuccess(this.$t('cert.certDeleted'));
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
     activateCertificate(hash: string): void {
       api
         .put(`/token-certificates/${encodePathParameter(hash)}/activate`, hash)
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('cert.activateSuccess'));
+          this.showSuccess(this.$t('cert.activateSuccess'));
           this.fetchData(this.hash);
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     deactivateCertificate(hash: string): void {
       api
         .put(`token-certificates/${encodePathParameter(hash)}/disable`, hash)
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('cert.disableSuccess'));
+          this.showSuccess(this.$t('cert.disableSuccess'));
           this.fetchData(this.hash);
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
 
     unregisterCert(): void {
@@ -298,10 +289,7 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('keys.certificateUnregistered'),
-          );
+          this.showSuccess(this.$t('keys.certificateUnregistered'));
         })
         .catch((error) => {
           if (
@@ -310,7 +298,7 @@ export default Vue.extend({
           ) {
             this.unregisterErrorResponse = error.response;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           }
 
           this.confirmUnregisterError = true;
@@ -332,15 +320,12 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('keys.certMarkedForDeletion'),
-          );
+          this.showSuccess(this.$t('keys.certMarkedForDeletion'));
           this.confirmUnregisterError = false;
           this.$emit('refresh-list');
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
           this.confirmUnregisterError = false;
         });
     },

@@ -163,6 +163,8 @@ import { Client } from '@/openapi-types';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -219,6 +221,7 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     done(): void {
       this.submitLoading = true;
       const body = {
@@ -234,10 +237,7 @@ export default Vue.extend({
       api.post('/clients', body).then(
         () => {
           this.submitLoading = false;
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('wizard.subsystem.subsystemAdded'),
-          );
+          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
           if (this.registerChecked) {
             this.confirmRegisterClient = true;
           } else {
@@ -246,7 +246,7 @@ export default Vue.extend({
         },
         (error) => {
           this.submitLoading = false;
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
@@ -262,14 +262,11 @@ export default Vue.extend({
       );
       api.put(`/clients/${encodePathParameter(clientId)}/register`, {}).then(
         () => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('wizard.subsystem.subsystemAdded'),
-          );
+          this.showSuccess(this.$t('wizard.subsystem.subsystemAdded'));
           this.exitView();
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
           this.exitView();
         },
       );
@@ -295,7 +292,7 @@ export default Vue.extend({
           this.selectableSubsystems = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
 
       // Fetch existing subsystems
@@ -307,7 +304,7 @@ export default Vue.extend({
           this.existingSubsystems = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },
