@@ -26,42 +26,34 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PreUpdate;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
-import java.util.Date;
+import java.time.Instant;
 
 @MappedSuperclass
 public abstract class AuditableEntity {
 
-    private Date createdAt = new Date();
-    private Date updatedAt = createdAt;
+    private Instant createdAt = Instant.now();
+    private Instant updatedAt = createdAt;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", nullable = false)
-    public Date getCreatedAt() {
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Access(AccessType.FIELD)
+    public Instant getCreatedAt() {
         return this.createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at", nullable = false)
-    public Date getUpdatedAt() {
+    @Access(AccessType.FIELD)
+    public Instant getUpdatedAt() {
         return this.updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
     }
 
     @PreUpdate
     void preUpdate() {
-        this.updatedAt = new Date();
+        this.updatedAt = Instant.now();
     }
 }

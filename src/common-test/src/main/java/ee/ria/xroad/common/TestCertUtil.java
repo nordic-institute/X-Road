@@ -28,14 +28,29 @@ package ee.ria.xroad.common;
 import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.IOUtils;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
+import java.security.spec.ECGenParameterSpec;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 
 /**
  * Contains various certificate related utility methods for using in test cases,
@@ -63,7 +78,7 @@ public final class TestCertUtil {
 
     private static final class ClientKeyHolder {
         private static final PKCS12 INSTANCE = loadPKCS12("client.p12", "1", "test");
-    };
+    }
 
     private TestCertUtil() {
     }
@@ -164,7 +179,7 @@ public final class TestCertUtil {
     /**
      * @param fileName name of the certificate file
      * @return a certificate from the certificate chain test
-     * (certs under "cert-chain" subdirectory).
+     *         (certs under "cert-chain" subdirectory).
      */
     public static X509Certificate getCertChainCert(String fileName) {
         String file = CERT_PATH + "test_chain/" + fileName;
@@ -175,7 +190,7 @@ public final class TestCertUtil {
     /**
      * @param fileName name of the private key file
      * @return a private key from the certificate chain test
-     * (certs under "cert-chain" subdirectory).
+     *         (certs under "cert-chain" subdirectory).
      */
     public static PrivateKey getCertChainKey(String fileName) {
         String file = CERT_PATH + "test_chain/" + fileName;
@@ -324,6 +339,36 @@ public final class TestCertUtil {
 
     public static char[] getKeyStorePassword(String name) {
         return "test".toCharArray();
+    }
+
+    @SuppressWarnings("checkstyle:MagicNumber")
+    public static byte[] generateAuthCert() throws NoSuchAlgorithmException, OperatorCreationException, IOException,
+            InvalidAlgorithmParameterException {
+
+        var keyPairGenerator = KeyPairGenerator.getInstance("EC");
+        keyPairGenerator.initialize(new ECGenParameterSpec("secp256r1"));
+
+        var issuerKey = keyPairGenerator.generateKeyPair();
+        var subjectKey = keyPairGenerator.generateKeyPair();
+
+        var signer = new JcaContentSignerBuilder("SHA256withECDSA").build(issuerKey.getPrivate());
+        var issuer = new X500Name("CN=CA");
+        var subject = new X500Name("CN=Subject");
+
+        return new JcaX509v3CertificateBuilder(
+                issuer,
+                BigInteger.ONE,
+                Date.from(Instant.now()),
+                Date.from(Instant.now().plus(365, ChronoUnit.DAYS)),
+                subject,
+                subjectKey.getPublic())
+                .addExtension(Extension.create(
+                        Extension.keyUsage,
+                        true,
+                        new KeyUsage(KeyUsage.digitalSignature)))
+                .build(signer)
+                .getEncoded();
+
     }
 
     private static InputStream getFile(String fileName) throws Exception {

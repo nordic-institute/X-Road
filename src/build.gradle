@@ -71,7 +71,7 @@ dependencyCheck {
 allprojects {
     group = 'org.niis.xroad'
     version = '1.0'
-    
+
     buildscript {
       repositories {
         mavenCentral()

@@ -27,6 +27,8 @@
 package org.niis.xroad.centralserver.restapi.entity;
 // Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
+import ee.ria.xroad.common.identifier.ClientId;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -54,8 +56,13 @@ public class XRoadMember extends SecurityServerClient {
     private Set<SecurityServer> ownedServers = new HashSet<>(0);
     private Set<Subsystem> subsystems = new HashSet<>(0);
 
-    public XRoadMember() {
+    protected XRoadMember() {
         //JPA
+    }
+
+    public XRoadMember(ClientId identifier) {
+        super(identifier);
+        this.memberClass = memberClass;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
