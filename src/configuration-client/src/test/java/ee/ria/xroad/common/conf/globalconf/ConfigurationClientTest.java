@@ -70,6 +70,8 @@ public class ConfigurationClientTest {
 
         List<String> receivedParts = new ArrayList<>();
 
+        initInstanceIdentifier();
+
         ConfigurationClient client = getClient(confPath, receivedParts);
         client.execute();
 
@@ -90,6 +92,8 @@ public class ConfigurationClientTest {
 
         List<String> receivedParts = new ArrayList<>();
 
+        initInstanceIdentifier();
+
         ConfigurationClient client = getClient(confPath, receivedParts);
         client.execute();
 
@@ -109,6 +113,8 @@ public class ConfigurationClientTest {
         String confPath = "src/test/resources/test-conf-malformed";
 
         List<String> receivedParts = new ArrayList<>();
+
+        initInstanceIdentifier();
 
         ConfigurationClient client = getClient(confPath, receivedParts);
 
@@ -147,6 +153,10 @@ public class ConfigurationClientTest {
                 return "EE";
             }
         };
+    }
+
+    private void initInstanceIdentifier() throws Exception {
+        ConfigurationDirectory.saveInstanceIdentifier(tempConfFolder.getRoot().getAbsolutePath(),  "EE");
     }
 
     private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
