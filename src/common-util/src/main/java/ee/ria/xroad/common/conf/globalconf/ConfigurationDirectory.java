@@ -39,6 +39,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * Configuration directory interface.
@@ -121,10 +122,12 @@ public interface ConfigurationDirectory {
 
     static void deleteDirectory(Path directory) {
         try {
-            Files.walk(directory)
-                   .sorted(Comparator.reverseOrder())
-                   .map(Path::toFile)
-                   .forEach(File::delete);
+            try (Stream<Path> fileStream = Files.walk(directory)) {
+                fileStream
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            }
         } catch (IOException e) {
             LOG.error("Error deleting directory " + directory.toString(), e);
         }
