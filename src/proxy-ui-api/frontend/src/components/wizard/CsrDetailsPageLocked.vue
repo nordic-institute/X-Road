@@ -108,9 +108,11 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { CsrFormat } from '@/openapi-types';
+import { mapState, mapWritableState } from 'pinia';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useAddClient } from '@/store/modules/addClient';
 
 export default Vue.extend({
   components: {
@@ -133,29 +135,9 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
-      'filteredServiceList',
-      'isUsageReadOnly',
-      'selectedMemberId',
-      'usage',
-    ]),
-
-    csrFormat: {
-      get(): string {
-        return this.$store.getters.csrFormat;
-      },
-      set(value: string) {
-        this.$store.commit('storeCsrFormat', value);
-      },
-    },
-    certificationService: {
-      get(): string {
-        return this.$store.getters.certificationService;
-      },
-      set(value: string) {
-        this.$store.commit('storeCertificationService', value);
-      },
-    },
+    ...mapState(useCsrStore, ['filteredServiceList', 'usage']),
+    ...mapWritableState(useCsrStore, ['csrFormat', 'certificationService']),
+    ...mapState(useAddClient, ['selectedMemberId']),
   },
 
   watch: {
