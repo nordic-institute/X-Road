@@ -29,8 +29,9 @@ import InitialConfiguration from '@/views/InitialConfiguration/InitialConfigurat
 import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import { Permissions, RouteName } from '@/global';
 import routes from '@/routes';
-import store from '@/store';
 import i18n from './i18n';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 // Route for initialisation view. This is created separeately because it's linked to vuex store and this causes the unit tests to break.
 const initRoute: RouteConfig = {
@@ -48,14 +49,17 @@ const initRoute: RouteConfig = {
       return;
     }
 
+    const notifications = useNotifications();
+    const user = useUser();
+
     // Coming from somewhere else, needs a check
-    if (store.getters.needsInitialization) {
+    if (user.needsInitialization) {
       // Check if the user has permission to initialize the server
-      if (!store.getters.hasPermission(Permissions.INIT_CONFIG)) {
-        store.dispatch(
-          'showErrorMessage',
+      if (!user.hasPermission(Permissions.INIT_CONFIG)) {
+        notifications.showErrorMessage(
           i18n.t('initialConfiguration.noPermission'),
         );
+
         return;
       }
       next();
@@ -78,15 +82,18 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
     return;
   }
 
+  const notifications = useNotifications();
+  const user = useUser();
+
   // Clear error notifications when route is changed
-  store.commit('clearErrorNotifications');
+  notifications.clearErrorNotifications();
 
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
   // user to be redirected to a view that contains api calls (s)he is not allowed.
-  if (store.getters.isSessionAlive && store.getters.isAuthenticated) {
+  if (user.isSessionAlive && user.isAuthenticated) {
     // Server is not initialized
-    if (store.getters.needsInitialization) {
+    if (user.needsInitialization) {
       if (to.name !== RouteName.InitialConfiguration) {
         // Redirect to init
         next({
@@ -98,7 +105,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
 
     if (!to?.meta?.permissions) {
       next();
-    } else if (store.getters.hasAnyOfPermissions(to.meta.permissions)) {
+    } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
       // This route is allowed
       next();
     } else {

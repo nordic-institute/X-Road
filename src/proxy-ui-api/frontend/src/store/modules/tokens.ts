@@ -23,193 +23,166 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '../types';
+
 import { Key, Token, TokenCertificate } from '@/openapi-types';
 import * as api from '@/util/api';
 import { deepClone } from '@/util/helpers';
 import { encodePathParameter } from '@/util/api';
+import { useAlerts } from './alerts';
+import { defineStore } from 'pinia';
 
-export interface TokensState {
-  expandedTokens: string[];
-  tokens: Token[];
-  selectedToken: Token | undefined;
+function sortTokens(tokens: Token[]): Token[] {
+  // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
+  const arr = deepClone(tokens).sort((a, b) => {
+    if (a.id < b.id) {
+      return -1;
+    }
+    if (a.id > b.id) {
+      return 1;
+    }
+
+    // equal id:s. (should not happen)
+    return 0;
+  });
+
+  return arr;
 }
 
-export const tokensState: TokensState = {
-  expandedTokens: [],
-  tokens: [],
-  selectedToken: undefined,
-};
-
-export const tokensGetters: GetterTree<TokensState, RootState> = {
-  tokenExpanded: (state) => (id: string) => {
-    return state.expandedTokens.includes(id);
+export const useTokensStore = defineStore('tokensStore', {
+  state: () => {
+    return {
+      expandedTokens: [] as string[],
+      tokens: [] as Token[],
+      selectedToken: undefined as Token | undefined,
+    };
   },
-  tokens(state): Token[] {
-    return state.tokens;
-  },
-  sortedTokens(state): Token[] {
-    if (!state.tokens || state.tokens.length === 0) {
-      return [];
-    }
+  getters: {
+    tokenExpanded: (state) => (id: string) => {
+      return state.expandedTokens.includes(id);
+    },
 
-    // Sort array by id:s so it doesn't jump around. Order of items in the backend reply changes between requests.
-    const arr = deepClone(state.tokens).sort((a, b) => {
-      if (a.id < b.id) {
-        return -1;
-      }
-      if (a.id > b.id) {
-        return 1;
+    sortedTokens(state): Token[] {
+      if (!state.tokens || state.tokens.length === 0) {
+        return [];
       }
 
-      // equal id:s. (should not happen)
-      return 0;
-    });
+      return sortTokens(state.tokens);
+    },
 
-    return arr;
-  },
-  selectedToken(state): Token | undefined {
-    return state.selectedToken;
-  },
-  filteredTokens: (state, getters) => (search: string) => {
-    // Filter term is applied to token name key name and certificate owner id
-    let arr = deepClone<Token[]>(getters.sortedTokens);
+    filteredTokens: (state) => (search: string) => {
+      // Filter term is applied to token name key name and certificate owner id
+      let arr = deepClone<Token[]>(sortTokens(state.tokens));
 
-    if (!search) {
-      return arr;
-    }
+      if (!search) {
+        return arr;
+      }
 
-    const mysearch = search.toLowerCase();
+      const mysearch = search.toLowerCase();
 
-    if (mysearch.length < 1) {
-      return state.tokens;
-    }
+      if (mysearch.length < 1) {
+        return state.tokens;
+      }
 
-    arr.forEach((token) => {
-      token.keys.forEach((key: Key) => {
-        const certs = key.certificates.filter((cert: TokenCertificate) => {
-          if (cert.owner_id) {
-            return cert.owner_id.toLowerCase().includes(mysearch);
+      arr.forEach((token) => {
+        token.keys.forEach((key: Key) => {
+          const certs = key.certificates.filter((cert: TokenCertificate) => {
+            if (cert.owner_id) {
+              return cert.owner_id.toLowerCase().includes(mysearch);
+            }
+            return false;
+          });
+          key.certificates = certs;
+        });
+      });
+
+      arr.forEach((token: Token) => {
+        const keys = token.keys.filter((key: Key) => {
+          if (key?.certificates?.length > 0) {
+            return true;
+          }
+
+          if (key.name) {
+            return key.name.toLowerCase().includes(mysearch);
           }
           return false;
         });
-        key.certificates = certs;
+        token.keys = keys;
       });
-    });
 
-    arr.forEach((token: Token) => {
-      const keys = token.keys.filter((key: Key) => {
-        if (key?.certificates?.length > 0) {
+      arr = arr.filter((token: Token) => {
+        if (token?.keys?.length > 0) {
           return true;
         }
 
-        if (key.name) {
-          return key.name.toLowerCase().includes(mysearch);
-        }
-        return false;
+        return token.name.toLowerCase().includes(mysearch);
       });
-      token.keys = keys;
-    });
 
-    arr = arr.filter((token: Token) => {
-      if (token?.keys?.length > 0) {
-        return true;
+      return arr;
+    },
+
+    tokensFilteredByName: (state) => (search: string | undefined) => {
+      // Filter term is applied to token name
+      const arr = sortTokens(state.tokens);
+
+      if (!search || search.length < 1) {
+        return arr;
       }
 
-      return token.name.toLowerCase().includes(mysearch);
-    });
+      const mysearch = search.toLowerCase();
 
-    return arr;
-  },
-
-  tokensFilteredByName: (state, getters) => (search: string) => {
-    // Filter term is applied to token name
-    const arr = getters.sortedTokens;
-
-    if (!search || search.length < 1) {
-      return arr;
-    }
-
-    const mysearch = search.toLowerCase();
-
-    return arr.filter((token: Token) => {
-      return token.name.toLowerCase().includes(mysearch);
-    });
-  },
-};
-
-export const mutations: MutationTree<TokensState> = {
-  setTokenHidden(state, id: string) {
-    const index = state.expandedTokens.findIndex((element) => {
-      return element === id;
-    });
-
-    if (index >= 0) {
-      state.expandedTokens.splice(index, 1);
-    }
-  },
-
-  setTokenExpanded(state, id: string) {
-    const index = state.expandedTokens.findIndex((element) => {
-      return element === id;
-    });
-
-    if (index === -1) {
-      state.expandedTokens.push(id);
-    }
-  },
-
-  setTokens(state, tokens: Token[]) {
-    state.tokens = tokens;
-  },
-
-  setSelectedToken(state, token: Token) {
-    state.selectedToken = token;
-  },
-};
-
-export const actions: ActionTree<TokensState, RootState> = {
-  expandToken({ commit }, id: string) {
-    commit('setTokenExpanded', id);
-  },
-  hideToken({ commit }, id: string) {
-    commit('setTokenHidden', id);
-  },
-  fetchTokens({ commit }) {
-    // Fetch tokens from backend
-    return api
-      .get<Token[]>('/tokens')
-      .then((res) => {
-        commit('setTokens', res.data);
-      })
-      .catch((error) => {
-        throw error;
+      return arr.filter((token: Token) => {
+        return token.name.toLowerCase().includes(mysearch);
       });
+    },
   },
 
-  tokenLogout({ dispatch }, id: string) {
-    return api
-      .put(`/tokens/${encodePathParameter(id)}/logout`, {})
-      .then(() => {
-        // Update tokens
-        dispatch('fetchTokens');
-        dispatch('checkAlertStatus');
-      })
-      .catch((error) => {
-        throw error;
+  actions: {
+    expandToken(id: string) {
+      const index = this.expandedTokens.findIndex((element) => {
+        return element === id;
       });
-  },
 
-  setSelectedToken({ commit }, token: Token) {
-    commit('setSelectedToken', token);
-  },
-};
+      if (index === -1) {
+        this.expandedTokens.push(id);
+      }
+    },
+    hideToken(id: string) {
+      const index = this.expandedTokens.findIndex((element) => {
+        return element === id;
+      });
 
-export const tokensModule: Module<TokensState, RootState> = {
-  namespaced: false,
-  state: tokensState,
-  getters: tokensGetters,
-  actions,
-  mutations,
-};
+      if (index >= 0) {
+        this.expandedTokens.splice(index, 1);
+      }
+    },
+    fetchTokens() {
+      // Fetch tokens from backend
+      return api
+        .get<Token[]>('/tokens')
+        .then((res) => {
+          this.tokens = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    tokenLogout(id: string) {
+      return api
+        .put(`/tokens/${encodePathParameter(id)}/logout`, {})
+        .then(() => {
+          // Update tokens
+          this.fetchTokens();
+          const alerts = useAlerts();
+          alerts.checkAlertStatus();
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    setSelectedToken(token: Token) {
+      this.selectedToken = token;
+    },
+  },
+});

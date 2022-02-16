@@ -23,33 +23,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { RootState } from './../../src/store/types';
 import mockJson from './mockClients.json';
 import compareJson from './mockClientsResult.json';
-import Vue from 'vue';
-import Vuex, { Store, StoreOptions } from 'vuex';
-import { clientsModule } from '@/store/modules/clients';
-import { user as userModule } from '@/store/modules/user';
-import { InitializationStatus, TokenInitStatus } from '@/openapi-types';
-
-Vue.use(Vuex);
+import { useClientsStore } from '@/store/modules/clients';
+import { useUser } from '@/store/modules/user';
+import { InitializationStatus, TokenInitStatus, Client } from '@/openapi-types';
+import { createPinia } from 'pinia';
+import { setActivePinia } from 'pinia';
 
 describe('clients actions', () => {
-  let store: any;
   beforeEach(() => {
-    const storeOptions: StoreOptions<RootState> = {
-      modules: {
-        clientsModule,
-      },
-    };
-
-    store = new Vuex.Store<RootState>(storeOptions);
-
-    store.commit('storeClients', mockJson);
+    // creates a fresh pinia and make it active so it's automatically picked
+    // up by any useStore() call without having to pass it to it:
+    // `useStore(pinia)`
+    setActivePinia(createPinia());
   });
 
   it('Get clients', () => {
-    const result = store.getters.clients;
+    const store = useClientsStore();
+    store.storeClients(mockJson as Client[]);
+
+    const result = store.getClients;
     // Check that the array has correct length
     expect(result).toHaveLength(8);
 
@@ -59,19 +53,12 @@ describe('clients actions', () => {
 });
 
 describe('initialize store', () => {
-  let store: Store<any>;
-
   beforeEach(() => {
-    const storeOptions: StoreOptions<RootState> = {
-      modules: {
-        userModule,
-      },
-    };
-
-    store = new Vuex.Store<RootState>(storeOptions);
+    setActivePinia(createPinia());
   });
 
   it('Needs initialization', () => {
+    const store = useUser();
     // Anchor is ok
     let mockInitStatus: InitializationStatus = {
       is_anchor_imported: true,
@@ -79,8 +66,9 @@ describe('initialize store', () => {
       is_server_owner_initialized: false,
       software_token_init_status: TokenInitStatus.UNKNOWN,
     };
-    store.commit('storeInitStatus', mockInitStatus);
-    expect(store.getters.needsInitialization).toBe(true);
+
+    store.storeInitStatus(mockInitStatus);
+    expect(store.needsInitialization).toBe(true);
 
     // Nothing is done
     mockInitStatus = {
@@ -90,8 +78,8 @@ describe('initialize store', () => {
       software_token_init_status: TokenInitStatus.NOT_INITIALIZED,
     };
 
-    store.commit('storeInitStatus', mockInitStatus);
-    expect(store.getters.needsInitialization).toBe(true);
+    store.storeInitStatus(mockInitStatus);
+    expect(store.needsInitialization).toBe(true);
 
     // Fully initialized
     mockInitStatus = {
@@ -101,7 +89,7 @@ describe('initialize store', () => {
       software_token_init_status: TokenInitStatus.INITIALIZED,
     };
 
-    store.commit('storeInitStatus', mockInitStatus);
-    expect(store.getters.needsInitialization).toBe(false);
+    store.storeInitStatus(mockInitStatus);
+    expect(store.needsInitialization).toBe(false);
   });
 });

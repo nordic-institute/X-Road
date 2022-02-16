@@ -23,11 +23,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+import { defineStore } from 'pinia';
+import { mainTabs } from '@/global';
 import axiosAuth from '../../axios-auth';
 import axios from 'axios';
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RouteConfig } from 'vue-router';
-import { RootState } from '../types';
 import {
   InitializationStatus,
   SecurityServer,
@@ -35,276 +35,246 @@ import {
   User,
 } from '@/openapi-types';
 import { Tab } from '@/ui-types';
-import { mainTabs } from '@/global';
-import routes from '@/routes';
 import i18n from '@/i18n';
+import { routePermissions } from '@/routePermissions';
 
-export interface UserState {
-  authenticated: boolean;
-  isSessionAlive: boolean | undefined;
-  permissions: string[];
-  username: string;
-  currentSecurityServer: SecurityServer | Record<string, unknown>;
-  initializationStatus: InitializationStatus | undefined;
-  bannedRoutes: undefined | string[];
-}
-
-export const getDefaultState = (): UserState => {
-  return {
-    authenticated: false,
-    isSessionAlive: undefined,
-    permissions: [],
-    username: '',
-    currentSecurityServer: {},
-    initializationStatus: undefined,
-    bannedRoutes: undefined, // Array for routes the user doesn't have permission to access.
-  };
-};
-
-// Initial state. The state can be reseted with this.
-const moduleState = getDefaultState();
-
-export const userGetters: GetterTree<UserState, RootState> = {
-  isAuthenticated(state) {
-    return state.authenticated;
-  },
-  isSessionAlive(state) {
-    return state.isSessionAlive;
-  },
-  firstAllowedTab(state, getters) {
-    return getters.getAllowedTabs(mainTabs)[0];
-  },
-  permissions(state) {
-    return state.permissions;
-  },
-  hasPermission: (state) => (perm: string) => {
-    return state.permissions.includes(perm);
-  },
-  hasAnyOfPermissions: (state) => (perm: string[]) => {
-    // Return true if the user has at least one of the tabs permissions
-    return perm.some((permission) => state.permissions.includes(permission));
-  },
-  getAllowedTabs: (state) => (tabs: Tab[]) => {
-    // returns filtered array of Tab objects based on the 'permission' attribute
-    const filteredTabs = tabs.filter((tab: Tab) => {
-      const routeName = tab.to.name;
-
-      if (routeName && !state.bannedRoutes?.includes(routeName)) {
-        // Return true if the user has permission
-        return true;
-      }
-      return false;
-    });
-
-    return filteredTabs;
-  },
-  username(state) {
-    return state.username;
-  },
-  currentSecurityServer(state) {
-    return state.currentSecurityServer;
-  },
-  isAnchorImported(state): boolean {
-    return state.initializationStatus?.is_anchor_imported ?? false;
-  },
-
-  isServerOwnerInitialized(state): boolean {
-    return state.initializationStatus?.is_server_owner_initialized ?? false;
-  },
-
-  isServerCodeInitialized(state): boolean {
-    return state.initializationStatus?.is_server_code_initialized ?? false;
-  },
-
-  softwareTokenInitializationStatus(state): TokenInitStatus | undefined {
-    return state.initializationStatus?.software_token_init_status;
-  },
-
-  hasInitState: (state: UserState) => {
-    return typeof state.initializationStatus !== 'undefined';
-  },
-
-  needsInitialization: (state) => {
-    return !(
-      state.initializationStatus?.is_anchor_imported &&
-      state.initializationStatus.is_server_code_initialized &&
-      state.initializationStatus.is_server_owner_initialized &&
-      (state.initializationStatus.software_token_init_status ===
-        TokenInitStatus.INITIALIZED ||
-        state.initializationStatus.software_token_init_status ===
-          TokenInitStatus.UNKNOWN)
-    );
-  },
-};
-
-export const mutations: MutationTree<UserState> = {
-  authUser(state) {
-    state.authenticated = true;
-  },
-  setSessionAlive(state, value: boolean) {
-    state.isSessionAlive = value;
-  },
-  clearAuthData(state) {
-    Object.assign(state, getDefaultState());
-  },
-  setPermissions: (state, permissions: string[]) => {
-    state.permissions = permissions;
-
-    // Function for checking routes recursively
-    function getAllowed(route: RouteConfig): void {
-      if (!state.bannedRoutes) return;
-
-      // Check that the route has name and permissions
-      if (route.name && route?.meta?.permissions) {
-        // Find out routes that the user doesn't have permissions to access
-        if (
-          !route.meta.permissions.some((permission: string) =>
-            permissions.includes(permission),
-          )
-        ) {
-          // Add a banned route to the array
-          state.bannedRoutes.push(route.name);
-        }
-      }
-
-      // Check the child routes recursively
-      if (route.children) {
-        route.children.forEach((child: RouteConfig) => {
-          getAllowed(child);
-        });
-      }
-    }
-
-    // Init banned routes array
-    state.bannedRoutes = [];
-    // Go through the route permissions
-    routes.forEach((route) => {
-      getAllowed(route);
-    });
-  },
-  setUsername: (state, username: string) => {
-    state.username = username;
-  },
-  setCurrentSecurityServer: (state, securityServer: SecurityServer) => {
-    state.currentSecurityServer = securityServer;
-  },
-  storeInitStatus(state, status: InitializationStatus) {
-    state.initializationStatus = status;
-  },
-};
-
-export const actions: ActionTree<UserState, RootState> = {
-  login({ commit }, authData) {
-    const data = `username=${encodeURIComponent(
-      authData.username,
-    )}&password=${encodeURIComponent(authData.password)}`;
-
-    return axiosAuth({
-      url: '/login',
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      data,
-    })
-      .then(() => {
-        commit('authUser');
-        commit('setSessionAlive', true);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  async isSessionAlive({ commit }) {
-    return axios
-      .get('/notifications/session-status')
-      .then((res) => {
-        commit('setSessionAlive', res?.data?.valid ?? false);
-      })
-      .catch(() => {
-        commit('setSessionAlive', false);
-      });
-  },
-
-  async fetchUserData({ commit }) {
-    return axios
-      .get<User>('/user')
-      .then((res) => {
-        commit('setUsername', res.data.username);
-        commit('setPermissions', res.data.permissions);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  async fetchCurrentSecurityServer({ commit }) {
-    return axios
-      .get<SecurityServer[]>('/security-servers?current_server=true')
-      .then((resp) => {
-        if (resp.data?.length !== 1) {
-          throw new Error(
-            i18n.t('stores.user.currentSecurityServerNotFound') as string,
-          );
-        }
-        commit('setCurrentSecurityServer', resp.data[0]);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  logout({ commit }, reload = true) {
-    // Clear auth data
-    commit('clearAuthData');
-
-    // Call backend for logout
-    axiosAuth
-      .post('/logout')
-      .catch(() => {
-        // Nothing to do
-      })
-      .finally(() => {
-        if (reload) {
-          // Reload the browser page to clean up the memory
-          location.reload();
-        }
-      });
-  },
-
-  fetchInitializationStatus({ commit }) {
-    return axios
-      .get('/initialization/status')
-      .then((resp) => {
-        commit('storeInitStatus', resp.data);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  setInitializationStatus({ commit }) {
-    // Sets the initialization state to done
-    const initStatus: InitializationStatus = {
-      is_anchor_imported: true,
-      is_server_code_initialized: true,
-      is_server_owner_initialized: true,
-      software_token_init_status: TokenInitStatus.INITIALIZED,
+export const useUser = defineStore('user', {
+  state: () => {
+    return {
+      authenticated: false,
+      sessionAlive: undefined as boolean | undefined,
+      permissions: [] as string[],
+      username: '',
+      currentSecurityServer: {} as SecurityServer,
+      initializationStatus: undefined as InitializationStatus | undefined,
+      bannedRoutes: [] as string[], // Array for routes the user doesn't have permission to access.
+      omaTesti: 0,
     };
+  },
+  persist: true,
+  getters: {
+    isAuthenticated(state) {
+      return state.authenticated;
+    },
+    isSessionAlive(state) {
+      return state.sessionAlive;
+    },
 
-    commit('storeInitStatus', initStatus);
+    getPermissions(state) {
+      return state.permissions;
+    },
+    hasPermission: (state) => (perm: string) => {
+      return state.permissions.includes(perm);
+    },
+    hasAnyOfPermissions: (state) => (perm: string[]) => {
+      // Return true if the user has at least one of the tabs permissions
+      return perm.some((permission) => state.permissions.includes(permission));
+    },
+    getAllowedTabs:
+      (state) =>
+      (tabs: Tab[]): Tab[] => {
+        // returns filtered array of Tab objects based on the 'permission' attribute
+        const filteredTabs = tabs.filter((tab: Tab) => {
+          const routeName = tab.to.name;
+
+          if (routeName && !state.bannedRoutes?.includes(routeName)) {
+            // Return true if the user has permission
+            return true;
+          }
+          return false;
+        });
+
+        return filteredTabs;
+      },
+
+    firstAllowedTab(): Tab {
+      return this.getAllowedTabs(mainTabs)[0];
+    },
+
+    getUsername(state): string {
+      return state.username;
+    },
+    getCurrentSecurityServer(state) {
+      return state.currentSecurityServer;
+    },
+    isAnchorImported(state): boolean {
+      return state.initializationStatus?.is_anchor_imported ?? false;
+    },
+
+    isServerOwnerInitialized(state): boolean {
+      return state.initializationStatus?.is_server_owner_initialized ?? false;
+    },
+
+    isServerCodeInitialized(state): boolean {
+      return state.initializationStatus?.is_server_code_initialized ?? false;
+    },
+
+    softwareTokenInitializationStatus(state): TokenInitStatus | undefined {
+      return state.initializationStatus?.software_token_init_status;
+    },
+
+    hasInitState: (state) => {
+      return typeof state.initializationStatus !== 'undefined';
+    },
+
+    needsInitialization: (state) => {
+      return !(
+        state.initializationStatus?.is_anchor_imported &&
+        state.initializationStatus.is_server_code_initialized &&
+        state.initializationStatus.is_server_owner_initialized &&
+        (state.initializationStatus.software_token_init_status ===
+          TokenInitStatus.INITIALIZED ||
+          state.initializationStatus.software_token_init_status ===
+            TokenInitStatus.UNKNOWN)
+      );
+    },
   },
 
-  clearAuth({ commit }) {
-    commit('clearAuthData');
-  },
-};
+  actions: {
+    async loginUser(authData: { username: string; password: string }) {
+      const data = `username=${encodeURIComponent(
+        authData.username,
+      )}&password=${encodeURIComponent(authData.password)}`;
 
-export const user: Module<UserState, RootState> = {
-  namespaced: false,
-  state: moduleState,
-  getters: userGetters,
-  actions,
-  mutations,
-};
+      return axiosAuth({
+        url: '/login',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        data,
+      })
+        .then(() => {
+          this.authenticated = true;
+          this.sessionAlive = true;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    async fetchSessionStatus() {
+      return axios
+        .get('/notifications/session-status')
+        .then((res) => {
+          this.sessionAlive = res?.data?.valid ?? false;
+        })
+        .catch(() => {
+          this.sessionAlive = false;
+        });
+    },
+
+    async fetchUserData() {
+      return axios
+        .get<User>('/user')
+        .then((res) => {
+          this.username = res.data.username;
+          this.setPermissions(res.data.permissions);
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+    setPermissions(permissions: string[]) {
+      this.permissions = permissions;
+
+      const tempBannedRoutes: string[] = [];
+
+      // Init banned routes array
+      this.bannedRoutes = [];
+
+      // Go through the route permissions
+      routePermissions.forEach((route) => {
+        // Check that the route has name and permissions
+        if (route.name && route?.permissions) {
+          // Find out routes that the user doesn't have permissions to access
+          if (
+            !route.permissions.some((permission: string) =>
+              permissions.includes(permission),
+            )
+          ) {
+            // Add a banned route to the array
+            tempBannedRoutes.push(route.name);
+          }
+        }
+      });
+
+      this.bannedRoutes = tempBannedRoutes;
+    },
+
+    async fetchCurrentSecurityServer() {
+      return axios
+        .get<SecurityServer[]>('/security-servers?current_server=true')
+        .then((resp) => {
+          if (resp.data?.length !== 1) {
+            throw new Error(
+              i18n.t('stores.user.currentSecurityServerNotFound') as string,
+            );
+          }
+          this.currentSecurityServer = resp.data[0];
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    logoutUser(reload = true) {
+      // Clear auth data
+      this.clearAuth();
+
+      // Call backend for logout
+      return axiosAuth
+        .post('/logout')
+        .catch(() => {
+          // Nothing to do
+        })
+        .finally(() => {
+          if (reload) {
+            // Reload the browser page to clean up the memory
+            location.reload();
+          }
+        });
+    },
+
+    async fetchInitializationStatus() {
+      return axios
+        .get('/initialization/status')
+        .then((resp) => {
+          this.initializationStatus = resp.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    setInitializationStatus(): void {
+      // Sets the initialization state to done
+      const initStatus: InitializationStatus = {
+        is_anchor_imported: true,
+        is_server_code_initialized: true,
+        is_server_owner_initialized: true,
+        software_token_init_status: TokenInitStatus.INITIALIZED,
+      };
+
+      this.initializationStatus = initStatus;
+    },
+
+    // This action is currenlty needed only for unit testing
+    storeInitStatus(status: InitializationStatus) {
+      this.initializationStatus = status;
+    },
+
+    setSessionAlive(value: boolean) {
+      this.sessionAlive = value;
+    },
+
+    authUser() {
+      this.authenticated = true;
+    },
+
+    clearAuth(): void {
+      // Clear the store state
+      this.$reset();
+    },
+  },
+});

@@ -23,69 +23,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
+
 import { NodeType, NodeTypeResponse, VersionInfo } from '@/openapi-types';
-import { RootState } from '@/store/types';
-import { get } from '@/util/api';
+import * as api from '@/util/api';
+import { defineStore } from 'pinia';
 
-export interface SystemState {
-  securityServerVersion: VersionInfo | Record<string, unknown>;
-  securityServerNodeType?: NodeType;
-}
+export const useSystemStore = defineStore('systemStore', {
+  state: () => {
+    return {
+      securityServerVersion: {} as VersionInfo,
+      securityServerNodeType: undefined as undefined | NodeType,
+    };
+  },
+  persist: true,
+  getters: {
+    isSecondaryNode(state) {
+      return state.securityServerNodeType === NodeType.SECONDARY;
+    },
+  },
 
-export const systemState = (): SystemState => {
-  return {
-    securityServerVersion: {},
-    securityServerNodeType: undefined,
-  };
-};
-
-export const getters: GetterTree<SystemState, RootState> = {
-  securityServerVersion(state) {
-    return state.securityServerVersion;
+  actions: {
+    async fetchSecurityServerNodeType() {
+      return api.get<VersionInfo>('/system/version').then((res) => {
+        this.securityServerVersion = res.data;
+      });
+    },
+    async fetchSecurityServerVersion() {
+      // Fetch tokens from backend
+      return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
+        this.securityServerNodeType = res.data.node_type;
+      });
+    },
   },
-  securityServerNodeType(state) {
-    return state.securityServerNodeType;
-  },
-  isSecondaryNode(state) {
-    return state.securityServerNodeType === NodeType.SECONDARY;
-  },
-};
-
-export const mutations: MutationTree<SystemState> = {
-  storeSecurityServerVersion: (state, version: VersionInfo) => {
-    state.securityServerVersion = version;
-  },
-  storeSecurityServerNodeType(
-    state: SystemState,
-    securityServerNodeType: NodeType,
-  ) {
-    state.securityServerNodeType = securityServerNodeType;
-  },
-};
-
-export const actions: ActionTree<SystemState, RootState> = {
-  async fetchSecurityServerVersion({ commit }) {
-    const securityServerVersionResponse = await get<VersionInfo>(
-      '/system/version',
-    );
-    commit('storeSecurityServerVersion', securityServerVersionResponse.data);
-  },
-  async fetchSecurityServerNodeType({ commit }) {
-    const securityServerNodeTypeResponse = await get<NodeTypeResponse>(
-      '/system/node-type',
-    );
-    commit(
-      'storeSecurityServerNodeType',
-      securityServerNodeTypeResponse.data.node_type,
-    );
-  },
-};
-
-export const system: Module<SystemState, RootState> = {
-  namespaced: false,
-  state: systemState,
-  getters,
-  actions,
-  mutations,
-};
+});

@@ -94,13 +94,27 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+import { mapState } from 'pinia';
+import { useAlerts } from '@/store/modules/alerts';
+import { useSystemStore } from '@/store/modules/system';
+import { useUser } from '@/store/modules/user';
 import { formatDateTime } from '@/filters';
 import { Permissions, RouteName } from '@/global';
 
 export default Vue.extend({
-  name: 'AlertsContainer',
   computed: {
+    ...mapState(useAlerts, [
+      'showGlobalConfAlert',
+      'showSoftTokenPinEnteredAlert',
+      'showRestoreInProgress',
+      'restoreStartTime',
+    ]),
+    ...mapState(useSystemStore, ['isSecondaryNode']),
+    ...mapState(useUser, [
+      'authenticated',
+      'needsInitialization',
+      'hasPermission',
+    ]),
     hasAlerts(): boolean {
       return (
         this.showGlobalConfAlert ||
@@ -109,22 +123,14 @@ export default Vue.extend({
         this.isSecondaryNode
       );
     },
+    isAuthenticated(): boolean {
+      return this.authenticated;
+    },
     showLoginLink(): boolean {
       return this.$route.name !== RouteName.SignAndAuthKeys;
     },
-    ...mapGetters([
-      'showGlobalConfAlert',
-      'showSoftTokenPinEnteredAlert',
-      'showRestoreInProgress',
-      'restoreStartTime',
-      'isAuthenticated',
-      'needsInitialization',
-      'isSecondaryNode',
-    ]),
     isAllowedToLoginToken(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.ACTIVATE_DEACTIVATE_TOKEN,
-      );
+      return this.hasPermission(Permissions.ACTIVATE_DEACTIVATE_TOKEN);
     },
   },
   methods: {
