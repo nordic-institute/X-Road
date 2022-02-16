@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * Configuration directory interface.
  */
 public interface ConfigurationDirectory {
-    String METADATA_SUFFIX = ".metadata";
+    String FILES = "files";
     String INSTANCE_IDENTIFIER_FILE = "instance-identifier";
 
     // Logger specified here because annotation does not work in interface.
@@ -88,8 +88,8 @@ public interface ConfigurationDirectory {
      * @throws Exception if an error occurs
      */
     static void saveMetadata(Path fileName, ConfigurationPartMetadata metadata) throws Exception {
-        AtomicSave.execute(fileName.toString() + METADATA_SUFFIX, "expires", metadata.toByteArray(),
-                StandardCopyOption.ATOMIC_MOVE);
+        AtomicSave.execute(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA,
+                "expires", metadata.toByteArray(), StandardCopyOption.ATOMIC_MOVE);
     }
 
     /**

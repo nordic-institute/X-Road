@@ -31,6 +31,8 @@ import ee.ria.xroad.common.conf.globalconf.privateparameters.v2.ObjectFactory;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import java.util.Date;
@@ -44,6 +46,7 @@ import java.util.stream.Collectors;
 public class ConfigurationAnchorV2
         extends AbstractXmlConf<ConfigurationAnchorType>
         implements ConfigurationSource {
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     ConfigurationAnchorV2(ConfigurationAnchorType t) {
         confType = t;
@@ -53,8 +56,7 @@ public class ConfigurationAnchorV2
      * @param fileName the configuration anchor file name
      */
     public ConfigurationAnchorV2(String fileName) {
-        super(ObjectFactory.class, fileName,
-                PrivateParametersSchemaValidatorV2.class); // also applies to stand-alone configuration source
+        super(fileName, PrivateParametersSchemaValidatorV2.class); // also applies to stand-alone configuration source
     }
 
     /**
@@ -64,7 +66,7 @@ public class ConfigurationAnchorV2
      * @param fileBytes the configuration anchor file bytes
      */
     public ConfigurationAnchorV2(byte[] fileBytes) {
-        super(ObjectFactory.class, fileBytes, PrivateParametersSchemaValidatorV2.class);
+        super(fileBytes, PrivateParametersSchemaValidatorV2.class);
     }
 
     /**
@@ -121,4 +123,18 @@ public class ConfigurationAnchorV2
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
     }
+
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

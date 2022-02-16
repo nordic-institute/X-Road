@@ -48,11 +48,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -72,6 +76,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
  */
 @Getter(AccessLevel.PACKAGE)
 public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> {
+    private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     // Cached items, filled at conf reload
     private final Map<X500Name, X509Certificate> subjectsAndCaCerts =
@@ -92,8 +97,47 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private final Set<String> knownAddresses = new HashSet<>();
     private final Map<SecurityServerId, SecurityServerType> securityServersById = new HashMap<>();
 
-    SharedParametersV2() {
-        super(ObjectFactory.class, SharedParametersSchemaValidatorV2.class);
+    private OffsetDateTime expiresOn;
+
+    // variable to prevent using load methods after construction
+    private final boolean initCompleted;
+
+    // This constructor is used for simple verifications after configuration download.
+    // It does not initialise class fully!
+    SharedParametersV2(byte[] content) {
+        super(content, SharedParametersSchemaValidatorV2.class);
+        initCompleted = true;
+    }
+
+    public SharedParametersV2(Path sharedParametersPath) {
+        super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
+        initCompleted = true;
+
+        try {
+            cacheCaCerts();
+            cacheKnownAddresses();
+            cacheSecurityServers();
+        } catch (Exception e) {
+            throw translateException(e);
+        }
+    }
+
+    @Override
+    public void load(String fileName) throws Exception {
+        throwIfInitCompleted();
+        super.load(fileName);
+    }
+
+    @Override
+    public void load(byte[] data) throws Exception {
+        throwIfInitCompleted();
+        super.load(data);
+    }
+
+    private void throwIfInitCompleted() {
+        if (initCompleted) {
+            throw new IllegalStateException("This object can not be reloaded");
+        }
     }
 
     ClientId createMemberId(MemberType member) {
@@ -166,46 +210,12 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return subjectsAndCaCerts.get(certHolder.getIssuer());
     }
 
-    @Override
-    public void load(String fileName) throws Exception {
-        super.load(fileName);
-
-        if (fileName == null) {
-            return;
-        }
-
-        try {
-            clearCache();
-            cacheCaCerts();
-            cacheKnownAddresses();
-            cacheSecurityServers();
-        } catch (Exception e) {
-            throw translateException(e);
-        }
-    }
-
     static MemberType getOwner(SecurityServerType serverType) {
         if (!(serverType.getOwner() instanceof MemberType)) {
             throw new RuntimeException("Server owner must be member");
         }
 
         return (MemberType) serverType.getOwner();
-    }
-
-    // ------------------------------------------------------------------------
-
-    private void clearCache() {
-        subjectsAndCaCerts.clear();
-        caCertsAndCertProfiles.clear();
-        caCertsAndApprovedCAData.clear();
-        caCertsAndOcspData.clear();
-        memberAddresses.clear();
-        memberAuthCerts.clear();
-        serverByAuthCert.clear();
-        securityServerClients.clear();
-        verificationCaCerts.clear();
-        knownAddresses.clear();
-        securityServersById.clear();
     }
 
     private void cacheCaCerts() throws CertificateException, IOException {
@@ -346,5 +356,26 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return typesUnderCA.stream()
                 .map(c -> readCertificate(c.getCert()))
                 .collect(Collectors.toList());
+    }
+
+    public void setExpiresOn(OffsetDateTime expiresOn) {
+        this.expiresOn = expiresOn;
+    }
+
+    public OffsetDateTime getExpiresOn() {
+        return expiresOn;
+    }
+
+    @Override
+    protected JAXBContext getJAXBContext() {
+        return JAXB_CONTEXT;
+    }
+
+    private static JAXBContext createJAXBContext() {
+        try {
+            return JAXBContext.newInstance(ObjectFactory.class);
+        } catch (JAXBException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

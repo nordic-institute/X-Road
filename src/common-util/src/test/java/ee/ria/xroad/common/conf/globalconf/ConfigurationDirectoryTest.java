@@ -30,9 +30,6 @@ import ee.ria.xroad.common.util.ExpectedCodedException;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.nio.file.Paths;
-
-import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -97,16 +94,5 @@ public class ConfigurationDirectoryTest {
 
         assertNull(dir.getPrivate("foo"));
         assertNull(dir.getShared("foo"));
-    }
-
-    /**
-     * Test to ensure that reading of an outdated configuration fails.
-     */
-    @Test
-    public void readExpiredDirectoryV2() {
-        thrown.expectError(X_OUTDATED_GLOBALCONF);
-
-        ConfigurationDirectoryV2.verifyUpToDate(Paths.get("src/test/resources/globalconf_expired/foo/"
-                + ConfigurationDirectoryV2.PRIVATE_PARAMETERS_XML));
     }
 }
