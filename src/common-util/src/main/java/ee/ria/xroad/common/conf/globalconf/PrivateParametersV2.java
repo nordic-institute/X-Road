@@ -60,6 +60,12 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
         initCompleted = true;
     }
 
+    PrivateParametersV2(PrivateParametersV2 original) {
+        super(original);
+        expiresOn = original.expiresOn;
+        initCompleted = true;
+    }
+
     @Override
     public void load(String fileName) throws Exception {
         throwIfInitCompleted();
