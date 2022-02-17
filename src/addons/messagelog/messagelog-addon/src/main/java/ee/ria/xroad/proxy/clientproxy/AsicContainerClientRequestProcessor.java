@@ -447,10 +447,6 @@ public class AsicContainerClientRequestProcessor extends MessageProcessorBase {
                 zos.putNextEntry(new ZipEntry(buildPath(metadata)));
                 IOUtils.copy(contents, zos);
                 zos.closeEntry();
-                zos.putNextEntry(
-                        new ZipEntry(buildPath(metadata) + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA));
-                zos.write(metadata.toByteArray());
-                zos.closeEntry();
             }
         }
 

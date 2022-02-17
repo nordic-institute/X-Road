@@ -92,6 +92,14 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         }
     }
 
+    protected AbstractXmlConf(AbstractXmlConf<T> original) {
+        schemaValidator  = original.schemaValidator;
+        confFileName = original.confFileName;
+        root = original.root;
+        confType = original.confType;
+        confFileChecker = original.confFileChecker;
+    }
+
     /**
      * A method for subclasses to return (preferably static) JAXBContext
      * @return class specific JAXBContext
