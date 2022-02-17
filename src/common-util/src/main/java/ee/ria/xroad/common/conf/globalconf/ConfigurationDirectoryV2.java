@@ -68,15 +68,12 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
     @Getter
     @Setter
-    private Path path;
+    private final Path path;
 
-    private String instanceIdentifier;
+    private final String instanceIdentifier;
 
-    // time at which the first part of configuration expires (different parts can have different times)
-    protected OffsetDateTime expirationDate;
-
-    private Map<String, PrivateParametersV2> privateParameters = new HashMap<>();
-    private Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
+    private final Map<String, PrivateParametersV2> privateParameters = new HashMap<>();
+    private final Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
 
     // ------------------------------------------------------------------------
 
@@ -89,7 +86,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     public ConfigurationDirectoryV2(String directoryPath) throws Exception {
         this.path = Paths.get(directoryPath);
 
-        loadInstanceIdentifier();
+        instanceIdentifier = loadInstanceIdentifier();
 
         // empty maps as placeholders
         loadParameters(new HashMap(), new HashMap<>());
@@ -105,7 +102,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     public ConfigurationDirectoryV2(String directoryPath, ConfigurationDirectoryV2 base) throws Exception {
         this.path = Paths.get(directoryPath);
 
-        loadInstanceIdentifier();
+        instanceIdentifier = loadInstanceIdentifier();
 
         loadParameters(base.privateParameters, base.sharedParameters);
     }
@@ -266,19 +263,15 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
         }
     }
 
-    private static boolean isInThePast(OffsetDateTime someTime) {
-        return someTime.toInstant().isBefore(Instant.now());
-    }
-
     // ------------------------------------------------------------------------
 
-    private void loadInstanceIdentifier() {
+    private String loadInstanceIdentifier() {
         Path file = Paths.get(path.toString(), INSTANCE_IDENTIFIER_FILE);
 
         log.trace("Loading instance identifier from {}", file);
 
         try {
-            instanceIdentifier = FileUtils.readFileToString(file.toFile()).trim();
+            return FileUtils.readFileToString(file.toFile()).trim();
         } catch (Exception e) {
             log.error("Failed to read instance identifier from " + file, e);
 
