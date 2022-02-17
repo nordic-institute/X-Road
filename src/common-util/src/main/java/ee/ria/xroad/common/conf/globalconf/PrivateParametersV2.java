@@ -45,24 +45,26 @@ import java.util.stream.Collectors;
 public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> {
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
-    private OffsetDateTime expiresOn;
+    private final OffsetDateTime expiresOn;
 
     // variable to prevent using load methods after constrution
     private boolean initCompleted;
 
     PrivateParametersV2(byte[] content) {
         super(content, PrivateParametersSchemaValidatorV2.class);
+        expiresOn = OffsetDateTime.MAX;
         initCompleted = true;
     }
 
-    PrivateParametersV2(Path privateParametersPath) {
+    PrivateParametersV2(Path privateParametersPath, OffsetDateTime expiresOn) {
         super(privateParametersPath.toString(), PrivateParametersSchemaValidatorV2.class);
+        this.expiresOn = expiresOn;
         initCompleted = true;
     }
 
-    PrivateParametersV2(PrivateParametersV2 original) {
+    PrivateParametersV2(PrivateParametersV2 original, OffsetDateTime newExpiresOn) {
         super(original);
-        expiresOn = original.expiresOn;
+        expiresOn = newExpiresOn;
         initCompleted = true;
     }
 
@@ -100,10 +102,6 @@ public class PrivateParametersV2 extends AbstractXmlConf<PrivateParametersType> 
 
     ManagementServiceType getManagementService() {
         return confType.getManagementService();
-    }
-
-    public void setExpiresOn(OffsetDateTime expiresOn) {
-        this.expiresOn = expiresOn;
     }
 
     public OffsetDateTime getExpiresOn() {

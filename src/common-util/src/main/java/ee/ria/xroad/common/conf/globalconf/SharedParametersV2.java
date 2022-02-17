@@ -91,7 +91,7 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private Set<String> knownAddresses;
     private Map<SecurityServerId, SecurityServerType> securityServersById;
 
-    private OffsetDateTime expiresOn;
+    private final OffsetDateTime expiresOn;
 
     // variable to prevent using load methods after construction
     private final boolean initCompleted;
@@ -101,11 +101,13 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     SharedParametersV2(byte[] content) {
         super(content, SharedParametersSchemaValidatorV2.class);
         initCompleted = true;
+        expiresOn = OffsetDateTime.MAX;
     }
 
-    public SharedParametersV2(Path sharedParametersPath) {
+    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn) {
         super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
-        initCompleted = true;
+
+        this.expiresOn = expiresOn;
 
         subjectsAndCaCerts = new HashMap<>();
         caCertsAndCertProfiles = new HashMap<>();
@@ -126,10 +128,15 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         } catch (Exception e) {
             throw translateException(e);
         }
+
+        initCompleted = true;
     }
 
-    public SharedParametersV2(SharedParametersV2 original) {
+    public SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) {
         super(original);
+
+        expiresOn = newExpiresOn;
+
         subjectsAndCaCerts = original.subjectsAndCaCerts;
         caCertsAndCertProfiles = original.caCertsAndCertProfiles;
         caCertsAndApprovedCAData = original.caCertsAndApprovedCAData;
@@ -379,14 +386,6 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return typesUnderCA.stream()
                 .map(c -> readCertificate(c.getCert()))
                 .collect(Collectors.toList());
-    }
-
-    public void setExpiresOn(OffsetDateTime expiresOn) {
-        this.expiresOn = expiresOn;
-    }
-
-    public OffsetDateTime getExpiresOn() {
-        return expiresOn;
     }
 
     @Override
