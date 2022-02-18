@@ -42,7 +42,7 @@ module.exports = {
   },
   'Test member classes':
     async (browser) => {
-      let memberClass = "__test" + Math.random().toString(36).substring(2);
+      let memberClass = ("__test" + Math.random().toString(36).substring(2)).toUpperCase();
       await settings
         .systemSettingsViewIsVisible()
         .click('@systemSettingsAddMemberClassButton')
