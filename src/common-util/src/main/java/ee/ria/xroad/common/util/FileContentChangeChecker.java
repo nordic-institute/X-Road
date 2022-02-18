@@ -65,9 +65,13 @@ public class FileContentChangeChecker {
     public boolean hasChanged() throws Exception {
         File file = getFile();
 
-        previousChecksum = checksum;
-        checksum = calculateConfFileChecksum(file);
-        return !checksum.equals(previousChecksum);
+        String newCheckSum = calculateConfFileChecksum(file);
+
+        synchronized (this) {
+            previousChecksum = checksum;
+            checksum = newCheckSum;
+            return !checksum.equals(previousChecksum);
+        }
     }
 
     protected File getFile() {

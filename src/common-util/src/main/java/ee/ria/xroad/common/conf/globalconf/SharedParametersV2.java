@@ -79,25 +79,19 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     private static final JAXBContext JAXB_CONTEXT = createJAXBContext();
 
     // Cached items, filled at conf reload
-    private final Map<X500Name, X509Certificate> subjectsAndCaCerts =
-            new HashMap<>();
-    private final Map<X509Certificate, String> caCertsAndCertProfiles =
-            new HashMap<>();
-    private final Map<X509Certificate, ApprovedCATypeV2> caCertsAndApprovedCAData =
-            new HashMap<>();
-    private final Map<X509Certificate, List<OcspInfoType>> caCertsAndOcspData =
-            new HashMap<>();
-    private final Map<ClientId, Set<String>> memberAddresses = new HashMap<>();
-    private final Map<ClientId, Set<byte[]>> memberAuthCerts = new HashMap<>();
-    private final Map<String, SecurityServerType> serverByAuthCert =
-            new HashMap<>();
-    private final Map<SecurityServerId, Set<ClientId>> securityServerClients =
-            new HashMap<>();
-    private final List<X509Certificate> verificationCaCerts = new ArrayList<>();
-    private final Set<String> knownAddresses = new HashSet<>();
-    private final Map<SecurityServerId, SecurityServerType> securityServersById = new HashMap<>();
+    private Map<X500Name, X509Certificate> subjectsAndCaCerts;
+    private Map<X509Certificate, String> caCertsAndCertProfiles;
+    private Map<X509Certificate, ApprovedCATypeV2> caCertsAndApprovedCAData;
+    private Map<X509Certificate, List<OcspInfoType>> caCertsAndOcspData;
+    private Map<ClientId, Set<String>> memberAddresses;
+    private Map<ClientId, Set<byte[]>> memberAuthCerts;
+    private Map<String, SecurityServerType> serverByAuthCert;
+    private Map<SecurityServerId, Set<ClientId>> securityServerClients;
+    private List<X509Certificate> verificationCaCerts;
+    private Set<String> knownAddresses;
+    private Map<SecurityServerId, SecurityServerType> securityServersById;
 
-    private OffsetDateTime expiresOn;
+    private final OffsetDateTime expiresOn;
 
     // variable to prevent using load methods after construction
     private final boolean initCompleted;
@@ -107,11 +101,25 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
     SharedParametersV2(byte[] content) {
         super(content, SharedParametersSchemaValidatorV2.class);
         initCompleted = true;
+        expiresOn = OffsetDateTime.MAX;
     }
 
-    public SharedParametersV2(Path sharedParametersPath) {
+    public SharedParametersV2(Path sharedParametersPath, OffsetDateTime expiresOn) {
         super(sharedParametersPath.toString(), SharedParametersSchemaValidatorV2.class);
-        initCompleted = true;
+
+        this.expiresOn = expiresOn;
+
+        subjectsAndCaCerts = new HashMap<>();
+        caCertsAndCertProfiles = new HashMap<>();
+        caCertsAndApprovedCAData = new HashMap<>();
+        caCertsAndOcspData = new HashMap<>();
+        memberAddresses = new HashMap<>();
+        memberAuthCerts = new HashMap<>();
+        serverByAuthCert = new HashMap<>();
+        securityServerClients = new HashMap<>();
+        verificationCaCerts = new ArrayList<>();
+        knownAddresses = new HashSet<>();
+        securityServersById = new HashMap<>();
 
         try {
             cacheCaCerts();
@@ -120,6 +128,28 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         } catch (Exception e) {
             throw translateException(e);
         }
+
+        initCompleted = true;
+    }
+
+    public SharedParametersV2(SharedParametersV2 original, OffsetDateTime newExpiresOn) {
+        super(original);
+
+        expiresOn = newExpiresOn;
+
+        subjectsAndCaCerts = original.subjectsAndCaCerts;
+        caCertsAndCertProfiles = original.caCertsAndCertProfiles;
+        caCertsAndApprovedCAData = original.caCertsAndApprovedCAData;
+        caCertsAndOcspData = original.caCertsAndOcspData;
+        memberAddresses = original.memberAddresses;
+        memberAuthCerts = original.memberAuthCerts;
+        serverByAuthCert = original.serverByAuthCert;
+        securityServerClients = original.securityServerClients;
+        verificationCaCerts = original.verificationCaCerts;
+        knownAddresses = original.knownAddresses;
+        securityServersById = original.securityServersById;
+
+        initCompleted = true;
     }
 
     @Override
@@ -356,14 +386,6 @@ public class SharedParametersV2 extends AbstractXmlConf<SharedParametersTypeV2> 
         return typesUnderCA.stream()
                 .map(c -> readCertificate(c.getCert()))
                 .collect(Collectors.toList());
-    }
-
-    public void setExpiresOn(OffsetDateTime expiresOn) {
-        this.expiresOn = expiresOn;
-    }
-
-    public OffsetDateTime getExpiresOn() {
-        return expiresOn;
     }
 
     @Override

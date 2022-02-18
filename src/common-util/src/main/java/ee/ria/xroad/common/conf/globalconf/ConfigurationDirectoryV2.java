@@ -28,19 +28,18 @@ package ee.ria.xroad.common.conf.globalconf;
 import ee.ria.xroad.common.CodedException;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -63,41 +62,32 @@ import static ee.ria.xroad.common.conf.globalconf.ConfigurationUtils.escapeInsta
 @Slf4j
 public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
-    public static final String PRIVATE_PARAMETERS_XML = "private-params.xml";
-    public static final String SHARED_PARAMETERS_XML = "shared-params.xml";
-
     @Getter
-    @Setter
-    private Path path;
+    private final Path path;
 
-    private String instanceIdentifier;
+    private final String instanceIdentifier;
 
-    // time at which the first part of configuration expires (different parts can have different times)
-    protected OffsetDateTime expirationDate;
-
-    private Map<String, PrivateParametersV2> privateParameters = new HashMap<>();
-    private Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
+    private final Map<String, PrivateParametersV2> privateParameters = new HashMap<>();
+    private final Map<String, SharedParametersV2> sharedParameters = new HashMap<>();
 
     // ------------------------------------------------------------------------
 
     /**
      * Constructs new directory from the given path.
-     *
      * @param directoryPath the path to the directory.
      * @throws Exception if loading configuration fails
      */
     public ConfigurationDirectoryV2(String directoryPath) throws Exception {
         this.path = Paths.get(directoryPath);
 
-        loadInstanceIdentifier();
+        instanceIdentifier = loadInstanceIdentifier();
 
         // empty maps as placeholders
-        loadParameters(new HashMap(), new HashMap<>());
+        loadParameters(new HashMap<>(), new HashMap<>());
     }
 
     /**
      * Constructs new directory from the given path using parts from provided base that have not changed.
-     *
      * @param directoryPath the path to the directory.
      * @param base existing configurationdirectory to look for reusable parameter objects
      * @throws Exception if loading configuration fails
@@ -105,7 +95,7 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     public ConfigurationDirectoryV2(String directoryPath, ConfigurationDirectoryV2 base) throws Exception {
         this.path = Paths.get(directoryPath);
 
-        loadInstanceIdentifier();
+        instanceIdentifier = loadInstanceIdentifier();
 
         loadParameters(base.privateParameters, base.sharedParameters);
     }
@@ -119,25 +109,23 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
     /**
      * Reloads the configuration directory. Only files that are new or have changed, are actually loaded.
-     *
      * @throws Exception if an error occurs during reload
      */
     private void loadParameters(Map<String, PrivateParametersV2> basePrivateParams,
-                                            Map<String, SharedParametersV2> basesharedParams) throws Exception {
+            Map<String, SharedParametersV2> baseSharedParams) throws Exception {
         log.trace("Reloading configuration from {}", path);
 
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(path, Files::isDirectory)) {
             for (Path instanceDir : stream) {
                 log.trace("Loading parameters from {}", instanceDir);
                 loadPrivateParameters(instanceDir, basePrivateParams);
-                loadSharedParameters(instanceDir, basesharedParams);
+                loadSharedParameters(instanceDir, baseSharedParams);
             }
         }
     }
 
     /**
      * Returns private parameters for a given instance identifier.
-     *
      * @param instanceId the instance identifier
      * @return private parameters or null, if no private parameters exist for given instance identifier
      * @throws Exception if an error occurs while reading parameters
@@ -147,13 +135,11 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
         log.trace("getPrivate(instance = {}, directory = {})", instanceId, safeInstanceId);
 
-        PrivateParametersV2 parameters = privateParameters.get(safeInstanceId);
-        return parameters;
+        return privateParameters.get(safeInstanceId);
     }
 
     /**
      * Returns shared parameters for a given instance identifier.
-     *
      * @param instanceId the instance identifier
      * @return shared parameters or null, if no shared parameters exist for given instance identifier
      * @throws Exception if an error occurs while reading parameters
@@ -186,7 +172,6 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
-     *
      * @param consumer the function instance that should be applied to
      * @throws Exception if an error occurs
      */
@@ -210,9 +195,8 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
     /**
      * Applies the given function to all files belonging to the configuration directory.
-     *
      * @param consumer the function instance that should be applied to all files belonging to the
-     * configuration directory.
+     *         configuration directory.
      * @throws Exception if an error occurs
      */
     public synchronized void eachFile(FileConsumer consumer) throws Exception {
@@ -224,9 +208,8 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
                 try {
                     metadata = getMetadata(filepath);
-                } catch (Exception e) {
+                } catch (IOException e) {
                     log.error("Could not open configuration file '{}' metadata: {}", filepath, e);
-
                     throw e;
                 }
 
@@ -245,36 +228,35 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
 
     /**
      * Gets the metadata for the given file.
-     *
      * @param fileName the file name
-     * @return the metadata for the given file.
+     * @return the metadata for the given file or null if metadata file does not exist.
      * @throws Exception if the metadata cannot be loaded
      */
-    public static ConfigurationPartMetadata getMetadata(Path fileName) throws Exception {
-        File file = new File(fileName.toString() + METADATA_SUFFIX);
-
+    public static ConfigurationPartMetadata getMetadata(Path fileName) throws IOException {
+        File file = new File(fileName.toString() + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA);
         try (InputStream in = new FileInputStream(file)) {
             return ConfigurationPartMetadata.read(in);
         }
     }
 
-    private static OffsetDateTime getFileExpiresOn(Path filePath) throws Exception {
-        return getMetadata(filePath).getExpirationDate();
-    }
-
-    private static boolean isInThePast(OffsetDateTime someTime) {
-        return someTime.toInstant().isBefore(Instant.now());
+    private static OffsetDateTime getFileExpiresOn(Path filePath) {
+        try {
+            return getMetadata(filePath).getExpirationDate();
+        } catch (IOException e) {
+            log.error("Unable to read expiration date", e);
+            return OffsetDateTime.MAX;
+        }
     }
 
     // ------------------------------------------------------------------------
 
-    private void loadInstanceIdentifier() {
+    private String loadInstanceIdentifier() {
         Path file = Paths.get(path.toString(), INSTANCE_IDENTIFIER_FILE);
 
         log.trace("Loading instance identifier from {}", file);
 
         try {
-            instanceIdentifier = FileUtils.readFileToString(file.toFile()).trim();
+            return FileUtils.readFileToString(file.toFile(), StandardCharsets.UTF_8).trim();
         } catch (Exception e) {
             log.error("Failed to read instance identifier from " + file, e);
 
@@ -286,22 +268,24 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     private void loadPrivateParameters(Path instanceDir, Map<String, PrivateParametersV2> basePrivateParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path privateParametersPath = Paths.get(instanceDir.toString(), PRIVATE_PARAMETERS_XML);
+        Path privateParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_PRIVATE_PARAMETERS);
         if (Files.exists(privateParametersPath)) {
             try {
                 log.trace("Loading private parameters from {}", privateParametersPath);
 
                 PrivateParametersV2 existingParameters = basePrivateParameters.get(instanceId);
                 PrivateParametersV2 parametersToUse;
-                if (existingParameters != null &&  !existingParameters.hasChanged()) {
+                OffsetDateTime fileExpiresOn = getFileExpiresOn(privateParametersPath);
+
+                if (existingParameters != null && !existingParameters.hasChanged()) {
                     log.trace("PrivateParametersV2 from {} have not changed, reusing", privateParametersPath);
-                    parametersToUse = existingParameters;
+                    parametersToUse = new PrivateParametersV2(existingParameters, fileExpiresOn);
                 } else {
                     log.trace("Loading PrivateParametersV2 from {}", privateParametersPath);
-                    parametersToUse = new PrivateParametersV2(privateParametersPath);
+                    parametersToUse = new PrivateParametersV2(privateParametersPath, fileExpiresOn);
                 }
 
-                parametersToUse.setExpiresOn(getFileExpiresOn(privateParametersPath));
                 privateParameters.put(instanceId, parametersToUse);
             } catch (Exception e) {
                 log.error("Unable to load private parameters from {}", instanceDir, e);
@@ -314,21 +298,24 @@ public class ConfigurationDirectoryV2 implements ConfigurationDirectory {
     private void loadSharedParameters(Path instanceDir, Map<String, SharedParametersV2> baseSharedParameters) {
         String instanceId = instanceDir.getFileName().toString();
 
-        Path sharedParametersPath = Paths.get(instanceDir.toString(), SHARED_PARAMETERS_XML);
+        Path sharedParametersPath = Paths.get(instanceDir.toString(),
+                ConfigurationConstants.FILE_NAME_SHARED_PARAMETERS);
         if (Files.exists(sharedParametersPath)) {
             try {
                 log.trace("Loading shared parameters from {}", sharedParametersPath);
 
                 SharedParametersV2 existingParameters = baseSharedParameters.get(instanceId);
                 SharedParametersV2 parametersToUse;
+                OffsetDateTime fileExpiresOn = getFileExpiresOn(sharedParametersPath);
+
                 if (existingParameters != null && !existingParameters.hasChanged()) {
                     log.trace("SharedParametersV2 from {} have not changed, reusing", sharedParametersPath);
-                    parametersToUse = existingParameters;
+                    parametersToUse = new SharedParametersV2(existingParameters, fileExpiresOn);
                 } else {
                     log.trace("Loading SharedParametersV2 from {}", sharedParametersPath);
-                    parametersToUse = new SharedParametersV2(sharedParametersPath);
+                    parametersToUse = new SharedParametersV2(sharedParametersPath, fileExpiresOn);
                 }
-                parametersToUse.setExpiresOn(getFileExpiresOn(sharedParametersPath));
+
                 sharedParameters.put(instanceId, parametersToUse);
             } catch (Exception e) {
                 log.error("Unable to load shared parameters from {}", instanceDir, e);
