@@ -56,7 +56,7 @@ import static ee.ria.xroad.common.ErrorCodes.X_OUTDATED_GLOBALCONF;
 @Slf4j
 public final class GlobalConf {
 
-    private static GlobalConfProvider instance;
+    private static volatile GlobalConfProvider instance;
 
     private GlobalConf() {
     }
@@ -66,7 +66,7 @@ public final class GlobalConf {
      */
     static GlobalConfProvider getInstance() {
         if (instance == null) {
-            synchronized (GlobalConfProvider.class) {
+            synchronized (GlobalConf.class) {
                 if (instance == null) {
                     instance = new GlobalConfImpl();
                 }
@@ -96,7 +96,7 @@ public final class GlobalConf {
      */
     public static void reload(GlobalConfProvider conf) {
         log.trace("reload called with parameter class {}", conf.getClass());
-        synchronized (GlobalConfProvider.class) {
+        synchronized (GlobalConf.class) {
             instance = conf;
         }
     }
@@ -107,7 +107,7 @@ public final class GlobalConf {
      */
     public static void reset() {
         log.trace("reset called");
-        synchronized (GlobalConfProvider.class) {
+        synchronized (GlobalConf.class) {
             instance = null;
         }
     }
