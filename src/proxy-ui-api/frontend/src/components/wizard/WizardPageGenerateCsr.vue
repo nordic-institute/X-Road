@@ -135,13 +135,15 @@ export default Vue.extend({
       this.$emit('done');
     },
     async generateCsr(): Promise<void> {
-      if (!this.csrTokenId) {
-        // Should not happen
-        throw new Error('Token id does not exist');
-      }
-
-      const tokenId = this.csrTokenId;
       if (this.keyAndCsr) {
+        // Create Key AND CSR
+
+        if (!this.csrTokenId) {
+          // Should not happen
+          throw new Error('Token id does not exist');
+        }
+        const tokenId = this.csrTokenId;
+
         // Create key and CSR
         try {
           await this.generateKeyAndCsr(tokenId);

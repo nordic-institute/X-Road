@@ -256,6 +256,7 @@ export default (
     ...mapActions(useInitializeServer, [
       'storeInitServerSSCode',
       'storeInitServerMemberClass',
+      'storeInitServerMemberCode',
     ]),
 
     ...mapActions(useGeneral, [
@@ -271,19 +272,11 @@ export default (
     },
 
     checkMember(): void {
-      if (!this.memberClass) {
-        // Should not happen
-        throw new Error('Member class is missing');
-      }
-
-      if (!this.memberCode) {
-        // Should not happen
-        throw new Error('Member code is missing');
-      }
-
       if (
-        this.memberClass?.length > 0 &&
-        this.memberCode?.length > 0 &&
+        this.memberClass &&
+        this.memberCode &&
+        this.memberClass.length > 0 &&
+        this.memberCode.length > 0 &&
         this.isMemberCodeValid
       ) {
         this.fetchMemberName(this.memberClass, this.memberCode).catch(

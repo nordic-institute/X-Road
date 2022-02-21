@@ -72,11 +72,9 @@
 
 <script lang="ts">
 import Vue from 'vue';
-
 import { Anchor } from '@/openapi-types';
 import * as api from '@/util/api';
 import UploadConfigurationAnchorDialog from '@/views/Settings/SystemParameters/UploadConfigurationAnchorDialog.vue';
-
 import { mapActions } from 'pinia';
 import { useNotifications } from '@/store/modules/notifications';
 import { useGeneral } from '@/store/modules/general';
