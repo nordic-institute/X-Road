@@ -158,7 +158,11 @@ export default Vue.extend({
   methods: {
     ...mapActions(useAlerts, ['checkAlertStatus']),
     ...mapActions(useNotifications, ['showError', 'showSuccess']),
-    ...mapActions(useUser, ['setInitializationStatus']),
+    ...mapActions(useUser, [
+      'setInitializationStatus',
+      'fetchInitializationStatus',
+      'fetchCurrentSecurityServer',
+    ]),
     nextStep(): void {
       this.currentStep++;
     },

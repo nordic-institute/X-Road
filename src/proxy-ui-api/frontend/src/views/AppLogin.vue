@@ -230,10 +230,9 @@ export default (
 
       try {
         await this.fetchUserData();
-        await this.fetchCurrentSecurityServer();
+        await this.fetchInitializationData(); // Used to be inside fetchUserData()
         await this.fetchSecurityServerVersion();
         await this.fetchSecurityServerNodeType();
-        this.fetchInitializationData();
       } catch (error) {
         this.showError(error as AxiosError);
       }
@@ -253,6 +252,7 @@ export default (
       };
 
       await this.fetchInitializationStatus();
+      await this.fetchSecurityServerNodeType();
       if (!this.hasInitState) {
         this.showErrorMessage(
           this.$t('initialConfiguration.noInitializationStatus'),
@@ -269,7 +269,7 @@ export default (
         await this.$router.replace({ name: RouteName.InitialConfiguration });
       } else {
         // No need to initialise, proceed to "main view"
-        await this.fetchSecurityServerNodeType();
+        await this.fetchCurrentSecurityServer();
         await this.$router.replace({
           name: this.firstAllowedTab.to.name,
         });
