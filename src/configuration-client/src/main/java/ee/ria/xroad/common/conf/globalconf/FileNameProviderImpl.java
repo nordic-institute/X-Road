@@ -48,10 +48,10 @@ public class FileNameProviderImpl implements FileNameProvider {
         String fileName;
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                fileName = FILE_NAME_SHARED_PARAMETERS;
+                fileName = FILE_NAME_PRIVATE_PARAMETERS;
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                fileName = FILE_NAME_PRIVATE_PARAMETERS;
+                fileName = FILE_NAME_SHARED_PARAMETERS;
                 break;
             default:
                 fileName = Paths.get(
