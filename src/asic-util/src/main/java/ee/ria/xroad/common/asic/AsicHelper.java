@@ -31,9 +31,13 @@ import ee.ria.xroad.common.util.CryptoUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.bouncycastle.operator.DigestCalculator;
+import org.bouncycastle.operator.OperatorCreationException;
 
+import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
@@ -76,14 +80,14 @@ final class AsicHelper {
     private AsicHelper() {
     }
 
-    static AsicContainer read(InputStream is) throws Exception {
+    static AsicContainer read(InputStream is) throws IOException {
         Map<String, String> entries = new HashMap<>();
         ZipInputStream zip = new ZipInputStream(is);
         ZipEntry zipEntry;
         byte[] attachmentDigest = null;
 
         while ((zipEntry = zip.getNextEntry()) != null) {
-            for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
+            for (Object expectedEntry : AsicContainerEntries.ALL_ENTRIES) {
                 if (matches(expectedEntry, zipEntry.getName())) {
                     String data;
 
@@ -97,10 +101,14 @@ final class AsicHelper {
 
                     break;
                 } else if (matches(ENTRY_ATTACHMENT + "1", zipEntry.getName())) {
-                    final DigestCalculator digest =
-                            CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
-                    IOUtils.copy(zip, digest.getOutputStream());
-                    attachmentDigest = digest.getDigest();
+                    try {
+                        final DigestCalculator digest;
+                        digest = CryptoUtils.createDigestCalculator(CryptoUtils.DEFAULT_DIGEST_ALGORITHM_ID);
+                        IOUtils.copy(zip, digest.getOutputStream());
+                        attachmentDigest = digest.getDigest();
+                    } catch (OperatorCreationException e) {
+                        throw new IOException(e);
+                    }
                     break;
                 }
             }
@@ -109,11 +117,11 @@ final class AsicHelper {
         return new AsicContainer(entries, attachmentDigest);
     }
 
-    static void write(AsicContainer asic, ZipOutputStream zip) throws Exception {
+    static void write(AsicContainer asic, ZipOutputStream zip) throws IOException {
         zip.setComment("mimetype=" + MIMETYPE);
         final long time = asic.getCreationTime();
 
-        for (Object expectedEntry : AsicContainerEntries.getALL_ENTRIES()) {
+        for (Object expectedEntry : AsicContainerEntries.ALL_ENTRIES) {
             String name;
 
             if (expectedEntry instanceof String) {
@@ -161,7 +169,7 @@ final class AsicHelper {
         return false;
     }
 
-    static void verifyMimeType(String mimeType) throws Exception {
+    static void verifyMimeType(String mimeType) {
         if (isBlank(mimeType)) {
             throw fileEmptyException(X_ASIC_MIME_TYPE_NOT_FOUND, ENTRY_MIMETYPE);
         }
@@ -220,23 +228,54 @@ final class AsicHelper {
         }
     }
 
-    private static String getData(ZipInputStream zip) throws Exception {
+    private static String getData(ZipInputStream zip) throws IOException {
         return IOUtils.toString(zip, StandardCharsets.UTF_8);
     }
 
-    private static byte[] getBinaryData(ZipInputStream zip) throws Exception {
+    private static byte[] getBinaryData(ZipInputStream zip) throws IOException {
         return IOUtils.toByteArray(zip);
     }
 
+    private static final int DATA_SIZE_THRESHOLD = 100_000;
+    private static final int BUF_SIZE = 4096;
+
     private static void addEntry(ZipOutputStream zip, String name, long time, String data) throws IOException {
-        addEntry(zip, name, time, data.getBytes(StandardCharsets.UTF_8));
+        final ZipEntry entry = new ZipEntry(name);
+        entry.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
+        zip.putNextEntry(entry);
+        if (data.length() > DATA_SIZE_THRESHOLD) {
+            // More memory-efficient writing method if data is large, trying to avoid
+            // OOM errors.
+
+            // Need to wrap the output stream to prevent writer from closing it,
+            // and closing the writer is important so that all bytes get written.
+            try (Writer writer = new OutputStreamWriter(new EntryStream(zip), StandardCharsets.UTF_8)) {
+                // Simple writer.write(data) call won't do, since it still copies the whole
+                // string to a char array. Perhaps one day someone refactors the logging
+                // so that storing messages as Strings is avoided.
+                char[] cbuf = new char[BUF_SIZE];
+                int from = 0;
+                int remaining = data.length();
+                while (remaining > 0) {
+                    int len = Math.min(cbuf.length, remaining);
+                    data.getChars(from, from + len, cbuf, 0);
+                    writer.write(cbuf, 0, len);
+                    remaining -= len;
+                    from += len;
+                }
+            }
+        } else {
+            zip.write(data.getBytes(StandardCharsets.UTF_8));
+            zip.closeEntry();
+        }
     }
 
     private static void addEntry(ZipOutputStream zip, String name, long time, byte[] data) throws IOException {
-        final ZipEntry e = new ZipEntry(name);
-        e.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
-        zip.putNextEntry(e);
+        final ZipEntry entry = new ZipEntry(name);
+        entry.setLastModifiedTime(FileTime.from(time, TimeUnit.MILLISECONDS));
+        zip.putNextEntry(entry);
         zip.write(data);
+        zip.closeEntry();
     }
 
     static String stripSlash(String name) {
@@ -259,5 +298,25 @@ final class AsicHelper {
 
     private static CodedException fileEmptyException(String errorCode, String fileName) {
         throw new CodedException(errorCode, "%s not found or is empty", fileName);
+    }
+
+    /**
+     * Helper class for writing into ZipOutputStream.
+     * Avoids closing the wrapped stream.
+     */
+    static final class EntryStream extends FilterOutputStream {
+        EntryStream(ZipOutputStream out) {
+            super(out);
+        }
+
+        @Override
+        public void write(byte[] b, int off, int len) throws IOException {
+            out.write(b, off, len);
+        }
+
+        @Override
+        public void close() throws IOException {
+            ((ZipOutputStream) out).closeEntry();
+        }
     }
 }

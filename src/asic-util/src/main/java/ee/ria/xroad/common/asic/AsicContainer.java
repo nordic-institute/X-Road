@@ -73,14 +73,13 @@ public class AsicContainer {
     @Getter
     private final long creationTime;
 
-    AsicContainer(Map<String, String> entries, byte[] attachmentDigest) throws Exception {
+    AsicContainer(Map<String, String> entries, byte[] attachmentDigest) {
         this.entries.putAll(entries);
         this.attachment = null;
         this.attachmentDigest = attachmentDigest;
         this.creationTime = new Date().getTime();
         verifyContents();
     }
-
 
     /**
      * Creates an AsicContainer containing given message, signature and timestamp.
@@ -266,7 +265,7 @@ public class AsicContainer {
         put(ENTRY_ASIC_MANIFEST, b.build());
     }
 
-    private void verifyContents() throws Exception {
+    private void verifyContents() {
         AsicHelper.verifyMimeType(get(ENTRY_MIMETYPE));
         AsicHelper.verifyMessage(get(ENTRY_MESSAGE));
         AsicHelper.verifySignature(get(ENTRY_SIGNATURE),

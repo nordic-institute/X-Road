@@ -194,7 +194,6 @@ public class LogArchiveTest {
 
     private MessageRecord nextMessageRecord() {
         recordNo++;
-
         MessageRecord record = new MessageRecord("qid" + recordNo,
                 "msg" + recordNo, "sig" + recordNo, false,
                 ClientId.create(GlobalConf.getInstanceIdentifier(), "memberClass", "memberCode", "subsystemCode"),

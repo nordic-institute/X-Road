@@ -162,7 +162,7 @@ public class LogArchiveWriter implements Closeable {
     }
 
     private void saveArchive() throws IOException {
-        if (logArchiveCache == null || logArchiveCache.isEmpty()) {
+        if (logArchiveCache == null || logArchiveCache.isFailed() || logArchiveCache.isEmpty()) {
             return;
         }
         final String digest = linkingInfoBuilder.getLastDigest();

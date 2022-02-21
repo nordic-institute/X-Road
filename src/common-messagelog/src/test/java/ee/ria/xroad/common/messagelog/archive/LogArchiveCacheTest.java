@@ -290,6 +290,12 @@ public class LogArchiveCacheTest {
         String propertyValue = value != null ? Integer.toString(value) : "";
         System.setProperty(
                 MessageLogProperties.ARCHIVE_MAX_FILESIZE, propertyValue);
+
+        if (cache != null) {
+            cache.close();
+        }
+
+        cache = createCache();
     }
 
     private MessageRecord createRequestRecordNormal() throws Exception {

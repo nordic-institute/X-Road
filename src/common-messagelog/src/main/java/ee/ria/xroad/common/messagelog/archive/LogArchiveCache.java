@@ -59,11 +59,13 @@ class LogArchiveCache implements Closeable {
     private enum State {
         NEW,
         ADDING,
-        ROTATING;
+        ROTATING,
+        FAILED;
     }
 
     private final LinkingInfoBuilder linkingInfoBuilder;
     private final Path workingDir;
+    private final long archiveMaxFilesize;
 
     private AsicContainerNameGenerator nameGenerator;
     private State state = State.NEW;
@@ -84,21 +86,44 @@ class LogArchiveCache implements Closeable {
         this.linkingInfoBuilder = linkingInfoBuilder;
         this.encryptionConfig = encryptionConfig;
         this.workingDir = workingDir;
+        this.archiveMaxFilesize = getArchiveMaxFilesize();
         resetCacheState();
     }
 
+    @SuppressWarnings("java:S1181")
     void add(MessageRecord messageRecord) throws Exception {
         try {
             validateMessageRecord(messageRecord);
-            handleRotation();
-            cacheRecord(messageRecord);
-            updateState();
+
+            switch (state) {
+                case NEW:
+                    resetArchive();
+                    state = State.ADDING;
+                    //fall through
+                case ADDING:
+                    cacheRecord(messageRecord);
+                    if (archivesTotalSize > archiveMaxFilesize) {
+                        state = State.ROTATING;
+                    }
+                    break;
+                default:
+                    throw new IllegalStateException("Invalid state for adding a record: " + state);
+            }
         } catch (Exception e) {
-            handleCacheError(e);
+            throw handleCacheError(e);
+        } catch (Error e) {
+            //flag the failure state if fatal error
+            state = State.FAILED;
+            throw e;
         }
     }
 
     Path getArchiveFile() throws IOException {
+
+        if (state == State.FAILED) {
+            throw new IllegalStateException("Archiving has failed");
+        }
+
         try {
             addLinkingInfoToArchive(archiveTmp);
             archiveTmp.close();
@@ -109,14 +134,14 @@ class LogArchiveCache implements Closeable {
             resetCacheState();
             return archive;
         } catch (IOException e) {
-            handleCacheError(e);
-            return null;
+            throw handleCacheError(e);
         }
     }
 
-    private <T extends Exception> void handleCacheError(T e) throws T {
+    private <T extends Throwable> T handleCacheError(T e) {
+        state = State.FAILED;
         deleteArchiveArtifacts(e);
-        throw e;
+        return e;
     }
 
     private void addLinkingInfoToArchive(ZipOutputStream zipOut)
@@ -135,6 +160,10 @@ class LogArchiveCache implements Closeable {
 
     boolean isEmpty() {
         return state == State.NEW;
+    }
+
+    boolean isFailed() {
+        return state == State.FAILED;
     }
 
     Date getStartTime() {
@@ -156,13 +185,6 @@ class LogArchiveCache implements Closeable {
         }
     }
 
-    private void handleRotation() throws IOException {
-        if (state == State.ADDING) {
-            return;
-        }
-        resetArchive();
-    }
-
     @SuppressWarnings("checkstyle:InnerAssignment")
     private void cacheRecord(MessageRecord messageRecord) throws Exception {
         final Date creationTime = new Date(messageRecord.getTime());
@@ -175,14 +197,6 @@ class LogArchiveCache implements Closeable {
             maxCreationTime = creationTime;
         }
         addContainerToArchive(messageRecord);
-    }
-
-    private void updateState() {
-        state = archiveExceedsRotationSize() ? State.ROTATING : State.ADDING;
-    }
-
-    private boolean archiveExceedsRotationSize() {
-        return archivesTotalSize > getArchiveMaxFilesize();
     }
 
     private void addContainerToArchive(MessageRecord record) throws Exception {
@@ -220,7 +234,7 @@ class LogArchiveCache implements Closeable {
         archiveTmp.setLevel(0);
     }
 
-    private void deleteArchiveArtifacts(Exception cause) {
+    private void deleteArchiveArtifacts(Throwable cause) {
         if (archiveTmp != null) {
             try {
                 archiveTmp.close();
