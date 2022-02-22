@@ -48,6 +48,10 @@ public class ClientService {
         return securityServerClientRepository.findAll(SecurityServerClientRepository.nameHas(nameParam));
     }
 
+    public List<SecurityServerClient> findNameIs(String nameParam) {
+        return securityServerClientRepository.findAll(SecurityServerClientRepository.nameIs(nameParam));
+    }
+
     /**
      * XRoadMemberRepository2
      */

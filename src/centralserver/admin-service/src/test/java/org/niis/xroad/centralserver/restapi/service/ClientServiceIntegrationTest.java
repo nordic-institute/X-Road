@@ -39,6 +39,13 @@ public class ClientServiceIntegrationTest {
     }
 
     @Test
+    public void findByNameUsingSecurityServerClientsNameIs() {
+        assertEquals(1, clientService.findNameIs("member9").size());
+        assertEquals(0, clientService.findNameIs("member9 ").size());
+    }
+
+
+    @Test
     public void findAllUsingXroadMembers() {
         var clients = clientService.findAll2();
         assertEquals(10, clients.size());
