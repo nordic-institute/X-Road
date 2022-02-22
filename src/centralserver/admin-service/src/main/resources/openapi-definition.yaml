@@ -16,40 +16,40 @@ servers:
 tags:
   - name: backups
     description: resources related to Backups and Backup Restoration
-  - name: clients
-    description: resources related to Clients (Members and Subsystems)
-  - name: central-services
-    description: resources related to Central Services
   - name: certification-services
     description: resources related to Certification Services
+  - name: clients
+    description: resources related to Clients (Members and Subsystems)
   - name: configuration-sources
     description: general resources related to Configuration Sources
   - name: configuration-source-anchors
     description: resources related to Configuration Source Anchors
   - name: configuration-parts
     description: resources related to Configuration Parts
-  - name: tokens
-    description: resources related to Tokens
-  - name: signing-keys
-    description: resources related to Global Configuration Signing Keys
   - name: global-groups
     description: resources related to Global Groups
   - name: initialization
     description: resources related to Central Server initialization
   - name: intermediate-cas
     description: resources related to Intermediate Certificate Authorities
+  - name: management-services
+    description: resources related to Management Services
   - name: member-classes
     description: resources related to Central Server's member classes
   - name: ocsp-responders
     description: resources related to OCSP Responders
   - name: security-servers
     description: resources related to Security Servers
+  - name: signing-keys
+    description: resources related to Global Configuration Signing Keys
   - name: system
     description: resources related to System info
-  - name: management-services
-    description: resources related to Management Services
   - name: timestamping-services
     description: resources related to Central Server's Timestamping Services
+  - name: tokens
+    description: resources related to Tokens
+  - name: trusted-anchors
+    description: resources related to Trusted Anchors
 paths:
   /backups:
     get:
@@ -77,7 +77,7 @@ paths:
         - backups
     post:
       description:
-        <h3>Adds central server backup to the system.</h3>
+        <h3>Generates a new central server backup.</h3>
         <p>
           This endpoint can also return metadata in the error response.
           The metadata array contains the output of a failed backup generation script.
@@ -383,7 +383,7 @@ paths:
         - certification-services
     get:
       description: <h3>CS administrator views the details of an approved certification service.</h3>
-      operationId: getCertificationServiceByHash
+      operationId: getCertificationService
       parameters:
         - description: unique identifier of the certification service
           in: path
@@ -410,7 +410,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: get a certification service by its certificate hash
+      summary: get a certification service
       tags:
         - certification-services
     patch:
@@ -1162,7 +1162,7 @@ paths:
           $ref: '#/components/responses/Forbidden'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: CS administrator views the tokens of a configuration source
+      summary: CS administrator views the tokens of the central server
       tags:
         - tokens
   /configuration-sources/{configuration_type}/signing-keys:
@@ -1619,7 +1619,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: get the ocsp responders of an intermediate certificate authority
       tags:
-        - intermediate-cas-ocsp-responders
+        - intermediate-cas
     post:
       description: <h3>CS administrator adds an OCSP responder service information for an intermediate CA.</h3>
       operationId: addIntermediateCaOcspResponder
@@ -1662,7 +1662,7 @@ paths:
           $ref: '#/components/responses/InternalServerError'
       summary: add an ocsp responder to an intermediate certificate authority
       tags:
-        - intermediate-cas-ocsp-responders
+        - intermediate-cas
   /member-classes:
     get:
       description: <h3>CS Administrator lists member classes.</h3>
@@ -1806,9 +1806,9 @@ paths:
       operationId: findClients
       parameters:
         - description: >
-                Generic filtering query parameter selects only items that contain parameter
+                An optional generic filtering query parameter selects only items that contain parameter
                 value in properties (name, instance, member_class, member_code, subsystem_code, security_server) . Needs to be properly encoded for the
-                special characters, too.
+                special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
           required: false
@@ -1824,7 +1824,7 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/PagingSortingParameters'
-        - description: an optional search string (member name)
+        - description: an optional search string (member name). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
           in: query
           name: name
           required: false
@@ -1833,7 +1833,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (instance)
+        - description: an optional search string (instance). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
           in: query
           name: instance
           required: false
@@ -1842,7 +1842,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (member_class)
+        - description: an optional search string (member_class). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
           in: query
           name: member_class
           required: false
@@ -1851,7 +1851,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (member_code)
+        - description: an optional search string (member_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
           in: query
           name: member_code
           required: false
@@ -1860,7 +1860,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (subsystem_code)
+        - description: an optional search string (subsystem_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
           in: query
           name: subsystem_code
           required: false
@@ -1869,13 +1869,13 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional parameter limiting search to either members or subsystems. If not used, both are searched for
+        - description: an optional parameter limiting search to either members or subsystems. If not used, both are searched for.
           in: query
           name: client_type
           required: false
           schema:
             $ref: '#/components/schemas/ClientType'
-        - description: a security server id – only return clients that belong to this security server
+        - description: an optional security server id parameter - only return clients that belong to this security server. Empty value means the parameter is ignored.
           in: query
           name: security_server
           required: false
@@ -2168,9 +2168,9 @@ paths:
       operationId: findSecurityServers
       parameters:
         - description: >
-                Generic filtering query parameter selects only items that contain parameter
-                value in properties (owner_member, contains_member). Needs to be properly encoded for the
-                special characters, too.
+                An optional generic filtering query parameter selects only items that contain parameter
+                value in properties (owner_member id, contains_member id). Needs to be properly encoded for the
+                special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
           required: false
@@ -2180,13 +2180,13 @@ paths:
             minLength: 3
             maxLength: 25
             type: string
-        - description: optional result limiting parameters
+        - description: optional paging and sorting parameters
           in: query
-          name: result_limits
+          name: paging_sorting
           required: false
           schema:
             $ref: '#/components/schemas/PagingSortingParameters'
-        - description: a member id – return only security servers that are owned by this member
+        - description: an optional owner member id parameter – return only security servers that are owned by this member. Empty value means the parameter is ignored.
           in: query
           name: owner_member
           required: false
@@ -2196,7 +2196,7 @@ paths:
             maxLength: 1023
             minLength: 1
             type: string
-        - description: a member id – return only security servers that contain this member
+        - description: an optional client member id parameter – return only security servers that have this member as a client. Empty value means the parameter is ignored.
           in: query
           name: contains_member
           required: false
@@ -2698,7 +2698,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: delete a timestamping service by its certificate hash
+      summary: delete a timestamping service
       tags:
         - timestamping-services
     get:
@@ -2730,7 +2730,7 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
-      summary: get a timestamping service by its certificate hash
+      summary: get a timestamping service
       tags:
         - timestamping-services
     patch:
