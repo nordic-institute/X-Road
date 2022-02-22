@@ -5,7 +5,7 @@
                  version="2.2">
 
     <entity class="ee.ria.xroad.common.identifier.XRoadId" access="FIELD" metadata-complete="true">
-        <table name="identifier"/>
+        <table name="identifiers"/>
         <inheritance strategy="SINGLE_TABLE"/>
         <discriminator-column name="type" discriminator-type="STRING"/>
         <attributes>
