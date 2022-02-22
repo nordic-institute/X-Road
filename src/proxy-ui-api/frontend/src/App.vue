@@ -45,7 +45,7 @@ import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
-import { mapActions, mapState } from 'pinia';
+import { mapActions } from 'pinia';
 import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
@@ -56,7 +56,6 @@ export default Vue.extend({
     Snackbar,
   },
   computed: {
-    ...mapState(useUser, ['isSessionAlive']),
     loginView(): boolean {
       return this.$route.name !== RouteName.Login;
     },

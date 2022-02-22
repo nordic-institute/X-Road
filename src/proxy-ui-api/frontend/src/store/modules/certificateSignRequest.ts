@@ -195,10 +195,6 @@ export const useCsrStore = defineStore('csrStore', {
         });
     },
 
-    setCsrFormat(csrFormat: string) {
-      this.csrFormat = csrFormat;
-    },
-
     requestGenerateCsr() {
       const requestBody = this.csrRequestBody;
       return api
