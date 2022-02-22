@@ -44,7 +44,7 @@ public class FileNameProviderImpl implements FileNameProvider {
     private final String globalConfigurationDirectory;
 
     @Override
-    public Path getFileName(ConfigurationFile file) throws Exception {
+    public Path getFileName(ConfigurationFile file) {
         String fileName;
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
@@ -64,5 +64,10 @@ public class FileNameProviderImpl implements FileNameProvider {
         return Paths.get(globalConfigurationDirectory,
                 escapeInstanceIdentifier(file.getInstanceIdentifier()),
                 fileName);
+    }
+
+    @Override
+    public Path getConfigurationDirectory(String instanceIdentifier) {
+        return Paths.get(globalConfigurationDirectory, escapeInstanceIdentifier(instanceIdentifier));
     }
 }

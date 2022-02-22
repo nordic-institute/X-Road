@@ -48,8 +48,11 @@ import org.quartz.JobListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import java.nio.file.Path;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -159,12 +162,20 @@ public final class ConfigurationClientMain {
         ConfigurationDownloader configurationDowloader =
                 new ConfigurationDownloader(SystemProperties.getConfigurationPath()) {
 
-           @Override
-           void persistAllContent(
+            @Override
+            Set<Path> persistAllContent(
                List<ConfigurationDownloader.DownloadedContent> downloadedContents) throws Exception {
                // empty because we don't want to persist files to disk
-           }
-        };
+               // can return empty list because extra files deletion method is also empty
+               return new HashSet();
+            }
+
+            @Override
+            void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
+               // do not delete anything
+            }
+
+            };
 
         ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
         client = new ConfigurationClient(SystemProperties.getConfigurationPath(), configurationDowloader,
