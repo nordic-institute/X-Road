@@ -24,31 +24,45 @@
  * THE SOFTWARE.
  */
 
+let frontPage, mainPage, clientsTab, clientInfo, clientServices, operationDetails, sslCheckFail;
+let addSubjectsPopup, removeAccessRightPopup, removeAllAccessRightsPopup, serviceChangePopup, serviceDetails,servicesPopup ;
+
 module.exports = {
   tags: ['ss', 'clients', 'wsdlservices'],
   before: function (browser) {
-    browser.logMessage(
-      'copy remote wsdl testservice1.wsdl -> testserviceX.wsdl',
-    );
+    frontPage = browser.page.ssLoginPage();
+    mainPage = browser.page.ssMainPage();
+    clientsTab = mainPage.section.clientsTab;
+    clientInfo = mainPage.section.clientInfo;
+    clientServices = clientInfo.section.services;
+    operationDetails = mainPage.section.wsdlOperationDetails;
+    sslCheckFail = mainPage.section.sslCheckFailDialog;
+    addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
+    removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
+    removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
+    serviceChangePopup = mainPage.section.servicesWarningPopup;
+    serviceDetails = mainPage.section.wsdlServiceDetails;
+    servicesPopup = mainPage.section.servicesWarningPopup;
+
+    browser.logMessage('copy remote wsdl testservice1.wsdl -> testserviceX.wsdl',);
     browser.page.ssMainPage().updateWSDLFileTo('testservice1.wsdl');
   },
-  'Security server client add wsdl service': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
+  beforeEach: function (browser) {
+    browser.LoginCommand();
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
+  },
+
+  afterEach: function (browser) {
+    mainPage.logout();
+  },
+  after: function (browser) {
+    browser.end();
+  },
+
+
+  'Security server client add wsdl service': (browser) => {
+    // Navigate
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -98,28 +112,9 @@ module.exports = {
     browser.waitForElementVisible(
       '//td[@data-test="service-link" and contains(text(),"testOp1")]',
     );
-
-    browser.end();
   },
   'Security server client edit wsdl operation': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.wsdlOperationDetails;
-    const sslCheckFail = mainPage.section.sslCheckFailDialog;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
     // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -289,25 +284,8 @@ module.exports = {
     browser.assert.valueContains(operationDetails.elements.timeout, '30');
     browser.expect.element(operationDetails.elements.sslAuth).to.be.selected;
     operationDetails.close();
-
-    browser.end();
-  },
+    },
   'Security server client add wsdl operation access rights': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.wsdlOperationDetails;
-    const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
     // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
@@ -355,29 +333,8 @@ module.exports = {
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestCom")]',
     );
 
-    browser.end();
   },
   'Security server client remove wsdl operation access rights': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.wsdlOperationDetails;
-    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
-    const removeAllAccessRightsPopup =
-      mainPage.section.removeAllAccessRightsPopup;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -436,30 +393,10 @@ module.exports = {
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]',
     );
-
-    browser.end();
   },
   'Security server client edit wsdl service': async (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const servicesPopup = mainPage.section.servicesWarningPopup;
-    const serviceDetails = mainPage.section.wsdlServiceDetails;
-
     var startTime, startTimestamp;
 
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -603,26 +540,9 @@ module.exports = {
         .text.to.not.contain(startTimestamp);
     });
 
-    browser.end();
   },
   'Security server client delete wsdl service': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const serviceDetails = mainPage.section.wsdlServiceDetails;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
     // Open TestGov Internal Servers
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -656,30 +576,11 @@ module.exports = {
     browser.waitForElementNotPresent(
       clientServices.elements.serviceDescription,
     );
-
-    browser.end();
   },
   'Security server client refresh wsdl service': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.wsdlOperationDetails;
-    const serviceChangePopup = mainPage.section.servicesWarningPopup;
-
     var startTime, startTimestamp;
 
     // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -858,7 +759,5 @@ module.exports = {
         .element(clientServices.elements.refreshTimestamp)
         .text.to.not.contain(startTimestamp);
     });
-
-    browser.end();
   },
 };

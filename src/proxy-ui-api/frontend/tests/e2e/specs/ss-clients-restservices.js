@@ -24,25 +24,40 @@
  * THE SOFTWARE.
  */
 
+let addEndpointPopup, addSubjectsPopup, clientInfo, clientServices, clientsTab, endpointPopup, frontPage, mainPage;
+let operationDetails, removeAccessRightPopup, removeAllAccessRightsPopup, restEndpoints, restServiceDetails, sslCheckFail;
+
 module.exports = {
   tags: ['ss', 'clients', 'restservices'],
+
+  before: function (browser) {
+    frontPage = browser.page.ssLoginPage();
+    mainPage = browser.page.ssMainPage();
+    addEndpointPopup = mainPage.section.addEndpointPopup;
+    addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
+    clientInfo = mainPage.section.clientInfo;
+    clientServices = clientInfo.section.services;
+    clientsTab = mainPage.section.clientsTab;
+    endpointPopup = mainPage.section.editEndpointPopup;
+    operationDetails = mainPage.section.restOperationDetails;
+    removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
+    removeAllAccessRightsPopup = mainPage.section.removeAllAccessRightsPopup;
+    restEndpoints = mainPage.section.restServiceEndpoints;
+    restServiceDetails = mainPage.section.restServiceDetails;
+    sslCheckFail = mainPage.section.sslCheckFailDialog;
+  },
+
+  beforeEach: function (browser) {
+    browser.LoginCommand();
+  },
+
+  afterEach: function (browser) {
+    mainPage.logout()
+  },
+  after: function (browser) {
+    browser.end();
+  },
   'Security server client add rest service': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -122,28 +137,8 @@ module.exports = {
     browser.waitForElementVisible(
       '//td[@data-test="service-link" and contains(text(),"s1c1")]',
     );
-
-    browser.end();
   },
   'Security server client edit rest operation': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.restOperationDetails;
-    const sslCheckFail = mainPage.section.sslCheckFailDialog;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -276,28 +271,8 @@ module.exports = {
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
       .selected;
     operationDetails.close();
-
-    browser.end();
   },
   'Security server client add rest operation access rights': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.restOperationDetails;
-    const addSubjectsPopup = mainPage.section.wsdlAddSubjectsPopup;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -359,29 +334,8 @@ module.exports = {
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestCom")]',
     );
 
-    browser.end();
   },
   'Security server client remove rest operation access rights': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.restOperationDetails;
-    const removeAllAccessRightsPopup =
-      mainPage.section.removeAllAccessRightsPopup;
-    const removeAccessRightPopup = mainPage.section.removeAccessRightPopup;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -440,29 +394,8 @@ module.exports = {
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]',
     );
-
-    browser.end();
   },
   'Security server client add rest endpoints': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.restOperationDetails;
-    const restEndpoints = mainPage.section.restServiceEndpoints;
-    const addEndpointPopup = mainPage.section.addEndpointPopup;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -568,26 +501,8 @@ module.exports = {
     browser.waitForElementVisible(restEndpoints);
     restEndpoints.verifyEndpointRow(2, 'POST', '/');
 
-    browser.end();
   },
   'Security server client edit rest endpoints': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const operationDetails = mainPage.section.restOperationDetails;
-    const restEndpoints = mainPage.section.restServiceEndpoints;
-    const endpointPopup = mainPage.section.editEndpointPopup;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
@@ -657,29 +572,9 @@ module.exports = {
     browser.waitForElementNotPresent(
       '//table[.//thead[.//*[contains(text(),"HTTP Request Method")]]]//*[contains(text(),"/testreq3")]',
     );
-
-    browser.end();
   },
   'Security server client edit rest service': async (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const restServiceDetails = mainPage.section.restServiceDetails;
-
     var startTime, startTimestamp;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -811,26 +706,8 @@ module.exports = {
         .text.to.not.contain(startTimestamp);
     });
 
-    browser.end();
   },
   'Security server client delete rest service': (browser) => {
-    const frontPage = browser.page.ssLoginPage();
-    const mainPage = browser.page.ssMainPage();
-    const clientsTab = mainPage.section.clientsTab;
-    const clientInfo = mainPage.section.clientInfo;
-    const clientServices = clientInfo.section.services;
-    const restServiceDetails = mainPage.section.restServiceDetails;
-
-    // Open SUT and check that page is loaded
-    frontPage.navigateAndMakeTestable();
-    browser.waitForElementVisible('//*[@id="app"]');
-
-    // Enter valid credentials
-    frontPage.signinDefaultUser();
-
-    // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -863,6 +740,5 @@ module.exports = {
       clientServices.elements.serviceDescription,
     );
 
-    browser.end();
   },
 };
