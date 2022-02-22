@@ -27,12 +27,12 @@ package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
 
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.operator.DigestCalculator;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -44,9 +44,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import static ee.ria.xroad.common.ErrorCodes.X_IO_ERROR;
 import static ee.ria.xroad.common.ErrorCodes.X_MALFORMED_GLOBALCONF;
@@ -84,11 +87,6 @@ class ConfigurationDownloader {
 
     ConfigurationParser getParser() {
         return new ConfigurationParser();
-    }
-
-    @SneakyThrows
-    Path getFileName(ConfigurationFile file) {
-        return fileNameProvider.getFileName(file);
     }
 
     /**
@@ -159,7 +157,9 @@ class ConfigurationDownloader {
         List<DownloadedContent> downloadedContents = downloadAllContent(configuration);
 
         // when everything is ok save contents and/or update expiry dates
-        persistAllContent(downloadedContents);
+        Set<Path> neededFiles = persistAllContent(downloadedContents);
+
+        deleteExtraFiles(configuration.getInstanceIdentifier(), neededFiles);
 
         return configuration;
     }
@@ -171,7 +171,7 @@ class ConfigurationDownloader {
         ConfigurationLocation location = configuration.getLocation();
 
         for (ConfigurationFile file: configuration.getFiles()) {
-            Path contentFileName = getFileName(file);
+            Path contentFileName = fileNameProvider.getFileName(file);
             if (shouldDownload(file, contentFileName)) {
                 byte[] content = downloadContent(location, file);
 
@@ -190,15 +190,36 @@ class ConfigurationDownloader {
         return result;
     }
 
-    void persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+    Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
+        Set<Path> result = new HashSet();
         for (DownloadedContent downloadedContent: downloadedContents) {
-            Path contentFileName = getFileName(downloadedContent.file);
+            Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
             if (downloadedContent.content != null) {
                 persistContent(downloadedContent.content, contentFileName, downloadedContent.file);
             } else {
                 updateExpirationDate(contentFileName, downloadedContent.file);
             }
+            result.add(contentFileName);
+            result.add(contentFileName.resolveSibling(contentFileName.getFileName()
+                    + ConfigurationConstants.FILE_NAME_SUFFIX_METADATA));
         }
+        return result;
+    }
+
+    void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
+        Path instanceDirectory = fileNameProvider.getConfigurationDirectory(instanceIdentifier);
+        try {
+            try (Stream<Path> fileStream = Files.walk(instanceDirectory)) {
+                fileStream
+                        .filter(i -> !neededFiles.contains(i))
+                        .map(Path::toFile)
+                        .filter(File::isFile)
+                        .forEach(File::delete);
+            }
+        } catch (IOException e) {
+            log.error("Error deleting file in directory " + instanceDirectory, e);
+        }
+
     }
 
     protected static class DownloadedContent {

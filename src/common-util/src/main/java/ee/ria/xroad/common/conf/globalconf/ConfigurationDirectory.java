@@ -33,13 +33,14 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
-import java.util.Comparator;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * Configuration directory interface.
@@ -122,14 +123,26 @@ public interface ConfigurationDirectory {
 
     static void deleteDirectory(Path directory) {
         try {
-            try (Stream<Path> fileStream = Files.walk(directory)) {
-                fileStream
-                        .sorted(Comparator.reverseOrder())
-                        .map(Path::toFile)
-                        .forEach(File::delete);
-            }
+            Files.walkFileTree(directory,
+                new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult postVisitDirectory(
+                            Path dir, IOException exc) throws IOException {
+                        super.postVisitDirectory(dir, exc);
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult visitFile(
+                            Path file, BasicFileAttributes attrs)
+                            throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
         } catch (IOException e) {
-            LOG.error("Error deleting directory " + directory.toString(), e);
+            LOG.error("Error deleting directory " + directory, e);
         }
     }
 
