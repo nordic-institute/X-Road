@@ -49,6 +49,15 @@ module.exports = {
 
   beforeEach: function (browser) {
     browser.LoginCommand();
+  },
+
+  afterEach: function (browser) {
+    mainPage.logout()
+  },
+  after: function (browser) {
+    browser.end();
+  },
+  'Security server client add rest service': (browser) => {
     clientsTab.openClient('TestService');
     browser.waitForElementVisible(clientInfo);
     clientInfo.openServicesTab();
@@ -138,6 +147,11 @@ module.exports = {
     );
   },
   'Security server client edit rest operation': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
 
@@ -247,6 +261,11 @@ module.exports = {
     operationDetails.close();
   },
   'Security server client add rest operation access rights': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(operationDetails);
@@ -305,6 +324,11 @@ module.exports = {
 
   },
   'Security server client remove rest operation access rights': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(operationDetails);
@@ -360,6 +384,11 @@ module.exports = {
     );
   },
   'Security server client add rest endpoints': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(operationDetails);
@@ -462,6 +491,13 @@ module.exports = {
 
   },
   'Security server client edit rest endpoints': (browser) => {
+    mainPage.openClientsTab();
+    browser.waitForElementVisible(clientsTab);
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
     browser.waitForElementVisible(operationDetails);
@@ -527,6 +563,11 @@ module.exports = {
   },
   'Security server client edit rest service': async (browser) => {
     var startTime, startTimestamp;
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     clientServices.expandServiceDetails();
 
     browser.getText(
@@ -655,6 +696,11 @@ module.exports = {
 
   },
   'Security server client delete rest service': (browser) => {
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
     // Verify cancel delete
     clientServices.openServiceDetails();
     browser.waitForElementVisible(restServiceDetails);
