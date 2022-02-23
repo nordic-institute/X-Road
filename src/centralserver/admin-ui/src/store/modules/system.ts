@@ -31,7 +31,7 @@ import * as api from '@/util/api';
 import {
   InitializationStatus,
   InitialServerConf,
-  ServerAddressUpdateBody,
+  CentralServerAddress,
   SystemStatus,
   TokenInitStatus,
   Version,
@@ -90,7 +90,7 @@ export const systemStore = defineStore('systemStore', {
         .get<SystemStatus>('/system/status')
         .then((resp) => (this.systemStatus = resp.data));
     },
-    async updateCentralServerAddress(newAddress: ServerAddressUpdateBody) {
+    async updateCentralServerAddress(newAddress: CentralServerAddress) {
       return api
         .put<SystemStatus>('/system/status/server-address', newAddress)
         .then((resp) => (this.systemStatus = resp.data));

@@ -28,8 +28,9 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.SystemApi;
+import org.niis.xroad.centralserver.openapi.model.CentralServerAddress;
 import org.niis.xroad.centralserver.openapi.model.HighAvailabilityStatus;
-import org.niis.xroad.centralserver.openapi.model.ServerAddressUpdateBody;
+import org.niis.xroad.centralserver.openapi.model.InstanceIdentifier;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
 import org.niis.xroad.centralserver.restapi.config.HAConfigStatus;
@@ -60,15 +61,24 @@ public class SystemApiController implements SystemApi {
 
 
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<SystemStatus> systemStatus() {
+    public ResponseEntity<SystemStatus> getSystemStatus() {
         return getSystemStatusResponseEntity();
     }
 
+    @Override
+    public ResponseEntity<InstanceIdentifier> getInstanceIdentifier() {
+        throw new RuntimeException("not implemented yet");
+    }
+
+    @Override
+    public ResponseEntity<CentralServerAddress> getCentralServerAddress() {
+        throw new RuntimeException("not implemented yet");
+    }
 
     /**
      * PUT /system/status/server-address : update the server address
      *
-     * @param serverAddressUpdateBody New central server address (required)
+     * @param centralServerAddress New central server address (required)
      * @return System status with updated Central Server address (status code 200)
      * or request was invalid (status code 400)
      * or authentication credentials are missing (status code 401)
@@ -79,18 +89,17 @@ public class SystemApiController implements SystemApi {
      */
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_CENTRAL_SERVER_ADDRESS)
-    public ResponseEntity<SystemStatus> updateCentralServerAddress(
-                    ServerAddressUpdateBody serverAddressUpdateBody) {
+    public ResponseEntity<SystemStatus> updateCentralServerAddress(CentralServerAddress centralServerAddress) {
         auditDataHelper.put(RestApiAuditProperty.CENTRAL_SERVER_ADDRESS,
-                serverAddressUpdateBody.getCentralServerAddress());
+                centralServerAddress.getCentralServerAddress());
         systemParameterService.updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
-                serverAddressUpdateBody.getCentralServerAddress());
+                centralServerAddress.getCentralServerAddress());
         return getSystemStatusResponseEntity();
     }
 
     @Override
     @PreAuthorize("hasAuthority('VIEW_VERSION')")
-    public ResponseEntity<Version> systemVersion() {
+    public ResponseEntity<Version> getSystemVersion() {
         return ResponseEntity.ok(new Version().info(ee.ria.xroad.common.Version.XROAD_VERSION));
     }
 

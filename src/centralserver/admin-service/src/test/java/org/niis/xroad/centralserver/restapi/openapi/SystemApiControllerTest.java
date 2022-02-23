@@ -30,7 +30,7 @@ import ee.ria.xroad.signer.protocol.dto.TokenInfo;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.centralserver.openapi.model.ServerAddressUpdateBody;
+import org.niis.xroad.centralserver.openapi.model.CentralServerAddress;
 import org.niis.xroad.centralserver.openapi.model.SystemStatus;
 import org.niis.xroad.centralserver.openapi.model.TokenInitStatus;
 import org.niis.xroad.centralserver.openapi.model.Version;
@@ -70,9 +70,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_VERSION"})
+    @WithMockUser(authorities = { "VIEW_VERSION" })
     public void testGetVersionEndpoint() {
-        ResponseEntity<Version> response = systemApiController.systemVersion();
+        ResponseEntity<Version> response = systemApiController.getSystemVersion();
         assertNotNull(response, "System Version response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Version response status code must be 200 ");
         assertNotNull(response.getBody());
@@ -80,9 +80,9 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"VIEW_VERSION"})
+    @WithMockUser(authorities = { "VIEW_VERSION" })
     public void testGetSystemStatusEndpoint() {
-        ResponseEntity<SystemStatus> response = systemApiController.systemStatus();
+        ResponseEntity<SystemStatus> response = systemApiController.getSystemStatus();
         assertNotNull(response, "System status response must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "System status response status code must be 200 ");
         assertNotNull(response.getBody());
@@ -99,7 +99,7 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
     }
 
     @Test
-    @WithMockUser(authorities = {"EDIT_SECURITY_SERVER_ADDRESS"})
+    @WithMockUser(authorities = { "EDIT_SECURITY_SERVER_ADDRESS" })
     public void testUpdateCentralServerAddress() throws Exception {
         when(signerProxyFacade.getToken(SSL_TOKEN_ID)).thenReturn(
                 testSWToken); // for the getInitializationStatus
@@ -109,10 +109,10 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         )).thenReturn("VALID_CS_ADDRESS_UPDATE_TEST_INSTANCE");
         when(systemParameterService.getParameterValue(eq(CENTRAL_SERVER_ADDRESS), any())).thenReturn(
                 "original.server.address.example.com");
-        ServerAddressUpdateBody updateBody = new ServerAddressUpdateBody();
-        updateBody.setCentralServerAddress("updated.server.address.example.com");
+        CentralServerAddress centralServerAddress = new CentralServerAddress()
+                .centralServerAddress("updated.server.address.example.com");
 
-        ResponseEntity<SystemStatus> response = systemApiController.updateCentralServerAddress(updateBody);
+        ResponseEntity<SystemStatus> response = systemApiController.updateCentralServerAddress(centralServerAddress);
         assertNotNull(response);
 
         assertEquals(200, response.getStatusCodeValue());
@@ -121,17 +121,17 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
         assertNotNull(response.getBody().getHighAvailabilityStatus());
         assertNotNull(response.getBody().getInitializationStatus().getCentralServerAddress());
         verify(systemParameterService).updateOrCreateParameter(SystemParameterService.CENTRAL_SERVER_ADDRESS,
-                updateBody.getCentralServerAddress());
+                centralServerAddress.getCentralServerAddress());
     }
 
     @Test
-    @WithMockUser(authorities = {"EDIT_SECURITY_SERVER_ADDRESS"})
+    @WithMockUser(authorities = { "EDIT_SECURITY_SERVER_ADDRESS" })
     public void testUpdateCentralServerAddressInvalidParam() {
-        ServerAddressUpdateBody updateBody = new ServerAddressUpdateBody();
-        updateBody.setCentralServerAddress("invalid...address.c");
+        CentralServerAddress centralServerAddress = new CentralServerAddress()
+                .centralServerAddress("invalid...address.c");
 
         Exception exception = assertThrows(ConstraintViolationException.class,
-                () -> systemApiController.updateCentralServerAddress(updateBody));
+                () -> systemApiController.updateCentralServerAddress(centralServerAddress));
         assertNotNull(exception);
         assertNotNull(exception.getMessage());
         assertTrue(
@@ -141,6 +141,5 @@ public class SystemApiControllerTest extends AbstractApiControllerTestContext {
                 eq(SystemParameterService.CENTRAL_SERVER_ADDRESS),
                 any());
     }
-
 
 }

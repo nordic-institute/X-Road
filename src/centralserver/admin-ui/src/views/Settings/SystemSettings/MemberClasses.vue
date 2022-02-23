@@ -238,7 +238,7 @@ export default Vue.extend({
     },
     openMemberClassDialog(item: MemberClass | undefined) {
       if (item === undefined) {
-        this.activeItem = { code: '', description: '' };
+        this.activeItem = { code: '', description: '', created_at: '', updated_at: '' };
         this.adding = true;
       } else {
         this.activeItem = { ...item };
