@@ -26,6 +26,37 @@ public class ClientServiceIntegrationTest {
     private SecurityServerClientRepository securityServerClientRepository;
 
     @Test
+    public void findClientsByMemberName() {
+        String memberName = "Member1";
+        var clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.subsystemWithMembername(memberName));
+        // one subsystem
+        assertEquals(1, clients.size());
+
+        clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.memberWithMemberName(memberName));
+        // one member
+        assertEquals(1, clients.size());
+
+        clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.clientWithMemberName(memberName));
+        // should be one member and one subsystem
+        // instead only finds one subsystem
+        // (or one member, if we switch the order of
+        //             Predicate pred = builder.or(
+        //                    subsystemWithMemberNamePredicate(root, builder, s),
+        //                    memberWithMemberNamePredicate(root, builder, s)
+        assertEquals(2, clients.size());
+    }
+
+
+    /**
+     * ******************************************************************************
+     * Misc experiments....
+     * ******************************************************************************
+     */
+
+    @Test
     public void findSubsystems() {
         var clients = securityServerClientRepository.findAll(SecurityServerClientRepository.isSubsystem());
         assertEquals(1, clients.size());
@@ -43,14 +74,46 @@ public class ClientServiceIntegrationTest {
     }
 
 
+
     @Test
-    public void findSubsystemsWithName() {
+    public void findSubsystemsWithMemberName() {
         var clients = securityServerClientRepository.findAll(
-                SecurityServerClientRepository.isSubsystemAndMembernameIs("Member1"));
+                SecurityServerClientRepository.subsystemWithMembername("Member1"));
         assertEquals(1, clients.size());
         clients = securityServerClientRepository.findAll(
-                SecurityServerClientRepository.isSubsystemAndMembernameIs("Member2"));
+                SecurityServerClientRepository.subsystemWithMembername("Member2"));
         assertEquals(0, clients.size());
+    }
+
+    @Test
+    public void findAnyWithMemberName() {
+        var clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.clientWithMemberName("Member1"));
+        // one member and one subsystem
+        assertEquals(2, clients.size());
+        clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.clientWithMemberName("MemberFoo"));
+        // no clients
+        assertEquals(0, clients.size());
+        clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.clientWithMemberName("Member2"));
+        // one member
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void findMemberWithMemberName() {
+        var clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.memberWithMemberName("Member1"));
+        assertEquals(1, clients.size());
+        clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.memberWithMemberName("MemberFoo"));
+        // no clients
+        assertEquals(0, clients.size());
+        clients = securityServerClientRepository.findAll(
+                SecurityServerClientRepository.memberWithMemberName("Member2"));
+        // one member
+        assertEquals(1, clients.size());
     }
 
     @Test

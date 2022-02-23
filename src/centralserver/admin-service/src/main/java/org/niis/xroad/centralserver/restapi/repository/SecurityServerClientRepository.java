@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -19,6 +21,52 @@ public interface SecurityServerClientRepository extends PagingAndSortingReposito
     List<SecurityServerClient> findAll(Specification<SecurityServerClient> spec);
 
     List<SecurityServerClient> findAll();
+
+    static Specification<SecurityServerClient> clientWithMemberName(String s) {
+        return (root, query, builder) -> {
+            Predicate pred = builder.or(
+                    subsystemWithMemberNamePredicate(root, builder, s),
+                    memberWithMemberNamePredicate(root, builder, s)
+            );
+            return pred;
+        };
+    }
+
+    static Specification<SecurityServerClient> memberWithMemberName(String s) {
+        return (root, query, builder) -> {
+            return memberWithMemberNamePredicate(root, builder, s);
+        };
+    }
+
+    static Specification<SecurityServerClient> subsystemWithMembername(String s) {
+        return (root, query, builder) -> {
+            return subsystemWithMemberNamePredicate(root, builder, s);
+        };
+    }
+
+    private static Predicate memberWithMemberNamePredicate(Root root, CriteriaBuilder builder, String name) {
+        Predicate isMember = builder.equal(root.type(), XRoadMember.class);
+        Predicate memberMemberName = builder
+                .equal((builder.treat(root, XRoadMember.class).get("name")), name);
+        Predicate pred = builder.and(isMember, memberMemberName);
+        return pred;
+    }
+
+    private static Predicate subsystemWithMemberNamePredicate(Root root, CriteriaBuilder builder, String name) {
+        Predicate isSubsystem = builder.equal(root.type(), Subsystem.class);
+        Predicate subsystemMemberName = builder
+                .equal((builder.treat(root, Subsystem.class).get("xroadMember")).get("name"), name);
+        Predicate pred = builder.and(isSubsystem, subsystemMemberName);
+        return pred;
+    }
+
+
+
+    /**
+     * ******************************************************************************
+     * Misc experiments....
+     * ******************************************************************************
+     */
 
     static Specification<SecurityServerClient> isSubsystemAndCodeIs(String s) {
         return (root, query, builder) -> {
