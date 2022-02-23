@@ -48,7 +48,6 @@ export const useUser = defineStore('user', {
       currentSecurityServer: {} as SecurityServer,
       initializationStatus: undefined as InitializationStatus | undefined,
       bannedRoutes: [] as string[], // Array for routes the user doesn't have permission to access.
-      omaTesti: 0,
     };
   },
   persist: true,
