@@ -40,12 +40,7 @@ public class ClientServiceIntegrationTest {
 
         clients = securityServerClientRepository.findAll(
                 SecurityServerClientRepository.clientWithMemberName(memberName));
-        // should be one member and one subsystem
-        // instead only finds one subsystem
-        // (or one member, if we switch the order of
-        //             Predicate pred = builder.or(
-        //                    subsystemWithMemberNamePredicate(root, builder, s),
-        //                    memberWithMemberNamePredicate(root, builder, s)
+        // one member and one subsystem
         assertEquals(2, clients.size());
     }
 

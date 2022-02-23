@@ -9,7 +9,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
+import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -22,15 +22,15 @@ public interface SecurityServerClientRepository extends PagingAndSortingReposito
 
     List<SecurityServerClient> findAll();
 
-    static Specification<SecurityServerClient> clientWithMemberName(String s) {
+    static Specification<SecurityServerClient> clientWithMemberName(String name) {
         return (root, query, builder) -> {
-            Predicate pred = builder.or(
-                    subsystemWithMemberNamePredicate(root, builder, s),
-                    memberWithMemberNamePredicate(root, builder, s)
+            return builder.or(
+                    subsystemWithMemberNamePredicate(root, builder, name),
+                    memberWithMemberNamePredicate(root, builder, name)
             );
-            return pred;
         };
     }
+
 
     static Specification<SecurityServerClient> memberWithMemberName(String s) {
         return (root, query, builder) -> {
@@ -45,19 +45,19 @@ public interface SecurityServerClientRepository extends PagingAndSortingReposito
     }
 
     private static Predicate memberWithMemberNamePredicate(Root root, CriteriaBuilder builder, String name) {
-        Predicate isMember = builder.equal(root.type(), XRoadMember.class);
-        Predicate memberMemberName = builder
-                .equal((builder.treat(root, XRoadMember.class).get("name")), name);
-        Predicate pred = builder.and(isMember, memberMemberName);
-        return pred;
+        return builder.and(
+                builder.equal(root.type(), XRoadMember.class),
+                builder.equal(builder.treat(root, XRoadMember.class).get("name"), name)
+        );
     }
 
     private static Predicate subsystemWithMemberNamePredicate(Root root, CriteriaBuilder builder, String name) {
-        Predicate isSubsystem = builder.equal(root.type(), Subsystem.class);
-        Predicate subsystemMemberName = builder
-                .equal((builder.treat(root, Subsystem.class).get("xroadMember")).get("name"), name);
-        Predicate pred = builder.and(isSubsystem, subsystemMemberName);
-        return pred;
+        return builder.and(
+                builder.equal(builder.treat(root, Subsystem.class).type(), Subsystem.class),
+                builder.equal(builder.treat(root, Subsystem.class)
+                                     .join("xroadMember", JoinType.LEFT)
+                                     .get("name"), name)
+        );
     }
 
 
@@ -67,6 +67,104 @@ public interface SecurityServerClientRepository extends PagingAndSortingReposito
      * Misc experiments....
      * ******************************************************************************
      */
+
+    static Specification<SecurityServerClient> fooQuery5() {
+        // subsystem with id 10, member with id 1
+        return (root, query, builder) -> {
+
+            var subsystemsMember = builder.treat(root, Subsystem.class).join("xroadMember", JoinType.LEFT);
+
+            var subsystem = builder.and(
+                    builder.equal(root.type(), Subsystem.class),
+//                    builder.equal(builder.treat(root, Subsystem.class).type(), Subsystem.class),
+                    builder.equal(subsystemsMember.get("name"), "Member1")
+
+//                    builder.equal(root.type(), Subsystem.class),
+//                    builder.equal(builder.treat(root, Subsystem.class)
+//                                         .join("xroadMember", JoinType.LEFT)
+//                                         .get("name"), "Member1")
+//                    builder.equal(builder.treat(root, Subsystem.class).get("xroadMember").get("name"), "Member1")
+//                    builder.equal(builder.treat(root, Subsystem.class).get("subsystemCode"), "SS1")
+            );
+            var member = builder.and(
+                    builder.equal(root.type(), XRoadMember.class),
+                    builder.equal(builder.treat(root, XRoadMember.class).get("name"), "Member1")
+            );
+            Predicate pred = builder.or(subsystem, member);
+            return pred;
+        };
+    }
+
+
+    static Specification<SecurityServerClient> fooQuery4() {
+        // subsystem with id 10, member with id 1
+        return (root, query, builder) -> {
+            var subsystem = builder.and(
+                    builder.equal(root.type(), Subsystem.class),
+                    builder.equal(builder.treat(root, Subsystem.class)
+                                         .join("xroadMember", JoinType.LEFT)
+                                         .get("name"), "Member1")
+//                    builder.equal(builder.treat(root, Subsystem.class).get("xroadMember").get("name"), "Member1")
+//                    builder.equal(builder.treat(root, Subsystem.class).get("subsystemCode"), "SS1")
+            );
+            var member = builder.and(
+                    builder.equal(root.type(), XRoadMember.class),
+                    builder.equal(builder.treat(root, XRoadMember.class).get("name"), "Member1")
+            );
+            Predicate pred = builder.or(subsystem, member);
+            return pred;
+        };
+    }
+    static Specification<SecurityServerClient> fooQuery3() {
+        // subsystem with id 10, member with id 1
+        return (root, query, builder) -> {
+            var subsystem = builder.and(
+                    builder.equal(root.type(), Subsystem.class),
+                    builder.equal(builder.treat(root, Subsystem.class).get("xroadMember").get("name"), "Member1")
+//                    builder.equal(builder.treat(root, Subsystem.class).get("subsystemCode"), "SS1")
+            );
+            var member = builder.and(
+                    builder.equal(root.type(), XRoadMember.class),
+                    builder.equal(builder.treat(root, XRoadMember.class).get("name"), "Member1")
+            );
+            Predicate pred = builder.or(subsystem, member);
+            return pred;
+        };
+    }
+
+    static Specification<SecurityServerClient> fooQuery2() {
+        // subsystem with id 10, member with id 1
+        return (root, query, builder) -> {
+            var subsystem = builder.and(
+                    builder.equal(root.type(), Subsystem.class),
+                    builder.equal(builder.treat(root, Subsystem.class).get("subsystemCode"), "SS1")
+            );
+            var member = builder.and(
+                    builder.equal(root.type(), XRoadMember.class),
+                    builder.equal(builder.treat(root, XRoadMember.class).get("name"), "Member1")
+            );
+            Predicate pred = builder.or(subsystem, member);
+            return pred;
+        };
+    }
+
+    static Specification<SecurityServerClient> fooQuery1() {
+        // subsystem with id 10, member with id 1
+        return (root, query, builder) -> {
+            var subsystem = builder.and(
+                    builder.equal(builder.treat(root, Subsystem.class).type(), Subsystem.class),
+                    builder.equal(builder.treat(root, Subsystem.class).get("subsystemCode"), "SS1")
+            );
+            var member = builder.and(
+                    builder.equal(builder.treat(root, XRoadMember.class).type(), XRoadMember.class),
+                    builder.equal(builder.treat(root, XRoadMember.class).get("name"), "Member1")
+            );
+            Predicate pred = builder.or(subsystem, member);
+            return pred;
+        };
+    }
+
+
 
     static Specification<SecurityServerClient> isSubsystemAndCodeIs(String s) {
         return (root, query, builder) -> {
