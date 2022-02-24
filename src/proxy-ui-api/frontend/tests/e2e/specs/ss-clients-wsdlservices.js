@@ -51,6 +51,11 @@ module.exports = {
     browser.LoginCommand();
     mainPage.openClientsTab();
     browser.waitForElementVisible(clientsTab);
+    clientsTab.openClient('TestService');
+    browser.waitForElementVisible(clientInfo);
+    clientInfo.openServicesTab();
+    browser.waitForElementVisible(clientServices);
+
   },
 
   afterEach: function (browser) {
@@ -62,11 +67,6 @@ module.exports = {
 
 
   'Security server client add wsdl service': (browser) => {
-    // Navigate
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
 
     // Verify empty and malformed URL error messages
     clientServices.openAddWSDL();
@@ -114,12 +114,6 @@ module.exports = {
     );
   },
   'Security server client edit wsdl operation': (browser) => {
-    // Navigate
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-
     clientServices.expandServiceDetails();
     clientServices.openOperation('testOp1');
     operationDetails.close();
@@ -265,10 +259,7 @@ module.exports = {
     },
   'Security server client add wsdl operation access rights': (browser) => {
     // Navigate
-    mainPage.openClientsTab();
-    browser.waitForElementVisible(clientsTab);
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
+
     clientInfo.openServicesTab();
     browser.waitForElementVisible(clientServices);
 
@@ -310,14 +301,8 @@ module.exports = {
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestCom")]',
     );
-
   },
   'Security server client remove wsdl operation access rights': (browser) => {
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-
     clientServices.expandServiceDetails();
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
@@ -374,11 +359,6 @@ module.exports = {
   },
   'Security server client edit wsdl service': async (browser) => {
     var startTime, startTimestamp;
-
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
 
     clientServices.expandServiceDetails();
     clientServices.refreshServiceData();
@@ -520,12 +500,6 @@ module.exports = {
 
   },
   'Security server client delete wsdl service': (browser) => {
-    // Open TestGov Internal Servers
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-
     // Verify cancel delete
     clientServices.openServiceDetails();
     browser.waitForElementVisible(serviceDetails);
@@ -557,13 +531,6 @@ module.exports = {
   },
   'Security server client refresh wsdl service': (browser) => {
     var startTime, startTimestamp;
-
-    // Open SUT and check that page is loaded
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-
     // Verify successfull URL open
     clientServices.openAddWSDL();
     clientServices.initServiceUrl(
