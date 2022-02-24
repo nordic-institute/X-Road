@@ -24,41 +24,63 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service;
+package org.niis.xroad.centralserver.restapi.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import javax.transaction.Transactional;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-public class MemberClassServiceTest {
+@AutoConfigureTestDatabase
+@Transactional
+@WithMockUser
+public class SecurityServerClientRepositoryIntegrationTest {
 
     @Autowired
-    private MemberClassService service;
-
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 1;
+    private SecurityServerClientRepository repository;
 
     @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    public void findClientsByMemberName() {
+        String memberName = "Member1";
+        var clients = repository.findAll(
+                SecurityServerClientRepository.subsystemWithMembername(memberName));
+        // one subsystem
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                SecurityServerClientRepository.memberWithMemberName(memberName));
+        // one member
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                SecurityServerClientRepository.clientWithMemberName(memberName));
+        // one member and one subsystem
+        assertEquals(2, clients.size());
+    }
+
+    @Test
+    public void findAll() {
+        var clients = repository.findAll();
+        assertEquals(10, clients.size());
+    }
+
+    @Test
+    public void findByType() {
+        var clients = repository.findAll(
+                SecurityServerClientRepository.member());
+        assertEquals(9, clients.size());
+
+        clients = repository.findAll(
+                SecurityServerClientRepository.subsystem());
+        assertEquals(1, clients.size());
     }
 
 }
