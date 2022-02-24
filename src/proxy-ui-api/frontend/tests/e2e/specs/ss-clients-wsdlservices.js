@@ -126,28 +126,6 @@ module.exports = {
     clientServices.openOperation('testOp1');
     browser.waitForElementVisible(operationDetails);
 
-    // Verify tooltips
-    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
-    browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
-    browser.expect
-      .element(operationDetails.elements.activeTooltip)
-      .to.be.visible; // 'The URL where requests targeted at the service are directed'
-    browser.moveToElement(operationDetails, 0, 0);
-    browser.expect.element(operationDetails.elements.activeTooltip).to.not.be
-      .present;
-    browser.moveToElement(operationDetails.elements.timeoutHelp, 0, 0);
-    browser.expect
-      .element(operationDetails.elements.activeTooltip)
-      .to.be.visible; // 'The maximum duration of a request to the service, in seconds'
-    browser.moveToElement(operationDetails, 0, 0);
-    browser.expect.element(operationDetails.elements.activeTooltip).to.not.be
-      .present;
-    browser.moveToElement(operationDetails.elements.verifyCertHelp, 0, 0);
-    browser.expect
-      .element(operationDetails.elements.activeTooltip)
-      .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
-    */
-
     // Verify cancel
     operationDetails.toggleCertVerification();
     operationDetails.modifyUrl('https://www.niis.org/nosuch2/');

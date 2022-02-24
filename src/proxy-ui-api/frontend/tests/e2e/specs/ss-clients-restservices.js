@@ -147,26 +147,6 @@ module.exports = {
     clientServices.expandServiceDetails();
     clientServices.openOperation('s1c1');
 
-    // Verify tooltips
-    /* Tooltips are currently in v7 displayed constantly, thus verification of tooltips is disabled
-    browser.moveToElement(operationDetails.elements.urlHelp, 0, 0);
-    browser.waitForElementVisible(operationDetails.elements.activeTooltip);
-    browser.expect
-      .element(operationDetails.elements.activeTooltip)
-      .to.be.visible; // 'The URL where requests targeted at the service are directed'
-
-    browser.moveToElement(operationDetails.elements.timeoutHelp, 0, 0);
-    browser.waitForElementVisible(operationDetails.elements.activeTooltip);
-    browser.expect
-      .element(operationDetails.elements.activeTooltip)
-      .to.be.visible; // 'The maximum duration of a request to the service, in seconds'
-
-    browser.moveToElement(operationDetails.elements.verifyCertHelp, 0, 0);
-    browser.waitForElementVisible(operationDetails.elements.activeTooltip);
-    browser.expect
-      .element(operationDetails.elements.activeTooltip)
-      .to.be.visible; // 'Verify TLS certificate when a secure connection is established'
-    */
 
     // Verify cancel
     browser.expect.element(operationDetails.elements.sslAuth).to.not.be
