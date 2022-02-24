@@ -35,7 +35,7 @@ export const useSystemStore = defineStore('systemStore', {
       securityServerNodeType: undefined as undefined | NodeType,
     };
   },
-  persist: true,
+  persist: true, // This store is saved into browser local storage (pinia-plugin-persistedstate)
   getters: {
     isSecondaryNode(state) {
       return state.securityServerNodeType === NodeType.SECONDARY;
@@ -53,6 +53,11 @@ export const useSystemStore = defineStore('systemStore', {
       return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
         this.securityServerNodeType = res.data.node_type;
       });
+    },
+
+    // Reset store
+    clearSystemStore() {
+      this.$reset();
     },
   },
 });

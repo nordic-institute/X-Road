@@ -168,10 +168,12 @@ export default (
       'fetchInitializationStatus',
       'fetchUserData',
       'fetchCurrentSecurityServer',
+      'clearAuth',
     ]),
     ...mapActions(useSystemStore, [
       'fetchSecurityServerVersion',
       'fetchSecurityServerNodeType',
+      'clearSystemStore',
     ]),
     ...mapActions(useNotifications, [
       'showError',
@@ -181,6 +183,11 @@ export default (
     async submit() {
       // Clear error notifications when route is changed
       this.clearErrorNotifications();
+
+      /* Clear user data so there is nothing left from previous sessions.
+       For example user has closed browser tab without loggin out > user data is left in browser local storage */
+      this.clearAuth();
+      this.clearSystemStore();
 
       // Validate inputs
       const isValid = await this.$refs.form.validate();
