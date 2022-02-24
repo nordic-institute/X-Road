@@ -1809,7 +1809,7 @@ paths:
       parameters:
         - description: >
                 An optional generic filtering query parameter selects only items that contain parameter
-                value in properties (name, instance, member_class, member_code, subsystem_code, security_server) . Needs to be properly encoded for the
+                value in properties (member name, member_class, member_code, subsystem_code) . Needs to be properly encoded for the
                 special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
@@ -1817,7 +1817,6 @@ paths:
           schema:
             example: foobar
             format: text
-            minLength: 3
             maxLength: 25
             type: string
         - description: optional paging and sorting parameters
@@ -2179,7 +2178,6 @@ paths:
           schema:
             example: foobar
             format: text
-            minLength: 3
             maxLength: 25
             type: string
         - description: optional paging and sorting parameters
@@ -3674,7 +3672,6 @@ components:
         - id
         - member_name
         - xroad_id
-        - client_type
       properties:
         id:
           description: the encoded string representation of the x-road member or subsystem id
@@ -3686,8 +3683,6 @@ components:
           readOnly: true
         xroad_id:
           $ref: '#/components/schemas/ClientId'
-        client_type:
-          $ref: '#/components/schemas/ClientType'
       type: object
     MemberClass:
       allOf:
@@ -3886,8 +3881,28 @@ components:
           description: Total number of items in the query results
           type: integer
           format: int32
+        items:
+          description: Number of items on the current page of query results
+          type: integer
+          format: int32
+        limit:
+          description: >
+              Indicates the maximum number of items for the returned page.
+          default: 25
+          type: integer
+          format: int32
+        offset:
+          description: >
+              Offset in pages from the beginning of the query result after filtering and sorting
+              parameters are taken into account.
+          default: 0
+          type: integer
+          format: int32
       required:
         - total_items
+        - items
+        - limit
+        - offset
       type: object
     PagingSortingParameters:
       description: parameters for sorting and paging search results
@@ -3896,10 +3911,12 @@ components:
           description: Indicates item property that is to be used as sorting key.
           example: title
           minLength: 2
-          pattern: '[a-z_]+'
+          pattern: '[a-zA-Z_.]+'
           maxLength: 25
           type: string
-        sort_desc:
+        # exploded query parameters from objects dont seem to like underscores
+        # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974 
+        desc:
           description: >
               Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
               parameter indicates ascending direction.
@@ -4140,8 +4157,14 @@ components:
           SERVER: "SecurityServerId"
           SUBSYSTEM: "ClientId"
       properties:
-        instanceId:
+        instance_id:
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
+          readOnly: true
         type:
           type: string
           format: enum
@@ -4155,7 +4178,7 @@ components:
             - CENTRALSERVICE
             - LOCALGROUP
       required:
-        - instanceId
+        - instance_id
         - type
     ClientId:
       type: object
@@ -4163,30 +4186,55 @@ components:
       allOf:
         - $ref: '#/components/schemas/XRoadId'
       properties:
-        memberClass:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        memberCode:
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        subsystemCode:
+        subsystem_code:
           type: string
       required:
-        - memberClass
-        - memberCode
+        - member_class
+        - member_code
     SecurityServerId:
       allOf:
         - $ref: '#/components/schemas/XRoadId'
       type: object
       properties:
-        memberClass:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        memberCode:
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
-        serverCode:
+        server_code:
+          description: security server code
+          example: server123
+          format: text
+          maxLength: 255
+          minLength: 1
           type: string
       required:
-        - memberClass
-        - memberCode
-        - serverCode
+        - member_class
+        - member_code
+        - server_code
     ManagementRequest:
       type: object
       description: Management request

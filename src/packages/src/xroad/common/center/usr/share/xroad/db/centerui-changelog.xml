@@ -10,5 +10,6 @@
     <include file="centerui/002-hibernate-sequence.xml"/>
     <include file="centerui/003-apikeys.xml"/>
     <include file="centerui/004-identifiers-fix.xml"/>
+    <include file="centerui/005-client-search-view.xml"/>
 
 </databaseChangeLog>

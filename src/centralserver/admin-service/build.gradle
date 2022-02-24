@@ -116,6 +116,7 @@ dependencies {
     implementation('io.swagger:swagger-annotations:1.6.2')
     implementation('io.springfox:springfox-core:3.0.0')
 
+
     testImplementation project(':common-test')
     testImplementation('org.springframework.boot:spring-boot-starter-test')
     testImplementation('org.springframework.security:spring-security-test')

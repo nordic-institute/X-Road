@@ -117,7 +117,7 @@
 
 <script lang="ts">
 import Vue, { VueConstructor } from 'vue';
-import { mapActions } from 'pinia';
+import { mapActions, mapState } from 'pinia';
 import { userStore } from '@/store/modules/user';
 import { notificationsStore } from '@/store/modules/notifications';
 import { systemStore } from '@/store/modules/system';
@@ -150,6 +150,7 @@ export default (
     };
   },
   computed: {
+    ...mapState(userStore, ['getFirstAllowedTab']),
     isDisabled() {
       // beware: simplified one-liner fails at runtime
       if (
@@ -231,7 +232,7 @@ export default (
     },
     async routeToMembersPage() {
       this.$router
-        .replace({ name: RouteName.Members })
+        .replace(this.getFirstAllowedTab.to)
         .catch(swallowRedirectedNavigationError);
       this.loading = false;
     },

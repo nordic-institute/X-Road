@@ -26,39 +26,38 @@
  */
 package org.niis.xroad.centralserver.restapi.service;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.niis.xroad.centralserver.restapi.dto.MemberClassDto;
+import lombok.RequiredArgsConstructor;
+import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
+import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 
-import java.util.List;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(SpringRunner.class)
-@SpringBootTest
-public class MemberClassServiceTest {
-
+/**
+ * Service for searching {@link org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient}s
+ */
+@Service
+@Transactional
+@RequiredArgsConstructor
+public class ClientSearchService {
     @Autowired
-    private MemberClassService service;
+    private FlattenedSecurityServerClientRepository flattenedClientRepository;
 
-    private static final int MEMBER_CLASSES_IN_IMPORT_SQL = 2;
-
-    @Test
-    @Transactional
-    public void testService() {
-        service.add(new MemberClassDto("TEST", "Description"));
-        service.add(new MemberClassDto("TEST2", "Description"));
-        final List<MemberClassDto> all = service.findAll();
-        assertEquals((MEMBER_CLASSES_IN_IMPORT_SQL + 2), all.size());
-        service.delete("TEST");
-        service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
-        assertEquals("Description2", test2.getDescription());
+    public Page<FlattenedSecurityServerClientDto> find(
+            FlattenedSecurityServerClientRepository.SearchParameters params,
+            Pageable pageable) {
+        var clients = flattenedClientRepository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(params), pageable);
+        var dtos = clients.get()
+                          .map(FlattenedSecurityServerClientDto::from)
+                          .collect(Collectors.toList());
+        return new PageImpl<>(dtos, clients.getPageable(), clients.getTotalElements());
     }
 
 }

@@ -32,13 +32,12 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerId;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.securityserver.restapi.cache.CurrentSecurityServerSignCertificates;
 import org.niis.xroad.securityserver.restapi.converter.comparator.ClientSortingComparator;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 
-import java.util.ArrayList;
 import java.util.Date;
 
 import static org.junit.Assert.assertEquals;
@@ -51,7 +50,7 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
     public static final String MEMBER_NAME_PREFIX = "member-name-for-";
 
     private LocalGroupConverter localGroupConverter;
-    private ClientConverter clientConverter;
+    private ClientIdConverter clientIdConverter;
     private CurrentSecurityServerSignCertificates currentSecurityServerSignCertificates;
     private ClientSortingComparator clientSortingComparator;
 
@@ -65,15 +64,14 @@ public class LocalGroupConverterTest extends AbstractConverterTestContext {
         };
         ClientId ownerId = ClientId.create("XRD2", "GOV", "M4");
         SecurityServerId ownerSsId = SecurityServerId.create(ownerId, "CS");
+        clientIdConverter = new ClientIdConverter();
 
-        clientConverter = new ClientConverter(globalConfFacade, new CurrentSecurityServerId(ownerSsId),
-                new CurrentSecurityServerSignCertificates(new ArrayList<>()), clientSortingComparator);
-        localGroupConverter = new LocalGroupConverter(clientConverter, globalConfFacade);
+        localGroupConverter = new LocalGroupConverter(clientIdConverter, globalConfFacade);
     }
 
     @Test
     public void convertWithMembers() {
-        ClientId clientId = clientConverter.convertId("XRD2:GOV:M4:SS1");
+        ClientId clientId = clientIdConverter.convertId("XRD2:GOV:M4:SS1");
         LocalGroupType localGroupType = new LocalGroupType();
         GroupMemberType groupMemberType = new GroupMemberType();
 

@@ -86,7 +86,7 @@ public class TransactionHandlingRestTemplateTest extends AbstractApiControllerTe
                     "FI:GOV:M1");
             List<MemberInfo> members = new ArrayList<>();
             for (String encodedId : encodedClientIds) {
-                ClientId clientId = clientConverter.convertId(encodedId);
+                ClientId clientId = clientIdConverter.convertId(encodedId);
                 members.add(new MemberInfo(clientId, "mock-name-for-" + encodedId));
             }
             return members;

@@ -30,11 +30,11 @@ import ee.ria.xroad.common.conf.serverconf.model.LocalGroupType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.niis.xroad.restapi.openapi.ResourceNotFoundException;
 import org.niis.xroad.restapi.util.FormatUtils;
-import org.niis.xroad.securityserver.restapi.converter.ClientConverter;
 import org.niis.xroad.securityserver.restapi.converter.LocalGroupConverter;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroup;
 import org.niis.xroad.securityserver.restapi.openapi.model.LocalGroupDescription;
@@ -67,7 +67,7 @@ import static org.niis.xroad.restapi.config.audit.RestApiAuditEvent.REMOVE_LOCAL
 @RequiredArgsConstructor
 public class LocalGroupsApiController implements LocalGroupsApi {
 
-    private final ClientConverter clientConverter;
+    private final ClientIdConverter clientIdConverter;
     private final LocalGroupConverter localGroupConverter;
     private final LocalGroupService localGroupService;
 
@@ -105,7 +105,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         List<String> uniqueIds = new ArrayList<>(new HashSet<>(members.getItems()));
         Long groupId = FormatUtils.parseLongIdOrThrowNotFound(groupIdString);
         try {
-            localGroupService.addLocalGroupMembers(groupId, clientConverter.convertIds(uniqueIds));
+            localGroupService.addLocalGroupMembers(groupId, clientIdConverter.convertIds(uniqueIds));
         } catch (LocalGroupService.MemberAlreadyExistsException e) {
             throw new ConflictException(e);
         } catch (LocalGroupNotFoundException
@@ -137,7 +137,7 @@ public class LocalGroupsApiController implements LocalGroupsApi {
         LocalGroupType localGroupType = getLocalGroupType(groupIdString);
         try {
             localGroupService.deleteGroupMembers(localGroupType.getId(),
-                    clientConverter.convertIds(members.getItems()));
+                    clientIdConverter.convertIds(members.getItems()));
         } catch (LocalGroupService.LocalGroupMemberNotFoundException e) {
             throw new ConflictException(e);
         }
