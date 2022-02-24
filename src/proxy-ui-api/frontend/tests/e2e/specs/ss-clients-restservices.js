@@ -527,11 +527,6 @@ module.exports = {
   },
   'Security server client edit rest service': async (browser) => {
     var startTime, startTimestamp;
-    clientsTab.openClient('TestService');
-    browser.waitForElementVisible(clientInfo);
-    clientInfo.openServicesTab();
-    browser.waitForElementVisible(clientServices);
-
     clientServices.expandServiceDetails();
 
     browser.getText(
