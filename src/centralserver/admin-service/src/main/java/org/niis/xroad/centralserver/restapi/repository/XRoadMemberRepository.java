@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember_;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -45,7 +46,11 @@ public interface XRoadMemberRepository extends
     boolean existsByMemberClass(MemberClass memberClass);
 
     default Optional<XRoadMember> findOneBy(ClientId id) {
-        return findOne((root, query, builder) -> {
+        return findOne(clientIdSpec(id));
+    }
+
+    default Specification<XRoadMember> clientIdSpec(ClientId id) {
+        return (root, query, builder) -> {
             var cid = root.join(XRoadMember_.identifier);
             var pred = builder.and(
                     builder.equal(cid.get("type"), id.getObjectType()),
@@ -56,6 +61,6 @@ public interface XRoadMemberRepository extends
                 pred = builder.and(pred, builder.equal(cid.get("subsystemCode"), id.getSubsystemCode()));
             }
             return pred;
-        });
+        };
     }
 }

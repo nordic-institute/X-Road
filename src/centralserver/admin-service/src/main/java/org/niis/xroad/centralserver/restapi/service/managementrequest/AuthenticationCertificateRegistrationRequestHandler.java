@@ -47,7 +47,6 @@ import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
-import org.springframework.data.domain.Example;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -142,7 +141,7 @@ class AuthenticationCertificateRegistrationRequestHandler implements
     public boolean canAutoApprove(AuthenticationCertificateRegistrationRequest request) {
         return SystemProperties.getCenterAutoApproveAuthCertRegRequests()
                 && request.getOrigin() == Origin.SECURITY_SERVER
-                && members.findOneBy(request.getSecurityServerId().getOwner()).isPresent();
+                && members.count(members.clientIdSpec(request.getSecurityServerId().getOwner())) > 0;
     }
 
     /**
@@ -197,10 +196,7 @@ class AuthenticationCertificateRegistrationRequestHandler implements
     private AuthenticationCertificateRegistrationRequest newRequest(
             AuthenticationCertificateRegistrationRequestDto requestDto) {
 
-        var serverId = identifiers
-                .findOne(Example.of(requestDto.getServerId()))
-                .orElseGet(() -> identifiers.save(requestDto.getServerId()));
-
+        var serverId = identifiers.merge(requestDto.getServerId());
         var processing = new RequestProcessing();
         return new AuthenticationCertificateRegistrationRequest(requestDto.getOrigin(), serverId, processing);
     }

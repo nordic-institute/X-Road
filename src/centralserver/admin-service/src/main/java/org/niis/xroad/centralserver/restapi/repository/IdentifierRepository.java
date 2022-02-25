@@ -30,14 +30,18 @@ import ee.ria.xroad.common.identifier.XRoadId;
 
 import org.springframework.data.domain.Example;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.query.FluentQuery.FetchableFluentQuery;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface IdentifierRepository<T extends XRoadId> extends JpaRepository<T, Long> {
+
     /**
      * Given an X-Road identifier, return or create an equivalent persistent one.
+     *
+     * todo: this should use findOne (old data model does not guarantee unique identifiers)
      */
-    default T merge(T id) {
-        return findOne(Example.of(id)).orElse(save(id));
+    default T merge(final T id) {
+        return findBy(Example.of(id), FetchableFluentQuery::first).orElseGet(() -> save(id));
     }
 }

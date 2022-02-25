@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
+import lombok.Getter;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.Column;
@@ -37,20 +39,15 @@ import java.time.Instant;
 @MappedSuperclass
 public abstract class AuditableEntity {
 
-    private Instant createdAt = Instant.now();
-    private Instant updatedAt = createdAt;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     @Access(AccessType.FIELD)
-    public Instant getCreatedAt() {
-        return this.createdAt;
-    }
+    @Getter
+    private Instant createdAt = Instant.now();
 
     @Column(name = "updated_at", nullable = false)
     @Access(AccessType.FIELD)
-    public Instant getUpdatedAt() {
-        return this.updatedAt;
-    }
+    @Getter
+    private Instant updatedAt = createdAt;
 
     @PreUpdate
     void preUpdate() {

@@ -51,7 +51,6 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = AuthCert.TABLE_NAME)
 @EqualsAndHashCode(exclude = {"id", "securityServer"}, callSuper = false)
-@Access(AccessType.FIELD)
 @Getter
 public class AuthCert extends AuditableEntity {
     static final String TABLE_NAME = "auth_certs";
@@ -59,6 +58,7 @@ public class AuthCert extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
+    @Access(AccessType.FIELD)
     @Column(name = "id", unique = true, nullable = false, updatable = false)
     private int id;
 
