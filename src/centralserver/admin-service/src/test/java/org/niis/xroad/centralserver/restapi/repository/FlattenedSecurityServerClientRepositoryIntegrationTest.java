@@ -44,26 +44,32 @@ import static org.junit.Assert.assertEquals;
 @AutoConfigureTestDatabase
 @Transactional
 @WithMockUser
-public class SecurityServerClientRepositoryIntegrationTest {
+public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
     @Autowired
-    private SecurityServerClientRepository repository;
+    private FlattenedSecurityServerClientRepository repository;
+
+    @Test
+    public void testView() {
+        var clients = repository.findAll();
+        assertEquals(10, clients.size());
+    }
 
     @Test
     public void findClientsByMemberName() {
         String memberName = "Member1";
         var clients = repository.findAll(
-                SecurityServerClientRepository.subsystemWithMembername(memberName));
+                FlattenedSecurityServerClientRepository.subsystemWithMembername(memberName));
         // one subsystem
         assertEquals(1, clients.size());
 
         clients = repository.findAll(
-                SecurityServerClientRepository.memberWithMemberName(memberName));
+                FlattenedSecurityServerClientRepository.memberWithMemberName(memberName));
         // one member
         assertEquals(1, clients.size());
 
         clients = repository.findAll(
-                SecurityServerClientRepository.clientWithMemberName(memberName));
+                FlattenedSecurityServerClientRepository.clientWithMemberName(memberName));
         // one member and one subsystem
         assertEquals(2, clients.size());
     }
@@ -75,13 +81,26 @@ public class SecurityServerClientRepositoryIntegrationTest {
     }
 
     @Test
+    public void sort() {
+        var clients = repository.findAll(Sort.by("memberName"));
+        assertEquals(10, clients.size());
+        assertEquals("Member1", clients.get(0).getMemberName());
+
+        clients = repository.findAll(Sort.by("memberName").descending());
+        assertEquals(10, clients.size());
+        assertEquals("Member9", clients.get(0).getMemberName());
+
+    }
+
+
+    @Test
     public void findByType() {
         var clients = repository.findAll(
-                SecurityServerClientRepository.member());
+                FlattenedSecurityServerClientRepository.member());
         assertEquals(9, clients.size());
 
         clients = repository.findAll(
-                SecurityServerClientRepository.subsystem());
+                FlattenedSecurityServerClientRepository.subsystem());
         assertEquals(1, clients.size());
     }
 

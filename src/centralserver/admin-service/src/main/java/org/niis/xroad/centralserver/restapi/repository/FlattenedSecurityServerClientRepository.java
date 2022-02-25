@@ -26,9 +26,10 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
-import org.niis.xroad.centralserver.restapi.entity.Subsystem;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -36,77 +37,67 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import java.util.List;
 
 @Repository
-public interface SecurityServerClientRepository extends PagingAndSortingRepository<SecurityServerClient, Long>,
-        JpaSpecificationExecutor<SecurityServerClient> {
-    List<SecurityServerClient> findAll(Specification<SecurityServerClient> spec);
+public interface FlattenedSecurityServerClientRepository extends
+        PagingAndSortingRepository<FlattenedSecurityServerClient, Long>,
+        JpaSpecificationExecutor<FlattenedSecurityServerClient> {
 
-    List<SecurityServerClient> findAll(Sort sort);
+    Page<FlattenedSecurityServerClient> findAll(Specification<FlattenedSecurityServerClient> spec, Pageable pageable);
 
-    List<SecurityServerClient> findAll();
+    List<FlattenedSecurityServerClient> findAll();
 
-    static Specification<SecurityServerClient> clientWithMemberName(String name) {
+    List<FlattenedSecurityServerClient> findAll(Specification<FlattenedSecurityServerClient> spec);
+
+    List<FlattenedSecurityServerClient> findAll(Sort sort);
+
+    static Specification<FlattenedSecurityServerClient> clientWithMemberName(String name) {
         return (root, query, builder) -> {
-            return builder.or(
-                    subsystemWithMemberNamePredicate(root, builder, name),
-                    memberWithMemberNamePredicate(root, builder, name)
+            return namePredicate(root, builder, name);
+        };
+    }
+
+    static Specification<FlattenedSecurityServerClient> memberWithMemberName(String s) {
+        return (root, query, builder) -> {
+            return builder.and(
+                    memberPredicate(root, builder),
+                    namePredicate(root, builder, s)
             );
         };
     }
 
-    static Specification<SecurityServerClient> memberWithMemberName(String s) {
+    static Specification<FlattenedSecurityServerClient> subsystemWithMembername(String s) {
         return (root, query, builder) -> {
-            return memberWithMemberNamePredicate(root, builder, s);
+            return builder.and(
+                    subsystemPredicate(root, builder),
+                    namePredicate(root, builder, s)
+            );
         };
     }
 
-    static Specification<SecurityServerClient> subsystemWithMembername(String s) {
-        return (root, query, builder) -> {
-            return subsystemWithMemberNamePredicate(root, builder, s);
-        };
-    }
-
-    static Specification<SecurityServerClient> member() {
+    static Specification<FlattenedSecurityServerClient> member() {
         return (root, query, builder) -> {
             return memberPredicate(root, builder);
         };
     }
 
-    static Specification<SecurityServerClient> subsystem() {
+    static Specification<FlattenedSecurityServerClient> subsystem() {
         return (root, query, builder) -> {
             return subsystemPredicate(root, builder);
         };
     }
 
     private static Predicate memberPredicate(Root root, CriteriaBuilder builder) {
-        return builder.equal(builder.treat(root, XRoadMember.class).type(), XRoadMember.class);
+        return builder.equal(root.get("type"), "XRoadMember");
     }
-
     private static Predicate subsystemPredicate(Root root, CriteriaBuilder builder) {
-        return builder.equal(builder.treat(root, Subsystem.class).type(), Subsystem.class);
+        return builder.equal(root.get("type"), "Subsystem");
     }
-
-
-    private static Predicate memberWithMemberNamePredicate(Root root, CriteriaBuilder builder, String name) {
-        return builder.and(
-                memberPredicate(root, builder),
-                builder.equal(builder.treat(root, XRoadMember.class).get("name"), name)
-        );
+    private static Predicate namePredicate(Root root, CriteriaBuilder builder, String name) {
+        return builder.equal(root.get("memberName"), name);
     }
-
-    private static Predicate subsystemWithMemberNamePredicate(Root root, CriteriaBuilder builder, String name) {
-        return builder.and(
-                subsystemPredicate(root, builder),
-                builder.equal(builder.treat(root, Subsystem.class)
-                                     .join("xroadMember", JoinType.LEFT)
-                                     .get("name"), name)
-        );
-    }
-
 }

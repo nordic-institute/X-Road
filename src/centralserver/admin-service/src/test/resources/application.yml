@@ -27,6 +27,7 @@ spring:
       ddl-auto: create
     generate-ddl: true
     show-sql: true
+    defer-datasource-initialization: true
   profiles:
     active: test
   main:
