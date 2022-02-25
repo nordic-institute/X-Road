@@ -1,0 +1,10 @@
+{
+  "high": true,
+  "skip-dev": false,
+  "package-manager": "auto",
+  "allowlist": [
+    "*|@vue/cli-*",
+    "*|@storybook/*"
+  ],
+  "registry": "https://registry.npmjs.org"
+}

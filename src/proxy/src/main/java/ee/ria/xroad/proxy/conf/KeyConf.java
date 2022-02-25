@@ -68,7 +68,7 @@ public final class KeyConf {
         }
 
         if (instance == null) {
-            synchronized (KeyConfProvider.class) {
+            synchronized (KeyConf.class) {
                 if (instance == null) {
                     initInstance();
                 }
@@ -81,20 +81,23 @@ public final class KeyConf {
     /**
      * Reloads the configuration.
      */
-    public static void reload() {
+    public static synchronized void reload() {
         LOG.trace("reload()");
-
+        if (instance != null) {
+            instance.destroy();
+        }
         initInstance();
     }
 
     /**
      * Reloads the configuration with given configuration instance.
-     *
      * @param conf the new key configuration provider
      */
-    public static void reload(KeyConfProvider conf) {
+    public static synchronized void reload(KeyConfProvider conf) {
         LOG.trace("reload({})", conf.getClass());
-
+        if (instance != null) {
+            instance.destroy();
+        }
         instance = conf;
     }
 
@@ -103,8 +106,7 @@ public final class KeyConf {
      * @return signing context for given member
      */
     public static SigningCtx getSigningCtx(ClientId memberId) {
-        LOG.trace("getSigningCtx({})", memberId);
-
+        if (LOG.isTraceEnabled()) LOG.trace("getSigningCtx({})", memberId);
         return getInstance().getSigningCtx(memberId);
     }
 
@@ -113,34 +115,30 @@ public final class KeyConf {
      */
     public static AuthKey getAuthKey() {
         LOG.trace("getAuthKey()");
-
         return getInstance().getAuthKey();
     }
 
     /**
      * @param certHash hash of the certificate
      * @return the OCSP server response for the given certificate,
-     * or null, if no response is available for that certificate
+     *         or null, if no response is available for that certificate
      * @throws Exception in case of any errors
      */
     public static OCSPResp getOcspResponse(String certHash)
             throws Exception {
-        LOG.trace("getOcspResponse({})", certHash);
-
+        if (LOG.isTraceEnabled()) LOG.trace("getOcspResponse({})", certHash);
         return getInstance().getOcspResponse(certHash);
     }
 
     /**
      * @param cert the certificate
      * @return the OCSP server response for the given certificate,
-     * or null, if no response is available for that certificate
+     *         or null, if no response is available for that certificate
      * @throws Exception in case of any errors
      */
     public static OCSPResp getOcspResponse(X509Certificate cert)
             throws Exception {
-        LOG.trace("getOcspResponse({})",
-                cert.getSubjectX500Principal().getName());
-
+        if (LOG.isTraceEnabled()) LOG.trace("getOcspResponse({})", cert.getSubjectX500Principal().getName());
         return getInstance().getOcspResponse(cert);
     }
 
@@ -149,10 +147,7 @@ public final class KeyConf {
      * @return OCSP responses for all given certificates.
      * @throws Exception if OCSP response could not be found for at least one certificate
      */
-    public static List<OCSPResp> getAllOcspResponses(
-            List<X509Certificate> certs) throws Exception {
-        LOG.trace("getAllOcspResponses({} certs)", certs.size());
-
+    public static List<OCSPResp> getAllOcspResponses(List<X509Certificate> certs) throws Exception {
         List<String> missingResponses = new ArrayList<>();
         List<OCSPResp> responses = getInstance().getOcspResponses(certs);
         for (int i = 0; i < certs.size(); i++) {
@@ -173,28 +168,21 @@ public final class KeyConf {
     /**
      * @param certs list of certificates
      * @return OCSP responses for given certificates. For OCSP responses that
-     * could not be found, the list contains null values
+     *         could not be found, the list contains null values
      * @throws Exception in case of any errors
      */
-    public static List<OCSPResp> getOcspResponses(List<X509Certificate> certs)
-            throws Exception {
-        LOG.trace("getOcspResponses({} certs)", certs.size());
-
+    public static List<OCSPResp> getOcspResponses(List<X509Certificate> certs) throws Exception {
         return getInstance().getOcspResponses(certs);
     }
 
     /**
      * Updates the existing OCSP response or stores the OCSP response,
      * if it does not exist for the given certificate.
-     *
-     * @param certs     list of certificates
+     * @param certs list of certificates
      * @param responses list of OCSP responses
      * @throws Exception in case of any errors
      */
-    public static void setOcspResponses(List<X509Certificate> certs,
-            List<OCSPResp> responses) throws Exception {
-        LOG.trace("setOcspResponses({})", certs.size());
-
+    public static void setOcspResponses(List<X509Certificate> certs, List<OCSPResp> responses) throws Exception {
         getInstance().setOcspResponses(certs, responses);
     }
 
@@ -203,7 +191,7 @@ public final class KeyConf {
     private static void initInstance() {
         instance = null;
         try {
-            instance = new CachingKeyConfImpl();
+            instance = CachingKeyConfImpl.newInstance();
             initializationError = null;
         } catch (Exception ex) {
             initializationError = translateWithPrefix(X_MALFORMED_KEYCONF, ex);

@@ -25,6 +25,8 @@
  */
 package ee.ria.xroad.common.util;
 
+import lombok.Getter;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -38,6 +40,7 @@ import static org.apache.commons.io.IOUtils.toByteArray;
  */
 public class FileContentChangeChecker {
 
+    @Getter
     private final String fileName;
 
     private String checksum;
@@ -62,9 +65,13 @@ public class FileContentChangeChecker {
     public boolean hasChanged() throws Exception {
         File file = getFile();
 
-        previousChecksum = checksum;
-        checksum = calculateConfFileChecksum(file);
-        return !checksum.equals(previousChecksum);
+        String newCheckSum = calculateConfFileChecksum(file);
+
+        synchronized (this) {
+            previousChecksum = checksum;
+            checksum = newCheckSum;
+            return !checksum.equals(previousChecksum);
+        }
     }
 
     protected File getFile() {

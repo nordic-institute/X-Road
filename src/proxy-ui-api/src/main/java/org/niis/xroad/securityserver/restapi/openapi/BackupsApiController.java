@@ -38,6 +38,7 @@ import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.converter.BackupConverter;
 import org.niis.xroad.securityserver.restapi.dto.BackupFile;
 import org.niis.xroad.securityserver.restapi.openapi.model.Backup;
+import org.niis.xroad.securityserver.restapi.openapi.model.BackupExt;
 import org.niis.xroad.securityserver.restapi.openapi.model.TokensLoggedOut;
 import org.niis.xroad.securityserver.restapi.service.BackupFileNotFoundException;
 import org.niis.xroad.securityserver.restapi.service.BackupService;
@@ -54,6 +55,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
@@ -115,6 +117,21 @@ public class BackupsApiController implements BackupsApi {
         try {
             BackupFile backupFile = backupService.generateBackup();
             return new ResponseEntity<>(backupConverter.convert(backupFile), HttpStatus.CREATED);
+        } catch (InterruptedException e) {
+            throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
+        }
+    }
+
+    @Override
+    @PreAuthorize("hasAuthority('BACKUP_CONFIGURATION')")
+    @AuditEventMethod(event = RestApiAuditEvent.BACKUP)
+    public ResponseEntity<BackupExt> addBackupExt() {
+        try {
+            BackupFile backupFile = backupService.generateBackup();
+            BackupExt backupExt = new BackupExt();
+            backupExt.setBackup(backupConverter.convert(backupFile));
+            backupExt.setLocalConfPresent((new File("/etc/xroad/services/local.conf")).exists());
+            return new ResponseEntity<>(backupExt, HttpStatus.CREATED);
         } catch (InterruptedException e) {
             throw new InternalServerErrorException(new ErrorDeviation(ERROR_GENERATE_BACKUP_INTERRUPTED));
         }

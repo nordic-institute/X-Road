@@ -34,6 +34,7 @@ mkdir -p %{buildroot}/usr/share/doc/%{name}
 mkdir -p %{buildroot}%{_unitdir}
 
 cp -p %{srcdir}/common/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/
+ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default %{buildroot}/usr/share/xroad/jlib/addon/proxy/messagelog.conf
 cp -p %{_sourcedir}/messagelog/xroad-addon-messagelog.service %{buildroot}%{_unitdir}
 cp -p %{srcdir}/../../../addons/messagelog/messagelog-addon/build/libs/messagelog-addon.jar %{buildroot}/usr/share/xroad/jlib/addon/proxy/
 cp -p %{srcdir}/default-configuration/addons/message-log.ini %{buildroot}/etc/xroad/conf.d/addons/
@@ -72,6 +73,7 @@ rm -rf %{buildroot}
 /usr/share/xroad/jlib/addon/proxy/messagelog-addon.jar
 /usr/share/xroad/jlib/addon/proxy/messagelog-archiver.jar
 /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default
+%config /usr/share/xroad/jlib/addon/proxy/messagelog.conf
 /usr/share/xroad/scripts/archive-http-transporter.sh
 %attr(540,root,xroad) /usr/share/xroad/scripts/setup_messagelog_db.sh
 %attr(554,root,xroad) /usr/share/xroad/bin/xroad-messagelog-archiver
@@ -83,17 +85,40 @@ rm -rf %{buildroot}
 %pre -p /bin/bash
 %upgrade_check
 
-%post
-if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
-    rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
-else
-    ln -s /usr/share/xroad/jlib/addon/proxy/messagelog.conf.default /usr/share/xroad/jlib/addon/proxy/messagelog.conf
-    /usr/share/xroad/scripts/setup_messagelog_db.sh
+if [ "$1" -gt 1 ] ; then
+  mkdir -p %{_localstatedir}/lib/rpm-state/%{name}
+  rpm -q %{name} --queryformat="%%{version}" &> "%{_localstatedir}/lib/rpm-state/%{name}/prev-version"
 fi
+
+%post -p /bin/bash
 %systemd_post xroad-addon-messagelog.service
 
+if [ -e /etc/sysconfig/xroad-addon-messagelog ] && grep -qs "ENABLE_MESSAGELOG=false" /etc/sysconfig/xroad-addon-messagelog; then
+  rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+else
+  /usr/share/xroad/scripts/setup_messagelog_db.sh
+fi
+
+if [ "$1" -gt 1 ]; then
+  prev_version=$(cat %{_localstatedir}/lib/rpm-state/%{name}/prev-version)
+
+  if [[ $prev_version = 6.* || $prev_version = 7.0.0 || $prev_version = 7.0.1 ]]; then
+    # Special handling for upgrade from 6.x (and a fix for 7.0)
+    systemctl --quiet preset xroad-addon-messagelog.service &>/dev/null || :
+  fi
+
+  rm -f "%{_localstatedir}/lib/rpm-state/%{name}/prev-version" >/dev/null 2>&1 || :
+fi
+
+%preun
+%systemd_preun xroad-addon-messagelog.service
+
 %postun
-%systemd_postun_with_restart xroad-proxy.service
-%systemd_postun_with_restart xroad-addon-messagelog.service
+if [ "$1" -eq 0 ]; then
+  # addon removed
+  rm -f /usr/share/xroad/jlib/addon/proxy/messagelog.conf
+fi
+
+%systemd_postun_with_restart xroad-proxy.service xroad-addon-messagelog.service
 
 %changelog

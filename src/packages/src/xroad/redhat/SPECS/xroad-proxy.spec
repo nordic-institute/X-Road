@@ -135,7 +135,6 @@ fi
 
 %post -p /bin/bash
 %systemd_post xroad-proxy.service
-%systemd_post xroad-confclient.service
 
 if [ $1 -eq 1 ] ; then
     # Initial installation
@@ -232,15 +231,12 @@ fi
 
 %preun
 %systemd_preun xroad-proxy.service
-%systemd_preun xroad-confclient.service
 
 %postun
-%systemd_postun_with_restart xroad-proxy.service
-%systemd_postun_with_restart xroad-confclient.service
-%systemd_postun_with_restart rsyslogd.service
+%systemd_postun_with_restart xroad-proxy.service xroad-confclient.service rsyslog.service
 
 %posttrans
 # restart (if running) nginx after /etc/xroad/nginx/xroad-proxy.conf has (possibly) been removed, so that port 4000 is freed
-%{_bindir}/systemctl --quiet try-restart nginx.service >/dev/null 2>&1 || true
+%systemd_try_restart nginx.service
 
 %changelog

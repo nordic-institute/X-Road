@@ -57,4 +57,9 @@ public final class ConfigurationConstants {
     public static final String FILE_NAME_SHARED_PARAMETERS =
             "shared-params.xml";
 
+    /**
+     * The default file name suffix of configuration metadata.
+     */
+    public static final String FILE_NAME_SUFFIX_METADATA = ".metadata";
+
 }

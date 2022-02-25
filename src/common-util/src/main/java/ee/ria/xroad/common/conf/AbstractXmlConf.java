@@ -64,9 +64,6 @@ import static java.util.Objects.requireNonNull;
  */
 @Slf4j
 public abstract class AbstractXmlConf<T> implements ConfProvider {
-
-    private final JAXBContext jaxbCtx;
-
     protected final Class<? extends SchemaValidator> schemaValidator;
 
     protected String confFileName;
@@ -80,40 +77,43 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
     // For subclasses to use only default parameters if no valid serverconf present.
     protected AbstractXmlConf() {
         schemaValidator = null;
-        jaxbCtx = null;
     }
 
-    protected AbstractXmlConf(Class<?> objectFactory, String fileName) {
-        this(objectFactory, fileName, null);
+    protected AbstractXmlConf(Class<? extends SchemaValidator> schemaValidator) {
+        this((String) null, schemaValidator);
     }
 
-    protected AbstractXmlConf(Class<?> objectFactory, Class<? extends SchemaValidator> schemaValidator) {
-        this(objectFactory, (String) null, schemaValidator);
-    }
-
-    protected AbstractXmlConf(Class<?> objectFactory, String fileName,
-            Class<? extends SchemaValidator> schemaValidator) {
+    protected AbstractXmlConf(String fileName, Class<? extends SchemaValidator> schemaValidator) {
         try {
-            jaxbCtx = JAXBContext.newInstance(objectFactory);
             this.schemaValidator = schemaValidator;
-
             load(fileName);
         } catch (Exception e) {
             throw translateException(e);
         }
     }
 
+    protected AbstractXmlConf(AbstractXmlConf<T> original) {
+        schemaValidator  = original.schemaValidator;
+        confFileName = original.confFileName;
+        root = original.root;
+        confType = original.confType;
+        confFileChecker = original.confFileChecker;
+    }
+
+    /**
+     * A method for subclasses to return (preferably static) JAXBContext
+     * @return class specific JAXBContext
+     */
+    protected abstract JAXBContext getJAXBContext();
+
     /**
      * A special constructor for creating an AbstractXmlConf from bytes instead of a file on the filesystem.
      * <b>Does not set <code>confFileChecker</code>.</b>
-     * @param objectFactory
      * @param fileBytes
      * @param schemaValidator
      */
-    protected AbstractXmlConf(Class<?> objectFactory, byte[] fileBytes,
-            Class<? extends SchemaValidator> schemaValidator) {
+    protected AbstractXmlConf(byte[] fileBytes, Class<? extends SchemaValidator> schemaValidator) {
         try {
-            jaxbCtx = JAXBContext.newInstance(objectFactory);
             this.schemaValidator = schemaValidator;
 
             load(fileBytes);
@@ -122,10 +122,8 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         }
     }
 
-    protected AbstractXmlConf(Class<?> objectFactory, JAXBElement<T> root,
-            Class<? extends SchemaValidator> schemaValidator) {
+    protected AbstractXmlConf(JAXBElement<T> root, Class<? extends SchemaValidator> schemaValidator) {
         try {
-            jaxbCtx = JAXBContext.newInstance(objectFactory);
             this.schemaValidator = schemaValidator;
 
             this.root = root;
@@ -165,17 +163,17 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
      * @return
      * @throws IOException if opening {@link #confFileName} fails.
      * @throws JAXBException if an unmarshalling error occurs
-     * @throws NullPointerException if {@link #confFileName} or {@link #jaxbCtx} is null
+     * @throws NullPointerException if {@link #confFileName} or {@link #getJAXBContext()} is null
      */
     @SuppressWarnings("unchecked")
     // the unmarshalling causes an unchecked cast, it is existing functionality.
     // Is there an elegant way to handle the type checking of T at compile time?
     protected LoadResult<T> doLoadConfFile() throws IOException, JAXBException {
         requireNonNull(confFileName, "confFileName not set");
-        requireNonNull(jaxbCtx, "jaxbCtx not set");
+        requireNonNull(getJAXBContext(), "jaxbCtx not set");
 
         try (InputStream in = new FileInputStream(confFileName)) {
-            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+            Unmarshaller unmarshaller = getJAXBContext().createUnmarshaller();
 
             return new LoadResult<>((JAXBElement<T>) unmarshaller.unmarshal(in));
         }
@@ -219,7 +217,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
 
     @Override
     public void save(OutputStream out) throws Exception {
-        Marshaller marshaller = jaxbCtx.createMarshaller();
+        Marshaller marshaller = getJAXBContext().createMarshaller();
 
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
         marshaller.marshal(root, out);
@@ -243,7 +241,7 @@ public abstract class AbstractXmlConf<T> implements ConfProvider {
         }
 
         try (InputStream in = new ByteArrayInputStream(data)) {
-            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+            Unmarshaller unmarshaller = getJAXBContext().createUnmarshaller();
             root = (JAXBElement<T>) unmarshaller.unmarshal(in);
             confType = root.getValue();
         }

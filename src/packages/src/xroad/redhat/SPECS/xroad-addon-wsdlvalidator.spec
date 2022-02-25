@@ -67,13 +67,12 @@ if [ $1 -gt 1 ] ; then
     migrate_conf_value /etc/xroad/conf.d/local.ini proxy-ui wsdl-validator-command proxy-ui-api wsdl-validator-command
 fi
 
-%systemd_post xroad-jetty.service
-
 %postun
 if [ $1 -eq 0 ] ; then
     # not an upgrade, but a real removal
     crudini --del /etc/xroad/conf.d/local.ini proxy-ui-api wsdl-validator-command
 fi
+
 %systemd_postun_with_restart xroad-proxy-ui-api.service
 
 %changelog

@@ -39,7 +39,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.NamespaceContext;
-import javax.xml.parsers.DocumentBuilderFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -152,10 +151,7 @@ final class Helper {
     }
 
     static Document createDocument() throws Exception {
-        DocumentBuilderFactory documentBuilderFactory = XmlUtils.createDocumentBuilderFactory();
-        documentBuilderFactory.setNamespaceAware(true);
-
-        Document document = documentBuilderFactory.newDocumentBuilder().newDocument();
+        Document document = XmlUtils.newDocumentBuilder(true).newDocument();
 
         // create the root element for XAdES signatures.
         Element root = document.createElementNS(NS_ASIC, ASIC_TAG);

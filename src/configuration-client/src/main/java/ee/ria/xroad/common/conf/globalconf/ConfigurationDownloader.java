@@ -246,17 +246,14 @@ class ConfigurationDownloader {
         }
     }
 
-    void handleContent(byte[] content, ConfigurationFile file)
-            throws Exception {
+    void handleContent(byte[] content, ConfigurationFile file) throws Exception {
         switch (file.getContentIdentifier()) {
             case ConfigurationConstants.CONTENT_ID_PRIVATE_PARAMETERS:
-                PrivateParametersV2 privateParameters = new PrivateParametersV2();
-                privateParameters.load(content);
+                PrivateParametersV2 privateParameters = new PrivateParametersV2(content);
                 handlePrivateParameters(privateParameters, file);
                 break;
             case ConfigurationConstants.CONTENT_ID_SHARED_PARAMETERS:
-                SharedParametersV2 sharedParameters = new SharedParametersV2();
-                sharedParameters.load(content);
+                SharedParametersV2 sharedParameters = new SharedParametersV2(content);
                 handleSharedParameters(sharedParameters, file);
                 break;
             default: // do nothing
