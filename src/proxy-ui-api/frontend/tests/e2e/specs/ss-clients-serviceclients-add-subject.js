@@ -40,7 +40,7 @@ module.exports = {
     clientServices = clientInfo.section.services;
     serviceDetails = mainPage.section.wsdlServiceDetails;
 
-    // sign in to clientstab
+    // sign in to clientstab 
     frontPage.navigateAndMakeTestable();
     browser.waitForElementVisible('//*[@id="app"]');
     // Enter valid credentials
