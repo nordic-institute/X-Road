@@ -95,7 +95,8 @@ npmInstall {
     dependsOn += 'npmInstallDeps'
 }
 
-task buildFront(type: NpmTask) {
+task buildFront(type: NpmTask,) {
+    mustRunAfter('checkFrontAudit')
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
@@ -126,6 +127,7 @@ task checkFrontAudit(type: NpmTask) {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    mustRunAfter('checkFrontAudit')
     onlyIf {
         !project.hasProperty('skip-frontend-build')
     }
@@ -244,11 +246,10 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
 
 npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 
-// checkFrontLicense -> checkFrontAudit -> buildFront -> frontendUnitTests -> processResources
+// checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
 processResources.dependsOn 'frontendUnitTests'
 frontendUnitTests.dependsOn 'buildFront'
-buildFront.dependsOn 'checkFrontAudit'
-checkFrontAudit.dependsOn 'checkFrontLicense'
+buildFront.dependsOn 'checkFrontLicense'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')

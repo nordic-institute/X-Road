@@ -54,6 +54,7 @@ task npmGenerateTypes(type: NpmTask, dependsOn: ['npmInstall']) {
 }
 
 task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
+    mustRunAfter('checkFrontAudit')
     inputs.files(
         'src/',
         'public/',
@@ -71,7 +72,7 @@ task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
     args = ['run', '--quiet', 'build:gradle']
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmBuild') {
+task checkFrontAudit(type: NpmTask) {
     inputs.files(
         'package.json',
         'package-lock.json',
@@ -83,6 +84,7 @@ task checkFrontAudit(type: NpmTask, dependsOn: 'npmBuild') {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    mustRunAfter('checkFrontAudit')
     inputs.files(
         "test/",
         "public/",

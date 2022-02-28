@@ -20,6 +20,7 @@ node {
 }
 
 task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
+    mustRunAfter('checkFrontAudit')
     inputs.files(
         'src/',
         'public/',
@@ -51,6 +52,7 @@ task checkFrontAudit(type: NpmTask) {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    mustRunAfter('checkFrontAudit')
     inputs.files("src/", "test/", "public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
