@@ -129,6 +129,73 @@ export const useAddClient = defineStore('addClient', {
       this.$reset();
     },
 
+    createClient(ignoreWarnings: boolean) {
+      const body = {
+        client: {
+          member_class: this.memberClass,
+          member_code: this.memberCode,
+          subsystem_code: this.subsystemCode,
+        },
+        ignore_warnings: ignoreWarnings,
+      };
+
+      return api.post('/clients', body).catch((error) => {
+        throw error;
+      });
+    },
+
+    createMember(ignoreWarnings: boolean) {
+      const body = {
+        client: {
+          member_class: this.memberClass,
+          member_code: this.memberCode,
+        },
+        ignore_warnings: ignoreWarnings,
+      };
+
+      return api.post('/clients', body).catch((error) => {
+        throw error;
+      });
+    },
+
+    fetchReservedClients(client: Client) {
+      // Fetch clients from backend that match the selected client without subsystem code
+      return api
+        .get<Client[]>('/clients', {
+          params: {
+            instance: client.instance_id,
+            member_class: client.member_class,
+            member_code: client.member_code,
+            internal_search: true,
+          },
+        })
+        .then((res) => {
+          this.reservedClients = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    fetchReservedMembers(client: Client) {
+      // Fetch clients from backend that match the selected client without subsystem code
+      return api
+        .get<Client[]>('/clients', {
+          params: {
+            instance: client.instance_id,
+            member_class: client.member_class,
+            member_code: client.member_code,
+            internal_search: true,
+          },
+        })
+        .then((res) => {
+          this.reservedClients = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
     fetchSelectableClients(instanceId: string) {
       const globalClientsPromise = api.get<Client[]>(
         `/clients?exclude_local=true&internal_search=false&show_members=false&instance=${encodePathParameter(
@@ -171,92 +238,6 @@ export const useAddClient = defineStore('addClient', {
         .catch((error) => {
           throw error;
         });
-    },
-
-    fetchReservedClients(client: Client) {
-      // Fetch clients from backend that match the selected client without subsystem code
-      return api
-        .get<Client[]>('/clients', {
-          params: {
-            instance: client.instance_id,
-            member_class: client.member_class,
-            member_code: client.member_code,
-            internal_search: true,
-          },
-        })
-        .then((res) => {
-          this.reservedClients = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
-    fetchReservedMembers(client: Client) {
-      // Fetch clients from backend that match the selected client without subsystem code
-      return api
-        .get<Client[]>('/clients', {
-          params: {
-            instance: client.instance_id,
-            member_class: client.member_class,
-            member_code: client.member_code,
-            internal_search: true,
-          },
-        })
-        .then((res) => {
-          this.reservedClients = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
-    setSelectedMember(member: Client) {
-      this.selectedMemberName = member.member_name;
-      this.memberClass = member.member_class;
-      this.memberCode = member.member_code;
-      this.subsystemCode = member.subsystem_code;
-    },
-
-    createClient(ignoreWarnings: boolean) {
-      const body = {
-        client: {
-          member_class: this.memberClass,
-          member_code: this.memberCode,
-          subsystem_code: this.subsystemCode,
-        },
-        ignore_warnings: ignoreWarnings,
-      };
-
-      return api.post('/clients', body).catch((error) => {
-        throw error;
-      });
-    },
-
-    setAddMemberWizardMode(mode: string) {
-      this.memberWizardMode = mode;
-    },
-
-    setSelectedMemberName(val: string | undefined) {
-      this.selectedMemberName = val;
-    },
-
-    storeReservedMember(memberData?: ReservedMemberData) {
-      this.reservedMemberData = memberData;
-    },
-
-    createMember(ignoreWarnings: boolean) {
-      const body = {
-        client: {
-          member_class: this.memberClass,
-          member_code: this.memberCode,
-        },
-        ignore_warnings: ignoreWarnings,
-      };
-
-      return api.post('/clients', body).catch((error) => {
-        throw error;
-      });
     },
 
     // set AddMemberWizardModes.CERTIFICATE_EXISTS and/or AddMemberWizardModes.CSR_EXISTS to correct values
@@ -326,6 +307,25 @@ export const useAddClient = defineStore('addClient', {
           }
         });
       });
+    },
+
+    setAddMemberWizardMode(mode: string) {
+      this.memberWizardMode = mode;
+    },
+
+    setSelectedMember(member: Client) {
+      this.selectedMemberName = member.member_name;
+      this.memberClass = member.member_class;
+      this.memberCode = member.member_code;
+      this.subsystemCode = member.subsystem_code;
+    },
+
+    setSelectedMemberName(val: string | undefined) {
+      this.selectedMemberName = val;
+    },
+
+    storeReservedMember(memberData?: ReservedMemberData) {
+      this.reservedMemberData = memberData;
     },
   },
 });

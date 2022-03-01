@@ -91,6 +91,21 @@ export const useClientStore = defineStore('clientStore', {
         });
     },
 
+    async fetchSSCertificate(id: string) {
+      if (!id) {
+        throw new Error('Missing id');
+      }
+
+      return axios
+        .get<CertificateDetails>('/system/certificate')
+        .then((res) => {
+          this.ssCertificate = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
     async fetchTlsCertificates(id: string) {
       if (!id) {
         throw new Error('Missing id');
@@ -102,21 +117,6 @@ export const useClientStore = defineStore('clientStore', {
         )
         .then((res) => {
           this.tlsCertificates = res.data;
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
-    async fetchSSCertificate(id: string) {
-      if (!id) {
-        throw new Error('Missing id');
-      }
-
-      return axios
-        .get<CertificateDetails>('/system/certificate')
-        .then((res) => {
-          this.ssCertificate = res.data;
         })
         .catch((error) => {
           throw error;
@@ -136,10 +136,6 @@ export const useClientStore = defineStore('clientStore', {
         .catch((error) => {
           throw error;
         });
-    },
-    clearAll(): void {
-      // Clear the store state
-      this.$reset();
     },
   },
 });
