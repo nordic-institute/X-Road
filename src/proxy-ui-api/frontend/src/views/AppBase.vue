@@ -76,9 +76,9 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapState(useUser, ['isSessionAlive']),
+    ...mapState(useUser, ['sessionAlive']),
     showDialog(): boolean {
-      return this.isSessionAlive === false;
+      return this.sessionAlive === false;
     },
   },
   created() {

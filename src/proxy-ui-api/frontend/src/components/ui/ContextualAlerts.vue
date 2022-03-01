@@ -169,9 +169,7 @@ type ValidationError = {
 export default Vue.extend({
   // Component for contextual notifications
   computed: {
-    ...mapState(useNotifications, {
-      errorNotifications: 'getErrorNotifications',
-    }),
+    ...mapState(useNotifications, ['errorNotifications']),
   },
   methods: {
     notificationColor(notification: Notification) {

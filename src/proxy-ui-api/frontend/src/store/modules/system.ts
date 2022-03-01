@@ -43,6 +43,10 @@ export const useSystemStore = defineStore('systemStore', {
   },
 
   actions: {
+    // Reset store
+    clearSystemStore() {
+      this.$reset();
+    },
     async fetchSecurityServerNodeType() {
       return api.get<VersionInfo>('/system/version').then((res) => {
         this.securityServerVersion = res.data;
@@ -53,11 +57,6 @@ export const useSystemStore = defineStore('systemStore', {
       return api.get<NodeTypeResponse>('/system/node-type').then((res) => {
         this.securityServerNodeType = res.data.node_type;
       });
-    },
-
-    // Reset store
-    clearSystemStore() {
-      this.$reset();
     },
   },
 });

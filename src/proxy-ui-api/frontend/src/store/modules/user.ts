@@ -53,16 +53,6 @@ export const useUser = defineStore('user', {
   },
   persist: true, // This store is saved into browser local storage (pinia-plugin-persistedstate)
   getters: {
-    isAuthenticated(state) {
-      return state.authenticated;
-    },
-    isSessionAlive(state) {
-      return state.sessionAlive;
-    },
-
-    getPermissions(state) {
-      return state.permissions;
-    },
     hasPermission: (state) => (perm: string) => {
       return state.permissions.includes(perm);
     },
@@ -91,12 +81,6 @@ export const useUser = defineStore('user', {
       return this.getAllowedTabs(mainTabs)[0];
     },
 
-    getUsername(state): string {
-      return state.username;
-    },
-    getCurrentSecurityServer(state) {
-      return state.currentSecurityServer;
-    },
     isAnchorImported(state): boolean {
       return state.initializationStatus?.is_anchor_imported ?? false;
     },

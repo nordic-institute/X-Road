@@ -53,17 +53,17 @@ export const useAlerts = defineStore('alerts', {
     };
   },
   getters: {
+    restoreStartTime(state): string {
+      return state.alertStatus.backupRestoreRunningSince || '';
+    },
     showGlobalConfAlert(state): boolean {
       return state.queried && !state.alertStatus.globalConfValid;
-    },
-    showSoftTokenPinEnteredAlert(state): boolean {
-      return state.queried && !state.alertStatus.softTokenPinEntered;
     },
     showRestoreInProgress(state): boolean {
       return state.alertStatus.backupRestoreRunningSince !== undefined;
     },
-    restoreStartTime(state): string {
-      return state.alertStatus.backupRestoreRunningSince || '';
+    showSoftTokenPinEnteredAlert(state): boolean {
+      return state.queried && !state.alertStatus.softTokenPinEntered;
     },
   },
 

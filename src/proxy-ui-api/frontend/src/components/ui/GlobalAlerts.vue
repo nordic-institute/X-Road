@@ -25,7 +25,7 @@
  -->
 <template>
   <v-container
-    v-if="isAuthenticated && !needsInitialization && hasAlerts"
+    v-if="authenticated && !needsInitialization && hasAlerts"
     fluid
     class="alerts-container px-3"
   >
@@ -123,9 +123,7 @@ export default Vue.extend({
         this.isSecondaryNode
       );
     },
-    isAuthenticated(): boolean {
-      return this.authenticated;
-    },
+
     showLoginLink(): boolean {
       return this.$route.name !== RouteName.SignAndAuthKeys;
     },

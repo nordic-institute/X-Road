@@ -37,20 +37,8 @@ export const useGeneral = defineStore('general', {
       memberName: '' as string,
     };
   },
-  getters: {},
 
   actions: {
-    fetchXroadInstances() {
-      return api
-        .get('/xroad-instances')
-        .then((res) => {
-          this.xroadInstances = res.data as string[];
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
     fetchMemberClasses() {
       return api
         .get<string[]>('/member-classes')
@@ -81,6 +69,17 @@ export const useGeneral = defineStore('general', {
         )
         .then((res) => {
           this.memberName = res.data.member_name || '';
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    fetchXroadInstances() {
+      return api
+        .get('/xroad-instances')
+        .then((res) => {
+          this.xroadInstances = res.data as string[];
         })
         .catch((error) => {
           throw error;

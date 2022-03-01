@@ -77,30 +77,7 @@ export const useCsrStore = defineStore('csrStore', {
   getters: {
     csrForm: (state) => state.form,
 
-    isUsageReadOnly(state): boolean {
-      // if creating CSR for a hardware token, only sign CSRs can be created
-      if (state.tokenType === TokenType.HARDWARE) {
-        return true;
-      }
-      // Usage type can be selected only when the Key doesn't have already have it set
-      if (state.csrKey && state.csrKey.usage) {
-        return true;
-      }
-      return false;
-    },
-
-    filteredServiceList(state): CertificateAuthority[] {
-      // Return the list of available auth services based on the current usage type
-      if (state.usage === KeyUsageType.SIGNING) {
-        const filtered = state.certificationServiceList.filter(
-          (service: CertificateAuthority) => {
-            return !service.authentication_only;
-          },
-        );
-        return filtered;
-      }
-      return state.certificationServiceList;
-    },
+    csrTokenId: (state) => state.tokenId,
 
     csrRequestBody(state): CsrGenerate {
       // Creates an object that can be used as body for generate CSR request
@@ -119,27 +96,51 @@ export const useCsrStore = defineStore('csrStore', {
       };
     },
 
-    csrTokenId: (state) => state.tokenId,
+    filteredServiceList(state): CertificateAuthority[] {
+      // Return the list of available auth services based on the current usage type
+      if (state.usage === KeyUsageType.SIGNING) {
+        const filtered = state.certificationServiceList.filter(
+          (service: CertificateAuthority) => {
+            return !service.authentication_only;
+          },
+        );
+        return filtered;
+      }
+      return state.certificationServiceList;
+    },
+
+    isUsageReadOnly(state): boolean {
+      // if creating CSR for a hardware token, only sign CSRs can be created
+      if (state.tokenType === TokenType.HARDWARE) {
+        return true;
+      }
+      // Usage type can be selected only when the Key doesn't have already have it set
+      if (state.csrKey && state.csrKey.usage) {
+        return true;
+      }
+      return false;
+    },
   },
 
   actions: {
-    resetCsrState() {
-      // Clear the store state
-      this.$reset();
+    fetchAllMemberIds() {
+      return api
+        .get<Client[]>('/clients?show_members=true')
+        .then((res) => {
+          const idSet = new Set<string>();
+          res.data.forEach((client) => {
+            idSet.add(
+              `${client.instance_id}:${client.member_class}:${client.member_code}`,
+            );
+          });
+
+          this.memberIds = Array.from(idSet);
+        })
+        .catch((error) => {
+          throw error;
+        });
     },
-    setCsrTokenId(tokenId: string) {
-      this.tokenId = tokenId;
-    },
-    setCsrTokenType(tokenType: string) {
-      if (tokenType === TokenType.HARDWARE) {
-        // can only create SIGNING CSRs for HARDWARE token
-        this.usage = KeyUsageType.SIGNING;
-      }
-      this.tokenType = tokenType;
-    },
-    setKeyId(keyId: string) {
-      this.keyId = keyId;
-    },
+
     fetchCertificateAuthorities() {
       return api
         .get<CertificateAuthority[]>('/certificate-authorities')
@@ -195,23 +196,6 @@ export const useCsrStore = defineStore('csrStore', {
         });
     },
 
-    requestGenerateCsr() {
-      const requestBody = this.csrRequestBody;
-      return api
-        .post(`/keys/${encodePathParameter(this.keyId)}/csrs`, requestBody, {
-          responseType: 'arraybuffer',
-        })
-        .then((response) => {
-          saveResponseAsFile(
-            response,
-            `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
-          );
-        })
-        .catch((error) => {
-          throw error;
-        });
-    },
-
     generateKeyAndCsr(tokenId: string) {
       const crtObject = this.csrRequestBody;
 
@@ -248,6 +232,41 @@ export const useCsrStore = defineStore('csrStore', {
         });
     },
 
+    requestGenerateCsr() {
+      const requestBody = this.csrRequestBody;
+      return api
+        .post(`/keys/${encodePathParameter(this.keyId)}/csrs`, requestBody, {
+          responseType: 'arraybuffer',
+        })
+        .then((response) => {
+          saveResponseAsFile(
+            response,
+            `csr_${requestBody.key_usage_type}.${requestBody.csr_format}`,
+          );
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    resetCsrState() {
+      // Clear the store state
+      this.$reset();
+    },
+    setCsrTokenId(tokenId: string) {
+      this.tokenId = tokenId;
+    },
+    setCsrTokenType(tokenType: string) {
+      if (tokenType === TokenType.HARDWARE) {
+        // can only create SIGNING CSRs for HARDWARE token
+        this.usage = KeyUsageType.SIGNING;
+      }
+      this.tokenType = tokenType;
+    },
+    setKeyId(keyId: string) {
+      this.keyId = keyId;
+    },
+
     setupSignKey() {
       // Initialize the state with sign type Key. Needed for "add client" wizard.
       const templateKey: Key = {
@@ -260,24 +279,6 @@ export const useCsrStore = defineStore('csrStore', {
       };
       this.csrKey = templateKey;
       this.usage = KeyUsageType.SIGNING;
-    },
-
-    fetchAllMemberIds() {
-      return api
-        .get<Client[]>('/clients?show_members=true')
-        .then((res) => {
-          const idSet = new Set<string>();
-          res.data.forEach((client) => {
-            idSet.add(
-              `${client.instance_id}:${client.member_class}:${client.member_code}`,
-            );
-          });
-
-          this.memberIds = Array.from(idSet);
-        })
-        .catch((error) => {
-          throw error;
-        });
     },
 
     storeCsrClient(client: string | undefined) {

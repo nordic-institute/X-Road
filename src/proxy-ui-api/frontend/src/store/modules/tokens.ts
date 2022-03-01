@@ -57,18 +57,6 @@ export const useTokensStore = defineStore('tokensStore', {
     };
   },
   getters: {
-    tokenExpanded: (state) => (id: string) => {
-      return state.expandedTokens.includes(id);
-    },
-
-    sortedTokens(state): Token[] {
-      if (!state.tokens || state.tokens.length === 0) {
-        return [];
-      }
-
-      return sortTokens(state.tokens);
-    },
-
     filteredTokens: (state) => (search: string) => {
       // Filter term is applied to token name key name and certificate owner id
       let arr = deepClone<Token[]>(sortTokens(state.tokens));
@@ -120,6 +108,18 @@ export const useTokensStore = defineStore('tokensStore', {
       return arr;
     },
 
+    sortedTokens(state): Token[] {
+      if (!state.tokens || state.tokens.length === 0) {
+        return [];
+      }
+
+      return sortTokens(state.tokens);
+    },
+
+    tokenExpanded: (state) => (id: string) => {
+      return state.expandedTokens.includes(id);
+    },
+
     tokensFilteredByName: (state) => (search: string | undefined) => {
       // Filter term is applied to token name
       const arr = sortTokens(state.tokens);
@@ -146,15 +146,7 @@ export const useTokensStore = defineStore('tokensStore', {
         this.expandedTokens.push(id);
       }
     },
-    hideToken(id: string) {
-      const index = this.expandedTokens.findIndex((element) => {
-        return element === id;
-      });
 
-      if (index >= 0) {
-        this.expandedTokens.splice(index, 1);
-      }
-    },
     fetchTokens() {
       // Fetch tokens from backend
       return api
@@ -165,6 +157,20 @@ export const useTokensStore = defineStore('tokensStore', {
         .catch((error) => {
           throw error;
         });
+    },
+
+    hideToken(id: string) {
+      const index = this.expandedTokens.findIndex((element) => {
+        return element === id;
+      });
+
+      if (index >= 0) {
+        this.expandedTokens.splice(index, 1);
+      }
+    },
+
+    setSelectedToken(token: Token) {
+      this.selectedToken = token;
     },
 
     tokenLogout(id: string) {
@@ -179,10 +185,6 @@ export const useTokensStore = defineStore('tokensStore', {
         .catch((error) => {
           throw error;
         });
-    },
-
-    setSelectedToken(token: Token) {
-      this.selectedToken = token;
     },
   },
 });

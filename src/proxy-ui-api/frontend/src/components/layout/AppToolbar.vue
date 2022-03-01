@@ -34,7 +34,7 @@
     height="32"
     max-height="32"
   >
-    <div v-if="isAuthenticated" class="auth-container">
+    <div v-if="authenticated" class="auth-container">
       <div class="server-type">X-ROAD SECURITY SERVER</div>
       <div
         v-show="currentSecurityServer.id"
@@ -69,7 +69,7 @@ import { useSystemStore } from '@/store/modules/system';
 export default Vue.extend({
   name: 'Toolbar',
   computed: {
-    ...mapState(useUser, ['isAuthenticated', 'currentSecurityServer']),
+    ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
     ...mapState(useSystemStore, ['securityServerNodeType']),
     shouldShowNodeType(): boolean {
       return this.securityServerNodeType !== NodeType.STANDALONE;
