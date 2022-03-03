@@ -65,9 +65,12 @@ import Vue from 'vue';
 import * as api from '@/util/api';
 import { RouteName } from '@/global';
 import { ServiceTypeEnum } from '@/domain';
-import { mapGetters } from 'vuex';
 import { Tab } from '@/ui-types';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useServicesStore } from '@/store/modules/services';
+import { ServiceClient, Service } from '@/openapi-types';
 
 export default Vue.extend({
   props: {
@@ -87,7 +90,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['service']),
+    ...mapState(useServicesStore, ['service']),
     tabs(): Tab[] {
       return [
         {
@@ -123,24 +126,28 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServicesStore, ['setService', 'setServiceClients']),
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${encodePathParameter(serviceId)}`)
+        .get<Service>(`/services/${encodePathParameter(serviceId)}`)
         .then((res) => {
           // Set ssl_auth to true if it is returned as null from backend
-          this.$store.dispatch('setService', res.data);
+          this.setService(res.data);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
 
       api
-        .get(`/services/${encodePathParameter(serviceId)}/service-clients`)
+        .get<ServiceClient[]>(
+          `/services/${encodePathParameter(serviceId)}/service-clients`,
+        )
         .then((res) => {
-          this.$store.dispatch('setServiceClients', res.data);
+          this.setServiceClients(res.data);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 

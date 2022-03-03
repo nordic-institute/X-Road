@@ -49,6 +49,8 @@
 <script lang="ts">
 import Vue from 'vue';
 import * as api from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   props: {
@@ -63,19 +65,19 @@ export default Vue.extend({
     };
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     save() {
       this.loading = true;
       api
         .post('/system/certificate', {})
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t('ssTlsCertificate.generateTlsAndCertificateDialog.success'),
           );
           this.$emit('saved');
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
           this.$emit('cancel'); // still close the dialog
         })
         .finally(() => (this.loading = false));

@@ -146,7 +146,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import ClientDetailsPage from './ClientDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
@@ -154,6 +153,10 @@ import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { RouteName, AddMemberWizardModes } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useAddClient } from '@/store/modules/addClient';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 const NO_SELECTION = 999;
 
@@ -173,7 +176,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['addMemberWizardMode']),
+    ...mapState(useAddClient, ['addMemberWizardMode', 'selectedMemberId']),
 
     tokenPageNumber(): number {
       if (
@@ -236,43 +239,50 @@ export default Vue.extend({
   },
   created() {
     // Set up the CSR part with Sign mode
-    this.$store.dispatch('setupSignKey');
+    this.setupSignKey();
     // Fetch certificate authorities. Used in "sign key" step.
-    this.fetchCertificateAuthorities();
+    this.fetchCertificateAuthorities().catch((error) => {
+      this.showError(error);
+    });
   },
   beforeDestroy() {
-    // Clear the vuex stores used in the wizard
-    this.$store.dispatch('resetAddClientState');
-    this.$store.dispatch('resetCsrState');
+    // Clear the stores used in the wizard
+    this.resetAddClientState();
+    this.resetCsrState();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, [
+      'setupSignKey',
+      'resetCsrState',
+      'fetchCertificateAuthorities',
+      'storeCsrClient',
+      'storeCsrIsNewMember',
+      'fetchCsrForm',
+    ]),
+    ...mapActions(useAddClient, ['resetAddClientState']),
+
     cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
     csrDetailsReady(): void {
       // Add the selected client id in the CSR store
-      const idString = this.$store.getters.selectedMemberId;
-      this.$store.commit('storeCsrClient', idString);
-      this.$store.commit('storeCsrIsNewMember', true);
+      const idString = this.selectedMemberId;
+      this.storeCsrClient(idString);
+      this.storeCsrIsNewMember(true);
 
-      this.$store.dispatch('fetchCsrForm').then(
+      this.fetchCsrForm().then(
         () => {
           this.currentStep++;
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
 
     done(): void {
       this.$router.replace({ name: RouteName.Clients });
-    },
-
-    fetchCertificateAuthorities(): void {
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
   },
 });
