@@ -36,8 +36,10 @@ import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatus;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestType;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
 import org.niis.xroad.centralserver.openapi.model.XRoadId;
+import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
+import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -54,6 +56,9 @@ public class ManagementRequestControllerTest extends AbstractApiControllerTestCo
 
     @Autowired
     private IdentifierRepository<ClientId> clientIds;
+
+    @Autowired
+    private MemberClassRepository memberClasses;
 
     @Test
     @WithMockUser(authorities = {
@@ -92,8 +97,10 @@ public class ManagementRequestControllerTest extends AbstractApiControllerTestCo
     }
 
     private void setup() {
+        var memberClass = memberClasses.findByCode("CLASS")
+                .orElseGet(() -> memberClasses.save(new MemberClass("CLASS", "CLASS")));
         var memberId = clientIds.merge(ClientId.create("TEST", "CLASS", "MEMBER"));
-        var member = new XRoadMember(memberId);
+        var member = new XRoadMember(memberId, memberClass);
         members.save(member);
     }
 

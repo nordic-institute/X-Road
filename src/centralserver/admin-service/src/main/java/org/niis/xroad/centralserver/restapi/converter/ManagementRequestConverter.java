@@ -129,7 +129,7 @@ public class ManagementRequestConverter {
     public ee.ria.xroad.common.identifier.SecurityServerId parseServerId(String id) {
         if (id == null) return null;
         final String[] parts = id.split(":", 6);
-        if (parts.length != 5 || XRoadObjectType.SERVER.name().equals(parts[0])) {
+        if (parts.length != 5 || !XRoadObjectType.SERVER.name().equals(parts[0])) {
             throw new IllegalArgumentException("Invalid security server id");
         }
         return ee.ria.xroad.common.identifier.SecurityServerId.create(parts[0], parts[1], parts[2], parts[3]);

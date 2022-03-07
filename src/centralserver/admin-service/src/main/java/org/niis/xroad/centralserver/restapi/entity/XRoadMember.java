@@ -29,6 +29,8 @@ package org.niis.xroad.centralserver.restapi.entity;
 
 import ee.ria.xroad.common.identifier.ClientId;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.DiscriminatorValue;
@@ -39,6 +41,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -60,8 +63,13 @@ public class XRoadMember extends SecurityServerClient {
         //JPA
     }
 
-    public XRoadMember(ClientId identifier) {
+    public XRoadMember(ClientId identifier, MemberClass memberClass) {
         super(identifier);
+        if (!Objects.equals(identifier.getMemberClass(), memberClass.getCode())) {
+            throw new IllegalArgumentException("ClientId and memberClass are not consistent");
+        }
+        this.subsystemCode = identifier.getSubsystemCode();
+        this.memberCode = identifier.getMemberCode();
         this.memberClass = memberClass;
     }
 
@@ -76,21 +84,15 @@ public class XRoadMember extends SecurityServerClient {
     }
 
     @Column(name = "member_code")
+    @Access(AccessType.FIELD)
     public String getMemberCode() {
         return this.memberCode;
     }
 
-    public void setMemberCode(String memberCode) {
-        this.memberCode = memberCode;
-    }
-
     @Column(name = "subsystem_code")
+    @Access(AccessType.FIELD)
     public String getSubsystemCode() {
         return this.subsystemCode;
-    }
-
-    public void setSubsystemCode(String subsystemCode) {
-        this.subsystemCode = subsystemCode;
     }
 
     @Column(name = "name")
@@ -112,21 +114,15 @@ public class XRoadMember extends SecurityServerClient {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public Set<SecurityServer> getOwnedServers() {
         return this.ownedServers;
     }
 
-    public void setOwnedServers(Set<SecurityServer> securityServers) {
-        this.ownedServers = securityServers;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "xroadMember")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "xroadMember", cascade = CascadeType.ALL)
+    @Access(AccessType.FIELD)
     public Set<Subsystem> getSubsystems() {
         return this.subsystems;
-    }
-
-    public void setSubsystems(Set<Subsystem> subsystems) {
-        this.subsystems = subsystems;
     }
 }
 

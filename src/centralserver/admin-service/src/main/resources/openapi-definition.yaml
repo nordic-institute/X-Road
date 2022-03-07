@@ -32,6 +32,8 @@ tags:
     description: resources related to Central Server initialization
   - name: intermediate-cas
     description: resources related to Intermediate Certificate Authorities
+  - name: management-requests
+    description: resources related to management requests
   - name: management-services
     description: resources related to Management Services
   - name: member-classes

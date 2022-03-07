@@ -37,8 +37,10 @@ import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistrationRequestDto;
+import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
+import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,9 +67,14 @@ public class ManagementRequestServiceTest {
     @Autowired
     private IdentifierRepository<ClientId> identifiers;
 
+    @Autowired
+    private MemberClassRepository memberClasses;
+
     @Test
     public void testAddRequest() throws CertificateEncodingException {
-        var member = new XRoadMember(identifiers.merge(ClientId.create("TEST", "CLASS", "MEMBER")));
+        var memberClass = memberClasses.findByCode("CLASS")
+                .orElseGet(() -> memberClasses.save(new MemberClass("CLASS", "CLASS")));
+        var member = new XRoadMember(identifiers.merge(ClientId.create("TEST", "CLASS", "MEMBER")), memberClass);
         members.save(member);
 
         final var certificate = TestCertUtil.getProducer().certChain[0];
