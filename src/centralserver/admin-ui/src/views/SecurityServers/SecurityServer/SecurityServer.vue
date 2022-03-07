@@ -26,20 +26,10 @@
  -->
 <template>
   <div data-test="security-server-view">
-    <div class="navigation-back" data-test="navigation-back">
-      <router-link to="/security-servers">
-        <v-icon :color="colors.Purple100">mdi-chevron-left</v-icon>
-        {{ $t('global.navigation.back') }}
-      </router-link>
-    </div>
     <div class="header-row">
       <div class="title-search">
         <div class="xrd-view-title">FOO 1</div>
       </div>
-      <xrd-button data-test="remove-member-button"
-        ><v-icon class="xrd-large-button-icon">mdi-close-circle</v-icon>
-        {{ $t('securityServers.securityServer.deleteServer') }}</xrd-button
-      >
     </div>
     <PageNavigation :items="memberNavigationItems"></PageNavigation>
     <router-view />
@@ -105,16 +95,4 @@ export default Vue.extend({
 });
 </script>
 
-<style lang="scss" scoped>
-@import '~styles/colors';
 
-.navigation-back {
-  color: $XRoad-Link;
-  cursor: pointer;
-  margin-bottom: 20px;
-
-  a {
-    text-decoration: none;
-  }
-}
-</style>

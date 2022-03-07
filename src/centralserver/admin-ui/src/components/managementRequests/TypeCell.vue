@@ -29,7 +29,7 @@
     <v-tooltip top>
       <template #activator="{ on, attrs }">
         <div v-bind="attrs" v-on="on">
-          <xrd-icon-base v-bind="attrs" v-on="on">
+          <xrd-icon-base v-bind="attrs" class="mr-3" v-on="on">
             <!-- Decide what icon to show -->
             <XrdIconChangeOwner v-if="status === 'change_owner'" />
             <XrdIconAddUser v-if="status === 'register_client'" />
@@ -41,6 +41,7 @@
       </template>
       <span>{{ getStatusText() }}</span>
     </v-tooltip>
+    <span class="status-text">{{ getStatusText() }}</span>
   </div>
 </template>
 
@@ -85,5 +86,11 @@ export default Vue.extend({
   display: flex;
   flex-direction: row;
   align-items: center;
+}
+
+@media (max-width: 1200px) {
+  .status-text {
+    display: none;
+  }
 }
 </style>

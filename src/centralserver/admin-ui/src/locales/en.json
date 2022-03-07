@@ -270,14 +270,12 @@
     "rejected": "Rejected",
     "removeCertificate": "Remove Certificate",
     "removeClient": "Remove Client",
-    "serverCode": "Server Code",
-    "serverOnwerId": "Server Owner ID",
+    "serverIdentifier": "Server Identifier",
     "serverOwnerName": "Server Owner Name",
     "showOnlyPending": "Show only pending requests"
   },
   "members": {
     "addMember": "Add member",
-    "deleteMember": "Delete member",
     "header": "Members",
     "member": {
       "details": {
@@ -288,7 +286,12 @@
         "globalGroups": "Global Groups",
         "group": "Group",
         "ownedServers": "Owned Servers",
-        "server": "Server"
+        "server": "Server",
+        "enterCode": "Enter Member Code",
+        "deleteMember": "Delete member",
+        "deleteMemberFromGroup": "Delete memmer from Global group",
+        "areYouSure1": "Are you sure you want to delete the Member {member} from the system configuration? Enter the member code to confirm.",
+        "areYouSure2": "Are you sure you want to delete the member {member} from the {group}?"
       },
       "managementRequests": {
         "created": "Created",
@@ -334,6 +337,9 @@
       "expires": "Expires",
       "serialNumber": "Serial Number",
       "subject": "Subject",
+      "deleteSecurityServer": "Delete Security Server",
+      "enterCode": "Enter Security Server Code",
+      "areYouSure": "Are you sure you want to delete the Security Server {securityServer} from the system configuration? Enter the server code to confirm.",
       "tabs": {
         "authCertificates": "Authentication Certificates",
         "clients": "Clients",

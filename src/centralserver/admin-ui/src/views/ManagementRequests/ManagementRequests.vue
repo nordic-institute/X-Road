@@ -115,8 +115,7 @@ export default Vue.extend({
           created: '2021-02-01',
           type: 'change_owner',
           serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerId: 'DEV-333',
-          serverCode: 'sidecar',
+          serverId: 'DEV-333:sidecar',
           status: 'APPROVED',
         },
         {
@@ -124,8 +123,7 @@ export default Vue.extend({
           created: '2021-05-05',
           type: 'delete_certificate',
           serverOwnerName: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
-          serverOnwerId: 'COM-777',
-          serverCode: 'SS1',
+          serverId: 'COM-777:SS1',
           status: 'REJECTED',
         },
         {
@@ -133,8 +131,7 @@ export default Vue.extend({
           created: '2021-03-12',
           type: 'delete_client',
           serverOwnerName: 'Helsingin kristillisen koulun kannatusyhdistys',
-          serverOnwerId: 'COM-666',
-          serverCode: 'SS2',
+          serverId: 'COM-666:SS2',
           status: 'PENDING',
         },
         {
@@ -142,8 +139,7 @@ export default Vue.extend({
           created: '2021-04-22',
           type: 'register_certificate',
           serverOwnerName: 'Siseministeerium',
-          serverOnwerId: 'DEV-444',
-          serverCode: 'SS2',
+          serverId: 'DEV-444:SS2',
           status: 'APPROVED',
         },
         {
@@ -151,8 +147,7 @@ export default Vue.extend({
           created: '2021-01-21',
           type: 'register_client',
           serverOwnerName: 'Turvallisuus- ja kemikaalivirasto',
-          serverOnwerId: 'COM-555',
-          serverCode: 'dev-toolkit-confidential.i.x-road',
+          serverId: 'COM-555:dev-toolkit-confidential.i.x-road',
           status: 'PENDING',
         },
       ],
@@ -187,16 +182,10 @@ export default Vue.extend({
           class: 'xrd-table-header mr-table-header-owner-name',
         },
         {
-          text: this.$t('managementRequests.serverOnwerId') as string,
+          text: this.$t('managementRequests.serverIdentifier') as string,
           align: 'start',
-          value: 'serverOnwerId',
+          value: 'serverId',
           class: 'xrd-table-header mr-table-header-owner-id',
-        },
-        {
-          text: this.$t('managementRequests.serverCode') as string,
-          align: 'start',
-          value: 'serverCode',
-          class: 'xrd-table-header mr-table-header-server-code',
         },
 
         {
