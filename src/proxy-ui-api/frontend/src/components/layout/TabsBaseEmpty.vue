@@ -33,8 +33,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Tab } from '@/ui-types';
-import { RouteName } from '@/global';
 import AppIcon from './AppIcon.vue';
 import AppDropMenu from './AppDropMenu.vue';
 
@@ -42,17 +40,6 @@ export default Vue.extend({
   components: {
     AppIcon,
     AppDropMenu,
-  },
-  data() {
-    return {
-      tab: undefined as undefined | Tab,
-    };
-  },
-  methods: {
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
-    },
   },
 });
 </script>

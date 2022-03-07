@@ -219,6 +219,10 @@ import { ServiceTypeEnum } from '@/domain';
 import { Prop } from 'vue/types/options';
 import { sortServiceDescriptionServices } from '@/util/sorting';
 import { deepClone } from '@/util/helpers';
+import { mapActions, mapState } from 'pinia';
+import { useServicesStore } from '@/store/modules/services';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -265,14 +269,17 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
+    ...mapState(useServicesStore, ['descExpanded']),
+
     showAddWSDLButton(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ADD_WSDL);
+      return this.hasPermission(Permissions.ADD_WSDL);
     },
     showAddRestButton(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ADD_OPENAPI3);
+      return this.hasPermission(Permissions.ADD_OPENAPI3);
     },
     canDisable(): boolean {
-      return this.$store.getters.hasPermission(Permissions.ENABLE_DISABLE_WSDL);
+      return this.hasPermission(Permissions.ENABLE_DISABLE_WSDL);
     },
     filtered(): ServiceDescription[] {
       if (!this.serviceDescriptions || this.serviceDescriptions.length === 0) {
@@ -332,11 +339,14 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServicesStore, ['hideDesc', 'expandDesc']),
+
     showRefreshButton(serviceDescriptionType: string): boolean {
       if (serviceDescriptionType === this.serviceTypeEnum.WSDL) {
-        return this.$store.getters.hasPermission(Permissions.REFRESH_WSDL);
+        return this.hasPermission(Permissions.REFRESH_WSDL);
       } else if (serviceDescriptionType === this.serviceTypeEnum.OPENAPI3) {
-        return this.$store.getters.hasPermission(Permissions.REFRESH_OPENAPI3);
+        return this.hasPermission(Permissions.REFRESH_OPENAPI3);
       }
       return false;
     },
@@ -368,7 +378,7 @@ export default Vue.extend({
         return false;
       }
 
-      return this.$store.getters.hasPermission(permission);
+      return this.hasPermission(permission);
     },
     switchChanged(
       event: unknown,
@@ -392,13 +402,10 @@ export default Vue.extend({
           {},
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('services.enableSuccess'),
-          );
+          this.showSuccess(this.$t('services.enableSuccess'));
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           // Whatever happens, refresh the data
@@ -431,13 +438,10 @@ export default Vue.extend({
             },
           )
           .then(() => {
-            this.$store.dispatch(
-              'showSuccess',
-              this.$t('services.disableSuccess'),
-            );
+            this.showSuccess(this.$t('services.disableSuccess'));
           })
           .catch((error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           })
           .finally(() => {
             this.fetchData();
@@ -468,7 +472,7 @@ export default Vue.extend({
           type: this.serviceTypeEnum.WSDL,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.wsdlAdded'));
+          this.showSuccess(this.$t('services.wsdlAdded'));
           this.addWsdlBusy = false;
           this.fetchData();
         })
@@ -477,7 +481,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.saveWsdlWarningDialog = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.addWsdlBusy = false;
           }
         });
@@ -494,10 +498,10 @@ export default Vue.extend({
           ignore_warnings: true,
         })
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.wsdlAdded'));
+          this.showSuccess(this.$t('services.wsdlAdded'));
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.fetchData();
@@ -529,8 +533,7 @@ export default Vue.extend({
           type: this.serviceType,
         })
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.serviceType === 'OPENAPI3'
               ? this.$t('services.openApi3Added')
               : this.$t('services.restAdded'),
@@ -543,7 +546,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.saveRestWarningDialog = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.addRestBusy = false;
           }
         });
@@ -561,15 +564,14 @@ export default Vue.extend({
           ignore_warnings: true,
         })
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.serviceType === 'OPENAPI3'
               ? this.$t('services.openApi3Added')
               : this.$t('services.restAdded'),
           );
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.fetchData();
@@ -603,7 +605,7 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.refreshed'));
+          this.showSuccess(this.$t('services.refreshed'));
           this.fetchData();
         })
         .catch((error) => {
@@ -612,7 +614,7 @@ export default Vue.extend({
             this.refreshWarningDialog = true;
             this.refreshId = serviceDescription.id;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.fetchData();
           }
         })
@@ -633,10 +635,10 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.refreshed'));
+          this.showSuccess(this.$t('services.refreshed'));
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.fetchData();
@@ -652,13 +654,13 @@ export default Vue.extend({
     },
 
     descClose(tokenId: string) {
-      this.$store.dispatch('hideDesc', tokenId);
+      this.hideDesc(tokenId);
     },
     descOpen(tokenId: string) {
-      this.$store.dispatch('expandDesc', tokenId);
+      this.expandDesc(tokenId);
     },
     isExpanded(tokenId: string) {
-      return this.$store.getters.descExpanded(tokenId);
+      return this.descExpanded(tokenId);
     },
 
     fetchData(): void {
@@ -674,7 +676,7 @@ export default Vue.extend({
           );
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.loading = false));
     },

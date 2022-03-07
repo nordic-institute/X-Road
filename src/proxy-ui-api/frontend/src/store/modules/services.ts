@@ -23,103 +23,73 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '../types';
+
+import { defineStore } from 'pinia';
 import { Endpoint, Service, ServiceClient } from '@/openapi-types';
 
 export interface ServicesState {
   expandedServiceDescriptions: string[];
-  service: Service | Record<string, unknown>;
+  service: Service;
   serviceClients: ServiceClient[];
 }
 
-export const servicesState: ServicesState = {
-  expandedServiceDescriptions: [],
-  service: {
-    id: '',
-    service_code: '',
-    code: '',
-    timeout: 0,
-    ssl_auth: undefined,
-    url: '',
+export const useServicesStore = defineStore('servicesStore', {
+  state: (): ServicesState => {
+    return {
+      expandedServiceDescriptions: [],
+      service: {
+        id: '',
+        service_code: '',
+        timeout: 0,
+        ssl_auth: undefined,
+        url: '',
+      },
+      serviceClients: [],
+    };
   },
-  serviceClients: [],
-};
-
-export const getters: GetterTree<ServicesState, RootState> = {
-  descExpanded: (state) => (id: string) => {
-    return state.expandedServiceDescriptions.includes(id);
-  },
-
-  serviceClients: (state: ServicesState): ServiceClient[] => {
-    return state.serviceClients;
+  getters: {
+    descExpanded: (state) => (id: string) => {
+      return state.expandedServiceDescriptions.includes(id);
+    },
   },
 
-  service: (state: ServicesState): Service | Record<string, unknown> => {
-    return state.service;
+  actions: {
+    expandDesc(id: string) {
+      const index = this.expandedServiceDescriptions.findIndex((element) => {
+        return element === id;
+      });
+
+      if (index === -1) {
+        this.expandedServiceDescriptions.push(id);
+      }
+    },
+
+    hideDesc(id: string) {
+      const index = this.expandedServiceDescriptions.findIndex((element) => {
+        return element === id;
+      });
+
+      if (index >= 0) {
+        this.expandedServiceDescriptions.splice(index, 1);
+      }
+    },
+
+    setService(service: Service) {
+      service.endpoints = service.endpoints?.sort(
+        (a: Endpoint, b: Endpoint) => {
+          const sortByGenerated =
+            a.generated === b.generated ? 0 : a.generated ? -1 : 1;
+          const sortByPathSlashCount =
+            a.path.split('/').length - b.path.split('/').length;
+          const sortByPathLength = a.path.length - b.path.length;
+          return sortByGenerated || sortByPathSlashCount || sortByPathLength;
+        },
+      );
+      this.service = service;
+    },
+
+    setServiceClients(serviceClients: ServiceClient[]) {
+      this.serviceClients = serviceClients;
+    },
   },
-};
-
-export const mutations: MutationTree<ServicesState> = {
-  setHidden(state, id: string): void {
-    const index = state.expandedServiceDescriptions.findIndex((element) => {
-      return element === id;
-    });
-
-    if (index >= 0) {
-      state.expandedServiceDescriptions.splice(index, 1);
-    }
-  },
-
-  setExpanded(state, id: string): void {
-    const index = state.expandedServiceDescriptions.findIndex((element) => {
-      return element === id;
-    });
-
-    if (index === -1) {
-      state.expandedServiceDescriptions.push(id);
-    }
-  },
-
-  setService(state, service: Service) {
-    service.endpoints = service.endpoints?.sort((a: Endpoint, b: Endpoint) => {
-      const sortByGenerated =
-        a.generated === b.generated ? 0 : a.generated ? -1 : 1;
-      const sortByPathSlashCount =
-        a.path.split('/').length - b.path.split('/').length;
-      const sortByPathLength = a.path.length - b.path.length;
-      return sortByGenerated || sortByPathSlashCount || sortByPathLength;
-    });
-    state.service = service;
-  },
-
-  setServiceClients(state, serviceClients: ServiceClient[]): void {
-    state.serviceClients = serviceClients;
-  },
-};
-
-export const actions: ActionTree<ServicesState, RootState> = {
-  expandDesc({ commit }, id: string) {
-    commit('setExpanded', id);
-  },
-
-  hideDesc({ commit }, id: string) {
-    commit('setHidden', id);
-  },
-
-  setService({ commit }, service) {
-    commit('setService', service);
-  },
-
-  setServiceClients({ commit }, serviceClients) {
-    commit('setServiceClients', serviceClients);
-  },
-};
-
-export const servicesModule: Module<ServicesState, RootState> = {
-  namespaced: false,
-  state: servicesState,
-  getters,
-  actions,
-  mutations,
-};
+});

@@ -135,6 +135,9 @@ import GenerateTlsAndCertificateDialog from '@/views/KeysAndCertificates/Securit
 import { saveResponseAsFile } from '@/util/helpers';
 import { FileUploadResult } from '@niis/shared-ui';
 import HelpButton from '../HelpButton.vue';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -150,31 +153,25 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     generateKeyVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_INTERNAL_TLS_KEY_CERT,
-      );
+      return this.hasPermission(Permissions.GENERATE_INTERNAL_TLS_KEY_CERT);
     },
     importCertificateVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.IMPORT_INTERNAL_TLS_CERT,
-      );
+      return this.hasPermission(Permissions.IMPORT_INTERNAL_TLS_CERT);
     },
     exportCertificateVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EXPORT_INTERNAL_TLS_CERT,
-      );
+      return this.hasPermission(Permissions.EXPORT_INTERNAL_TLS_CERT);
     },
     generateCsrVisible(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.GENERATE_INTERNAL_TLS_CSR,
-      );
+      return this.hasPermission(Permissions.GENERATE_INTERNAL_TLS_CSR);
     },
   },
   created() {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     certificateClick(): void {
       this.$router.push({
         name: RouteName.InternalTlsCertificate,
@@ -193,7 +190,7 @@ export default Vue.extend({
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => (this.loading = false));
     },
@@ -206,7 +203,7 @@ export default Vue.extend({
       api
         .get('/system/certificate/export', { responseType: 'blob' })
         .then((res) => saveResponseAsFile(res, 'certs.tar.gz'))
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.exportPending = false));
     },
     onImportFileChanged(result: FileUploadResult): void {
@@ -217,13 +214,10 @@ export default Vue.extend({
           },
         })
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('ssTlsCertificate.certificateImported'),
-          );
+          this.showSuccess(this.$t('ssTlsCertificate.certificateImported'));
           this.fetchData();
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
   },
 });

@@ -38,7 +38,8 @@ import Vue from 'vue';
 import { Permissions, RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
-
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 export default Vue.extend({
   components: {
     SubTabs,
@@ -55,6 +56,7 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['getAllowedTabs']),
     tabs(): Tab[] {
       const allTabs: Tab[] = [
         {
@@ -76,7 +78,7 @@ export default Vue.extend({
         },
       ];
 
-      return this.$store.getters.getAllowedTabs(allTabs);
+      return this.getAllowedTabs(allTabs);
     },
   },
 });
