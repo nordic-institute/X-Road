@@ -19,7 +19,11 @@ configurations {
 
 sourceSets {
     main {
-        java.srcDirs = ['src/main/java', 'build/generated-sources/openapi/src/main/java']
+        java.srcDirs = [
+            'src/main/java',
+            'build/generated-sources/openapi/src/main/java',
+            'build/generated/sources/annotationProcessor/java/main'
+        ]
     }
 }
 
@@ -52,9 +56,9 @@ openApiGenerate {
         supportingFiles        : 'ApiUtil.java'
     ]
     configOptions = [
-        interfaceOnly: "true",
-        useTags      : "true",
-        skipDefaultInterface : "true"
+        interfaceOnly       : "true",
+        useTags             : "true",
+        skipDefaultInterface: "true"
     ]
 }
 
@@ -91,6 +95,7 @@ dependencyManagement {
 dependencies {
     dist(project(path: ':centralserver:admin-ui', configuration: 'dist'))
 
+    annotationProcessor("org.hibernate:hibernate-jpamodelgen:${hibernateVersion}")
     implementation project(':common-util')
     implementation project(':common-verifier')
     implementation project(':signer-protocol')

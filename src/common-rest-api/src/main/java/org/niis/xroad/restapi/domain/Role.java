@@ -30,7 +30,7 @@ import lombok.Getter;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.EnumSet;
 import java.util.Optional;
 import java.util.Set;
 
@@ -43,7 +43,9 @@ public enum Role {
     XROAD_REGISTRATION_OFFICER(2, "xroad-registration-officer"),
     XROAD_SERVICE_ADMINISTRATOR(3, "xroad-service-administrator"),
     XROAD_SYSTEM_ADMINISTRATOR(4, "xroad-system-administrator"),
-    XROAD_SECURITYSERVER_OBSERVER(5, "xroad-securityserver-observer");
+    XROAD_SECURITYSERVER_OBSERVER(5, "xroad-securityserver-observer"),
+    //management service does not exist as a linux group
+    XROAD_MANAGEMENT_SERVICE(6, null);
 
     /**
      * Some unfortunate extra boilerplate, since role names in e.g. @RolesAllowed
@@ -115,7 +117,7 @@ public enum Role {
      * @return
      */
     public static Set<Role> getForNames(Collection<String> names) throws InvalidRoleNameException {
-        Set<Role> roles = new HashSet<>();
+        Set<Role> roles = EnumSet.noneOf(Role.class);
         for (String name: names) {
             if (!Role.contains(name)) {
                 throw new InvalidRoleNameException("invalid role " + name);

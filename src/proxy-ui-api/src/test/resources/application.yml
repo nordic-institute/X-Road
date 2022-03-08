@@ -32,6 +32,10 @@ ratelimit:
       second: 60
       minute: 3600
 
+server:
+  tomcat:
+    accesslog.enabled: false
+
 #server:
 #  error:
 #    include-stacktrace: always

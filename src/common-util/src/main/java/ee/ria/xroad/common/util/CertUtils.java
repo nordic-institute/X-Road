@@ -234,7 +234,7 @@ public final class CertUtils {
      * @return boolean
      * @throws Exception if the cert has no keyUsage extension
      */
-    public static boolean isAuthCert(X509Certificate cert) throws Exception {
+    public static boolean isAuthCert(X509Certificate cert) throws CertificateParsingException {
         List<String> extendedKeyUsage = cert.getExtendedKeyUsage();
 
         if (extendedKeyUsage != null && extendedKeyUsage.contains("1.3.6.1.5.5.7.3.2")) {
@@ -244,7 +244,7 @@ public final class CertUtils {
         boolean[] keyUsage = cert.getKeyUsage();
 
         if (keyUsage == null) {
-            throw new RuntimeException("Certificate does not contain keyUsage extension");
+            throw new CertificateParsingException("Certificate does not contain keyUsage extension");
         }
 
         return keyUsage[DIGITAL_SIGNATURE_IDX]

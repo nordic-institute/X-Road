@@ -3,7 +3,7 @@
     xmlns="http://xmlns.jcp.org/xml/ns/validation/mapping"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/validation/mapping
-http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
+    http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
     version="2.0">
     <default-package>org.niis.xroad.centralserver.openapi.model</default-package>
 
@@ -17,6 +17,7 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
             </constraint>
         </field>
     </bean>
+
     <bean class="CentralServerAddress" ignore-annotations="false">
         <field name="centralServerAddress">
             <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidHostAddress">
@@ -24,4 +25,18 @@ http://xmlns.jcp.org/xml/ns/validation/mapping/validation-mapping-2.0.xsd"
         </field>
     </bean>
 
+    <bean class="XRoadId" ignore-annotations="false">
+        <class ignore-annotations="false">
+            <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidXRoadId"/>
+        </class>
+    </bean>
+
+    <bean class="AuthenticationCertificateRegistrationRequest">
+        <field name="authenticationCertificate">
+            <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidX509Certificate"/>
+        </field>
+        <field name="serverAddress">
+            <constraint annotation="org.niis.xroad.centralserver.restapi.openapi.validator.ValidHostAddress"/>
+        </field>
+    </bean>
 </constraint-mappings>

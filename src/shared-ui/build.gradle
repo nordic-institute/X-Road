@@ -42,7 +42,7 @@ task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
     args = ['pack', '--quiet']
 }
 
-task checkFrontAudit(type: NpmTask) {
+task checkFrontAudit(type: NpmTask, dependsOn: ['npmBuild']) {
     inputs.files("package.json", "package-lock.json", "dist")
     // do a front end audit with npm run npx-check-audit
     // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
