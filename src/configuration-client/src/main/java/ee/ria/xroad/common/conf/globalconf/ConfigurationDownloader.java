@@ -74,14 +74,12 @@ class ConfigurationDownloader {
 
     public static final int READ_TIMEOUT = 30000;
 
-    private final String globalConfigurationDir;
     protected final FileNameProvider fileNameProvider;
 
     private Map<ConfigurationSource, ConfigurationLocation>
             lastSuccessfulLocation = new HashMap<>();
 
     ConfigurationDownloader(String globalConfigurationDir) {
-        this.globalConfigurationDir = globalConfigurationDir;
         fileNameProvider = new FileNameProviderImpl(globalConfigurationDir);
     }
 
@@ -191,7 +189,7 @@ class ConfigurationDownloader {
     }
 
     Set<Path> persistAllContent(List<DownloadedContent> downloadedContents) throws Exception {
-        Set<Path> result = new HashSet();
+        Set<Path> result = new HashSet<>();
         for (DownloadedContent downloadedContent: downloadedContents) {
             Path contentFileName = fileNameProvider.getFileName(downloadedContent.file);
             if (downloadedContent.content != null) {
