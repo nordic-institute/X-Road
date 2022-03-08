@@ -53,7 +53,7 @@
 
           <ValidationProvider v-slot="{}" name="csr.client" rules="required">
             <v-select
-              v-model="client"
+              v-model="csrClient"
               :items="memberIds"
               item-text="id"
               item-value="id"
@@ -127,10 +127,13 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import { ValidationProvider, ValidationObserver } from 'vee-validate';
 import { Permissions } from '@/global';
 import { CsrFormat, KeyUsageType } from '@/openapi-types';
+import { mapActions, mapState, mapWritableState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {
@@ -156,40 +159,18 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['memberIds', 'filteredServiceList', 'isUsageReadOnly']),
-
-    usage: {
-      get(): string {
-        return this.$store.getters.usage;
-      },
-      set(value: string) {
-        this.$store.commit('storeUsage', value);
-      },
-    },
-    csrFormat: {
-      get(): string {
-        return this.$store.getters.csrFormat;
-      },
-      set(value: string) {
-        this.$store.commit('storeCsrFormat', value);
-      },
-    },
-    client: {
-      get(): string {
-        return this.$store.getters.csrClient;
-      },
-      set(value: string) {
-        this.$store.commit('storeCsrClient', value);
-      },
-    },
-    certificationService: {
-      get(): string {
-        return this.$store.getters.certificationService;
-      },
-      set(value: string) {
-        this.$store.commit('storeCertificationService', value);
-      },
-    },
+    ...mapState(useCsrStore, [
+      'memberIds',
+      'filteredServiceList',
+      'isUsageReadOnly',
+    ]),
+    ...mapWritableState(useCsrStore, [
+      'usage',
+      'csrClient',
+      'csrFormat',
+      'certificationService',
+    ]),
+    ...mapState(useUser, ['hasPermission']),
   },
 
   watch: {
@@ -202,20 +183,20 @@ export default Vue.extend({
     memberIds(val) {
       // Set first client selected as default when the list is updated
       if (val?.length === 1) {
-        this.client = val[0].id;
+        this.csrClient = val[0].id;
       }
     },
   },
 
   created() {
     // Fetch member id:s for the client selection dropdown
-    this.$store.dispatch('fetchAllMemberIds');
+    this.fetchAllMemberIds();
 
     // Check if the user has permission for only one type of CSR
-    const signPermission = this.$store.getters.hasPermission(
+    const signPermission = this.hasPermission(
       Permissions.GENERATE_SIGN_CERT_REQ,
     );
-    const authPermission = this.$store.getters.hasPermission(
+    const authPermission = this.hasPermission(
       Permissions.GENERATE_AUTH_CERT_REQ,
     );
 
@@ -232,6 +213,7 @@ export default Vue.extend({
     }
   },
   methods: {
+    ...mapActions(useCsrStore, ['fetchAllMemberIds']),
     done(): void {
       this.$emit('done');
     },

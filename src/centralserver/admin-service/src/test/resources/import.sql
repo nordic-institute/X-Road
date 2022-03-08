@@ -5,7 +5,6 @@ INSERT INTO UI_USERS(ID, USERNAME, LOCALE, CREATED_AT, UPDATED_AT) values (1, 't
 INSERT INTO APIKEY (ID, ENCODED_KEY) values (1, 'ad26a8235b3e847dc0b9ac34733d5acb39e2b6af634796e7eebe171165cdf2d1');
 INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_SYSTEM_ADMINISTRATOR');
 INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_SECURITY_OFFICER');
-INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_SERVICE_ADMINISTRATOR');
 INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_REGISTRATION_OFFICER');
 -- identifier
 -- create table identifier (type varchar(31) not null, id bigint not null, object_type varchar(255), xroad_instance varchar(255), member_class varchar(255), member_code varchar(255), subsystem_code varchar(255), server_code varchar(255), service_code varchar(255), service_version varchar(255), primary key (id));

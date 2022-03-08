@@ -43,6 +43,8 @@ import * as api from '@/util/api';
 import { CertificateDetails } from '@/openapi-types';
 import CertificateInfo from '@/components/certificate/CertificateInfo.vue';
 import CertificateHash from '@/components/certificate/CertificateHash.vue';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -59,6 +61,7 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError']),
     close(): void {
       this.$router.go(-1);
     },
@@ -69,7 +72,7 @@ export default Vue.extend({
           this.certificate = res.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },

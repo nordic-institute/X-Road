@@ -26,42 +26,31 @@
  */
 package org.niis.xroad.centralserver.restapi.entity;
 
+import lombok.Getter;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.PreUpdate;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
 
-import java.util.Date;
+import java.time.Instant;
 
 @MappedSuperclass
 public abstract class AuditableEntity {
 
-    private Date createdAt = new Date();
-    private Date updatedAt = createdAt;
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Access(AccessType.FIELD)
+    @Getter
+    private Instant createdAt = Instant.now();
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(name = "created_at", nullable = false)
-    public Date getCreatedAt() {
-        return this.createdAt;
-    }
-
-    public void setCreatedAt(Date createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at", nullable = false)
-    public Date getUpdatedAt() {
-        return this.updatedAt;
-    }
-
-    public void setUpdatedAt(Date updatedAt) {
-        this.updatedAt = updatedAt;
-    }
+    @Access(AccessType.FIELD)
+    @Getter
+    private Instant updatedAt = createdAt;
 
     @PreUpdate
     void preUpdate() {
-        this.updatedAt = new Date();
+        this.updatedAt = Instant.now();
     }
 }

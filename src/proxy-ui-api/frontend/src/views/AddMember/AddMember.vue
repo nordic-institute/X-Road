@@ -148,7 +148,6 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
 import MemberDetailsPage from './MemberDetailsPage.vue';
 import TokenPage from '@/components/wizard/TokenPage.vue';
 import SignKeyPage from '@/components/wizard/SignKeyPage.vue';
@@ -156,6 +155,11 @@ import FinishPage from './FinishPage.vue';
 import CsrDetailsPageLocked from '@/components/wizard/CsrDetailsPageLocked.vue';
 import GenerateCsrPage from '@/components/wizard/GenerateCsrPage.vue';
 import { RouteName, AddMemberWizardModes } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useAddClient } from '@/store/modules/addClient';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
+import { useGeneral } from '@/store/modules/general';
 
 const NO_SELECTION = 999;
 
@@ -190,7 +194,7 @@ export default Vue.extend({
   },
 
   computed: {
-    ...mapGetters(['addMemberWizardMode']),
+    ...mapState(useAddClient, ['addMemberWizardMode', 'selectedMemberId']),
 
     tokenPageNumber(): number {
       if (
@@ -253,53 +257,61 @@ export default Vue.extend({
   },
   created() {
     // Set up the CSR part with Sign mode
-    this.$store.dispatch('setupSignKey');
-    this.fetchCertificateAuthorities();
+    this.setupSignKey();
 
-    // this.$store.dispatch('fetchXroadInstances');
-    this.$store.dispatch('fetchMemberClassesForCurrentInstance');
+    this.fetchCertificateAuthorities().catch((error) => {
+      this.showError(error);
+    });
 
-    // Store the reserved member info to vuex
-    this.$store.commit('storeReservedMember', {
+    this.fetchMemberClassesForCurrentInstance();
+
+    // Store the reserved member info to store
+    this.storeReservedMember({
       instanceId: this.instanceId,
       memberClass: this.memberClass,
       memberCode: this.memberCode,
     });
   },
   beforeDestroy() {
-    this.$store.dispatch('resetAddClientState');
-    this.$store.dispatch('resetCsrState');
+    this.resetAddClientState();
+    this.resetCsrState();
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useCsrStore, [
+      'storeCsrClient',
+      'storeCsrIsNewMember',
+      'resetCsrState',
+      'fetchCsrForm',
+      'fetchCertificateAuthorities',
+      'setupSignKey',
+    ]),
+    ...mapActions(useAddClient, ['storeReservedMember', 'resetAddClientState']),
+    ...mapActions(useGeneral, ['fetchMemberClassesForCurrentInstance']),
+
     cancel(): void {
       this.$router.replace({ name: RouteName.Clients });
     },
 
     csrDetailsReady(): void {
       // Add the selected client id in csr store
-      const idString = this.$store.getters.selectedMemberId;
-      this.$store.commit('storeCsrClient', idString);
-      this.$store.commit('storeCsrIsNewMember', true);
+      const idString = this.selectedMemberId;
+      this.storeCsrClient(idString);
+      this.storeCsrIsNewMember(true);
 
-      this.$store.dispatch('fetchCsrForm').then(
+      this.fetchCsrForm().then(
         () => {
           this.currentStep++;
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
     },
 
     done(): void {
       this.$router.replace({ name: RouteName.Clients });
-    },
-
-    fetchCertificateAuthorities(): void {
-      this.$store.dispatch('fetchCertificateAuthorities').catch((error) => {
-        this.$store.dispatch('showError', error);
-      });
     },
   },
 });

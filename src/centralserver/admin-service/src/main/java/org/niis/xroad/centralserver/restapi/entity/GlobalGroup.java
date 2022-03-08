@@ -27,6 +27,8 @@
 package org.niis.xroad.centralserver.restapi.entity;
 // Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -90,23 +92,14 @@ public class GlobalGroup extends AuditableEntity {
     }
 
     @Column(name = "member_count")
-    public Integer getMemberCount() {
-        return this.memberCount;
-    }
-
-    public void setMemberCount(Integer memberCount) {
-        this.memberCount = memberCount;
+    @Access(AccessType.FIELD)
+    public int getMemberCount() {
+        return this.memberCount == null ? 0 : this.memberCount;
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "globalGroup", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public Set<GlobalGroupMember> getGlobalGroupMembers() {
         return this.globalGroupMembers;
     }
-
-    public void setGlobalGroupMembers(Set<GlobalGroupMember> globalGroupMembers) {
-        this.globalGroupMembers = globalGroupMembers;
-    }
-
 }
-
-

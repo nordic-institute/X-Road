@@ -87,12 +87,16 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { AddMemberWizardModes } from '@/global';
 import { createClientId } from '@/util/helpers';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useAddClient } from '@/store/modules/addClient';
+import { useNotifications } from '@/store/modules/notifications';
+import { useCsrStore } from '@/store/modules/certificateSignRequest';
 
 export default Vue.extend({
   components: {
@@ -108,12 +112,14 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters([
+    ...mapState(useAddClient, [
       'addMemberWizardMode',
       'memberClass',
       'memberCode',
       'reservedMember',
     ]),
+
+    ...mapState(useCsrStore, ['csrTokenId']),
 
     showRegisterOption() {
       if (
@@ -126,6 +132,9 @@ export default Vue.extend({
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useAddClient, ['createMember']),
+    ...mapActions(useCsrStore, ['requestGenerateCsr', 'generateKeyAndCsr']),
     cancel(): void {
       this.$emit('cancel');
     },
@@ -133,13 +142,13 @@ export default Vue.extend({
       this.$emit('previous');
     },
     done(): void {
-      this.createMember(false);
+      this.cmpCreateMember(false);
     },
-    createMember(ignoreWarnings: boolean): void {
+    cmpCreateMember(ignoreWarnings: boolean): void {
       this.disableCancel = true;
       this.submitLoading = true;
 
-      this.$store.dispatch('createMember', ignoreWarnings).then(
+      this.createMember(ignoreWarnings).then(
         () => {
           if (
             this.addMemberWizardMode ===
@@ -158,7 +167,7 @@ export default Vue.extend({
           ) {
             this.generateCsr();
           } else {
-            this.generateKeyAndCsr();
+            this.cmpGenerateKeyAndCsr();
           }
         },
         (error) => {
@@ -166,7 +175,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.warningDialog = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.disableCancel = false;
             this.submitLoading = false;
           }
@@ -180,20 +189,22 @@ export default Vue.extend({
       this.warningDialog = false;
     },
     acceptWarnings(): void {
-      this.createMember(true);
+      this.cmpCreateMember(true);
     },
 
-    generateKeyAndCsr(): void {
-      const tokenId = this.$store.getters.csrTokenId;
+    cmpGenerateKeyAndCsr(): void {
+      if (!this.csrTokenId) {
+        // Should not happen
+        throw new Error('Token id does not exist');
+      }
 
-      this.$store
-        .dispatch('generateKeyAndCsr', tokenId)
+      this.generateKeyAndCsr(this.csrTokenId)
         .then(
           () => {
             this.$emit('done');
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
@@ -203,16 +214,13 @@ export default Vue.extend({
     },
 
     generateCsr(): void {
-      const tokenId = this.$store.getters.csrTokenId;
-
-      this.$store
-        .dispatch('generateCsr', tokenId)
+      this.requestGenerateCsr()
         .then(
           () => {
             this.$emit('done');
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           },
         )
         .finally(() => {
@@ -222,6 +230,11 @@ export default Vue.extend({
     },
 
     registerClient(): void {
+      if (!this.reservedMember) {
+        // Should not happen
+        throw new Error('Reserved member does not exist');
+      }
+
       const clientId = createClientId(
         this.reservedMember.instanceId,
         this.memberClass,
@@ -235,7 +248,7 @@ export default Vue.extend({
             this.$emit('done');
           },
           (error) => {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.$emit('done');
           },
         )

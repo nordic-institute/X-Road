@@ -120,6 +120,10 @@ public enum RestApiAuditEvent {
     DELETE_MEMBER_CLASS("Delete member class"),
     EDIT_MEMBER_CLASS("Edit member class description"),
 
+    ADD_MANAGEMENT_REQUEST("Add management request"),
+    REVOKE_MANAGEMENT_REQUEST("Revoke management request"),
+    APPROVE_MANAGEMENT_REQUEST("Approve management request"),
+
     DELETE_SECURITY_SERVER("Delete security server"),
     UPDATE_SECURITY_SERVER_ADDRESS("Update security server address");
 

@@ -87,9 +87,8 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      * @param serviceProvider the service provider
      * @return services of the specified service provider
      */
-    public List<ServiceId> getServices(Session session,
-            ClientId serviceProvider) {
-        return getServicesByDescriptionType(session, serviceProvider, null);
+    public List<ServiceId> getServices(Session session, ClientId serviceProvider) {
+        return getServicesByDescriptionType(session, serviceProvider);
     }
 
     /**
@@ -101,7 +100,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
      */
     @SuppressWarnings("squid:S1192")
     public List<ServiceId> getServicesByDescriptionType(Session session,
-                                       ClientId serviceProvider, DescriptionType... descriptionType) {
+            ClientId serviceProvider, DescriptionType... descriptionType) {
         CriteriaBuilder builder = session.getCriteriaBuilder();
         CriteriaQuery<Tuple> tq = builder.createTupleQuery();
         Root<ServiceType> root = tq.from(ServiceType.class);
@@ -124,7 +123,7 @@ public class ServiceDAOImpl extends AbstractDAOImpl<ServiceType> {
         if (descriptionType != null && descriptionType.length > 0) {
             predicates.add(joinServiceDescription.get("type").in((Object[]) descriptionType));
         }
-        tq.where(predicates.toArray(new Predicate[]{}));
+        tq.where(predicates.toArray(new Predicate[] {}));
         List<Tuple> resultList = session.createQuery(tq).getResultList();
         List<ServiceId> services = new ArrayList<>();
         for (Tuple tuple : resultList) {

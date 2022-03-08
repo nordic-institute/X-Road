@@ -86,11 +86,8 @@ import './plugins/vee-validate';
 import './i18n';
 import './assets/icons.css';
 
-import VueCompositionAPI from '@vue/composition-api'
-
 const SharedComponents = {
   install(Vue: VueConstructor): void {
-    Vue.use(VueCompositionAPI);
     Vue.component('XrdConfirmDialog', ConfirmDialog);
     Vue.component('XrdExpandable', Expandable);
     Vue.component('XrdFileUpload', FileUpload);

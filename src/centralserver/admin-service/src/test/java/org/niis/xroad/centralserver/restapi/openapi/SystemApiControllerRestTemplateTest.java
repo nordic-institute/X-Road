@@ -33,15 +33,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
-@Transactional
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 public class SystemApiControllerRestTemplateTest extends AbstractApiRestTemplateTestContext {
 
     @Autowired
@@ -59,6 +57,7 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiRestTemplate
 
     @Test
     public void testGetVersionFailsIfNotAuthorized() {
+        restTemplate.getRestTemplate().setInterceptors(Collections.emptyList());
         var response = restTemplate.getForEntity("/api/v1/system/version", Version.class);
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
     }
@@ -75,6 +74,7 @@ public class SystemApiControllerRestTemplateTest extends AbstractApiRestTemplate
 
     @Test
     public void testGetSystemStatusFailsIfNotAuthorized() {
+        restTemplate.getRestTemplate().setInterceptors(Collections.emptyList());
         var response = restTemplate.getForEntity("/api/v1/system/status", SystemStatus.class);
         assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCodeValue());
     }

@@ -68,6 +68,10 @@ public abstract class SecurityServerClient extends AuditableEntity {
         //JPA
     }
 
+    public SecurityServerClient(ClientId identifier) {
+        this.identifier = identifier;
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
@@ -80,7 +84,7 @@ public abstract class SecurityServerClient extends AuditableEntity {
         this.id = id;
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "server_client_id", nullable = false)
     public ClientId getIdentifier() {
         return this.identifier;

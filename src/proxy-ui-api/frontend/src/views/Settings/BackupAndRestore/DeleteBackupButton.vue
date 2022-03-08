@@ -51,6 +51,9 @@ import { Prop } from 'vue/types/options';
 import { Backup } from '@/openapi-types';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+
 export default Vue.extend({
   name: 'DeleteBackupButton',
   props: {
@@ -71,6 +74,7 @@ export default Vue.extend({
     };
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     async deleteBackup() {
       this.deleting = true;
       this.showConfirmation = false;
@@ -78,14 +82,13 @@ export default Vue.extend({
         .remove(`/backups/${encodePathParameter(this.backup.filename)}`)
         .then(() => {
           this.$emit('deleted');
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t('backup.action.delete.success', {
               file: this.backup.filename,
             }),
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => (this.deleting = false));
     },
   },

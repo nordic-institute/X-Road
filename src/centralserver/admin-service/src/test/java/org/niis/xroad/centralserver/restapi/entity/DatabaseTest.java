@@ -48,14 +48,18 @@ public class DatabaseTest {
 
     @Test
     public void testPersistence() {
-        XRoadMember member = new XRoadMember();
-        member.setIdentifier(ClientId.create("TEST", "CLASS", "CODE"));
-        member.getSubsystems().add(new Subsystem(member, "SUBSYSTEM"));
+        var memberClass = entityManager.persist(new MemberClass("CLASS", "Description for CLASS"));
+        var memberId = entityManager.persist(ClientId.create("TEST", "CLASS", "CODE"));
+        var subsystemId = entityManager.persist(ClientId.create("TEST", "CLASS", "CODE", "SUBSYSTEM"));
+
+        XRoadMember member = new XRoadMember(memberId, memberClass);
+        member.getSubsystems().add(new Subsystem(member, subsystemId));
         member = entityManager.persist(member);
 
         final SecurityServer server = new SecurityServer();
         server.setOwner(member);
         server.setServerCode("SERVERCODE");
+        server.setAddress("ss1.example.org");
 
         ServerClient sc = new ServerClient();
         sc.setSecurityServer(server);

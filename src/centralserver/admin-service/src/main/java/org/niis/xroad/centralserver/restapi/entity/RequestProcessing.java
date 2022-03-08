@@ -27,6 +27,10 @@
 package org.niis.xroad.centralserver.restapi.entity;
 // Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
+import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
+
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -37,6 +41,9 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -51,8 +58,8 @@ public class RequestProcessing extends AuditableEntity {
 
     private int id;
     private String type;
-    private String status;
-    private Set<Request> requests = new HashSet<>(0);
+    private ManagementRequestStatus status = ManagementRequestStatus.WAITING;
+    private Set<RequestWithProcessing> requests = new HashSet<>(0);
 
     public RequestProcessing() {
         //JPA
@@ -80,21 +87,21 @@ public class RequestProcessing extends AuditableEntity {
     }
 
     @Column(name = "status")
-    public String getStatus() {
+    @NotNull
+    public ManagementRequestStatus getStatus() {
         return this.status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(ManagementRequestStatus status) {
         this.status = status;
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "requestProcessing", cascade = CascadeType.ALL, orphanRemoval = true)
-    public Set<Request> getRequests() {
+    @Access(AccessType.FIELD)
+    @NotEmpty
+    @Size(max = 2)
+    public Set<RequestWithProcessing> getRequests() {
         return this.requests;
-    }
-
-    public void setRequests(Set<Request> requests) {
-        this.requests = requests;
     }
 
 }

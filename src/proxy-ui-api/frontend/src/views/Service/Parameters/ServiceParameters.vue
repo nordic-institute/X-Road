@@ -261,11 +261,14 @@ import * as api from '@/util/api';
 import AccessRightsDialog from '../AccessRightsDialog.vue';
 import WarningDialog from '@/components/ui/WarningDialog.vue';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
-import { mapGetters } from 'vuex';
 import { RouteName, Permissions } from '@/global';
 import { ServiceClient, ServiceClients, ServiceUpdate } from '@/openapi-types';
 import { ServiceTypeEnum } from '@/domain';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
+import { useServicesStore } from '@/store/modules/services';
 
 type NullableServiceClient = undefined | ServiceClient;
 
@@ -305,8 +308,8 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['service', 'serviceClients']),
-
+    ...mapState(useServicesStore, ['service', 'serviceClients']),
+    ...mapState(useUser, ['hasPermission']),
     hasServiceClients(): boolean {
       return this.serviceClients?.length > 0;
     },
@@ -317,15 +320,17 @@ export default Vue.extend({
     showApplyToAll(): boolean {
       return (
         this.$route.query.descriptionType === ServiceTypeEnum.WSDL &&
-        this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS)
+        this.hasPermission(Permissions.EDIT_SERVICE_PARAMS)
       );
     },
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
+      return this.hasPermission(Permissions.EDIT_SERVICE_PARAMS);
     },
   },
 
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useServicesStore, ['setServiceClients']),
     cancelSubmit(): void {
       this.warningDialog = false;
     },
@@ -356,14 +361,14 @@ export default Vue.extend({
           serviceUpdate,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.serviceSaved'));
+          this.showSuccess(this.$t('services.serviceSaved'));
         })
         .catch((error) => {
           if (error?.response?.data?.warnings) {
             this.warningInfo = error.response.data.warnings;
             this.warningDialog = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
           }
         })
         .finally(() => (this.saving = false));
@@ -375,12 +380,14 @@ export default Vue.extend({
 
     fetchData(serviceId: string): void {
       api
-        .get(`/services/${encodePathParameter(serviceId)}/service-clients`)
+        .get<ServiceClient[]>(
+          `/services/${encodePathParameter(serviceId)}/service-clients`,
+        )
         .then((res) => {
-          this.$store.dispatch('setServiceClients', res.data);
+          this.setServiceClients(res.data);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -399,14 +406,11 @@ export default Vue.extend({
           } as ServiceClients,
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('accessRights.addServiceClientsSuccess'),
-          );
+          this.showSuccess(this.$t('accessRights.addServiceClientsSuccess'));
           this.fetchData(this.serviceId);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -453,13 +457,10 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('accessRights.removeSuccess'),
-          );
+          this.showSuccess(this.$t('accessRights.removeSuccess'));
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.$emit('update-service', this.service.id);
@@ -472,7 +473,7 @@ export default Vue.extend({
       });
     },
     isHttpsMethod(): boolean {
-      return this.service.url.startsWith('https');
+      return this.service?.url?.startsWith('https');
     },
     changeUrl(): void {
       this.setTouched();

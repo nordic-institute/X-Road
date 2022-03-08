@@ -124,6 +124,7 @@
         <module name="InnerAssignment"/>
         <module name="MagicNumber">
             <property name="ignoreNumbers" value="-1, 0, 1, 2, 100"/>
+            <property name="ignoreAnnotation" value="true"/>
         </module>
         <module name="MissingSwitchDefault"/>
         <!-- Checks for class design                         -->
