@@ -40,18 +40,25 @@
     <v-data-table
       :loading="loading"
       :headers="headers"
-      :items="securityServers"
+      :items="securityServerStore.securityServers"
       :search="search"
       :must-sort="true"
-      :items-per-page="-1"
+      :items-per-page="10"
+      :options.sync="pagingSortingOptions"
+      :server-items-length="securityServerStore.securityServerPagingOptions.total_items"
+      disable-filtering
       class="elevation-0 data-table"
+      :no-data-text="emptyListReasoning"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
+      :footer-props="{ itemsPerPageOptions: [10, 25] }"
+      @update:options="findServers"
     >
       <template #[`item.serverCode`]="{ item }">
-        <div class="server-code xrd-clickable" @click="toDetails('netum')">
-          <xrd-icon-base class="mr-4"><XrdIconSecurityServer /></xrd-icon-base>
+        <div class="server-code xrd-clickable" @click="toDetails(item)">
+          <xrd-icon-base class="mr-4">
+            <XrdIconSecurityServer />
+          </xrd-icon-base>
           <div>{{ item.serverCode }}</div>
         </div>
       </template>
@@ -68,8 +75,19 @@
  * View for 'security servers' tab
  */
 import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { DataOptions, DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
+import { SecurityServer } from '@/openapi-types';
+import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { mapActions, mapStores } from 'pinia';
+import { notificationsStore } from '@/store/modules/notifications';
+import VueI18n from 'vue-i18n';
+import TranslateResult = VueI18n.TranslateResult;
+import {debounce} from "@/util/helpers";
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 export default Vue.extend({
   data() {
@@ -77,86 +95,79 @@ export default Vue.extend({
       search: '',
       loading: false,
       showOnlyPending: false,
-      securityServers: [
-        {
-          serverCode: '938726',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerCode: '333',
-          serverOnwerClass: 'DEV',
-        },
-
-        {
-          serverCode: '12323',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerCode: '444',
-          serverOnwerClass: 'DEV',
-        },
-        {
-          serverCode: '837478',
-          serverOwnerName: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
-          serverOnwerCode: '444',
-          serverOnwerClass: 'DEV',
-        },
-        {
-          serverCode: '63533',
-          serverOwnerName: 'Helsingin kristillisen koulun kannatusyhdistys',
-          serverOnwerCode: '222',
-          serverOnwerClass: 'FI',
-        },
-        {
-          serverCode: '98370',
-          serverOwnerName: 'Siseministeerium',
-          serverOnwerCode: '999',
-          serverOnwerClass: 'COM',
-        },
-        {
-          serverCode: '63352',
-          serverOwnerName: 'Turvallisuus- ja kemikaalivirasto',
-          serverOnwerCode: '777',
-          serverOnwerClass: 'COM',
-        },
-      ],
+      pagingSortingOptions: {} as DataOptions,
     };
   },
   computed: {
+    ...mapStores(useSecurityServerStore),
     headers(): DataTableHeader[] {
       return [
         {
           text: this.$t('securityServers.serverCode') as string,
           align: 'start',
-          value: 'serverCode',
+          value: 'xroad_id.server_code',
           class: 'xrd-table-header ss-table-header-sercer-code',
         },
         {
           text: this.$t('securityServers.ownerName') as string,
           align: 'start',
-          value: 'serverOwnerName',
+          value: 'owner_name',
           class: 'xrd-table-header ss-table-header-owner-name',
         },
         {
           text: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'serverOnwerCode',
+          value: 'xroad_id.member_code',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'serverOnwerClass',
+          value: 'xroad_id.member_class',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
     },
+    emptyListReasoning(): TranslateResult {
+      return this.search
+        ? this.$t('noData.noMatches')
+        : this.$t('noData.noSecurityServers');
+    },
   },
 
+  watch: {
+    search: function () {
+      this.debouncedFindServers();
+    },
+  },
+  created() {
+    that = this;
+  },
   methods: {
-    // Add the type later when it exists
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    toDetails(securityServer: any): void {
+    ...mapActions(notificationsStore, ['showError']),
+    debouncedFindServers: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.findServers(that.pagingSortingOptions);
+    }, 600),
+    toDetails(securityServer: SecurityServer): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,
-        params: { id: 'foo11' },
+        params: { id: securityServer.id || '' },
       });
+    },
+    changeOptions: async function () {
+      this.findServers(this.pagingSortingOptions);
+    },
+    findServers: async function (options: DataOptions) {
+      this.loading = true;
+
+      try {
+        await this.securityServerStore.find(options, this.search);
+      } catch (error: unknown) {
+        this.showError(error);
+      } finally {
+        this.loading = false;
+      }
     },
   },
 });

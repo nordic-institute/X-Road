@@ -40,6 +40,8 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import javax.validation.ConstraintViolationException;
+
 /**
  * Application exception handler.
  * Some exception occurrences do not get processed by this class, but by
@@ -60,8 +62,8 @@ public class ApplicationExceptionHandler {
     /**
      * handle exceptions
      *
-     * @param e
-     * @return
+     * @param e  Exception to handle
+     * @return  ErrorInfo response entity w/ 500 status
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorInfo> exception(Exception e) {
@@ -73,8 +75,8 @@ public class ApplicationExceptionHandler {
     /**
      * handle auth exceptions
      *
-     * @param e
-     * @return
+     * @param e  AuthenticationException
+     * @return   401 response
      */
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorInfo> exception(AuthenticationException e) {
@@ -94,8 +96,8 @@ public class ApplicationExceptionHandler {
     /**
      * handle access denied exceptions
      *
-     * @param e
-     * @return
+     * @param e  AccessDeniedException
+     * @return   403 response
      */
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorInfo> exception(AccessDeniedException e) {
@@ -115,9 +117,10 @@ public class ApplicationExceptionHandler {
      * BeanCreationException in runtime and wrap any causing exception inside therefore hiding the real exception.
      * This handler will force the error code of the SignerNotReachable to be propagated to the REST API response.
      *
-     * @param beanCreationException
-     * @return
+     * @param beanCreationException may contain SignerNotReachable
+     * @return  500 status
      */
+    @SuppressWarnings("JavadocReference")
     @ExceptionHandler(BeanCreationException.class)
     public ResponseEntity<ErrorInfo> exception(BeanCreationException beanCreationException) {
         auditEventLoggingFacade.auditLogFail(beanCreationException);
@@ -130,5 +133,13 @@ public class ApplicationExceptionHandler {
                     .getThrowables(beanCreationException)[indexOfSignerException];
         }
         return exceptionTranslator.toResponseEntity(exception, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorInfo> exception(ConstraintViolationException constraintViolationException) {
+        auditEventLoggingFacade.auditLogFail(constraintViolationException);
+        log.error(EXCEPTION_CAUGHT, constraintViolationException);
+        return exceptionTranslator.toResponseEntity(constraintViolationException, HttpStatus.BAD_REQUEST);
+
     }
 }

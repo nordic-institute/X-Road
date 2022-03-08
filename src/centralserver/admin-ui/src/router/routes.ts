@@ -220,6 +220,7 @@ const routes: RouteConfig[] = [
             name: RouteName.SecurityServers,
             path: '',
             component: SecurityServersList,
+            meta: { permissions: [Permissions.VIEW_SECURITY_SERVERS] },
           },
           {
             path: ':id',

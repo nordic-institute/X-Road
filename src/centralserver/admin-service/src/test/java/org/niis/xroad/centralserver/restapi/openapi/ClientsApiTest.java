@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ClientsApiControllerRestTemplateTest extends AbstractApiRestTemplateTestContext {
+public class ClientsApiTest extends AbstractApiRestTemplateTestContext {
 
     @Autowired
     TestRestTemplate restTemplate;

@@ -30,7 +30,10 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -44,8 +47,24 @@ public class SecurityServerService {
 
     private final SecurityServerRepository securityServerRepository;
 
+    public Page<SecurityServerDto> findSecurityServers(String q, Pageable pageable) {
+        return securityServerRepository
+                .findAll(SecurityServerRepository.multifieldSearch(q), StableSortUtil.addSecondaryIdSort(pageable))
+                .map(SecurityServerService::toDto);
+    }
+
+    private static SecurityServerDto toDto(SecurityServer server) {
+        return SecurityServerDto.builder()
+                .id(server.getId())
+                .serverId(server.getServerId())
+                .ownerName(server.getOwner().getName())
+                .serverAddress(server.getAddress())
+                .updatedAt(server.getUpdatedAt())
+                .createdAt(server.getCreatedAt())
+                .build();
+    }
+
     public Optional<SecurityServerDto> find(SecurityServerId id) {
-        return securityServerRepository.findBy(id).map(
-                m -> new SecurityServerDto(m.getId(), m.getServerCode(), m.getAddress()));
+        return securityServerRepository.findBy(id).map(SecurityServerService::toDto);
     }
 }
