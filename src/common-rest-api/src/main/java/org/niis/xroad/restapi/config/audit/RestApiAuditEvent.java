@@ -118,7 +118,10 @@ public enum RestApiAuditEvent {
 
     ADD_MEMBER_CLASS("Add member class"),
     DELETE_MEMBER_CLASS("Delete member class"),
-    EDIT_MEMBER_CLASS("Edit member class description");
+    EDIT_MEMBER_CLASS("Edit member class description"),
+
+    DELETE_SECURITY_SERVER("Delete security server"),
+    UPDATE_SECURITY_SERVER_ADDRESS("Update security server address");
 
     private final String eventName;
 

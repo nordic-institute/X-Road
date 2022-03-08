@@ -7,3 +7,25 @@ INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_SYSTEM_ADMINISTRATO
 INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_SECURITY_OFFICER');
 INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_SERVICE_ADMINISTRATOR');
 INSERT INTO APIKEY_ROLES (APIKEY_ID, ROLE) values (1, 'XROAD_REGISTRATION_OFFICER');
+-- identifier
+-- create table identifier (type varchar(31) not null, id bigint not null, object_type varchar(255), xroad_instance varchar(255), member_class varchar(255), member_code varchar(255), subsystem_code varchar(255), server_code varchar(255), service_code varchar(255), service_version varchar(255), primary key (id));
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type, service_version) VALUES (1, 'MEMBER', 'DEV', 'ORG', '111', null, null, null, 'ClientId', null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (2, 'SUBSYSTEM', 'DEV', 'ORG', '111', 'MANAGEMENT', null, null, 'ClientId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (3, 'SERVER', 'DEV', 'ORG', '111', null, null, 'ADMINSS', 'SecurityServerId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (4, 'SERVER', 'DEV', 'ORG', '111', null, null, 'ADMINSS', 'SecurityServerId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (5, 'MEMBER', 'DEV', 'ORG', '111', null, null, null, 'ClientId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (6, 'SERVER', 'DEV', 'ORG', '111', null, null, 'ADMINSS', 'SecurityServerId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (7, 'SUBSYSTEM', 'DEV', 'ORG', '111', 'MANAGEMENT', null, null, 'ClientId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (8, 'SUBSYSTEM', 'DEV', 'ORG', '111', 'TEST', null, null, 'ClientId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (9, 'SERVER', 'DEV', 'ORG', '111', null, null, 'ADMINSS', 'SecurityServerId',  null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (10, 'SUBSYSTEM', 'DEV', 'ORG', '111', 'TEST', null, null, 'ClientId', null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (11, 'SERVER', 'DEV', 'ORG', '111', null, null, 'ADMINSS', 'SecurityServerId', null);
+INSERT INTO identifier(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type,  service_version) VALUES (12, 'SUBSYSTEM', 'DEV', 'ORG', '111', 'TEST', null, null, 'ClientId', null);
+
+INSERT INTO MEMBER_CLASSES(id, code, description, created_at, updated_at) VALUES (1, 'ORG', 'Organizations', '2022-03-07 07:33:22.654029', '2022-03-07 07:33:22.654029');
+INSERT INTO SECURITY_SERVER_CLIENTS(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (1, '111', null, 'ADMORG', null, 1, 1, 'XRoadMember', null, '2022-03-07 07:44:57.466408', '2022-03-07 07:44:57.466408');
+INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (2, null, 'MANAGEMENT', null, 1, null, 2, 'Subsystem', null, '2022-03-07 07:45:34.809253', '2022-03-07 07:45:34.809253');
+INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (3, null, 'TEST', null, 1, null, 8, 'Subsystem', null, '2022-03-07 08:48:15.393806', '2022-03-07 08:48:15.393806');
+INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (1, 'ADMINSS', 1, '10.85.227.109', '2022-03-07 08:27:17.395387', '2022-03-07 08:27:17.395387');
+INSERT INTO security_clients(id, security_server_id, security_server_client_id) VALUES (1, 1, 2);
+INSERT INTO security_clients(id, security_server_id, security_server_client_id) VALUES (2, 1, 3);
