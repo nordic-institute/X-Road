@@ -86,6 +86,8 @@ import * as api from '@/util/api';
 import { ServiceCandidate } from '@/ui-types';
 import { compareByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
+import { mapActions } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -111,6 +113,7 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     candidateSelection(candidate: ServiceClient): void {
       this.serviceClientCandidateSelection = candidate;
     },
@@ -121,7 +124,7 @@ export default Vue.extend({
           {},
         )
         .then((response) => (this.serviceClients = response.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
 
       api
         .get<ServiceDescription[]>(
@@ -141,7 +144,7 @@ export default Vue.extend({
               id: service.id,
             }));
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     previousStep(): void {
       this.step -= 1;

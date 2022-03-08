@@ -82,7 +82,10 @@ import { RouteName } from '@/global';
 import TokenExpandable from './TokenExpandable.vue';
 import TokenLoginDialog from '@/components/token/TokenLoginDialog.vue';
 import HelpButton from '../HelpButton.vue';
-import { mapGetters } from 'vuex';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useTokensStore } from '@/store/modules/tokens';
+
 import {
   Key,
   Token,
@@ -106,7 +109,7 @@ export default Vue.extend({
     };
   },
   computed: {
-    ...mapGetters(['tokens']),
+    ...mapState(useTokensStore, ['tokens', 'selectedToken']),
     filtered(): Token[] {
       if (!this.tokens || this.tokens.length === 0) {
         return [];
@@ -195,31 +198,32 @@ export default Vue.extend({
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
+    ...mapActions(useTokensStore, ['fetchTokens', 'tokenLogout']),
     fetchData(): void {
       // Fetch tokens from backend
       this.loading = true;
-      this.$store
-        .dispatch('fetchTokens')
+      this.fetchTokens()
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.loading = false;
         });
     },
     acceptTokenLogout(): void {
-      const token: Token = this.$store.getters.selectedToken;
-
-      if (!token) {
+      if (!this.selectedToken) {
+        // eslint-disable-next-line no-console
+        console.error('Token is undefined');
         return;
       }
 
-      this.$store.dispatch('tokenLogout', token.id).then(
+      this.tokenLogout(this.selectedToken.id).then(
         () => {
-          this.$store.dispatch('showSuccess', this.$t('keys.loggedOut'));
+          this.showSuccess(this.$t('keys.loggedOut'));
         },
         (error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         },
       );
 
@@ -230,11 +234,16 @@ export default Vue.extend({
       this.loginDialog = false;
     },
     addKey() {
+      if (!this.selectedToken) {
+        // Should not happen
+        throw new Error('Token is undefined');
+      }
+
       this.$router.push({
         name: RouteName.AddKey,
         params: {
-          tokenId: this.$store.getters.selectedToken.id,
-          tokenType: this.$store.getters.selectedToken.type,
+          tokenId: this.selectedToken.id,
+          tokenType: this.selectedToken.type,
         },
       });
     },

@@ -158,6 +158,9 @@ import { ServiceCandidate } from '@/ui-types';
 import { sortAccessRightsByServiceCode } from '@/util/sorting';
 import { encodePathParameter } from '@/util/api';
 import { Permissions } from '@/global';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 interface UiAccessRight extends AccessRight {
   uiKey: number;
@@ -189,16 +192,16 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     canEdit(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES,
-      );
+      return this.hasPermission(Permissions.EDIT_ACL_SUBJECT_OPEN_SERVICES);
     },
   },
   created(): void {
     this.fetchData();
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     fetchData(): void {
       this.fetchAccessRights();
       this.fetchServiceDescriptions();
@@ -207,7 +210,7 @@ export default Vue.extend({
           `/clients/${this.id}/service-clients/${this.serviceClientId}`,
         )
         .then((response) => (this.serviceClient = response.data))
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     fetchServiceDescriptions(): void {
       api
@@ -217,7 +220,7 @@ export default Vue.extend({
         .then((response) => {
           this.clientServiceDescriptions = response.data;
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     fetchAccessRights(): void {
       api
@@ -229,7 +232,7 @@ export default Vue.extend({
             response.data,
           );
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     close(): void {
       this.$router.go(-1);
@@ -249,17 +252,14 @@ export default Vue.extend({
           { items: [{ service_code: this.accessRightToDelete?.service_code }] },
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('accessRights.removeSuccess'),
-          );
+          this.showSuccess(this.$t('accessRights.removeSuccess'));
           if (this.serviceClientAccessRights.length === 1) {
             this.serviceClientAccessRights = [];
           } else {
             this.fetchAccessRights();
           }
         })
-        .catch((error) => this.$store.dispatch('showError', error))
+        .catch((error) => this.showError(error))
         .finally(() => {
           this.showConfirmDeleteOne = false;
           this.accessRightToDelete = null;
@@ -274,13 +274,12 @@ export default Vue.extend({
           accessRightsObject,
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
+          this.showSuccess(
             this.$t('serviceClients.addServiceClientAccessRightSuccess'),
           );
           this.fetchAccessRights();
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     hideAddService(): void {
       this.isAddServiceDialogVisible = false;
@@ -301,13 +300,10 @@ export default Vue.extend({
           },
         )
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('accessRights.removeSuccess'),
-          );
+          this.showSuccess(this.$t('accessRights.removeSuccess'));
           this.serviceClientAccessRights = [];
         })
-        .catch((error) => this.$store.dispatch('showError', error));
+        .catch((error) => this.showError(error));
     },
     serviceCandidates(): ServiceCandidate[] {
       return serviceCandidatesForServiceClient(

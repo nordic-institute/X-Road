@@ -161,6 +161,9 @@ import { GroupMember, LocalGroup } from '@/openapi-types';
 import AddMembersDialog from './AddMembersDialog.vue';
 import * as api from '@/util/api';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -189,19 +192,16 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_LOCAL_GROUP);
+      return this.hasPermission(Permissions.DELETE_LOCAL_GROUP);
     },
     canEditDescription(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_LOCAL_GROUP_DESC,
-      );
+      return this.hasPermission(Permissions.EDIT_LOCAL_GROUP_DESC);
     },
 
     canEditMembers(): boolean {
-      return this.$store.getters.hasPermission(
-        Permissions.EDIT_LOCAL_GROUP_MEMBERS,
-      );
+      return this.hasPermission(Permissions.EDIT_LOCAL_GROUP_MEMBERS);
     },
 
     hasMembers(): boolean {
@@ -215,6 +215,7 @@ export default Vue.extend({
     this.fetchData(this.clientId, this.groupId);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -228,13 +229,13 @@ export default Vue.extend({
           },
         )
         .then((res) => {
-          this.$store.dispatch('showSuccess', this.$t('localGroup.descSaved'));
+          this.showSuccess(this.$t('localGroup.descSaved'));
           this.group = res.data;
           this.groupCode = res.data.code;
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -247,7 +248,7 @@ export default Vue.extend({
           this.description = res.data.description;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -266,7 +267,7 @@ export default Vue.extend({
           this.fetchData(this.clientId, this.groupId);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -319,7 +320,7 @@ export default Vue.extend({
           },
         )
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.fetchData(this.clientId, this.groupId);
@@ -335,14 +336,11 @@ export default Vue.extend({
       api
         .remove(`/local-groups/${encodePathParameter(this.groupId)}`)
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('localGroup.groupDeleted'),
-          );
+          this.showSuccess(this.$t('localGroup.groupDeleted'));
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
   },

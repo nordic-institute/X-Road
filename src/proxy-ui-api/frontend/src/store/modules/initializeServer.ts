@@ -23,63 +23,42 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '../types';
 
-export interface State {
-  memberClass: string | undefined;
-  memberCode: string | undefined;
-  securityServerCode: string | undefined;
-}
+import { defineStore } from 'pinia';
 
-export const getDefaultState = (): State => {
-  return {
-    memberClass: undefined,
-    memberCode: undefined,
-    securityServerCode: undefined,
-  };
-};
+export const useInitializeServer = defineStore('initializeServer', {
+  state: () => {
+    return {
+      memberClass: undefined as string | undefined,
+      memberCode: undefined as string | undefined,
+      securityServerCode: undefined as string | undefined,
+    };
+  },
+  getters: {
+    initServerMemberClass(): string | undefined {
+      return this.memberClass;
+    },
+    initServerMemberCode(): string | undefined {
+      return this.memberCode;
+    },
+    initServerSSCode(): string | undefined {
+      return this.securityServerCode;
+    },
+  },
 
-// Initial state. The state can be reseted with this.
-const moduleState = getDefaultState();
-
-export const getters: GetterTree<State, RootState> = {
-  initServerMemberClass(state: State): string | undefined {
-    return state.memberClass;
+  actions: {
+    resetInitServerState() {
+      // Clear the store state
+      this.$reset();
+    },
+    storeInitServerMemberCode(memberCode: string | undefined) {
+      this.memberCode = memberCode;
+    },
+    storeInitServerMemberClass(memberClass: string | undefined) {
+      this.memberClass = memberClass;
+    },
+    storeInitServerSSCode(code: string | undefined) {
+      this.securityServerCode = code;
+    },
   },
-  initServerMemberCode(state: State): string | undefined {
-    return state.memberCode;
-  },
-  initServerSSCode(state: State): string | undefined {
-    return state.securityServerCode;
-  },
-};
-
-export const mutations: MutationTree<State> = {
-  resetInitServerState(state: State) {
-    Object.assign(state, getDefaultState());
-  },
-  storeInitServerMemberCode(state: State, memberCode: string | undefined) {
-    state.memberCode = memberCode;
-  },
-  storeInitServerMemberClass(state: State, memberClass: string | undefined) {
-    state.memberClass = memberClass;
-  },
-  storeInitServerSSCode(state: State, code: string | undefined) {
-    state.securityServerCode = code;
-  },
-};
-
-export const actions: ActionTree<State, RootState> = {
-  resetInitServerState({ commit }) {
-    commit('resetInitServerState');
-  },
-};
-
-export const module: Module<State, RootState> = {
-  namespaced: false,
-  state: moduleState,
-  getters,
-  actions,
-  mutations,
-};
+});
