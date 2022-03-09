@@ -19,7 +19,7 @@ node {
     }
 }
 
-task npmBuild(type: NpmTask, dependsOn: ['checkFrontAudit','npmInstall']) {
+task npmBuild(type: NpmTask, dependsOn: ['checkFrontAudit', 'npmInstall']) {
     inputs.files(
         'src/',
         'public/',
