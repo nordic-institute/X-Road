@@ -14,41 +14,37 @@ dependencies {
 node {
     download = true
     version = nodeVersion
-    npmInstallCommand = "ci"
+    if (System.getenv().containsKey("CI")) {
+        npmInstallCommand = "ci"
+    }
 }
 
-task npmBuild(type: NpmTask, dependsOn: ["checkFrontAudit", "npmInstall"]) {
-    inputs.files(fileTree(".") {
-        exclude(
-            ".gradle",
-            "build.gradle",
-            "build/",
-            "dist/",
-            "node_modules/.cache/",
-            "*.tgz"
-        )
-    })
-    outputs.dir("dist")
+task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
+    mustRunAfter('checkFrontAudit')
+    inputs.files(
+        'src/',
+        'public/',
+        'svg-icons/',
+        'package.json',
+        'package-lock.json',
+        'vue.config.js',
+        'tsconfig.json',
+        'babel.config.js',
+        fileTree('node_modules') {
+            exclude '.cache'
+        }
+    )
+    outputs.dir('dist')
     args = ['run', '--quiet', 'build-lib']
 }
 
 task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
-    inputs.files(fileTree(".") {
-        exclude(
-            ".gradle",
-            "build.gradle",
-            "build/",
-            "node_modules/",
-            "*.tgz"
-        )
-    })
     outputs.file("niis-shared-ui-0.1.0.tgz")
     args = ['pack', '--quiet']
 }
 
 task checkFrontAudit(type: NpmTask) {
-    inputs.files("package.json", "package-lock.json")
-    outputs.dir("dist")
+    inputs.files("package.json", "package-lock.json", "dist")
     // do a front end audit with npm run npx-check-audit
     // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
     args = ['run', 'npx-check-audit']
@@ -56,6 +52,7 @@ task checkFrontAudit(type: NpmTask) {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
+    mustRunAfter('checkFrontAudit')
     inputs.files("src/", "test/", "public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
@@ -67,6 +64,8 @@ clean {
 }
 
 assemble.dependsOn npmBuild
+check.dependsOn checkFrontAudit
+check.dependsOn checkFrontLicense
 
 artifacts {
     npm(file("niis-shared-ui-0.1.0.tgz")) {
