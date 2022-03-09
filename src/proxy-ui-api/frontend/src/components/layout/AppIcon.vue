@@ -37,13 +37,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
+  computed: {
+    ...mapState(useUser, ['firstAllowedTab']),
+  },
   methods: {
     home(): void {
       this.$router
         .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
+          name: this.firstAllowedTab.to.name,
         })
         .catch((err) => {
           // Ignore the error regarding navigating to the same path

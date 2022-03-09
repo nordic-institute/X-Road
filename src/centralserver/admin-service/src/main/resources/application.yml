@@ -8,9 +8,9 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: none
-      show-sql: true
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: false
   profiles:
     include: nontest
   jackson:

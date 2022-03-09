@@ -50,14 +50,13 @@ public class Subsystem extends SecurityServerClient {
         //for JPA
     }
 
-    public Subsystem(XRoadMember member, String subsystemCode) {
+    public Subsystem(XRoadMember member, ClientId identifier) {
+        if (!identifier.subsystemContainsMember(member.getIdentifier())) {
+            throw new IllegalArgumentException("Subsystem identifier does not match member");
+        }
         this.xroadMember = member;
-        this.subsystemCode = subsystemCode;
-
-        final ClientId memberId = member.getIdentifier();
-        this.identifier = ClientId
-                .create(memberId.getXRoadInstance(), memberId.getMemberClass(), memberId.getMemberCode(),
-                        subsystemCode);
+        this.subsystemCode = identifier.getSubsystemCode();
+        this.identifier = identifier;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -23,9 +23,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+import { defineStore } from 'pinia';
 import axios from 'axios';
-import { ActionTree, GetterTree, Module, MutationTree } from 'vuex';
-import { RootState } from '../types';
 import { CertificateDetails, Client, TokenCertificate } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
 
@@ -37,149 +37,105 @@ export interface ClientState {
   ssCertificate: CertificateDetails | null;
   clientLoading: boolean;
 }
-
-export const clientState: ClientState = {
-  client: null,
-  signCertificates: [],
-  connection_type: null,
-  tlsCertificates: [],
-  ssCertificate: null,
-  clientLoading: false,
-};
-
-export const getters: GetterTree<ClientState, RootState> = {
-  client(state): Client | null {
-    return state.client;
+export const useClientStore = defineStore('clientStore', {
+  state: (): ClientState => {
+    return {
+      client: null,
+      signCertificates: [],
+      connection_type: null,
+      tlsCertificates: [],
+      ssCertificate: null,
+      clientLoading: false,
+    };
   },
-  signCertificates(state): TokenCertificate[] {
-    return state.signCertificates;
-  },
-  connectionType(state): string | null | undefined {
-    if (state.client) {
-      return state.client.connection_type;
-    }
-    return null;
-  },
-  tlsCertificates(state): CertificateDetails[] {
-    return state.tlsCertificates;
-  },
-  ssCertificate(state): CertificateDetails | null {
-    return state.ssCertificate;
-  },
-  clientLoading(state): boolean {
-    return state.clientLoading;
-  },
-};
-
-export const mutations: MutationTree<ClientState> = {
-  storeClient(state, client: Client | null) {
-    state.client = client;
-  },
-  storeSsCertificate(state, certificate: CertificateDetails) {
-    state.ssCertificate = certificate;
-  },
-  storeTlsCertificates(state, certificates: CertificateDetails[]) {
-    state.tlsCertificates = certificates;
-  },
-  storeSignCertificates(state, certificates: TokenCertificate[]) {
-    state.signCertificates = certificates;
-  },
-  clearAll(state) {
-    state.client = null;
-    state.ssCertificate = null;
-    state.tlsCertificates = [];
-    state.signCertificates = [];
-  },
-  setClientLoading(state, status: boolean) {
-    state.clientLoading = status;
-  },
-};
-
-export const actions: ActionTree<ClientState, RootState> = {
-  fetchClient({ commit }, id: string) {
-    if (!id) {
-      throw new Error('Missing client id');
-    }
-    commit('setClientLoading', true);
-    return axios
-      .get(`/clients/${encodePathParameter(id)}`)
-      .then((res) => {
-        commit('storeClient', res.data);
-      })
-      .catch((error) => {
-        throw error;
-      })
-      .finally(() => commit('setClientLoading', false));
-  },
-  fetchSignCertificates({ commit }, id: string) {
-    if (!id) {
-      throw new Error('Missing id');
-    }
-
-    return axios
-      .get<TokenCertificate[]>(
-        `/clients/${encodePathParameter(id)}/sign-certificates`,
-      )
-      .then((res) => {
-        commit('storeSignCertificates', res.data);
-      })
-      .catch((error) => {
-        throw error;
-      });
+  getters: {
+    connectionType(state): string | null | undefined {
+      if (state.client) {
+        return state.client.connection_type;
+      }
+      return null;
+    },
   },
 
-  fetchTlsCertificates({ commit }, id: string) {
-    if (!id) {
-      throw new Error('Missing id');
-    }
+  actions: {
+    async fetchClient(id: string) {
+      if (!id) {
+        throw new Error('Missing client id');
+      }
 
-    return axios
-      .get<CertificateDetails[]>(
-        `/clients/${encodePathParameter(id)}/tls-certificates`,
-      )
-      .then((res) => {
-        commit('storeTlsCertificates', res.data);
-      })
-      .catch((error) => {
-        throw error;
-      });
+      this.clientLoading = true;
+      return axios
+        .get(`/clients/${encodePathParameter(id)}`)
+        .then((res) => {
+          this.client = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        })
+        .finally(() => (this.clientLoading = false));
+    },
+    async fetchSignCertificates(id: string) {
+      if (!id) {
+        throw new Error('Missing id');
+      }
+
+      return axios
+        .get<TokenCertificate[]>(
+          `/clients/${encodePathParameter(id)}/sign-certificates`,
+        )
+        .then((res) => {
+          this.signCertificates = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    async fetchSSCertificate(id: string) {
+      if (!id) {
+        throw new Error('Missing id');
+      }
+
+      return axios
+        .get<CertificateDetails>('/system/certificate')
+        .then((res) => {
+          this.ssCertificate = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    async fetchTlsCertificates(id: string) {
+      if (!id) {
+        throw new Error('Missing id');
+      }
+
+      return axios
+        .get<CertificateDetails[]>(
+          `/clients/${encodePathParameter(id)}/tls-certificates`,
+        )
+        .then((res) => {
+          this.tlsCertificates = res.data;
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
+
+    async saveConnectionType(params: { clientId: string; connType: string }) {
+      return axios
+        .patch(`/clients/${encodePathParameter(params.clientId)}`, {
+          connection_type: params.connType,
+        })
+        .then((res) => {
+          if (res.data) {
+            this.client = res.data;
+          }
+        })
+        .catch((error) => {
+          throw error;
+        });
+    },
   },
-
-  fetchSSCertificate({ commit }, id: string) {
-    if (!id) {
-      throw new Error('Missing id');
-    }
-
-    return axios
-      .get<CertificateDetails>('/system/certificate')
-      .then((res) => {
-        commit('storeSsCertificate', res.data);
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-
-  saveConnectionType({ commit }, { clientId, connType }) {
-    return axios
-      .patch(`/clients/${encodePathParameter(clientId)}`, {
-        connection_type: connType,
-      })
-      .then((res) => {
-        if (res.data) {
-          commit('storeClient', res.data);
-        }
-      })
-      .catch((error) => {
-        throw error;
-      });
-  },
-};
-
-export const clientModule: Module<ClientState, RootState> = {
-  namespaced: false,
-  state: clientState,
-  getters,
-  actions,
-  mutations,
-};
+});

@@ -34,7 +34,7 @@
     height="32"
     max-height="32"
   >
-    <div v-if="isAuthenticated" class="auth-container">
+    <div v-if="authenticated" class="auth-container">
       <div class="server-type">X-ROAD SECURITY SERVER</div>
       <div
         v-show="currentSecurityServer.id"
@@ -61,42 +61,18 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
-import { RouteName } from '@/global';
 import { NodeType } from '@/openapi-types';
+import { mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
   name: 'Toolbar',
   computed: {
-    ...mapGetters([
-      'currentSecurityServer',
-      'isAuthenticated',
-      'securityServerNodeType',
-    ]),
+    ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
+    ...mapState(useSystemStore, ['securityServerNodeType']),
     shouldShowNodeType(): boolean {
       return this.securityServerNodeType !== NodeType.STANDALONE;
-    },
-  },
-  methods: {
-    home(): void {
-      this.$router
-        .replace({
-          name: this.$store.getters.firstAllowedTab.to.name,
-        })
-        .catch((err) => {
-          // Ignore the error regarding navigating to the same path
-          if (err.name === 'NavigationDuplicated') {
-            // eslint-disable-next-line no-console
-            console.info('Duplicate navigation');
-          } else {
-            // Throw for any other errors
-            throw err;
-          }
-        });
-    },
-    logout(): void {
-      this.$store.dispatch('logout');
-      this.$router.replace({ name: RouteName.Login });
     },
   },
 });

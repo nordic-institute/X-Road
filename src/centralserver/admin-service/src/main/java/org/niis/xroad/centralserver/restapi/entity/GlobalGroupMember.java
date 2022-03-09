@@ -53,8 +53,13 @@ public class GlobalGroupMember extends AuditableEntity {
     private GlobalGroup globalGroup;
     private ClientId identifier;
 
-    public GlobalGroupMember() {
+    protected GlobalGroupMember() {
         //JPA
+    }
+
+    public GlobalGroupMember(GlobalGroup globalGroup, ClientId identifier) {
+        this.globalGroup = globalGroup;
+        this.identifier = identifier;
     }
 
     @Id
@@ -89,6 +94,20 @@ public class GlobalGroupMember extends AuditableEntity {
         this.identifier = identifier;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof GlobalGroupMember)) return false;
+
+        final GlobalGroupMember member = (GlobalGroupMember) o;
+
+        return identifier.equals(member.identifier);
+    }
+
+    @Override
+    public int hashCode() {
+        return identifier.hashCode();
+    }
 }
 
 

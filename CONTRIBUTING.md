@@ -67,7 +67,10 @@ contribution, and not with every contribution.
 
 The CLA can be signed digitally using a
 [qualified electronic signature](https://ec.europa.eu/cefdigital/wiki/display/CEFDIGITAL/Introduction+to+e-signature).
-A digitally signed CLA must be emailed to `x-road@niis.org`.
+A digitally signed CLA must be emailed to `x-road@niis.org`. Contributors from 
+Belgium, Estonia, Finland, Iceland, Latvia, Lithuania, Poland, Portugal and Spain
+may use the [Dokobit](https://www.dokobit.com/) e-signing service that supports
+eID providers of the listed countries.
 
 Alternatively, the CLA can be printed out, signed manually and sent to NIIS
 by post:
