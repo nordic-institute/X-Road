@@ -112,7 +112,7 @@ task buildFront(type: NpmTask) {
 
 task checkFrontAudit(type: NpmTask) {
     onlyIf {
-        (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
+        (!project.hasProperty('skip-frontend-build') && project.hasProperty('frontend-npm-audit'))
     }
     inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
     outputs.dir("frontend/dist")
@@ -247,8 +247,8 @@ npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
 // checkFrontLicense -> checkFrontAudit -> buildFront -> frontendUnitTests -> processResources
 processResources.dependsOn 'frontendUnitTests'
 frontendUnitTests.dependsOn 'buildFront'
-buildFront.dependsOn 'checkFrontAudit'
-checkFrontAudit.dependsOn 'checkFrontLicense'
+buildFront.dependsOn 'checkFrontLicense'
+checkFrontLicense.dependsOn 'checkFrontAudit'
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
