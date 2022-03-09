@@ -54,7 +54,6 @@ task npmGenerateTypes(type: NpmTask, dependsOn: ['npmInstall']) {
 }
 
 task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
-    mustRunAfter('checkFrontAudit')
     inputs.files(
         'src/',
         'public/',
@@ -73,6 +72,9 @@ task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
 }
 
 task checkFrontAudit(type: NpmTask) {
+    onlyIf {
+        project.hasProperty('frontend-npm-audit')
+    }
     inputs.files(
         'package.json',
         'package-lock.json',
@@ -84,7 +86,6 @@ task checkFrontAudit(type: NpmTask) {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    mustRunAfter('checkFrontAudit')
     inputs.files(
         "test/",
         "public/",
@@ -104,6 +105,7 @@ clean {
 assemble.dependsOn npmBuild
 check.dependsOn checkFrontAudit
 check.dependsOn checkFrontLicense
+npmInstall.mustRunAfter checkFrontAudit
 
 artifacts {
     dist(file("dist/")) {
