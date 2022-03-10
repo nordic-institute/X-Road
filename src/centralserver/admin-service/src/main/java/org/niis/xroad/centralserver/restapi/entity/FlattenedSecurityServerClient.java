@@ -25,7 +25,6 @@
  * THE SOFTWARE.
  */
 package org.niis.xroad.centralserver.restapi.entity;
-// Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
 import ee.ria.xroad.common.identifier.ClientId;
 
@@ -39,7 +38,11 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Read-only entity representing SecurityServerClient from view flattened_security_server_client
@@ -47,7 +50,7 @@ import javax.persistence.Table;
  */
 @Entity
 @Immutable
-// Subselect makes skips table creation: https://stackoverflow.com/a/33689357
+// Subselect prevents table creation: https://stackoverflow.com/a/33689357
 @Subselect("select * from flattened_security_server_client")
 @Table(name = FlattenedSecurityServerClient.TABLE_NAME)
 public class FlattenedSecurityServerClient {
@@ -61,6 +64,8 @@ public class FlattenedSecurityServerClient {
     private String subsystemCode;
     private String memberName;
     private String type;
+
+    private Set<FlattenedServerClient> flattenedServerClients = new HashSet<>();
 
     protected FlattenedSecurityServerClient() {
         //JPA
@@ -132,28 +137,15 @@ public class FlattenedSecurityServerClient {
         this.subsystemCode = subsystemCode;
     }
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "flattenedSecurityServerClient")
+    public Set<FlattenedServerClient> getFlattenedServerClients() {
+        return flattenedServerClients;
+    }
 
-    // try having these collections with https://stackoverflow.com/a/12041879/1469083
-//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServerClient", cascade = CascadeType.ALL,
-//            orphanRemoval = true)
-//    public Set<ServerClient> getServerClients() {
-//        return this.serverClients;
-//    }
-//
-//    public void setServerClients(Set<ServerClient> serverClients) {
-//        this.serverClients = serverClients;
-//    }
-//
-//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "owner", cascade = CascadeType.ALL)
-//    public Set<SecurityServer> getOwnedServers() {
-//        return this.ownedServers;
-//    }
-//
-//    public void setOwnedServers(Set<SecurityServer> securityServers) {
-//        this.ownedServers = securityServers;
-//    }
-//
-//
+    public void setFlattenedServerClients(
+            Set<FlattenedServerClient> flattenedServerClients) {
+        this.flattenedServerClients = flattenedServerClients;
+    }
 }
 
 

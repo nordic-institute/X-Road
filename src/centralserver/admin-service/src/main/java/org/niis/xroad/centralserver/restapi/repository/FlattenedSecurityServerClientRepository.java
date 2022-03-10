@@ -27,6 +27,8 @@
 package org.niis.xroad.centralserver.restapi.repository;
 
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.FlattenedServerClient;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,6 +39,7 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -91,6 +94,12 @@ public interface FlattenedSecurityServerClientRepository extends
         };
     }
 
+    static Specification<FlattenedSecurityServerClient> securityServerId(int id) {
+        return (root, query, builder) -> {
+            return clientOfSecurityServerPredicate(root, builder, id);
+        };
+    }
+
     private static Predicate memberPredicate(Root root, CriteriaBuilder builder) {
         return builder.equal(root.get("type"), "XRoadMember");
     }
@@ -99,5 +108,10 @@ public interface FlattenedSecurityServerClientRepository extends
     }
     private static Predicate namePredicate(Root root, CriteriaBuilder builder, String name) {
         return builder.equal(root.get("memberName"), name);
+    }
+    private static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
+        Join<FlattenedSecurityServerClient, SecurityServer> securityServer
+                = root.join("flattenedServerClients").join("securityServer");
+        return builder.equal(securityServer.get("id"), id);
     }
 }

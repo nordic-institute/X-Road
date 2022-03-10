@@ -56,6 +56,22 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     }
 
     @Test
+    public void findClientsBySecurityServerId() {
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.securityServerId(1000001));
+        assertEquals(3, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.securityServerId(1000002));
+        assertEquals(2, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.securityServerId(1));
+        assertEquals(0, clients.size());
+
+    }
+
+    @Test
     public void findClientsByMemberName() {
         String memberName = "Member1";
         var clients = repository.findAll(
