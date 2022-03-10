@@ -102,6 +102,20 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("gOv"));
         assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
+
+        // member code
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("m1"));
+        assertEquals(3, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("m4"));
+        assertEquals(1, clients.size());
+
+        // subsystem code
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("Ss1"));
+        assertEquals(1, clients.size());
     }
 
 

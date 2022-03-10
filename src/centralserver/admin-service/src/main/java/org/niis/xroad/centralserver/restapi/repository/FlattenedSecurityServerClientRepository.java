@@ -131,6 +131,14 @@ public interface FlattenedSecurityServerClientRepository extends
                 builder.like(
                         builder.lower(root.get("memberClass").get("code")),
                         builder.lower(builder.literal("%" + q + "%"))
+                ),
+                builder.like(
+                        builder.lower(root.get("memberCode")),
+                        builder.lower(builder.literal("%" + q + "%"))
+                ),
+                builder.like(
+                        builder.lower(root.get("subsystemCode")),
+                        builder.lower(builder.literal("%" + q + "%"))
                 )
         );
     }
