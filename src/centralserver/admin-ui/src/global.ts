@@ -155,11 +155,7 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.Members },
     key: 'members',
     name: 'tab.main.members',
-    permissions: [
-      Permissions.VIEW_MEMBERS,
-      Permissions.VIEW_MEMBER_DETAILS,
-      Permissions.SEARCH_MEMBERS,
-    ],
+    permissions: [Permissions.VIEW_MEMBERS, Permissions.VIEW_MEMBER_DETAILS],
   },
   {
     to: { name: RouteName.SecurityServers },

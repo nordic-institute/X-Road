@@ -164,12 +164,12 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.VIEW_MEMBERS] },
         children: [
           {
             name: RouteName.Members,
             path: '',
             component: MemberList,
+            meta: { permissions: [Permissions.VIEW_MEMBERS] },
           },
           {
             path: ':memberid',
