@@ -35,7 +35,6 @@
         <xrd-icon-base class="xrd-large-button-icon"
           ><xrd-icon-add
         /></xrd-icon-base>
-
         {{ $t('members.addMember') }}</xrd-button
       >
     </div>
@@ -54,8 +53,20 @@
       hide-default-footer
     >
       <template #[`item.name`]="{ item }">
-        <div class="members-table-cell-name" @click="toDetails('netum')">
+        <div
+          v-if="hasPermissionToMemberDetails"
+          class="members-table-cell-name-action"
+          @click="toDetails('netum')"
+        >
           <xrd-icon-base class="xrd-clickable mr-4"
+            ><xrd-icon-folder-outline
+          /></xrd-icon-base>
+
+          {{ item.name }}
+        </div>
+
+        <div v-else class="members-table-cell-name">
+          <xrd-icon-base class="mr-4"
             ><xrd-icon-folder-outline
           /></xrd-icon-base>
 
@@ -74,6 +85,9 @@
 import Vue from 'vue';
 import { RouteName } from '@/global';
 import { DataTableHeader } from 'vuetify';
+import { userStore } from '@/store/modules/user';
+import { mapState } from 'pinia';
+import { Permissions } from '@/global';
 
 export default Vue.extend({
   name: 'MemberList',
@@ -97,6 +111,7 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(userStore, ['hasPermission']),
     headers(): DataTableHeader[] {
       return [
         {
@@ -119,6 +134,9 @@ export default Vue.extend({
         },
       ];
     },
+    hasPermissionToMemberDetails(): boolean {
+      return this.hasPermission(Permissions.VIEW_MEMBER_DETAILS);
+    },
   },
   methods: {
     toDetails(): void {
@@ -135,23 +153,15 @@ export default Vue.extend({
 @import '~styles/colors';
 @import '~styles/tables';
 
-.icon-column {
-  width: 40px;
-}
-
-.members-table-cell-name {
+.members-table-cell-name-action {
   color: $XRoad-Purple100;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
 }
 
-.members-table-header-icon {
-  width: 20px;
-}
-
-.members-table-cell-id {
-  border: solid 3px red;
-  width: 10px;
+.members-table-cell-name {
+  font-weight: 600;
+  font-size: 14px;
 }
 </style>
