@@ -28,12 +28,17 @@ package org.niis.xroad.centralserver.restapi.repository;
 
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface SecurityServerRepository extends JpaRepository<SecurityServer, Integer> {
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
+    //TODO: search parameters
+    List<SecurityServer> findAllBy(Sort sort);
+
 }

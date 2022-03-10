@@ -37,8 +37,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
 @Transactional
@@ -49,7 +48,7 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
     TestRestTemplate restTemplate;
 
     @Test
-    public void testGetSecurityServersSucceeds() {
+    public void testGetSecurityServersSucceedsWithoutParameters() {
         addApiKeyAuthorizationHeader(restTemplate);
         ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers",
                 PagedSecurityServers.class);
@@ -57,8 +56,13 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getClients(), "Should return at least an empty list");
+        assertTrue(response.getBody().getClients().stream().allMatch(client -> client.getXroadId().getType().getValue().equals("SERVER")));
         assertNotNull(response.getBody().getPagingMetadata());
-        assertNotNull(response.getBody().getPagingMetadata().getTotalItems());
+        Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
+        assertNotNull(itemCount);
+        assertTrue(0 < itemCount, "Should return more than one client");
+        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),"Total items must not be less than clients returned in one page");
+
     }
 
 
