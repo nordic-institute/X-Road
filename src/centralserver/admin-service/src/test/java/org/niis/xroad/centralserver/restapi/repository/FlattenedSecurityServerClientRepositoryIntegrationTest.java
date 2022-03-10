@@ -28,14 +28,19 @@ package org.niis.xroad.centralserver.restapi.repository;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.domain.JpaSort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Arrays;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 
@@ -50,9 +55,70 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     private FlattenedSecurityServerClientRepository repository;
 
     @Test
-    public void testView() {
-        var clients = repository.findAll();
-        assertEquals(10, clients.size());
+    public void pagedSortedFindClientsBySecurityServerId() {
+        PageRequest page = PageRequest.of(0, 2, Sort.by("id").descending());
+        var clientsPage = repository.findAll(
+                FlattenedSecurityServerClientRepository.securityServerId(1000001),
+                page);
+        assertEquals(2, clientsPage.getTotalPages());
+        assertEquals(3, clientsPage.getTotalElements());
+        assertEquals(2, clientsPage.getNumberOfElements());
+        assertEquals(0, clientsPage.getNumber());
+        assertEquals(Arrays.asList(1000010, 1000002),
+                clientsPage.get().map(FlattenedSecurityServerClient::getId).collect(Collectors.toList()));
+
+        page = page.next();
+        clientsPage = repository.findAll(
+                FlattenedSecurityServerClientRepository.securityServerId(1000001),
+                page);
+        assertEquals(1, clientsPage.getNumberOfElements());
+        assertEquals(1, clientsPage.getNumber());
+        assertEquals(Arrays.asList(1000001),
+                clientsPage.get().map(FlattenedSecurityServerClient::getId).collect(Collectors.toList()));
+    }
+
+    @Test
+    public void paging() {
+        PageRequest page = PageRequest.of(0, 5);
+        var memberPage = repository.findAll(
+                FlattenedSecurityServerClientRepository.member(),
+                page);
+        assertEquals(2, memberPage.getTotalPages());
+        assertEquals(9, memberPage.getTotalElements());
+        assertEquals(5, memberPage.getNumberOfElements());
+        assertEquals(0, memberPage.getNumber());
+
+        page = page.next();
+        memberPage = repository.findAll(
+                FlattenedSecurityServerClientRepository.member(),
+                page);
+        assertEquals(2, memberPage.getTotalPages());
+        assertEquals(9, memberPage.getTotalElements());
+        assertEquals(4, memberPage.getNumberOfElements());
+        assertEquals(1, memberPage.getNumber());
+
+        page = page.next();
+        memberPage = repository.findAll(
+                FlattenedSecurityServerClientRepository.member(),
+                page);
+        assertEquals(2, memberPage.getTotalPages());
+        assertEquals(9, memberPage.getTotalElements());
+        assertEquals(0, memberPage.getNumberOfElements());
+        assertEquals(2, memberPage.getNumber());
+    }
+
+    @Test
+    public void sorting() {
+        PageRequest page = PageRequest.of(0, 5, Sort.by("id"));
+        var memberPage = repository.findAll(
+                FlattenedSecurityServerClientRepository.member(),
+                page);
+        assertEquals(2, memberPage.getTotalPages());
+        assertEquals(9, memberPage.getTotalElements());
+        assertEquals(5, memberPage.getNumberOfElements());
+        assertEquals(0, memberPage.getNumber());
+        var pageClients = memberPage.stream().collect(Collectors.toList());
+        assertEquals(5, pageClients.size());
     }
 
     @Test
