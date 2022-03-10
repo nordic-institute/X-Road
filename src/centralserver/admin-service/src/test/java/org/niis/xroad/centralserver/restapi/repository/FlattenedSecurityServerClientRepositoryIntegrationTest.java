@@ -55,6 +55,41 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     private FlattenedSecurityServerClientRepository repository;
 
     @Test
+    public void multifieldTextSearch() {
+        // member name, member_class, member_code, subsystem_code
+
+        // member name
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("Member1"));
+        assertEquals(2, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("Member2"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("member1"));
+        assertEquals(2, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("member"));
+        assertEquals(10, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("ÅÖÄ"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("åöä"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("ÅöÄ"));
+        assertEquals(1, clients.size());
+    }
+
+
+    @Test
     public void pagedSortedFindClientsBySecurityServerId() {
         PageRequest page = PageRequest.of(0, 2, Sort.by("id").descending());
         var clientsPage = repository.findAll(

@@ -50,7 +50,9 @@ public interface FlattenedSecurityServerClientRepository extends
         PagingAndSortingRepository<FlattenedSecurityServerClient, Long>,
         JpaSpecificationExecutor<FlattenedSecurityServerClient> {
 
-    Page<FlattenedSecurityServerClient> findAll(Specification<FlattenedSecurityServerClient> spec, Pageable pageable);
+    Page<FlattenedSecurityServerClient> findAll(
+            Specification<FlattenedSecurityServerClient> spec,
+            Pageable pageable);
 
     List<FlattenedSecurityServerClient> findAll();
 
@@ -100,6 +102,12 @@ public interface FlattenedSecurityServerClientRepository extends
         };
     }
 
+    static Specification<FlattenedSecurityServerClient> multifieldSearch(String q) {
+        return (root, query, builder) -> {
+            return multifieldTextSearch(root, builder, q);
+        };
+    }
+
     private static Predicate memberPredicate(Root root, CriteriaBuilder builder) {
         return builder.equal(root.get("type"), "XRoadMember");
     }
@@ -114,4 +122,11 @@ public interface FlattenedSecurityServerClientRepository extends
                 = root.join("flattenedServerClients").join("securityServer");
         return builder.equal(securityServer.get("id"), id);
     }
+    private static Predicate multifieldTextSearch(Root root, CriteriaBuilder builder, String q) {
+        return builder.like(
+                builder.lower(root.get("memberName")),
+                builder.lower(builder.literal("%" + q + "%"))
+        );
+    }
+
 }

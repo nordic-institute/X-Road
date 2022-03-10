@@ -1807,7 +1807,7 @@ paths:
       parameters:
         - description: >
                 An optional generic filtering query parameter selects only items that contain parameter
-                value in properties (name, instance, member_class, member_code, subsystem_code, security_server) . Needs to be properly encoded for the
+                value in properties (member name, member_class, member_code, subsystem_code) . Needs to be properly encoded for the
                 special characters, too. Empty value means the parameter is ignored.
           in: query
           name: q
