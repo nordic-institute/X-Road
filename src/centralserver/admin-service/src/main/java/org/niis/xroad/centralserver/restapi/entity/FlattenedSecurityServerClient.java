@@ -57,8 +57,8 @@ public class FlattenedSecurityServerClient {
     static final String TABLE_NAME = "flattened_security_server_client";
 
     private int id;
-    protected ClientId identifier;
 
+    private String xroadInstance;
     private MemberClass memberClass;
     private String memberCode;
     private String subsystemCode;
@@ -79,6 +79,15 @@ public class FlattenedSecurityServerClient {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    @Column(name = "xroad_instance")
+    public String getXroadInstance() {
+        return this.xroadInstance;
+    }
+
+    public void setXroadInstance(String xroadInstance) {
+        this.xroadInstance = xroadInstance;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -116,16 +125,6 @@ public class FlattenedSecurityServerClient {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
-    @JoinColumn(name = "server_client_id", nullable = false)
-    public ClientId getIdentifier() {
-        return this.identifier;
-    }
-
-    public void setIdentifier(ClientId identifier) {
-        this.identifier = identifier;
     }
 
     @Column(name = "subsystem_code")

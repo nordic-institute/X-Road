@@ -39,7 +39,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -118,6 +117,53 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         assertEquals(1, clients.size());
     }
 
+    @Test
+    public void findClientsByInstance() {
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.instance("teS"));
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.instance("teStFOO"));
+        assertEquals(0, clients.size());
+    }
+
+    @Test
+    public void findClientsByMemberClass() {
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.memberClass("CLASSfoo"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.memberClass("gOV"));
+        assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.memberClass("gOVi"));
+        assertEquals(0, clients.size());
+    }
+
+    @Test
+    public void findClientsByMemberCode() {
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.memberCode("m1"));
+        assertEquals(3, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.memberCode("m4"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.memberCode("m"));
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+    }
+
+    @Test
+    public void findClientsBySubsystemCode() {
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.subsystemCode("ss"));
+        assertEquals(1, clients.size());
+    }
 
     @Test
     public void pagedSortedFindClientsBySecurityServerId() {
