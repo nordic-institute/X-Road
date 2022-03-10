@@ -51,6 +51,9 @@ import static org.junit.Assert.assertEquals;
 @WithMockUser
 public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
+    public static final int CLIENTS_TOTAL_COUNT = 11;
+    public static final int SUBSYSTEMS_TOTAL_COUNT = 1;
+    public static final int MEMBERS_TOTAL_COUNT = CLIENTS_TOTAL_COUNT - SUBSYSTEMS_TOTAL_COUNT;
     @Autowired
     private FlattenedSecurityServerClientRepository repository;
 
@@ -61,7 +64,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         // member name
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("Member1"));
-        assertEquals(2, clients.size());
+        assertEquals(3, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("Member2"));
@@ -69,11 +72,11 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("member1"));
-        assertEquals(2, clients.size());
+        assertEquals(3, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("member"));
-        assertEquals(10, clients.size());
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("ÅÖÄ"));
@@ -86,6 +89,19 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("ÅöÄ"));
         assertEquals(1, clients.size());
+
+        // member class
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("MemberclassFoo"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("MemberCLASS"));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multifieldSearch("gOv"));
+        assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
     }
 
 
@@ -114,21 +130,19 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
     @Test
     public void paging() {
-        PageRequest page = PageRequest.of(0, 5);
+        PageRequest page = PageRequest.of(0, 4);
         var memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
-        assertEquals(2, memberPage.getTotalPages());
-        assertEquals(9, memberPage.getTotalElements());
-        assertEquals(5, memberPage.getNumberOfElements());
+        assertEquals(3, memberPage.getTotalPages());
+        assertEquals(10, memberPage.getTotalElements());
+        assertEquals(4, memberPage.getNumberOfElements());
         assertEquals(0, memberPage.getNumber());
 
         page = page.next();
         memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
-        assertEquals(2, memberPage.getTotalPages());
-        assertEquals(9, memberPage.getTotalElements());
         assertEquals(4, memberPage.getNumberOfElements());
         assertEquals(1, memberPage.getNumber());
 
@@ -136,9 +150,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
-        assertEquals(2, memberPage.getTotalPages());
-        assertEquals(9, memberPage.getTotalElements());
-        assertEquals(0, memberPage.getNumberOfElements());
+        assertEquals(2, memberPage.getNumberOfElements());
         assertEquals(2, memberPage.getNumber());
     }
 
@@ -149,7 +161,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
                 FlattenedSecurityServerClientRepository.member(),
                 page);
         assertEquals(2, memberPage.getTotalPages());
-        assertEquals(9, memberPage.getTotalElements());
+        assertEquals(10, memberPage.getTotalElements());
         assertEquals(5, memberPage.getNumberOfElements());
         assertEquals(0, memberPage.getNumber());
         var pageClients = memberPage.stream().collect(Collectors.toList());
@@ -194,17 +206,17 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     @Test
     public void findAll() {
         var clients = repository.findAll();
-        assertEquals(10, clients.size());
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
     }
 
     @Test
     public void sort() {
         var clients = repository.findAll(Sort.by("memberName"));
-        assertEquals(10, clients.size());
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
         assertEquals("Member1", clients.get(0).getMemberName());
 
         clients = repository.findAll(Sort.by("memberName").descending());
-        assertEquals(10, clients.size());
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
         assertEquals("Member9", clients.get(0).getMemberName());
 
     }
@@ -214,11 +226,11 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     public void findByType() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.member());
-        assertEquals(9, clients.size());
+        assertEquals(MEMBERS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.subsystem());
-        assertEquals(1, clients.size());
+        assertEquals(SUBSYSTEMS_TOTAL_COUNT, clients.size());
     }
 
 }

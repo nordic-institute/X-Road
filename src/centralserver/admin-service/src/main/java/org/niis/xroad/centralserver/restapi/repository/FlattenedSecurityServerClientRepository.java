@@ -123,9 +123,15 @@ public interface FlattenedSecurityServerClientRepository extends
         return builder.equal(securityServer.get("id"), id);
     }
     private static Predicate multifieldTextSearch(Root root, CriteriaBuilder builder, String q) {
-        return builder.like(
-                builder.lower(root.get("memberName")),
-                builder.lower(builder.literal("%" + q + "%"))
+        return builder.or(
+                builder.like(
+                        builder.lower(root.get("memberName")),
+                        builder.lower(builder.literal("%" + q + "%"))
+                ),
+                builder.like(
+                        builder.lower(root.get("memberClass").get("code")),
+                        builder.lower(builder.literal("%" + q + "%"))
+                )
         );
     }
 
