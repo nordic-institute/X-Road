@@ -136,8 +136,11 @@ public interface FlattenedSecurityServerClientRepository extends
     private static Predicate subsystemPredicate(Root root, CriteriaBuilder builder) {
         return builder.equal(root.get("type"), "Subsystem");
     }
-    private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String name) {
-        return builder.equal(root.get("memberName"), name);
+    private static Predicate memberNamePredicate(Root root, CriteriaBuilder builder, String s) {
+        return builder.like(
+                builder.lower(root.get("memberName")),
+                builder.lower(builder.literal("%" + s + "%"))
+        );
     }
     private static Predicate subsystemCodePredicate(Root root, CriteriaBuilder builder, String s) {
         return builder.like(
@@ -170,24 +173,11 @@ public interface FlattenedSecurityServerClientRepository extends
         return builder.equal(securityServer.get("id"), id);
     }
     private static Predicate multifieldTextSearch(Root root, CriteriaBuilder builder, String q) {
-        // TO DO: compose
         return builder.or(
-                builder.like(
-                        builder.lower(root.get("memberName")),
-                        builder.lower(builder.literal("%" + q + "%"))
-                ),
-                builder.like(
-                        builder.lower(root.get("memberClass").get("code")),
-                        builder.lower(builder.literal("%" + q + "%"))
-                ),
-                builder.like(
-                        builder.lower(root.get("memberCode")),
-                        builder.lower(builder.literal("%" + q + "%"))
-                ),
-                builder.like(
-                        builder.lower(root.get("subsystemCode")),
-                        builder.lower(builder.literal("%" + q + "%"))
-                )
+                memberNamePredicate(root, builder, q),
+                memberClassPredicate(root, builder, q),
+                memberCodePredicate(root, builder, q),
+                subsystemCodePredicate(root, builder, q)
         );
     }
 

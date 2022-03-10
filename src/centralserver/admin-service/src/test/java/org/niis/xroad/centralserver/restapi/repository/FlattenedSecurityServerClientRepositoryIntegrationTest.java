@@ -246,7 +246,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
     @Test
     public void findClientsByMemberName() {
-        String memberName = "Member1";
+        String memberName = "memBer1";
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.subsystemWithMembername(memberName));
         // one subsystem
@@ -254,13 +254,13 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberWithMemberName(memberName));
-        // one member
-        assertEquals(1, clients.size());
+        // "Member1" and "Member10"
+        assertEquals(2, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.clientWithMemberName(memberName));
-        // one member and one subsystem
-        assertEquals(2, clients.size());
+        // 2 members and one subsystem
+        assertEquals(3, clients.size());
     }
 
     @Test
