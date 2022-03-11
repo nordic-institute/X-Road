@@ -50,14 +50,14 @@ public class OwnerChangeRequest extends RequestWithProcessing {
         super();
     }
 
+    public OwnerChangeRequest(Origin origin, SecurityServerId serverId, OwnerChangeRequestProcessing processing) {
+        super(origin, serverId, processing);
+    }
+
     @Override
     @Transient
     public ManagementRequestType getType() {
         return ManagementRequestType.OWNER_CHANGE_REQUEST;
-    }
-
-    public OwnerChangeRequest(Origin origin, SecurityServerId serverId, RequestProcessing processing) {
-        super(origin, serverId, processing);
     }
 
     @ManyToOne(fetch = FetchType.LAZY)

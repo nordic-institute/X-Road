@@ -33,11 +33,15 @@ import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
+import javax.persistence.DiscriminatorColumn;
+import javax.persistence.DiscriminatorType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Inheritance;
+import javax.persistence.InheritanceType;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -53,15 +57,16 @@ import java.util.Set;
  */
 @Entity
 @Table(name = RequestProcessing.TABLE_NAME)
-public class RequestProcessing extends AuditableEntity {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+public abstract class RequestProcessing extends AuditableEntity {
     static final String TABLE_NAME = "request_processings";
 
     private int id;
-    private String type;
     private ManagementRequestStatus status = ManagementRequestStatus.WAITING;
     private Set<RequestWithProcessing> requests = new HashSet<>(0);
 
-    public RequestProcessing() {
+    protected RequestProcessing() {
         //JPA
     }
 
@@ -69,21 +74,9 @@ public class RequestProcessing extends AuditableEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
+    @Access(AccessType.FIELD)
     public int getId() {
         return this.id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    @Column(name = "type")
-    public String getType() {
-        return this.type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
     }
 
     @Column(name = "status")

@@ -31,15 +31,18 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestOrigin;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestStatus;
 import org.niis.xroad.centralserver.openapi.model.ManagementRequestType;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
 import org.niis.xroad.centralserver.openapi.model.XRoadId;
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
 import org.niis.xroad.centralserver.restapi.repository.MemberClassRepository;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
 import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -53,6 +56,9 @@ public class ManagementRequestControllerTest extends AbstractApiControllerTestCo
 
     @Autowired
     private XRoadMemberRepository members;
+
+    @Autowired
+    private SecurityServerRepository servers;
 
     @Autowired
     private IdentifierRepository<ClientId> clientIds;
@@ -96,12 +102,56 @@ public class ManagementRequestControllerTest extends AbstractApiControllerTestCo
         assertEquals(ManagementRequestStatus.REVOKED, r3.getBody().getStatus());
     }
 
+    @Test
+    @WithMockUser(authorities = {
+            "VIEW_MANAGEMENT_REQUESTS",
+            "VIEW_MANAGEMENT_REQUEST_DETAILS",
+            "ADD_CLIENT_REGISTRATION_REQUEST",
+            "REVOKE_CLIENT_REGISTRATION_REQUEST"})
+    public void testAddClientRegRequest() throws Exception {
+        //setup test data
+        setup();
+
+        var sid = new SecurityServerId();
+        sid.setType(XRoadId.TypeEnum.SERVER);
+        sid.setInstanceId("TEST");
+        sid.setMemberClass("CLASS");
+        sid.setMemberCode("MEMBER");
+        sid.setServerCode("TESTSERVER");
+
+        var cid = new org.niis.xroad.centralserver.openapi.model.ClientId();
+        cid.setType(XRoadId.TypeEnum.SUBSYSTEM);
+        cid.setInstanceId("TEST");
+        cid.setMemberClass("CLASS");
+        cid.setMemberCode("MEMBER");
+        cid.setSubsystemCode("SUB");
+
+        var req = new ClientRegistrationRequest();
+        //redundant, but openapi-generator generates a property for the type
+        req.setType(ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
+        req.setSecurityserverId(sid);
+        req.setClientId(cid);
+        req.setOrigin(ManagementRequestOrigin.CENTER);
+
+        var r1 = controller.addManagementRequest(req);
+        assertTrue(r1.getStatusCode().is2xxSuccessful());
+        assertEquals(ManagementRequestStatus.WAITING, r1.getBody().getStatus());
+
+        controller.revokeManagementRequest(r1.getBody().getId());
+        var r3 = controller.getManagementRequest(r1.getBody().getId());
+        assertEquals(ManagementRequestStatus.REVOKED, r3.getBody().getStatus());
+    }
+
     private void setup() {
         var memberClass = memberClasses.findByCode("CLASS")
                 .orElseGet(() -> memberClasses.save(new MemberClass("CLASS", "CLASS")));
         var memberId = clientIds.merge(ClientId.create("TEST", "CLASS", "MEMBER"));
         var member = new XRoadMember(memberId, memberClass);
         members.save(member);
+
+        var server = new SecurityServer(member, "TESTSERVER");
+        server.setAddress("server.example.org");
+        servers.save(server);
     }
 
 }

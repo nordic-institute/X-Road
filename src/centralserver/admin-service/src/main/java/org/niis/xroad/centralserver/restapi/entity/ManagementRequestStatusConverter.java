@@ -24,22 +24,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.centralserver.restapi.entity;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
-
-import lombok.Getter;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
 
-@Getter
-public class AuthenticationCertificateDeletionRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
-    public AuthenticationCertificateDeletionRequestDto(Integer id, Origin origin,
-            SecurityServerId serverId, ManagementRequestStatus status, byte[] authCert) {
-        super(id, ManagementRequestType.AUTH_CERT_DELETION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
+@Converter(autoApply = true)
+public class ManagementRequestStatusConverter implements AttributeConverter<ManagementRequestStatus, String> {
+
+    @Override
+    public String convertToDatabaseColumn(ManagementRequestStatus attribute) {
+        return attribute == null ? null : attribute.toString();
+    }
+
+    @Override
+    public ManagementRequestStatus convertToEntityAttribute(String dbData) {
+        if (dbData == null) return null;
+
+        for (var s : ManagementRequestStatus.values()) {
+            if (s.toString().equals(dbData)) {
+                return s;
+            }
+        }
+        throw new IllegalArgumentException("Unable to convert " + dbData);
     }
 }
