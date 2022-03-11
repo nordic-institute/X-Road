@@ -26,6 +26,7 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.ClientsApi;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.ClientId;
@@ -125,7 +126,20 @@ public class ClientsApiController implements ClientsApi {
         return PageRequest.of(
                 pagingSorting.getOffset(),
                 pagingSorting.getLimit(),
-                Sort.by(pagingSorting.getSort()));
+                convertToSort(pagingSorting));
+    }
+
+    private Sort convertToSort(PagingSortingParameters pagingSorting) {
+        if (!StringUtils.isBlank(pagingSorting.getSort())) {
+            var sort = Sort.by(pagingSorting.getSort());
+            if (pagingSorting.getDesc()) {
+                return sort.descending();
+            } else {
+                return sort;
+            }
+        } else {
+            return Sort.unsorted();
+        }
     }
 
     @Override

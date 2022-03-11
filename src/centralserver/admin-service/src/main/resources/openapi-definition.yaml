@@ -3775,10 +3775,12 @@ components:
           description: Indicates item property that is to be used as sorting key.
           example: title
           minLength: 2
-          pattern: '[a-z_]+'
+          pattern: '[a-zA-Z_]+'
           maxLength: 25
           type: string
-        sort_desc:
+        # exploded query parameters from objects dont seem to like underscores
+        # https://stackoverflow.com/questions/35628974/when-post-spring-is-ignoring-jsonproperty#comment58939524_35628974 
+        desc:
           description: >
               Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
               parameter indicates ascending direction.
