@@ -30,6 +30,8 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.SecurityServersApi;
 import org.niis.xroad.centralserver.openapi.model.*;
+import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
+import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDto;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -43,6 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
 
+
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
@@ -52,6 +55,9 @@ public class SecurityServersController implements SecurityServersApi {
 
     private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
+
+
+    SecurityServerConverter serverConverter = new SecurityServerConverter();
 
     @Override
     @PreAuthorize("hasAuthority('DELETE_SECURITY_SERVER')")
@@ -68,8 +74,8 @@ public class SecurityServersController implements SecurityServersApi {
     @Override
     @Validated
     public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting, String ownerMember, String containsMember) {
-        PagedSecurityServers servers = securityServerService.findSecurityServers();
-        return ResponseEntity.ok(servers);
+        FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers();
+        return ResponseEntity.ok(serverConverter.convert(servers));
 
     }
 
