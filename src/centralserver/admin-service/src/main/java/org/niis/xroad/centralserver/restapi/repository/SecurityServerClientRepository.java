@@ -24,22 +24,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.centralserver.restapi.repository;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import ee.ria.xroad.common.identifier.ClientId;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServerClient_;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
-@Getter
-public class AuthenticationCertificateDeletionRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
+import java.util.Optional;
 
-    public AuthenticationCertificateDeletionRequestDto(Integer id, Origin origin,
-            SecurityServerId serverId, ManagementRequestStatus status, byte[] authCert) {
-        super(id, ManagementRequestType.AUTH_CERT_DELETION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
+public interface SecurityServerClientRepository<T extends SecurityServerClient>
+        extends JpaRepository<T, Integer>, JpaSpecificationExecutor<T> {
+
+    default Optional<T> findOneBy(ClientId id) {
+        return findOne(clientIdSpec(id));
+    }
+
+    default Specification<T> clientIdSpec(ClientId id) {
+        return (root, query, builder) -> {
+            var cid = root.join(SecurityServerClient_.identifier);
+            var pred = builder.and(
+                    builder.equal(cid.get("type"), id.getObjectType()),
+                    builder.equal(cid.get("xRoadInstance"), id.getXRoadInstance()),
+                    builder.equal(cid.get("memberClass"), id.getMemberClass()),
+                    builder.equal(cid.get("memberCode"), id.getMemberCode()));
+            if (id.getSubsystemCode() != null) {
+                pred = builder.and(pred, builder.equal(cid.get("subsystemCode"), id.getSubsystemCode()));
+            }
+            return pred;
+        };
     }
 }

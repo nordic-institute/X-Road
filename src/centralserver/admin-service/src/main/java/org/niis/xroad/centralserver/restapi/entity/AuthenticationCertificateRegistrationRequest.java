@@ -54,9 +54,13 @@ public class AuthenticationCertificateRegistrationRequest extends RequestWithPro
         return ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST;
     }
 
-    public AuthenticationCertificateRegistrationRequest(Origin origin, SecurityServerId serverId,
-            RequestProcessing processing) {
-        super(origin, serverId, processing);
+    public AuthenticationCertificateRegistrationRequest(Origin origin, SecurityServerId serverId) {
+        super(origin, serverId, new AuthenticationCertificateRegistrationRequestProcessing());
+    }
+
+    public AuthenticationCertificateRegistrationRequest(Origin origin,
+            AuthenticationCertificateRegistrationRequest other) {
+        super(origin, other.getSecurityServerId(), other.getRequestProcessing());
     }
 
     @Column(name = "auth_cert", length = 10000)

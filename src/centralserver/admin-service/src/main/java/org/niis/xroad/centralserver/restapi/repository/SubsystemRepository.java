@@ -24,22 +24,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.dto;
+package org.niis.xroad.centralserver.restapi.repository;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import org.niis.xroad.centralserver.restapi.entity.Subsystem;
+import org.springframework.stereotype.Repository;
 
-import lombok.Getter;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestStatus;
-import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
-import org.niis.xroad.centralserver.restapi.domain.Origin;
-
-@Getter
-public class AuthenticationCertificateDeletionRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
-
-    public AuthenticationCertificateDeletionRequestDto(Integer id, Origin origin,
-            SecurityServerId serverId, ManagementRequestStatus status, byte[] authCert) {
-        super(id, ManagementRequestType.AUTH_CERT_DELETION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
-    }
-}
+@Repository
+public interface SubsystemRepository extends SecurityServerClientRepository<Subsystem> { }

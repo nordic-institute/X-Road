@@ -43,6 +43,11 @@ import javax.validation.constraints.NotNull;
 
 @Entity
 public abstract class RequestWithProcessing extends Request {
+
+    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @JoinColumn(name = "request_processing_id", updatable = false, nullable = false)
+    @Access(AccessType.FIELD)
+    @NotNull
     private RequestProcessing requestProcessing;
 
     protected RequestWithProcessing() {
@@ -51,22 +56,22 @@ public abstract class RequestWithProcessing extends Request {
 
     public RequestWithProcessing(Origin origin, SecurityServerId serverId, RequestProcessing processing) {
         super(origin, serverId);
-        this.requestProcessing = processing == null ? new RequestProcessing() : processing;
+        this.requestProcessing = processing;
         requestProcessing.getRequests().add(this);
     }
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
-    @JoinColumn(name = "request_processing_id", updatable = false, nullable = false)
-    @Access(AccessType.FIELD)
-    @NotNull
     public RequestProcessing getRequestProcessing() {
-        return this.requestProcessing;
+        return requestProcessing;
     }
 
     @Override
     @Transient
     public ManagementRequestStatus getProcessingStatus() {
         return requestProcessing.getStatus();
+    }
+
+    public void setProcessingStatus(ManagementRequestStatus status) {
+        requestProcessing.setStatus(status);
     }
 
 }

@@ -122,5 +122,5 @@ public abstract class Request extends AuditableEntity {
     @Transient
     public ManagementRequestStatus getProcessingStatus() {
         return null;
-    };
+    }
 }

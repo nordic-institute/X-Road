@@ -37,13 +37,13 @@ import org.niis.xroad.centralserver.restapi.domain.Origin;
 import org.niis.xroad.centralserver.restapi.dto.AuthenticationCertificateRegistrationRequestDto;
 import org.niis.xroad.centralserver.restapi.entity.AuthCert;
 import org.niis.xroad.centralserver.restapi.entity.AuthenticationCertificateRegistrationRequest;
-import org.niis.xroad.centralserver.restapi.entity.RequestProcessing;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.niis.xroad.centralserver.restapi.repository.AuthCertRepository;
 import org.niis.xroad.centralserver.restapi.repository.AuthenticationCertificateRegistrationRequestRepository;
 import org.niis.xroad.centralserver.restapi.repository.IdentifierRepository;
+import org.niis.xroad.centralserver.restapi.repository.SecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
-import org.niis.xroad.centralserver.restapi.repository.XRoadMemberRepository;
 import org.niis.xroad.centralserver.restapi.service.exception.DataIntegrityException;
 import org.niis.xroad.centralserver.restapi.service.exception.ErrorMessage;
 import org.niis.xroad.centralserver.restapi.service.exception.ValidationFailureException;
@@ -69,7 +69,7 @@ class AuthenticationCertificateRegistrationRequestHandler implements
         RequestHandler<AuthenticationCertificateRegistrationRequestDto, AuthenticationCertificateRegistrationRequest> {
 
     private final IdentifierRepository<SecurityServerId> identifiers;
-    private final XRoadMemberRepository members;
+    private final SecurityServerClientRepository<XRoadMember> members;
     private final AuthenticationCertificateRegistrationRequestRepository authCertReqRequests;
     private final AuthCertRepository authCerts;
     private final SecurityServerRepository servers;
@@ -124,7 +124,9 @@ class AuthenticationCertificateRegistrationRequestHandler implements
                 var existingRequest = pendingRequests.get(0);
                 if (!existingRequest.getOrigin().equals(requestDto.getOrigin())
                         && existingRequest.getSecurityServerId().equals(requestDto.getServerId())) {
-                    request = complimentaryRequest(existingRequest, requestDto);
+
+                    request = new AuthenticationCertificateRegistrationRequest(requestDto.getOrigin(), existingRequest);
+                    request.getRequestProcessing().setStatus(SUBMITTED_FOR_APPROVAL);
                     break;
                 }
                 throw new DataIntegrityException(ErrorMessage.MANAGEMENT_REQUEST_EXISTS,
@@ -139,7 +141,8 @@ class AuthenticationCertificateRegistrationRequestHandler implements
     }
 
     public boolean canAutoApprove(AuthenticationCertificateRegistrationRequest request) {
-        return SystemProperties.getCenterAutoApproveAuthCertRegRequests()
+        return (SystemProperties.getCenterAutoApproveAuthCertRegRequests()
+                || request.getProcessingStatus().equals(SUBMITTED_FOR_APPROVAL))
                 && request.getOrigin() == Origin.SECURITY_SERVER
                 && members.count(members.clientIdSpec(request.getSecurityServerId().getOwner())) > 0;
     }
@@ -176,7 +179,7 @@ class AuthenticationCertificateRegistrationRequestHandler implements
         server.setAddress(request.getAddress());
 
         servers.save(server);
-        request.getRequestProcessing().setStatus(ManagementRequestStatus.APPROVED);
+        request.setProcessingStatus(ManagementRequestStatus.APPROVED);
 
         //todo: handle global group registration
 
@@ -197,21 +200,7 @@ class AuthenticationCertificateRegistrationRequestHandler implements
             AuthenticationCertificateRegistrationRequestDto requestDto) {
 
         var serverId = identifiers.merge(requestDto.getServerId());
-        var processing = new RequestProcessing();
-        return new AuthenticationCertificateRegistrationRequest(requestDto.getOrigin(), serverId, processing);
-    }
-
-    private AuthenticationCertificateRegistrationRequest complimentaryRequest(
-            AuthenticationCertificateRegistrationRequest existingRequest,
-            AuthenticationCertificateRegistrationRequestDto request) {
-
-        var processing = existingRequest.getRequestProcessing();
-        processing.setStatus(SUBMITTED_FOR_APPROVAL);
-
-        return new AuthenticationCertificateRegistrationRequest(
-                request.getOrigin(),
-                existingRequest.getSecurityServerId(),
-                processing);
+        return new AuthenticationCertificateRegistrationRequest(requestDto.getOrigin(), serverId);
     }
 
 }

@@ -32,6 +32,8 @@ import ee.ria.xroad.common.identifier.SecurityServerId;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.DiscriminatorValue;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -55,17 +57,21 @@ public class ClientRegistrationRequest extends RequestWithProcessing {
         return ManagementRequestType.CLIENT_REGISTRATION_REQUEST;
     }
 
-    public ClientRegistrationRequest(Origin origin, SecurityServerId serverId, RequestProcessing processing) {
-        super(origin, serverId, processing);
+    public ClientRegistrationRequest(Origin origin, SecurityServerId serverId, ClientId clientId) {
+        super(origin, serverId, new ClientRegistrationRequestProcessing());
+        this.clientId = clientId;
+    }
+
+    public ClientRegistrationRequest(Origin origin, ClientRegistrationRequest other) {
+        super(origin, other.getSecurityServerId(), other.getRequestProcessing());
+        this.clientId = other.getClientId();
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sec_serv_user_id")
+    @Access(AccessType.FIELD)
     public ClientId getClientId() {
         return this.clientId;
     }
 
-    public void setClientId(ClientId clientId) {
-        this.clientId = clientId;
-    }
 }

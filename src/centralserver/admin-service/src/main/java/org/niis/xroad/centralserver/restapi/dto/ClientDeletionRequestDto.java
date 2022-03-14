@@ -26,6 +26,7 @@
  */
 package org.niis.xroad.centralserver.restapi.dto;
 
+import ee.ria.xroad.common.identifier.ClientId;
 import ee.ria.xroad.common.identifier.SecurityServerId;
 
 import lombok.Getter;
@@ -34,12 +35,17 @@ import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.niis.xroad.centralserver.restapi.domain.Origin;
 
 @Getter
-public class AuthenticationCertificateDeletionRequestDto extends ManagementRequestDto {
-    private final byte[] authCert;
+public class ClientDeletionRequestDto extends ManagementRequestDto {
+    private final ClientId clientId;
 
-    public AuthenticationCertificateDeletionRequestDto(Integer id, Origin origin,
-            SecurityServerId serverId, ManagementRequestStatus status, byte[] authCert) {
-        super(id, ManagementRequestType.AUTH_CERT_DELETION_REQUEST, origin, serverId, status);
-        this.authCert = authCert;
+    public ClientDeletionRequestDto(Integer id, Origin origin,
+            SecurityServerId serverId, ManagementRequestStatus status, ClientId clientId) {
+        super(id, ManagementRequestType.CLIENT_DELETION_REQUEST, origin, serverId, status);
+        this.clientId = clientId;
+    }
+
+    public ClientDeletionRequestDto(Origin origin, SecurityServerId serverId, ClientId clientId) {
+        super(null, ManagementRequestType.CLIENT_DELETION_REQUEST, origin, serverId, null);
+        this.clientId = clientId;
     }
 }

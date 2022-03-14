@@ -129,6 +129,13 @@ public class SecurityServer extends AuditableEntity {
         return this.serverClients;
     }
 
+    public void addClient(SecurityServerClient client) {
+        var serverClient = new ServerClient(this, client);
+        serverClients.add(serverClient);
+        //todo: is two-way mapping necessary.
+        client.getServerClients().add(serverClient);
+    }
+
 }
 
 

@@ -27,6 +27,8 @@
 package org.niis.xroad.centralserver.restapi.security;
 
 import org.niis.xroad.centralserver.openapi.model.AuthenticationCertificateRegistrationRequest;
+import org.niis.xroad.centralserver.openapi.model.ClientDeletionRequest;
+import org.niis.xroad.centralserver.openapi.model.ClientRegistrationRequest;
 import org.niis.xroad.centralserver.restapi.domain.ManagementRequestType;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
@@ -51,6 +53,8 @@ public class AdminServicePermissionEvaluator implements PermissionEvaluator {
         var mapping = new IdentityHashMap<Class<?>, Enum<?>>();
         mapping.put(AuthenticationCertificateRegistrationRequest.class,
                 ManagementRequestType.AUTH_CERT_REGISTRATION_REQUEST);
+        mapping.put(ClientRegistrationRequest.class, ManagementRequestType.CLIENT_REGISTRATION_REQUEST);
+        mapping.put(ClientDeletionRequest.class, ManagementRequestType.CLIENT_DELETION_REQUEST);
         targetMapping = Collections.unmodifiableMap(mapping);
     }
 
