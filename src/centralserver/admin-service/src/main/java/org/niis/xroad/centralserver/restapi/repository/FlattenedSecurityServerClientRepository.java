@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.springframework.data.domain.Page;
@@ -41,6 +43,7 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -58,6 +61,27 @@ public interface FlattenedSecurityServerClientRepository extends
 
     List<FlattenedSecurityServerClient> findAll(Sort sort);
 
+    /**
+     * TO DO: document params well
+     */
+    static Specification multiParameterSearch(SearchParameters params) {
+        return (root, query, builder) -> {
+            var predicates = new ArrayList<Predicate>();
+            if (params.getSecurityServerId() != null) {
+                predicates.add(clientOfSecurityServerPredicate(root, builder,
+                        params.getSecurityServerId().intValue()));
+            }
+            if (!StringUtils.isBlank(params.getMultifieldSearch())) {
+                predicates.add(multifieldTextSearchPredicate(root, builder,
+                        params.getMultifieldSearch()));
+            }
+            if (predicates.isEmpty()) {
+                predicates.add(idIsNotNull(root, builder));
+            }
+            return builder.and(predicates.toArray(new Predicate[predicates.size()]));
+        };
+    }
+    
     static Specification<FlattenedSecurityServerClient> instance(String s) {
         return (root, query, builder) -> {
             return instancePredicate(root, builder, s);
@@ -126,7 +150,7 @@ public interface FlattenedSecurityServerClientRepository extends
 
     static Specification<FlattenedSecurityServerClient> multifieldSearch(String q) {
         return (root, query, builder) -> {
-            return multifieldTextSearch(root, builder, q);
+            return multifieldTextSearchPredicate(root, builder, q);
         };
     }
 
@@ -167,12 +191,12 @@ public interface FlattenedSecurityServerClientRepository extends
         );
     }
 
-    private static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
+    static Predicate clientOfSecurityServerPredicate(Root root, CriteriaBuilder builder, int id) {
         Join<FlattenedSecurityServerClient, SecurityServer> securityServer
                 = root.join("flattenedServerClients").join("securityServer");
         return builder.equal(securityServer.get("id"), id);
     }
-    private static Predicate multifieldTextSearch(Root root, CriteriaBuilder builder, String q) {
+    static Predicate multifieldTextSearchPredicate(Root root, CriteriaBuilder builder, String q) {
         return builder.or(
                 memberNamePredicate(root, builder, q),
                 memberClassPredicate(root, builder, q),
@@ -180,5 +204,59 @@ public interface FlattenedSecurityServerClientRepository extends
                 subsystemCodePredicate(root, builder, q)
         );
     }
+
+    /**
+     * For "find all" when no search parameters are defined
+     */
+    private static Predicate idIsNotNull(Root root, CriteriaBuilder builder) {
+        return builder.isNotNull(root.get("id"));
+    }
+
+    @Getter
+    class SearchParameters {
+        private String multifieldSearch;
+        private String instanceSearch;
+        private String memberClassSearch;
+        private String memberCodeSearch;
+        private String subsystemCodeSearch;
+        private String clientType;
+        private Integer securityServerId;
+
+        public SearchParameters setMultifieldSearch(String multifieldSearchParam) {
+            this.multifieldSearch = multifieldSearchParam;
+            return this;
+        }
+
+        public SearchParameters setInstanceSearch(String instanceSearchParam) {
+            this.instanceSearch = instanceSearchParam;
+            return this;
+        }
+
+        public SearchParameters setMemberClassSearch(String memberClassSearchParam) {
+            this.memberClassSearch = memberClassSearchParam;
+            return this;
+        }
+
+        public SearchParameters setMemberCodeSearch(String memberCodeSearchParam) {
+            this.memberCodeSearch = memberCodeSearchParam;
+            return this;
+        }
+
+        public SearchParameters setSubsystemCodeSearch(String subsystemCodeSearchParam) {
+            this.subsystemCodeSearch = subsystemCodeSearchParam;
+            return this;
+        }
+
+        public SearchParameters setClientType(String clientTypeParam) {
+            this.clientType = clientTypeParam;
+            return this;
+        }
+
+        public SearchParameters setSecurityServerId(Integer securityServerIdParam) {
+            this.securityServerId = securityServerIdParam;
+            return this;
+        }
+    }
+
 
 }

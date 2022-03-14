@@ -245,6 +245,59 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     }
 
     @Test
+    public void findClientsBySecurityServerIdAndFreetext() {
+        var clients = repository.findAll(
+            (root, query, builder) -> builder.and(
+                    FlattenedSecurityServerClientRepository.clientOfSecurityServerPredicate(root, builder, 1000001),
+                    FlattenedSecurityServerClientRepository.multifieldTextSearchPredicate(root, builder, "ss1")
+            ));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                (root, query, builder) -> builder.and(
+                        FlattenedSecurityServerClientRepository.clientOfSecurityServerPredicate(root, builder, 1000001),
+                        FlattenedSecurityServerClientRepository.multifieldTextSearchPredicate(root, builder, "gov")
+                ));
+        assertEquals(3, clients.size());
+
+        PageRequest page = PageRequest.of(1, 1, Sort.by("id"));
+        var clientsPage = repository.findAll(
+                (root, query, builder) -> builder.and(
+                        FlattenedSecurityServerClientRepository.clientOfSecurityServerPredicate(root, builder, 1000001),
+                        FlattenedSecurityServerClientRepository.multifieldTextSearchPredicate(root, builder, "gov")
+                ), page);
+        assertEquals(3, clientsPage.getTotalPages());
+        assertEquals(3, clientsPage.getTotalElements());
+        assertEquals(1, clientsPage.getNumberOfElements());
+        assertEquals(1, clientsPage.getNumber());
+    }
+
+    @Test
+    public void findClientsByMultiParameterSearch() {
+        var clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                ));
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                        .setSecurityServerId(1000001)
+                ));
+        assertEquals(3, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSecurityServerId(1000001)
+                                .setMultifieldSearch("ss1")
+                ));
+        assertEquals(1, clients.size());
+    }
+
+
+    @Test
     public void findClientsByMemberName() {
         String memberName = "memBer1";
         var clients = repository.findAll(
