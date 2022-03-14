@@ -27,8 +27,8 @@ node {
     }
 }
 
-task npmUpdateDeps(type: NpmTask) {
-    inputs.files(configurations.npm, 'package.json')
+task npmUpdateDeps(type: NpmTask, dependsOn: configurations.npm) {
+    inputs.files('package.json')
     outputs.files('package-lock.json')
     args = ['--quiet', 'install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
 }
@@ -72,9 +72,6 @@ task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
 }
 
 task checkFrontAudit(type: NpmTask) {
-    onlyIf {
-        project.hasProperty('frontend-npm-audit')
-    }
     inputs.files(
         'package.json',
         'package-lock.json',
@@ -103,9 +100,11 @@ clean {
 }
 
 assemble.dependsOn npmBuild
-check.dependsOn checkFrontAudit
 check.dependsOn checkFrontLicense
-npmInstall.mustRunAfter checkFrontAudit
+
+if (project.hasProperty('frontend-npm-audit')) {
+  npmUpdateDeps.dependsOn checkFrontAudit
+}
 
 artifacts {
     dist(file("dist/")) {

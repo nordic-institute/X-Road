@@ -75,31 +75,30 @@ node {
     download = true
     version = nodeVersion
     nodeProjectDir = file("frontend")
-    npmInstallCommand = "ci"
+    if (System.getenv().containsKey("CI")) {
+        npmInstallCommand = "ci"
+    }
 }
 
-task npmInstallDeps(type: NpmTask) {
-    inputs.files(configurations.npm)
-    args = ['install', '--quiet'] + inputs.files.collect { it.toString() }
-    outputs.files(fileTree("frontend/node_modules/@niis/shared-ui") {
-      // npmInstall will overwrite this with different version (!?)
-      exclude("package.json")
-    })
+task npmInstallDeps(type: NpmTask, dependsOn: configurations.npm) {
+    inputs.files('frontend/package.json')
+    outputs.files('frontend/package-lock.json')
+    args = ['install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
 
     execOverrides {
         it.workingDir = 'frontend'
     }
 }
 
+task cleanNpmInstallDeps {
+    //NOP, we do not want to accidentally delete package-lock.json
+}
+
 npmInstall {
     dependsOn += 'npmInstallDeps'
 }
 
-task buildFront(type: NpmTask,) {
-    mustRunAfter('checkFrontAudit')
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
+task buildFront(type: NpmTask, dependsOn: npmInstall) {
     inputs.files(configurations.npm)
     inputs.files(fileTree("frontend/") {
       exclude("dist/", "node_modules/.cache/")
@@ -111,12 +110,13 @@ task buildFront(type: NpmTask,) {
     }
 }
 
-task checkFrontAudit(type: NpmTask) {
-    onlyIf {
-        (!project.hasProperty('skip-frontend-build') && !project.hasProperty('skip-frontend-audit'))
-    }
-    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("frontend/dist")
+task checkFrontAudit(type: NpmTask, dependsOn: nodeSetup) {
+    inputs.files(
+        'frontend/package.json',
+        'frontend/package-lock.json',
+        'frontend/dist'
+    )
+    outputs.upToDateWhen { true }
     // do a front end audit with npm run npx-check-audit
     // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
     args = ['run', 'npx-check-audit']
@@ -126,11 +126,7 @@ task checkFrontAudit(type: NpmTask) {
 }
 
 // check that npm run license-check passes
-task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    mustRunAfter('checkFrontAudit')
-    onlyIf {
-        !project.hasProperty('skip-frontend-build')
-    }
+task checkFrontLicense(type: NpmTask, dependsOn: npmInstall) {
     inputs.files("frontend/src/", "frontend/test/", "frontend/public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
@@ -140,12 +136,9 @@ task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
 }
 
 // check that npm run test:unit passes
-task frontendUnitTests(type: NpmTask, dependsOn: 'npmInstall') {
-    onlyIf {
-        (!project.hasProperty('skip-frontend-build') && project.hasProperty('frontend-unit-tests'))
-    }
-    inputs.files fileTree("frontend/") { exclude("dist/", "node_modules/.cache/") }
-    outputs.dir("frontend/dist")
+task frontendUnitTests(type: NpmTask, dependsOn: buildFront) {
+    inputs.files("frontend/dist", "frontend/test", "frontend/public")
+    outputs.upToDateWhen { true }
     args = ['run', 'test:unit']
     execOverrides {
         it.workingDir = 'frontend'
@@ -244,12 +237,16 @@ task e2eTest(type: NpmTask, dependsOn: 'npmInstall') {
     }
 }
 
-npmInstall.onlyIf { !project.hasProperty('skip-frontend-build') }
+if (!project.hasProperty('skip-frontend-build')) {
+    // checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
+    processResources.dependsOn buildFront
+    check.dependsOn checkFrontLicense
+    check.dependsOn frontendUnitTests
 
-// checkFrontLicense -> buildFront -> frontendUnitTests -> processResources
-processResources.dependsOn 'frontendUnitTests'
-frontendUnitTests.dependsOn 'buildFront'
-buildFront.dependsOn 'checkFrontLicense'
+    if (project.hasProperty('frontend-npm-audit')) {
+        npmInstallDeps.dependsOn checkFrontAudit
+    }
+}
 
 clean.delete << file('frontend/node_modules')
 clean.delete << file('frontend/dist')
