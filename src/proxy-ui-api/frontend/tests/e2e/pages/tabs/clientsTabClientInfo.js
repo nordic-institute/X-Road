@@ -152,6 +152,17 @@ var clientLocalGroupsCommands = {
 };
 
 var clientServicesCommands = {
+  groupMemberTableContains: function (expectedText) {
+    this.api.waitForElementVisible(`//table[contains(@class, "group-members-table")]//td[contains(text(), "${expectedText}")]`);
+    return this;
+  },
+  errorMessageIsShown: function (expectedMessage) {
+    this.api.waitForElementVisible('//div[contains(@class, "v-messages__message")]');
+    if (expectedMessage) {
+      this.api.waitForElementVisible(`//*[text()[contains(.,"${expectedMessage}")]]`)
+    }
+    return this;
+  },
   filterBy: function (filter) {
     this.clearValue2('@filterServices');
     this.setValue('@filterServices', filter);
@@ -330,6 +341,7 @@ const clientTabClientInfo = {
         '//div[contains(@class, "base-full-width") and .//*[contains(@class, "v-tab--active") and contains(text(),"Services")]]//div[contains(@class, "xrd-view-common")]',
       commands: [clientServicesCommands],
       elements: {
+        serviceURLBoxErrorMessage: '//div[contains(@class, "v-messages__message")]',
         addWSDLButton: '//button[@data-test="add-wsdl-button"]',
         addRESTButton: '//button[@data-test="add-rest-button"]',
         filterServices: '//input[@data-test="search-service"]',

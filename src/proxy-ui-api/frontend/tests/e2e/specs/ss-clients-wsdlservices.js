@@ -28,7 +28,7 @@ let frontPage, mainPage, clientsTab, clientInfo, clientServices, operationDetail
 let addSubjectsPopup, removeAccessRightPopup, removeAllAccessRightsPopup, serviceChangePopup, serviceDetails,servicesPopup ;
 
 module.exports = {
-  tags: ['ss', 'clients', 'wsdlservices'],
+  tags: ['ss', 'clients', 'wsdlservices', 'WIP'],
   before: function (browser) {
     frontPage = browser.page.ssLoginPage();
     mainPage = browser.page.ssMainPage();
@@ -67,24 +67,13 @@ module.exports = {
 
 
   'Security server client add wsdl service': (browser) => {
-
-    // Verify empty and malformed URL error messages
     clientServices.openAddWSDL();
     clientServices.initServiceUrl('a');
-    // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
+    clientServices.errorMessageIsShown('URL is not valid');
     clientServices.modifyServiceUrl('');
-    // Verify there's an error message, something like 'The URL field is required'
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
+    clientServices.errorMessageIsShown('The URL field is required');
     clientServices.initServiceUrl('foobar');
-    // Verify there's an error message, something like 'URL is not valid'
-    browser.waitForElementVisible(
-      '//div[contains(@class, "v-messages__message")]',
-    );
+    clientServices.errorMessageIsShown('URL is not valid');
     clientServices.cancelAddDialog();
 
     // Verify that URL field is empty after reopening
@@ -311,9 +300,7 @@ module.exports = {
     operationDetails.removeAccessRight('TestOrg');
     browser.waitForElementVisible(removeAccessRightPopup);
     removeAccessRightPopup.cancel();
-    browser.waitForElementVisible(
-      '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]',
-    );
+    clientServices.groupMemberTableContains('TestOrg');
 
     // Verify remove
     operationDetails.removeAccessRight('TestOrg');
@@ -325,23 +312,16 @@ module.exports = {
     browser.waitForElementNotPresent(
       '//table[contains(@class, "group-members-table")]//td[contains(text(), "TestOrg")]',
     );
-    browser.waitForElementVisible(
-      '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
-    );
-    browser.waitForElementVisible(
-      '//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]',
-    );
+    clientServices.groupMemberTableContains('Security server owners');
+    clientServices.groupMemberTableContains('Group1');
+
 
     // Verify cancel remove all
     operationDetails.removeAllAccessRights();
     browser.waitForElementVisible(removeAllAccessRightsPopup);
     removeAllAccessRightsPopup.cancel();
-    browser.waitForElementVisible(
-      '//table[contains(@class, "group-members-table")]//td[contains(text(), "Security server owners")]',
-    );
-    browser.waitForElementVisible(
-      '//table[contains(@class, "group-members-table")]//td[contains(text(), "Group1")]',
-    );
+    clientServices.groupMemberTableContains('Security server owners');
+    clientServices.groupMemberTableContains('Group1');
 
     // Verify remove all
     operationDetails.removeAllAccessRights();
