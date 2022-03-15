@@ -52,10 +52,11 @@ public class MemberClassServiceTest {
         service.add(new MemberClassDto("TEST", "Description"));
         service.add(new MemberClassDto("TEST2", "Description"));
         final List<MemberClassDto> all = service.findAll();
-        assertEquals(2, all.size());
+        final int memberClassCountIncludingImportSqlGenerated = 3;
+        assertEquals(memberClassCountIncludingImportSqlGenerated, all.size());
         service.delete("TEST");
         service.update(new MemberClassDto("TEST2", "Description2"));
-        final MemberClassDto test2 = service.find("TEST2").get();
+        final MemberClassDto test2 = service.find("TEST2").orElse(new MemberClassDto("not", "found"));
         assertEquals("Description2", test2.getDescription());
     }
 
