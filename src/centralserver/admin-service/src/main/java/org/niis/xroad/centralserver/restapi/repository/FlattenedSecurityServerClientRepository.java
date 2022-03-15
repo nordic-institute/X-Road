@@ -75,6 +75,34 @@ public interface FlattenedSecurityServerClientRepository extends
                 predicates.add(multifieldTextSearchPredicate(root, builder,
                         params.getMultifieldSearch()));
             }
+            if (!StringUtils.isBlank(params.getMemberCodeSearch())) {
+                predicates.add(memberCodePredicate(root, builder,
+                        params.getMemberCodeSearch()));
+            }
+            if (!StringUtils.isBlank(params.getMemberClassSearch())) {
+                predicates.add(memberClassPredicate(root, builder,
+                        params.getMemberClassSearch()));
+            }
+            if (!StringUtils.isBlank(params.getInstanceSearch())) {
+                predicates.add(instancePredicate(root, builder,
+                        params.getInstanceSearch()));
+            }
+            if (!StringUtils.isBlank(params.getSubsystemCodeSearch())) {
+                predicates.add(subsystemCodePredicate(root, builder,
+                        params.getSubsystemCodeSearch()));
+            }
+            if (!StringUtils.isBlank(params.getClientType())) {
+                switch (params.getClientType()) {
+                    case "XRoadMember":
+                        predicates.add(memberPredicate(root, builder));
+                        break;
+                    case "Subsystem":
+                        predicates.add(subsystemPredicate(root, builder));
+                        break;
+                    default:
+                        throw new IllegalArgumentException("Invalid client type " + params.getClientType());
+                }
+            }
             if (predicates.isEmpty()) {
                 predicates.add(idIsNotNull(root, builder));
             }

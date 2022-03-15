@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -50,7 +51,7 @@ import static org.junit.Assert.assertEquals;
 @WithMockUser
 public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
-    public static final int CLIENTS_TOTAL_COUNT = 11;
+    public static final int CLIENTS_TOTAL_COUNT = 12;
     public static final int SUBSYSTEMS_TOTAL_COUNT = 1;
     public static final int MEMBERS_TOTAL_COUNT = CLIENTS_TOTAL_COUNT - SUBSYSTEMS_TOTAL_COUNT;
     @Autowired
@@ -63,7 +64,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         // member name
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("Member1"));
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("Member2"));
@@ -71,7 +72,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("member1"));
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("member"));
@@ -105,7 +106,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         // member code
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("m1"));
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch("m4"));
@@ -121,7 +122,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     public void findClientsByInstance() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.instance("teS"));
-        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+        assertEquals(CLIENTS_TOTAL_COUNT - 1, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.instance("teStFOO"));
@@ -147,7 +148,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     public void findClientsByMemberCode() {
         var clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberCode("m1"));
-        assertEquals(3, clients.size());
+        assertEquals(4, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberCode("m4"));
@@ -195,7 +196,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
                 FlattenedSecurityServerClientRepository.member(),
                 page);
         assertEquals(3, memberPage.getTotalPages());
-        assertEquals(10, memberPage.getTotalElements());
+        assertEquals(MEMBERS_TOTAL_COUNT, memberPage.getTotalElements());
         assertEquals(4, memberPage.getNumberOfElements());
         assertEquals(0, memberPage.getNumber());
 
@@ -210,7 +211,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
-        assertEquals(2, memberPage.getNumberOfElements());
+        assertEquals(3, memberPage.getNumberOfElements());
         assertEquals(2, memberPage.getNumber());
     }
 
@@ -220,8 +221,8 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         var memberPage = repository.findAll(
                 FlattenedSecurityServerClientRepository.member(),
                 page);
-        assertEquals(2, memberPage.getTotalPages());
-        assertEquals(10, memberPage.getTotalElements());
+        assertEquals(3, memberPage.getTotalPages());
+        assertEquals(MEMBERS_TOTAL_COUNT, memberPage.getTotalElements());
         assertEquals(5, memberPage.getNumberOfElements());
         assertEquals(0, memberPage.getNumber());
         var pageClients = memberPage.stream().collect(Collectors.toList());
@@ -294,6 +295,172 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
                                 .setMultifieldSearch("ss1")
                 ));
         assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSecurityServerId(1000001)
+                                .setMemberCodeSearch("m1")
+                ));
+        assertEquals(2, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSecurityServerId(1000001)
+                                .setMultifieldSearch("ss1")
+                                .setMemberCodeSearch("m1")
+                ));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSecurityServerId(1000001)
+                                .setMultifieldSearch("ss1")
+                                .setMemberCodeSearch("m1-does-not-exist")
+                ));
+        assertEquals(0, clients.size());
+
+        // memberClass
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSecurityServerId(1000001)
+                                .setMemberClassSearch("gov")
+                ));
+        assertEquals(3, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSecurityServerId(1000001)
+                                .setMemberClassSearch("gov")
+                                .setMultifieldSearch("ss1")
+                ));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setMemberCodeSearch("m1")
+                                .setMemberClassSearch("gov")
+                ));
+        assertEquals(3, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setMemberCodeSearch("m2")
+                                .setMemberClassSearch("foo")
+                ));
+        assertEquals(0, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setMemberCodeSearch("m1")
+                                .setMemberClassSearch("foo")
+                ));
+        assertEquals(1, clients.size());
+
+        // instance
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setInstanceSearch("e")
+                ));
+        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setInstanceSearch("instance2")
+                ));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setMemberCodeSearch("m1")
+                                .setMemberClassSearch("gov")
+                                .setInstanceSearch("test")
+                ));
+        assertEquals(2, clients.size());
+
+        // subsystemCode
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSubsystemCodeSearch("s1")
+                ));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSubsystemCodeSearch("s1")
+                                .setMemberCodeSearch("m1")
+                ));
+        assertEquals(1, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setSubsystemCodeSearch("s1")
+                                .setMemberCodeSearch("m2")
+                ));
+        assertEquals(0, clients.size());
+
+        // clientType
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setClientType("XRoadMember")
+                ));
+        assertEquals(MEMBERS_TOTAL_COUNT, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setClientType("Subsystem")
+                ));
+        assertEquals(SUBSYSTEMS_TOTAL_COUNT, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setClientType("XRoadMember")
+                                .setMemberCodeSearch("m1")
+                ));
+        assertEquals(3, clients.size());
+
+        try {
+            repository.findAll(
+                    FlattenedSecurityServerClientRepository.multiParameterSearch(
+                            new FlattenedSecurityServerClientRepository.SearchParameters()
+                                    .setClientType("Fubar")
+                    ));
+            fail("bad client type should throw exception");
+        } catch (Exception expected) { }
+
+        // combo all parameters
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setClientType("XRoadMember")
+                                .setMemberCodeSearch("m1")
+                                .setSecurityServerId(1000001)
+                                .setMultifieldSearch("ber1")
+                                .setInstanceSearch("e")
+                                .setMemberClassSearch("o")
+                ));
+        assertEquals(1, clients.size());
+    }
+
+    @Test
+    public void sortIsCaseInsensitive() {
+        throw new RuntimeException("not implemented");
     }
 
 
@@ -307,13 +474,13 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.memberWithMemberName(memberName));
-        // "Member1" and "Member10"
-        assertEquals(2, clients.size());
+        // "Member1" , Member10-11
+        assertEquals(3, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.clientWithMemberName(memberName));
-        // 2 members and one subsystem
-        assertEquals(3, clients.size());
+        // 3 members and one subsystem
+        assertEquals(4, clients.size());
     }
 
     @Test
