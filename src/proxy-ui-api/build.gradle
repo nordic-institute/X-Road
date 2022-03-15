@@ -83,7 +83,7 @@ node {
 task npmInstallDeps(type: NpmTask, dependsOn: configurations.npm) {
     inputs.files('frontend/package.json')
     outputs.files('frontend/package-lock.json')
-    args = ['install', '--quiet', '--package-lock-only'] + inputs.files.collect { it.toString() }
+    args = ['install', '--quiet', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
     execOverrides {
         it.workingDir = 'frontend'
     }
@@ -112,10 +112,9 @@ task buildFront(type: NpmTask, dependsOn: npmInstall) {
 task checkFrontAudit(type: NpmTask) {
     inputs.files(
       'frontend/package.json',
-      'frontend/package-lock.json',
-      'frontend/dist'
+      'frontend/package-lock.json'
     )
-    outputs.upToDateWhen { true }
+    outputs.files('build/reports/audit-ci.txt')
     // do a front end audit with npm run npx-check-audit
     // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
     args = ['run', 'npx-check-audit']
