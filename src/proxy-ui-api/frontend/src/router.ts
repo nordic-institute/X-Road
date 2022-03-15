@@ -91,6 +91,7 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
   // User is allowed to access any other view than login only after authenticated information has been fetched
   // Session alive information is fetched before any view is accessed. This prevents UI flickering by not allowing
   // user to be redirected to a view that contains api calls (s)he is not allowed.
+  // just some change to push into git
   if (user.sessionAlive && user.authenticated) {
     // Server is not initialized
     if (user.needsInitialization) {
