@@ -50,6 +50,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -110,11 +113,10 @@ public final class ConfigurationClientMain {
         String[] actualArgs = cmd.getArgs();
         if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY_FULL) {
             // Run configuration client in one-shot mode downloading the specified global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1], actualArgs[2]));
+            System.exit(download(actualArgs[0], actualArgs[1]));
         } else if (actualArgs.length == NUM_ARGS_FROM_CONF_PROXY) {
             // Run configuration client in one-shot mode downloading the current global configuration version.
-            System.exit(download(actualArgs[0], actualArgs[1],
-                    String.format("%d", SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION)));
+            System.exit(download(actualArgs[0], actualArgs[1]));
         } else if (actualArgs.length == 1) {
             // Run configuration client in validate mode.
             System.exit(validate(actualArgs[0], getParamsValidator(cmd)));
@@ -136,25 +138,18 @@ public final class ConfigurationClientMain {
         return parser.parse(options, args);
     }
 
-    private static int download(String configurationAnchorFile, String configurationPath, String version) {
-        log.debug("Downloading configuration using anchor {} path = {} version = {})",
-                configurationAnchorFile, configurationPath, version);
+    private static int download(String configurationAnchorFile, String configurationPath) {
+        log.debug("Downloading configuration using anchor {} path = {})",
+                configurationAnchorFile, configurationPath);
 
         System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-        System.setProperty(SystemProperties.CONFIGURATION_PATH, configurationPath);
 
-        FileNameProvider fileNameProvider = new FileNameProviderImpl(configurationPath);
-
-        client = new ConfigurationClient(getDummyDownloadedFiles(),
-                new ConfigurationDownloader(fileNameProvider, Integer.parseInt(version)) {
-                    @Override
-                    void addAdditionalConfigurationSources(PrivateParametersV2 privateParameters) {
-                        // Do not download additional source.
-                    }
-                }, Integer.parseInt(version)) {
+        client = new ConfigurationClient(configurationPath) {
             @Override
-            void initAdditionalConfigurationSources() {
-                // Not needed.
+            protected void deleteExtraConfigurationDirectories(
+                    PrivateParametersV2 privateParameters,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete anything
             }
         };
 
@@ -164,34 +159,33 @@ public final class ConfigurationClientMain {
     private static int validate(String configurationAnchorFile, final ParamsValidator paramsValidator) {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
-        System.setProperty(SystemProperties.CONFIGURATION_ANCHOR_FILE, configurationAnchorFile);
-
         // Create configuration that does not persist files to disk.
-        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
-            @Override
-            void handle(ConfigurationLocation location, ConfigurationFile file) {
-                paramsValidator.tryMarkValid(file.getContentIdentifier());
+        ConfigurationDownloader configurationDowloader =
+                new ConfigurationDownloader(SystemProperties.getConfigurationPath()) {
 
-                super.handle(location, file);
+            @Override
+            Set<Path> persistAllContent(
+               List<ConfigurationDownloader.DownloadedContent> downloadedContents) throws Exception {
+               // empty because we don't want to persist files to disk
+               // can return empty list because extra files deletion method is also empty
+               return new HashSet();
             }
 
             @Override
-            void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
-                // empty cause we don't want to persist files to disk
+            void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
+               // do not delete anything
             }
 
-            @Override
-            void updateExpirationDate(Path destination, ConfigurationFile file) throws Exception {
-                // empty cause we don't want to persist files to disk
-            }
-        };
+            };
 
-        client = new ConfigurationClient(getDummyDownloadedFiles(), configuration,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+        ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath(), configurationDowloader,
+                configurationAnchor) {
             @Override
-            void initAdditionalConfigurationSources() {
-                // Not needed.
+            protected void deleteExtraConfigurationDirectories(
+                    PrivateParametersV2 privateParameters,
+                    FederationConfigurationSourceFilter sourceFilter) {
+                // do not delete any files
             }
 
             @Override
@@ -229,31 +223,10 @@ public final class ConfigurationClientMain {
         shutdown();
     }
 
-    private static ConfigurationClient createClient() {
-        ConfigurationDownloader configuration = new ConfigurationDownloader(getDefaultFileNameProvider(),
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
-
-        return new ConfigurationClient(new DownloadedFiles(SystemProperties.getConfigurationPath()), configuration,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION);
-    }
-
-    private static FileNameProviderImpl getDefaultFileNameProvider() {
-        return new FileNameProviderImpl(SystemProperties.getConfigurationPath());
-    }
-
-    private static DownloadedFiles getDummyDownloadedFiles() {
-        return new DownloadedFiles(SystemProperties.getConfigurationPath()) {
-            @Override
-            void delete(Path path) {
-                // old configuration files aren't removed when running as non daemon
-            }
-        };
-    }
-
     private static void setup() {
         log.trace("setUp()");
 
-        client = createClient();
+        client = new ConfigurationClient(SystemProperties.getConfigurationPath());
 
         adminPort = new AdminPort(SystemProperties.getConfigurationClientAdminPort());
 

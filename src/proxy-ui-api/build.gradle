@@ -83,8 +83,7 @@ node {
 task npmInstallDeps(type: NpmTask, dependsOn: configurations.npm) {
     inputs.files('frontend/package.json')
     outputs.files('frontend/package-lock.json')
-    args = ['install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
-
+    args = ['install', '--quiet', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
     execOverrides {
         it.workingDir = 'frontend'
     }
