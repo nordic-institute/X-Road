@@ -459,8 +459,16 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     }
 
     @Test
-    public void sortIsCaseInsensitive() {
-        throw new RuntimeException("not implemented");
+    public void caseInsensitiveSort() {
+        var order = Sort.Order.by("memberName").ignoreCase();
+        var clients = repository.findAll(Sort.by(order));
+        // #3 - Member2
+        // #4 - member3
+        // #5 - mEmber4
+        assertEquals("Member2", clients.get(4).getMemberName());
+        assertEquals("member3", clients.get(5).getMemberName());
+        assertEquals("mEmber4", clients.get(6).getMemberName());
+
     }
 
 
@@ -488,19 +496,6 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         var clients = repository.findAll();
         assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
     }
-
-    @Test
-    public void sort() {
-        var clients = repository.findAll(Sort.by("memberName"));
-        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
-        assertEquals("Member1", clients.get(0).getMemberName());
-
-        clients = repository.findAll(Sort.by("memberName").descending());
-        assertEquals(CLIENTS_TOTAL_COUNT, clients.size());
-        assertEquals("Member9", clients.get(0).getMemberName());
-
-    }
-
 
     @Test
     public void findByType() {

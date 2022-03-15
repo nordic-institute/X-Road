@@ -61,6 +61,7 @@ public interface FlattenedSecurityServerClientRepository extends
 
     List<FlattenedSecurityServerClient> findAll(Sort sort);
 
+
     /**
      * TO DO: document params well
      */
