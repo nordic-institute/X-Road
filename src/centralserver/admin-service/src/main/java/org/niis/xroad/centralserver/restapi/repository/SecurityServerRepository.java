@@ -28,17 +28,70 @@ package org.niis.xroad.centralserver.restapi.repository;
 
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.util.Optional;
 
+import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.OWNER;
+import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
+import static org.niis.xroad.centralserver.restapi.entity.XRoadMember_.*;
+
+
 @Repository
-public interface SecurityServerRepository extends JpaRepository<SecurityServer, Integer> {
+public interface SecurityServerRepository extends PagingAndSortingRepository<SecurityServer, Integer>, JpaSpecificationExecutor<SecurityServer> {
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
-    //TODO: search parameters
-    List<SecurityServer> findAllBy(Sort sort);
+
+    Page<SecurityServer> findAllBy(Specification<SecurityServer> spec, Pageable pageable);
+
+    static Specification<SecurityServer> multifieldSearch(String q) {
+        return (root, query, builder) ->
+               builder.like(root.get(SERVER_CODE) , "%"+q+"%");
+    }
+
+    private static Predicate serverCodePredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
+        return builder.like(
+                builder.lower(root.get(SERVER_CODE)),
+                builder.lower(builder.literal("%" + s + "%"))
+        );
+    }
+
+    private static Predicate memberCodePredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
+        return builder.like(
+                builder.lower(root.join(OWNER).get(MEMBER_CODE)),
+                builder.lower(builder.literal("%" + s + "%"))
+        );
+    }
+
+    private static Predicate memberClassPredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
+        return builder.like(
+                builder.lower(root.join(OWNER).get(MEMBER_CLASS)),
+                builder.lower(builder.literal("%" + s + "%"))
+        );
+    }
+
+    private static Predicate memberNamePredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
+        return builder.like(
+                builder.lower(root.join(OWNER).get(NAME)),
+                builder.lower(builder.literal("%" + s + "%"))
+        );
+    }
+
+    private static Predicate multifieldTextSearch(Root<SecurityServer> root, CriteriaBuilder builder, String q) {
+        return builder.or(
+               /* memberNamePredicate(root, builder, q),
+                memberClassPredicate(root, builder, q),
+                memberCodePredicate(root, builder, q),*/
+                serverCodePredicate(root, builder, q)
+
+        );
+    }
 
 }

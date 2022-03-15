@@ -7,7 +7,8 @@ import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDt
 import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -23,20 +24,23 @@ public class SecurityServerService {
 
     private final SecurityServerConverter serverConverter = new SecurityServerConverter();
 
-    public FoundSecurityServersWithTotalsDto findSecurityServers(/*TODO: Some parameters here */) {
+    public FoundSecurityServersWithTotalsDto findSecurityServers(String q, Pageable pageable ) {
 
 
-        List<SecurityServer> foundServers = securityServerRepository.findAllBy(Sort.unsorted());
 
-        PagingMetadata pagingMetadata = new PagingMetadata().totalItems(foundServers.size());
+
+        Page<SecurityServer> foundServers = securityServerRepository.findAllBy(
+                SecurityServerRepository.multifieldSearch(q), pageable);
+
+        PagingMetadata pagingMetadata = new PagingMetadata().totalItems((int) foundServers.getTotalElements());
         return new FoundSecurityServersWithTotalsDto(
                 toDto(foundServers),
                 pagingMetadata.getTotalItems());
     }
 
 
-    private List<SecurityServerDto> toDto(List<SecurityServer> securityServerEntityList) {
-        return securityServerEntityList.stream().map(serverConverter::convert).collect(Collectors.toList());
+    private List<SecurityServerDto> toDto(Page<SecurityServer> securityServerEntityPage) {
+        return securityServerEntityPage.get().map(serverConverter::convert).collect(Collectors.toList());
 
 
     }

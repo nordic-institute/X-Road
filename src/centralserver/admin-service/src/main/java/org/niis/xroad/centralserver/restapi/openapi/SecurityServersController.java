@@ -48,7 +48,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
-@PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
+@PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SecurityServersController implements SecurityServersApi {
 
@@ -73,8 +73,24 @@ public class SecurityServersController implements SecurityServersApi {
 
     @Override
     @Validated
+    @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
     public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting, String ownerMember, String containsMember) {
-        FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers();
+
+
+        //TODO: clean parameter q for SQL like search ?
+        if (pagingSorting == null) {
+            pagingSorting = new PagingSortingParameters().limit(25).offset(0).sort("serverCode").sortDesc(false);
+        }
+        Sort sorting = Sort.by((pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty()) ? "serverCode" : pagingSorting.getSort());
+        sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
+
+        Pageable pageable = PageRequest.of(
+                pagingSorting.getOffset(),
+                pagingSorting.getLimit(),
+                sorting);
+
+
+        FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers(q, pageable);
         return ResponseEntity.ok(serverConverter.convert(servers));
 
     }

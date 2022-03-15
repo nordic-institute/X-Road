@@ -50,7 +50,7 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
     @Test
     public void testGetSecurityServersSucceedsWithoutParameters() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers",
+        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers?q=ABC",
                 PagedSecurityServers.class);
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
