@@ -74,10 +74,9 @@ task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
 task checkFrontAudit(type: NpmTask) {
     inputs.files(
         'package.json',
-        'package-lock.json',
-        'dist'
+        'package-lock.json'
     )
-    outputs.upToDateWhen { true }
+    outputs.files('build/reports/audit-ci.txt')
     args = ['run', 'npx-check-audit']
 }
 

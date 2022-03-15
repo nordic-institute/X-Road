@@ -113,10 +113,9 @@ task buildFront(type: NpmTask, dependsOn: npmInstall) {
 task checkFrontAudit(type: NpmTask, dependsOn: nodeSetup) {
     inputs.files(
         'frontend/package.json',
-        'frontend/package-lock.json',
-        'frontend/dist'
+        'frontend/package-lock.json'
     )
-    outputs.upToDateWhen { true }
+    outputs.files('build/reports/audit-ci.txt')
     // do a front end audit with npm run npx-check-audit
     // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
     args = ['run', 'npx-check-audit']
