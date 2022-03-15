@@ -66,7 +66,7 @@ module.exports = {
   },
 
 
-  'Security server client add wsdl service': (browser) => {
+  'Invalid URLs give proper error message': () => {
     clientServices.openAddWSDL();
     clientServices.initServiceUrl('a');
     clientServices.errorMessageIsShown('URL is not valid');
@@ -75,7 +75,9 @@ module.exports = {
     clientServices.initServiceUrl('foobar');
     clientServices.errorMessageIsShown('URL is not valid');
     clientServices.cancelAddDialog();
+    },
 
+  'Security server client add wsdl service': (browser) => {
     // Verify that URL field is empty after reopening
     clientServices.openAddWSDL();
     browser.assert.value(clientServices.elements.newServiceUrl, '');
