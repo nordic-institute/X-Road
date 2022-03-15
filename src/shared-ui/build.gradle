@@ -19,7 +19,7 @@ node {
     }
 }
 
-task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
+task npmBuild(type: NpmTask, dependsOn: npmInstall) {
     inputs.files(
         'src/',
         'public/',
@@ -37,15 +37,18 @@ task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
     args = ['run', '--quiet', 'build-lib']
 }
 
-task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
+task npmPack(type: NpmTask, dependsOn: npmBuild) {
+    inputs.files("dist")
     outputs.file("niis-shared-ui-0.1.0.tgz")
     args = ['pack', '--quiet']
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: ['npmBuild']) {
-    inputs.files("package.json", "package-lock.json", "dist")
-    // do a front end audit with npm run npx-check-audit
-    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+task checkFrontAudit(type: NpmTask) {
+    inputs.files(
+        'package.json',
+        'package-lock.json'
+    )
+    outputs.files('build/reports/audit-ci.txt')
     args = ['run', 'npx-check-audit']
 }
 
@@ -62,8 +65,11 @@ clean {
 }
 
 assemble.dependsOn npmBuild
-check.dependsOn checkFrontAudit
 check.dependsOn checkFrontLicense
+
+if (project.hasProperty('frontend-npm-audit')) {
+  npmInstall.dependsOn checkFrontAudit
+}
 
 artifacts {
     npm(file("niis-shared-ui-0.1.0.tgz")) {

@@ -10,7 +10,7 @@
     "test:e2e": "vue-cli-service test:e2e",
     "lint": "vue-cli-service lint",
     "check-audit": "audit-ci --config ../../shared-ui/audit-ci-shared.json",
-    "npx-check-audit": "npx audit-ci@5.1.2 --config ../../shared-ui/audit-ci-shared.json",
+    "npx-check-audit": "npx audit-ci@5.1.2 --config ../../shared-ui/audit-ci-shared.json >build/reports/audit-ci.txt",
     "license-check": "license-check-and-add check -f license-check-and-add-config.json",
     "bundle-openapi": "swagger-cli bundle -t yaml -o ./build/openapi/openapi-definition-bundled.yaml ../admin-service/src/main/resources/openapi-definition.yaml",
     "cleanup": "rm -rf dist && rm -rf package-lock.json && rm -rf node_modules",
