@@ -29,7 +29,11 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.NotImplementedException;
 import org.niis.xroad.centralserver.openapi.SecurityServersApi;
-import org.niis.xroad.centralserver.openapi.model.*;
+import org.niis.xroad.centralserver.openapi.model.CertificateDetails;
+import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.openapi.model.SecurityServer;
+import org.niis.xroad.centralserver.openapi.model.SecurityServerAddress;
 import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
 import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDto;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
@@ -37,6 +41,9 @@ import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -44,6 +51,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Set;
+
+import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
 
 
 @RestController
@@ -74,15 +83,14 @@ public class SecurityServersController implements SecurityServersApi {
     @Override
     @Validated
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
-    public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting, String ownerMember, String containsMember) {
+    public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting,
+                                                                    String ownerMember, String containsMember) {
 
 
-        //TODO: clean parameter q for SQL like search ?
-        if (pagingSorting == null) {
-            pagingSorting = new PagingSortingParameters().limit(25).offset(0).sort("serverCode").sortDesc(false);
-        }
-        Sort sorting = Sort.by((pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty()) ? "serverCode" : pagingSorting.getSort());
-        sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
+        //TO DO: clean parameter q for SQL like search ?
+
+        pagingSorting = getPagingSortingParametersOrDefault(pagingSorting);
+        Sort sorting = getSortOrDefault(pagingSorting);
 
         Pageable pageable = PageRequest.of(
                 pagingSorting.getOffset(),
@@ -93,6 +101,26 @@ public class SecurityServersController implements SecurityServersApi {
         FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers(q, pageable);
         return ResponseEntity.ok(serverConverter.convert(servers));
 
+    }
+
+    private Sort getSortOrDefault(PagingSortingParameters pagingSorting) {
+        Sort sorting = Sort.by(
+                (pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty())
+                        ? SERVER_CODE
+                        : pagingSorting.getSort()
+        );
+        sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
+        return sorting;
+    }
+
+    private PagingSortingParameters getPagingSortingParametersOrDefault(PagingSortingParameters pagingSorting) {
+        final Integer defaultPageLength = 25;
+        final PagingSortingParameters defaultPagingSorting =
+                new PagingSortingParameters().limit(defaultPageLength).offset(0).sort(SERVER_CODE).sortDesc(false);
+        if (pagingSorting == null) {
+            pagingSorting = defaultPagingSorting;
+        }
+        return pagingSorting;
     }
 
     @Override
@@ -113,7 +141,8 @@ public class SecurityServersController implements SecurityServersApi {
     @Override
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_SECURITY_SERVER_ADDRESS)
-    public ResponseEntity<SecurityServer> updateSecurityServerAddress(String id, SecurityServerAddress securityServerAddress) {
+    public ResponseEntity<SecurityServer> updateSecurityServerAddress(String id,
+                                                                      SecurityServerAddress securityServerAddress) {
         throw new NotImplementedException("updateSecurityServerAddress not implemented yet");
     }
 }

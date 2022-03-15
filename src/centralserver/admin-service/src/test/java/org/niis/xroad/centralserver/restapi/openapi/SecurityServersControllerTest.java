@@ -28,16 +28,15 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
-import org.niis.xroad.centralserver.openapi.model.SystemStatus;
-import org.niis.xroad.centralserver.openapi.model.Version;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
 @Transactional
@@ -50,18 +49,20 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
     @Test
     public void testGetSecurityServersSucceedsWithoutParameters() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers?q=ABC",
+        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers?q=ADM",
                 PagedSecurityServers.class);
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
         assertNotNull(response.getBody());
         assertNotNull(response.getBody().getClients(), "Should return at least an empty list");
-        assertTrue(response.getBody().getClients().stream().allMatch(client -> client.getXroadId().getType().getValue().equals("SERVER")));
+        assertTrue(response.getBody().getClients().stream()
+                .allMatch(client -> client.getXroadId().getType().getValue().equals("SERVER")));
         assertNotNull(response.getBody().getPagingMetadata());
         Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
         assertNotNull(itemCount);
         assertTrue(0 < itemCount, "Should return more than one client");
-        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),"Total items must not be less than clients returned in one page");
+        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
+                "Total items must not be less than clients returned in one page");
 
     }
 
