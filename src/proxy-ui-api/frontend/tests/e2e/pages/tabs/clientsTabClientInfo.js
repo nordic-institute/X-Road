@@ -157,6 +157,7 @@ var clientServicesCommands = {
     return this;
   },
   errorMessageIsShown: function (expectedMessage) {
+    // Verifies that error message element is shown, if argument is given, function polls that text from page.
     this.api.waitForElementVisible('//div[contains(@class, "v-messages__message")]');
     if (expectedMessage) {
       this.api.waitForElementVisible(`//*[text()[contains(.,"${expectedMessage}")]]`)
