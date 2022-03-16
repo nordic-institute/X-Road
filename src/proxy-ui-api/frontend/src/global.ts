@@ -182,10 +182,6 @@ export const mainTabs: Tab[] = [
     to: { name: RouteName.SystemParameters },
     key: 'settings',
     name: 'tab.main.settings',
-    permissions: [
-      Permissions.VIEW_SYS_PARAMS,
-      Permissions.BACKUP_CONFIGURATION,
-    ],
   },
 ];
 
