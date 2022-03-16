@@ -4,17 +4,17 @@
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
  * Copyright (c) 2015-2017 Estonian Information System Authority (RIA), Population Register Centre (VRK)
- *
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -35,6 +35,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 
+import javax.validation.ConstraintViolationException;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.niis.xroad.restapi.exceptions.DeviationCodes.ERROR_VALIDATION_FAILURE;
 import static org.niis.xroad.restapi.exceptions.ResponseStatusUtil.getAnnotatedResponseStatus;
 
 /**
@@ -56,9 +63,10 @@ public class ExceptionTranslator {
      * Create ResponseEntity<ErrorInfo> from an Exception.
      * Use provided status or override it with value from
      * Exception's ResponseStatus annotation if one exists
-     * @param e
-     * @param defaultStatus
-     * @return
+     *
+     * @param e exception to convert
+     * @param defaultStatus status to be used if not specified with method annotation
+     * @return  ResponseEntity with properly filled ErrorInfo
      */
     public ResponseEntity<ErrorInfo> toResponseEntity(Exception e, HttpStatus defaultStatus) {
         HttpStatus status = getAnnotatedResponseStatus(e, defaultStatus);
@@ -82,6 +90,12 @@ public class ExceptionTranslator {
             errorDto.setError(convert(deviation));
         } else if (e instanceof MethodArgumentNotValidException) {
             errorDto.setError(validationErrorHelper.createError((MethodArgumentNotValidException) e));
+        } else if (e instanceof ConstraintViolationException) {
+            Map<String, List<String>> violations = new HashMap<>();
+            ((ConstraintViolationException) e).getConstraintViolations()
+                    .forEach(constraintViolation -> violations.put(constraintViolation.getPropertyPath().toString(),
+                            List.of(constraintViolation.getMessage())));
+            errorDto.setError(new CodeWithDetails().code(ERROR_VALIDATION_FAILURE).validationErrors(violations));
         }
         return new ResponseEntity<>(errorDto, status);
     }

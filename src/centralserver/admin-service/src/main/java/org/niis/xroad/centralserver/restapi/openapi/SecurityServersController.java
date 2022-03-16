@@ -105,7 +105,7 @@ public class SecurityServersController implements SecurityServersApi {
         Sort sorting = Sort.by(
                 (pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty())
                         ? SERVER_CODE
-                        : pagingSorting.getSort()   //TODO: Enum for limiting options
+                        : pagingSorting.getSort()   //TO DO: Enum for limiting options
         );
         sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
         return sorting;

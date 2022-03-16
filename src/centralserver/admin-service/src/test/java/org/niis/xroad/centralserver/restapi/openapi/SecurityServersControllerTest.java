@@ -28,14 +28,19 @@ package org.niis.xroad.centralserver.restapi.openapi;
 
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
+import org.niis.xroad.centralserver.openapi.model.SecurityServer;
+import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
@@ -69,19 +74,16 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
     @Test
     public void givenTooShortQParameterReturns400Response() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers/?q=SS",
-                PagedSecurityServers.class);
+        ResponseEntity<ErrorInfo> response = restTemplate.getForEntity("/api/v1/security-servers/?q=SS",
+                ErrorInfo.class);
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(400, response.getStatusCodeValue(),
                 "Security server list request with invalid parameter must return 400 status");
         assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getClients(), "Should return at least an empty list");
-        assertNotNull(response.getBody().getPagingMetadata());
-        Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
-        assertNotNull(itemCount);
-        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
-                "Total items must not be less than clients returned in one page");
-
+        assertTrue(response.getBody().getError().getCode().contains("validation"));
+        assertTrue(response.getBody().getError().getValidationErrors().containsKey("findSecurityServers.q"));
+        assertNotNull(response.getBody().getError().getValidationErrors().get("findSecurityServers.q"));
+        assertNull(response.getBody().getWarnings());
     }
 
     @Test
@@ -93,7 +95,10 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
         assertEquals(200, response.getStatusCodeValue(),
                 "Security server list request return 200 status");
         assertNotNull(response.getBody());
-        assertNotNull(response.getBody().getClients());
+        List<SecurityServer> securityServers = response.getBody().getClients();
+        assertNotNull(securityServers);
+        final int securityServersMatchingSearchTermAdmin = 1;
+        assertEquals(securityServersMatchingSearchTermAdmin, securityServers.size());
         assertNotNull(response.getBody().getPagingMetadata());
         Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
         assertNotNull(itemCount);
