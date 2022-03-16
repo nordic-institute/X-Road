@@ -53,6 +53,9 @@ public interface SecurityServerRepository extends
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
     static Specification<SecurityServer> multifieldSearch(String q) {
+        if (q == null || q.isEmpty()) {
+            return null;
+        }
         return (root, query, builder) ->
                 multifieldTextSearch(root, builder, q);
     }

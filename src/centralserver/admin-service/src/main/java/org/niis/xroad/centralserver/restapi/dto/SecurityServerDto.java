@@ -29,6 +29,8 @@ package org.niis.xroad.centralserver.restapi.dto;
 import lombok.Builder;
 import lombok.Value;
 
+import java.time.Instant;
+
 @Value
 @Builder
 public class SecurityServerDto {
@@ -37,4 +39,8 @@ public class SecurityServerDto {
     String memberClass;
     String memberCode;
     String serverCode;
+    String serverAddress;
+    String owner;
+    Instant updatedAt;
+    Instant createdAt;
 }

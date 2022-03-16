@@ -49,7 +49,7 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
     @Test
     public void testGetSecurityServersSucceedsWithoutParameters() {
         addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers?q=ADM",
+        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers",
                 PagedSecurityServers.class);
         assertNotNull(response, "Security server list response  must not be null.");
         assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
@@ -61,6 +61,42 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
         Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
         assertNotNull(itemCount);
         assertTrue(0 < itemCount, "Should return more than one client");
+        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
+                "Total items must not be less than clients returned in one page");
+
+    }
+
+    @Test
+    public void givenTooShortQParameterReturns400Response() {
+        addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers/?q=SS",
+                PagedSecurityServers.class);
+        assertNotNull(response, "Security server list response  must not be null.");
+        assertEquals(400, response.getStatusCodeValue(),
+                "Security server list request with invalid parameter must return 400 status");
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getClients(), "Should return at least an empty list");
+        assertNotNull(response.getBody().getPagingMetadata());
+        Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
+        assertNotNull(itemCount);
+        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
+                "Total items must not be less than clients returned in one page");
+
+    }
+
+    @Test
+    public void givenQParameterReturnsMatchingServers() {
+        addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers/?q=ADMIN",
+                PagedSecurityServers.class);
+        assertNotNull(response, "Security server list response  must not be null.");
+        assertEquals(200, response.getStatusCodeValue(),
+                "Security server list request return 200 status");
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getClients());
+        assertNotNull(response.getBody().getPagingMetadata());
+        Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
+        assertNotNull(itemCount);
         assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items must not be less than clients returned in one page");
 

@@ -83,11 +83,9 @@ public class SecurityServersController implements SecurityServersApi {
     @Override
     @Validated
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
-    public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting,
-                                                                    String ownerMember, String containsMember) {
+    public ResponseEntity<PagedSecurityServers> findSecurityServers(String q,
+                                                                    PagingSortingParameters pagingSorting) {
 
-
-        //TO DO: clean parameter q for SQL like search ?
 
         pagingSorting = getPagingSortingParametersOrDefault(pagingSorting);
         Sort sorting = getSortOrDefault(pagingSorting);
@@ -107,7 +105,7 @@ public class SecurityServersController implements SecurityServersApi {
         Sort sorting = Sort.by(
                 (pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty())
                         ? SERVER_CODE
-                        : pagingSorting.getSort()
+                        : pagingSorting.getSort()   //TODO: Enum for limiting options
         );
         sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
         return sorting;
