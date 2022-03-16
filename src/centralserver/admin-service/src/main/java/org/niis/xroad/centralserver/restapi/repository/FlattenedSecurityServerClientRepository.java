@@ -94,6 +94,10 @@ public interface FlattenedSecurityServerClientRepository extends
                 predicates.add(subsystemCodePredicate(root, builder,
                         params.getSubsystemCodeSearch()));
             }
+            if (!StringUtils.isBlank(params.getMemberNameSearch())) {
+                predicates.add(memberNamePredicate(root, builder,
+                        params.getMemberNameSearch()));
+            }
             if (params.getClientType() != null) {
                 switch (params.getClientType()) {
                     case MEMBER:
@@ -131,33 +135,15 @@ public interface FlattenedSecurityServerClientRepository extends
         };
     }
 
+    static Specification<FlattenedSecurityServerClient> memberName(String s) {
+        return (root, query, builder) -> {
+            return memberNamePredicate(root, builder, s);
+        };
+    }
+
     static Specification<FlattenedSecurityServerClient> subsystemCode(String s) {
         return (root, query, builder) -> {
             return subsystemCodePredicate(root, builder, s);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClient> clientWithMemberName(String name) {
-        return (root, query, builder) -> {
-            return memberNamePredicate(root, builder, name);
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClient> memberWithMemberName(String s) {
-        return (root, query, builder) -> {
-            return builder.and(
-                    memberPredicate(root, builder),
-                    memberNamePredicate(root, builder, s)
-            );
-        };
-    }
-
-    static Specification<FlattenedSecurityServerClient> subsystemWithMembername(String s) {
-        return (root, query, builder) -> {
-            return builder.and(
-                    subsystemPredicate(root, builder),
-                    memberNamePredicate(root, builder, s)
-            );
         };
     }
 
@@ -247,11 +233,17 @@ public interface FlattenedSecurityServerClientRepository extends
     class SearchParameters {
         private String multifieldSearch;
         private String instanceSearch;
+        private String memberNameSearch;
         private String memberClassSearch;
         private String memberCodeSearch;
         private String subsystemCodeSearch;
         private XRoadObjectType clientType;
         private Integer securityServerId;
+
+        public SearchParameters setMemberNameSearch(String memberNameSearchParam) {
+            this.memberNameSearch = memberNameSearchParam;
+            return this;
+        }
 
         public SearchParameters setMultifieldSearch(String multifieldSearchParam) {
             this.multifieldSearch = multifieldSearchParam;

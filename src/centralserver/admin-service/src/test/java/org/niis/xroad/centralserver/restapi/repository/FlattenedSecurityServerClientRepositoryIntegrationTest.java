@@ -447,6 +447,22 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
             fail("bad client type should throw exception");
         } catch (Exception expected) { }
 
+        // memberName
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setMemberNameSearch("gov")
+                                .setClientType(XRoadObjectType.MEMBER)
+                ));
+        assertEquals(0, clients.size());
+
+        clients = repository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(
+                        new FlattenedSecurityServerClientRepository.SearchParameters()
+                                .setMemberNameSearch("2")
+                ));
+        assertEquals(1, clients.size());
+
         // combo all parameters
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multiParameterSearch(
@@ -456,6 +472,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
                                 .setSecurityServerId(1000001)
                                 .setMultifieldSearch("ber1")
                                 .setInstanceSearch("e")
+                                .setMemberNameSearch("e")
                                 .setMemberClassSearch("o")
                 ));
         assertEquals(1, clients.size());
@@ -474,29 +491,11 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
     }
 
-//    @Test
-//    public void descendingSortShouldRetainCaseInsensitive() {
-//        var sort = Sort.by(Sort.Order.by("memberName").ignoreCase());
-//        assertTrue(sort.iterator().next().isIgnoreCase()); // 1
-//        var sortDesc = sort.descending();
-//        assertTrue(sortDesc.iterator().next().isIgnoreCase()); // 1
-//    }
-
     @Test
     public void findClientsByMemberName() {
         String memberName = "memBer1";
         var clients = repository.findAll(
-                FlattenedSecurityServerClientRepository.subsystemWithMembername(memberName));
-        // one subsystem
-        assertEquals(1, clients.size());
-
-        clients = repository.findAll(
-                FlattenedSecurityServerClientRepository.memberWithMemberName(memberName));
-        // "Member1" , Member10-11
-        assertEquals(3, clients.size());
-
-        clients = repository.findAll(
-                FlattenedSecurityServerClientRepository.clientWithMemberName(memberName));
+                FlattenedSecurityServerClientRepository.memberName(memberName));
         // 3 members and one subsystem
         assertEquals(4, clients.size());
     }

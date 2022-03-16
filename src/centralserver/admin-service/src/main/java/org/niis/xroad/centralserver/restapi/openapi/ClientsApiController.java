@@ -89,8 +89,14 @@ public class ClientsApiController implements ClientsApi {
             String memberCode, String subsystemCode,
             ClientType clientType, String securityServer) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting);
+        // TO DO: securityServer id
         var params = new FlattenedSecurityServerClientRepository.SearchParameters()
                 .setMultifieldSearch(q)
+                .setInstanceSearch(instance)
+                .setMemberNameSearch(name)
+                .setMemberClassSearch(memberClass)
+                .setMemberCodeSearch(memberCode)
+                .setSubsystemCodeSearch(subsystemCode)
                 .setClientType(ClientTypeMapping.map(clientType).orElse(null));
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
         PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
