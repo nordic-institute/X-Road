@@ -29,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
+import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -47,8 +48,9 @@ public class PagedClientsConverter {
     @Autowired
     private ClientConverter clientConverter;
 
-    public PagedClients convert(Page<FlattenedSecurityServerClientDto> page) {
-        PagingMetadata meta = pagingMetadataConverter.convert(page);
+    public PagedClients convert(Page<FlattenedSecurityServerClientDto> page,
+            PagingSortingParameters pagingSorting) {
+        PagingMetadata meta = pagingMetadataConverter.convert(page, pagingSorting);
         List<Client> clients = page.get().map(clientConverter::convert).collect(Collectors.toList());
         PagedClients result = new PagedClients();
         result.setClients(clients);

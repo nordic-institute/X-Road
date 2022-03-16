@@ -88,7 +88,7 @@ public class ClientsApiController implements ClientsApi {
             ClientType clientType, String securityServer) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting);
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(q, pageRequest);
-        PagedClients pagedResults = pagedClientsConverter.convert(page);
+        PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);
     }
 
