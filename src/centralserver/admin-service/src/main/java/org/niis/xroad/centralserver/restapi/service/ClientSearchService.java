@@ -28,10 +28,12 @@ package org.niis.xroad.centralserver.restapi.service;
 
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Hibernate;
+import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -48,17 +50,14 @@ import java.util.stream.Collectors;
 public class ClientSearchService {
     @Autowired
     private FlattenedSecurityServerClientRepository flattenedClientRepository;
-    public Page<FlattenedSecurityServerClient> find(String q, Pageable pageable) {
+
+    public Page<FlattenedSecurityServerClientDto> find(String q, Pageable pageable) {
         var clients= flattenedClientRepository.findAll(
                 FlattenedSecurityServerClientRepository.multifieldSearch(q), pageable);
-        // TO DO: entity - dto - lazy load conventions.
-        // See proxy-ui-api ClientRepository.java#105 (Hibernate.initialize())
-        clients.get().map(c -> {
-            Hibernate.initialize(c.getMemberClass());
-            return c;
-        }).collect(Collectors.toList());
-
-        return clients;
+        var dtos = clients.get()
+                          .map(FlattenedSecurityServerClientDto::from)
+                          .collect(Collectors.toList());
+        return new PageImpl<>(dtos, clients.getPageable(), clients.getTotalElements());
     }
 
 }

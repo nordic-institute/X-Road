@@ -35,6 +35,7 @@ import org.niis.xroad.centralserver.openapi.model.MemberName;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
@@ -77,12 +78,12 @@ public class ClientsApiController implements ClientsApi {
             String memberCode, String subsystemCode,
             ClientType clientType, String securityServer) {
         PageRequest pageRequest = covertToPageRequest(pagingSorting);
-        Page<FlattenedSecurityServerClient> page = clientSearchService.find(q, pageRequest);
+        Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(q, pageRequest);
         PagedClients pagedResults = convertToPagedClients(page);
         return ResponseEntity.ok(pagedResults);
     }
 
-    private PagedClients convertToPagedClients(Page<FlattenedSecurityServerClient> page) {
+    private PagedClients convertToPagedClients(Page<FlattenedSecurityServerClientDto> page) {
         PagingMetadata meta = convertToMetadata(page);
         List<Client> clients = page.get().map(this::convertToClient).collect(Collectors.toList());
         PagedClients result = new PagedClients();
@@ -91,13 +92,13 @@ public class ClientsApiController implements ClientsApi {
         return result;
     }
 
-    private Client convertToClient(FlattenedSecurityServerClient flattened) {
+    private Client convertToClient(FlattenedSecurityServerClientDto flattened) {
         Client client = new Client();
         switch (flattened.getType()) {
-            case "Subsystem":
+            case SUBSYSTEM:
                 client.setClientType(ClientType.SUBSYSTEM);
                 break;
-            case "XRoadMember":
+            case MEMBER:
                 client.setClientType(ClientType.MEMBER);
                 break;
             default:
@@ -109,7 +110,7 @@ public class ClientsApiController implements ClientsApi {
         client.setUpdatedAt(null); // TO DO
         ClientId clientId = new ClientId();
         clientId.setInstanceId(flattened.getXroadInstance());
-        clientId.setMemberClass(flattened.getMemberClass().getCode());
+        clientId.setMemberClass(flattened.getMemberClassCode());
         clientId.setMemberCode(flattened.getMemberCode());
         clientId.setSubsystemCode(flattened.getSubsystemCode());
         client.setXroadId(clientId);
@@ -130,16 +131,16 @@ public class ClientsApiController implements ClientsApi {
     }
 
     private Sort convertToSort(PagingSortingParameters pagingSorting) {
+        var sort = Sort.unsorted();
         if (!StringUtils.isBlank(pagingSorting.getSort())) {
-            var sort = Sort.by(pagingSorting.getSort());
+            Sort.Direction direction = Sort.Direction.ASC;
             if (pagingSorting.getDesc()) {
-                return sort.descending();
-            } else {
-                return sort;
+                direction = Sort.Direction.DESC;
             }
-        } else {
-            return Sort.unsorted();
+
+            sort = Sort.by(new Sort.Order(direction, pagingSorting.getSort()).ignoreCase());
         }
+        return sort;
     }
 
     @Override

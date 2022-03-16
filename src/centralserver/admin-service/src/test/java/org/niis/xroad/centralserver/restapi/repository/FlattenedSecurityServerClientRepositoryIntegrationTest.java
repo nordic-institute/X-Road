@@ -42,6 +42,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
@@ -471,6 +472,13 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
 
     }
 
+//    @Test
+//    public void descendingSortShouldRetainCaseInsensitive() {
+//        var sort = Sort.by(Sort.Order.by("memberName").ignoreCase());
+//        assertTrue(sort.iterator().next().isIgnoreCase()); // 1
+//        var sortDesc = sort.descending();
+//        assertTrue(sortDesc.iterator().next().isIgnoreCase()); // 1
+//    }
 
     @Test
     public void findClientsByMemberName() {
