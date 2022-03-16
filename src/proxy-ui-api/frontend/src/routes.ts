@@ -24,7 +24,7 @@
  * THE SOFTWARE.
  */
 
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 
 import AddClient from '@/views/AddClient/AddClient.vue';
 import AddKey from '@/views/AddKey/AddKey.vue';
@@ -95,35 +95,24 @@ const routes: RouteConfig[] = [
           default: true,
           subTabs: true,
         },
-        meta: { permissions: [Permissions.VIEW_KEYS] },
         children: [
           {
             name: RouteName.SignAndAuthKeys,
             path: '',
             component: SignAndAuthKeys,
             props: true,
-            meta: { permissions: [Permissions.VIEW_KEYS] },
           },
           {
             name: RouteName.ApiKey,
             path: 'apikey',
             component: ApiKey,
             props: true,
-            meta: {
-              permissions: [
-                Permissions.VIEW_API_KEYS,
-                Permissions.CREATE_API_KEY,
-                Permissions.UPDATE_API_KEY,
-                Permissions.REVOKE_API_KEY,
-              ],
-            },
           },
           {
             name: RouteName.SSTlsCertificate,
             path: 'tls-cert',
             component: SSTlsCertificate,
             props: true,
-            meta: { permissions: [Permissions.VIEW_INTERNAL_TLS_CERT] },
           },
         ],
       },
@@ -137,7 +126,6 @@ const routes: RouteConfig[] = [
         props: {
           default: true,
         },
-        meta: { permissions: [Permissions.CREATE_API_KEY] },
       },
       {
         name: RouteName.GenerateInternalCSR,
@@ -146,7 +134,6 @@ const routes: RouteConfig[] = [
           default: GenerateInternalCsr,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.GENERATE_INTERNAL_TLS_CSR] },
         props: {
           default: true,
         },
@@ -159,16 +146,9 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.DIAGNOSTICS] },
       },
       {
         path: '/settings',
-        meta: {
-          permissions: [
-            Permissions.VIEW_SYS_PARAMS,
-            Permissions.BACKUP_CONFIGURATION,
-          ],
-        },
         components: {
           default: Settings,
           top: TabsBase,
@@ -184,14 +164,12 @@ const routes: RouteConfig[] = [
             path: '',
             component: SystemParameters,
             props: true,
-            meta: { permissions: [Permissions.VIEW_SYS_PARAMS] },
           },
           {
             name: RouteName.BackupAndRestore,
             path: 'backup',
             component: BackupAndRestore,
             props: true,
-            meta: { permissions: [Permissions.BACKUP_CONFIGURATION] },
           },
         ],
       },
@@ -206,7 +184,6 @@ const routes: RouteConfig[] = [
         props: {
           default: true,
         },
-        meta: { permissions: [Permissions.ADD_CLIENT] },
       },
       {
         name: RouteName.AddClient,
@@ -216,7 +193,6 @@ const routes: RouteConfig[] = [
           alerts: AlertsContainer,
           top: TabsBaseEmpty,
         },
-        meta: { permissions: [Permissions.ADD_CLIENT] },
       },
       {
         name: RouteName.AddMember,
@@ -229,12 +205,10 @@ const routes: RouteConfig[] = [
         props: {
           default: true,
         },
-        meta: { permissions: [Permissions.ADD_CLIENT] },
       },
       {
         name: RouteName.Subsystem,
         path: '/subsystem',
-        meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
         redirect: '/subsystem/details/:id',
         components: {
           default: Subsystem,
@@ -252,42 +226,36 @@ const routes: RouteConfig[] = [
             path: '/subsystem/details/:id',
             component: ClientDetails,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
           },
           {
             name: RouteName.SubsystemServiceClients,
             path: '/subsystem/serviceclients/:id',
             component: ServiceClients,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_ACL_SUBJECTS] },
           },
           {
             name: RouteName.SubsystemServices,
             path: '/subsystem/services/:id',
             component: Services,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_SERVICES] },
           },
           {
             name: RouteName.SubsystemServers,
             path: '/subsystem/internalservers/:id',
             component: InternalServers,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS] },
           },
           {
             name: RouteName.SubsystemLocalGroups,
             path: '/subsystem/localgroups/:id',
             component: LocalGroups,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS] },
           },
         ],
       },
       {
         name: RouteName.Client,
         path: '/client',
-        meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
         redirect: '/client/details/:id',
         components: {
           default: Client,
@@ -302,14 +270,12 @@ const routes: RouteConfig[] = [
             path: '/client/details/:id',
             component: ClientDetails,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_DETAILS] },
           },
           {
             name: RouteName.MemberServers,
             path: '/client/internalservers/:id',
             component: InternalServers,
             props: true,
-            meta: { permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS] },
           },
         ],
       },
@@ -321,7 +287,6 @@ const routes: RouteConfig[] = [
           top: TabsBase,
           alerts: AlertsContainer,
         },
-        meta: { permissions: [Permissions.VIEW_CLIENTS] },
       },
       {
         name: RouteName.Certificate,
@@ -362,9 +327,6 @@ const routes: RouteConfig[] = [
           top: TabsBaseEmpty,
         },
         props: { default: true },
-        meta: {
-          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS],
-        },
       },
       {
         name: RouteName.ServiceClientAccessRights,

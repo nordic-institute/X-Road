@@ -103,9 +103,9 @@ router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
       }
     }
 
-    if (!to?.meta?.permissions) {
+    if (!to?.name) {
       next();
-    } else if (user.hasAnyOfPermissions(to.meta.permissions)) {
+    } else if (user.isRouteAllowed(to.name)) {
       // This route is allowed
       next();
     } else {

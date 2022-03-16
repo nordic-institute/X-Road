@@ -111,7 +111,6 @@ export const routePermissions: RoutePermission[] = [
     name: RouteName.SubsystemLocalGroups,
     permissions: [Permissions.VIEW_CLIENT_LOCAL_GROUPS],
   },
-
   {
     name: RouteName.Client,
     permissions: [Permissions.VIEW_CLIENT_DETAILS],
@@ -124,12 +123,10 @@ export const routePermissions: RoutePermission[] = [
     name: RouteName.MemberServers,
     permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
   },
-
   {
     name: RouteName.Clients,
     permissions: [Permissions.VIEW_CLIENTS],
   },
-
   {
     name: RouteName.ClientTlsCertificate,
     permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERT_DETAILS],

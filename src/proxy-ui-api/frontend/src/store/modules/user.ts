@@ -77,6 +77,14 @@ export const useUser = defineStore('user', {
         return filteredTabs;
       },
 
+    isRouteAllowed: (state) => (routeName: string) => {
+      if (routeName && !state.bannedRoutes?.includes(routeName)) {
+        // Return true if the route is allowed
+        return true;
+      }
+      return false;
+    },
+
     firstAllowedTab(): Tab {
       return this.getAllowedTabs(mainTabs)[0];
     },
