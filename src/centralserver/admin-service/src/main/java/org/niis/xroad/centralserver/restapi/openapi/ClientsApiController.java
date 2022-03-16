@@ -35,10 +35,13 @@ import org.niis.xroad.centralserver.openapi.model.MemberName;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
+import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -60,6 +63,12 @@ public class ClientsApiController implements ClientsApi {
 
     private final ClientSearchService clientSearchService;
 
+    @Autowired
+    private PagedClientsConverter pagedClientsConverter;
+
+    @Autowired
+    private PageRequestConverter pageRequestConverter;
+
     @Override
     public ResponseEntity<Client> addClient(Client client) {
         return null;
@@ -77,70 +86,10 @@ public class ClientsApiController implements ClientsApi {
             String instance, String memberClass,
             String memberCode, String subsystemCode,
             ClientType clientType, String securityServer) {
-        PageRequest pageRequest = covertToPageRequest(pagingSorting);
+        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting);
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(q, pageRequest);
-        PagedClients pagedResults = convertToPagedClients(page);
+        PagedClients pagedResults = pagedClientsConverter.convert(page);
         return ResponseEntity.ok(pagedResults);
-    }
-
-    private PagedClients convertToPagedClients(Page<FlattenedSecurityServerClientDto> page) {
-        PagingMetadata meta = convertToMetadata(page);
-        List<Client> clients = page.get().map(this::convertToClient).collect(Collectors.toList());
-        PagedClients result = new PagedClients();
-        result.setClients(clients);
-        result.setPagingMetadata(meta);
-        return result;
-    }
-
-    private Client convertToClient(FlattenedSecurityServerClientDto flattened) {
-        Client client = new Client();
-        switch (flattened.getType()) {
-            case SUBSYSTEM:
-                client.setClientType(ClientType.SUBSYSTEM);
-                break;
-            case MEMBER:
-                client.setClientType(ClientType.MEMBER);
-                break;
-            default:
-                throw new IllegalStateException("unknown type " + flattened.getType());
-        }
-        client.setId(String.valueOf(flattened.getId()));
-        client.setMemberName(flattened.getMemberName());
-        client.setCreatedAt(null); // TO DO
-        client.setUpdatedAt(null); // TO DO
-        ClientId clientId = new ClientId();
-        clientId.setInstanceId(flattened.getXroadInstance());
-        clientId.setMemberClass(flattened.getMemberClassCode());
-        clientId.setMemberCode(flattened.getMemberCode());
-        clientId.setSubsystemCode(flattened.getSubsystemCode());
-        client.setXroadId(clientId);
-        return client;
-    }
-
-    private PagingMetadata convertToMetadata(Page page) {
-        PagingMetadata meta = new PagingMetadata();
-        meta.setTotalItems(toIntExact(page.getTotalElements()));
-        return meta;
-    }
-
-    private PageRequest covertToPageRequest(PagingSortingParameters pagingSorting) {
-        return PageRequest.of(
-                pagingSorting.getOffset(),
-                pagingSorting.getLimit(),
-                convertToSort(pagingSorting));
-    }
-
-    private Sort convertToSort(PagingSortingParameters pagingSorting) {
-        var sort = Sort.unsorted();
-        if (!StringUtils.isBlank(pagingSorting.getSort())) {
-            Sort.Direction direction = Sort.Direction.ASC;
-            if (pagingSorting.getDesc()) {
-                direction = Sort.Direction.DESC;
-            }
-
-            sort = Sort.by(new Sort.Order(direction, pagingSorting.getSort()).ignoreCase());
-        }
-        return sort;
     }
 
     @Override
