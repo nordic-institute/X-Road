@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
@@ -60,7 +60,6 @@ export default Vue.extend({
           to: {
             name: RouteName.SystemParameters,
           },
-          permissions: [Permissions.VIEW_SYS_PARAMS],
         },
         {
           key: 'backupandrestore-tab-button',
@@ -68,7 +67,6 @@ export default Vue.extend({
           to: {
             name: RouteName.BackupAndRestore,
           },
-          permissions: [Permissions.BACKUP_CONFIGURATION],
         },
       ];
       return this.getAllowedTabs(allTabs);

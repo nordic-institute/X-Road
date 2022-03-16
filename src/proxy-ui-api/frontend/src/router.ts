@@ -23,57 +23,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-import Router, { NavigationGuardNext, Route, RouteConfig } from 'vue-router';
-import AlertsContainer from '@/components/ui/AlertsContainer.vue';
-import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
-import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
-import { Permissions, RouteName } from '@/global';
+import Router, { NavigationGuardNext, Route } from 'vue-router';
+import { RouteName } from '@/global';
 import routes from '@/routes';
-import i18n from './i18n';
 import { useNotifications } from '@/store/modules/notifications';
 import { useUser } from '@/store/modules/user';
-
-// Route for initialisation view. This is created separeately because it's linked to vuex store and this causes the unit tests to break.
-const initRoute: RouteConfig = {
-  name: RouteName.InitialConfiguration,
-  path: '/initial-configuration',
-  components: {
-    default: InitialConfiguration,
-    alerts: AlertsContainer,
-    top: TabsBaseEmpty,
-  },
-  beforeEnter: (to: Route, from: Route, next: NavigationGuardNext): void => {
-    // Coming from login is ok
-    if (from.name === RouteName.Login) {
-      next();
-      return;
-    }
-
-    const notifications = useNotifications();
-    const user = useUser();
-
-    // Coming from somewhere else, needs a check
-    if (user.needsInitialization) {
-      // Check if the user has permission to initialize the server
-      if (!user.hasPermission(Permissions.INIT_CONFIG)) {
-        notifications.showErrorMessage(
-          i18n.t('initialConfiguration.noPermission'),
-        );
-
-        return;
-      }
-      next();
-    }
-  },
-};
 
 // Create the router
 const router = new Router({
   routes: routes,
 });
-
-// Add the security server initialisation route
-router.addRoute(RouteName.BaseRoute, initRoute);
 
 router.beforeEach((to: Route, from: Route, next: NavigationGuardNext) => {
   // Going to login

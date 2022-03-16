@@ -24,8 +24,6 @@
  * THE SOFTWARE.
  */
 
-import { RouteName } from '@/global';
-
 import AddClient from '@/views/AddClient/AddClient.vue';
 import AddKey from '@/views/AddKey/AddKey.vue';
 import AddMember from '@/views/AddMember/AddMember.vue';
@@ -58,7 +56,6 @@ import KeysAndCertificatesTabs from '@/views/KeysAndCertificates/KeysAndCertific
 import LocalGroup from '@/views/LocalGroup/LocalGroup.vue';
 import LocalGroups from '@/views/Clients/LocalGroups/LocalGroups.vue';
 import AppForbidden from '@/views/AppForbidden.vue';
-import { RouteConfig } from 'vue-router';
 import SSTlsCertificate from '@/views/KeysAndCertificates/SecurityServerTlsCertificate/SecurityServerTlsCertificate.vue';
 import Service from '@/views/Service/Service.vue';
 import ServiceClientAccessRights from '@/views/Clients/ServiceClients/ServiceClientAccessRights.vue';
@@ -73,8 +70,14 @@ import Subsystem from '@/views/Clients/Subsystem.vue';
 import SubsystemTabs from '@/views/Clients/SubsystemTabs.vue';
 import SystemParameters from '@/views/Settings/SystemParameters/SystemParameters.vue';
 import TabsBase from '@/components/layout/TabsBase.vue';
-import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
 import TokenDetails from '@/views/TokenDetails/TokenDetails.vue';
+import InitialConfiguration from '@/views/InitialConfiguration/InitialConfiguration.vue';
+import TabsBaseEmpty from '@/components/layout/TabsBaseEmpty.vue';
+import { Permissions, RouteName } from '@/global';
+import i18n from './i18n';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { NavigationGuardNext, Route, RouteConfig } from 'vue-router';
 
 const routes: RouteConfig[] = [
   {
@@ -447,9 +450,44 @@ const routes: RouteConfig[] = [
         },
         props: { default: true },
       },
+      {
+        name: RouteName.InitialConfiguration,
+        path: '/initial-configuration',
+        components: {
+          default: InitialConfiguration,
+          alerts: AlertsContainer,
+          top: TabsBaseEmpty,
+        },
+        beforeEnter: (
+          to: Route,
+          from: Route,
+          next: NavigationGuardNext,
+        ): void => {
+          // Coming from login is ok
+          if (from.name === RouteName.Login) {
+            next();
+            return;
+          }
+
+          const notifications = useNotifications();
+          const user = useUser();
+
+          // Coming from somewhere else, needs a check
+          if (user.needsInitialization) {
+            // Check if the user has permission to initialize the server
+            if (!user.hasPermission(Permissions.INIT_CONFIG)) {
+              notifications.showErrorMessage(
+                i18n.t('initialConfiguration.noPermission'),
+              );
+
+              return;
+            }
+            next();
+          }
+        },
+      },
     ],
   },
-
   {
     path: '/login',
     name: RouteName.Login,

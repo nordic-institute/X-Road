@@ -40,7 +40,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
@@ -65,7 +65,6 @@ export default Vue.extend({
           to: {
             name: RouteName.SignAndAuthKeys,
           },
-          permissions: [Permissions.VIEW_KEYS],
         },
         {
           key: 'api-key-tab-button',
@@ -73,12 +72,6 @@ export default Vue.extend({
           to: {
             name: RouteName.ApiKey,
           },
-          permissions: [
-            Permissions.CREATE_API_KEY,
-            Permissions.VIEW_API_KEYS,
-            Permissions.UPDATE_API_KEY,
-            Permissions.REVOKE_API_KEY,
-          ],
         },
         {
           key: 'ss-tls-certificate-tab-button',
@@ -86,7 +79,6 @@ export default Vue.extend({
           to: {
             name: RouteName.SSTlsCertificate,
           },
-          permissions: [Permissions.VIEW_INTERNAL_TLS_CERT],
         },
       ];
 

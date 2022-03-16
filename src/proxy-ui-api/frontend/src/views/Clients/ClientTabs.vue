@@ -35,7 +35,7 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { Permissions, RouteName } from '@/global';
+import { RouteName } from '@/global';
 import { Tab } from '@/ui-types';
 import SubTabs from '@/components/layout/SubTabs.vue';
 import { mapState } from 'pinia';
@@ -74,7 +74,6 @@ export default Vue.extend({
             name: RouteName.MemberServers,
             params: { id: this.id },
           },
-          permissions: [Permissions.VIEW_CLIENT_INTERNAL_CERTS],
         },
       ];
 
