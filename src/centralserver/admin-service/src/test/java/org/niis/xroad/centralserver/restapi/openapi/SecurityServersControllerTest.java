@@ -39,6 +39,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -63,11 +64,38 @@ public class SecurityServersControllerTest extends AbstractApiRestTemplateTestCo
         assertTrue(response.getBody().getClients().stream()
                 .allMatch(client -> client.getXroadId().getType().getValue().equals("SERVER")));
         assertNotNull(response.getBody().getPagingMetadata());
-        Integer itemCount = response.getBody().getPagingMetadata().getTotalItems();
-        assertNotNull(itemCount);
+        int itemCount = response.getBody().getClients().size();
         assertTrue(0 < itemCount, "Should return more than one client");
         assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
                 "Total items must not be less than clients returned in one page");
+
+    }
+
+    @Test
+    public void testPagingParameterLimit() {
+        addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<PagedSecurityServers> response = restTemplate.getForEntity("/api/v1/security-servers/?limit=1",
+                PagedSecurityServers.class);
+        assertNotNull(response, "Security server list response  must not be null.");
+        assertEquals(200, response.getStatusCodeValue(), "Security server list request status code must be 200 ");
+        assertNotNull(response.getBody());
+        assertNotNull(response.getBody().getClients(), "Should return clients");
+        int itemCount = response.getBody().getClients().size();
+        assertTrue(0 < itemCount, "Should return more than one client");
+        assertTrue(itemCount < response.getBody().getPagingMetadata().getTotalItems(),
+                "Total items be more than returned in one page");
+
+        ResponseEntity<PagedSecurityServers> response2 =
+                restTemplate.getForEntity("/api/v1/security-servers/?limit=1&offset=1",
+                        PagedSecurityServers.class);
+
+        assertEquals(200, response2.getStatusCodeValue());
+        assertNotNull(response2.getBody());
+        assertNotNull(response2.getBody().getClients(), "Should return clients");
+        assertEquals(1, response2.getBody().getClients().size());
+        assertEquals(1, response2.getBody().getPagingMetadata().getOffset());
+        assertNotEquals(response.getBody().getClients().get(0), response2.getBody().getClients().get(0));
+
 
     }
 

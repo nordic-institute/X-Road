@@ -97,7 +97,7 @@ public class SecurityServersController implements SecurityServersApi {
 
 
         FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers(q, pageable);
-        return ResponseEntity.ok(serverConverter.convert(servers));
+        return ResponseEntity.ok(serverConverter.convert(servers, pageable));
 
     }
 

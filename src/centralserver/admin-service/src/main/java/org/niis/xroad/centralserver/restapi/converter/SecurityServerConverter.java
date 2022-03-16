@@ -34,6 +34,7 @@ import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDt
 import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
 import java.util.TimeZone;
@@ -72,8 +73,15 @@ public class SecurityServerConverter {
                 .build();
     }
 
-    public PagedSecurityServers convert(FoundSecurityServersWithTotalsDto dto) {
-        return new PagedSecurityServers().pagingMetadata(new PagingMetadata().totalItems(dto.getTotalCount()))
+    public PagedSecurityServers convert(FoundSecurityServersWithTotalsDto dto,
+                                        Pageable pageable) {
+        return new PagedSecurityServers()
+                .pagingMetadata(new PagingMetadata()
+                        .totalItems(dto.getTotalCount())
+                        .items(dto.getServerDtoList().size())
+                        .limit(pageable.getPageSize())
+                        .offset(pageable.getPageNumber())
+                )
                 .clients(dto.getServerDtoList().stream().map(securityServerDto -> {
                     SecurityServerId serverId = getSecurityServerId(securityServerDto);
                     return new org.niis.xroad.centralserver.openapi.model.SecurityServer()
@@ -89,7 +97,7 @@ public class SecurityServerConverter {
                 }).collect(Collectors.toUnmodifiableList()));
     }
 
-    private SecurityServerId getSecurityServerId(SecurityServer entity) {
+        private SecurityServerId getSecurityServerId(SecurityServer entity) {
         SecurityServerId serverId = new SecurityServerId().memberClass(entity.getOwner().getMemberClass().getCode())
                 .memberCode(entity.getOwner().getMemberCode()).serverCode(entity.getServerCode());
         serverId.setInstanceId(entity.getOwner().getIdentifier().getXRoadInstance());
