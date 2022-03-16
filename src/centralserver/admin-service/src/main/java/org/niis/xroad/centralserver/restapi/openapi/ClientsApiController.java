@@ -35,10 +35,12 @@ import org.niis.xroad.centralserver.openapi.model.MemberName;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.centralserver.restapi.converter.ClientTypeMapping;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
+import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +89,10 @@ public class ClientsApiController implements ClientsApi {
             String memberCode, String subsystemCode,
             ClientType clientType, String securityServer) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting);
-        Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(q, pageRequest);
+        var params = new FlattenedSecurityServerClientRepository.SearchParameters()
+                .setMultifieldSearch(q)
+                .setClientType(ClientTypeMapping.map(clientType).orElse(null));
+        Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
         PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);
     }

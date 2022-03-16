@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
@@ -65,7 +67,7 @@ public interface FlattenedSecurityServerClientRepository extends
     /**
      * TO DO: document params well
      */
-    static Specification multiParameterSearch(SearchParameters params) {
+    static Specification<FlattenedSecurityServerClient> multiParameterSearch(SearchParameters params) {
         return (root, query, builder) -> {
             var predicates = new ArrayList<Predicate>();
             if (params.getSecurityServerId() != null) {
@@ -92,12 +94,12 @@ public interface FlattenedSecurityServerClientRepository extends
                 predicates.add(subsystemCodePredicate(root, builder,
                         params.getSubsystemCodeSearch()));
             }
-            if (!StringUtils.isBlank(params.getClientType())) {
+            if (params.getClientType() != null) {
                 switch (params.getClientType()) {
-                    case "XRoadMember":
+                    case MEMBER:
                         predicates.add(memberPredicate(root, builder));
                         break;
-                    case "Subsystem":
+                    case SUBSYSTEM:
                         predicates.add(subsystemPredicate(root, builder));
                         break;
                     default:
@@ -248,7 +250,7 @@ public interface FlattenedSecurityServerClientRepository extends
         private String memberClassSearch;
         private String memberCodeSearch;
         private String subsystemCodeSearch;
-        private String clientType;
+        private XRoadObjectType clientType;
         private Integer securityServerId;
 
         public SearchParameters setMultifieldSearch(String multifieldSearchParam) {
@@ -276,7 +278,7 @@ public interface FlattenedSecurityServerClientRepository extends
             return this;
         }
 
-        public SearchParameters setClientType(String clientTypeParam) {
+        public SearchParameters setClientType(XRoadObjectType clientTypeParam) {
             this.clientType = clientTypeParam;
             return this;
         }

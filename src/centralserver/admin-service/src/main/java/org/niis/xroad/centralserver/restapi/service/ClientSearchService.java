@@ -51,9 +51,11 @@ public class ClientSearchService {
     @Autowired
     private FlattenedSecurityServerClientRepository flattenedClientRepository;
 
-    public Page<FlattenedSecurityServerClientDto> find(String q, Pageable pageable) {
-        var clients= flattenedClientRepository.findAll(
-                FlattenedSecurityServerClientRepository.multifieldSearch(q), pageable);
+    public Page<FlattenedSecurityServerClientDto> find(
+            FlattenedSecurityServerClientRepository.SearchParameters params,
+            Pageable pageable) {
+        var clients = flattenedClientRepository.findAll(
+                FlattenedSecurityServerClientRepository.multiParameterSearch(params), pageable);
         var dtos = clients.get()
                           .map(FlattenedSecurityServerClientDto::from)
                           .collect(Collectors.toList());

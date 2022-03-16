@@ -25,30 +25,43 @@
  */
 package org.niis.xroad.centralserver.restapi.converter;
 
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.openapi.model.Client;
-import org.niis.xroad.centralserver.openapi.model.ClientId;
-import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
-import org.springframework.stereotype.Component;
+import org.niis.xroad.centralserver.openapi.model.ClientType;
 
-@Component
+import java.util.Arrays;
+import java.util.Optional;
+
+@Getter
 @RequiredArgsConstructor
-public class ClientConverter {
+public enum ClientTypeMapping {
 
-    public Client convert(FlattenedSecurityServerClientDto flattened) {
-        Client client = new Client();
-        client.setClientType(ClientTypeMapping.map(flattened.getType())
-                .orElseThrow(() -> new RuntimeException("Cannot convert client type " + flattened.getType())));
-        client.setId(String.valueOf(flattened.getId()));
-        client.setMemberName(flattened.getMemberName());
-        client.setCreatedAt(null); // TO DO
-        client.setUpdatedAt(null); // TO DO
-        ClientId clientId = new ClientId();
-        clientId.setInstanceId(flattened.getXroadInstance());
-        clientId.setMemberClass(flattened.getMemberClassCode());
-        clientId.setMemberCode(flattened.getMemberCode());
-        clientId.setSubsystemCode(flattened.getSubsystemCode());
-        client.setXroadId(clientId);
-        return client;
+    MEMBER(ClientType.MEMBER, XRoadObjectType.MEMBER),
+    SUBSYSTEM(ClientType.SUBSYSTEM, XRoadObjectType.SUBSYSTEM);
+
+    private final ClientType clientType;
+    private final XRoadObjectType xRoadObjectType;
+
+    public static Optional<XRoadObjectType> map(ClientType clientType) {
+        return getFor(clientType).map(ClientTypeMapping::getXRoadObjectType);
     }
+
+    public static Optional<ClientType> map(XRoadObjectType xRoadObjectType) {
+        return getFor(xRoadObjectType).map(ClientTypeMapping::getClientType);
+    }
+
+    public static Optional<ClientTypeMapping> getFor(ClientType clientType) {
+        return Arrays.stream(values())
+                     .filter(mapping -> mapping.clientType.equals(clientType))
+                     .findFirst();
+    }
+
+    public static Optional<ClientTypeMapping> getFor(XRoadObjectType xRoadObjectType) {
+        return Arrays.stream(values())
+                     .filter(mapping -> mapping.xRoadObjectType.equals(xRoadObjectType))
+                     .findFirst();
+    }
+
 }

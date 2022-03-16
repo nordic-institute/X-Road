@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
@@ -417,21 +419,21 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multiParameterSearch(
                         new FlattenedSecurityServerClientRepository.SearchParameters()
-                                .setClientType("XRoadMember")
+                                .setClientType(XRoadObjectType.MEMBER)
                 ));
         assertEquals(MEMBERS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multiParameterSearch(
                         new FlattenedSecurityServerClientRepository.SearchParameters()
-                                .setClientType("Subsystem")
+                                .setClientType(XRoadObjectType.SUBSYSTEM)
                 ));
         assertEquals(SUBSYSTEMS_TOTAL_COUNT, clients.size());
 
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multiParameterSearch(
                         new FlattenedSecurityServerClientRepository.SearchParameters()
-                                .setClientType("XRoadMember")
+                                .setClientType(XRoadObjectType.MEMBER)
                                 .setMemberCodeSearch("m1")
                 ));
         assertEquals(3, clients.size());
@@ -440,7 +442,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
             repository.findAll(
                     FlattenedSecurityServerClientRepository.multiParameterSearch(
                             new FlattenedSecurityServerClientRepository.SearchParameters()
-                                    .setClientType("Fubar")
+                                    .setClientType(XRoadObjectType.SERVER)
                     ));
             fail("bad client type should throw exception");
         } catch (Exception expected) { }
@@ -449,7 +451,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         clients = repository.findAll(
                 FlattenedSecurityServerClientRepository.multiParameterSearch(
                         new FlattenedSecurityServerClientRepository.SearchParameters()
-                                .setClientType("XRoadMember")
+                                .setClientType(XRoadObjectType.MEMBER)
                                 .setMemberCodeSearch("m1")
                                 .setSecurityServerId(1000001)
                                 .setMultifieldSearch("ber1")
