@@ -40,6 +40,7 @@ import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +51,8 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
@@ -105,7 +108,11 @@ public class SecurityServersController implements SecurityServersApi {
         Sort sorting = Sort.by(
                 (pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty())
                         ? SERVER_CODE
-                        : pagingSorting.getSort()   //TO DO: Enum for limiting options
+                        : SortField.fromString(pagingSorting.getSort())
+                        .orElseThrow(() -> {
+                            throw new BadRequestException("Not supported sorting key:" + pagingSorting.getSort());
+                        })
+                        .toString()
         );
         sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
         return sorting;
@@ -142,5 +149,32 @@ public class SecurityServersController implements SecurityServersApi {
     public ResponseEntity<SecurityServer> updateSecurityServerAddress(String id,
                                                                       SecurityServerAddress securityServerAddress) {
         throw new NotImplementedException("updateSecurityServerAddress not implemented yet");
+    }
+
+    // server code, server owner name, server owner class and owner code
+    public enum SortField {
+        SERVER_CODE("serverCode"),
+        OWNER_NAME("owner_name"),
+        OWNER_CLASS("owner_memberClass_code"),
+        OWNER_CODE("owner_memberCode");
+        private final String fieldName;
+
+        SortField(String fieldName) {
+            this.fieldName = fieldName;
+        }
+
+        @Override
+        public String toString() {
+            return fieldName;
+        }
+
+
+        public static Optional<SortField> fromString(String fieldParam) {
+            try {
+                return Optional.of(SortField.valueOf(fieldParam.toUpperCase(Locale.ROOT)));
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return Optional.empty();
+            }
+        }
     }
 }

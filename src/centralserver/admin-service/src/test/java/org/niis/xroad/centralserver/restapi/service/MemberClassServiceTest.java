@@ -52,7 +52,7 @@ public class MemberClassServiceTest {
         service.add(new MemberClassDto("TEST", "Description"));
         service.add(new MemberClassDto("TEST2", "Description"));
         final List<MemberClassDto> all = service.findAll();
-        final int memberClassCountIncludingImportSqlGenerated = 3;
+        final int memberClassCountIncludingImportSqlGenerated = 4;
         assertEquals(memberClassCountIncludingImportSqlGenerated, all.size());
         service.delete("TEST");
         service.update(new MemberClassDto("TEST2", "Description2"));

@@ -2195,6 +2195,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/PagedSecurityServers'
           description: paged security servers results
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
         '403':
@@ -3859,8 +3861,28 @@ components:
           description: Total number of items in the query results
           type: integer
           format: int32
+        items:
+          description: Number of items on the current page of query results
+          type: integer
+          format: int32
+        limit:
+          description: >
+            Indicates the maximum number of items for the returned page.
+          default: 25
+          type: integer
+          format: int32
+        offset:
+          description: >
+            Offset in pages from the beginning of the query result after filtering and sorting
+            parameters are taken into account.
+          default: 0
+          type: integer
+          format: int32
       required:
         - total_items
+        - items
+        - limit
+        - offset
       type: object
     PagingSortingParameters:
       description: parameters for sorting and paging search results
