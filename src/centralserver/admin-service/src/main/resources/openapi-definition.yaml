@@ -2182,7 +2182,14 @@ paths:
             minLength: 3
             maxLength: 25
             type: string
-        - description: optional paging and sorting parameters. Sorting possible according to one of the server code, server owner name, server owner class or owner code.
+        - description: >
+            optional paging and sorting parameters. Sorting possible according to one of the following values:
+            <ul>
+                <li><b>server_code</b>   for server code ,</li>
+                <li><b>owner_code</b>  for server owner name,</li>
+                <li><b>owner_class</b> for server owner class or</li>
+                <li><b>owner_code</b>  for owner code.</li>
+            </ul>
           in: query
           name: paging_sorting
           required: false
