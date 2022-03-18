@@ -7,10 +7,6 @@ configurations {
     npm { canBeConsumed(true); canBeResolved(false) }
 }
 
-dependencies {
-    npm project(":shared-ui")
-}
-
 node {
     download = true
     version = nodeVersion
@@ -53,7 +49,7 @@ task checkFrontAudit(type: NpmTask) {
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files("src/", "test/", "public/")
+    inputs.files("LICENSE.txt", "src/", "test/", "public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
 }
@@ -63,7 +59,7 @@ clean {
     delete file('dist')
 }
 
-assemble.dependsOn npmBuild
+assemble.dependsOn npmPack
 check.dependsOn checkFrontLicense
 
 if (project.hasProperty('frontend-npm-audit')) {
