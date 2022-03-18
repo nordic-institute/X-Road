@@ -36,12 +36,15 @@ import org.niis.xroad.centralserver.openapi.model.SecurityServer;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerAddress;
 import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
 import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDto;
+import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
 import org.niis.xroad.restapi.config.audit.RestApiAuditEvent;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -63,6 +66,10 @@ import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SecurityServersController implements SecurityServersApi {
+
+
+    private static final Logger LOG =
+            LoggerFactory.getLogger(SecurityServersController.class);
 
 
     private final AuditDataHelper auditData;
@@ -90,6 +97,7 @@ public class SecurityServersController implements SecurityServersApi {
                                                                     PagingSortingParameters pagingSorting) {
 
 
+        LOG.debug("findSecurityServers() called with: q = [{}], pagingSorting = [{}]", q, pagingSorting);
         pagingSorting = getPagingSortingParametersOrDefault(pagingSorting);
         Sort sorting = getSortOrDefault(pagingSorting);
 
@@ -99,7 +107,15 @@ public class SecurityServersController implements SecurityServersApi {
                 sorting);
 
 
+        LOG.trace("Pageable for service call:{}, q param:{}", pageable, q);
         FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers(q, pageable);
+        LOG.debug("Total {} Servers found, this page contains {} servers.", servers.getTotalCount(),
+                servers.getServerDtoList().size());
+        if (LOG.isTraceEnabled()) {
+            for (SecurityServerDto server : servers.getServerDtoList()) {
+                LOG.trace("found server:{}", server);
+            }
+        }
         return ResponseEntity.ok(serverConverter.convert(servers, pageable));
 
     }
@@ -121,7 +137,8 @@ public class SecurityServersController implements SecurityServersApi {
     private PagingSortingParameters getPagingSortingParametersOrDefault(PagingSortingParameters pagingSorting) {
         final Integer defaultPageLength = 25;
         final PagingSortingParameters defaultPagingSorting =
-                new PagingSortingParameters().limit(defaultPageLength).offset(0).sort(SERVER_CODE).sortDesc(false);
+                new PagingSortingParameters().limit(defaultPageLength).offset(0).sort(SortField.SERVER_CODE.fieldName)
+                        .sortDesc(false);
         if (pagingSorting == null) {
             pagingSorting = defaultPagingSorting;
         }
@@ -154,9 +171,9 @@ public class SecurityServersController implements SecurityServersApi {
     // server code, server owner name, server owner class and owner code
     public enum SortField {
         SERVER_CODE("serverCode"),
-        OWNER_NAME("owner_name"),
-        OWNER_CLASS("owner_memberClass_code"),
-        OWNER_CODE("owner_memberCode");
+        OWNER_NAME("owner.name"),
+        OWNER_CLASS("owner.memberClass.code"),
+        OWNER_CODE("owner.memberCode");
         private final String fieldName;
 
         SortField(String fieldName) {
