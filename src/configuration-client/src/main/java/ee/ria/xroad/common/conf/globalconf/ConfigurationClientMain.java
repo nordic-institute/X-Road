@@ -50,7 +50,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.nio.file.Path;
 import java.time.OffsetDateTime;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -159,8 +159,9 @@ public final class ConfigurationClientMain {
         log.trace("Downloading configuration using anchor {}", configurationAnchorFile);
 
         // Create configuration that does not persist files to disk.
-        ConfigurationDownloader configurationDowloader =
-                new ConfigurationDownloader(SystemProperties.getConfigurationPath()) {
+        final String configurationPath = SystemProperties.getConfigurationPath();
+
+        ConfigurationDownloader configurationDownloader = new ConfigurationDownloader(configurationPath) {
             @Override
             void handleContent(byte[] content, ConfigurationFile file) throws Exception {
                 paramsValidator.tryMarkValid(file.getContentIdentifier());
@@ -169,25 +170,23 @@ public final class ConfigurationClientMain {
 
             @Override
             Set<Path> persistAllContent(
-               List<ConfigurationDownloader.DownloadedContent> downloadedContents) {
-               // empty because we don't want to persist files to disk
-               // can return empty list because extra files deletion method is also empty
-               return new HashSet();
+                    List<ConfigurationDownloader.DownloadedContent> downloadedContents) {
+                // empty because we don't want to persist files to disk
+                // can return empty list because extra files deletion method is also empty
+                return Collections.emptySet();
             }
 
             @Override
             void deleteExtraFiles(String instanceIdentifier, Set<Path> neededFiles) {
-               // do not delete anything
+                // do not delete anything
             }
 
-            };
+        };
 
         ConfigurationAnchorV2 configurationAnchor = new ConfigurationAnchorV2(configurationAnchorFile);
-        client = new ConfigurationClient(SystemProperties.getConfigurationPath(), configurationDowloader,
-                configurationAnchor) {
+        client = new ConfigurationClient(configurationPath, configurationDownloader, configurationAnchor) {
             @Override
-            protected void deleteExtraConfigurationDirectories(
-                    PrivateParametersV2 privateParameters,
+            protected void deleteExtraConfigurationDirectories(PrivateParametersV2 privateParameters,
                     FederationConfigurationSourceFilter sourceFilter) {
                 // do not delete any files
             }
@@ -354,7 +353,7 @@ public final class ConfigurationClientMain {
         public void jobWasExecuted(JobExecutionContext context, JobExecutionException jobException) {
             log.info("job was executed result={}", context.getResult());
 
-            setStatus((DiagnosticsStatus)context.getResult());
+            setStatus((DiagnosticsStatus) context.getResult());
         }
     }
 
