@@ -34,6 +34,7 @@ import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 
 import javax.validation.ConstraintViolationException;
@@ -68,19 +69,68 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
                 0 < securityServerList.get(0).getXroadId().getServerCode().toUpperCase(ROOT)
                         .compareTo(securityServerList.get(1).getXroadId().getServerCode().toUpperCase(
                                 ROOT)));
+    }
 
-        final PagingSortingParameters sortingByMemberCode =
-                new PagingSortingParameters().sort("owner_class").sortDesc(false);
+    @Test
+    @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
+    public void givenAscendingByOwnerCodeGetRightSorted() {
+
+        final PagingSortingParameters sortingByOwnerCode =
+                new PagingSortingParameters().sort("owner_code").sortDesc(false);
         ResponseEntity<PagedSecurityServers> response2 =
-                securityServersController.findSecurityServers(null, sortingByMemberCode);
+                securityServersController.findSecurityServers(null, sortingByOwnerCode);
         assertNotNull(response2);
         assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
         assertNotNull(response2.getBody());
         List<SecurityServer> securityServerList2 = response2.getBody().getClients();
         assertTrue(
-                "In descending sort for server code, the first item have be lexicographically"
-                        + " prior server code compared to the second",
-                0 > securityServerList2.get(0).getXroadId().getMemberClass().toUpperCase(ROOT)
+                "In descending sort for owner code, the first item have be lexicographically"
+                        + " prior owner code compared to the last",
+                0 > securityServerList2.get(0).getXroadId().getServerCode().toUpperCase(ROOT)
+                        .compareTo(securityServerList2.get(securityServerList2.size() - 1).getXroadId().getServerCode()
+                                .toUpperCase(
+                                        ROOT)));
+
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
+    public void givenDescendingByOwnerNameGetRightSorted() {
+
+        final PagingSortingParameters sortingByOwnerName =
+                new PagingSortingParameters().sort("owner_name").sortDesc(true);
+        ResponseEntity<PagedSecurityServers> response2 =
+                securityServersController.findSecurityServers(null, sortingByOwnerName);
+        assertNotNull(response2);
+        assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
+        assertNotNull(response2.getBody());
+        List<SecurityServer> securityServerList2 = response2.getBody().getClients();
+        assertTrue(
+                "In descending sort for owner name, the first item have be lexicographically"
+                        + " after owner name compared to the last",
+                0 < securityServerList2.get(0).getOwner().toUpperCase(ROOT)
+                        .compareTo(securityServerList2.get(securityServerList2.size() - 1).getOwner()
+                                .toUpperCase(
+                                        ROOT)));
+
+    }
+
+    @Test
+    @WithMockUser(authorities = {"VIEW_SECURITY_SERVERS"})
+    public void givenDescendingByOwnerClassGetRightSorted() {
+
+        final PagingSortingParameters sortingByOwnerClass =
+                new PagingSortingParameters().sort("owner_class").sortDesc(true);
+        ResponseEntity<PagedSecurityServers> response2 =
+                securityServersController.findSecurityServers(null, sortingByOwnerClass);
+        assertNotNull(response2);
+        assertEquals(HttpStatus.OK.value(), response2.getStatusCodeValue());
+        assertNotNull(response2.getBody());
+        List<SecurityServer> securityServerList2 = response2.getBody().getClients();
+        assertTrue(
+                "In descending sort for owner class, the first item have be lexicographically"
+                        + " after owner class compared to the last",
+                0 < securityServerList2.get(0).getXroadId().getMemberClass().toUpperCase(ROOT)
                         .compareTo(securityServerList2.get(securityServerList2.size() - 1).getXroadId().getMemberClass()
                                 .toUpperCase(
                                         ROOT)));
@@ -105,6 +155,17 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         PagingSortingParameters sortingParameters = new PagingSortingParameters().sort("unknown_field");
 
         assertThrows(BadRequestException.class,
+                () -> securityServersController.findSecurityServers("not_relevant", sortingParameters));
+
+    }
+
+    @Test
+    @WithMockUser(authorities = {"UNKNOWN_AUTHORITY"})
+    public void testUnknownAuthorityThrowsAccessDeniedExceptio() throws AccessDeniedException {
+
+        PagingSortingParameters sortingParameters = new PagingSortingParameters();
+
+        assertThrows(AccessDeniedException.class,
                 () -> securityServersController.findSecurityServers("not_relevant", sortingParameters));
 
     }
