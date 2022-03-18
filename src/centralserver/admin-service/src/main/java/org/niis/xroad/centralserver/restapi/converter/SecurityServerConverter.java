@@ -33,7 +33,6 @@ import org.niis.xroad.centralserver.openapi.model.XRoadId;
 import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDto;
 import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
-import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
 import org.springframework.data.domain.Pageable;
 
 import java.time.OffsetDateTime;
@@ -53,9 +52,9 @@ public class SecurityServerConverter {
 
     public String convertToId(SecurityServerDto securityServerDto) {
         return securityServerDto.getInstanceId() + ':'
-                + securityServerDto.getMemberClass() + ':'
-                + securityServerDto.getMemberCode() + ':'
-                + securityServerDto.getServerCode() + ':';
+                + securityServerDto.getOwnerClass() + ':'
+                + securityServerDto.getOwnerCode() + ':'
+                + securityServerDto.getServerCode();
     }
 
     public SecurityServerDto convert(SecurityServer server) {
@@ -63,11 +62,11 @@ public class SecurityServerConverter {
         return SecurityServerDto.builder()
                 .id(convertToId(server))
                 .instanceId(serverId.getInstanceId())
-                .memberClass(serverId.getMemberClass())
-                .memberCode(serverId.getMemberCode())
+                .ownerClass(serverId.getMemberClass())
+                .ownerCode(serverId.getMemberCode())
+                .ownerName(server.getOwner().getName())
                 .serverCode(serverId.getServerCode())
                 .serverAddress(server.getAddress())
-                .owner(getMemberIdString(server.getOwner()))
                 .updatedAt(server.getUpdatedAt())
                 .createdAt(server.getCreatedAt())
                 .build();
@@ -87,7 +86,7 @@ public class SecurityServerConverter {
                     return new org.niis.xroad.centralserver.openapi.model.SecurityServer()
                             .id(convertToId(securityServerDto))
                             .xroadId(serverId)
-                            .owner(securityServerDto.getOwner())
+                            .owner(securityServerDto.getOwnerName())
                             .serverAddress(securityServerDto.getServerAddress())
                             .updatedAt(OffsetDateTime.ofInstant(securityServerDto.getUpdatedAt(),
                                     TimeZone.getDefault().toZoneId()))
@@ -97,9 +96,11 @@ public class SecurityServerConverter {
                 }).collect(Collectors.toUnmodifiableList()));
     }
 
-        private SecurityServerId getSecurityServerId(SecurityServer entity) {
-        SecurityServerId serverId = new SecurityServerId().memberClass(entity.getOwner().getMemberClass().getCode())
-                .memberCode(entity.getOwner().getMemberCode()).serverCode(entity.getServerCode());
+    private SecurityServerId getSecurityServerId(SecurityServer entity) {
+        SecurityServerId serverId = new SecurityServerId()
+                .memberClass(entity.getOwner().getMemberClass().getCode())
+                .memberCode(entity.getOwner().getMemberCode())
+                .serverCode(entity.getServerCode());
         serverId.setInstanceId(entity.getOwner().getIdentifier().getXRoadInstance());
         serverId.setType(XRoadId.TypeEnum.SERVER);
         return serverId;
@@ -107,7 +108,7 @@ public class SecurityServerConverter {
 
     private SecurityServerId getSecurityServerId(SecurityServerDto serverDto) {
         SecurityServerId serverId =
-                new SecurityServerId().memberClass(serverDto.getMemberClass()).memberCode(serverDto.getMemberCode())
+                new SecurityServerId().memberClass(serverDto.getOwnerClass()).memberCode(serverDto.getOwnerCode())
                         .serverCode(serverDto.getServerCode());
 
         serverId.setInstanceId(serverDto.getInstanceId());
@@ -115,10 +116,4 @@ public class SecurityServerConverter {
         return serverId;
     }
 
-    private String getMemberIdString(XRoadMember member) {
-        return member.getIdentifier().getXRoadInstance() + ':'
-                + member.getMemberClass().getCode() + ':'
-                + member.getMemberCode();
-
-    }
 }
