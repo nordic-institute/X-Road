@@ -161,10 +161,15 @@ public final class ConfigurationClientMain {
         // Create configuration that does not persist files to disk.
         ConfigurationDownloader configurationDowloader =
                 new ConfigurationDownloader(SystemProperties.getConfigurationPath()) {
+            @Override
+            void handleContent(byte[] content, ConfigurationFile file) throws Exception {
+                paramsValidator.tryMarkValid(file.getContentIdentifier());
+                super.handleContent(content, file);
+            }
 
             @Override
             Set<Path> persistAllContent(
-               List<ConfigurationDownloader.DownloadedContent> downloadedContents) throws Exception {
+               List<ConfigurationDownloader.DownloadedContent> downloadedContents) {
                // empty because we don't want to persist files to disk
                // can return empty list because extra files deletion method is also empty
                return new HashSet();
