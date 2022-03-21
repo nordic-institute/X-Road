@@ -135,5 +135,27 @@ public class SecurityServersControllerRestTemplateTest extends AbstractApiRestTe
 
     }
 
+    @Test
+    public void givenDescSortReturnsCorrectlySorted() {
+        addApiKeyAuthorizationHeader(restTemplate);
+        ResponseEntity<PagedSecurityServers> response =
+                 //TO DO: sort_desc or sortDesc
+                restTemplate.getForEntity("/api/v1/security-servers/?sortDesc=true&sort=owner_code",
+                        PagedSecurityServers.class);
+        assertNotNull(response, "Security server list response  must not be null.");
+        assertEquals(200, response.getStatusCodeValue(),
+                "Security server list request return 200 status");
+        assertNotNull(response.getBody());
+        List<SecurityServer> securityServers = response.getBody().getClients();
+        assertNotNull(securityServers);
+        assertNotNull(response.getBody().getPagingMetadata());
+        int itemCount = response.getBody().getClients().size();
+        assertTrue(itemCount <= response.getBody().getPagingMetadata().getTotalItems(),
+                "Total items must not be less than clients returned in one page");
+        assertTrue(0 < securityServers.get(0).getXroadId().getMemberCode()
+                .compareTo(securityServers.get(itemCount - 1).getXroadId().getMemberCode()));
+
+    }
+
 
 }

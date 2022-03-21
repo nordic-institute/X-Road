@@ -3901,10 +3901,10 @@ components:
           pattern: '[a-z_]+'
           maxLength: 25
           type: string
-        sort_desc:
+        sortDesc:
           description: >
             Used sorting direction. Value 'true'  indicates descending and 'false' or omitted
-            parameter indicates ascending direction.
+            parameter indicates ascending direction.  NOTE: needs to be entered as sortDesc to be obeyed!
           default: false
           type: boolean
         limit:
