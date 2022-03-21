@@ -40,7 +40,7 @@ import vuetify from './plugins/vuetify';
 import './plugins/vee-validate';
 import './filters';
 import App from './App.vue';
-import router from './router';
+import router from './router/router.ts';
 import '@fontsource/open-sans/800.css';
 import '@fontsource/open-sans/700.css';
 import '@fontsource/open-sans';
