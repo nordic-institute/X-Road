@@ -17,6 +17,7 @@ INSERT INTO identifiers(id, object_type, xroad_instance, member_class, member_co
 INSERT INTO identifiers(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type, service_version) VALUES (704, 'SERVER', 'DEV', 'ORG', '222', null, null, 'SERVICESS', 'SecurityServerId', null);
 INSERT INTO identifiers(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type, service_version) VALUES (705, 'MEMBER', 'DEV', 'GOV', '333', null, null, null, 'ClientId', null);
 INSERT INTO identifiers(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type, service_version) VALUES (706, 'MEMBER', 'DEV', 'ORG', '000', null, null, null, 'ClientId', null);
+INSERT INTO identifiers(id, object_type, xroad_instance, member_class, member_code, subsystem_code, service_code, server_code, type, service_version) VALUES (707, 'MEMBER', 'DEV', 'GOV', '321', null, null, null, 'ClientId', null);
 
 
 
@@ -27,10 +28,12 @@ INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad
 INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (703, null, 'TEST', null, 701, null, 704, 'Subsystem', null, '2022-03-07 08:48:15.393806', '2022-03-07 08:48:15.393806');
 INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (704, '222', null, 'TEST2', null, 702, 705, 'XRoadMember', null, '2022-03-07 08:48:15.393806', '2022-03-07 08:48:15.393806');
 INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (705, '221', null, 'TEST3', null, 701, 706, 'XRoadMember', null, '2022-03-18 12:18:15.393806', '2022-03-18 12:48:15.393806');
+INSERT INTO security_server_clients(id, member_code, subsystem_code, name, xroad_member_id, member_class_id, server_client_id, type, administrative_contact, created_at, updated_at) VALUES (706, '223', null, 'TEST4', null, 702, 707, 'XRoadMember', null, '2022-03-21 12:18:15.333333', '2022-03-21 12:48:15.333333');
 
-INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (701, 'ADMINSS', 701, '10.85.227.109', '2022-03-07 08:27:17.395387', '2022-03-07 08:27:17.395387');
-INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (702, 'SERVICESS1_CODE', 705, '10.85.227.239', '2022-03-15 08:27:17.999999', '2022-03-15 08:27:17.999999');
-INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (703, 'SERVICESS2_CODE', 704, '10.85.227.111', '2022-03-15 08:27:17.999999', '2022-03-15 08:27:17.999999');
+INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (701, 'ADMINSS2', 701, '10.85.227.109', '2022-03-07 08:27:17.395387', '2022-03-07 08:27:17.395387');
+INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (702, 'SERVICESS2_CODE', 705, '10.85.227.239', '2022-03-15 08:27:17.222222', '2022-03-15 08:27:17.222222');
+INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (703, 'SERVICESS1_CODE', 704, '10.85.227.111', '2022-03-15 08:27:17.111111', '2022-03-15 08:27:17.111111');
+INSERT INTO security_servers(id, server_code, owner_id, address, created_at, updated_at) VALUES (704, 'SERVICESS3_CODE', 706, '10.85.227.333', '2022-03-21 08:25:17.333333', '2022-03-21 08:25:17.333333');
 
 INSERT INTO security_clients(id, security_server_id, security_server_client_id) VALUES (701, 701, 702);
 INSERT INTO security_clients(id, security_server_id, security_server_client_id) VALUES (702, 701, 703);
