@@ -42,6 +42,7 @@ import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto
 import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -52,7 +53,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.toIntExact;
@@ -88,7 +91,7 @@ public class ClientsApiController implements ClientsApi {
             String instance, String memberClass,
             String memberCode, String subsystemCode,
             ClientType clientType, String securityServer) {
-        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting);
+        PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, new MemberSortParameterConverter());
         // TO DO: securityServer id
         var params = new FlattenedSecurityServerClientRepository.SearchParameters()
                 .setMultifieldSearch(q)
@@ -101,6 +104,24 @@ public class ClientsApiController implements ClientsApi {
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
         PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);
+    }
+
+    private class MemberSortParameterConverter implements PageRequestConverter.SortParameterConverter {
+        Map<String, String> conversions = new HashMap<>();
+        {
+            conversions.put("id", "id");
+            conversions.put("member_name", "memberName");
+            conversions.put("xroad_id.instance_id", "memberName");
+            conversions.put("xroad_id.member_class", "memberClass");
+            conversions.put("xroad_id.member_code", "memberCode");
+            conversions.put("client_type", "type");
+        }
+        @Override
+        public String convertToSortProperty(String sortParameter) throws BadRequestException {
+            String sortProperty = conversions.get(sortParameter);
+            if (sortProperty == null) throw new BadRequestException("Unknown sort parameter " + sortParameter);
+            return sortProperty;
+        }
     }
 
     @Override

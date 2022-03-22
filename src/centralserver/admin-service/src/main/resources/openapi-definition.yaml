@@ -3795,7 +3795,7 @@ components:
           description: Indicates item property that is to be used as sorting key.
           example: title
           minLength: 2
-          pattern: '[a-zA-Z_]+'
+          pattern: '[a-zA-Z_.]+'
           maxLength: 25
           type: string
         # exploded query parameters from objects dont seem to like underscores
