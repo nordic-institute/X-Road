@@ -130,7 +130,7 @@ public class SecurityServersController implements SecurityServersApi {
                         })
                         .toString()
         );
-        sorting = Boolean.TRUE.equals(pagingSorting.getSortDesc()) ? sorting.descending() : sorting.ascending();
+        sorting = Boolean.TRUE.equals(pagingSorting.getDesc()) ? sorting.descending() : sorting.ascending();
         return sorting;
     }
 
@@ -138,7 +138,7 @@ public class SecurityServersController implements SecurityServersApi {
         final Integer defaultPageLength = 25;
         final PagingSortingParameters defaultPagingSorting =
                 new PagingSortingParameters().limit(defaultPageLength).offset(0).sort(SortField.SERVER_CODE.fieldName)
-                        .sortDesc(false);
+                        .desc(false);
         if (pagingSorting == null) {
             pagingSorting = defaultPagingSorting;
         }
