@@ -46,11 +46,14 @@
       :items="members"
       :search="search"
       :must-sort="true"
-      :items-per-page="-1"
+      :items-per-page=10
+      :options.sync="options"
+      :server-items-length="totalMembers"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
         <div
@@ -88,6 +91,9 @@ import { DataTableHeader } from 'vuetify';
 import { userStore } from '@/store/modules/user';
 import { mapState } from 'pinia';
 import { Permissions } from '@/global';
+import { DataOptions } from 'vuetify';
+import {Client, MemberClass, PagedClients} from "@/openapi-types";
+import * as api from '@/util/api';
 
 export default Vue.extend({
   name: 'MemberList',
@@ -96,18 +102,10 @@ export default Vue.extend({
       search: '',
       loading: false,
       showOnlyPending: false,
-      members: [
-        {
-          name: 'Nordic Institue for Interoperability Solutions',
-          class: 'ORG',
-          code: '555',
-        },
-        {
-          name: 'Netum Oy',
-          class: 'COM',
-          code: 'IMAMEMBERCODE',
-        },
-      ],
+      totalMembers: 0,
+      options: {} as DataOptions,
+      members: [] as Client[] | undefined,
+      // pagingStuff - lue mikon esimerkistä miten on toteutettu siinä....oma property vai yksi ja sama
     };
   },
   computed: {
@@ -117,19 +115,19 @@ export default Vue.extend({
         {
           text: (this.$t('global.memberName') as string) + ' (8)',
           align: 'start',
-          value: 'name',
+          value: 'member_name',
           class: 'xrd-table-header members-table-header-name',
         },
         {
           text: this.$t('global.memberClass') as string,
           align: 'start',
-          value: 'class',
+          value: 'xroad_id.member_class',
           class: 'xrd-table-header members-table-header-class',
         },
         {
           text: this.$t('global.memberCode') as string,
           align: 'start',
-          value: 'code',
+          value: 'xroad_id.member_code',
           class: 'xrd-table-header members-table-header-code',
         },
       ];
@@ -138,6 +136,9 @@ export default Vue.extend({
       return this.hasPermission(Permissions.VIEW_MEMBER_DETAILS);
     },
   },
+  created() {
+    this.fetchClients();
+  },
   methods: {
     toDetails(): void {
       this.$router.push({
@@ -145,6 +146,33 @@ export default Vue.extend({
         params: { memberid: 'netum' },
       });
     },
+    changeOptions: async function (options: {
+      page: number;
+      itemsPerPage: number;
+      sortBy: string[];
+      sortDesc: boolean[];
+      q: string;
+    }) {
+      // just some dummy for now
+      console.log("findServers")
+      console.log("options: " + options);
+    },
+    fetchClients(): void {
+      this.loading = true;
+      // const { sortBy, sortDesc, page, itemsPerPage } = this.options;
+      api
+          .get<PagedClients>(`/clients`)
+          .then((res) => {
+            this.members = res.data.clients;
+            this.totalMembers = res.data.paging_metadata.total_items;
+            console.log("total members: " + this.totalMembers);
+          })
+          .catch((error) => {
+            // importoi piniasta show error action, kato mallia muualta
+            throw "error, handling missing"
+          })
+          .finally(() => (this.loading = false));
+    }
   },
 });
 </script>
