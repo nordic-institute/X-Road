@@ -52,7 +52,7 @@
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      hide-default-footer
+      :footer-props="{ itemsPerPageOptions: [10,25]}"
       @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
@@ -94,6 +94,7 @@ import { Permissions } from '@/global';
 import { DataOptions } from 'vuetify';
 import {Client, MemberClass, PagedClients} from "@/openapi-types";
 import * as api from '@/util/api';
+import { AxiosRequestConfig } from 'axios';
 
 export default Vue.extend({
   name: 'MemberList',
@@ -137,7 +138,7 @@ export default Vue.extend({
     },
   },
   created() {
-    this.fetchClients();
+    // this.fetchClients();
   },
   methods: {
     toDetails(): void {
@@ -146,22 +147,22 @@ export default Vue.extend({
         params: { memberid: 'netum' },
       });
     },
-    changeOptions: async function (options: {
-      page: number;
-      itemsPerPage: number;
-      sortBy: string[];
-      sortDesc: boolean[];
-      q: string;
-    }) {
-      // just some dummy for now
-      console.log("findServers")
-      console.log("options: " + options);
+    changeOptions: async function () {
+      this.fetchClients();
     },
     fetchClients(): void {
       this.loading = true;
-      // const { sortBy, sortDesc, page, itemsPerPage } = this.options;
+      const offset = (this.options?.page == null ? 0 : this.options.page - 1);
+      const params: any = {
+        limit: this.options.itemsPerPage,
+        offset: offset,
+        sort: this.options.sortBy[0],
+        desc: this.options.sortDesc[0]
+      };
+      const axiosParams: AxiosRequestConfig = { params }
+
       api
-          .get<PagedClients>(`/clients`)
+          .get<PagedClients>(`/clients`, axiosParams)
           .then((res) => {
             this.members = res.data.clients;
             this.totalMembers = res.data.paging_metadata.total_items;

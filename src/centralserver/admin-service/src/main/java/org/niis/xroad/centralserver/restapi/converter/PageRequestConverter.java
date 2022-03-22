@@ -28,6 +28,7 @@ package org.niis.xroad.centralserver.restapi.converter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
+import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
@@ -36,14 +37,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PageRequestConverter {
 
-    public PageRequest convert(PagingSortingParameters pagingSorting) {
+    public PageRequest convert(PagingSortingParameters pagingSorting, SortParameterConverter sortParameterConverter) {
         return PageRequest.of(
                 pagingSorting.getOffset(),
                 pagingSorting.getLimit(),
-                convertToSort(pagingSorting));
+                convertToSort(pagingSorting, sortParameterConverter));
     }
 
-    private Sort convertToSort(PagingSortingParameters pagingSorting) {
+    private Sort convertToSort(PagingSortingParameters pagingSorting, SortParameterConverter sortParameterConverter) {
         var sort = Sort.unsorted();
         if (!StringUtils.isBlank(pagingSorting.getSort())) {
             Sort.Direction direction = Sort.Direction.ASC;
@@ -51,12 +52,20 @@ public class PageRequestConverter {
                 direction = Sort.Direction.DESC;
             }
 
-            sort = Sort.by(new Sort.Order(direction, pagingSorting.getSort()).ignoreCase());
+            sort = Sort.by(new Sort.Order(direction,
+                    sortParameterConverter.convertToSortProperty(pagingSorting.getSort()))
+                    .ignoreCase());
         }
         return sort;
     }
 
-
+    public interface SortParameterConverter {
+        /**
+         * Convert an API-level sort parameter to service-level property name that JPA Data can sort by
+         * @throws BadRequestException if parameter value cannot be converted
+         */
+        String convertToSortProperty(String sortParameter) throws BadRequestException;
+    }
 
 }
 
