@@ -4,7 +4,9 @@
   "package-manager": "auto",
   "allowlist": [
     "*|@vue/cli-*",
-    "*|@storybook/*"
+    "*|@storybook/*",
+    "*|@babel/core*",
+    "1067259|eslint>*"
   ],
   "registry": "https://registry.npmjs.org"
 }
