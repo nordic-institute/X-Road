@@ -108,10 +108,8 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
         assertTrue(
                 "In descending sort for owner name, the first item have be lexicographically"
                         + " after owner name compared to the last",
-                0 < securityServerList2.get(0).getOwner().toUpperCase(ROOT)
-                        .compareTo(securityServerList2.get(securityServerList2.size() - 1).getOwner()
-                                .toUpperCase(
-                                        ROOT)));
+                0 < securityServerList2.get(0).getOwnerName().toUpperCase(ROOT).compareTo(
+                        securityServerList2.get(securityServerList2.size() - 1).getOwnerName().toUpperCase(ROOT)));
 
     }
 
@@ -169,6 +167,5 @@ public class SecurityServerControllerTest extends AbstractApiControllerTestConte
                 () -> securityServersController.findSecurityServers("not_relevant", sortingParameters));
 
     }
-
 
 }

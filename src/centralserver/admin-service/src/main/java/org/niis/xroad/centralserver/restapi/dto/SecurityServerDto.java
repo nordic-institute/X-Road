@@ -26,6 +26,8 @@
  */
 package org.niis.xroad.centralserver.restapi.dto;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.Builder;
 import lombok.Value;
 
@@ -34,14 +36,9 @@ import java.time.Instant;
 @Value
 @Builder
 public class SecurityServerDto {
-    String id;
-    String instanceId;
-    String ownerClass;
-    String ownerCode;
-    String ownerName;
+    SecurityServerId serverId;
     String serverAddress;
-    String serverCode;
-
+    String ownerName;
     Instant createdAt;
     Instant updatedAt;
 }

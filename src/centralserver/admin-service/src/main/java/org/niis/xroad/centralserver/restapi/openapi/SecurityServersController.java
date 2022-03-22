@@ -35,8 +35,6 @@ import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.niis.xroad.centralserver.openapi.model.SecurityServer;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerAddress;
 import org.niis.xroad.centralserver.restapi.converter.SecurityServerConverter;
-import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDto;
-import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
 import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
 import org.niis.xroad.restapi.config.audit.AuditDataHelper;
 import org.niis.xroad.restapi.config.audit.AuditEventMethod;
@@ -60,21 +58,17 @@ import java.util.Set;
 
 import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
 
-
 @RestController
 @RequestMapping(ControllerUtil.API_V1_PREFIX)
 @PreAuthorize("denyAll")
 @RequiredArgsConstructor
 public class SecurityServersController implements SecurityServersApi {
 
-
     private static final Logger LOG =
             LoggerFactory.getLogger(SecurityServersController.class);
 
-
     private final AuditDataHelper auditData;
     private final SecurityServerService securityServerService;
-
 
     SecurityServerConverter serverConverter = new SecurityServerConverter();
 
@@ -93,11 +87,8 @@ public class SecurityServersController implements SecurityServersApi {
     @Override
     @Validated
     @PreAuthorize("hasAuthority('VIEW_SECURITY_SERVERS')")
-    public ResponseEntity<PagedSecurityServers> findSecurityServers(String q,
-                                                                    PagingSortingParameters pagingSorting) {
+    public ResponseEntity<PagedSecurityServers> findSecurityServers(String q, PagingSortingParameters pagingSorting) {
 
-
-        LOG.debug("findSecurityServers() called with: q = [{}], pagingSorting = [{}]", q, pagingSorting);
         pagingSorting = getPagingSortingParametersOrDefault(pagingSorting);
         Sort sorting = getSortOrDefault(pagingSorting);
 
@@ -106,18 +97,8 @@ public class SecurityServersController implements SecurityServersApi {
                 pagingSorting.getLimit(),
                 sorting);
 
-
-        LOG.trace("Pageable for service call:{}, q param:{}", pageable, q);
-        FoundSecurityServersWithTotalsDto servers = securityServerService.findSecurityServers(q, pageable);
-        LOG.debug("Total {} Servers found, this page contains {} servers.", servers.getTotalCount(),
-                servers.getServerDtoList().size());
-        if (LOG.isTraceEnabled()) {
-            for (SecurityServerDto server : servers.getServerDtoList()) {
-                LOG.trace("found server:{}", server);
-            }
-        }
-        return ResponseEntity.ok(serverConverter.convert(servers, pageable));
-
+        var servers = securityServerService.findSecurityServers(q, pageable);
+        return ResponseEntity.ok(serverConverter.convert(servers));
     }
 
     private Sort getSortOrDefault(PagingSortingParameters pagingSorting) {
@@ -125,10 +106,11 @@ public class SecurityServersController implements SecurityServersApi {
                 (pagingSorting.getSort() == null || pagingSorting.getSort().isEmpty())
                         ? SERVER_CODE
                         : SortField.fromString(pagingSorting.getSort())
-                        .orElseThrow(() -> {
-                            throw new BadRequestException("Not supported sorting key:" + pagingSorting.getSort());
-                        })
-                        .toString()
+                                .orElseThrow(() -> {
+                                    throw new BadRequestException(
+                                            "Not supported sorting key:" + pagingSorting.getSort());
+                                })
+                                .toString()
         );
         sorting = Boolean.TRUE.equals(pagingSorting.getDesc()) ? sorting.descending() : sorting.ascending();
         return sorting;
@@ -164,7 +146,7 @@ public class SecurityServersController implements SecurityServersApi {
     @PreAuthorize("hasAuthority('EDIT_SECURITY_SERVER_ADDRESS')")
     @AuditEventMethod(event = RestApiAuditEvent.UPDATE_SECURITY_SERVER_ADDRESS)
     public ResponseEntity<SecurityServer> updateSecurityServerAddress(String id,
-                                                                      SecurityServerAddress securityServerAddress) {
+            SecurityServerAddress securityServerAddress) {
         throw new NotImplementedException("updateSecurityServerAddress not implemented yet");
     }
 
@@ -184,7 +166,6 @@ public class SecurityServersController implements SecurityServersApi {
         public String toString() {
             return fieldName;
         }
-
 
         public static Optional<SortField> fromString(String fieldParam) {
             try {

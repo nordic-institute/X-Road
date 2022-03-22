@@ -30,90 +30,42 @@ import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
 import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.SecurityServerId;
 import org.niis.xroad.centralserver.openapi.model.XRoadId;
-import org.niis.xroad.centralserver.restapi.dto.FoundSecurityServersWithTotalsDto;
 import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
-import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
-import java.time.OffsetDateTime;
-import java.util.TimeZone;
+import java.time.ZoneOffset;
 import java.util.stream.Collectors;
-
 
 public class SecurityServerConverter {
 
-    public String convertToId(SecurityServer serverEntity) {
-
-        return serverEntity.getOwner().getIdentifier().getXRoadInstance() + ':'
-                + serverEntity.getOwner().getMemberClass().getCode() + ':'
-                + serverEntity.getOwner().getMemberCode() + ':'
-                + serverEntity.getServerCode();
-    }
-
-    public String convertToId(SecurityServerDto securityServerDto) {
-        return securityServerDto.getInstanceId() + ':'
-                + securityServerDto.getOwnerClass() + ':'
-                + securityServerDto.getOwnerCode() + ':'
-                + securityServerDto.getServerCode();
-    }
-
-    public SecurityServerDto convert(SecurityServer server) {
-        SecurityServerId serverId = getSecurityServerId(server);
-        return SecurityServerDto.builder()
-                .id(convertToId(server))
-                .instanceId(serverId.getInstanceId())
-                .ownerClass(serverId.getMemberClass())
-                .ownerCode(serverId.getMemberCode())
-                .ownerName(server.getOwner().getName())
-                .serverCode(serverId.getServerCode())
-                .serverAddress(server.getAddress())
-                .updatedAt(server.getUpdatedAt())
-                .createdAt(server.getCreatedAt())
-                .build();
-    }
-
-    public PagedSecurityServers convert(FoundSecurityServersWithTotalsDto dto,
-                                        Pageable pageable) {
+    public PagedSecurityServers convert(Page<SecurityServerDto> servers) {
         return new PagedSecurityServers()
                 .pagingMetadata(new PagingMetadata()
-                        .totalItems(dto.getTotalCount())
-                        .items(dto.getServerDtoList().size())
-                        .limit(pageable.getPageSize())
-                        .offset(pageable.getPageNumber())
+                        .totalItems((int) servers.getTotalElements())
+                        .items(servers.getNumberOfElements())
+                        .limit(servers.getSize())
+                        .offset(servers.getNumber())
                 )
-                .clients(dto.getServerDtoList().stream().map(securityServerDto -> {
-                    SecurityServerId serverId = getSecurityServerId(securityServerDto);
-                    return new org.niis.xroad.centralserver.openapi.model.SecurityServer()
-                            .id(convertToId(securityServerDto))
-                            .xroadId(serverId)
-                            .owner(securityServerDto.getOwnerName())
-                            .serverAddress(securityServerDto.getServerAddress())
-                            .updatedAt(OffsetDateTime.ofInstant(securityServerDto.getUpdatedAt(),
-                                    TimeZone.getDefault().toZoneId()))
-                            .createdAt(OffsetDateTime.ofInstant(securityServerDto.getCreatedAt(), TimeZone.getDefault()
-                                    .toZoneId()));
-
-                }).collect(Collectors.toUnmodifiableList()));
+                .clients(servers.getContent().stream()
+                        .map(dto -> new org.niis.xroad.centralserver.openapi.model.SecurityServer()
+                                .id(dto.getServerId().toShortString(':'))
+                                .xroadId(getSecurityServerId(dto))
+                                .ownerName(dto.getOwnerName())
+                                .serverAddress(dto.getServerAddress())
+                                .updatedAt(dto.getUpdatedAt().atOffset(ZoneOffset.UTC))
+                                .createdAt(dto.getCreatedAt().atOffset(ZoneOffset.UTC)))
+                        .collect(Collectors.toUnmodifiableList()));
     }
 
-    private SecurityServerId getSecurityServerId(SecurityServer entity) {
-        SecurityServerId serverId = new SecurityServerId()
-                .memberClass(entity.getOwner().getMemberClass().getCode())
-                .memberCode(entity.getOwner().getMemberCode())
-                .serverCode(entity.getServerCode());
-        serverId.setInstanceId(entity.getOwner().getIdentifier().getXRoadInstance());
-        serverId.setType(XRoadId.TypeEnum.SERVER);
-        return serverId;
-    }
-
+    //todo should use xroad identifier converter (tbd)
     private SecurityServerId getSecurityServerId(SecurityServerDto serverDto) {
-        SecurityServerId serverId =
-                new SecurityServerId().memberClass(serverDto.getOwnerClass()).memberCode(serverDto.getOwnerCode())
-                        .serverCode(serverDto.getServerCode());
-
-        serverId.setInstanceId(serverDto.getInstanceId());
-        serverId.type(XRoadId.TypeEnum.SERVER);
-        return serverId;
+        var id = serverDto.getServerId();
+        var result = new SecurityServerId()
+                .memberClass(id.getMemberClass())
+                .memberCode(id.getMemberCode())
+                .serverCode(id.getServerCode());
+        result.instanceId(id.getXRoadInstance()).type(XRoadId.TypeEnum.SERVER);
+        return result;
     }
 
 }

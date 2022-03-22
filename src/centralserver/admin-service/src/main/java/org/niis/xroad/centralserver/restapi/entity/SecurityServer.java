@@ -27,6 +27,8 @@
 package org.niis.xroad.centralserver.restapi.entity;
 // Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import javax.persistence.Access;
 import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
@@ -41,6 +43,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import javax.validation.constraints.NotNull;
 
 import java.util.HashSet;
@@ -127,6 +130,11 @@ public class SecurityServer extends AuditableEntity {
     @Access(AccessType.FIELD)
     public Set<ServerClient> getServerClients() {
         return this.serverClients;
+    }
+
+    @Transient
+    public SecurityServerId getServerId() {
+        return SecurityServerId.create(owner.getIdentifier(), serverCode);
     }
 
 }

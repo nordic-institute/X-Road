@@ -27,7 +27,9 @@
 package org.niis.xroad.centralserver.restapi.repository;
 
 import org.niis.xroad.centralserver.restapi.entity.SecurityServer;
+import org.niis.xroad.centralserver.restapi.entity.SecurityServer_;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
+import org.niis.xroad.centralserver.restapi.entity.XRoadMember_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -37,65 +39,37 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import java.util.Locale;
 import java.util.Optional;
-
-import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.OWNER;
-import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
-import static org.niis.xroad.centralserver.restapi.entity.XRoadMember_.MEMBER_CLASS;
-import static org.niis.xroad.centralserver.restapi.entity.XRoadMember_.MEMBER_CODE;
-import static org.niis.xroad.centralserver.restapi.entity.XRoadMember_.NAME;
-
 
 @Repository
 public interface SecurityServerRepository extends
         PagingAndSortingRepository<SecurityServer, Integer>,
         JpaSpecificationExecutor<SecurityServer> {
+
     Optional<SecurityServer> findByOwnerAndServerCode(XRoadMember owner, String serverCode);
 
     static Specification<SecurityServer> multifieldSearch(String q) {
         if (q == null || q.isEmpty()) {
             return null;
         }
-        return (root, query, builder) ->
-                multifieldTextSearch(root, builder, q);
+        return (root, query, builder) -> multifieldSearchPredicate(root, builder, q);
     }
 
+    private static Predicate multifieldSearchPredicate(Root<SecurityServer> root, CriteriaBuilder builder, String q) {
+        final var owner = root.join(SecurityServer_.owner);
+        final var identifier = owner.join(XRoadMember_.identifier);
+        final var pattern = builder.literal(
+                "%" + q.toLowerCase(Locale.ROOT)
+                        .replace("\\", "\\\\")
+                        .replace("%", "\\%")
+                        .replace("_", "\\_") + "%");
 
-    private static Predicate serverCodePredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.get(SERVER_CODE)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
-    }
-
-    private static Predicate memberCodePredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.join(OWNER).get(MEMBER_CODE)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
-    }
-
-    private static Predicate memberClassPredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.join(OWNER).get(MEMBER_CLASS).get("code")),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
-    }
-
-    private static Predicate memberNamePredicate(Root<SecurityServer> root, CriteriaBuilder builder, String s) {
-        return builder.like(
-                builder.lower(root.join(OWNER).get(NAME)),
-                builder.lower(builder.literal("%" + s + "%"))
-        );
-    }
-
-    private static Predicate multifieldTextSearch(Root<SecurityServer> root, CriteriaBuilder builder, String q) {
         return builder.or(
-                memberNamePredicate(root, builder, q),
-                memberClassPredicate(root, builder, q),
-                memberCodePredicate(root, builder, q),
-                serverCodePredicate(root, builder, q)
-
+                builder.like(builder.lower(root.get(SecurityServer_.serverCode)), pattern, '\\'),
+                builder.like(builder.lower(owner.get(XRoadMember_.name)), pattern, '\\'),
+                builder.like(builder.lower(identifier.get("memberClass")), pattern, '\\'),
+                builder.like(builder.lower(identifier.get("memberCode")), pattern, '\\')
         );
     }
 

@@ -34,18 +34,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.Assert.assertEquals;
-import static org.niis.xroad.centralserver.restapi.entity.SecurityServer_.SERVER_CODE;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 @AutoConfigureTestDatabase
 @Transactional
-@WithMockUser
 public class SecurityServerRepositoryIntegrationTest {
 
     @Autowired
@@ -68,7 +65,6 @@ public class SecurityServerRepositoryIntegrationTest {
 
     @Test
     public void testFindAllNonExisting() {
-        PageRequest page = PageRequest.of(0, 25, Sort.by(SERVER_CODE).ascending());
         var servers =
                 repository.findAll(SecurityServerRepository.multifieldSearch("NOTexisting"), Pageable.unpaged());
         assertEquals(1, servers.getTotalPages());

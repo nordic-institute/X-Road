@@ -3824,13 +3824,10 @@ components:
           readOnly: true
         xroad_id:
           $ref: '#/components/schemas/SecurityServerId'
-        owner:
-          description: <instance_id>:<member_class>:<member_code>
-          example: FI:GOV:123
-          format: text
+        owner_name:
           type: string
+          readOnly: true
       required:
-        - id
         - xroad_id
       type: object
     PagedClients:
