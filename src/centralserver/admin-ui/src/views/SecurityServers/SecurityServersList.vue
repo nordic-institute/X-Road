@@ -43,15 +43,17 @@
       :items="securityServers"
       :search="search"
       :must-sort="true"
-      :items-per-page="-1"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
       hide-default-footer
+      @update:options="findServers"
     >
       <template #[`item.serverCode`]="{ item }">
-        <div class="server-code xrd-clickable" @click="toDetails('netum')">
-          <xrd-icon-base class="mr-4"><XrdIconSecurityServer /></xrd-icon-base>
+        <div class="server-code xrd-clickable" @click="toDetails(item)">
+          <xrd-icon-base class="mr-4">
+            <XrdIconSecurityServer />
+          </xrd-icon-base>
           <div>{{ item.serverCode }}</div>
         </div>
       </template>
@@ -70,6 +72,17 @@
 import Vue from 'vue';
 import { DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
+import { PagingMetadata, SecurityServer } from '@/openapi-types';
+import { useSecurityServerStore } from '@/store/modules/security-servers';
+import { mapStores } from 'pinia';
+
+interface SecurityServerListViewItem {
+  id: string;
+  serverCode: string;
+  serverOwnerName: string;
+  serverOwnerCode: string;
+  serverOwnerClass: string;
+}
 
 export default Vue.extend({
   data() {
@@ -77,48 +90,12 @@ export default Vue.extend({
       search: '',
       loading: false,
       showOnlyPending: false,
-      securityServers: [
-        {
-          serverCode: '938726',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerCode: '333',
-          serverOnwerClass: 'DEV',
-        },
-
-        {
-          serverCode: '12323',
-          serverOwnerName: 'Tartu Kesklinna Perearstikeskus OÜ',
-          serverOnwerCode: '444',
-          serverOnwerClass: 'DEV',
-        },
-        {
-          serverCode: '837478',
-          serverOwnerName: 'Eesti Põllumajandusloomade Jõudluskontrolli ASi',
-          serverOnwerCode: '444',
-          serverOnwerClass: 'DEV',
-        },
-        {
-          serverCode: '63533',
-          serverOwnerName: 'Helsingin kristillisen koulun kannatusyhdistys',
-          serverOnwerCode: '222',
-          serverOnwerClass: 'FI',
-        },
-        {
-          serverCode: '98370',
-          serverOwnerName: 'Siseministeerium',
-          serverOnwerCode: '999',
-          serverOnwerClass: 'COM',
-        },
-        {
-          serverCode: '63352',
-          serverOwnerName: 'Turvallisuus- ja kemikaalivirasto',
-          serverOnwerCode: '777',
-          serverOnwerClass: 'COM',
-        },
-      ],
+      securityServers: [] as SecurityServerListViewItem[],
+      pagingOptions: {} as PagingMetadata,
     };
   },
   computed: {
+    ...mapStores(useSecurityServerStore),
     headers(): DataTableHeader[] {
       return [
         {
@@ -136,13 +113,13 @@ export default Vue.extend({
         {
           text: this.$t('securityServers.ownerCode') as string,
           align: 'start',
-          value: 'serverOnwerCode',
+          value: 'serverOwnerCode',
           class: 'xrd-table-header ss-table-header-owner-code',
         },
         {
           text: this.$t('securityServers.ownerClass') as string,
           align: 'start',
-          value: 'serverOnwerClass',
+          value: 'serverOwnerClass',
           class: 'xrd-table-header ss-table-header-owner-class',
         },
       ];
@@ -150,13 +127,33 @@ export default Vue.extend({
   },
 
   methods: {
-    // Add the type later when it exists
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    toDetails(securityServer: any): void {
+    toDetails(securityServer: SecurityServer): void {
       this.$router.push({
         name: RouteName.SecurityServerDetails,
-        params: { id: 'foo11' },
+        params: { id: securityServer.id || '' },
       });
+    },
+    findServers: async function (options: {
+      page: number;
+      itemsPerPage: number;
+      sortBy: string[];
+      sortDesc: boolean[];
+      q: string;
+    }) {
+      this.loading = true;
+      await this.securityServerStore.find(options);
+      this.securityServers = await this.securityServerStore.securityServers.map(
+        (server: SecurityServer): SecurityServerListViewItem => {
+          return {
+            id: server.id || '',
+            serverCode: server.xroad_id.serverCode,
+            serverOwnerClass: server.xroad_id.memberClass,
+            serverOwnerCode: server.xroad_id.memberCode,
+            serverOwnerName: server.owner_name || '',
+          };
+        },
+      );
+      this.loading = false;
     },
   },
 });
