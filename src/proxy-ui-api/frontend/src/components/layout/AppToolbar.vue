@@ -67,7 +67,7 @@ import { useUser } from '@/store/modules/user';
 import { useSystemStore } from '@/store/modules/system';
 
 export default Vue.extend({
-  name: 'Toolbar',
+  name: 'AppToolbar',
   computed: {
     ...mapState(useUser, ['authenticated', 'currentSecurityServer']),
     ...mapState(useSystemStore, ['securityServerNodeType']),

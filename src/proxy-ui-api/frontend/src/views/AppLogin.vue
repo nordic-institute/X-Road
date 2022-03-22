@@ -130,7 +130,7 @@ export default (
     }
   >
 ).extend({
-  name: 'Login',
+  name: 'AppLogin',
   components: {
     ValidationProvider,
     ValidationObserver,
