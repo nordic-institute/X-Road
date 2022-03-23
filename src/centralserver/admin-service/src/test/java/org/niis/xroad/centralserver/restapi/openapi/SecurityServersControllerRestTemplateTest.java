@@ -29,7 +29,6 @@ package org.niis.xroad.centralserver.restapi.openapi;
 import org.junit.Test;
 import org.niis.xroad.centralserver.openapi.model.PagedSecurityServers;
 import org.niis.xroad.centralserver.openapi.model.SecurityServer;
-import org.niis.xroad.restapi.openapi.model.ErrorInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.ResponseEntity;
@@ -41,7 +40,6 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.niis.xroad.centralserver.restapi.util.TestUtils.addApiKeyAuthorizationHeader;
 
@@ -97,21 +95,6 @@ public class SecurityServersControllerRestTemplateTest extends AbstractApiRestTe
         assertNotEquals(response.getBody().getClients().get(0), response2.getBody().getClients().get(0));
 
 
-    }
-
-    @Test
-    public void givenTooShortQParameterReturns400Response() {
-        addApiKeyAuthorizationHeader(restTemplate);
-        ResponseEntity<ErrorInfo> response = restTemplate.getForEntity("/api/v1/security-servers/?q=SS",
-                ErrorInfo.class);
-        assertNotNull(response, "Security server list response  must not be null.");
-        assertEquals(400, response.getStatusCodeValue(),
-                "Security server list request with invalid parameter must return 400 status");
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().getError().getCode().contains("validation"));
-        assertTrue(response.getBody().getError().getValidationErrors().containsKey("findSecurityServers.q"));
-        assertNotNull(response.getBody().getError().getValidationErrors().get("findSecurityServers.q"));
-        assertNull(response.getBody().getWarnings());
     }
 
     @Test
