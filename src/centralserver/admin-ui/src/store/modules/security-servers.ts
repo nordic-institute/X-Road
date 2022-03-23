@@ -31,6 +31,7 @@ import {
   SecurityServer,
 } from '@/openapi-types';
 import { defineStore } from 'pinia';
+import { DataOptions } from 'vuetify';
 
 function sortField2SortParam(field: string): string {
   let searchParam;
@@ -70,24 +71,18 @@ export const useSecurityServerStore = defineStore('securityServer', {
   }),
   persist: true,
   actions: {
-    async find(findOptions: {
-      page: number;
-      itemsPerPage: number;
-      sortBy: string[];
-      sortDesc: boolean[];
-      q: string;
-    }) {
-      const searchParams = {
-        offset: findOptions.page - 1,
-        limit: findOptions.itemsPerPage,
-        sort: sortField2SortParam(findOptions.sortBy[0]),
-        desc: findOptions.sortDesc[0],
-        q: findOptions.q,
+    async find(dataOptions: DataOptions, q: string) {
+      const searchUrlParams = {
+        offset: dataOptions.page - 1,
+        limit: dataOptions.itemsPerPage,
+        sort: sortField2SortParam(dataOptions.sortBy[0]),
+        desc: dataOptions.sortDesc[0],
+        q,
       };
 
       return axios
         .get<PagedSecurityServers>('/security-servers/', {
-          params: searchParams,
+          params: searchUrlParams,
         })
         .then((resp) => {
           this.securityServers = resp.data.clients || [];

@@ -41,8 +41,8 @@
       :loading="loading"
       :headers="headers"
       :items="securityServers"
-      :search="search"
       :must-sort="true"
+      disable-filtering
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
@@ -70,9 +70,9 @@
  * View for 'security servers' tab
  */
 import Vue from 'vue';
-import { DataTableHeader } from 'vuetify';
+import { DataOptions, DataTableHeader } from 'vuetify';
 import { RouteName } from '@/global';
-import { PagingMetadata, SecurityServer } from '@/openapi-types';
+import { SecurityServer } from '@/openapi-types';
 import { useSecurityServerStore } from '@/store/modules/security-servers';
 import { mapStores } from 'pinia';
 
@@ -91,7 +91,7 @@ export default Vue.extend({
       loading: false,
       showOnlyPending: false,
       securityServers: [] as SecurityServerListViewItem[],
-      pagingOptions: {} as PagingMetadata,
+      pagingSortingOptions: {} as DataOptions,
     };
   },
   computed: {
@@ -126,6 +126,12 @@ export default Vue.extend({
     },
   },
 
+  watch: {
+    search: function () {
+      this.findServers(this.pagingSortingOptions);
+    },
+  },
+
   methods: {
     toDetails(securityServer: SecurityServer): void {
       this.$router.push({
@@ -133,15 +139,10 @@ export default Vue.extend({
         params: { id: securityServer.id || '' },
       });
     },
-    findServers: async function (options: {
-      page: number;
-      itemsPerPage: number;
-      sortBy: string[];
-      sortDesc: boolean[];
-      q: string;
-    }) {
+    findServers: async function (options: DataOptions) {
       this.loading = true;
-      await this.securityServerStore.find(options);
+      this.pagingSortingOptions = Object.assign({}, options);
+      await this.securityServerStore.find(options, this.search);
       this.securityServers = await this.securityServerStore.securityServers.map(
         (server: SecurityServer): SecurityServerListViewItem => {
           return {
@@ -153,6 +154,10 @@ export default Vue.extend({
           };
         },
       );
+      this.pagingSortingOptions.page =
+        this.securityServerStore.securityServerPagingOptions.offset + 1;
+      this.pagingSortingOptions.itemsPerPage =
+        this.securityServerStore.securityServerPagingOptions.limit;
       this.loading = false;
     },
   },
