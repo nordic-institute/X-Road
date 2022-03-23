@@ -190,7 +190,7 @@ export default Vue.extend({
     },
     updatedSearchDebounce: debounce(() => {
       // Debounce is used to reduce unnecessary api calls
-      that.fetchClients;
+      that.fetchClients();
     }, 600),
   },
 });
