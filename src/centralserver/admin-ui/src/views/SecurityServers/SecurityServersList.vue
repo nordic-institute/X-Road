@@ -44,9 +44,10 @@
       :must-sort="true"
       disable-filtering
       class="elevation-0 data-table"
+      hide-default-footer
       item-key="id"
       :loader-height="2"
-      hide-default-footer
+      :no-data-text="$t('noData.noMatches')"
       @update:options="findServers"
     >
       <template #[`item.serverCode`]="{ item }">
