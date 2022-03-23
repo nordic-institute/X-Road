@@ -26,20 +26,16 @@
 package org.niis.xroad.centralserver.restapi.openapi;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.ClientsApi;
 import org.niis.xroad.centralserver.openapi.model.Client;
-import org.niis.xroad.centralserver.openapi.model.ClientId;
 import org.niis.xroad.centralserver.openapi.model.ClientType;
 import org.niis.xroad.centralserver.openapi.model.MemberName;
 import org.niis.xroad.centralserver.openapi.model.PagedClients;
-import org.niis.xroad.centralserver.openapi.model.PagingMetadata;
 import org.niis.xroad.centralserver.openapi.model.PagingSortingParameters;
 import org.niis.xroad.centralserver.restapi.converter.ClientTypeMapping;
 import org.niis.xroad.centralserver.restapi.converter.PageRequestConverter;
 import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
-import org.niis.xroad.centralserver.restapi.entity.FlattenedSecurityServerClient;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
 import org.niis.xroad.restapi.openapi.BadRequestException;
@@ -47,18 +43,13 @@ import org.niis.xroad.restapi.openapi.ControllerUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import static java.lang.Math.toIntExact;
 
 @Controller
 @RequestMapping(ControllerUtil.API_V1_PREFIX)

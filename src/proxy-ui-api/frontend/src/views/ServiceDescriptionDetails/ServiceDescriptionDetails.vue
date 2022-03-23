@@ -200,6 +200,9 @@ import {
   ServiceType,
 } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   components: {
@@ -230,8 +233,9 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_WSDL);
+      return this.hasPermission(Permissions.DELETE_WSDL);
     },
   },
   watch: {
@@ -245,6 +249,7 @@ export default Vue.extend({
     this.fetchData(this.id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -277,7 +282,7 @@ export default Vue.extend({
           this.serviceDescriptionUpdate,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('localGroup.descSaved'));
+          this.showSuccess(this.$t('localGroup.descSaved'));
           this.saveBusy = false;
           this.serviceDescriptionUpdate = null;
           this.$router.go(-1);
@@ -287,7 +292,7 @@ export default Vue.extend({
             this.warningInfo = error.response.data.warnings;
             this.confirmEditWarning = true;
           } else {
-            this.$store.dispatch('showError', error);
+            this.showError(error);
             this.saveBusy = false;
             this.serviceDescriptionUpdate = null;
           }
@@ -307,7 +312,7 @@ export default Vue.extend({
             this.serviceDesc.services[0].service_code;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -322,13 +327,13 @@ export default Vue.extend({
       api
         .remove(`/service-descriptions/${encodePathParameter(this.id)}`)
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('services.deleted'));
+          this.showSuccess(this.$t('services.deleted'));
           this.confirmWSDLDelete = false;
           this.confirmRESTDelete = false;
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
 
@@ -345,11 +350,11 @@ export default Vue.extend({
           this.serviceDescriptionUpdate,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('localGroup.descSaved'));
+          this.showSuccess(this.$t('localGroup.descSaved'));
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         })
         .finally(() => {
           this.saveBusy = false;

@@ -7,10 +7,6 @@ configurations {
     npm { canBeConsumed(true); canBeResolved(false) }
 }
 
-dependencies {
-    npm project(":shared-ui")
-}
-
 node {
     download = true
     version = nodeVersion
@@ -19,7 +15,7 @@ node {
     }
 }
 
-task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
+task npmBuild(type: NpmTask, dependsOn: npmInstall) {
     inputs.files(
         'src/',
         'public/',
@@ -37,21 +33,24 @@ task npmBuild(type: NpmTask, dependsOn: ['npmInstall']) {
     args = ['run', '--quiet', 'build-lib']
 }
 
-task npmPack(type: NpmTask, dependsOn: ["npmBuild"]) {
+task npmPack(type: NpmTask, dependsOn: npmBuild) {
+    inputs.files("dist")
     outputs.file("niis-shared-ui-0.1.0.tgz")
     args = ['pack', '--quiet']
 }
 
 task checkFrontAudit(type: NpmTask) {
-    inputs.files("package.json", "package-lock.json", "dist")
-    // do a front end audit with npm run npx-check-audit
-    // npx-check-audit uses a shared ignore list from /shared-ui/audit-ci-shared.json
+    inputs.files(
+        'package.json',
+        'package-lock.json'
+    )
+    outputs.files('build/reports/audit-ci.txt')
     args = ['run', 'npx-check-audit']
 }
 
 // check that npm run license-check passes
 task checkFrontLicense(type: NpmTask, dependsOn: 'npmInstall') {
-    inputs.files("src/", "test/", "public/")
+    inputs.files("LICENSE.txt", "src/", "test/", "public/")
     outputs.upToDateWhen { true }
     args = ['run', 'license-check']
 }
@@ -61,9 +60,12 @@ clean {
     delete file('dist')
 }
 
-assemble.dependsOn npmBuild
-check.dependsOn checkFrontAudit
+assemble.dependsOn npmPack
 check.dependsOn checkFrontLicense
+
+if (project.hasProperty('frontend-npm-audit')) {
+  npmInstall.dependsOn checkFrontAudit
+}
 
 artifacts {
     npm(file("niis-shared-ui-0.1.0.tgz")) {

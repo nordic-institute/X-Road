@@ -51,8 +51,13 @@ public class ServerClient {
     private SecurityServerClient securityServerClient;
     private SecurityServer securityServer;
 
-    public ServerClient() {
+    protected ServerClient() {
         //JPA
+    }
+
+    ServerClient(SecurityServer server, SecurityServerClient client) {
+        securityServer = server;
+        securityServerClient = client;
     }
 
     @Id

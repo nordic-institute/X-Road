@@ -44,7 +44,6 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(SpringRunner.class)
@@ -251,7 +250,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
     @Test
     public void findClientsBySecurityServerIdAndFreetext() {
         var clients = repository.findAll(
-            (root, query, builder) -> builder.and(
+                (root, query, builder) -> builder.and(
                     FlattenedSecurityServerClientRepository.clientOfSecurityServerPredicate(root, builder, 1000001),
                     FlattenedSecurityServerClientRepository.multifieldTextSearchPredicate(root, builder, "ss1")
             ));
@@ -276,6 +275,7 @@ public class FlattenedSecurityServerClientRepositoryIntegrationTest {
         assertEquals(1, clientsPage.getNumber());
     }
 
+    @SuppressWarnings("checkstyle:MethodLength") // I think it makes sense to test all of these in same test
     @Test
     public void findClientsByMultiParameterSearch() {
         var clients = repository.findAll(

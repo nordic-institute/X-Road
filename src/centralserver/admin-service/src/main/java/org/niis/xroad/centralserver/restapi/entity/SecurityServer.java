@@ -27,6 +27,8 @@
 package org.niis.xroad.centralserver.restapi.entity;
 // Generated Feb 16, 2021 11:14:33 AM by Hibernate Tools 5.4.20.Final
 
+import javax.persistence.Access;
+import javax.persistence.AccessType;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -39,6 +41,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,24 +62,27 @@ public class SecurityServer extends AuditableEntity {
     private Set<SecurityServerSecurityCategory> securityServerSecurityCategories = new HashSet<>(0);
     private Set<ServerClient> serverClients = new HashSet<>(0);
 
-    public SecurityServer() {
+    protected SecurityServer() {
         //JPA
+    }
+
+    public SecurityServer(XRoadMember owner, String serverCode) {
+        this.owner = owner;
+        this.serverCode = serverCode;
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = TABLE_NAME + "_id_seq")
     @SequenceGenerator(name = TABLE_NAME + "_id_seq", sequenceName = TABLE_NAME + "_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false)
+    @Access(AccessType.FIELD)
     public int getId() {
         return this.id;
     }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id")
+    @NotNull
     public XRoadMember getOwner() {
         return this.owner;
     }
@@ -86,6 +92,7 @@ public class SecurityServer extends AuditableEntity {
     }
 
     @Column(name = "server_code")
+    @NotNull
     public String getServerCode() {
         return this.serverCode;
     }
@@ -95,6 +102,7 @@ public class SecurityServer extends AuditableEntity {
     }
 
     @Column(name = "address")
+    @NotNull
     public String getAddress() {
         return this.address;
     }
@@ -104,31 +112,28 @@ public class SecurityServer extends AuditableEntity {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public Set<AuthCert> getAuthCerts() {
         return this.authCerts;
     }
 
-    public void setAuthCerts(Set<AuthCert> authCerts) {
-        this.authCerts = authCerts;
-    }
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public Set<SecurityServerSecurityCategory> getSecurityServerSecurityCategories() {
         return this.securityServerSecurityCategories;
     }
 
-    public void setSecurityServerSecurityCategories(
-            Set<SecurityServerSecurityCategory> securityServersSecurityCategories) {
-        this.securityServerSecurityCategories = securityServersSecurityCategories;
-    }
-
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "securityServer", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Access(AccessType.FIELD)
     public Set<ServerClient> getServerClients() {
         return this.serverClients;
     }
 
-    public void setServerClients(Set<ServerClient> serverClients) {
-        this.serverClients = serverClients;
+    public void addClient(SecurityServerClient client) {
+        var serverClient = new ServerClient(this, client);
+        serverClients.add(serverClient);
+        //todo: is two-way mapping necessary.
+        client.getServerClients().add(serverClient);
     }
 
 }

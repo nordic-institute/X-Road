@@ -45,7 +45,8 @@ import Snackbar from '@/components/ui/Snackbar.vue';
 import AppFooter from '@/components/layout/AppFooter.vue';
 import AppToolbar from '@/components/layout/AppToolbar.vue';
 import { RouteName } from '@/global';
-import { mapGetters } from 'vuex';
+import { mapActions } from 'pinia';
+import { useUser } from '@/store/modules/user';
 
 export default Vue.extend({
   name: 'App',
@@ -55,7 +56,6 @@ export default Vue.extend({
     Snackbar,
   },
   computed: {
-    ...mapGetters(['isSessionAlive']),
     loginView(): boolean {
       return this.$route.name !== RouteName.Login;
     },
@@ -65,7 +65,8 @@ export default Vue.extend({
     // Add a response interceptor
     axios.interceptors.response.use(
       (response) => {
-        this.$store.commit('authUser');
+        // Set user authentication status in store
+        this.authUser();
         return response;
       },
       (error) => {
@@ -78,7 +79,7 @@ export default Vue.extend({
           this.$router.currentRoute.name !== 'login'
         ) {
           // if you ever get an unauthorized, logout the user
-          this.$store.commit('setSessionAlive', false);
+          this.setSessionAlive(false);
         }
         // If the request is made with responseType: blob, but backend responds with json error
         if (
@@ -110,7 +111,14 @@ export default Vue.extend({
 
     // Session-status api is called before accessing any view. The session-status data is only used to prevent
     // opening views that user aren't allowed to see (flickering).
-    this.$store.dispatch('isSessionAlive');
+    this.fetchSessionStatus();
+  },
+  methods: {
+    ...mapActions(useUser, [
+      'setSessionAlive',
+      'fetchSessionStatus',
+      'authUser',
+    ]),
   },
 });
 </script>

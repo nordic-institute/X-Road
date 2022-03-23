@@ -32,6 +32,8 @@ tags:
     description: resources related to Central Server initialization
   - name: intermediate-cas
     description: resources related to Intermediate Certificate Authorities
+  - name: management-requests
+    description: resources related to management requests
   - name: management-services
     description: resources related to Management Services
   - name: member-classes
@@ -1824,7 +1826,7 @@ paths:
           required: false
           schema:
             $ref: '#/components/schemas/PagingSortingParameters'
-        - description: an optional search string (member name). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
+        - description: an optional search string (member name). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
           in: query
           name: name
           required: false
@@ -1842,7 +1844,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (member_class). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
+        - description: an optional search string (member_class). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
           in: query
           name: member_class
           required: false
@@ -1851,7 +1853,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (member_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
+        - description: an optional search string (member_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
           in: query
           name: member_code
           required: false
@@ -1860,7 +1862,7 @@ paths:
             maxLength: 255
             minLength: 0
             type: string
-        - description: an optional search string (subsystem_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored. 
+        - description: an optional search string (subsystem_code). Client field needs to contain parameter value (case insensitive). Empty value means the parameter is ignored.
           in: query
           name: subsystem_code
           required: false
@@ -2772,6 +2774,190 @@ paths:
       summary: update a timestamping service
       tags:
         - timestamping-services
+  /management-requests:
+    get:
+      tags:
+        - management-requests
+      summary: Find management requests
+      operationId: findManagementRequests
+      description: List management requests
+      parameters:
+        - in: query
+          name: origin
+          description: management request origin
+          required: false
+          schema:
+            $ref: '#/components/schemas/ManagementRequestOrigin'
+        - in: query
+          name: type
+          description: management request type
+          required: false
+          schema:
+            $ref: '#/components/schemas/ManagementRequestType'
+        - in: query
+          name: status
+          description: request status
+          required: false
+          schema:
+            $ref: '#/components/schemas/ManagementRequestStatus'
+        - in: query
+          name: serverId
+          description: security server id
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: page
+          description: page number (zero based)
+          required: false
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: array of management requests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequestInfoPage'
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+    post:
+      tags:
+        - management-requests
+      summary: Add a management request
+      operationId: addManagementRequest
+      description: Add management request
+      requestBody:
+        description: management request to add
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ManagementRequest'
+      responses:
+        '201':
+          description: The request was processed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequestInfo'
+        '202':
+          description: The request was accepted for processing
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequestInfo'
+
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '409':
+          description: request can not be processed due to data integrity or business rule violations
+        '500':
+          description: internal server error
+  /management-requests/{id}:
+    get:
+      tags:
+        - management-requests
+      summary: get management request details
+      operationId: getManagementRequest
+      description: Administrator creates a management request
+      parameters:
+        - in: path
+          name: id
+          description: request id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The management request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequest'
+        '400':
+          description: invalid request
+        '401':
+          description: not authenticated
+        '403':
+          description: not authorized
+    delete:
+      tags:
+        - management-requests
+      summary: Revoke/decline a management request
+      operationId: revokeManagementRequest
+      description: Administrator revokes a management request
+      parameters:
+        - in: path
+          name: id
+          description: request id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Revoke succeeded
+        '400':
+          description: request was invalid
+        '401':
+          description: authentication credentials are missing
+        '403':
+          description: request has been refused
+        '404':
+          description: resource requested does not exists
+        '406':
+          description: request specified an invalid format
+        '500':
+          description: internal server error
+  /management-requests/{id}/approval:
+    post:
+      tags:
+        - management-requests
+      summary: approve a management request
+      operationId: approveManagementRequest
+      description: Administrator approves a management request
+      parameters:
+        - in: path
+          name: id
+          description: request id
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: The management request was approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManagementRequestInfo'
+        '400':
+          description: invalid request
+        '401':
+          description: not authenticated
+        '403':
+          description: not authorized
+        '404':
+          description: request not found
+        '409':
+          description: request can not be approved in this state
 components:
   examples:
     DeleteKeyWarningExample:
@@ -3479,71 +3665,6 @@ components:
         - wsdl_address
         - service_provider_id
       type: object
-    MemberId:
-      description: XroadId of a member
-      properties:
-        instance_id:
-          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: FI
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-          readOnly: true
-        member_class:
-          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: GOV
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-        member_code:
-          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: 123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-      required:
-        - instance_id
-        - member_class
-        - member_code
-      type: object
-    ClientId:
-      allOf:
-        - $ref: '#/components/schemas/MemberId'
-      description: XroadId of a member or a subsystem
-      properties:
-        subsystem_code:
-          description: Subsystem code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
-          example: ABC
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-      required:
-        - instance_id
-        - member_class
-        - member_code
-      type: object
-    SecurityServerId:
-      allOf:
-        - $ref: '#/components/schemas/MemberId'
-      description: XroadId of a security server
-      properties:
-        server_code:
-          description: security server code
-          example: server123
-          format: text
-          maxLength: 255
-          minLength: 1
-          type: string
-      required:
-        - instance_id
-        - member_class
-        - member_code
-        - server_code
-      type: object
     Client:
       allOf:
         - $ref: '#/components/schemas/MemberName'
@@ -4031,11 +4152,227 @@ components:
       required:
         - info
       type: object
+    XRoadId:
+      type: object
+      description: X-Road identifier
+      discriminator:
+        propertyName: type
+        mapping:
+          MEMBER: "ClientId"
+          SERVER: "SecurityServerId"
+          SUBSYSTEM: "ClientId"
+      properties:
+        instance_id:
+          description: Xroad instance id. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: FI
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+          readOnly: true
+        type:
+          type: string
+          format: enum
+          enum:
+            - MEMBER
+            - SUBSYSTEM
+            - SERVER
+            - GLOBALGROUP
+            - SECURITYCATEGORY
+            - SERVICE
+            - CENTRALSERVICE
+            - LOCALGROUP
+      required:
+        - instance_id
+        - type
+    ClientId:
+      type: object
+      description: Member identifier
+      allOf:
+        - $ref: '#/components/schemas/XRoadId'
+      properties:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        subsystem_code:
+          type: string
+      required:
+        - member_class
+        - member_code
+    SecurityServerId:
+      allOf:
+        - $ref: '#/components/schemas/XRoadId'
+      type: object
+      properties:
+        member_class:
+          description: Member class. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: GOV
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        member_code:
+          description: Member code. Cannot contain colons, semicolons, slashes, backslashes, percent signs or control characters
+          example: 123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+        server_code:
+          description: security server code
+          example: server123
+          format: text
+          maxLength: 255
+          minLength: 1
+          type: string
+      required:
+        - member_class
+        - member_code
+        - server_code
+    ManagementRequest:
+      type: object
+      description: Management request
+      discriminator:
+        propertyName: type
+        mapping:
+          AUTH_CERT_REGISTRATION_REQUEST: "AuthenticationCertificateRegistrationRequest"
+          CLIENT_REGISTRATION_REQUEST: "ClientRegistrationRequest"
+          CLIENT_DELETION_REQUEST: "ClientDeletionRequest"
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        securityserverId:
+          $ref: '#/components/schemas/SecurityServerId'
+        status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+      required:
+        - type
+        - source
+        - securityserverId
+    ManagementRequestInfo:
+      type: object
+      description: Management request summary
+      properties:
+        id:
+          type: integer
+          description: request id
+          readOnly: true
+        type:
+          $ref: '#/components/schemas/ManagementRequestType'
+        origin:
+          $ref: '#/components/schemas/ManagementRequestOrigin'
+        securityserverId:
+          $ref: '#/components/schemas/SecurityServerId'
+        status:
+          $ref: '#/components/schemas/ManagementRequestStatus'
+        createdAt:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+        - type
+        - source
+        - securityserverId
+    ManagementRequestType:
+      type: string
+      enum:
+        - AUTH_CERT_REGISTRATION_REQUEST
+        - CLIENT_REGISTRATION_REQUEST
+        - OWNER_CHANGE_REQUEST
+        - CLIENT_DELETION_REQUEST
+        - AUTH_CERT_DELETION_REQUEST
+    ManagementRequestStatus:
+      type: string
+      readOnly: true
+      description: request status
+      enum:
+        - WAITING
+        - APPROVED
+        - DECLINED
+        - REVOKED
+        - "SUBMITTED FOR APPROVAL"
+    ManagementRequestOrigin:
+      type: string
+      description: request source
+      enum:
+        - CENTER
+        - SECURITY_SERVER
+    Page:
+      type: object
+      properties:
+        number:
+          type: integer
+          description: page number (zero based)
+        size:
+          type: integer
+          description: page size
+        totalPages:
+          type: integer
+          description: total number of pages
+        totalElements:
+          type: integer
+          description: total number of elements (<=size * totalPages)
+    ManagementRequestInfoPage:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Page'
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ManagementRequestInfo'
+    AuthenticationCertificateRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        serverAddress:
+          type: string
+        authenticationCertificate:
+          type: string
+          format: byte
+      required:
+        - serverAddress
+        - authencationCertificate
+    ClientRegistrationRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - clientId
+    ClientDeletionRequest:
+      allOf:
+        - $ref: '#/components/schemas/ManagementRequest'
+      type: object
+      properties:
+        clientId:
+          $ref: '#/components/schemas/ClientId'
+      required:
+        - clientId
   securitySchemes:
     ApiKeyAuth:
       description: X-Road-ApiKey token=<api key>
       # https://github.com/nordic-institute/X-Road-REST-UI/blob/XRDDEV-237/doc/Manuals/ug-ss_x-road_6_security_server_user_guide.md#1911-creating-new-api-keys
-
       in: header
       name: Authorization
       type: apiKey

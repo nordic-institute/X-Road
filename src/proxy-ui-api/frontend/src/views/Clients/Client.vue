@@ -42,13 +42,13 @@
             v-if="showMakeOwner"
             :id="id"
             class="first-button"
-            @done="fetchClient"
+            @done="fetchData"
           />
           <DeleteClientButton v-if="showDelete" :id="id" />
           <UnregisterClientButton
             v-if="showUnregister"
             :id="id"
-            @done="fetchClient"
+            @done="fetchData"
           />
         </div>
       </v-flex>
@@ -60,11 +60,15 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import { mapGetters } from 'vuex';
+
 import { Permissions } from '@/global';
 import DeleteClientButton from '@/components/client/DeleteClientButton.vue';
 import UnregisterClientButton from '@/components/client/UnregisterClientButton.vue';
 import MakeOwnerButton from '@/components/client/MakeOwnerButton.vue';
+import { mapActions, mapState } from 'pinia';
+import { useNotifications } from '@/store/modules/notifications';
+import { useUser } from '@/store/modules/user';
+import { useClientStore } from '@/store/modules/client';
 
 export default Vue.extend({
   components: {
@@ -79,20 +83,24 @@ export default Vue.extend({
     },
   },
   computed: {
-    ...mapGetters(['client', 'clientLoading']),
-
+    ...mapState(useClientStore, ['client', 'clientLoading']),
+    ...mapState(useUser, ['hasPermission']),
     showMakeOwner(): boolean {
+      if (!this.client) return false;
+
       return (
         this.client &&
-        this.$store.getters.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
+        this.hasPermission(Permissions.SEND_OWNER_CHANGE_REQ) &&
         this.client.status === 'REGISTERED' &&
         !this.client.owner
       );
     },
     showUnregister(): boolean {
+      if (!this.client) return false;
+
       return (
         this.client &&
-        this.$store.getters.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
+        this.hasPermission(Permissions.SEND_CLIENT_DEL_REQ) &&
         (this.client.status === 'REGISTERED' ||
           this.client.status === 'REGISTRATION_IN_PROGRESS')
       );
@@ -106,16 +114,18 @@ export default Vue.extend({
         return false;
       }
 
-      return this.$store.getters.hasPermission(Permissions.DELETE_CLIENT);
+      return this.hasPermission(Permissions.DELETE_CLIENT);
     },
   },
   created() {
-    this.fetchClient(this.id);
+    this.fetchData(this.id);
   },
   methods: {
-    fetchClient(id: string): void {
-      this.$store.dispatch('fetchClient', id).catch((error) => {
-        this.$store.dispatch('showError', error);
+    ...mapActions(useNotifications, ['showError']),
+    ...mapActions(useClientStore, ['fetchClient']),
+    fetchData(id: string): void {
+      this.fetchClient(id).catch((error) => {
+        this.showError(error);
       });
     },
   },

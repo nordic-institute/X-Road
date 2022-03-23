@@ -26,12 +26,13 @@
 package ee.ria.xroad.common.conf.globalconf;
 
 import ee.ria.xroad.common.CodedException;
-import ee.ria.xroad.common.SystemProperties;
 import ee.ria.xroad.common.TestCertUtil;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -55,6 +56,8 @@ import static org.junit.Assert.fail;
  */
 @Slf4j
 public class ConfigurationClientTest {
+    @Rule
+    public TemporaryFolder tempConfFolder = new TemporaryFolder();
 
     /**
      * Test to ensure a simple configuration will be downloaded.
@@ -66,18 +69,16 @@ public class ConfigurationClientTest {
         String confPath = "src/test/resources/test-conf-simple";
 
         List<String> receivedParts = new ArrayList<>();
-        List<String> deletedFiles = new ArrayList<>();
 
-        ConfigurationClient client = getClient(confPath, receivedParts, deletedFiles);
+        initInstanceIdentifier();
+
+        ConfigurationClient client = getClient(confPath, receivedParts);
         client.execute();
 
         assertEquals(3, receivedParts.size());
         assertTrue(receivedParts.contains(CONTENT_ID_PRIVATE_PARAMETERS));
         assertTrue(receivedParts.contains(CONTENT_ID_SHARED_PARAMETERS));
         assertTrue(receivedParts.contains("FOO"));
-
-        assertEquals(1, deletedFiles.size());
-        assertTrue(deletedFiles.contains("src/test/resources/test-conf-simple/EE/bar.xml"));
     }
 
     /**
@@ -90,16 +91,16 @@ public class ConfigurationClientTest {
         String confPath = "src/test/resources/test-conf-detached";
 
         List<String> receivedParts = new ArrayList<>();
-        List<String> deletedFiles = new ArrayList<>();
 
-        ConfigurationClient client = getClient(confPath, receivedParts, deletedFiles);
+        initInstanceIdentifier();
+
+        ConfigurationClient client = getClient(confPath, receivedParts);
         client.execute();
 
         assertEquals(2, receivedParts.size());
         assertTrue(receivedParts.contains(CONTENT_ID_PRIVATE_PARAMETERS));
         assertTrue(receivedParts.contains(CONTENT_ID_SHARED_PARAMETERS));
 
-        assertEquals(0, deletedFiles.size());
     }
 
     /**
@@ -112,9 +113,10 @@ public class ConfigurationClientTest {
         String confPath = "src/test/resources/test-conf-malformed";
 
         List<String> receivedParts = new ArrayList<>();
-        List<String> deletedFiles = new ArrayList<>();
 
-        ConfigurationClient client = getClient(confPath, receivedParts, deletedFiles);
+        initInstanceIdentifier();
+
+        ConfigurationClient client = getClient(confPath, receivedParts);
 
         try {
             client.execute();
@@ -123,8 +125,6 @@ public class ConfigurationClientTest {
         } catch (CodedException expected) {
             assertEquals(X_MALFORMED_GLOBALCONF, expected.getFaultCode());
         }
-
-        assertEquals(0, deletedFiles.size());
     }
 
     // ------------------------------------------------------------------------
@@ -155,17 +155,18 @@ public class ConfigurationClientTest {
         };
     }
 
-    private static ConfigurationClient getClient(final String confPath, final List<String> receivedParts,
-            final List<String> deletedFiles) {
+    private void initInstanceIdentifier() throws Exception {
+        ConfigurationDirectory.saveInstanceIdentifier(tempConfFolder.getRoot().getAbsolutePath(),  "EE");
+    }
+
+    private ConfigurationClient getClient(final String confPath, final List<String> receivedParts) {
         ConfigurationAnchorV2 configurationAnchor = getConfigurationAnchor(confPath + ".txt");
 
-        FileNameProvider fileNameProvider = new FileNameProviderImpl(confPath);
-
         ConfigurationDownloader configurations = new ConfigurationDownloader(
-                fileNameProvider, SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION) {
+                tempConfFolder.getRoot().getAbsolutePath()) {
             @Override
             ConfigurationParser getParser() {
-                return new ConfigurationParser(instanceIdentifiers) {
+                return new ConfigurationParser() {
                     @Override
                     protected InputStream getInputStream() throws Exception {
                         String downloadURL = configuration.getLocation().getDownloadURL();
@@ -190,6 +191,7 @@ public class ConfigurationClientTest {
             @Override
             void persistContent(byte[] content, Path destination, ConfigurationFile file) throws Exception {
                 receivedParts.add(file.getContentIdentifier());
+                super.persistContent(content, destination, file);
             }
 
             @Override
@@ -205,21 +207,6 @@ public class ConfigurationClientTest {
             }
         };
 
-        DownloadedFiles downloadedFiles = new DownloadedFiles(confPath) {
-            @Override
-            void delete(Path path) {
-                log.info("delete({})", path);
-
-                deletedFiles.add(path.toString());
-            }
-
-            @Override
-            void save() throws Exception {
-                log.info("save({})", getDownloadedFileList());
-            }
-        };
-
-        return new ConfigurationClient(downloadedFiles, configurations,
-                SystemProperties.CURRENT_GLOBAL_CONFIGURATION_VERSION, configurationAnchor);
+        return new ConfigurationClient(tempConfFolder.getRoot().getAbsolutePath(), configurations, configurationAnchor);
     }
 }

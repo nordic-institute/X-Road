@@ -27,8 +27,8 @@ node {
     }
 }
 
-task npmUpdateDeps(type: NpmTask) {
-    inputs.files(configurations.npm, 'package.json')
+task npmUpdateDeps(type: NpmTask, dependsOn: configurations.npm) {
+    inputs.files('package.json')
     outputs.files('package-lock.json')
     args = ['--quiet', 'install', '--package-lock-only'] + configurations.npm.files.collect { it.toString() }
 }
@@ -71,13 +71,12 @@ task npmBuild(type: NpmTask, dependsOn: ['npmGenerateTypes']) {
     args = ['run', '--quiet', 'build:gradle']
 }
 
-task checkFrontAudit(type: NpmTask, dependsOn: 'npmBuild') {
+task checkFrontAudit(type: NpmTask) {
     inputs.files(
         'package.json',
-        'package-lock.json',
-        'dist'
+        'package-lock.json'
     )
-    outputs.upToDateWhen { true }
+    outputs.files('build/reports/audit-ci.txt')
     args = ['run', 'npx-check-audit']
 }
 
@@ -100,8 +99,11 @@ clean {
 }
 
 assemble.dependsOn npmBuild
-check.dependsOn checkFrontAudit
 check.dependsOn checkFrontLicense
+
+if (project.hasProperty('frontend-npm-audit')) {
+  npmUpdateDeps.dependsOn checkFrontAudit
+}
 
 artifacts {
     dist(file("dist/")) {

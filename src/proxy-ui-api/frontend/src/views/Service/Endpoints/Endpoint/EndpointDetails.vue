@@ -117,6 +117,9 @@ import { Permissions } from '@/global';
 import { ValidationObserver, ValidationProvider } from 'vee-validate';
 import { Endpoint } from '@/openapi-types';
 import { encodePathParameter } from '@/util/api';
+import { mapActions, mapState } from 'pinia';
+import { useUser } from '@/store/modules/user';
+import { useNotifications } from '@/store/modules/notifications';
 
 export default Vue.extend({
   components: {
@@ -149,14 +152,16 @@ export default Vue.extend({
     };
   },
   computed: {
+    ...mapState(useUser, ['hasPermission']),
     showDelete(): boolean {
-      return this.$store.getters.hasPermission(Permissions.DELETE_ENDPOINT);
+      return this.hasPermission(Permissions.DELETE_ENDPOINT);
     },
   },
   created(): void {
     this.fetchData(this.id);
   },
   methods: {
+    ...mapActions(useNotifications, ['showError', 'showSuccess']),
     close(): void {
       this.$router.go(-1);
     },
@@ -167,14 +172,11 @@ export default Vue.extend({
       api
         .remove(`/endpoints/${encodePathParameter(id)}`)
         .then(() => {
-          this.$store.dispatch(
-            'showSuccess',
-            this.$t('endpoints.deleteSuccess'),
-          );
+          this.showSuccess(this.$t('endpoints.deleteSuccess'));
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.showError(error);
           this.confirmDelete = false;
         });
     },
@@ -188,11 +190,11 @@ export default Vue.extend({
           this.endpoint,
         )
         .then(() => {
-          this.$store.dispatch('showSuccess', this.$t('endpoints.editSuccess'));
+          this.showSuccess(this.$t('endpoints.editSuccess'));
           this.$router.go(-1);
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error);
+          this.showError(error);
         });
     },
     fetchData(id: string): void {
@@ -202,7 +204,7 @@ export default Vue.extend({
           this.endpoint = endpoint.data;
         })
         .catch((error) => {
-          this.$store.dispatch('showError', error.message);
+          this.showError(error);
         });
     },
   },

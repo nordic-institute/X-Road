@@ -46,13 +46,13 @@
       :items="members"
       :search="search"
       :must-sort="true"
-      :items-per-page=10
+      :items-per-page="10"
       :options.sync="options"
       :server-items-length="totalMembers"
       class="elevation-0 data-table"
       item-key="id"
       :loader-height="2"
-      :footer-props="{ itemsPerPageOptions: [10,25]}"
+      :footer-props="{ itemsPerPageOptions: [10, 25] }"
       @update:options="changeOptions"
     >
       <template #[`item.name`]="{ item }">
@@ -93,9 +93,14 @@ import { mapState } from 'pinia';
 import { Permissions } from '@/global';
 import { DataOptions } from 'vuetify';
 import { debounce, isEmpty } from '@/util/helpers';
-import {Client, MemberClass, PagedClients} from "@/openapi-types";
+import { Client, MemberClass, PagedClients } from '@/openapi-types';
 import * as api from '@/util/api';
 import { AxiosRequestConfig } from 'axios';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
+
 
 export default Vue.extend({
   name: 'MemberList',
@@ -111,9 +116,8 @@ export default Vue.extend({
   },
   watch: {
     search: function (newSearch, oldSearch) {
-      console.log("search changed from " + oldSearch + " to " + newSearch);
       this.debouncedFetchClients();
-    }
+    },
   },
   computed: {
     ...mapState(userStore, ['hasPermission']),
@@ -144,9 +148,13 @@ export default Vue.extend({
     },
   },
   created() {
-    this.debouncedFetchClients = debounce(this.fetchClients, 600);
+    that = this;
   },
   methods: {
+    debouncedFetchClients: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.fetchClients();
+    }, 600),
     toDetails(): void {
       this.$router.push({
         name: RouteName.MemberDetails,
@@ -158,28 +166,28 @@ export default Vue.extend({
     },
     fetchClients(): void {
       this.loading = true;
-      const offset = (this.options?.page == null ? 0 : this.options.page - 1);
-      const params: any = {
+      const offset = this.options?.page == null ? 0 : this.options.page - 1;
+      const params: unknown = {
         limit: this.options.itemsPerPage,
         offset: offset,
         sort: this.options.sortBy[0],
         desc: this.options.sortDesc[0],
-        q: this.search
+        q: this.search,
       };
-      const axiosParams: AxiosRequestConfig = { params }
+      const axiosParams: AxiosRequestConfig = { params };
 
       api
-          .get<PagedClients>(`/clients`, axiosParams)
-          .then((res) => {
-            this.members = res.data.clients;
-            this.totalMembers = res.data.paging_metadata.total_items;
-            console.log("total members: " + this.totalMembers);
-          })
-          .catch((error) => {
-            // importoi piniasta show error action, kato mallia muualta
-            throw "error, handling missing"
-          })
-          .finally(() => (this.loading = false));
+        .get<PagedClients>(`/clients`, axiosParams)
+        .then((res) => {
+          this.members = res.data.clients;
+          this.totalMembers = res.data.paging_metadata.total_items;
+          // console.log('total members: ' + this.totalMembers);
+        })
+        .catch((error) => {
+          // importoi piniasta show error action, kato mallia muualta
+          throw 'error, handling missing';
+        })
+        .finally(() => (this.loading = false));
     },
   },
 });

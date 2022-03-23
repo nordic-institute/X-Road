@@ -26,13 +26,28 @@
  */
 package org.niis.xroad.centralserver.restapi.repository;
 
+import ee.ria.xroad.common.identifier.ClientId;
+import ee.ria.xroad.common.identifier.XRoadObjectType;
+
 import org.niis.xroad.centralserver.restapi.entity.MemberClass;
 import org.niis.xroad.centralserver.restapi.entity.XRoadMember;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
-public interface XRoadMemberRepository extends JpaRepository<XRoadMember, Integer> {
+public interface XRoadMemberRepository extends SecurityServerClientRepository<XRoadMember> {
 
     boolean existsByMemberClass(MemberClass memberClass);
+
+    /**
+     * Finds a (owner) member corresponding to the client id
+     * @param clientId member or subsystem ID
+     * @return XRoadMember or Optional.empty() if none exists
+     */
+    default Optional<XRoadMember> findMember(ClientId clientId) {
+        final var memberId = clientId.getObjectType().equals(XRoadObjectType.MEMBER) ? clientId
+                : ClientId.create(clientId.getXRoadInstance(), clientId.getMemberClass(), clientId.getMemberCode());
+        return findOneBy(memberId);
+    }
 }
