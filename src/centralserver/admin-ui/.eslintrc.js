@@ -7,8 +7,7 @@ module.exports = {
     'plugin:vue/recommended',
     'eslint:recommended',
     '@vue/typescript/recommended',
-    '@vue/prettier',
-    '@vue/prettier/@typescript-eslint',
+    'plugin:prettier/recommended',
   ],
   ignorePatterns: ['node_modules/'],
   parserOptions: {
@@ -20,6 +19,7 @@ module.exports = {
     '@typescript-eslint/no-var-requires': 0,
     '@typescript-eslint/camelcase': 'off',
     '@typescript-eslint/no-unused-vars': 'off', // Remove this when the "mock" phase is over
+    'vue/multi-word-component-names': 'warn', // Default is error
     'vue/no-unused-vars': 'warn',
     '@typescript-eslint/no-explicit-any':
       process.env.NODE_ENV === 'production' ? 'error' : 'warn',

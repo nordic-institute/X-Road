@@ -162,3 +162,17 @@
 .v-text-field {
   font-weight: 600 !important;
 }
+
+// Override Vuetify tab slider style
+.v-tabs-slider.xrd-main-tabs-slider {
+  width: 70px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// Override Vuetify tab font style
+.v-tab {
+  text-transform: none !important;
+  font-weight: 600 !important;
+}
+
