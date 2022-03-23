@@ -1,6 +1,5 @@
 /**
  * The MIT License
- *
  * Copyright (c) 2019- Nordic Institute for Interoperability Solutions (NIIS)
  * Copyright (c) 2018 Estonian Information System Authority (RIA),
  * Nordic Institute for Interoperability Solutions (NIIS), Population Register Centre (VRK)
@@ -24,28 +23,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.niis.xroad.centralserver.restapi.service;
+package org.niis.xroad.centralserver.restapi.dto;
 
-import ee.ria.xroad.common.identifier.SecurityServerId;
+import lombok.Value;
 
-import lombok.RequiredArgsConstructor;
-import org.niis.xroad.centralserver.restapi.dto.SecurityServerDto;
-import org.niis.xroad.centralserver.restapi.repository.SecurityServerRepository;
-import org.springframework.stereotype.Service;
-
-import javax.transaction.Transactional;
-
-import java.util.Optional;
-
-@Service
-@Transactional
-@RequiredArgsConstructor
-public class SecurityServerService {
-
-    private final SecurityServerRepository securityServerRepository;
-
-    public Optional<SecurityServerDto> find(SecurityServerId id) {
-        return securityServerRepository.findBy(id).map(
-                m -> new SecurityServerDto(m.getId(), m.getServerCode(), m.getAddress()));
-    }
+@Value
+public class SecurityServerDto {
+    private int id;
+    private String serverCode;
+    private String address;
 }

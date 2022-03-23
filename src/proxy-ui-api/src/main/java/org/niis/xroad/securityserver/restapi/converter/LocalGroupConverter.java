@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.LocalGroupId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.converter.Converters;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.facade.GlobalConfFacade;
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class LocalGroupConverter {
 
-    private final ClientConverter clientConverter;
+    private final ClientIdConverter clientIdConverter;
     private final GlobalConfFacade globalConfFacade;
 
     /**
@@ -123,7 +124,7 @@ public class LocalGroupConverter {
     private GroupMemberType convert(GroupMember groupMember) {
         GroupMemberType groupMemberType = new GroupMemberType();
 
-        groupMemberType.setGroupMemberId(clientConverter.convertId(groupMember.getId()));
+        groupMemberType.setGroupMemberId(clientIdConverter.convertId(groupMember.getId()));
         groupMemberType.setAdded(new Date(groupMember.getCreatedAt().toEpochSecond()));
 
         return groupMemberType;
@@ -136,7 +137,7 @@ public class LocalGroupConverter {
      */
     public GroupMember convert(GroupMemberType groupMemberType) {
         GroupMember groupMember = new GroupMember();
-        groupMember.setId(clientConverter.convertId(groupMemberType.getGroupMemberId()));
+        groupMember.setId(clientIdConverter.convertId(groupMemberType.getGroupMemberId()));
         groupMember.setCreatedAt(FormatUtils.fromDateToOffsetDateTime(groupMemberType.getAdded()));
         groupMember.setName(globalConfFacade.getMemberName(groupMemberType.getGroupMemberId()));
         return groupMember;

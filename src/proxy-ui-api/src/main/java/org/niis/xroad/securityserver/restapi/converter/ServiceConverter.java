@@ -31,6 +31,7 @@ import ee.ria.xroad.common.identifier.ClientId;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.Service;
@@ -59,7 +60,7 @@ public class ServiceConverter {
      */
     public static final int FULL_SERVICE_CODE_INDEX = 4;
 
-    private final ClientConverter clientConverter;
+    private final ClientIdConverter clientIdConverter;
     private final EndpointConverter endpointConverter;
     private final EndpointHelper endpointHelper;
 
@@ -113,7 +114,7 @@ public class ServiceConverter {
      */
     public String convertId(ServiceType serviceType, ClientId clientId) {
         StringBuilder builder = new StringBuilder();
-        builder.append(clientConverter.convertId(clientId));
+        builder.append(clientIdConverter.convertId(clientId));
         builder.append(ENCODED_ID_SEPARATOR);
         builder.append(FormatUtils.getServiceFullName(serviceType));
         return builder.toString();
@@ -129,7 +130,7 @@ public class ServiceConverter {
         validateEncodedString(encodedId);
         String encodedClientId = encodedId.substring(0, encodedId.lastIndexOf(
                 ENCODED_ID_SEPARATOR));
-        return clientConverter.convertId(encodedClientId);
+        return clientIdConverter.convertId(encodedClientId);
     }
 
     /**

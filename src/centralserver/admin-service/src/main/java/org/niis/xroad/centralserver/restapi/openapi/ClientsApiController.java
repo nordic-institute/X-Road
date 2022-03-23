@@ -25,7 +25,10 @@
  */
 package org.niis.xroad.centralserver.restapi.openapi;
 
+import ee.ria.xroad.common.identifier.SecurityServerId;
+
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.niis.xroad.centralserver.openapi.ClientsApi;
 import org.niis.xroad.centralserver.openapi.model.Client;
 import org.niis.xroad.centralserver.openapi.model.ClientType;
@@ -38,9 +41,10 @@ import org.niis.xroad.centralserver.restapi.converter.PagedClientsConverter;
 import org.niis.xroad.centralserver.restapi.dto.FlattenedSecurityServerClientDto;
 import org.niis.xroad.centralserver.restapi.repository.FlattenedSecurityServerClientRepository;
 import org.niis.xroad.centralserver.restapi.service.ClientSearchService;
+import org.niis.xroad.centralserver.restapi.service.SecurityServerService;
+import org.niis.xroad.restapi.converter.SecurityServerIdConverter;
 import org.niis.xroad.restapi.openapi.BadRequestException;
 import org.niis.xroad.restapi.openapi.ControllerUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -58,12 +62,10 @@ import java.util.Map;
 public class ClientsApiController implements ClientsApi {
 
     private final ClientSearchService clientSearchService;
-
-    @Autowired
-    private PagedClientsConverter pagedClientsConverter;
-
-    @Autowired
-    private PageRequestConverter pageRequestConverter;
+    private final PagedClientsConverter pagedClientsConverter;
+    private final PageRequestConverter pageRequestConverter;
+    private final SecurityServerIdConverter securityServerIdConverter;
+    private final SecurityServerService securityServerService;
 
     @Override
     public ResponseEntity<Client> addClient(Client client) {
@@ -81,9 +83,8 @@ public class ClientsApiController implements ClientsApi {
             PagingSortingParameters pagingSorting, String name,
             String instance, String memberClass,
             String memberCode, String subsystemCode,
-            ClientType clientType, String securityServer) {
+            ClientType clientType, String encodedSecurityServerId) {
         PageRequest pageRequest = pageRequestConverter.convert(pagingSorting, new MemberSortParameterConverter());
-        // TO DO: securityServer id
         var params = new FlattenedSecurityServerClientRepository.SearchParameters()
                 .setMultifieldSearch(q)
                 .setInstanceSearch(instance)
@@ -92,6 +93,12 @@ public class ClientsApiController implements ClientsApi {
                 .setMemberCodeSearch(memberCode)
                 .setSubsystemCodeSearch(subsystemCode)
                 .setClientType(ClientTypeMapping.map(clientType).orElse(null));
+        if (!StringUtils.isEmpty(encodedSecurityServerId)) {
+            SecurityServerId id = securityServerIdConverter.convertId(encodedSecurityServerId);
+            var securityServer = securityServerService.find(id);
+            // TO DO: NotFoundException if not found
+            params.setSecurityServerId(securityServer.get().getId());
+        }
         Page<FlattenedSecurityServerClientDto> page = clientSearchService.find(params, pageRequest);
         PagedClients pagedResults = pagedClientsConverter.convert(page, pagingSorting);
         return ResponseEntity.ok(pagedResults);

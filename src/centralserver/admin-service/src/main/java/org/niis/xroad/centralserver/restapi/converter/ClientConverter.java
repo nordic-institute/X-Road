@@ -37,6 +37,7 @@ public class ClientConverter {
 
     public Client convert(FlattenedSecurityServerClientDto flattened) {
         Client client = new Client();
+        // TO DO: should not have type twice
         client.setClientType(ClientTypeMapping.map(flattened.getType())
                 .orElseThrow(() -> new RuntimeException("Cannot convert client type " + flattened.getType())));
         client.setId(String.valueOf(flattened.getId()));
@@ -48,6 +49,8 @@ public class ClientConverter {
         clientId.setMemberClass(flattened.getMemberClassCode());
         clientId.setMemberCode(flattened.getMemberCode());
         clientId.setSubsystemCode(flattened.getSubsystemCode());
+        clientId.setType(XRoadIdTypeEnumMapping.map(flattened.getType())
+                  .orElseThrow(() -> new RuntimeException("Cannot convert client type " + flattened.getType())));
         client.setXroadId(clientId);
         return client;
     }

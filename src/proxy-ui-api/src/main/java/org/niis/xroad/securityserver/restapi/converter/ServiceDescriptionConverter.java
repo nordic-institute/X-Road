@@ -29,6 +29,7 @@ import ee.ria.xroad.common.conf.serverconf.model.ServiceDescriptionType;
 
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
+import org.niis.xroad.restapi.converter.ClientIdConverter;
 import org.niis.xroad.restapi.util.FormatUtils;
 import org.niis.xroad.securityserver.restapi.openapi.model.ServiceDescription;
 import org.springframework.stereotype.Component;
@@ -43,7 +44,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ServiceDescriptionConverter {
 
-    private final ClientConverter clientConverter;
+    private final ClientIdConverter clientIdConverter;
     private final ServiceConverter serviceConverter;
 
     /**
@@ -70,7 +71,7 @@ public class ServiceDescriptionConverter {
         ServiceDescription serviceDescription = new ServiceDescription();
 
         serviceDescription.setId(String.valueOf(serviceDescriptionType.getId()));
-        serviceDescription.setClientId(clientConverter.convertId(
+        serviceDescription.setClientId(clientIdConverter.convertId(
                 serviceDescriptionType.getClient().getIdentifier()));
         serviceDescription.setDisabled(serviceDescriptionType.isDisabled());
         serviceDescription.setDisabledNotice(serviceDescriptionType.getDisabledNotice());
