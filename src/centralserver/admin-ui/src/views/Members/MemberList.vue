@@ -92,9 +92,14 @@ import { userStore } from '@/store/modules/user';
 import { mapState } from 'pinia';
 import { Permissions } from '@/global';
 import { DataOptions } from 'vuetify';
+import { debounce, isEmpty } from '@/util/helpers';
 import {Client, MemberClass, PagedClients} from "@/openapi-types";
 import * as api from '@/util/api';
 import { AxiosRequestConfig } from 'axios';
+
+// To provide the Vue instance to debounce
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let that: any;
 
 export default Vue.extend({
   name: 'MemberList',
@@ -108,6 +113,14 @@ export default Vue.extend({
       members: [] as Client[] | undefined,
       // pagingStuff - lue mikon esimerkistä miten on toteutettu siinä....oma property vai yksi ja sama
     };
+  },
+  watch: {
+    search: function (newSearch, oldSearch) {
+      console.log("search changed from " + oldSearch + " to " + newSearch);
+      this.updatedSearchDebounce();
+      // this.answer = 'Waiting for you to stop typing...'
+      // this.debouncedGetAnswer()
+    }
   },
   computed: {
     ...mapState(userStore, ['hasPermission']),
@@ -157,7 +170,8 @@ export default Vue.extend({
         limit: this.options.itemsPerPage,
         offset: offset,
         sort: this.options.sortBy[0],
-        desc: this.options.sortDesc[0]
+        desc: this.options.sortDesc[0],
+        q: this.search
       };
       const axiosParams: AxiosRequestConfig = { params }
 
@@ -173,7 +187,11 @@ export default Vue.extend({
             throw "error, handling missing"
           })
           .finally(() => (this.loading = false));
-    }
+    },
+    updatedSearchDebounce: debounce(() => {
+      // Debounce is used to reduce unnecessary api calls
+      that.fetchClients;
+    }, 600),
   },
 });
 </script>
